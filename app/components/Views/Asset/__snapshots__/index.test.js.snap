@@ -3,7 +3,7 @@
 exports[`Asset should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
@@ -11,7 +11,7 @@ exports[`Asset should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "flex": 1,
       }
@@ -20,7 +20,7 @@ exports[`Asset should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "justifyContent": "center",
           "paddingBottom": 24,
@@ -30,7 +30,7 @@ exports[`Asset should render correctly 1`] = `
       <ActivityIndicator
         size="small"
         style={
-          Object {
+          {
             "alignSelf": "center",
           }
         }
@@ -39,7 +39,7 @@ exports[`Asset should render correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "elevation": 2,
         "flexDirection": "row",
@@ -48,7 +48,7 @@ exports[`Asset should render correctly 1`] = `
         "paddingHorizontal": 16,
         "paddingTop": 16,
         "shadowColor": "#00000099",
-        "shadowOffset": Object {
+        "shadowOffset": {
           "height": 4,
           "width": 0,
         },
@@ -65,7 +65,7 @@ exports[`Asset should render correctly 1`] = `
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "#0376C9",
@@ -86,7 +86,7 @@ exports[`Asset should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#FFFFFF",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,

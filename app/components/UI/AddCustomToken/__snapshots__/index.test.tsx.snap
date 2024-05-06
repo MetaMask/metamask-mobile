@@ -3,7 +3,7 @@
 exports[`AddCustomToken render matches previous snapshot 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
@@ -14,8 +14,8 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
     <View>
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "borderRadius": 8,
               "borderWidth": 1,
               "flexDirection": "row",
@@ -23,11 +23,11 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
               "paddingVertical": 8,
             },
             undefined,
-            Object {
+            {
               "backgroundColor": "#0376C919",
               "borderColor": "#0376C9",
             },
-            Object {
+            {
               "marginHorizontal": 20,
               "marginTop": 20,
             },
@@ -36,7 +36,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
             }
           }
@@ -44,21 +44,21 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
           <Text
             allowFontScaling={false}
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#0376C9",
                   "fontSize": 18,
                 },
-                Object {
+                {
                   "paddingRight": 8,
                   "paddingTop": 4,
                 },
-                Object {
+                {
                   "fontFamily": "FontAwesome",
                   "fontStyle": "normal",
                   "fontWeight": "normal",
                 },
-                Object {},
+                {},
               ]
             }
           >
@@ -67,8 +67,8 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         </View>
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
@@ -98,14 +98,14 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
               undefined,
               undefined,
               undefined,
-              Array [
-                Object {
+              [
+                {
                   "color": "#24272A",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 17,
                 },
-                Object {
+                {
                   "marginRight": 12,
                 },
               ],
@@ -114,7 +114,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         >
           <Text
             style={
-              Object {
+              {
                 "color": "#24272A",
               }
             }
@@ -124,7 +124,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
           <Text
             onPress={[Function]}
             style={
-              Object {
+              {
                 "color": "#0376C9",
               }
             }
@@ -136,7 +136,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "paddingHorizontal": 16,
             "paddingTop": 16,
           }
@@ -144,7 +144,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
       >
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
@@ -163,7 +163,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
           placeholderTextColor="#BBC0C5"
           returnKeyType="next"
           style={
-            Object {
+            {
               "borderColor": "#BBC0C5",
               "borderRadius": 8,
               "borderWidth": 1,
@@ -179,7 +179,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         />
         <Text
           style={
-            Object {
+            {
               "color": "#D73847",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
@@ -194,7 +194,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
   </RCTScrollView>
   <View
     style={
-      Object {
+      {
         "paddingVertical": 20,
       }
     }
@@ -208,7 +208,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "alignSelf": "center",
           "backgroundColor": "#0376C9",
@@ -232,7 +232,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#FFFFFF",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
