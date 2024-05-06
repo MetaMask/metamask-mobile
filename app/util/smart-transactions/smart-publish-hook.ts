@@ -318,38 +318,33 @@ class SmartTransactionHook {
     });
   };
 
-  #addApprovalRequest = ({ uuid }: { uuid: string }) => {
-    const onApproveOrRejectWrapper = () => {
-      this.#cleanup();
-    };
-
+  #addApprovalRequest = async ({ uuid }: { uuid: string }) => {
     const origin = this.#transactionMeta.origin;
 
     if (!origin) throw new Error('Origin is required');
 
-    // Do not await on this, since it will not progress any further if so
     this.#approvalId = random();
 
-    this.#approvalController
-      .addAndShowApprovalRequest({
-        id: this.#approvalId,
-        origin,
-        type: ApprovalTypes.SMART_TRANSACTION_STATUS,
-        // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
-        // can also be read from approvalController.state.pendingApprovals[approvalId].requestState
-        requestState: {
-          smartTransaction: {
-            status: SmartTransactionStatuses.PENDING,
-            creationTime: Date.now(),
-            uuid,
-          },
-          isDapp: this.#isDapp,
-          isInSwapFlow: this.#isInSwapFlow,
-          isSwapApproveTx: this.#isSwapApproveTx,
-          isSwapTransaction: this.#isSwapTransaction,
+    // Do not await on this, since it will not progress any further if so
+    this.#approvalController.addAndShowApprovalRequest({
+      id: this.#approvalId,
+      origin,
+      type: ApprovalTypes.SMART_TRANSACTION_STATUS,
+      // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
+      // can also be read from approvalController.state.pendingApprovals[approvalId].requestState
+      requestState: {
+        smartTransaction: {
+          status: SmartTransactionStatuses.PENDING,
+          creationTime: Date.now(),
+          uuid,
         },
-      })
-      .then(onApproveOrRejectWrapper, onApproveOrRejectWrapper);
+        isDapp: this.#isDapp,
+        isInSwapFlow: this.#isInSwapFlow,
+        isSwapApproveTx: this.#isSwapApproveTx,
+        isSwapTransaction: this.#isSwapTransaction,
+      },
+    });
+
     Logger.log(LOG_PREFIX, 'Added approval', this.#approvalId);
   };
 
