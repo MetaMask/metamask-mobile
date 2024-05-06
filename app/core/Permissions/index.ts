@@ -2,6 +2,7 @@ import { errorCodes as rpcErrorCodes } from '@metamask/rpc-errors';
 import { RestrictedMethods, CaveatTypes } from './constants';
 import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
+import { uniqueList } from '../../util/general';
 const Engine = ImportedEngine as any;
 
 function getAccountsCaveatFromPermission(accountsPermission: any = {}) {
@@ -86,27 +87,27 @@ export const addPermittedAccounts = (
   );
   const existingPermittedAccountAddresses: string[] = existing.value;
 
-  for (const address in addresses) {
-    if (existingPermittedAccountAddresses.includes(address)) {
-      throw new Error(
-        `eth_accounts permission for hostname "${hostname}" already permits account "${address}".`,
-      );
-    }
-  }
+  const newPermittedAccountsAddresses = uniqueList(
+    addresses,
+    existingPermittedAccountAddresses,
+  );
 
-  const newPermittedAccounts = [
-    ...addresses,
-    ...existingPermittedAccountAddresses,
-  ];
+  // No change in permitted account addresses
+  if (
+    newPermittedAccountsAddresses.length ===
+    existingPermittedAccountAddresses.length
+  ) {
+    return existingPermittedAccountAddresses[0];
+  }
 
   PermissionController.updateCaveat(
     hostname,
     RestrictedMethods.eth_accounts,
     CaveatTypes.restrictReturnedAccounts,
-    newPermittedAccounts,
+    newPermittedAccountsAddresses,
   );
 
-  return newPermittedAccounts[0];
+  return newPermittedAccountsAddresses[0];
 };
 
 export const removePermittedAccounts = (
