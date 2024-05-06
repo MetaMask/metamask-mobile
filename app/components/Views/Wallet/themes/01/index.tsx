@@ -20,15 +20,16 @@ const Default = ({
   renderContent: () => JSX.Element;
   renderLoader: () => JSX.Element;
   renderOnboardingWizard: () => JSX.Element;
-}) => (
-  <ErrorBoundary navigation={navigation} view="Wallet">
-    <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
-      {renderContent()}
-      {selectedAddress ? renderContent() : renderLoader()}
+}) => {
+  return (
+    <ErrorBoundary navigation={navigation} view="Wallet">
+      <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
+        {selectedAddress ? renderContent() : renderLoader()}
 
-      {renderOnboardingWizard()}
-    </View>
-  </ErrorBoundary>
-);
+        {renderOnboardingWizard()}
+      </View>
+    </ErrorBoundary>
+  );
+}
 
 export default Default;

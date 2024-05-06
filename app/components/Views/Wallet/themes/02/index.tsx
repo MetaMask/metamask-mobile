@@ -46,7 +46,7 @@ const Custom01 = ({
     {
       title: strings('asset_overview.receive_button'),
       iconName: IconName.Received,
-      onPress: () => navigation.navigate('SendFlowView'),
+      onPress: () => navigation.navigate('PaymentRequestView'),
       onLongPress: () => {
         console.log('long press');
       },
@@ -54,7 +54,7 @@ const Custom01 = ({
     {
       title: strings('asset_overview.swap'),
       iconName: IconName.SwapHorizontal,
-      onPress: () => navigation.navigate('SendFlowView'),
+      onPress: () => navigation.navigate('Swaps'),
       onLongPress: () => {
         console.log('long press');
       },

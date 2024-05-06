@@ -339,6 +339,7 @@ const useWallet = () => {
   );
 
   return {
+    selectedAddress,
     renderContent,
     renderLoader,
     renderOnboardingWizard,
