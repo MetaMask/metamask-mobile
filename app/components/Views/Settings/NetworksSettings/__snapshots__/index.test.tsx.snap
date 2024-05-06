@@ -3,7 +3,7 @@
 exports[`NetworksSettings should render correctly 1`] = `
 <View
   style={
-    {
+    Object {
       "flex": 1,
     }
   }
@@ -11,8 +11,8 @@ exports[`NetworksSettings should render correctly 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      [
-        {
+      Array [
+        Object {
           "flex": 1,
         },
         undefined,
@@ -23,7 +23,7 @@ exports[`NetworksSettings should render correctly 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        {
+        Object {
           "zIndex": 1,
         }
       }
@@ -39,7 +39,7 @@ exports[`NetworksSettings should render correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            {
+            Object {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -53,13 +53,13 @@ exports[`NetworksSettings should render correctly 1`] = `
           <View
             collapsable={false}
             style={
-              {
+              Object {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": {
+                "shadowOffset": Object {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -73,7 +73,7 @@ exports[`NetworksSettings should render correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            {
+            Object {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -85,7 +85,7 @@ exports[`NetworksSettings should render correctly 1`] = `
           <View
             pointerEvents="none"
             style={
-              {
+              Object {
                 "height": 20,
               }
             }
@@ -93,7 +93,7 @@ exports[`NetworksSettings should render correctly 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              {
+              Object {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -105,7 +105,7 @@ exports[`NetworksSettings should render correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                {
+                Object {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -124,7 +124,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                 onPressIn={[Function]}
                 onPressOut={[Function]}
                 style={
-                  {
+                  Object {
                     "alignItems": "center",
                     "borderRadius": 8,
                     "height": 32,
@@ -141,7 +141,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                   height={24}
                   name="ArrowLeft"
                   style={
-                    {
+                    Object {
                       "height": 24,
                       "width": 24,
                     }
@@ -154,7 +154,7 @@ exports[`NetworksSettings should render correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                {
+                Object {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -167,7 +167,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
-                  {
+                  Object {
                     "color": "#0376C9",
                     "fontSize": 17,
                     "fontWeight": "600",
@@ -177,7 +177,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
+                    Object {
                       "color": "#24272A",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 18,
@@ -198,7 +198,7 @@ exports[`NetworksSettings should render correctly 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        {
+        Object {
           "flex": 1,
         }
       }
@@ -208,7 +208,7 @@ exports[`NetworksSettings should render correctly 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          {
+          Object {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -217,7 +217,7 @@ exports[`NetworksSettings should render correctly 1`] = `
         }
         pointerEvents="box-none"
         style={
-          {
+          Object {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -229,7 +229,7 @@ exports[`NetworksSettings should render correctly 1`] = `
         <View
           collapsable={false}
           style={
-            {
+            Object {
               "opacity": 1,
             }
           }
@@ -247,11 +247,11 @@ exports[`NetworksSettings should render correctly 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            [
-              {
+            Array [
+              Object {
                 "overflow": undefined,
               },
-              {
+              Object {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -261,10 +261,10 @@ exports[`NetworksSettings should render correctly 1`] = `
             ]
           }
           transitionSpec={
-            {
-              "close": {
+            Object {
+              "close": Object {
                 "animation": "spring",
-                "config": {
+                "config": Object {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -273,9 +273,9 @@ exports[`NetworksSettings should render correctly 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": {
+              "open": Object {
                 "animation": "spring",
-                "config": {
+                "config": Object {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -292,7 +292,7 @@ exports[`NetworksSettings should render correctly 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              {
+              Object {
                 "flex": 1,
               }
             }
@@ -303,13 +303,13 @@ exports[`NetworksSettings should render correctly 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                {
+                Object {
                   "flex": 1,
-                  "transform": [
-                    {
+                  "transform": Array [
+                    Object {
                       "translateX": 0,
                     },
-                    {
+                    Object {
                       "translateX": 0,
                     },
                   ],
@@ -320,13 +320,13 @@ exports[`NetworksSettings should render correctly 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  {
+                  Object {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": {
+                    "shadowOffset": Object {
                       "height": 1,
                       "width": -1,
                     },
@@ -339,13 +339,13 @@ exports[`NetworksSettings should render correctly 1`] = `
               />
               <View
                 style={
-                  [
-                    {
+                  Array [
+                    Object {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    [
-                      {
+                    Array [
+                      Object {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -355,7 +355,7 @@ exports[`NetworksSettings should render correctly 1`] = `
               >
                 <View
                   style={
-                    {
+                    Object {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -363,14 +363,14 @@ exports[`NetworksSettings should render correctly 1`] = `
                 >
                   <View
                     style={
-                      {
+                      Object {
                         "flex": 1,
                       }
                     }
                   >
                     <View
                       style={
-                        {
+                        Object {
                           "backgroundColor": "#FFFFFF",
                           "flex": 1,
                           "marginBottom": 24,
@@ -382,7 +382,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                     >
                       <View
                         style={
-                          {
+                          Object {
                             "alignItems": "center",
                             "borderColor": "#BBC0C5",
                             "borderRadius": 5,
@@ -397,18 +397,18 @@ exports[`NetworksSettings should render correctly 1`] = `
                         <Text
                           allowFontScaling={false}
                           style={
-                            [
-                              {
+                            Array [
+                              Object {
                                 "color": "#24272A",
                                 "fontSize": 20,
                               },
                               undefined,
-                              {
+                              Object {
                                 "fontFamily": "Ionicons",
                                 "fontStyle": "normal",
                                 "fontWeight": "normal",
                               },
-                              {},
+                              Object {},
                             ]
                           }
                         >
@@ -419,7 +419,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                           placeholder="Search for previously added network"
                           placeholderTextColor="#24272A"
                           style={
-                            {
+                            Object {
                               "color": "#24272A",
                               "flex": 1,
                               "fontFamily": "EuclidCircularB-Regular",
@@ -436,7 +436,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                         <View>
                           <Text
                             style={
-                              {
+                              Object {
                                 "color": "#24272A",
                                 "fontFamily": "EuclidCircularB-Bold",
                                 "fontSize": 14,
@@ -451,7 +451,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                             <TouchableOpacity
                               onPress={[Function]}
                               style={
-                                {
+                                Object {
                                   "alignItems": "center",
                                   "flex": 1,
                                   "flexDirection": "row",
@@ -461,7 +461,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                             >
                               <View
                                 style={
-                                  {
+                                  Object {
                                     "alignItems": "center",
                                     "flex": 0,
                                     "flexDirection": "row",
@@ -470,12 +470,12 @@ exports[`NetworksSettings should render correctly 1`] = `
                               >
                                 <Image
                                   source={
-                                    {
+                                    Object {
                                       "uri": "MockImage",
                                     }
                                   }
                                   style={
-                                    {
+                                    Object {
                                       "borderRadius": 10,
                                       "height": 20,
                                       "marginRight": 16,
@@ -487,7 +487,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 <View>
                                   <Text
                                     style={
-                                      {
+                                      Object {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 16,
@@ -502,20 +502,20 @@ exports[`NetworksSettings should render correctly 1`] = `
                               <Text
                                 allowFontScaling={false}
                                 style={
-                                  [
-                                    {
+                                  Array [
+                                    Object {
                                       "color": "#24272A",
                                       "fontSize": 20,
                                     },
-                                    {
+                                    Object {
                                       "marginLeft": 8,
                                     },
-                                    {
+                                    Object {
                                       "fontFamily": "FontAwesome",
                                       "fontStyle": "normal",
                                       "fontWeight": "normal",
                                     },
-                                    {},
+                                    Object {},
                                   ]
                                 }
                               >
@@ -527,7 +527,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                             <TouchableOpacity
                               onPress={[Function]}
                               style={
-                                {
+                                Object {
                                   "alignItems": "center",
                                   "flex": 1,
                                   "flexDirection": "row",
@@ -537,7 +537,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                             >
                               <View
                                 style={
-                                  {
+                                  Object {
                                     "alignItems": "center",
                                     "flex": 0,
                                     "flexDirection": "row",
@@ -546,12 +546,12 @@ exports[`NetworksSettings should render correctly 1`] = `
                               >
                                 <Image
                                   source={
-                                    {
+                                    Object {
                                       "uri": "MockImage",
                                     }
                                   }
                                   style={
-                                    {
+                                    Object {
                                       "borderRadius": 10,
                                       "height": 20,
                                       "marginRight": 16,
@@ -563,7 +563,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 <View>
                                   <Text
                                     style={
-                                      {
+                                      Object {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 16,
@@ -578,20 +578,20 @@ exports[`NetworksSettings should render correctly 1`] = `
                               <Text
                                 allowFontScaling={false}
                                 style={
-                                  [
-                                    {
+                                  Array [
+                                    Object {
                                       "color": "#24272A",
                                       "fontSize": 20,
                                     },
-                                    {
+                                    Object {
                                       "marginLeft": 8,
                                     },
-                                    {
+                                    Object {
                                       "fontFamily": "FontAwesome",
                                       "fontStyle": "normal",
                                       "fontWeight": "normal",
                                     },
-                                    {},
+                                    Object {},
                                   ]
                                 }
                               >
@@ -601,7 +601,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                           </View>
                           <Text
                             style={
-                              {
+                              Object {
                                 "color": "#24272A",
                                 "fontFamily": "EuclidCircularB-Bold",
                                 "fontSize": 14,
@@ -619,7 +619,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                             >
                               <View
                                 style={
-                                  {
+                                  Object {
                                     "alignItems": "center",
                                     "flex": 1,
                                     "flexDirection": "row",
@@ -629,12 +629,12 @@ exports[`NetworksSettings should render correctly 1`] = `
                               >
                                 <Image
                                   source={
-                                    {
+                                    Object {
                                       "uri": "MockImage",
                                     }
                                   }
                                   style={
-                                    {
+                                    Object {
                                       "borderRadius": 10,
                                       "height": 20,
                                       "marginRight": 16,
@@ -645,7 +645,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 />
                                 <Text
                                   style={
-                                    {
+                                    Object {
                                       "color": "#24272A",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 16,
@@ -658,20 +658,20 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 <Text
                                   allowFontScaling={false}
                                   style={
-                                    [
-                                      {
+                                    Array [
+                                      Object {
                                         "color": "#24272A",
                                         "fontSize": 20,
                                       },
-                                      {
+                                      Object {
                                         "marginLeft": 8,
                                       },
-                                      {
+                                      Object {
                                         "fontFamily": "FontAwesome",
                                         "fontStyle": "normal",
                                         "fontWeight": "normal",
                                       },
-                                      {},
+                                      Object {},
                                     ]
                                   }
                                 >
@@ -687,7 +687,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                             >
                               <View
                                 style={
-                                  {
+                                  Object {
                                     "alignItems": "center",
                                     "flex": 1,
                                     "flexDirection": "row",
@@ -697,12 +697,12 @@ exports[`NetworksSettings should render correctly 1`] = `
                               >
                                 <Image
                                   source={
-                                    {
+                                    Object {
                                       "uri": "MockImage",
                                     }
                                   }
                                   style={
-                                    {
+                                    Object {
                                       "borderRadius": 10,
                                       "height": 20,
                                       "marginRight": 16,
@@ -713,7 +713,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 />
                                 <Text
                                   style={
-                                    {
+                                    Object {
                                       "color": "#24272A",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 16,
@@ -726,20 +726,20 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 <Text
                                   allowFontScaling={false}
                                   style={
-                                    [
-                                      {
+                                    Array [
+                                      Object {
                                         "color": "#24272A",
                                         "fontSize": 20,
                                       },
-                                      {
+                                      Object {
                                         "marginLeft": 8,
                                       },
-                                      {
+                                      Object {
                                         "fontFamily": "FontAwesome",
                                         "fontStyle": "normal",
                                         "fontWeight": "normal",
                                       },
-                                      {},
+                                      Object {},
                                     ]
                                   }
                                 >
@@ -755,7 +755,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                             >
                               <View
                                 style={
-                                  {
+                                  Object {
                                     "alignItems": "center",
                                     "flex": 1,
                                     "flexDirection": "row",
@@ -765,12 +765,12 @@ exports[`NetworksSettings should render correctly 1`] = `
                               >
                                 <Image
                                   source={
-                                    {
+                                    Object {
                                       "uri": "MockImage",
                                     }
                                   }
                                   style={
-                                    {
+                                    Object {
                                       "borderRadius": 10,
                                       "height": 20,
                                       "marginRight": 16,
@@ -781,7 +781,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 />
                                 <Text
                                   style={
-                                    {
+                                    Object {
                                       "color": "#24272A",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 16,
@@ -794,20 +794,20 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 <Text
                                   allowFontScaling={false}
                                   style={
-                                    [
-                                      {
+                                    Array [
+                                      Object {
                                         "color": "#24272A",
                                         "fontSize": 20,
                                       },
-                                      {
+                                      Object {
                                         "marginLeft": 8,
                                       },
-                                      {
+                                      Object {
                                         "fontFamily": "FontAwesome",
                                         "fontStyle": "normal",
                                         "fontWeight": "normal",
                                       },
-                                      {},
+                                      Object {},
                                     ]
                                   }
                                 >
@@ -824,14 +824,14 @@ exports[`NetworksSettings should render correctly 1`] = `
                         activeOpacity={0.2}
                         onPress={[Function]}
                         style={
-                          [
-                            [
-                              {
+                          Array [
+                            Array [
+                              Object {
                                 "borderRadius": 100,
                                 "justifyContent": "center",
                                 "padding": 15,
                               },
-                              {
+                              Object {
                                 "backgroundColor": "#0376C9",
                                 "minHeight": 50,
                               },
@@ -844,22 +844,22 @@ exports[`NetworksSettings should render correctly 1`] = `
                       >
                         <Text
                           style={
-                            [
-                              {
+                            Array [
+                              Object {
                                 "color": "#007aff",
                                 "fontSize": 17,
                                 "fontWeight": "500",
                                 "textAlign": "center",
                               },
                               null,
-                              [
-                                {
+                              Array [
+                                Object {
                                   "fontFamily": "EuclidCircularB-Bold",
                                   "fontSize": 14,
                                   "fontWeight": "600",
                                   "textAlign": "center",
                                 },
-                                {
+                                Object {
                                   "color": "#FFFFFF",
                                 },
                                 undefined,
