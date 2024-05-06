@@ -6,7 +6,7 @@ import { fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
-import ActionSheet from 'react-native-actionsheet';
+import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
