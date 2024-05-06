@@ -500,7 +500,7 @@ class Approve extends PureComponent {
   onConfirm = async () => {
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
-    const { transactions, gasEstimateType, metrics } = this.props;
+    const { transactions, gasEstimateType, metrics, chainId } = this.props;
     const {
       legacyGasTransaction,
       transactionConfirmed,
@@ -539,7 +539,15 @@ class Approve extends PureComponent {
       );
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
-      const updatedTx = { ...fullTx, transaction };
+
+      const updatedTx = {
+        ...fullTx,
+        txParams: {
+          ...fullTx.txParams,
+          ...transaction,
+          chainId,
+        },
+      };
       await updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
 
