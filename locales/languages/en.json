@@ -109,7 +109,7 @@
     "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
     "import_title": "Your Wallet is ready",
     "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
-    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
+    "import_description2": "to keep this set of words safe so you can always access your funds.",
     "done": "Done"
   },
   "onboarding_carousel": {
