@@ -118,11 +118,7 @@ const gemInstallTask = {
         if (!BUILD_IOS) {
           return gemInstallTask.skip('Skipping iOS.')
         }
-        try {
-          await $`bundle install`;
-        } catch (error) {
-          throw new Error(error);
-        }
+        await $`bundle install`;
       },
     },
   ], {
@@ -141,11 +137,7 @@ const mainSetupTask = {
         if (!BUILD_IOS) {
           return podInstallTask.skip('Skipping iOS.')
         }
-        try {
-          await $`bundle exec pod install --project-directory=ios`;
-        } catch (error) {
-          throw new Error(error);
-        }
+        await $`bundle exec pod install --project-directory=ios`;
       },
     },
     {
