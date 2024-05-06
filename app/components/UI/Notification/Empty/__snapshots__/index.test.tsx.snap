@@ -3,7 +3,7 @@
 exports[`Empty should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "flex": 1,
       "justifyContent": "center",
@@ -15,7 +15,7 @@ exports[`Empty should render correctly 1`] = `
     height={32}
     name="Notification"
     style={
-      Object {
+      {
         "height": 32,
         "marginBottom": 8,
         "paddingHorizontal": 32,
@@ -28,7 +28,7 @@ exports[`Empty should render correctly 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      Object {
+      {
         "color": "#24272A",
         "fontFamily": "Euclid Circular B",
         "fontSize": 18,
@@ -46,7 +46,7 @@ exports[`Empty should render correctly 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      Object {
+      {
         "color": "#24272A",
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
