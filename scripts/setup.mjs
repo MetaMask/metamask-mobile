@@ -4,7 +4,7 @@ import { Listr } from 'listr2';
 
 const IS_OSX = process.platform === 'darwin';
 // Skip iOS specific steps. Useful when only developing on Android only.
-const SKIP_IOS = process.argv.slice(2)?.[0] === '--skip-ios';
+const SKIP_IOS = process.env['MMBUILD_SKIP_IOS'];
 
 const rendererOptions = {
   collapseErrors: false,
