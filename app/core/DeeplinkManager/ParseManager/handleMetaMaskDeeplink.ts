@@ -58,7 +58,9 @@ export function handleMetaMaskDeeplink({
         const protocolVersion = parseInt(params.v ?? '1', 10);
 
         DevLogger.log(
-          `handleMetaMaskDeeplink:: deeplink_scheme protocolVersion=${protocolVersion} v=${params.v}`,
+          `handleMetaMaskDeeplink:: deeplink_scheme typeof(protocolVersion)=${typeof protocolVersion} protocolVersion=${protocolVersion} v=${
+            params.v
+          }`,
         );
         handleDeeplink({
           channelId: params.channelId,

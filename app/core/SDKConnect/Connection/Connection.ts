@@ -183,7 +183,11 @@ export class Connection extends EventEmitter2 {
     this.onTerminate = onTerminate;
 
     DevLogger.log(
-      `Connection::constructor() id=${this.channelId} protocolVersion=${protocolVersion} relayPersistence=${relayPersistence} initialConnection=${this.initialConnection} lastAuthorized=${this.lastAuthorized} trigger=${this.trigger}`,
+      `Connection::constructor() id=${
+        this.channelId
+      } typeof(protocolVersion)=${typeof protocolVersion}  protocolVersion=${protocolVersion} relayPersistence=${relayPersistence} initialConnection=${
+        this.initialConnection
+      } lastAuthorized=${this.lastAuthorized} trigger=${this.trigger}`,
       socketServerUrl,
       originatorInfo,
     );

@@ -176,6 +176,18 @@ const AccountConnect = (props: AccountConnectProps) => {
     [hostname],
   );
 
+  const eventSource = useMemo(() => {
+    // walletconnect channelId format: 1713357238460272
+    // sdk channelId format: uuid
+    // inappbrowser channelId format: app.uniswap.io
+    if (sdkConnection) {
+      return 'sdk';
+    } else if (channelIdOrHostname.indexOf('.') !== -1) {
+      return 'in-app browser';
+    }
+    return 'walletconnect';
+  }, [sdkConnection, channelIdOrHostname]);
+
   const loadHostname = useCallback(async () => {
     // walletconnect channelId format: 1713357238460272
     // sdk channelId format: uuid
@@ -324,7 +336,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         number_of_accounts: accountsLength,
         number_of_accounts_connected: connectedAccountLength,
         account_type: getAddressAccountType(activeAddress),
-        source: 'in-app browser',
+        source: eventSource,
       });
       let labelOptions: ToastOptions['labelOptions'] = [];
       if (connectedAccountLength > 1) {
@@ -354,6 +366,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       setIsLoading(false);
     }
   }, [
+    eventSource,
     selectedAddresses,
     hostInfo,
     accounts,
