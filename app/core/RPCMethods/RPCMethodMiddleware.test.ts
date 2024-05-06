@@ -43,14 +43,7 @@ jest.mock('../Engine', () => ({
     },
   },
 }));
-const MockEngine = Engine as Omit<typeof Engine, 'context'> & {
-  context: {
-    NetworkController: Record<string, any>;
-    PreferencesController: Record<string, any>;
-    TransactionController: Record<string, any>;
-    PermissionController: Record<string, any>;
-  };
-};
+const MockEngine = jest.mocked(Engine);
 
 jest.mock('../../util/transaction-controller', () => ({
   __esModule: true,
@@ -451,13 +444,31 @@ describe('getRpcMethodMiddleware', () => {
 
   describe('wallet_requestPermissions', () => {
     it('can requestPermissions for eth_accounts', async () => {
+      const mockOrigin = 'example.metamask.io';
+      const mockPermission: Awaited<
+        ReturnType<
+          typeof MockEngine.context.PermissionController.requestPermissions
+        >
+      >[0] = {
+        eth_accounts: {
+          id: 'id',
+          date: 1,
+          invoker: mockOrigin,
+          parentCapability: 'eth_accounts',
+          caveats: [
+            {
+              type: 'restrictReturnedAccounts',
+              value: [addressMock],
+            },
+          ],
+        },
+      };
       MockEngine.context.PermissionController.requestPermissions.mockImplementation(
         async () => [
+          mockPermission,
           {
-            eth_accounts: {
-              parentCapability: 'eth_accounts',
-              caveats: [],
-            },
+            id: 'id',
+            origin: mockOrigin,
           },
         ],
       );
@@ -478,19 +489,33 @@ describe('getRpcMethodMiddleware', () => {
       const response = await callMiddleware({ middleware, request });
       expect(
         (response as JsonRpcSuccess<PermissionConstraint[]>).result,
-      ).toEqual([{ parentCapability: 'eth_accounts', caveats: [] }]);
+      ).toEqual([mockPermission.eth_accounts]);
     });
   });
 
   describe('wallet_getPermissions', () => {
     it('can getPermissions', async () => {
+      const mockOrigin = 'example.metamask.io';
+      const mockPermission: Awaited<
+        ReturnType<
+          typeof MockEngine.context.PermissionController.getPermissions
+        >
+      > = {
+        eth_accounts: {
+          id: 'id',
+          date: 1,
+          invoker: mockOrigin,
+          parentCapability: 'eth_accounts',
+          caveats: [
+            {
+              type: 'restrictReturnedAccounts',
+              value: [addressMock],
+            },
+          ],
+        },
+      };
       MockEngine.context.PermissionController.getPermissions.mockImplementation(
-        () => ({
-          eth_accounts: {
-            parentCapability: 'eth_accounts',
-            caveats: [],
-          },
-        }),
+        () => mockPermission,
       );
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -505,7 +530,7 @@ describe('getRpcMethodMiddleware', () => {
       const response = await callMiddleware({ middleware, request });
       expect(
         (response as JsonRpcSuccess<PermissionConstraint[]>).result,
-      ).toEqual([{ parentCapability: 'eth_accounts', caveats: [] }]);
+      ).toEqual([mockPermission.eth_accounts]);
     });
   });
 
@@ -1034,7 +1059,7 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('returns resolved value from message promise', async () => {
-      Engine.context.SignatureController.newUnsignedMessage.mockResolvedValue(
+      MockEngine.context.SignatureController.newUnsignedMessage.mockResolvedValue(
         signatureMock,
       );
 
@@ -1073,7 +1098,7 @@ describe('getRpcMethodMiddleware', () => {
         params: [dataMock, addressMock],
       };
 
-      Engine.context.SignatureController.newUnsignedPersonalMessage.mockResolvedValue(
+      MockEngine.context.SignatureController.newUnsignedPersonalMessage.mockResolvedValue(
         signatureMock,
       );
 
@@ -1110,7 +1135,7 @@ describe('getRpcMethodMiddleware', () => {
     ['eth_signTypedData_v4', 'V4', true],
   ])('%s', (methodName, version, addressFirst) => {
     async function sendRequest() {
-      Engine.context.SignatureController.newUnsignedTypedMessage.mockReset();
+      MockEngine.context.SignatureController.newUnsignedTypedMessage.mockReset();
 
       const { middleware } = setupSignature();
 
@@ -1124,7 +1149,7 @@ describe('getRpcMethodMiddleware', () => {
         ],
       };
 
-      Engine.context.SignatureController.newUnsignedTypedMessage.mockResolvedValue(
+      MockEngine.context.SignatureController.newUnsignedTypedMessage.mockResolvedValue(
         signatureMock,
       );
 
