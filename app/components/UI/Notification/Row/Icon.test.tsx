@@ -44,7 +44,7 @@ describe('NotificationIcon', () => {
       'https://github.com/MetaMask/brand-resources/blob/master/SVG/SVG_MetaMask_Icon_Color.svg',
   };
 
-  it('renders correctly with Wallet type', () => {
+  it('matches snapshot with Wallet type', () => {
     const { toJSON } = renderWithProvider(
       <NotificationIcon
         notificationType={walletNotification.notificationType}
