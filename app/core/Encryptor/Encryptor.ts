@@ -75,7 +75,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    */
   generateSalt = (size = SALT_BYTES_COUNT) => {
     const view = new Uint8Array(size);
-    // @ts-expect-error - globalThis is not recognized by TypeScript
     global.crypto.getRandomValues(view);
 
     // From: https://github.com/MetaMask/browser-passworder/blob/main/src/index.ts#L418
