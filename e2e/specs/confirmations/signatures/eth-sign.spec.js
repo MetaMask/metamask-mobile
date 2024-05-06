@@ -11,6 +11,7 @@ import {
 } from '../../../fixtures/fixture-helper';
 import { SmokeConfirmations } from '../../../tags';
 import TestHelpers from '../../../helpers';
+import Assertions from '../../../utils/Assertions';
 
 const MAX_ATTEMPTS = 3;
 
@@ -44,15 +45,19 @@ describe(SmokeConfirmations('Eth Sign'), () => {
 
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapEthSignButton();
-          await SigningModal.isEthRequestVisible();
+          await Assertions.checkIfVisible(SigningModal.ethRequest);
           await SigningModal.tapCancelButton();
 
-          await SigningModal.isNotVisible();
+          await Assertions.checkIfNotVisible(SigningModal.ethRequest);
+          await Assertions.checkIfNotVisible(SigningModal.personalRequest);
+          await Assertions.checkIfNotVisible(SigningModal.typedRequest);
 
           await TestDApp.tapEthSignButton();
-          await SigningModal.isEthRequestVisible();
+          await Assertions.checkIfVisible(SigningModal.ethRequest);
           await SigningModal.tapSignButton();
-          await SigningModal.isNotVisible();
+          await Assertions.checkIfNotVisible(SigningModal.typedRequest);
+          await Assertions.checkIfNotVisible(SigningModal.ethRequest);
+          await Assertions.checkIfNotVisible(SigningModal.personalRequest);
         });
       },
     );

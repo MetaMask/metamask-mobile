@@ -4,7 +4,6 @@ import {
   BackHandler,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  Platform,
   ScrollView,
   TouchableOpacity,
   View,
@@ -30,12 +29,7 @@ import {
 } from './ModalMandatory.constants';
 import { MandatoryModalProps } from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import {
-  TERMS_OF_USE_CHECKBOX_ICON_ID,
-  TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID,
-  TERMS_OF_USE_WEBVIEW_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Components/TermsOfUse.testIds';
+import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
@@ -143,8 +137,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
       ]}
     >
       <ButtonIcon
-        {...generateTestId(Platform, TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID)}
-        testID={TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID}
+        testID={TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON}
         onPress={scrollToEnd}
         iconName={IconName.ArrowDown}
       />
@@ -216,11 +209,11 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen} isInteractable={false}>
-      <View style={styles.modal} {...generateTestId(Platform, containerTestId)}>
+      <View style={styles.modal} testID={containerTestId}>
         {renderHeader()}
         <View
           style={styles.bodyContainer}
-          {...generateTestId(Platform, TERMS_OF_USE_WEBVIEW_ID)}
+          testID={TermsOfUseModalSelectorsIDs.WEBVIEW}
         >
           {body.source === 'WebView' ? renderWebView(body.uri) : renderBody()}
         </View>
@@ -228,7 +221,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
           style={styles.checkboxContainer}
           onPress={handleSelect}
           activeOpacity={1}
-          {...generateTestId(Platform, TERMS_OF_USE_CHECKBOX_ICON_ID)}
+          testID={TermsOfUseModalSelectorsIDs.CHECKBOX}
         >
           <Checkbox onPress={handleSelect} isChecked={isCheckboxSelected} />
           <Text style={styles.checkboxText}>{checkboxText}</Text>
@@ -245,7 +238,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
             ...buttonBackgroundColor(),
           }}
           onPress={onPress}
-          {...generateTestId(Platform, buttonTestId)}
+          testID={buttonTestId}
         />
         {isScrollToEndNeeded && renderScrollEndButton()}
         {footerHelpText ? (

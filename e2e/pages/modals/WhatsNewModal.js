@@ -1,16 +1,19 @@
-import TestHelpers from '../../helpers';
 import { WhatsNewModalSelectorsIDs } from '../../selectors/Modals/WhatsNewModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-export default class WhatsNewModal {
-  static async tapCloseButton() {
-    await TestHelpers.tap(WhatsNewModalSelectorsIDs.CLOSE_BUTTON);
+class WhatsNewModal {
+  get container() {
+    return Matchers.getElementByID(WhatsNewModalSelectorsIDs.CONTAINER);
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(WhatsNewModalSelectorsIDs.CONTAINER);
+  get closeButton() {
+    return Matchers.getElementByID(WhatsNewModalSelectorsIDs.CLOSE_BUTTON);
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(WhatsNewModalSelectorsIDs.CONTAINER);
+  async tapCloseButton() {
+    await Gestures.waitAndTap(this.closeButton);
   }
 }
+
+export default new WhatsNewModal();

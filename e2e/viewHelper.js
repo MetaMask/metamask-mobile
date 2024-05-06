@@ -38,12 +38,12 @@ const validAccount = Accounts.getValidAccount();
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
   await TestHelpers.delay(3500);
-  await TermsOfUseModal.isDisplayed();
+  await Assertions.checkIfVisible(TermsOfUseModal.container);
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
   await TestHelpers.delay(3500);
   await TermsOfUseModal.tapAcceptButton();
-  await TermsOfUseModal.isNotDisplayed();
+  await Assertions.checkIfNotVisible(TermsOfUseModal.container);
 };
 
 export const importWalletWithRecoveryPhrase = async () => {
@@ -81,7 +81,7 @@ export const importWalletWithRecoveryPhrase = async () => {
   // should tap on the close button to dismiss the whats new modal
   await TestHelpers.delay(2500);
   try {
-    await WhatsNewModal.isVisible();
+    await Assertions.checkIfVisible(WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
   } catch {
     //
@@ -135,7 +135,7 @@ export const CreateNewWallet = async () => {
   // dealing with flakiness on bitrise.
   await TestHelpers.delay(2000);
   try {
-    await WhatsNewModal.isVisible();
+    await Assertions.checkIfVisible(WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
   } catch {
     //
@@ -197,7 +197,7 @@ export const loginToApp = async () => {
 
   await TestHelpers.delay(2500);
   try {
-    await WhatsNewModal.isVisible();
+    await Assertions.checkIfVisible(WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
   } catch {
     //

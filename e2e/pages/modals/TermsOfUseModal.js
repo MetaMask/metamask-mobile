@@ -1,29 +1,37 @@
-import TestHelpers from '../../helpers';
-import {
-  TERMS_OF_USE_ACCEPT_BUTTON_ID,
-  TERMS_OF_USE_CHECKBOX_ICON_ID,
-  TERMS_OF_USE_SCREEN_ID,
-  TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID,
-} from '../../../wdio/screen-objects/testIDs/Components/TermsOfUse.testIds';
+import { TermsOfUseModalSelectorsIDs } from '../../selectors/Modals/TermsOfUseModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-export default class TermsOfUseModal {
-  static async isDisplayed() {
-    await TestHelpers.checkIfVisible(TERMS_OF_USE_SCREEN_ID);
+class TermsOfUseModal {
+  get container() {
+    return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.CONTAINER);
   }
 
-  static async isNotDisplayed() {
-    await TestHelpers.checkIfNotVisible(TERMS_OF_USE_SCREEN_ID);
+  get checkbox() {
+    return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.CHECKBOX);
   }
 
-  static async tapAgreeCheckBox() {
-    await TestHelpers.waitAndTap(TERMS_OF_USE_CHECKBOX_ICON_ID);
+  get scrollArrowButton() {
+    return Matchers.getElementByID(
+      TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON,
+    );
   }
 
-  static async tapScrollEndButton() {
-    await TestHelpers.waitAndTap(TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID);
+  get acceptButton() {
+    return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
   }
 
-  static async tapAcceptButton() {
-    await TestHelpers.waitAndTap(TERMS_OF_USE_ACCEPT_BUTTON_ID);
+  async tapAgreeCheckBox() {
+    await Gestures.waitAndTap(this.checkbox);
+  }
+
+  async tapScrollEndButton() {
+    await Gestures.waitAndTap(this.scrollArrowButton);
+  }
+
+  async tapAcceptButton() {
+    await Gestures.waitAndTap(this.acceptButton);
   }
 }
+
+export default new TermsOfUseModal();

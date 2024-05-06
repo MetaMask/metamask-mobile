@@ -11,6 +11,7 @@ import {
 } from '../../../fixtures/fixture-helper';
 import { SmokeConfirmations } from '../../../tags';
 import TestHelpers from '../../../helpers';
+import Assertions from '../../../utils/Assertions';
 
 const MAX_ATTEMPTS = 3;
 
@@ -39,15 +40,19 @@ describe(SmokeConfirmations('Personal Sign'), () => {
 
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapPersonalSignButton();
-          await SigningModal.isPersonalRequestVisible();
+          await Assertions.checkIfVisible(SigningModal.personalRequest);
           await SigningModal.tapCancelButton();
-          await SigningModal.isNotVisible();
+          await Assertions.checkIfNotVisible(SigningModal.typedRequest);
+          await Assertions.checkIfNotVisible(SigningModal.ethRequest);
+          await Assertions.checkIfNotVisible(SigningModal.personalRequest);
 
           await TestDApp.tapPersonalSignButton();
-          await SigningModal.isPersonalRequestVisible();
+          await Assertions.checkIfVisible(SigningModal.personalRequest);
           await SigningModal.tapSignButton();
 
-          await SigningModal.isNotVisible();
+          await Assertions.checkIfNotVisible(SigningModal.typedRequest);
+          await Assertions.checkIfNotVisible(SigningModal.ethRequest);
+          await Assertions.checkIfNotVisible(SigningModal.personalRequest);
         });
       },
     );
