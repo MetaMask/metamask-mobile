@@ -15,7 +15,7 @@ const useWatchedNFTName: (address: string) => string | null | undefined = (
     (nft) => nft.address.toLowerCase() === address,
   );
 
-  return watchedNft?.name ?? null
+  return watchedNft?.name ?? null;
 };
 
 export default useWatchedNFTName;

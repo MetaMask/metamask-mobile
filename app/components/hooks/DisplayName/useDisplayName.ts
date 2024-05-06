@@ -3,7 +3,6 @@ import { NameType } from '../../UI/Name/Name.types';
 import { useFirstPartyContractName } from './useFirstPartyContractName';
 import useWatchedNFTName from './useWatchedNFTName';
 
-
 /**
  * Indicate the source and nature of a display name for a given address.
  */
