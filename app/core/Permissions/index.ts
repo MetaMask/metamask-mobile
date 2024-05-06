@@ -50,12 +50,13 @@ export const getPermittedAccountsByHostname = (
 
 export const switchActiveAccounts = (hostname: string, accAddress: string) => {
   const { PermissionController } = Engine.context;
-  const existingAccounts: string[] = PermissionController.getCaveat(
-    hostname,
-    RestrictedMethods.eth_accounts,
-    CaveatTypes.restrictReturnedAccounts,
-  ).value;
-  const accountIndex = existingAccounts.findIndex(
+  const existingPermittedAccountAddresses: string[] =
+    PermissionController.getCaveat(
+      hostname,
+      RestrictedMethods.eth_accounts,
+      CaveatTypes.restrictReturnedAccounts,
+    ).value;
+  const accountIndex = existingPermittedAccountAddresses.findIndex(
     (address) => address === accAddress,
   );
   if (accountIndex === -1) {
@@ -63,15 +64,18 @@ export const switchActiveAccounts = (hostname: string, accAddress: string) => {
       `eth_accounts permission for hostname "${hostname}" does not permit "${accAddress} account".`,
     );
   }
-  let newAccounts = [...existingAccounts];
-  newAccounts.splice(accountIndex, 1);
-  newAccounts = [accAddress, ...newAccounts];
+  let newPermittedAccountAddresses = [...existingPermittedAccountAddresses];
+  newPermittedAccountAddresses.splice(accountIndex, 1);
+  newPermittedAccountAddresses = uniqueList([
+    accAddress,
+    ...newPermittedAccountAddresses,
+  ]);
 
   PermissionController.updateCaveat(
     hostname,
     RestrictedMethods.eth_accounts,
     CaveatTypes.restrictReturnedAccounts,
-    newAccounts,
+    newPermittedAccountAddresses,
   );
 };
 
