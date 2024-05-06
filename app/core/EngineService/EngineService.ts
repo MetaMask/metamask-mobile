@@ -112,7 +112,7 @@ class EngineService {
 
     engine?.datamodel?.subscribe?.(() => {
       if (!engine.context.KeyringController.vault) {
-        Logger.message('keyringController missing for INIT_BG_STATE_KEY');
+        Logger.message('keyringController vault missing for INIT_BG_STATE_KEY');
       }
       if (!this.engineInitialized) {
         store.dispatch({ type: INIT_BG_STATE_KEY });
