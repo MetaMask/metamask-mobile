@@ -2,18 +2,18 @@
 
 exports[`NotificationIcon renders correctly with Announcement type 1`] = `
 <View
-  style={Object {}}
+  style={{}}
 >
   <Image
     resizeMethod="auto"
     source={
-      Object {
-        "default": Object {
+      {
+        "default": {
           "uri": "MockImage",
         },
       }
     }
-    style={Object {}}
+    style={{}}
     testID="fox-icon"
   />
 </View>
@@ -23,7 +23,7 @@ exports[`NotificationIcon renders correctly with Wallet type 1`] = `
 <View
   onLayout={[Function]}
   style={
-    Object {
+    {
       "alignSelf": "flex-start",
       "position": "relative",
     }
@@ -33,7 +33,7 @@ exports[`NotificationIcon renders correctly with Wallet type 1`] = `
   <View>
     <View
       style={
-        Object {
+        {
           "overflow": "hidden",
         }
       }
@@ -41,7 +41,7 @@ exports[`NotificationIcon renders correctly with Wallet type 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "aspectRatio": 1,
         "bottom": 0,
@@ -49,11 +49,11 @@ exports[`NotificationIcon renders correctly with Wallet type 1`] = `
         "justifyContent": "center",
         "position": "absolute",
         "right": 0,
-        "transform": Array [
-          Object {
+        "transform": [
+          {
             "translateX": 0,
           },
-          Object {
+          {
             "translateY": 0,
           },
         ],
@@ -63,7 +63,7 @@ exports[`NotificationIcon renders correctly with Wallet type 1`] = `
     <View
       onLayout={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "aspectRatio": 1,
           "backgroundColor": "#0376C9",
@@ -83,7 +83,7 @@ exports[`NotificationIcon renders correctly with Wallet type 1`] = `
         height={10}
         name="Send2"
         style={
-          Object {
+          {
             "height": 10,
             "width": 10,
           }

@@ -3,7 +3,7 @@
 exports[`NotificationsList should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
@@ -11,7 +11,7 @@ exports[`NotificationsList should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "height": "100%",
         "position": "absolute",
         "width": "100%",

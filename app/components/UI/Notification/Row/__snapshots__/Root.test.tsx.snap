@@ -3,9 +3,9 @@
 exports[`NotificationRoot renders correctly 1`] = `
 <View
   style={
-    Array [
-      Object {},
-      Object {
+    [
+      {},
+      {
         "height": undefined,
         "opacity": 1,
         "paddingVertical": 10,
@@ -19,10 +19,10 @@ exports[`NotificationRoot renders correctly 1`] = `
     onGestureHandlerStateChange={[Function]}
     onPress={[MockFunction]}
     style={
-      Array [
-        Object {
-          "transform": Array [
-            Object {
+      [
+        {
+          "transform": [
+            {
               "translateX": 0,
             },
           ],
@@ -36,9 +36,9 @@ exports[`NotificationRoot renders correctly 1`] = `
   </View>
   <View
     style={
-      Array [
-        Object {},
-        Object {
+      [
+        {},
+        {
           "opacity": 0,
         },
       ]
@@ -49,7 +49,7 @@ exports[`NotificationRoot renders correctly 1`] = `
       height={20}
       name="Trash"
       style={
-        Object {
+        {
           "height": 20,
           "width": 20,
         }

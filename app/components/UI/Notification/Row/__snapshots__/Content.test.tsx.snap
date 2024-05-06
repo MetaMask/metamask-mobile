@@ -3,12 +3,12 @@
 exports[`NotificationContent renders correctly 1`] = `
 <View>
   <View
-    style={Object {}}
+    style={{}}
   >
     <Text
       accessibilityRole="text"
       style={
-        Object {
+        {
           "color": "#535A61",
           "fontFamily": "Euclid Circular B",
           "fontSize": 12,
@@ -23,7 +23,7 @@ exports[`NotificationContent renders correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
+        {
           "color": "#BBC0C5",
           "fontFamily": "Euclid Circular B",
           "fontSize": 12,
@@ -37,12 +37,12 @@ exports[`NotificationContent renders correctly 1`] = `
     </Text>
   </View>
   <View
-    style={Object {}}
+    style={{}}
   >
     <Text
       accessibilityRole="text"
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -57,7 +57,7 @@ exports[`NotificationContent renders correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
