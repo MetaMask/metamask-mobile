@@ -642,9 +642,9 @@ class Engine {
       },
       clientId: AppConstants.SWAPS.CLIENT_ID,
       legacyAPIEndpoint:
-        'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
       EIP1559APIEndpoint:
-        'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
 
     const phishingController = new PhishingController({

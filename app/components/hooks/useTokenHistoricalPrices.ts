@@ -33,7 +33,7 @@ const useTokenHistoricalPrices = ({
     const fetchPrices = async () => {
       setIsLoading(true);
       try {
-        const baseUri = 'https://price-api.metafi.codefi.network/v1';
+        const baseUri = 'https://price.api.cx.metamask.io/v1';
         const uri = new URL(
           `${baseUri}/chains/${getDecimalChainId(
             chainId,
