@@ -169,7 +169,7 @@ class SmartTransactionHook {
         undefined,
       );
     } catch (error) {
-      this.#onApproveOrReject();
+      this.#cleanup();
       return useRegularTransactionSubmit;
     }
 
@@ -209,7 +209,7 @@ class SmartTransactionHook {
         this.#updateSwapsTransactions(transactionHash);
       }
 
-      this.#onApproveOrReject();
+      this.#cleanup();
 
       return { transactionHash };
     } catch (error: any) {
@@ -217,7 +217,7 @@ class SmartTransactionHook {
         error,
         `${LOG_PREFIX} Error in smart transaction publish hook`,
       );
-      this.#onApproveOrReject();
+      this.#cleanup();
       throw error;
     }
   }
@@ -321,7 +321,7 @@ class SmartTransactionHook {
 
   #addApprovalRequest = ({ uuid }: { uuid: string }) => {
     const onApproveOrRejectWrapper = () => {
-      this.#onApproveOrReject();
+      this.#cleanup();
     };
 
     const origin = this.#transactionMeta.origin;
@@ -415,7 +415,7 @@ class SmartTransactionHook {
       );
     });
 
-  #onApproveOrReject = () => {
+  #cleanup = () => {
     if (this.#approvalFlowEnded) {
       return;
     }
