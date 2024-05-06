@@ -78,7 +78,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         // Assert erc20 is approved
 
         await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.CONFRIM_TEXT,
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
         );
       },
     );

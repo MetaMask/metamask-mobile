@@ -69,7 +69,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TabBarComponent.tapActivity();
         // Assert erc20 is approved
         await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.CONFRIM_TEXT,
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
         );
       },
     );
