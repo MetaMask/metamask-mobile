@@ -3,8 +3,8 @@ import { $ } from 'execa';
 import { Listr } from 'listr2';
 
 const IS_OSX = process.platform === 'darwin';
-// Skip iOS specific steps. Useful when only developing on Android only.
-const SKIP_IOS = process.env['MMBUILD_SKIP_IOS'];
+// iOS builds are enabled by default on macOS only but can be enabled explicitly
+const BUILD_IOS = process.argv.slice(2)?.[0] === '--build-ios' || IS_OSX;
 
 const rendererOptions = {
   collapseErrors: false,
@@ -32,9 +32,6 @@ const detoxGlobalInstallTask = {
         if (!IS_OSX) {
           appSimTask.skip('Not macOS.');
         } else {
-          if (SKIP_IOS) {
-            return appSimTask.skip('Skipping iOS.')
-          }
           await $`brew tap wix/brew`;
           await $`brew install applesimutils`;
         }
@@ -118,18 +115,13 @@ const gemInstallTask = {
     {
       title: 'Install gems using bundler',
       task: async (_, gemInstallTask) => {
-        if (!IS_OSX) {
-          // Skipping non-MacOS since these gems are used with Xcode (MacOS only)
-          gemInstallTask.skip('Not macOS.');
-        } else {
-          if (SKIP_IOS) {
-            return gemInstallTask.skip('Skipping iOS.')
-          }
-          try {
-            await $`bundle install`;
-          } catch (error) {
-            throw new Error(error);
-          }
+        if (!BUILD_IOS) {
+          return gemInstallTask.skip('Skipping iOS.')
+        }
+        try {
+          await $`bundle install`;
+        } catch (error) {
+          throw new Error(error);
         }
       },
     },
@@ -146,17 +138,13 @@ const mainSetupTask = {
     {
       title: 'Install iOS Pods',
       task: async (_, podInstallTask) => {
-        if (!IS_OSX) {
-          podInstallTask.skip('Not macOS.');
-        } else {
-          if (SKIP_IOS) {
-            return podInstallTask.skip('Skipping iOS.')
-          }
-          try {
-            await $`bundle exec pod install --project-directory=ios`;
-          } catch (error) {
-            throw new Error(error);
-          }
+        if (!BUILD_IOS) {
+          return podInstallTask.skip('Skipping iOS.')
+        }
+        try {
+          await $`bundle exec pod install --project-directory=ios`;
+        } catch (error) {
+          throw new Error(error);
         }
       },
     },
