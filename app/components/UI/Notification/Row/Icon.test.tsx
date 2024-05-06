@@ -9,6 +9,9 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
 
+import SVG_MM_LOGO_PATH from '../../../../images/fox.svg';
+import SVG_ETH_LOGO_PATH from '../../../../component-library/components/Icons/Icon/assets/ethereum.svg';
+
 Linking.openURL = jest.fn(() => Promise.resolve('opened https://metamask.io!'));
 
 const mockInitialState = {
@@ -33,22 +36,20 @@ describe('NotificationIcon', () => {
 
   const announcementNotification = {
     notificationType: TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
-    imageUrl:
-      'https://github.com/MetaMask/brand-resources/blob/master/SVG/SVG_MetaMask_Icon_Color.svg',
+    imageUrl: SVG_MM_LOGO_PATH,
   };
 
   const walletNotification = {
     notificationType: TRIGGER_TYPES.ERC20_SENT,
     badgeIcon: IconName.Send2,
-    imageUrl:
-      'https://github.com/MetaMask/brand-resources/blob/master/SVG/SVG_MetaMask_Icon_Color.svg',
+    imageUrl: SVG_ETH_LOGO_PATH,
   };
 
   it('matches snapshot with Wallet type', () => {
     const { toJSON } = renderWithProvider(
       <NotificationIcon
         notificationType={walletNotification.notificationType}
-        imageUrl={walletNotification.imageUrl}
+        imageUrl={walletNotification.imageUrl.name}
         badgeIcon={walletNotification.badgeIcon}
         styles={styles}
       />,
@@ -61,7 +62,7 @@ describe('NotificationIcon', () => {
     const { toJSON } = renderWithProvider(
       <NotificationIcon
         notificationType={announcementNotification.notificationType}
-        imageUrl={announcementNotification.imageUrl}
+        imageUrl={announcementNotification.imageUrl.name}
         styles={styles}
       />,
     );
@@ -72,7 +73,7 @@ describe('NotificationIcon', () => {
     const { getByTestId } = renderWithProvider(
       <NotificationIcon
         notificationType={announcementNotification.notificationType}
-        imageUrl={announcementNotification.imageUrl}
+        imageUrl={announcementNotification.imageUrl.name}
         styles={styles}
       />,
     );
