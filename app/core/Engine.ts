@@ -55,6 +55,8 @@ import {
 } from '@metamask/phishing-controller';
 import {
   PreferencesController,
+  PreferencesControllerActions,
+  PreferencesControllerEvents,
   PreferencesState,
 } from '@metamask/preferences-controller';
 import {
@@ -233,7 +235,8 @@ type GlobalActions =
   | SnapsGlobalActions
   ///: END:ONLY_INCLUDE_IF
   | KeyringControllerActions
-  | AccountsControllerActions;
+  | AccountsControllerActions
+  | PreferencesControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -247,7 +250,8 @@ type GlobalEvents =
   | SignatureControllerEvents
   | KeyringControllerEvents
   | PPOMControllerEvents
-  | AccountsControllerEvents;
+  | AccountsControllerEvents
+  | PreferencesControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -356,6 +360,22 @@ class Engine {
   ) {
     this.controllerMessenger = new ControllerMessenger();
 
+    /**
+     * Subscribes a listener to the state change events of Preferences Controller.
+     *
+     * @param listener - The callback function to execute when the state changes.
+     */
+    const onPreferencesStateChange = (
+      // preferencesState is typed as any because if not will give an ts error on every assets-controllers using this function
+      // because assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+      // and because of that preferencesState would be two different objects
+      listener: (preferencesState: PreferencesState) => void,
+    ) => {
+      const eventName = `PreferencesController:stateChange`;
+
+      this.controllerMessenger.subscribe(eventName, listener);
+    };
+
     const approvalController = new ApprovalController({
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
@@ -378,18 +398,25 @@ class Engine {
       ],
     });
 
-    const preferencesController = new PreferencesController(
-      {},
-      {
+    const preferencesController = new PreferencesController({
+      messenger: this.controllerMessenger.getRestricted<
+        'PreferencesController',
+        never,
+        'KeyringController:stateChange'
+      >({
+        name: 'PreferencesController',
+        allowedEvents: ['KeyringController:stateChange'],
+      }),
+      state: {
         ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
         useTokenDetection:
           initialState?.PreferencesController?.useTokenDetection ?? true,
-        // TODO: Use previous value when preferences UI is available
         useNftDetection: false,
         displayNftMedia: true,
         securityAlertsEnabled: true,
+        ...initialState.PreferencesController,
       },
-    );
+    });
 
     const networkControllerOpts = {
       infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
@@ -418,8 +445,9 @@ class Engine {
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
-      onPreferencesStateChange: (listener) =>
-        preferencesController.subscribe(listener),
+      //@ts-expect-error assets-controllers need to be bump to v^26
+      //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+      onPreferencesStateChange,
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -432,8 +460,9 @@ class Engine {
 
     const nftController = new NftController(
       {
-        onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+        onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -520,9 +549,9 @@ class Engine {
     });
 
     const tokensController = new TokensController({
-      // TODO: The tokens controller currently does not support internalAccounts. This is done to match the behavior of the previous tokens controller subscription.
-      onPreferencesStateChange: (listener) =>
-        preferencesController.subscribe(listener),
+      //@ts-expect-error assets-controllers need to be bump to v^26
+      //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+      onPreferencesStateChange,
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -624,9 +653,9 @@ class Engine {
       },
       clientId: AppConstants.SWAPS.CLIENT_ID,
       legacyAPIEndpoint:
-        'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
       EIP1559APIEndpoint:
-        'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
 
     const phishingController = new PhishingController({
@@ -647,30 +676,7 @@ class Engine {
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
       ),
-      syncIdentities: (identities) =>
-        preferencesController.syncIdentities(identities),
-      updateIdentities: preferencesController.updateIdentities.bind(
-        preferencesController,
-      ),
-      setSelectedAddress: (address) => {
-        const accountToBeSet = accountsController.getAccountByAddress(address);
-        if (accountToBeSet === undefined) {
-          throw new Error(`No account found for address: ${address}`);
-        }
-        accountsController.setSelectedAccount(accountToBeSet.id);
-        preferencesController.setSelectedAddress(address);
-      },
-      setAccountLabel: (address, label) => {
-        const accountToBeNamed =
-          accountsController.getAccountByAddress(address);
-        if (accountToBeNamed === undefined) {
-          throw new Error(`No account found for address: ${address}`);
-        }
-        accountsController.setAccountName(accountToBeNamed.id, label);
-        preferencesController.setAccountLabel(address, label);
-      },
       encryptor,
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
         'KeyringController',
         never,
@@ -780,8 +786,9 @@ class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     const accountTrackerController = new AccountTrackerController({
-      onPreferencesStateChange: (listener) =>
-        preferencesController.subscribe(listener),
+      //@ts-expect-error assets-controllers need to be bump to v^26
+      //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+      onPreferencesStateChange,
       getIdentities: () => preferencesController.state.identities,
       getSelectedAddress: () => accountsController.getSelectedAccount().address,
       getMultiAccountBalancesEnabled: () =>
@@ -1008,8 +1015,9 @@ class Engine {
       tokensController,
       tokenListController,
       new TokenDetectionController({
-        onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+        onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -1037,6 +1045,8 @@ class Engine {
         getTokensState: () => tokensController.state,
         getTokenListState: () => tokenListController.state,
         getNetworkState: () => networkController.state,
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
         getPreferencesState: () => preferencesController.state,
         getBalancesInSingleCall:
           assetsContractController.getBalancesInSingleCall.bind(
@@ -1045,8 +1055,9 @@ class Engine {
       }),
       new NftDetectionController({
         onNftsStateChange: (listener) => nftController.subscribe(listener),
-        onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+        onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -1080,8 +1091,9 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+        onPreferencesStateChange,
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,
         selectedAddress: preferencesController.state.selectedAddress,
@@ -1102,10 +1114,13 @@ class Engine {
           isEnabled: () => {
             const currentHexChainId =
               networkController.state.providerConfig.chainId;
+
+            const showIncomingTransactions =
+              preferencesController?.state?.showIncomingTransactions;
+
             return Boolean(
-              preferencesController?.state?.showIncomingTransactions?.[
-                currentHexChainId
-              ],
+              hasProperty(showIncomingTransactions, currentChainId) &&
+                showIncomingTransactions?.[currentHexChainId],
             );
           },
           updateTransactions: true,
@@ -1209,7 +1224,10 @@ class Engine {
             allowedEvents: [`${networkController.name}:stateChange`],
           }),
           onPreferencesChange: (listener) =>
-            preferencesController.subscribe(listener as any),
+            this.controllerMessenger.subscribe(
+              `${preferencesController.name}:stateChange`,
+              listener,
+            ),
           provider: networkController.getProviderAndBlockTracker()
             .provider as any,
           ppomProvider: {

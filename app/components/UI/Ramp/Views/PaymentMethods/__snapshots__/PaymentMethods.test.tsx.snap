@@ -741,7 +741,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -1223,7 +1223,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -1238,7 +1238,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Mastercard-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -1726,7 +1726,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -1741,7 +1741,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Mastercard-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -2805,7 +2805,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -3287,7 +3287,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -3302,7 +3302,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Mastercard-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -3790,7 +3790,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -3805,7 +3805,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Mastercard-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -9870,7 +9870,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -10352,7 +10352,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -10367,7 +10367,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Mastercard-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -10855,7 +10855,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -10870,7 +10870,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Mastercard-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -12678,7 +12678,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -13160,7 +13160,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -13175,7 +13175,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Mastercard-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -13663,7 +13663,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
                                                   }
                                                 }
                                                 style={
@@ -13678,7 +13678,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 onError={[Function]}
                                                 source={
                                                   {
-                                                    "uri": "https://on-ramp.metafi-dev.codefi.network/assets/Mastercard-regular@3x.png",
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
                                                   }
                                                 }
                                                 style={
