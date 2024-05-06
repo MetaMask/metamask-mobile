@@ -1,6 +1,5 @@
 import Engine from './Engine';
 import Logger from '../util/Logger';
-import { syncPrefs, syncAccounts } from '../util/sync';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { getLedgerKeyring } from './Ledger/Ledger';
 
@@ -27,7 +26,7 @@ export const restoreQRKeyring = async (qrKeyring) => {
  * Restores the Ledger keyring if it exists.
  */
 export const restoreLedgerKeyring = async (keyring) => {
-  const { KeyringController, PreferencesController } = Engine.context;
+  const { KeyringController } = Engine.context;
 
   if (keyring) {
     try {
@@ -35,9 +34,6 @@ export const restoreLedgerKeyring = async (keyring) => {
       (await getLedgerKeyring()).deserialize(serializedLedgerKeyring);
 
       await KeyringController.persistAllKeyrings();
-      PreferencesController.updateIdentities(
-        await KeyringController.getAccounts(),
-      );
     } catch (e) {
       Logger.error(
         e,
@@ -69,11 +65,8 @@ export const recreateVaultWithNewPassword = async (
   newPassword,
   selectedAddress,
 ) => {
-  const { KeyringController, PreferencesController, AccountTrackerController } =
-    Engine.context;
+  const { KeyringController } = Engine.context;
   const seedPhrase = await getSeedPhrase(password);
-  const oldPrefs = PreferencesController.state;
-  const oldAccounts = AccountTrackerController.accounts;
 
   let importedAccounts = [];
   try {
@@ -127,19 +120,6 @@ export const recreateVaultWithNewPassword = async (
   } catch (e) {
     Logger.error(e, 'error while trying to import accounts on recreate vault');
   }
-
-  //Persist old account/identities names
-  const preferencesControllerState = PreferencesController.state;
-  const prefUpdates = syncPrefs(oldPrefs, preferencesControllerState);
-
-  //Persist old account data
-  const accounts = AccountTrackerController.accounts;
-  const updateAccounts = syncAccounts(oldAccounts, accounts);
-
-  // Set preferencesControllerState again
-  await PreferencesController.update(prefUpdates);
-  await AccountTrackerController.update(updateAccounts);
-
   const recreatedKeyrings = KeyringController.state.keyrings;
   // Reselect previous selected account if still available
   for (const keyring of recreatedKeyrings) {
@@ -148,9 +128,6 @@ export const recreateVaultWithNewPassword = async (
       return;
     }
   }
-
-  // Default to first account as fallback
-  Engine.setSelectedAddress(hdKeyring.accounts[0]);
 };
 
 /**
