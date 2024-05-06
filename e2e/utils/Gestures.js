@@ -161,7 +161,7 @@ class Gestures {
    * Scrolls the web element until its top is at the top of the viewport.
    * @param {Promise<Element>} elementID - A promise resolving to the target element's ID or element itself.
    */
-  static async scrollToViewport(elementID) {
+  static async scrollToWebViewPort(elementID) {
     const element = await elementID;
     await element.scrollToView();
   }
