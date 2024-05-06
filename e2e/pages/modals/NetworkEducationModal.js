@@ -31,10 +31,7 @@ class NetworkEducationModal {
   }
 
   async tapGotItButton() {
-    await device.disableSynchronization(); // because animations are slowing down tests at this point
-
     await Gestures.waitAndTap(this.closeButton);
-    await device.enableSynchronization();
   }
 
   async tapManualAddTokenLink() {
