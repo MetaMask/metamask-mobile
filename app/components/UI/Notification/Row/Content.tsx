@@ -27,11 +27,16 @@ function NotificationContent({
   styles,
 }: NotificationContentProps) {
   const useRenderTwoPartsTitles = useCallback(() => {
-    const parts = title?.toLowerCase().includes('sent')
-      ? title?.split(/(.*?to)/g)
-      : title?.toLowerCase().includes('received')
-      ? title?.split(/(.*?from)/g)
-      : [];
+    const lowerTitle = title.toLowerCase();
+
+    let parts: string[] = [];
+    if (lowerTitle.includes('sent')) {
+      parts = title.split(/(\bto\b)/g);
+    } else if (lowerTitle.includes('received')) {
+      parts = title.split(/(\bfrom\b)/g);
+    } else {
+      parts = [];
+    }
 
     if (parts.length > 1) {
       return (
