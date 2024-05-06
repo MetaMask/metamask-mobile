@@ -13,7 +13,7 @@ const onDismiss = jest.fn();
 const handleOnPress = jest.fn();
 
 describe('NotificationRoot', () => {
-  it('renders correctly', () => {
+  it('matches snapshot', () => {
     const { toJSON } = renderWithProvider(
       <NotificationRoot
         handleOnPress={handleOnPress}
