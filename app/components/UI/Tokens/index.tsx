@@ -94,7 +94,10 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectDetectedTokens } from '../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import {
+  selectContractExchangeRates,
+  selectDataMarket,
+} from '../../../selectors/tokenRatesController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import useIsOriginalNativeTokenSymbol from '../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
@@ -125,7 +128,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     return getNetworkNameFromProviderConfig(providerConfig);
   });
   const { type, rpcUrl } = useSelector(selectProviderConfig);
+  const dataMarket = useSelector(selectDataMarket);
+
   const chainId = useSelector(selectChainId);
+
   const ticker = useSelector(selectTicker);
   const networkClientId = useSelector(selectNetworkClientId);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -314,8 +320,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     // When the exchange rate of a token is not found, the return is undefined
     // We fallback to the TOKEN_RATE_UNDEFINED to handle it properly
     const exchangeRate =
-      itemAddress in tokenExchangeRates
-        ? tokenExchangeRates[itemAddress] || TOKEN_RATE_UNDEFINED
+      itemAddress.toLowerCase() in tokenExchangeRates
+        ? tokenExchangeRates[itemAddress.toLowerCase()] || TOKEN_RATE_UNDEFINED
         : undefined;
 
     const balance =
@@ -360,6 +366,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const renderItem = (asset: TokenI) => {
     const itemAddress = safeToChecksumAddress(asset.address);
+    const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+    const dataMarketByChain = dataMarket?.[chainId];
+    const pricePercentChange1d = itemAddress
+      ? dataMarketByChain?.[itemAddress?.toLowerCase() as `0x${string}`]
+          ?.pricePercentChange1d
+      : dataMarketByChain?.[ZERO_ADDRESS]?.pricePercentChange1d;
 
     const { balanceFiat, balanceValueFormatted } = handleBalance(asset);
 
@@ -466,16 +478,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             {/** Add button link to Portfolio Stake if token is mainnet ETH */}
             {asset.isETH && isMainnet && renderStakeButton(asset)}
           </View>
-
-          {/* TODO HERE ------- */}
-          {/* <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
-            {mainBalance === TOKEN_BALANCE_LOADING ? (
-              <SkeletonText thin style={styles.skeleton} />
-            ) : (
-              mainBalance
-            )}
-          </Text> */}
-          <PercentageChange value={2} />
+          <PercentageChange value={pricePercentChange1d} />
         </View>
 
         {renderScamWarningIcon(asset)}

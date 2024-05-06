@@ -36,6 +36,7 @@ const createStyles = (colors: Colors) =>
     },
     arrow: {
       flex: 1,
+      alignItems: 'flex-end',
       alignSelf: 'flex-end',
     },
     arrowIcon: {
@@ -46,6 +47,7 @@ const createStyles = (colors: Colors) =>
     },
     balanceFiat: {
       color: colors.text.alternative,
+      paddingHorizontal: 0,
       ...fontStyles.normal,
       textTransform: 'uppercase',
     },
@@ -82,7 +84,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
     >
       {children}
 
-      <View>
+      <View style={styles.arrow}>
         {balance && (
           <Text
             variant={

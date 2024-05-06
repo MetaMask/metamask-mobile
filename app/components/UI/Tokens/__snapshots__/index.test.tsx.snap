@@ -327,19 +327,24 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               }
                             }
                           >
-                            <Text
-                              style={
-                                {
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 32,
-                                  "fontWeight": "500",
-                                  "lineHeight": 40,
+                            <View>
+                              <Text
+                                style={
+                                  {
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 32,
+                                    "fontWeight": "500",
+                                    "lineHeight": 40,
+                                  }
                                 }
-                              }
-                              testID="total-balance-text"
-                            >
-                              0 USD
-                            </Text>
+                                testID="total-balance-text"
+                              >
+                                0 USD
+                              </Text>
+                              <PercentageChange
+                                value={2}
+                              />
+                            </View>
                             <Button
                               endIconName="Export"
                               label="Portfolio"
@@ -421,22 +426,42 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 }
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#24272A",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 32,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 40,
+                              <View>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#24272A",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 32,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 40,
+                                    }
                                   }
-                                }
-                                testID="total-balance-text"
-                              >
-                                0 USD
-                              </Text>
+                                  testID="total-balance-text"
+                                >
+                                  0 USD
+                                </Text>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#1C8234",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "textTransform": "uppercase",
+                                      }
+                                    }
+                                  >
+                                    +2.00%
+                                  </Text>
+                                </View>
+                              </View>
                               <TouchableOpacity
                                 accessibilityRole="button"
                                 accessible={true}
@@ -782,22 +807,22 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     />
                                   </View>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#535A61",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#D73847",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "textTransform": "uppercase",
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -828,21 +853,48 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#24272A",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                 ETH
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                   ETH
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
@@ -1021,22 +1073,22 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     Bat
                                   </Text>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#535A61",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#D73847",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "textTransform": "uppercase",
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -1067,21 +1119,48 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#24272A",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                &lt; 0.00001 BAT
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  &lt; 0.00001 BAT
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
@@ -1501,19 +1580,24 @@ exports[`Tokens should render correctly 1`] = `
                               }
                             }
                           >
-                            <Text
-                              style={
-                                {
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 32,
-                                  "fontWeight": "500",
-                                  "lineHeight": 40,
+                            <View>
+                              <Text
+                                style={
+                                  {
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 32,
+                                    "fontWeight": "500",
+                                    "lineHeight": 40,
+                                  }
                                 }
-                              }
-                              testID="total-balance-text"
-                            >
-                              0 USD
-                            </Text>
+                                testID="total-balance-text"
+                              >
+                                0 USD
+                              </Text>
+                              <PercentageChange
+                                value={2}
+                              />
+                            </View>
                             <Button
                               endIconName="Export"
                               label="Portfolio"
@@ -1595,22 +1679,42 @@ exports[`Tokens should render correctly 1`] = `
                                 }
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#24272A",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 32,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 40,
+                              <View>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#24272A",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 32,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 40,
+                                    }
                                   }
-                                }
-                                testID="total-balance-text"
-                              >
-                                0 USD
-                              </Text>
+                                  testID="total-balance-text"
+                                >
+                                  0 USD
+                                </Text>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#1C8234",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "textTransform": "uppercase",
+                                      }
+                                    }
+                                  >
+                                    +2.00%
+                                  </Text>
+                                </View>
+                              </View>
                               <TouchableOpacity
                                 accessibilityRole="button"
                                 accessible={true}
@@ -1956,22 +2060,22 @@ exports[`Tokens should render correctly 1`] = `
                                     />
                                   </View>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#535A61",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#D73847",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "textTransform": "uppercase",
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -2002,21 +2106,48 @@ exports[`Tokens should render correctly 1`] = `
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#24272A",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                 ETH
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                   ETH
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
@@ -2195,22 +2326,22 @@ exports[`Tokens should render correctly 1`] = `
                                     Bat
                                   </Text>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#535A61",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#D73847",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "textTransform": "uppercase",
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -2241,21 +2372,48 @@ exports[`Tokens should render correctly 1`] = `
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#24272A",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                &lt; 0.00001 BAT
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  &lt; 0.00001 BAT
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
@@ -2675,19 +2833,24 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               }
                             }
                           >
-                            <Text
-                              style={
-                                {
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 32,
-                                  "fontWeight": "500",
-                                  "lineHeight": 40,
+                            <View>
+                              <Text
+                                style={
+                                  {
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 32,
+                                    "fontWeight": "500",
+                                    "lineHeight": 40,
+                                  }
                                 }
-                              }
-                              testID="total-balance-text"
-                            >
-                              0 USD
-                            </Text>
+                                testID="total-balance-text"
+                              >
+                                0 USD
+                              </Text>
+                              <PercentageChange
+                                value={2}
+                              />
+                            </View>
                             <Button
                               endIconName="Export"
                               label="Portfolio"
@@ -2777,22 +2940,42 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 }
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#24272A",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 32,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 40,
+                              <View>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#24272A",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 32,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 40,
+                                    }
                                   }
-                                }
-                                testID="total-balance-text"
-                              >
-                                0 USD
-                              </Text>
+                                  testID="total-balance-text"
+                                >
+                                  0 USD
+                                </Text>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#1C8234",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "textTransform": "uppercase",
+                                      }
+                                    }
+                                  >
+                                    +2.00%
+                                  </Text>
+                                </View>
+                              </View>
                               <TouchableOpacity
                                 accessibilityRole="button"
                                 accessible={true}
@@ -3138,22 +3321,22 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     />
                                   </View>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#535A61",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#D73847",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "textTransform": "uppercase",
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -3184,21 +3367,48 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#24272A",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                 ETH
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                   ETH
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
@@ -3377,22 +3587,22 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     Bat
                                   </Text>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#535A61",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#D73847",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "textTransform": "uppercase",
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -3423,21 +3633,48 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#24272A",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                &lt; 0.00001 BAT
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  &lt; 0.00001 BAT
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
@@ -3616,22 +3853,22 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     Link
                                   </Text>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#535A61",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#D73847",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "textTransform": "uppercase",
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -3662,21 +3899,48 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#24272A",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                0 LINK
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  0 LINK
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
