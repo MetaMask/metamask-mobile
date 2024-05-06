@@ -14,7 +14,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
     style={
       {
         "flex": 1,
-        "paddingTop": "20%",
+        "paddingTop": "10%",
       }
     }
   >
@@ -102,7 +102,6 @@ exports[`OnboardingSuccess should render correctly 1`] = `
              
           </Text>
           to keep this set of words safe so you can always access your funds.
-
         </Text>
       </Text>
     </View>
@@ -116,10 +115,15 @@ exports[`OnboardingSuccess should render correctly 1`] = `
       <TouchableOpacity
         onPress={[Function]}
         style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-          }
+          [
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            },
+            {
+              "paddingTop": 10,
+            },
+          ]
         }
       >
         <View

@@ -107,6 +107,8 @@ export default {
     WHAT_IS_SRP:
       'https://community.metamask.io/t/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/3440',
     PRIVACY_POLICY_2024: 'https://consensys.io/privacy-policy',
+    PRIVACY_BEST_PRACTICES:
+      'https://support.metamask.io/privacy-and-security/privacy-best-practices',
     SMART_TXS: 'https://support.metamask.io/hc/en-us/articles/9184393821211',
   },
   ERRORS: {
