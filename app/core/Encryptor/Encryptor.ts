@@ -183,7 +183,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     // the encryptor itself. This makes sure we always re-encrypt with the "latest" and "best"
     // setup possible.
     const result = await this.encryptWithKey(key, data);
-    result.lib = key.lib; // Use the same library than the one used for key generation!
+    result.lib = key.lib; // Use the same library as the one used for key generation!
     result.salt = salt;
     result.keyMetadata = key.keyMetadata;
     return JSON.stringify(result);
