@@ -112,10 +112,10 @@ const gemInstallTask = {
   task: (_, task) => task.newListr([
     {
       title: 'Install gems using bundler',
-      task: async (_, podInstallTask) => {
+      task: async (_, gemInstallTask) => {
         const isOSX = process.platform === 'darwin';
         if (!isOSX) {
-          podInstallTask.skip('Not macOS.');
+          gemInstallTask.skip('Not macOS.');
         } else {
           try {
             await $`bundle install`;
