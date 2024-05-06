@@ -161,14 +161,9 @@ class SmartTransactionHook {
       Logger.log(LOG_PREFIX, 'Started approval flow id', this.#approvalFlowId);
     }
 
+    const getFeesResponse = await this.#getFees();
     // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
-    let getFeesResponse: Fees;
-    try {
-      getFeesResponse = await this.#smartTransactionsController.getFees(
-        { ...this.#transaction, chainId: this.#chainId },
-        undefined,
-      );
-    } catch (error) {
+    if (!getFeesResponse) {
       this.#cleanup();
       return useRegularTransactionSubmit;
     }
@@ -221,6 +216,17 @@ class SmartTransactionHook {
       throw error;
     }
   }
+
+  #getFees = async () => {
+    try {
+      return await this.#smartTransactionsController.getFees(
+        { ...this.#transaction, chainId: this.#chainId },
+        undefined,
+      );
+    } catch (error) {
+      return undefined;
+    }
+  };
 
   #getApprovalIdForPendingSwapApprove = () => {
     const pendingApprovalsForSwapApproveTxs = Object.values(
