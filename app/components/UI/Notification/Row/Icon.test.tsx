@@ -57,7 +57,7 @@ describe('NotificationIcon', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly with Announcement type', () => {
+  it('matches snapshot with Announcement type', () => {
     const { toJSON } = renderWithProvider(
       <NotificationIcon
         notificationType={announcementNotification.notificationType}
