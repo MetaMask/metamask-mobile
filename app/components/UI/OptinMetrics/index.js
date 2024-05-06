@@ -554,7 +554,11 @@ class OptinMetrics extends PureComponent {
             <Text style={styles.content}>
               {strings('privacy_policy.description_content_2')}
             </Text>
-            {this.actionsList.map((action, i) => this.renderAction(action, i))}
+            {this.actionsList.map((action, i) =>
+              isPastPrivacyPolicyDate
+                ? this.renderAction(action, i)
+                : this.renderLegacyAction(action, i),
+            )}
             {this.renderPrivacyPolicy()}
           </View>
         </ScrollView>
