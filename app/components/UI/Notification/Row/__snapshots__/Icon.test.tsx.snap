@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NotificationIcon renders correctly with Announcement type 1`] = `
+exports[`NotificationIcon matches snapshot with Announcement type 1`] = `
 <View
   style={{}}
 >
@@ -19,7 +19,7 @@ exports[`NotificationIcon renders correctly with Announcement type 1`] = `
 </View>
 `;
 
-exports[`NotificationIcon renders correctly with Wallet type 1`] = `
+exports[`NotificationIcon matches snapshot with Wallet type 1`] = `
 <View
   onLayout={[Function]}
   style={
