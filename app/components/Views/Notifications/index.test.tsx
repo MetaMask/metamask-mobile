@@ -44,7 +44,7 @@ describe('NotificationsView', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render correctly with no notifications', () => {
+  it('matches snapshot without notifications', () => {
     const { toJSON } = renderWithProvider(
       <NotificationsView
         navigation={navigation}
