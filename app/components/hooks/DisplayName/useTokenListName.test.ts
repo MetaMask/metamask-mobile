@@ -32,10 +32,7 @@ describe('useTokenListName', () => {
   });
 
   it('returns name if found', () => {
-    const name = useTokenListName(
-      TOKEN_ADDRESS_MOCK,
-      NameType.EthereumAddress,
-    );
+    const name = useTokenListName(TOKEN_ADDRESS_MOCK, NameType.EthereumAddress);
     expect(name).toBe(TOKEN_NAME_MOCK);
   });
 
