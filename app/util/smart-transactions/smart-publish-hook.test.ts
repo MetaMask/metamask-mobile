@@ -20,7 +20,7 @@ import { ApprovalController } from '@metamask/approval-controller';
 const addressFrom = '0xabce7847fd3661a9b7c86aaf1daea08d9da5750e';
 const transactionHash =
   '0x0302b75dfb9fd9eb34056af031efcaee2a8cbd799ea054a85966165cd82a7356';
-const uuid = 'uuid';
+const stxUuid = 'uuid';
 
 type SubmitSmartTransactionRequestMocked = SubmitSmartTransactionRequest & {
   smartTransactionsController: jest.Mocked<SmartTransactionsController>;
@@ -70,7 +70,7 @@ const createSmartTransactionsControllerMock = () =>
       },
     })),
     submitSignedTransactions: jest.fn(async () => ({
-      uuid,
+      uuid: stxUuid,
       txHash: transactionHash,
     })),
     eventEmitter: new EventEmitter(),
@@ -248,7 +248,7 @@ describe('submitSmartTransactionHook', () => {
       requestState: {
         smartTransaction: {
           status: 'pending',
-          uuid,
+          uuid: stxUuid,
           creationTime: expect.any(Number),
         },
         isDapp: true,
@@ -341,7 +341,7 @@ describe('submitSmartTransactionHook', () => {
       requestState: {
         smartTransaction: {
           status: 'pending',
-          uuid,
+          uuid: stxUuid,
           creationTime: expect.any(Number),
         },
         isDapp: true,
@@ -448,7 +448,7 @@ describe('submitSmartTransactionHook', () => {
         requestState: {
           smartTransaction: {
             status: 'pending',
-            uuid,
+            uuid: stxUuid,
             creationTime: expect.any(Number),
           },
           isDapp: false,
