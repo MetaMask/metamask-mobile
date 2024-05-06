@@ -121,27 +121,17 @@ class SmartTransactionHook {
     this.#isSwapTransaction = isSwapTransaction;
     this.#isNativeTokenTransferred = isNativeTokenTransferred;
 
-    const pendingApprovalsForSwapApproveTxs = Object.values(
-      this.#approvalController.state.pendingApprovals,
-    ).filter(
-      ({ origin: pendingApprovalOrigin, type, requestState }) =>
-        // MM_FOX_CODE is the origin for MM Swaps
-        pendingApprovalOrigin === process.env.MM_FOX_CODE &&
-        type === ApprovalTypes.SMART_TRANSACTION_STATUS &&
-        requestState?.isInSwapFlow &&
-        requestState?.isSwapApproveTx,
-    );
-    const pendingApprovalsForSwapApproveTx =
-      pendingApprovalsForSwapApproveTxs[0];
-    if (pendingApprovalsForSwapApproveTx && this.#isSwapTransaction) {
-      this.#approvalFlowId = pendingApprovalsForSwapApproveTx.id;
+    const approvalIdForPendingSwapApprove =
+      this.#getApprovalIdForPendingSwapApprove();
+    if (approvalIdForPendingSwapApprove) {
+      this.#approvalFlowId = approvalIdForPendingSwapApprove;
     }
 
     this.#shouldStartFlow = getShouldStartFlow(
       this.#isDapp,
       this.#isSend,
       this.#isSwapApproveTx,
-      Boolean(pendingApprovalsForSwapApproveTx),
+      Boolean(approvalIdForPendingSwapApprove),
     );
     this.#shouldUpdateFlow = getShouldUpdateFlow(
       this.#isDapp,
@@ -231,6 +221,25 @@ class SmartTransactionHook {
       throw error;
     }
   }
+
+  #getApprovalIdForPendingSwapApprove = () => {
+    const pendingApprovalsForSwapApproveTxs = Object.values(
+      this.#approvalController.state.pendingApprovals,
+    ).filter(
+      ({ origin: pendingApprovalOrigin, type, requestState }) =>
+        // MM_FOX_CODE is the origin for MM Swaps
+        pendingApprovalOrigin === process.env.MM_FOX_CODE &&
+        type === ApprovalTypes.SMART_TRANSACTION_STATUS &&
+        requestState?.isInSwapFlow &&
+        requestState?.isSwapApproveTx,
+    );
+    const pendingApprovalsForSwapApproveTx =
+      pendingApprovalsForSwapApproveTxs[0];
+
+    return pendingApprovalsForSwapApproveTx && this.#isSwapTransaction
+      ? pendingApprovalsForSwapApproveTx.id
+      : null;
+  };
 
   #getTransactionHash = async (
     submitTransactionResponse: any,
