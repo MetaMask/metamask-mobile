@@ -98,8 +98,10 @@ class Gestures {
   static async typeTextAndHideKeyboard(elementID, text) {
     const element = await elementID;
     await this.clearField(element);
+    await device.disableSynchronization();
 
     await element.typeText(text + '\n');
+    await device.enableSynchronization();
   }
 
   /**
