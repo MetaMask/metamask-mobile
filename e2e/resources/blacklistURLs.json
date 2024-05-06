@@ -11,6 +11,7 @@
     ".*cloudflare-ipfs.com/.*",
     ".*stale.*",
     ".*phishing-detection.metafi.codefi.network/.*",
+    ".*phishing-detection.cx.metamask.io/.*",
     ".*eth.llamarpc.com/.*",
     ".*token-api.metaswap.codefi.network/.*"
   ]
