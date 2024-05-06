@@ -642,9 +642,9 @@ class Engine {
       },
       clientId: AppConstants.SWAPS.CLIENT_ID,
       legacyAPIEndpoint:
-        'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
       EIP1559APIEndpoint:
-        'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
 
     const phishingController = new PhishingController({
@@ -1092,13 +1092,15 @@ class Engine {
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
+        disableSendFlowHistory: true,
+        disableHistory: true,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-        //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
+        getCurrentNetworkEIP1559Compatibility:
+          networkController.getEIP1559Compatibility.bind(networkController),
         getNetworkState: () => networkController.state,
         getSelectedAddress: () =>
           accountsController.getSelectedAccount().address,
         incomingTransactions: {
-          apiKey: process.env.MM_ETHERSCAN_KEY,
           isEnabled: () => {
             const currentHexChainId =
               networkController.state.providerConfig.chainId;
@@ -1125,7 +1127,6 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
             listener,
           ),
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
