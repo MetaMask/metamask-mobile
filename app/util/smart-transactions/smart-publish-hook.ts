@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import {
-  Transaction,
+  TransactionParams,
   TransactionController,
   TransactionMeta,
 } from '@metamask/transaction-controller';
@@ -73,7 +73,7 @@ class SmartTransactionHook {
   #transactionController: TransactionController;
   #approvalController: ApprovalController;
   #transactionMeta: TransactionMeta;
-  #transaction: Transaction;
+  #txParams: TransactionParams;
 
   #isDapp: boolean;
   #isSend: boolean;
@@ -103,7 +103,7 @@ class SmartTransactionHook {
     this.#isSmartTransaction = isSmartTransaction;
     this.#featureFlags = featureFlags;
     this.#chainId = transactionMeta.chainId;
-    this.#transaction = transactionMeta.transaction;
+    this.#txParams = transactionMeta.txParams;
 
     const {
       isDapp,
@@ -205,7 +205,7 @@ class SmartTransactionHook {
   #getFees = async () => {
     try {
       return await this.#smartTransactionsController.getFees(
-        { ...this.#transaction, chainId: this.#chainId },
+        { ...this.#txParams, chainId: this.#chainId },
         undefined,
       );
     } catch (error) {
@@ -260,15 +260,15 @@ class SmartTransactionHook {
     return transactionHash;
   };
 
-  #applyFeeToTransaction = (fee: Fee, isCancel: boolean): Transaction => {
+  #applyFeeToTransaction = (fee: Fee, isCancel: boolean): TransactionParams => {
     const unsignedTransactionWithFees = {
-      ...this.#transaction,
+      ...this.#txParams,
       maxFeePerGas: `0x${decimalToHex(fee.maxFeePerGas)}`,
       maxPriorityFeePerGas: `0x${decimalToHex(fee.maxPriorityFeePerGas)}`,
       gas: isCancel
         ? `0x${decimalToHex(CANCEL_GAS)}`
-        : this.#transaction.gas?.toString(),
-      value: this.#transaction.value,
+        : this.#txParams.gas?.toString(),
+      value: this.#txParams.value,
     };
     if (isCancel) {
       unsignedTransactionWithFees.to = unsignedTransactionWithFees.from;
@@ -311,7 +311,7 @@ class SmartTransactionHook {
     return await this.#smartTransactionsController.submitSignedTransactions({
       signedTransactions,
       signedCanceledTransactions,
-      transaction: this.#transaction,
+      txParams: this.#txParams,
       transactionMeta: this.#transactionMeta,
     });
   };

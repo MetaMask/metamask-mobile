@@ -231,15 +231,15 @@ const mapStateToProps = (state) => {
 
   // for replaced txs, only hide the ones that are confirmed
   const filteredNonSmartTransactions = nonSmartTransactions.filter(
-    (tx) => !(tx.replacedBy && tx.replacedById && tx.transactionHash),
+    (tx) => !(tx.replacedBy && tx.replacedById && tx.hash),
   );
 
   const filteredPendingSmartTransactions =
     smartTransactions
       ?.filter((stx) => {
-        const { transaction } = stx;
+        const { txParams } = stx;
         return (
-          transaction?.from.toLowerCase() === selectedAddress.toLowerCase() &&
+          txParams?.from.toLowerCase() === selectedAddress.toLowerCase() &&
           stx.status &&
           stx.status !== SmartTransactionStatuses.SUCCESS &&
           stx.status !== SmartTransactionStatuses.CANCELLED

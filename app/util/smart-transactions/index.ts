@@ -19,8 +19,8 @@ export const getTransactionType = (
     transactionMeta?.origin !== TransactionTypes.MMM &&
     transactionMeta?.origin !== process.env.MM_FOX_CODE;
 
-  const to = transactionMeta.transaction.to?.toLowerCase();
-  const data = transactionMeta.transaction.data; // undefined for send txs of gas tokens
+  const to = transactionMeta.txParams.to?.toLowerCase();
+  const data = transactionMeta.txParams.data; // undefined for send txs of gas tokens
 
   const isInSwapFlow = getIsInSwapFlowTransaction(
     data,
@@ -42,7 +42,7 @@ export const getTransactionType = (
   );
 
   const isNativeTokenTransferred = getIsNativeTokenTransferred(
-    transactionMeta.transaction,
+    transactionMeta.txParams,
   );
 
   const isSend = !isDapp && !isInSwapFlow;

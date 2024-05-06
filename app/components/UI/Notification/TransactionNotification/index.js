@@ -277,9 +277,7 @@ function TransactionNotification(props) {
   // Don't show submitted notification for STX b/c we only know when it's confirmed,
   // o/w a submitted notification will show up after it's confirmed, then a confirmed notification will show up immediately after
   if (tx.status === 'submitted') {
-    const smartTx = smartTransactions.find(
-      (stx) => stx.transactionHash === tx.transactionHash,
-    );
+    const smartTx = smartTransactions.find((stx) => stx.txHash === tx.hash);
     if (smartTx) {
       return null;
     }

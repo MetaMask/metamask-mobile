@@ -296,7 +296,7 @@ class Confirm extends PureComponent {
       if (transactionMeta) {
         const smartTransaction =
           SmartTransactionsController.getSmartTransactionByMinedTxHash(
-            transactionMeta.transactionHash,
+            transactionMeta.hash,
           );
 
         if (smartTransaction) {
