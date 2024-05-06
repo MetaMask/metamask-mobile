@@ -5,14 +5,15 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
-import TestHelpers from '../../helpers';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import WalletView from '../../pages/WalletView';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
-import { CONTINUE_BUTTON } from '../../../wdio/screen-objects/testIDs/Components/FiatOnTestnetsModal.testIds';
 import { TOTAL_BALANCE_TEXT } from '../../../wdio/screen-objects/testIDs/Components/Tokens.testIds.js';
+import FiatOnTestnetsModal from '../../pages/modals/FiatOnTestnetsModal.js';
+import Assertions from '../../utils/Assertions.js';
+import Matchers from '../../utils/Matchers.js';
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
@@ -34,17 +35,23 @@ describe(SmokeCore('Fiat On Testnets Setting'), () => {
         await NetworkEducationModal.tapGotItButton();
 
         // Verify no fiat values displayed
-        await TestHelpers.checkIfHasText(TOTAL_BALANCE_TEXT, '$0');
+        await Assertions.checkIfHasText(
+          Matchers.getElementByID(TOTAL_BALANCE_TEXT),
+          '$0',
+        );
 
         // Enable fiat on testnets setting
         await TabBarComponent.tapSettings();
         await SettingsView.tapAdvancedTitle();
         await AdvancedSettingsView.tapShowFiatOnTestnetsSwitch();
-        await TestHelpers.waitAndTap(CONTINUE_BUTTON);
+        await FiatOnTestnetsModal.tapContinueButton();
 
         // Verify fiat values are displayed
         await TabBarComponent.tapWallet();
-        await TestHelpers.checkIfElementNotToHaveText(TOTAL_BALANCE_TEXT, '$0');
+        await Assertions.checkIfElementNotToHaveText(
+          Matchers.getElementByID(TOTAL_BALANCE_TEXT),
+          '$0',
+        );
       },
     );
   });
