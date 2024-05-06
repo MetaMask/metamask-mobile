@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import { useDispatch } from 'react-redux';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from '../styles';
+import Device from '../../../../util/device';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
@@ -23,6 +24,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     marginHorizontal: 16,
+    bottom: Device.isIphoneX() ? 80 : Device.isIos() ? 40 : 64,
   },
 });
 
@@ -31,22 +33,11 @@ interface Step5Props {
   onClose: () => Promise<void>;
 }
 
-const Step5 = ({ coachmarkRef, onClose }: Step5Props) => {
+const Step5 = ({ onClose }: Step5Props) => {
   const { trackEvent } = useMetrics();
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const dynamicOnboardingStyles = onboardingStyles(colors);
-  const [coachmarkBottom, setCoachmarkBottom] = useState(50);
-
-  const getCoachmarkPosition = useCallback(() => {
-    coachmarkRef?.current?.measure((pageY: number) => {
-      setCoachmarkBottom(Dimensions.get('window').height - pageY);
-    });
-  }, [coachmarkRef]);
-
-  useEffect(() => {
-    getCoachmarkPosition();
-  }, [getCoachmarkPosition]);
 
   /**
    * Dispatches 'setOnboardingWizardStep' with next step
@@ -86,14 +77,7 @@ const Step5 = ({ coachmarkRef, onClose }: Step5Props) => {
 
   return (
     <View style={styles.main}>
-      <View
-        style={[
-          styles.coachmarkContainer,
-          {
-            bottom: coachmarkBottom,
-          },
-        ]}
-      >
+      <View style={[styles.coachmarkContainer]}>
         <Coachmark
           title={strings('onboarding_wizard_new.step5.title')}
           content={content()}
