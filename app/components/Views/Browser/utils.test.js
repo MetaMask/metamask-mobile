@@ -30,7 +30,7 @@ describe('setNavOptions', () => {
       colors,
       handleRightTopButtonAnalyticsEvent,
       navigation,
-    )();
+    );
 
     // Assert
     expect(result).toBeUndefined();
