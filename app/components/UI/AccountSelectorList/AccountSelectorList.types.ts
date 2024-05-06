@@ -5,8 +5,6 @@ import { FlatListProps } from 'react-native';
 // External dependencies.
 import { Account, UseAccounts } from '../../hooks/useAccounts';
 
-export type SelectedAccountByAddress = Record<string, string>;
-
 /**
  * AccountSelectorList props.
  */
