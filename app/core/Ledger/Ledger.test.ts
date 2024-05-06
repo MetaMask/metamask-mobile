@@ -50,11 +50,6 @@ describe('Ledger core', () => {
     addNewAccountForKeyring: mockAddNewAccountForKeyring,
   };
 
-  const mockSetSelectedAddress = jest.fn();
-  Engine.context.PreferencesController = {
-    setSelectedAddress: mockSetSelectedAddress,
-  };
-
   describe('addLedgerKeyring', () => {
     it('should call addNewKeyring from keyring controller', () => {
       addLedgerKeyring();
@@ -139,12 +134,10 @@ describe('Ledger core', () => {
     it('should call keyring.forgetDevice', async () => {
       await forgetLedger();
       expect(ledgerKeyring.forgetDevice).toHaveBeenCalled();
-      expect(mockGetAccounts).toHaveBeenCalled();
       expect(mockPersistAllKeyrings).toHaveBeenCalled();
-
-      expect(mockSetSelectedAddress).toBeCalledWith(
+      mockGetAccounts.mockReturnValue([
         '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
-      );
+      ]);
     });
   });
 

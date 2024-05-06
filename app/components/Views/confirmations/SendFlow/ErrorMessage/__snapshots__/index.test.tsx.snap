@@ -1,9 +1,78 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ErrorMessage should render correctly 1`] = `
-<Alert
-  type="Error"
+<View
+  style={
+    [
+      {
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "paddingHorizontal": 12,
+        "paddingVertical": 8,
+      },
+      undefined,
+      {
+        "backgroundColor": "#D7384719",
+        "borderColor": "#D73847",
+      },
+      undefined,
+    ]
+  }
 >
-  <Component />
-</Alert>
+  <View>
+    <Text
+      style={
+        [
+          {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 30,
+            "fontWeight": "400",
+            "marginVertical": 2,
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          {
+            "fontSize": 12,
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          [
+            {
+              "color": "#24272A",
+              "flex": 1,
+              "fontSize": 14,
+              "lineHeight": 17,
+            },
+            {
+              "flex": 0,
+            },
+          ],
+        ]
+      }
+      testID="error-message-warning"
+    >
+      error
+    </Text>
+  </View>
+</View>
 `;

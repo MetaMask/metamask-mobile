@@ -15,6 +15,7 @@ pipelines:
     stages:
       - create_build_release: {}
       - deploy_build_release: {}
+      - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
       - release_notify: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
@@ -138,6 +139,7 @@ stages:
       - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
+      - run_tag_upgrade_android: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -198,15 +200,15 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo "Node and Yarn being installed"
+                echo "Node $NODE_VERSION being installed with asdf"
                 asdf list all nodejs
                 asdf install nodejs "$NODE_VERSION"
                 asdf global nodejs "$NODE_VERSION"
-                asdf plugin add yarn
-                asdf list all yarn
-                asdf install yarn "$YARN_VERSION"
-                asdf global yarn "$YARN_VERSION"
-          title: Install node and yarn
+                echo "Corepack being installed with npm"
+                npm i -g "corepack@$COREPACK_VERSION"
+                echo "Corepack enabling $YARN_VERSION"
+                corepack enable
+          title: Install node, yarn and corepack
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -416,6 +418,20 @@ workflows:
       - TEST_SUITE: 'Regression'
     after_run:
       - android_e2e_test
+  run_tag_upgrade_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - PRODUCTION_APP_URL: 'bs://3f81fdb66cba8140909d1ff0a05bc2ace97b307f' # Last production's QA build
+      - PRODUCTION_BUILD_VERSION_NAME: 7.20.0
+      - PRODUCTION_BUILD_VERSION_NUMBER: 1308
+      - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
+      - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_VERSION_NAME ($PRODUCTION_BUILD_VERSION_NUMBER)'
+      - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
+    after_run:
+      - run_android_appium_test
 
   ### Seperating workflows so they run concurrently during smoke runs
   run_tag_smoke_confirmations_ios:
@@ -514,6 +530,7 @@ workflows:
             - key: apk-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
+          timeout: 1200
           run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
           is_always_run: false
           inputs:
@@ -583,6 +600,7 @@ workflows:
       - wait-for-android-emulator@1: {}
       - script@1:
           title: Run detox test
+          timeout: 1200
           is_always_run: false
           inputs:
             - content: |-
@@ -689,6 +707,7 @@ workflows:
             - key: ipa-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
+          timeout: 1200
           run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
           is_always_run: false
           inputs:
@@ -703,7 +722,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:build
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -754,12 +773,13 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - script@1:
+          timeout: 1200
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 if [ -n "$TEST_SUITE_FOLDER" ]; then
                   echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi                
+                fi
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
@@ -772,7 +792,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
           title: Run detox test
           is_always_run: false
       - custom-test-results-export@1:
@@ -892,6 +912,15 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
+  run_android_appium_test:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    before_run:
+      - build_android_qa
+    after_run:
+      - wdio_android_e2e_test
   build_android_qa:
     before_run:
       - code_setup
@@ -987,20 +1016,6 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_apps.json
           title: Bitrise Deploy Browserstack Uploaded Apps
-      - build-router-start@0:
-          inputs:
-            - workflows: |-
-                wdio_android_e2e_test
-            - wait_for_builds: 'false'
-            - abort_on_fail: 'yes'
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-            - environment_key_list: BROWSERSTACK_APP_URL
-
-                BROWSERSTACK_DEVICE
-
-                BROWSERSTACK_OS_VERSION
-
-                BROWSERSTACK_TAG_EXPRESSION
   wdio_android_e2e_test:
     before_run:
       - code_setup
@@ -1278,6 +1293,9 @@ app:
   envs:
     - opts:
         is_expand: false
+      MM_NOTIFICATIONS_UI_ENABLED: false
+    - opts:
+        is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
@@ -1308,16 +1326,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.17.0
+      VERSION_NAME: 7.21.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1267
+      VERSION_NUMBER: 1317
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.17.0
+      FLASK_VERSION_NAME: 7.21.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1267
+      FLASK_VERSION_NUMBER: 1317
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1329,10 +1347,13 @@ app:
       IOS_APP_LINK: ''
     - opts:
         is_expand: false
-      NODE_VERSION: 18.18.2
+      NODE_VERSION: 20.12.2
     - opts:
         is_expand: false
-      YARN_VERSION: 1.22.19
+      YARN_VERSION: 1.22.22
+    - opts:
+        is_expand: false
+      COREPACK_VERSION: 0.28.0
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x

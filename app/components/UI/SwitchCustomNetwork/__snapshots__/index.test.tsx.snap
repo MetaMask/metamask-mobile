@@ -3,7 +3,7 @@
 exports[`SwitchCustomNetwork should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
@@ -14,45 +14,227 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
   }
 >
   <Text
-    bold={true}
-    centered={true}
-    noMargin={true}
-    primary={true}
     style={
-      Object {
-        "fontSize": 24,
-        "marginBottom": 16,
-        "marginLeft": 24,
-        "marginRight": 24,
-        "marginTop": 16,
-      }
+      [
+        {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        {
+          "textAlign": "center",
+        },
+        undefined,
+        {
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontWeight": "600",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "marginVertical": 0,
+        },
+        {
+          "fontSize": 24,
+          "marginBottom": 16,
+          "marginLeft": 24,
+          "marginRight": 24,
+          "marginTop": 16,
+        },
+      ]
     }
   >
     New network added
   </Text>
   <Text
-    noMargin={true}
-    primary={true}
     style={
-      Object {
-        "fontSize": 13,
-        "paddingBottom": 16,
-        "paddingHorizontal": 24,
-        "textAlign": "center",
-        "width": "100%",
-      }
+      [
+        {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "marginVertical": 0,
+        },
+        {
+          "fontSize": 13,
+          "paddingBottom": 16,
+          "paddingHorizontal": 24,
+          "textAlign": "center",
+          "width": "100%",
+        },
+      ]
     }
   >
-    <Text>
+    <Text
+      style={
+        [
+          {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 30,
+            "fontWeight": "400",
+            "marginVertical": 2,
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+        ]
+      }
+    >
       <Text
-        bold={true}
-        noMargin={true}
-        primary={true}
+        style={
+          [
+            {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontWeight": "600",
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "color": "#24272A",
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "marginVertical": 0,
+            },
+            undefined,
+          ]
+        }
       >
         ""
       </Text>
       <Text
-        noMargin={true}
+        style={
+          [
+            {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "marginVertical": 0,
+            },
+            undefined,
+          ]
+        }
       >
          
         is now available in the network selector.
@@ -61,7 +243,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
   </Text>
   <View
     style={
-      Object {
+      {
         "flex": 0,
         "flexDirection": "row",
         "marginTop": 20,
@@ -69,60 +251,127 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
       }
     }
   >
-    <StyledButton
-      containerStyle={
-        Array [
-          Object {
-            "flex": 1,
-          },
-          Object {
-            "marginRight": 8,
-          },
-        ]
-      }
-      disabledContainerStyle={
-        Object {
-          "opacity": 0.6,
-        }
-      }
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={0.2}
       onPress={[Function]}
-      styleDisabled={
-        Object {
-          "opacity": 0.6,
-        }
+      style={
+        [
+          [
+            {
+              "borderRadius": 100,
+              "justifyContent": "center",
+              "padding": 15,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#535A61",
+              "borderWidth": 1,
+            },
+            [
+              {
+                "flex": 1,
+              },
+              {
+                "marginRight": 8,
+              },
+            ],
+          ],
+          null,
+        ]
       }
       testID="cancel-button"
-      type="cancel"
     >
-      Cancel
-    </StyledButton>
-    <StyledButton
-      containerStyle={
-        Array [
-          Object {
-            "flex": 1,
-          },
-          Object {
-            "marginLeft": 8,
-          },
+      <Text
+        style={
+          [
+            {
+              "color": "#007aff",
+              "fontSize": 17,
+              "fontWeight": "500",
+              "textAlign": "center",
+            },
+            null,
+            [
+              {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 14,
+                "fontWeight": "600",
+                "textAlign": "center",
+              },
+              {
+                "color": "#535A61",
+              },
+              undefined,
+            ],
+            null,
+          ]
+        }
+      >
+        Cancel
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        [
+          [
+            {
+              "borderRadius": 100,
+              "justifyContent": "center",
+              "padding": 15,
+            },
+            {
+              "backgroundColor": "#0376C9",
+              "minHeight": 50,
+            },
+            [
+              {
+                "flex": 1,
+              },
+              {
+                "marginLeft": 8,
+              },
+            ],
+          ],
+          null,
         ]
       }
-      disabledContainerStyle={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      onPress={[Function]}
-      styleDisabled={
-        Object {
-          "opacity": 0.6,
-        }
-      }
       testID="connect-button"
-      type="confirm"
     >
-      Switch Network
-    </StyledButton>
+      <Text
+        style={
+          [
+            {
+              "color": "#007aff",
+              "fontSize": 17,
+              "fontWeight": "500",
+              "textAlign": "center",
+            },
+            null,
+            [
+              {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 14,
+                "fontWeight": "600",
+                "textAlign": "center",
+              },
+              {
+                "color": "#FFFFFF",
+              },
+              undefined,
+            ],
+            null,
+          ]
+        }
+      >
+        Switch Network
+      </Text>
+    </TouchableOpacity>
   </View>
 </View>
 `;

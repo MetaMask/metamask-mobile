@@ -4,6 +4,8 @@ import { PreferencesController } from '@metamask/preferences-controller';
 import {
   CommunicationLayerMessage,
   MessageType,
+  SendAnalytics,
+  TrackingEvents,
 } from '@metamask/sdk-communication-layer';
 import Logger from '../../../util/Logger';
 import Engine from '../../Engine';
@@ -16,6 +18,22 @@ import {
 import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
+// eslint-disable-next-line
+const { version } = require('../../../../package.json');
+
+const lcLogguedRPCs = [
+  'eth_sendTransaction',
+  'eth_signTypedData',
+  'eth_signTransaction',
+  'personal_sign',
+  'wallet_requestPermissions',
+  'wallet_switchEthereumChain',
+  'eth_signTypedData_v3',
+  'eth_signTypedData_v4',
+  'metamask_connectSign',
+  'metamask_connectWith',
+  'metamask_batch',
+].map((method) => method.toLowerCase());
 
 export const handleConnectionMessage = async ({
   message,
@@ -49,6 +67,25 @@ export const handleConnectionMessage = async ({
 
   connection.setLoading(false);
 
+  if (lcLogguedRPCs.includes(message.method.toLowerCase())) {
+    // Save analytics data on tracked methods
+    SendAnalytics(
+      {
+        id: connection.channelId,
+        event: TrackingEvents.SDK_RPC_REQUEST_RECEIVED,
+        sdkVersion: connection.originatorInfo?.apiVersion,
+        walletVersion: version,
+        params: {
+          method: message.method,
+          from: 'mobile_wallet',
+        },
+      },
+      connection.socketServerUrl,
+    ).catch((error) => {
+      Logger.error(error, 'SendAnalytics failed');
+    });
+  }
+
   // Wait for keychain to be unlocked before handling rpc calls.
   const keyringController = (
     engine.context as { KeyringController: KeyringController }
@@ -71,9 +108,7 @@ export const handleConnectionMessage = async ({
       NetworkController: NetworkController;
     }
   ).NetworkController;
-  const networkId = networkController.state.networkId ?? 1; // default to mainnet;
-  // transform networkId to 0x value
-  const hexChainId = `0x${networkId.toString(16)}`;
+  const chainId = networkController.state.providerConfig.chainId;
 
   // Wait for bridge to be ready before handling messages.
   // It will wait until user accept/reject the connection request.
@@ -110,25 +145,30 @@ export const handleConnectionMessage = async ({
   const processedRpc = await handleCustomRpcCalls({
     batchRPCManager: connection.batchRPCManager,
     selectedAddress,
-    selectedChainId: hexChainId,
+    selectedChainId: chainId,
+    connection,
+    navigation: connection.navigation,
     rpc: {
       id: message.id,
       method: message.method,
       params: message.params as any,
     },
   });
-  DevLogger.log(`[handleConnectionMessage] processedRpc`, processedRpc);
 
-  connection.rpcQueueManager.add({
-    id: processedRpc?.id ?? message.id,
-    method: processedRpc?.method ?? message.method,
-  });
+  if (processedRpc) {
+    DevLogger.log(`[handleConnectionMessage] processedRpc`, processedRpc);
 
-  connection.backgroundBridge?.onMessage({
-    name: 'metamask-provider',
-    data: processedRpc,
-    origin: 'sdk',
-  });
+    connection.rpcQueueManager.add({
+      id: processedRpc?.id ?? message.id,
+      method: processedRpc?.method ?? message.method,
+    });
+
+    connection.backgroundBridge?.onMessage({
+      name: 'metamask-provider',
+      data: processedRpc,
+      origin: 'sdk',
+    });
+  }
 
   // Update initial connection state
   connection.initialConnection = false;

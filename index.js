@@ -14,11 +14,17 @@ import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no
 import { setupSentry } from './app/util/sentry/utils';
 setupSentry();
 
+import notifee, { EventType } from '@notifee/react-native';
+
 import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';
+import { isTest } from './app/util/test/utils.js';
+
+import NotificationManager from './app/core/NotificationManager';
 
 // List of warnings that we're ignoring
+
 LogBox.ignoreLogs([
   '{}',
   // Uncomment the below lines (21 and 22) to run browser-tests.spec.js in debug mode
@@ -75,6 +81,19 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
   LogBox.ignoreAllLogs();
 }
 
+notifee.onBackgroundEvent(async ({ type, detail }) => {
+  const { notification, pressAction } = detail;
+  if (type === EventType.ACTION_PRESS && pressAction.id === 'mark-as-read') {
+    notifee.decrementBadgeCount(1).then(async () => {
+      await notifee.cancelNotification(notification.id);
+    });
+  } else {
+    notifee.incrementBadgeCount(1).then(() => {
+      NotificationManager.onMessageReceived(notification);
+    });
+  }
+});
+
 /* Uncomment and comment regular registration below */
 // import Storybook from './.storybook';
 // AppRegistry.registerComponent(name, () => Storybook);
@@ -84,5 +103,5 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
  */
 AppRegistry.registerComponent(name, () =>
   // Disable Sentry for E2E tests
-  process.env.IS_TEST === 'true' ? Root : Sentry.wrap(Root),
+  isTest ? Root : Sentry.wrap(Root),
 );

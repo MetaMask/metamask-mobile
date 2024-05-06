@@ -35,7 +35,6 @@ import { BaseState, ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
-  SignTypedDataVersion,
   KeyringControllerState,
   KeyringControllerActions,
   KeyringControllerEvents,
@@ -52,10 +51,12 @@ import {
 } from '@metamask/network-controller';
 import {
   PhishingController,
-  PhishingState,
+  PhishingControllerState,
 } from '@metamask/phishing-controller';
 import {
   PreferencesController,
+  PreferencesControllerActions,
+  PreferencesControllerEvents,
   PreferencesState,
 } from '@metamask/preferences-controller';
 import {
@@ -85,14 +86,12 @@ import {
   SubjectMetadataControllerActions,
   SubjectMetadataControllerEvents,
   SubjectMetadataControllerState,
-  SubjectType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   PPOMController,
   PPOMControllerEvents,
-  PPOMInitialisationStatusType,
   PPOMState,
 } from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -107,7 +106,6 @@ import {
   PersistedSnapControllerState,
   WebViewExecutionService,
 } from '@metamask/snaps-controllers';
-import { Snap } from '@metamask/snaps-utils';
 import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
 import { getSnapsWebViewPromise } from '../lib/snaps';
 import {
@@ -125,11 +123,12 @@ import {
   LoggingControllerActions,
 } from '@metamask/logging-controller';
 import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
-import Encryptor from './Encryptor';
+import { Encryptor, LEGACY_DERIVATION_PARAMS } from './Encryptor';
 import {
   isMainnetByChainId,
   getDecimalChainId,
   fetchEstimatedMultiLayerL1Fee,
+  deprecatedGetNetworkId,
 } from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
@@ -174,18 +173,28 @@ import {
 import { hasProperty, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
-import { isHardwareAccount } from '../util/address';
-import { ledgerSignTypedMessage } from './Ledger/Ledger';
-import ExtendedKeyringTypes from '../constants/keyringTypes';
-import { UpdatePPOMInitializationStatus } from '../actions/experimental';
+import {
+  AccountsController,
+  AccountsControllerActions,
+  AccountsControllerEvents,
+  AccountsControllerState,
+} from '@metamask/accounts-controller';
+import { captureException } from '@sentry/react-native';
+import { lowerCase } from 'lodash';
+import {
+  networkIdUpdated,
+  networkIdWillUpdate,
+} from '../core/redux/slices/inpageProvider';
 
 const NON_EMPTY = 'NON_EMPTY';
 
-const encryptor = new Encryptor();
+const encryptor = new Encryptor({
+  derivationParams: LEGACY_DERIVATION_PARAMS,
+});
 let currentChainId: any;
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -225,7 +234,9 @@ type GlobalActions =
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalActions
   ///: END:ONLY_INCLUDE_IF
-  | KeyringControllerActions;
+  | KeyringControllerActions
+  | AccountsControllerActions
+  | PreferencesControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -233,13 +244,14 @@ type GlobalEvents =
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
-  | KeyringControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | KeyringControllerEvents
-  | PPOMControllerEvents;
+  | PPOMControllerEvents
+  | AccountsControllerEvents
+  | PreferencesControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -254,7 +266,7 @@ export interface EngineState {
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
-  PhishingController: PhishingState;
+  PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesState;
   TokenRatesController: TokenRatesState;
   TransactionController: TransactionState;
@@ -272,6 +284,7 @@ export interface EngineState {
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
+  AccountsController: AccountsControllerState;
 }
 
 /**
@@ -312,6 +325,7 @@ class Engine {
         TransactionController: TransactionController;
         SignatureController: SignatureController;
         SwapsController: SwapsController;
+        AccountsController: AccountsController;
       }
     | any;
   /**
@@ -346,6 +360,22 @@ class Engine {
   ) {
     this.controllerMessenger = new ControllerMessenger();
 
+    /**
+     * Subscribes a listener to the state change events of Preferences Controller.
+     *
+     * @param listener - The callback function to execute when the state changes.
+     */
+    const onPreferencesStateChange = (
+      // preferencesState is typed as any because if not will give an ts error on every assets-controllers using this function
+      // because assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+      // and because of that preferencesState would be two different objects
+      listener: (preferencesState: PreferencesState) => void,
+    ) => {
+      const eventName = `PreferencesController:stateChange`;
+
+      this.controllerMessenger.subscribe(eventName, listener);
+    };
+
     const approvalController = new ApprovalController({
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
@@ -368,18 +398,25 @@ class Engine {
       ],
     });
 
-    const preferencesController = new PreferencesController(
-      {},
-      {
+    const preferencesController = new PreferencesController({
+      messenger: this.controllerMessenger.getRestricted<
+        'PreferencesController',
+        never,
+        'KeyringController:stateChange'
+      >({
+        name: 'PreferencesController',
+        allowedEvents: ['KeyringController:stateChange'],
+      }),
+      state: {
         ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
         useTokenDetection:
           initialState?.PreferencesController?.useTokenDetection ?? true,
-        // TODO: Use previous value when preferences UI is available
         useNftDetection: false,
         displayNftMedia: true,
         securityAlertsEnabled: true,
+        ...initialState.PreferencesController,
       },
-    );
+    });
 
     const networkControllerOpts = {
       infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
@@ -408,35 +445,43 @@ class Engine {
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
-      onPreferencesStateChange: (listener) =>
-        preferencesController.subscribe(listener),
+      //@ts-expect-error assets-controllers need to be bump to v^26
+      //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+      onPreferencesStateChange,
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
+      getNetworkClientById:
+        networkController.getNetworkClientById.bind(networkController),
     });
 
     const nftController = new NftController(
       {
-        onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+        onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
             listener,
           ),
+        getNetworkClientById:
+          networkController.getNetworkClientById.bind(networkController),
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted<
           'NftController',
-          'ApprovalController:addRequest',
+          | 'ApprovalController:addRequest'
+          | 'NetworkController:getNetworkClientById',
           never
         >({
           name: 'NftController',
-          allowedActions: [`${approvalController.name}:addRequest`],
+          allowedActions: [
+            `${approvalController.name}:addRequest`,
+            `${networkController.name}:getNetworkClientById`,
+          ],
         }),
         chainId: networkController.state.providerConfig.chainId,
 
@@ -465,13 +510,40 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
       },
     );
+
+    const accountsControllerMessenger = this.controllerMessenger.getRestricted({
+      name: 'AccountsController',
+      allowedEvents: [
+        'SnapController:stateChange',
+        'KeyringController:accountRemoved',
+        'KeyringController:stateChange',
+      ],
+      allowedActions: [
+        'KeyringController:getAccounts',
+        'KeyringController:getKeyringsByType',
+        'KeyringController:getKeyringForAccount',
+      ],
+    });
+
+    const defaultAccountsControllerState: AccountsControllerState = {
+      internalAccounts: {
+        accounts: {},
+        selectedAccount: '',
+      },
+    };
+
+    const accountsController = new AccountsController({
+      messenger: accountsControllerMessenger,
+      state: initialState.AccountsController ?? defaultAccountsControllerState,
+    });
+
     const tokensController = new TokensController({
-      onPreferencesStateChange: (listener) =>
-        preferencesController.subscribe(listener),
+      //@ts-expect-error assets-controllers need to be bump to v^26
+      //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+      onPreferencesStateChange,
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
           listener,
         ),
       onTokenListStateChange: (listener) =>
@@ -479,11 +551,13 @@ class Engine {
           AppConstants.TOKEN_LIST_STATE_CHANGE_EVENT,
           listener,
         ),
-
+      getNetworkClientById:
+        networkController.getNetworkClientById.bind(networkController),
       chainId: networkController.state.providerConfig.chainId,
       config: {
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
+        selectedAddress: preferencesController.state.selectedAddress,
       },
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
@@ -504,7 +578,6 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
           listener,
         ),
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -514,31 +587,39 @@ class Engine {
         'NetworkController:stateChange'
       >({
         name: 'TokenListController',
-        allowedEvents: ['NetworkController:stateChange'],
+        allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
     const currencyRateController = new CurrencyRateController({
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
         'CurrencyRateController',
-        never,
+        'NetworkController:getNetworkClientById',
         never
       >({
         name: 'CurrencyRateController',
+        allowedActions: [`${networkController.name}:getNetworkClientById`],
       }),
       state: initialState.CurrencyRateController,
     });
-    currencyRateController.start();
+    currencyRateController.startPollingByNetworkClientId(
+      networkController.state.selectedNetworkClientId,
+    );
 
     const gasFeeController = new GasFeeController({
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
         'GasFeeController',
-        never,
+        | 'NetworkController:getNetworkClientById'
+        | 'NetworkController:getEIP1559Compatibility',
         'NetworkController:stateChange'
       >({
         name: 'GasFeeController',
-        allowedEvents: ['NetworkController:stateChange'],
+        allowedActions: [
+          `${networkController.name}:getNetworkClientById`,
+          `${networkController.name}:getEIP1559Compatibility`,
+        ],
+        allowedEvents: [`${networkController.name}:stateChange`],
       }),
       getProvider: () =>
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
@@ -549,7 +630,7 @@ class Engine {
           listener,
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
-        await networkController.getEIP1559Compatibility(),
+        (await networkController.getEIP1559Compatibility()) ?? false,
       getChainId: () => networkController.state.providerConfig.chainId,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
         const chainId = networkController.state.providerConfig.chainId;
@@ -561,22 +642,18 @@ class Engine {
       },
       clientId: AppConstants.SWAPS.CLIENT_ID,
       legacyAPIEndpoint:
-        'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
       EIP1559APIEndpoint:
-        'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
 
-    const phishingController = new PhishingController();
+    const phishingController = new PhishingController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'PhishingController',
+        allowedActions: [],
+      }),
+    });
     phishingController.maybeUpdateState();
-
-    const getIdentities = () => {
-      const identities = preferencesController.state.identities;
-      const lowerCasedIdentities: PreferencesState['identities'] = {};
-      Object.keys(identities).forEach((key) => {
-        lowerCasedIdentities[key.toLowerCase()] = identities[key];
-      });
-      return lowerCasedIdentities;
-    };
 
     const qrKeyringBuilder = () => new QRHardwareKeyring();
     qrKeyringBuilder.type = QRHardwareKeyring.type;
@@ -588,20 +665,7 @@ class Engine {
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
       ),
-      syncIdentities: preferencesController.syncIdentities.bind(
-        preferencesController,
-      ),
-      updateIdentities: preferencesController.updateIdentities.bind(
-        preferencesController,
-      ),
-      setSelectedAddress: preferencesController.setSelectedAddress.bind(
-        preferencesController,
-      ),
-      setAccountLabel: preferencesController.setAccountLabel.bind(
-        preferencesController,
-      ),
       encryptor,
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
         'KeyringController',
         never,
@@ -649,11 +713,6 @@ class Engine {
           ),
           getMnemonic: getPrimaryKeyringMnemonic.bind(this),
           getUnlockPromise: getAppState.bind(this),
-          addSubjectMetadata: (params: any) =>
-            this.controllerMessenger.call<'SubjectMetadataController:addSubjectMetadata'>(
-              'SubjectMetadataController:addSubjectMetadata',
-              params,
-            ),
           getSnap: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:get',
@@ -715,6 +774,18 @@ class Engine {
     });
     ///: END:ONLY_INCLUDE_IF
 
+    const accountTrackerController = new AccountTrackerController({
+      //@ts-expect-error assets-controllers need to be bump to v^26
+      //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+      onPreferencesStateChange,
+      getIdentities: () => preferencesController.state.identities,
+      getSelectedAddress: () => accountsController.getSelectedAccount().address,
+      getMultiAccountBalancesEnabled: () =>
+        preferencesController.state.isMultiAccountBalancesEnabled,
+      getCurrentChainId: () =>
+        toHexadecimal(networkController.state.providerConfig.chainId),
+    });
+
     const permissionController = new PermissionController({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -733,12 +804,44 @@ class Engine {
         ],
       }),
       state: initialState.PermissionController,
-      caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+      caveatSpecifications: getCaveatSpecifications({
+        getInternalAccounts:
+          accountsController.listAccounts.bind(accountsController),
+      }),
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       permissionSpecifications: {
         ...getPermissionSpecifications({
           getAllAccounts: () => keyringController.getAccounts(),
+          getInternalAccounts:
+            accountsController.listAccounts.bind(accountsController),
+          captureKeyringTypesWithMissingIdentities: (
+            internalAccounts = [],
+            accounts = [],
+          ) => {
+            const accountsMissingIdentities = accounts.filter((address) => {
+              const lowerCaseAddress = lowerCase(address);
+              return !internalAccounts.some(
+                (account) => account.address.toLowerCase() === lowerCaseAddress,
+              );
+            });
+            const keyringTypesWithMissingIdentities =
+              accountsMissingIdentities.map((address) =>
+                keyringController.getAccountKeyringType(address),
+              );
+
+            const internalAccountCount = internalAccounts.length;
+
+            const accountTrackerCount = Object.keys(
+              accountTrackerController.state.accounts || {},
+            ).length;
+
+            captureException(
+              new Error(
+                `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
+              ),
+            );
+          },
         }),
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         ...getSnapPermissionSpecifications(),
@@ -888,50 +991,25 @@ class Engine {
           fetch: fetchFunction,
         }),
     });
-
-    this.controllerMessenger.subscribe(
-      'SnapController:snapInstalled',
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      (snap: Snap, svgIcon: any = null) => {
-        const parts = snap.id.split(/[:/]/);
-        subjectMetadataController.addSubjectMetadata({
-          subjectType: SubjectType.Snap,
-          name: parts[parts.length - 1] || snap.id,
-          origin: snap.id,
-          version: snap.version,
-          svgIcon,
-        });
-      },
-    );
     ///: END:ONLY_INCLUDE_IF
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
     const controllers = [
       keyringController,
-      new AccountTrackerController({
-        onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
-        getIdentities: () => preferencesController.state.identities,
-        getSelectedAddress: () => preferencesController.state.selectedAddress,
-        getMultiAccountBalancesEnabled: () =>
-          preferencesController.state.isMultiAccountBalancesEnabled,
-        getCurrentChainId: () =>
-          toHexadecimal(networkController.state.providerConfig.chainId),
-      }),
+      accountTrackerController,
       new AddressBookController(),
       assetsContractController,
       nftController,
       tokensController,
       tokenListController,
       new TokenDetectionController({
-        onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+        onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
             listener,
           ),
         onTokenListStateChange: (listener) =>
@@ -955,8 +1033,9 @@ class Engine {
         },
         getTokensState: () => tokensController.state,
         getTokenListState: () => tokenListController.state,
-        // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
         getNetworkState: () => networkController.state,
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
         getPreferencesState: () => preferencesController.state,
         getBalancesInSingleCall:
           assetsContractController.getBalancesInSingleCall.bind(
@@ -965,12 +1044,12 @@ class Engine {
       }),
       new NftDetectionController({
         onNftsStateChange: (listener) => nftController.subscribe(listener),
-        onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+        onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
             listener,
           ),
         chainId: networkController.state.providerConfig.chainId,
@@ -999,11 +1078,11 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
             listener,
           ),
-        onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+        onPreferencesStateChange,
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,
         selectedAddress: preferencesController.state.selectedAddress,
@@ -1015,19 +1094,22 @@ class Engine {
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-        // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
-        // This is not a blocker because gas fee controller does not need ticker to be defined
+        //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
         getNetworkState: () => networkController.state,
-        getSelectedAddress: () => preferencesController.state.selectedAddress,
+        getSelectedAddress: () =>
+          accountsController.getSelectedAccount().address,
         incomingTransactions: {
           apiKey: process.env.MM_ETHERSCAN_KEY,
           isEnabled: () => {
             const currentHexChainId =
               networkController.state.providerConfig.chainId;
+
+            const showIncomingTransactions =
+              preferencesController?.state?.showIncomingTransactions;
+
             return Boolean(
-              preferencesController?.state?.showIncomingTransactions?.[
-                currentHexChainId
-              ],
+              hasProperty(showIncomingTransactions, currentChainId) &&
+                showIncomingTransactions?.[currentHexChainId],
             );
           },
           updateTransactions: true,
@@ -1044,8 +1126,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
-            // This is not a blocker because gas fee controller does not need ticker to be defined
+            //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
             listener,
           ),
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
@@ -1085,11 +1166,19 @@ class Engine {
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted<
           'SignatureController',
-          'ApprovalController:addRequest',
+          | 'ApprovalController:addRequest'
+          | 'KeyringController:signPersonalMessage'
+          | 'KeyringController:signMessage'
+          | 'KeyringController:signTypedMessage',
           never
         >({
           name: 'SignatureController',
-          allowedActions: [`${approvalController.name}:addRequest`],
+          allowedActions: [
+            `${approvalController.name}:addRequest`,
+            `${keyringController.name}:signPersonalMessage`,
+            `${keyringController.name}:signMessage`,
+            `${keyringController.name}:signTypedMessage`,
+          ],
         }),
         isEthSignEnabled: () =>
           Boolean(
@@ -1097,25 +1186,6 @@ class Engine {
           ),
         getAllState: () => store.getState(),
         getCurrentChainId: () => networkController.state.providerConfig.chainId,
-        keyringController: {
-          signMessage: keyringController.signMessage.bind(keyringController),
-          signPersonalMessage:
-            keyringController.signPersonalMessage.bind(keyringController),
-          signTypedMessage: (msgParams, { version }) => {
-            if (
-              isHardwareAccount(msgParams.from, [ExtendedKeyringTypes.ledger])
-            ) {
-              return ledgerSignTypedMessage(
-                msgParams,
-                version as SignTypedDataVersion,
-              );
-            }
-            return keyringController.signTypedMessage(
-              msgParams,
-              version as SignTypedDataVersion,
-            );
-          },
-        },
       }),
       new LoggingController({
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -1132,6 +1202,7 @@ class Engine {
       snapController,
       subjectMetadataController,
       ///: END:ONLY_INCLUDE_IF
+      accountsController,
     ];
 
     if (isBlockaidFeatureEnabled()) {
@@ -1147,13 +1218,17 @@ class Engine {
             'NetworkController:stateChange'
           >({
             name: 'PPOMController',
-            allowedEvents: ['NetworkController:stateChange'],
+            allowedEvents: [`${networkController.name}:stateChange`],
           }),
           onPreferencesChange: (listener) =>
-            preferencesController.subscribe(listener),
-          provider: networkController.getProviderAndBlockTracker().provider,
+            this.controllerMessenger.subscribe(
+              `${preferencesController.name}:stateChange`,
+              listener,
+            ),
+          provider: networkController.getProviderAndBlockTracker()
+            .provider as any,
           ppomProvider: {
-            PPOM,
+            PPOM: PPOM as any,
             ppomInit,
           },
           storageBackend: new RNFSStorageBackend('PPOMDB'),
@@ -1163,14 +1238,6 @@ class Engine {
           nativeCrypto: Crypto as any,
         });
         controllers.push(ppomController as any);
-        this.controllerMessenger.subscribe(
-          AppConstants.PPOM_INITIALISATION_STATE_CHANGE_EVENT,
-          (ppomInitializationStatus: PPOMInitialisationStatusType) => {
-            store.dispatch(
-              UpdatePPOMInitializationStatus(ppomInitializationStatus),
-            );
-          },
-        );
       } catch (e) {
         Logger.log(`Error initializing PPOMController: ${e}`);
         return;
@@ -1230,7 +1297,8 @@ class Engine {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       (state: NetworkState) => {
         if (
-          state.networkStatus === NetworkStatus.Available &&
+          state.networksMetadata[state.selectedNetworkClientId].status ===
+            NetworkStatus.Available &&
           state.providerConfig.chainId !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
@@ -1239,6 +1307,28 @@ class Engine {
             currentChainId = state.providerConfig.chainId;
           }, 500);
         }
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      AppConstants.NETWORK_STATE_CHANGE_EVENT,
+      async () => {
+        try {
+          const networkId = await deprecatedGetNetworkId();
+          store.dispatch(networkIdUpdated(networkId));
+        } catch (error) {
+          console.error(
+            error,
+            `Network ID not changed, current chainId: ${networkController.state.providerConfig.chainId}`,
+          );
+        }
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      `${networkController.name}:networkWillChange`,
+      () => {
+        store.dispatch(networkIdWillUpdate());
       },
     );
 
@@ -1328,9 +1418,11 @@ class Engine {
     const { currentCurrency } = CurrencyRateController.state;
     const networkProvider = NetworkController.state.providerConfig;
     const conversionRate =
-      CurrencyRateController.state.conversionRate === null
+      CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
+        ?.conversionRate === null
         ? 0
-        : CurrencyRateController.state.conversionRate;
+        : CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
+            ?.conversionRate;
     const { accountsByChainId } = AccountTrackerController.state;
 
     const { tokens } = TokensController.state;
@@ -1486,7 +1578,7 @@ class Engine {
 
   rejectPendingApproval(
     id: string,
-    reason: Error = ethErrors.provider.userRejectedRequest(),
+    reason: Error = providerErrors.userRejectedRequest(),
     opts: { ignoreMissing?: boolean; logErrors?: boolean } = {},
   ) {
     const { ApprovalController } = this.context;
@@ -1528,6 +1620,33 @@ class Engine {
         throw err;
       }
     }
+  }
+
+  // This should be used instead of directly calling PreferencesController.setSelectedAddress or AccountsController.setSelectedAccount
+  setSelectedAccount(address: string) {
+    const { AccountsController, PreferencesController } = this.context;
+    const account = AccountsController.getAccountByAddress(address);
+    if (account) {
+      AccountsController.setSelectedAccount(account.id);
+      PreferencesController.setSelectedAddress(address);
+    } else {
+      throw new Error(`No account found for address: ${address}`);
+    }
+  }
+
+  /**
+   * This should be used instead of directly calling PreferencesController.setAccountLabel or AccountsController.setAccountName in order to keep the names in sync
+   * We are currently incrementally migrating the accounts data to the AccountsController so we must keep these values
+   * in sync until the migration is complete.
+   */
+  setAccountLabel(address: string, label: string) {
+    const { AccountsController, PreferencesController } = this.context;
+    const accountToBeNamed = AccountsController.getAccountByAddress(address);
+    if (accountToBeNamed === undefined) {
+      throw new Error(`No account found for address: ${address}`);
+    }
+    AccountsController.setAccountName(accountToBeNamed.id, label);
+    PreferencesController.setAccountLabel(address, label);
   }
 }
 
@@ -1584,6 +1703,7 @@ export default {
       PermissionController,
       ApprovalController,
       LoggingController,
+      AccountsController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -1623,6 +1743,7 @@ export default {
       PermissionController,
       ApprovalController,
       LoggingController,
+      AccountsController,
     };
   },
   get datamodel() {
@@ -1663,4 +1784,12 @@ export default {
       logErrors?: boolean;
     } = {},
   ) => instance?.rejectPendingApproval(id, reason, opts),
+  setSelectedAddress: (address: string) => {
+    assertEngineExists(instance);
+    instance.setSelectedAccount(address);
+  },
+  setAccountLabel: (address: string, label: string) => {
+    assertEngineExists(instance);
+    instance.setAccountLabel(address, label);
+  },
 };

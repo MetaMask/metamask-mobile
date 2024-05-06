@@ -19,9 +19,7 @@ import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import {
   selectChainId,
-  selectNetworkId,
   selectProviderConfig,
-  selectLegacyNetwork,
 } from '../../selectors/networkController';
 import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -38,6 +36,20 @@ const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getPermittedAccounts } from '../Permissions';
+import { NetworkStatus } from '@metamask/network-controller';
+import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
+
+const legacyNetworkId = () => {
+  const { networksMetadata, selectedNetworkClientId } =
+    store.getState().engine.backgroundState.NetworkController;
+
+  const { networkId } = store.getState().inpageProvider;
+
+  return networksMetadata?.[selectedNetworkClientId].status !==
+    NetworkStatus.Available
+    ? NETWORK_ID_LOADING
+    : networkId;
+};
 
 export class BackgroundBridge extends EventEmitter {
   constructor({
@@ -79,7 +91,7 @@ export class BackgroundBridge extends EventEmitter {
     this.engine = null;
 
     this.chainIdSent = selectChainId(store.getState());
-    this.networkVersionSent = selectNetworkId(store.getState());
+    this.networkVersionSent = store.getState().inpageProvider.networkId;
 
     // This will only be used for WalletConnect for now
     this.addressSent =
@@ -99,7 +111,11 @@ export class BackgroundBridge extends EventEmitter {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-    Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
+
+    Engine.controllerMessenger.subscribe(
+      'PreferencesController:stateChange',
+      this.sendStateUpdate,
+    );
 
     Engine.controllerMessenger.subscribe(
       'KeyringController:lock',
@@ -208,13 +224,14 @@ export class BackgroundBridge extends EventEmitter {
     }
 
     const result = {
-      networkVersion: selectLegacyNetwork(store.getState()),
+      networkVersion: legacyNetworkId(),
       chainId,
     };
     return result;
   }
 
   notifyChainChanged(params) {
+    DevLogger.log(`notifyChainChanged: `, params);
     this.sendNotification({
       method: NOTIFICATION_NAMES.chainChanged,
       params,
@@ -223,10 +240,17 @@ export class BackgroundBridge extends EventEmitter {
 
   async notifySelectedAddressChanged(selectedAddress) {
     try {
-      let approvedAccounts = await getPermittedAccounts(
-        this.channelId ?? this.hostname,
+      let approvedAccounts = [];
+      DevLogger.log(
+        `notifySelectedAddressChanged: ${selectedAddress} wc=${this.isWalletConnect} url=${this.url}`,
       );
-
+      if (this.isWalletConnect) {
+        approvedAccounts = await getPermittedAccounts(this.url);
+      } else {
+        approvedAccounts = await getPermittedAccounts(
+          this.channelId ?? this.hostname,
+        );
+      }
       // Check if selectedAddress is approved
       const found = approvedAccounts
         .map((addr) => addr.toLowerCase())
@@ -242,7 +266,7 @@ export class BackgroundBridge extends EventEmitter {
         ];
       }
       DevLogger.log(
-        `notifySelectedAddressChanged hostname: ${this.hostname}: ${selectedAddress}`,
+        `notifySelectedAddressChanged url: ${this.url} hostname: ${this.hostname}: ${selectedAddress}`,
         approvedAccounts,
       );
       this.sendNotification({
@@ -262,9 +286,9 @@ export class BackgroundBridge extends EventEmitter {
 
     // Check if update already sent
     if (
-      this.chainIdSent !== publicState.chainId &&
-      this.networkVersionSent !== publicState.networkVersion &&
-      publicState.networkVersion !== 'loading'
+      this.chainIdSent !== publicState.chainId ||
+      (this.networkVersionSent !== publicState.networkVersion &&
+        publicState.networkVersion !== NETWORK_ID_LOADING)
     ) {
       this.chainIdSent = publicState.chainId;
       this.networkVersionSent = publicState.networkVersion;
@@ -305,7 +329,10 @@ export class BackgroundBridge extends EventEmitter {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-    Engine.context.PreferencesController.unsubscribe(this.sendStateUpdate);
+    Engine.controllerMessenger.unsubscribe(
+      'PreferencesController:stateChange',
+      this.sendStateUpdate,
+    );
     this.port.emit('disconnect', { name: this.port.name, data: null });
   };
 
@@ -367,7 +394,8 @@ export class BackgroundBridge extends EventEmitter {
         Engine.context,
         Engine.controllerMessenger,
         origin,
-        SubjectType.Snap,
+        // We assume that origins connecting through the BackgroundBridge are websites
+        SubjectType.Website,
       ),
     );
     ///: END:ONLY_INCLUDE_IF
@@ -404,7 +432,7 @@ export class BackgroundBridge extends EventEmitter {
     return {
       isInitialized: !!vault,
       isUnlocked: true,
-      network: selectLegacyNetwork(store.getState()),
+      network: legacyNetworkId(),
       selectedAddress,
     };
   }

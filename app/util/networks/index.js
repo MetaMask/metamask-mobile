@@ -11,13 +11,20 @@ import {
   RPC,
   LINEA_GOERLI,
   LINEA_MAINNET,
+  LINEA_SEPOLIA,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import {
+  ChainId,
+  NetworkType,
+  convertHexToDecimal,
+  toHex,
+} from '@metamask/controller-utils';
+import { isStrictHexString } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
-import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
+import buildUnserializedTransaction from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
 import { regex } from '../../../app/util/regex';
 
@@ -26,7 +33,7 @@ export { handleNetworkSwitch };
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
 const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
-const lineaGoerliLogo = require('../../images/linea-testnet-logo.png');
+const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 
 /* eslint-enable */
@@ -75,14 +82,14 @@ const NetworkList = {
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
   },
-  [LINEA_GOERLI]: {
-    name: 'Linea Goerli Test Network',
-    shortName: 'Linea Goerli',
-    networkId: 59140,
-    chainId: toHex('59140'),
+  [LINEA_SEPOLIA]: {
+    name: 'Linea Sepolia Test Network',
+    shortName: 'Linea Sepolia',
+    networkId: 59141,
+    chainId: toHex('59141'),
     color: '#61dfff',
-    networkType: 'linea-goerli',
-    imageSource: lineaGoerliLogo,
+    networkType: 'linea-sepolia',
+    imageSource: lineaTestnetLogo,
   },
   [RPC]: {
     name: 'Private Network',
@@ -97,20 +104,24 @@ const NetworkListKeys = Object.keys(NetworkList);
 export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.MAINNET,
   NETWORKS_CHAIN_ID.BSC,
+  NETWORKS_CHAIN_ID.BASE,
   NETWORKS_CHAIN_ID.POLYGON,
   NETWORKS_CHAIN_ID.ARBITRUM,
   NETWORKS_CHAIN_ID.OPTIMISM,
   NETWORKS_CHAIN_ID.AVAXCCHAIN,
   NETWORKS_CHAIN_ID.LINEA_MAINNET,
+  NETWORKS_CHAIN_ID.SEPOLIA,
 ];
 
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
   [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
+  [NETWORKS_CHAIN_ID.BASE]: 'Base Mainnet',
   [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
   [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
   [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
   [NETWORKS_CHAIN_ID.LINEA_MAINNET]: 'Linea',
+  [NETWORKS_CHAIN_ID.SEPOLIA]: 'Sepolia',
 };
 
 export default NetworkList;
@@ -159,7 +170,11 @@ export const isMultiLayerFeeNetwork = (chainId) =>
  * @returns - Image of test network or undefined.
  */
 export const getTestNetImage = (networkType) => {
-  if (networkType === SEPOLIA || networkType === LINEA_GOERLI) {
+  if (
+    networkType === SEPOLIA ||
+    networkType === LINEA_GOERLI ||
+    networkType === LINEA_SEPOLIA
+  ) {
     return networksWithImages?.[networkType.toUpperCase()];
   }
 };
@@ -171,6 +186,9 @@ export const getTestNetImageByChainId = (chainId) => {
   if (NETWORKS_CHAIN_ID.LINEA_GOERLI === chainId) {
     return networksWithImages?.['LINEA-GOERLI'];
   }
+  if (NETWORKS_CHAIN_ID.LINEA_SEPOLIA === chainId) {
+    return networksWithImages?.['LINEA-SEPOLIA'];
+  }
 };
 
 /**
@@ -179,6 +197,7 @@ export const getTestNetImageByChainId = (chainId) => {
 const TESTNET_CHAIN_IDS = [
   ChainId[NetworkType.sepolia],
   ChainId[NetworkType['linea-goerli']],
+  ChainId[NetworkType['linea-sepolia']],
 ];
 
 /**
@@ -187,6 +206,7 @@ const TESTNET_CHAIN_IDS = [
 export const TESTNET_FAUCETS = {
   [ChainId[NetworkType.sepolia]]: SEPOLIA_FAUCET,
   [ChainId[NetworkType['linea-goerli']]]: LINEA_FAUCET,
+  [ChainId[NetworkType['linea-sepolia']]]: LINEA_FAUCET,
 };
 
 export const isTestNetworkWithFaucet = (chainId) =>
@@ -482,3 +502,47 @@ export const getBlockExplorerTxUrl = (
  */
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
+
+/**
+ * Convert the given value into a valid network ID. The ID is accepted
+ * as either a number, a decimal string, or a 0x-prefixed hex string.
+ *
+ * @param value - The network ID to convert, in an unknown format.
+ * @returns A valid network ID (as a decimal string)
+ * @throws If the given value cannot be safely parsed.
+ */
+export function convertNetworkId(value) {
+  if (typeof value === 'number' && !Number.isNaN(value)) {
+    return `${value}`;
+  } else if (isStrictHexString(value)) {
+    return `${convertHexToDecimal(value)}`;
+  } else if (typeof value === 'string' && /^\d+$/u.test(value)) {
+    return value;
+  }
+  throw new Error(`Cannot parse as a valid network ID: '${value}'`);
+}
+/**
+ * This function is only needed to get the `networkId` to support the deprecated
+ * `networkVersion` provider property and the deprecated `networkChanged` provider event.
+ * @deprecated
+ * @returns - network id of the current network
+ */
+export const deprecatedGetNetworkId = async () => {
+  const ethQuery = Engine.controllerMessenger.call(
+    'NetworkController:getEthQuery',
+  );
+
+  if (!ethQuery) {
+    throw new Error('Provider has not been initialized');
+  }
+
+  return new Promise((resolve, reject) => {
+    ethQuery.sendAsync({ method: 'net_version' }, (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(convertNetworkId(result));
+      }
+    });
+  });
+};

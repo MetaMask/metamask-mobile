@@ -3,110 +3,216 @@
 exports[`ActionView should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
 >
-  <KeyboardAwareScrollView
+  <RCTScrollView
+    automaticallyAdjustContentInsets={false}
+    contentInset={
+      {
+        "bottom": 0,
+      }
+    }
     enableAutomaticScroll={true}
     enableOnAndroid={false}
     enableResetScrollToCoords={true}
     extraHeight={75}
     extraScrollHeight={0}
+    getScrollResponder={[Function]}
+    handleOnScroll={[Function]}
+    keyboardDismissMode="interactive"
     keyboardOpeningTime={250}
     keyboardShouldPersistTaps="never"
+    keyboardSpace={0}
+    onScroll={[Function]}
+    resetKeyboardSpace={[Function]}
     resetScrollToCoords={
-      Object {
+      {
         "x": 0,
         "y": 0,
       }
     }
+    scrollEventThrottle={1}
+    scrollForExtraHeightOnAndroid={[Function]}
+    scrollIntoView={[Function]}
+    scrollToEnd={[Function]}
+    scrollToFocusedInput={[Function]}
+    scrollToPosition={[Function]}
+    showsVerticalScrollIndicator={true}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
       ]
     }
+    update={[Function]}
     viewIsInsideTabBar={false}
   >
-    <TouchableWithoutFeedback
-      onPress={[Function]}
-      style={
-        Object {
-          "flex": 1,
-        }
-      }
-    />
-    <View
-      style={
-        Object {
-          "flex": 0,
-          "flexDirection": "row",
-          "paddingHorizontal": 24,
-          "paddingVertical": 16,
-        }
-      }
-    >
-      <StyledButton
-        containerStyle={
-          Array [
-            Object {
-              "flex": 1,
-            },
-            Object {
-              "marginRight": 8,
-            },
-          ]
-        }
-        disabled={false}
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
+    <View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
           }
         }
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        testID=""
-        type="cancel"
+        accessible={true}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
       >
-        Cancel
-      </StyledButton>
-      <StyledButton
-        containerStyle={
-          Array [
-            Object {
-              "flex": 1,
-            },
-            Object {
-              "marginLeft": 8,
-            },
-            Object {},
-            Object {},
-          ]
-        }
-        disabled={false}
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
+        <Text>
+          Confirm
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "flex": 0,
+            "flexDirection": "row",
+            "paddingHorizontal": 24,
+            "paddingVertical": 16,
           }
         }
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        testID=""
-        type="normal"
       >
-        Confirm
-      </StyledButton>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={0.2}
+          disabled={false}
+          style={
+            [
+              [
+                {
+                  "borderRadius": 100,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#535A61",
+                  "borderWidth": 1,
+                },
+                [
+                  {
+                    "flex": 1,
+                  },
+                  {
+                    "marginRight": 8,
+                  },
+                ],
+              ],
+              null,
+            ]
+          }
+          testID=""
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#007aff",
+                  "fontSize": 17,
+                  "fontWeight": "500",
+                  "textAlign": "center",
+                },
+                null,
+                [
+                  {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "textAlign": "center",
+                  },
+                  {
+                    "color": "#535A61",
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            Cancel
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={0.2}
+          disabled={false}
+          style={
+            [
+              [
+                {
+                  "borderRadius": 100,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#0376C9",
+                  "borderWidth": 1,
+                },
+                [
+                  {
+                    "flex": 1,
+                  },
+                  {
+                    "marginLeft": 8,
+                  },
+                  {},
+                  {},
+                ],
+              ],
+              null,
+            ]
+          }
+          testID=""
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#007aff",
+                  "fontSize": 17,
+                  "fontWeight": "500",
+                  "textAlign": "center",
+                },
+                null,
+                [
+                  {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "textAlign": "center",
+                  },
+                  {
+                    "color": "#0376C9",
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            Confirm
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
-  </KeyboardAwareScrollView>
+  </RCTScrollView>
 </View>
 `;

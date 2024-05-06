@@ -14,6 +14,34 @@ class NetworkView {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_CONTAINER);
   }
 
+  get noMatchingText() {
+    return Matchers.getElementByText(
+      NetworkViewSelectorsText.NO_MATCHING_SEARCH_RESULTS,
+    );
+  }
+
+  get emptyPopularNetworksText() {
+    return Matchers.getElementByText(
+      NetworkViewSelectorsText.EMPTY_POPULAR_NETWORKS,
+    );
+  }
+
+  get closeIcon() {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
+  }
+
+  get deleteNetworkButton() {
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.REMOVE_NETWORK_BUTTON,
+    );
+  }
+
+  get networkSearchInput() {
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
+    );
+  }
+
   get addNetworkButton() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON)
@@ -60,6 +88,10 @@ class NetworkView {
     return Matchers.getElementByLabel(NetworkViewSelectorsText.BLOCK_EXPLORER);
   }
 
+  get chainIdLabel() {
+    return Matchers.getElementByLabel(NetworkViewSelectorsText.CHAIN_ID_LABEL);
+  }
+
   get rpcWarningBanner() {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_WARNING_BANNER);
   }
@@ -74,6 +106,9 @@ class NetworkView {
     return Matchers.getElementByText(NetworkViewSelectorsText.REMOVE_NETWORK);
   }
 
+  async getnetworkName(networkName) {
+    return Matchers.getElementByText(networkName);
+  }
   async tapAddNetworkButton() {
     await Gestures.waitAndTap(this.addNetworkButton);
   }
@@ -82,10 +117,35 @@ class NetworkView {
     await Gestures.waitAndTap(this.customNetworkTab);
   }
 
-  async tapPopularNetworkByName(networkName) {
-    const network = Matchers.getElementByText(networkName);
+  async tapNetworkByName(networkName) {
+    const network = this.getnetworkName(networkName);
     await Gestures.waitAndTap(network);
   }
+
+  async SearchNetworkName(networkName) {
+    await Gestures.typeTextAndHideKeyboard(
+      this.networkSearchInput,
+      networkName,
+    );
+  }
+  async longPressToRemoveNetwork(networkName) {
+    const network = this.getnetworkName(networkName);
+    await Gestures.tapAndLongPress(network);
+    await Gestures.waitAndTap(this.removeNetwork);
+  }
+
+  async tapDeleteButton() {
+    await Gestures.waitAndTap(this.deleteNetworkButton);
+  }
+
+  async tapClearSearch() {
+    await Gestures.waitAndTap(this.closeIcon);
+  }
+  async closePopularNetwork() {
+    await Gestures.waitAndTap(this.closeIcon);
+  }
+
+  // CUSTOM NETWORK SCREEN
   async typeInNetworkName(networkName) {
     await Gestures.typeTextAndHideKeyboard(this.networkNameInput, networkName);
   }
@@ -113,13 +173,7 @@ class NetworkView {
 
   async swipeToRPCTitleAndDismissKeyboard() {
     // Because in bitrise the keyboard is blocking the "Add" CTA
-    await Gestures.waitAndTap(this.blockExplorer);
-  }
-
-  async tapRemoveNetwork(networkName) {
-    const network = Matchers.getElementByText(networkName);
-    await Gestures.tapAndLongPress(network);
-    await Gestures.waitAndTap(this.removeNetwork);
+    await Gestures.waitAndTap(this.chainIdLabel);
   }
 }
 

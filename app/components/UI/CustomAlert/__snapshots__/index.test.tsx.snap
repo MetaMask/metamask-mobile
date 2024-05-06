@@ -1,114 +1,180 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CustomAlert should render correctly 1`] = `
-<ReactNativeModal
-  animationIn="slideInUp"
-  animationInTiming={300}
-  animationOut="slideOutDown"
-  animationOutTiming={300}
-  avoidKeyboard={false}
-  backdropColor="#00000099"
-  backdropOpacity={1}
-  backdropTransitionInTiming={300}
-  backdropTransitionOutTiming={300}
-  coverScreen={true}
-  customBackdrop={null}
+<Modal
+  animationType="none"
   deviceHeight={null}
   deviceWidth={null}
-  hasBackdrop={true}
+  hardwareAccelerated={false}
   hideModalContentWhileAnimating={false}
-  isVisible={false}
-  onBackButtonPress={[Function]}
   onBackdropPress={[Function]}
   onModalHide={[Function]}
-  onModalShow={[Function]}
   onModalWillHide={[Function]}
   onModalWillShow={[Function]}
+  onRequestClose={[Function]}
   panResponderThreshold={4}
-  propagateSwipe={false}
   scrollHorizontal={false}
   scrollOffset={0}
   scrollOffsetMax={0}
   scrollTo={null}
   statusBarTranslucent={false}
-  style={
-    Object {
-      "padding": 20,
-    }
-  }
   supportedOrientations={
-    Array [
+    [
       "portrait",
       "landscape",
     ]
   }
   swipeThreshold={100}
-  useNativeDriver={false}
+  transparent={true}
+  visible={true}
 >
   <View
-    style={
-      Object {
-        "backgroundColor": "#FFFFFF",
-        "borderRadius": 16,
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
       }
     }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    forwardedRef={[Function]}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "backgroundColor": "#00000099",
+        "bottom": 0,
+        "height": 1334,
+        "left": 0,
+        "opacity": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "width": 750,
+      }
+    }
+  />
+  <View
+    collapsable={false}
+    deviceHeight={null}
+    deviceWidth={null}
+    forwardedRef={[Function]}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    panResponderThreshold={4}
+    pointerEvents="box-none"
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    style={
+      {
+        "flex": 1,
+        "justifyContent": "center",
+        "margin": 37.5,
+        "padding": 20,
+        "transform": [
+          {
+            "translateY": 1334,
+          },
+        ],
+      }
+    }
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeThreshold={100}
   >
     <View
       style={
-        Array [
-          Object {
-            "alignItems": "center",
-            "borderTopEndRadius": 16,
-            "borderTopLeftRadius": 16,
-            "height": 130,
-            "paddingVertical": 15,
-          },
-          undefined,
-        ]
-      }
-    />
-    <View
-      style={
-        Object {
-          "paddingHorizontal": 35,
-          "paddingVertical": 20,
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderRadius": 16,
         }
       }
     >
-      <Text
+      <View
         style={
-          Object {
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 16,
-            "fontWeight": "600",
-            "marginBottom": 15,
-            "textAlign": "center",
-          }
+          [
+            {
+              "alignItems": "center",
+              "borderTopEndRadius": 16,
+              "borderTopLeftRadius": 16,
+              "height": 130,
+              "paddingVertical": 15,
+            },
+            undefined,
+          ]
         }
       />
-    </View>
-    <View
-      style={
-        Object {
-          "padding": 20,
-          "paddingTop": 10,
-        }
-      }
-    >
-      <StyledButton
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
+      <View
+        style={
+          {
+            "paddingHorizontal": 35,
+            "paddingVertical": 20,
           }
         }
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
+      >
+        <Text
+          style={
+            {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 16,
+              "fontWeight": "600",
+              "marginBottom": 15,
+              "textAlign": "center",
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "padding": 20,
+            "paddingTop": 10,
           }
         }
-        type="confirm"
-      />
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={0.2}
+          style={
+            [
+              [
+                {
+                  "borderRadius": 100,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                {
+                  "backgroundColor": "#0376C9",
+                  "minHeight": 50,
+                },
+                undefined,
+              ],
+              null,
+            ]
+          }
+        />
+      </View>
     </View>
   </View>
-</ReactNativeModal>
+</Modal>
 `;

@@ -1,8 +1,6 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, может похитить все ваши активы.",
-    "attribution": "На основе",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Если вы одобрите этот запрос, кто-то может украсть ваши активы, зарегистрированные в Blur.",
     "deceptive_request_title": "Это запрос с целью обмана",
     "failed_title": "Запрос может быть небезопасным",
@@ -96,6 +94,24 @@
     "your_wallet": "Ваш кошелек успешно удален",
     "delete_current": "Удаление текущего кошелька..."
   },
+  "onboarding_success": {
+    "title": "Congratulations!",
+    "description": "Your wallet is protected and ready to use. You can find your Secret Recovery Phrase in ",
+    "description_bold": "Settings > Security & Privacy.",
+    "description_continued": "Keep a reminder of your Secret Recovery Phrase somewhere safe. If you lose it, no one can help you get it back. Even worse, you won’t be able access to your wallet ever again.",
+    "learn_more": "Learn more",
+    "learn_how": "Learn how",
+    "leave_hint": "Leave yourself a hint?",
+    "default_settings": "Default settings",
+    "manage_default_settings": "Manage default settings",
+    "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
+    "no_srp_title": "Reminder set!",
+    "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
+    "import_title": "Your Wallet is ready",
+    "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
+    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
+    "done": "Done"
+  },
   "onboarding_carousel": {
     "title1": "Добро пожаловать в MetaMask",
     "title2": "Управляйте цифровыми активами",
@@ -162,14 +178,18 @@
       "content1": "Изменяйте имя своего счета, просматривайте транзакции на Etherscan, делитесь своим открытым ключом и просматривайте свой закрытый ключ, нажимая на этот значок"
     },
     "step4": {
-      "title": "Использование вашего кошелька",
-      "content1": "Покупайте, отправляйте, выполняйте свопы и получайте активы, нажимая на этот значок"
+      "title": "Уведомления",
+      "content1": "Будьте в курсе того, что происходит в вашем кошельке"
     },
     "step5": {
-      "title": "Изучение web3",
-      "content1": "Откройте браузер, нажав на этот значок"
+      "title": "Использование вашего кошелька",
+      "content1": "Покупайте, отправляйте, обменивайте и получайте активы, нажимая на этот значок"
     },
     "step6": {
+      "title": "Знакомство с web3",
+      "content1": "Откройте браузер, нажав на этот значок"
+    },
+    "step7": {
       "title": "Использование браузера",
       "content1": "Выполняйте поиск сайтов по ключевому слову или введите URL. Получайте удовольствие! "
     }
@@ -353,12 +373,17 @@
     "no_collectibles": "Не видите свои NFT?",
     "no_available_tokens": "Не видите свой токен?",
     "add_tokens": "Импорт токенов",
+    "are_you_sure_exit": "Уверены, что хотите выйти?",
+    "search_information_not_saved": "Информация о вашем поиске не будет сохранена.",
+    "import_token": "Хотите импортировать этот токен?",
     "tokens_detected_in_account": "{{tokenCount}} новый {{tokensLabel}} найден в этом счете",
     "token_toast": {
       "tokens_imported_title": "Импортированные токены",
       "tokens_imported_desc": "Успешно импортированы {{tokenSymbols}}",
       "token_imported_title": "Импортированный токен",
       "token_imported_desc": "Успешно импортирован {{tokenSymbol}}",
+      "token_imported_desc_1": "Вы импортировали токен.",
+      "tokens_import_success_multiple": "Вы импортировали {{tokensNumber}} токена(-ов).",
       "tokens_hidden_title": "Сокрытие токенов",
       "tokens_hidden_desc": "Скрытие обнаруженных токенов в вашем кошельке",
       "token_hidden_title": "Сокрытие токена",
@@ -378,6 +403,8 @@
     "nfts_autodetection_desc": "Разрешите MetaMask автоопределять NFT из OpenSea и отображать их в кошельке MetaMask.",
     "network_details_check": "Проверка сведений о сети",
     "network_with_chain_id": "Сеть с ID блокчейна",
+    "chain_list_returned_different_ticker_symbol": "Этот символ токена не соответствует введенному имени сети или идентификатору блокчейна. Многие популярные токены обозначаются похожими символами, которые мошенники могут использовать, чтобы обманом заставить вас отправить им взамен более ценный токен. Проверьте все, прежде чем продолжить.",
+    "suggested_token_symbol": "Рекомендуемый символ-тикер:",
     "potential_scam": "Это потенциальное мошенничество",
     "network_not_matching": "Эта сеть не соответствует идентификатору или имени связанного с ним блокчейна. Многие популярные токены используют это название,",
     "target_scam_network": "что делает его мишенью для мошенников. Мошенники могут обманом заставить вас отправить им взамен более ценную валюту. Проверьте все, прежде чем продолжить.",
@@ -417,7 +444,11 @@
     "nfts_autodetect_cta": "Включите автоопределение NFT в Настройках",
     "turn_on_network_check_cta": "Включить проверку сведений о сети",
     "display_nft_media_cta_new_1": "Чтобы увидеть NFT, включите \"Показать носитель NFT\"",
-    "display_nft_media_cta_new_2": "Настройки > Безопасность и конфиденциальность."
+    "display_nft_media_cta_new_2": "Настройки > Безопасность и конфиденциальность.",
+    "banner": {
+      "title": "Basic functionality is off",
+      "link": "Turn on basic functionality"
+    }
   },
   "asset_details": {
     "token": "Токен",
@@ -441,8 +472,8 @@
   "add_asset": {
     "title": "Импорт токенов",
     "title_nft": "Импорт NFT",
-    "search_token": "ПОИСК",
-    "custom_token": "ПОЛЬЗОВАТЕЛЬСКИЙ ТОКЕН",
+    "search_token": "Поиск",
+    "custom_token": "Пользовательский токен",
     "tokens": {
       "cancel_add_token": "ОТМЕНА",
       "add_token": "ИМПОРТ"
@@ -506,7 +537,9 @@
     "address_cant_be_empty": "Адрес токена не может быть пустым.",
     "address_must_be_valid": "Адрес токена должен быть действительным адресом.",
     "symbol_cant_be_empty": "Символ токена не может быть пустым.",
+    "symbol_length": "Символ должен состоять из 11 или менее знаков",
     "decimals_cant_be_empty": "Десятичные знаки токена не могут быть пустыми.",
+    "decimals_is_required": "Требуется число десятичных знаков. Найдите его на:",
     "no_tokens_found": "нам не удалось найти токены с таким именем.",
     "select_token": "Выбрать токен",
     "address_must_be_smart_contract": "Обнаружен личный адрес. Введите адрес контракта токена."
@@ -534,7 +567,8 @@
     "collectible_asset_contract": "Контракт на актив",
     "share_check_out_nft": "Посмотреть мои NFT!",
     "share_via": "Опубликовано через",
-    "untitled_collection": "Коллекция без названия"
+    "untitled_collection": "Коллекция без названия",
+    "collection": "Коллекция"
   },
   "transfer": {
     "title": "Перевести",
@@ -543,10 +577,10 @@
   },
   "accounts": {
     "create_new_account": "Создать новый счет",
-    "qr_hardware": "QR-оборудование",
     "import_account": "Импортировать счет",
     "connect_hardware": "Подключить аппаратный кошелек",
     "imported": "Импортирован",
+    "qr_hardware": "QR-оборудование",
     "remove_account_title": "Удаление счета",
     "remove_account_message": "Вы действительно хотите удалить этот счет?",
     "no": "Нет",
@@ -675,6 +709,12 @@
     "nft_opensea_desc": "Отображение мультимедиа и данных NFT может раскрыть ваш IP-адрес централизованным серверам. Используйте API OpenSea для получения данных NFT. Автоматическое обнаружение NFT использует API OpenSea и будет недоступно, если отключено. Включение автоматического обнаружения NFT может подвергнуть вас риску отправки поддельных NFT в ваш кошелек кем угодно и позволить злоумышленнику узнать ваш IP-адрес по вашему адресу Ethereum",
     "nft_autodetect_mode": "Автоопределение NFT",
     "nft_autodetect_desc": "Отображение медиа и данных NFT может раскрыть ваш IP-адрес централизованным серверам. Сторонние API (например, OpenSea) используются для обнаружения NFT в вашем кошельке. При таком обнаружении адрес вашего счета становится известен этим службами. Оставьте этот параметр отключенным, если не хотите, чтобы приложение получало данные от этих служб.",
+    "show_fiat_on_testnets": "Show conversion on test networks",
+    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks",
+    "show_fiat_on_testnets_modal_title": "Be careful",
+    "show_fiat_on_testnets_modal_description": "If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.",
+    "show_fiat_on_testnets_modal_learn_more": "Learn more.",
+    "show_fiat_on_testnets_modal_button": "Continue",
     "show_hex_data": "Показать шестнадцатеричные данные",
     "show_hex_data_desc": "Выберите это, чтобы отобразить поле шестнадцатеричных данных на экране отправки.",
     "toggleEthSignBannerDescription": "Вы подвержены риску фишинговых атак. Защитите себя, отключив eth_sign.",
@@ -705,6 +745,26 @@
     "general_desc": "Конвертация валюты, основная валюта, язык и поисковая система",
     "advanced_title": "Дополнительно",
     "advanced_desc": "Доступ к функциям разработчика, сброс счета, настройка тестнетов, журналы состояния, IPFS-шлюз и настраиваемый RPC",
+    "notifications_title": "Уведомления",
+    "notifications_desc": "Управляйте своими уведомлениями",
+    "allow_notifications": "Разрешить уведомления",
+    "allow_notifications_desc": "Будьте в курсе того, что происходит в вашем кошельке, с помощью уведомлений. Чтобы отправлять уведомления, мы используем профиль для синхронизации некоторых настроек на ваших устройствах. Узнайте, как мы защищаем вашу конфиденциальность при использовании этой функции.",
+    "notifications_opts": {
+      "customize_session_title": "Настройте свои уведомления",
+      "customize_session_desc": "Включите типы уведомлений, которые хотите получать:",
+      "account_session_title": "Активность счета",
+      "account_session_desc": "Выберите счета, о которых хотите получать уведомления:",
+      "assets_sent_title": "Отправленные активы",
+      "assets_sent_desc": "Средства и NFT",
+      "assets_received_title": "Полученные активы",
+      "assets_received_desc": "Средства и NFT",
+      "defi_title": "DeFi",
+      "defi_desc": "Стейкинг, обмен и создание моста",
+      "snaps_title": "Snaps",
+      "snaps_desc": "Новые функции и обновления",
+      "products_announcements_title": "Объявления о продуктах",
+      "products_announcements_desc": "Новые продукты и функции"
+    },
     "contacts_title": "Контакты",
     "contacts_desc": "Добавляйте, изменяйте и удаляйте счета и управляйте ими",
     "security_title": "Безопасность и конфиденциальность",
@@ -767,6 +827,7 @@
     "ses_heading": "Блокировка кода",
     "ses_description": "Это тестовая функция, которая блокирует любые неразрешенные изменения в коде JavaScript приложения.",
     "ses_link": "Подробнее",
+    "general_heading": "General",
     "privacy_heading": "Конфиденциальность",
     "failed_to_fetch_chain_id": "Не удалось получить ID блокчейна. Верен ли ваш URL RPC?",
     "endpoint_returned_different_chain_id": "Конечная точка вернула другой ID блокчейна: %{chainIdReturned}",
@@ -892,10 +953,12 @@
     "token_nft_ens_subheading": "Автоопределение токенов, NFT и ENS",
     "security_check_subheading": "Проверки безопасности",
     "symbol_required": "Требуется символ.",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Сохранение конфиденциальности – никакие данные не передаются третьим сторонам. Доступно в Arbitrum, Avalanche, BNB Chain, Мейн-нете Ethereum, Optimism и Polygon.",
+    "blockaid_desc": "Сохранение конфиденциальности – никакие данные не передаются третьим сторонам. Доступно в Arbitrum, Avalanche, BNB Chain, Мейн-нете Ethereum, Optimism, Polygon, Sepolia и Base.",
     "security_alerts": "Оповещения безопасности",
-    "security_alerts_desc": "Эта функция предупреждает вас о вредоносной активности, проверяя запросы транзакций и подписей локально. Всегда проводите комплексную проверку перед утверждением каких-либо запросов. Нет никакой гарантии, что эта функция обнаружит всю вредоносную активность. Включая эту функцию, вы соглашаетесь с условиями использования поставщика."
+    "security_alerts_desc": "Эта функция предупреждает вас о вредоносной активности, проверяя запросы транзакций и подписей локально. Всегда проводите комплексную проверку перед утверждением каких-либо запросов. Нет никакой гарантии, что эта функция обнаружит всю вредоносную активность. Включая эту функцию, вы соглашаетесь с условиями использования поставщика.",
+    "smart_transactions_opt_in_heading": "Умные транзакции",
+    "smart_transactions_opt_in_desc": "Включите умные транзакции для более надежных и безопасных транзакций, а также настраиваемых комиссий в Мейн-нете ETH.",
+    "smart_transactions_learn_more": "Узнайте подробнее."
   },
   "sdk": {
     "disconnect_title": "Отключить все сайты?",
@@ -1122,6 +1185,7 @@
     "confirm": "Подтвердить"
   },
   "transaction": {
+    "transaction_id": "ID транзакции",
     "alert": "ВНИМАНИЕ",
     "amount": "Сумма",
     "next": "Далее",
@@ -1294,6 +1358,7 @@
     "contract": "Контракт ({{address}})",
     "contract_name": "Название контракта:",
     "contract_address": "Адрес контракта:",
+    "invalid_contract_address": " Адрес контракта недействителен. Введите новый",
     "contract_allowance": "Допустимое отклонение:",
     "data": "Данные",
     "function_approve": "Функция: одобрить",
@@ -1402,8 +1467,12 @@
     "to": "В адрес",
     "details": "Подробные сведения",
     "amount": "Сумма",
+    "gas_used": "Использовано газа (единицы)",
     "gas_limit": "Лимит газа (единицы)",
     "gas_price": "Цена газа (Гвей)",
+    "base_fee": "Базовая комиссия (GWEI)",
+    "priority_fee": "Плата за приоритет (GWEI)",
+    "max_fee": "Макс. плата за газ",
     "total": "Итого",
     "view_on": "ПОСМОТРЕТЬ НА",
     "view_on_etherscan": "Посмотреть на Etherscan",
@@ -1425,7 +1494,26 @@
     "sign_title_device": "с помощью вашего  Keystone",
     "sign_description_1": "После того как вы подписали с помощью Keystone,",
     "sign_description_2": "нажмите «Получить подпись»",
-    "sign_get_signature": "Получить подпись"
+    "sign_get_signature": "Получить подпись",
+    "network_fee": "Комиссия сети"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "Ваша транзакция отправляется",
+    "status_submitting_description": "Предполагаемое завершение {{timeLeft}}",
+    "status_success_header": "Ваша транзакция завершена",
+    "status_submitting_past_estimated_deadline_header": "Извините за ожидание",
+    "status_submitting_past_estimated_deadline_description": "Если ваша транзакция не будет завершена в течение {{timeLeft}}, она будет отменена и с вас не будет взиматься плата за газ.",
+    "status_cancelled_header": "Ваша транзакция отменена",
+    "status_cancelled_description": "Не удалось завершить вашу транзакцию, поэтому она была отменена, чтобы избавить вас от ненужной платы за газ.",
+    "status_failed_header": "Ваша транзакция не удалась",
+    "status_failed_description": "Внезапные изменения на рынке могут привести к неудачам. Если проблема не исчезнет, ​​обратитесь в поддержку MetaMask.",
+    "view_transaction": "Смотреть транзакцию",
+    "view_activity": "Смотреть активность",
+    "return_to_dapp": "Назад в {{dappName}}",
+    "try_again": "Повторить попытку",
+    "create_new": "Создать новый/ую {{txType}}",
+    "swap": "обмен",
+    "send": "отправку"
   },
   "address_book": {
     "recents": "Недавние",
@@ -1774,6 +1862,16 @@
     "back_to_safety": "Назад в безопасное место"
   },
   "notifications": {
+    "stake_completed": "Стейкинг завершен",
+    "withdrawal_completed": "Вывод завершен",
+    "unstake_completed": "Отмена стейкинга завершена",
+    "withdrawal_requested": "Запрошен вывод",
+    "stake_ready_to_be_withdrawn": "Доля готова к выводу",
+    "swap_completed": "{{from}} обменянные на {{to}}",
+    "sent": "Отправленные на {{address}}",
+    "received": "Полученные от {{address}}",
+    "sent_nft": "NFT, отправленные на {{address}}",
+    "received_nft": "NFT, полученные от {{address}}",
     "pending_title": "Транзакция отправлена",
     "pending_deposit_title": "Выполняется внесение депозита!",
     "pending_withdrawal_title": "Выполняется вывод средств!",
@@ -1789,6 +1887,9 @@
     "pending_deposit_message": "Ожидание завершения внесения депозита",
     "pending_withdrawal_message": "Ожидание завершения вывода денег",
     "error_message": "Нажмите для просмотра этой транзакции",
+    "error_retrieving_fcm_token": "Ошибка при получении и сохранении токена FCM",
+    "error_fcm_not_found": "getFCMToken: токен FCM не найден",
+    "error_checking_permission": "Ошибка проверки наличия у пользователя разрешения на получение push-уведомлений",
     "success_message": "Нажмите для просмотра этой транзакции",
     "speedup_message": "Предпринимается попытка ускорения транзакции",
     "success_deposit_message": "Ваши средства готовы к использованию",
@@ -1808,7 +1909,30 @@
     "wc_signed_failed_title": "Ошибка этого запроса подписи",
     "wc_sent_tx_rejected_title": "Вы отклонили запрос на транзакцию",
     "approved_tx_rejected_title": "Вы отклонили запрос о разрешении",
-    "wc_description": "Проверьте приложение"
+    "wc_description": "Проверьте приложение",
+    "wallet": "Кошелек",
+    "web3": "Web3",
+    "empty": {
+      "title": "Здесь не на что смотреть",
+      "message": "Здесь вы можете найти уведомления, когда в вашем кошельке выполняются действия. "
+    },
+    "list": {
+      "0": "Все",
+      "1": "Кошелек",
+      "2": "Объявления"
+    },
+    "address_copied_to_clipboard": "Адрес скопирован в буфер обмена",
+    "transaction_id_copied_to_clipboard": "ID транзакции скопирован в буфер обмена",
+    "activation_card": {
+      "title": "Включить уведомления",
+      "description_1": "Будьте в курсе того, что происходит в вашем кошельке, с помощью уведомлений. ",
+      "description_2": "Чтобы использовать эту функцию, мы сгенерируем анонимный ID для вашего счета. Он используется только для синхронизации ваших данных в MetaMask и не связывается с вашими действиями или другими ID, обеспечивая вашу конфиденциальность.",
+      "learn_more": "Узнайте, как мы защищаем вашу конфиденциальность при использовании этой функции. ",
+      "manage_preferences_1": "Вы можете отключить уведомления в любое время в ",
+      "manage_preferences_2": "Настройки > Уведомления.",
+      "cancel": "Отмена",
+      "cta": "Включить"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "Защитите кошелек",
@@ -2409,13 +2533,28 @@
       "title": "Избегайте угроз с помощью оповещений безопасности",
       "description_1": "Защитите себя от известных способов мошенничества, сохраняя при этом свою конфиденциальность с помощью предупреждений безопасности от Blockaid. Эта функция теперь включена по умолчанию для всех пользователей MetaMask.",
       "description_2": "Всегда проводите собственную комплексную проверку перед утверждением запросов.",
-      "description_3": "Доступно в Arbitrum, Avalanche, BNB Chain, Мейн-нете Ethereum, Linea, Optimism и Polygon.",
+      "description_3": "Доступно в Arbitrum, Avalanche, BNB Chain, Мейн-нете Ethereum, Linea, Optimism, Polygon, Sepolia и Base.",
       "got_it": "Понятно"
     },
     "sell": {
       "title": "Вывод средств стал проще",
       "description": "Продавайте свою криптовалюту прямо в MetaMask! Мы поможем вам найти котировки от надежных поставщиков, чтобы вы всегда могли продавать свою криптовалюту доступным, быстрым и безопасным способом.",
       "action_text": "Попробовать"
+    },
+    "stx": {
+      "header": "Представляем умные транзакции",
+      "description_1": "Откройте для себя самый безопасный, надежный и простой способ транзакций — более разумный способ навигации по web3.",
+      "description_2": "Миллионы долларов теряются каждый месяц из-за неудачных транзакций и действий на опережение. Умные транзакции решают эту проблему.",
+      "description_3": "На данный момент умные транзакции доступны только в Мейн-нете ETH. Вы можете отключить их в любой момент в Настройках.",
+      "secondary_button": "Не сейчас",
+      "primary_button": "Включить умные транзакции",
+      "learn_more": "Подробнее.",
+      "benefit_1_1": "На 82% меньше неудачных",
+      "benefit_1_2": "транзакций",
+      "benefit_2_1": "Защита",
+      "benefit_2_2": "транзакций",
+      "benefit_3_1": "Статус",
+      "benefit_3_2": "в реальном времени"
     }
   },
   "invalid_network": {
@@ -2721,8 +2860,10 @@
     "bluetooth_off_message": "Включите Bluetooth на своем устройстве",
     "bluetooth_access_blocked": "Леджеру требуется доступ к Bluetooth для сопряжения с вашим мобильным устройством.",
     "bluetooth_access_blocked_message": "Если вы хотите подключить устройство Ledger с помощью Bluetooth, включите Bluetooth в Настройках и повторите попытку.",
-    "location_access_blocked": "Леджеру требуется доступ к местоположению для сопряжения с вашим мобильным устройством.",
+    "location_access_blocked": "MetaMask требуется разрешение на доступ к местоположению для сопряжения с вашим ledger.",
     "location_access_blocked_message": "Если вы хотите подключить свое устройство Ledger с помощью Bluetooth, вам нужно предоставить доступ к местоположению в Настройках и повторить попытку.",
+    "nearbyDevices_access_blocked": "MetaMask требуется разрешение на доступ к устройствам поблизости для сопряжения с вашим ledger.",
+    "nearbyDevices_access_blocked_message": "Если вы хотите подключить свое устройство Ledger с помощью Bluetooth, вам нужно предоставить доступ к устройствам поблизости в Настройках и повторить попытку.",
     "bluetooth_scanning_error": "Ошибка при сканировании устройства",
     "bluetooth_scanning_error_message": "Убедитесь, что ваше устройство разблокировано и запущено приложение Ethereum",
     "bluetooth_connection_failed": "Не удалось подключиться через Bluetooth",
@@ -2742,10 +2883,12 @@
     "connect_ledger": "Подключить Ledger",
     "looking_for_device": "Поиск устройства...",
     "ledger_reminder_message": "Убедитесь с следующем: ",
-    "ledger_reminder_message_step_one": "1. Ваш Ledger Nano X разблокирован.",
-    "ledger_reminder_message_step_two": "2. Приложение Ethereum установлено.",
-    "ledger_reminder_message_step_three": "3. Bluetooth включен.",
-    "ledger_reminder_message_step_four": "4. Доступ к местоположению предоставлен.",
+    "ledger_reminder_message_step_one": "1. Разблокируйте свой Ledger Nano X",
+    "ledger_reminder_message_step_two": "2. Установите и откройте приложение Ethereum",
+    "ledger_reminder_message_step_three": "3. Включите Bluetooth",
+    "ledger_reminder_message_step_four": "4. Включена опция «Местоположение» с использованием точных данных",
+    "ledger_reminder_message_step_four_Androidv12plus": "4. Включена опция «устройства поблизости»",
+    "ledger_reminder_message_step_five": "5. Режим «Не беспокоить» должен быть выключен",
     "available_devices": "Доступные устройства",
     "retry": "Повтор",
     "continue": "Продолжить",
@@ -2828,5 +2971,33 @@
     "okay_action": "ОК",
     "error_title": "Ошибка установки",
     "error_description": "Не удалось установить {{snap}}."
+  },
+  "stake": {
+    "stake": "Выполнить стейкинг"
+  },
+  "default_settings": {
+    "title": "Your Wallet is ready",
+    "description": "MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.",
+    "learn_more_about_privacy": "Learn more about privacy best practices.",
+    "privacy_policy": "Privacy policy",
+    "default_settings": "Default Settings",
+    "done": "Done",
+    "basic_functionality": "Basic functionality",
+    "manage_networks": "Manage networks",
+    "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
+    "manage_networks_body2": " to learn more about how Infura handles data.",
+    "functionality_body": "Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.",
+    "sheet": {
+      "title_off": "Turn off basic functionality",
+      "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
+      "title_on": "Turn on basic functionality",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, and others) are important to the web3 experience.",
+      "checkbox_label": "I understand and want to continue",
+      "buttons": {
+        "cancel": "Cancel",
+        "turn_on": "Turn on",
+        "turn_off": "Turn off"
+      }
+    }
   }
 }

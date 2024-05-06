@@ -25,6 +25,7 @@ import Avatar, {
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
 import {
+  getDecimalChainId,
   getNetworkImageSource,
   getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
@@ -124,7 +125,7 @@ const AccountRightButton = ({
         screen: Routes.SHEET.NETWORK_SELECTOR,
       });
       trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-        chain_id: providerConfig.chainId,
+        chain_id: getDecimalChainId(providerConfig.chainId),
       });
     } else {
       onPress?.();

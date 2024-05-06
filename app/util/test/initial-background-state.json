@@ -17,6 +17,12 @@
       "0x1": {}
     }
   },
+  "AccountsController": {
+     "internalAccounts": {
+       "accounts": {},
+       "selectedAccount": ""
+     }
+  },
   "AddressBookController": {
     "addressBook": {}
   },
@@ -42,25 +48,20 @@
   "TokenDetectionController": {},
   "NftDetectionController": {},
   "PPOMController": {
-    "chainStatus": {
-      "0x1": {
-        "chainId": "0x1",
-        "versionInfo": []
-      }
-    },
     "storageMetadata": [],
     "versionFileETag": "",
     "versionInfo": []
   },
 
   "CurrencyRateController": {
-    "conversionDate": 0,
-    "conversionRate": 0,
     "currentCurrency": "usd",
-    "nativeCurrency": "ETH",
-    "pendingCurrentCurrency": null,
-    "pendingNativeCurrency": null,
-    "usdConversionRate": null
+    "currencyRates": {
+      "ETH":{
+        "conversionDate":0,
+        "conversionRate": 0,
+        "usdConversionRate": null
+      }
+    }
   },
   "NetworkController": {
     "networkConfigurations": {},
@@ -69,11 +70,10 @@
       "chainId": "0x1",
       "ticker": "ETH"
     },
-    "networkDetails": {
-      "EIPS": {}
+    "networksMetadata": {
+      "mainnet":{  "EIPS": {},"status": "unknown"}
     },
-    "networkId": null,
-    "networkStatus": "unknown"
+    "selectedNetworkClientId": "mainnet"
   },
   "PhishingController": {
     "phishingLists": [],
@@ -112,6 +112,7 @@
       "0xfa2": true,
       "0xaa36a7": true,
       "0xe704": true,
+      "0xe705": true,
       "0xe708": true,
       "0x504": true,
       "0x507": true,
@@ -196,7 +197,8 @@
   "GasFeeController": {
     "gasFeeEstimates": {},
     "estimatedGasFeeTimeBounds": {},
-    "gasEstimateType": "none"
+    "gasEstimateType": "none",
+    "gasFeeEstimatesByChainId": {}
   },
   "ApprovalController": {
     "pendingApprovals": {},

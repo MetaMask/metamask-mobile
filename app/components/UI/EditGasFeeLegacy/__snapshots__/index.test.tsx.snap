@@ -3,7 +3,7 @@
 exports[`EditGasFeeLegacy should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
@@ -16,7 +16,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
 >
   <ScrollView
     style={
-      Object {
+      {
         "paddingHorizontal": 24,
       }
     }
@@ -26,7 +26,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
         <View>
           <View
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
                 "justifyContent": "space-between",
@@ -60,7 +60,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
         <FadeAnimationView>
           <View
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "marginBottom": 22,
               }
@@ -68,14 +68,14 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
           >
             <View
               style={
-                Object {
+                {
                   "flexDirection": "row",
                 }
               }
             >
               <View
                 style={
-                  Object {
+                  {
                     "flex": 1,
                   }
                 }
@@ -84,7 +84,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                   black={true}
                   right={true}
                   style={
-                    Object {
+                    {
                       "fontSize": 48,
                     }
                   }
@@ -95,14 +95,14 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               <Text
                 black={true}
                 style={
-                  Object {
+                  {
                     "fontSize": 48,
                   }
                 }
               />
               <View
                 style={
-                  Object {
+                  {
                     "flex": 1,
                   }
                 }
@@ -120,7 +120,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
           </View>
           <View
             style={
-              Object {
+              {
                 "marginBottom": 30,
                 "marginTop": 25,
               }
@@ -128,14 +128,14 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
           >
             <View
               style={
-                Object {
+                {
                   "marginTop": 14,
                 }
               }
             >
               <View
                 style={
-                  Object {
+                  {
                     "marginBottom": 20,
                   }
                 }
@@ -145,7 +145,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                   leftLabelComponent={
                     <View
                       style={
-                        Object {
+                        {
                           "alignItems": "center",
                           "flexDirection": "row",
                         }
@@ -161,7 +161,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                       </Text>
                       <TouchableOpacity
                         hitSlop={
-                          Object {
+                          {
                             "bottom": 10,
                             "left": 10,
                             "right": 10,
@@ -175,7 +175,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           name="information"
                           size={14}
                           style={
-                            Object {
+                            {
                               "color": "#BBC0C5",
                             }
                           }
@@ -191,7 +191,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               </View>
               <View
                 style={
-                  Object {
+                  {
                     "marginBottom": 20,
                   }
                 }
@@ -201,7 +201,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                   leftLabelComponent={
                     <View
                       style={
-                        Object {
+                        {
                           "alignItems": "center",
                           "flexDirection": "row",
                         }
@@ -217,7 +217,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                       </Text>
                       <TouchableOpacity
                         hitSlop={
-                          Object {
+                          {
                             "bottom": 10,
                             "left": 10,
                             "right": 10,
@@ -231,7 +231,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           name="information"
                           size={14}
                           style={
-                            Object {
+                            {
                               "color": "#BBC0C5",
                             }
                           }
@@ -252,13 +252,13 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
         <View>
           <StyledButton
             disabledContainerStyle={
-              Object {
+              {
                 "opacity": 0.6,
               }
             }
             onPress={[Function]}
             styleDisabled={
-              Object {
+              {
                 "opacity": 0.6,
               }
             }

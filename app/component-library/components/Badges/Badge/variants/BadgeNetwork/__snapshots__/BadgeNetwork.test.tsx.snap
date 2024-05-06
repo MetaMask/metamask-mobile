@@ -4,23 +4,41 @@ exports[`BadgeNetwork - snapshots should render badge network correctly 1`] = `
 <BadgeBase
   onLayout={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "aspectRatio": 1,
       "height": "50%",
       "justifyContent": "center",
-      "minHeight": 16,
+      "maxHeight": 24,
+      "minHeight": 8,
       "opacity": 0,
     }
   }
   testID="badge-network"
 >
   <Avatar
+    imageSource={
+      {
+        "default": {
+          "uri": "MockImage",
+        },
+      }
+    }
+    name="Ethereum"
     size="32"
     style={
-      Object {
-        "transform": Array [
-          Object {
+      {
+        "borderColor": "#FFFFFF",
+        "borderWidth": 2,
+        "shadowColor": "#0000001A",
+        "shadowOffset": {
+          "height": 2,
+          "width": 0,
+        },
+        "shadowOpacity": 1,
+        "shadowRadius": 4,
+        "transform": [
+          {
             "scale": 1,
           },
         ],

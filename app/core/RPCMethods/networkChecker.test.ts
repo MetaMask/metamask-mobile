@@ -212,4 +212,101 @@ describe('checkSafeNetwork', () => {
     );
     expect(alerts).toEqual([]);
   });
+
+  it('should not return warning name/symbol if it match with popular network', async () => {
+    mockedAxios.get.mockImplementation(() =>
+      Promise.resolve({
+        data: [
+          {
+            chainId: '10',
+            rpc: ['https://optimism-mainnet.infura.io/v3/1234'],
+            name: 'Optimism',
+            nativeCurrency: {
+              symbol: 'ETH',
+              decimals: 18,
+            },
+          },
+        ],
+      }),
+    );
+
+    const alerts = await checkSafeNetwork(
+      '10',
+      'https://optimism-mainnet.infura.io/v3/1234',
+      'Optimism',
+      'ETH',
+    );
+    expect(alerts).toEqual([]);
+  });
+  it('should return warning name/symbol if it doesnt match with popular network and third part provider', async () => {
+    mockedAxios.get.mockImplementation(() =>
+      Promise.resolve({
+        data: [
+          {
+            chainId: '10',
+            rpc: ['https://optimism-mainnet.infura.io/v3/1234'],
+            name: 'Optimism',
+            nativeCurrency: {
+              symbol: 'ETH',
+              decimals: 18,
+            },
+          },
+        ],
+      }),
+    );
+
+    const alerts = await checkSafeNetwork(
+      '10',
+      'https://optimism-mainnet.infura.io/v3/1234',
+      'Optimism test',
+      'OP',
+    );
+    expect(alerts).toEqual([
+      {
+        alertError:
+          "It looks like this network's display name doesn't match its chain ID.",
+        alertSeverity: BannerAlertSeverity.Warning,
+        alertOrigin: 'chain_name',
+      },
+      {
+        alertError:
+          "It looks like this network's symbol doesn't match this chain ID.",
+        alertSeverity: BannerAlertSeverity.Warning,
+        alertOrigin: 'chain_ticker',
+      },
+    ]);
+  });
+
+  it('should not throw an error if nickname is undefined for findPopularNetworkName', async () => {
+    mockedAxios.get.mockImplementation(() =>
+      Promise.resolve({
+        data: [
+          {
+            chainId: '10',
+            rpc: ['https://optimism-mainnet.infura.io/v3/1234'],
+            name: 'Optimism',
+            nativeCurrency: {
+              symbol: 'ETH',
+              decimals: 18,
+            },
+          },
+        ],
+      }),
+    );
+
+    const result = await checkSafeNetwork(
+      '10',
+      'https://optimism-mainnet.infura.io/v3/1234',
+      undefined as any,
+      'ETH',
+    );
+    expect(result).toEqual([
+      {
+        alertError:
+          "It looks like this network's display name doesn't match its chain ID.",
+        alertSeverity: BannerAlertSeverity.Warning,
+        alertOrigin: 'chain_name',
+      },
+    ]);
+  });
 });
