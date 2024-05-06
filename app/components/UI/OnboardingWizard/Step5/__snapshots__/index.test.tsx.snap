@@ -12,13 +12,11 @@ exports[`Step5 should render correctly 1`] = `
     style={
       [
         {
+          "bottom": 80,
           "left": 0,
           "marginHorizontal": 16,
           "position": "absolute",
           "right": 0,
-        },
-        {
-          "bottom": 50,
         },
       ]
     }
