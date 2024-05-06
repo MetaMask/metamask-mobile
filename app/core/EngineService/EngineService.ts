@@ -124,7 +124,9 @@ class EngineService {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () => {
         if (!engine.context.KeyringController.vault) {
-          Logger.message('keyringController vault missing for UPDATE_BG_STATE_KEY');
+          Logger.message(
+            'keyringController vault missing for UPDATE_BG_STATE_KEY',
+          );
         }
         store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
       };
