@@ -148,14 +148,13 @@ class SmartTransactionHook {
 
     Logger.log(LOG_PREFIX, 'Started submit hook', this.#transactionMeta.id);
 
-    const getFeesResponse = await this.#getFees();
-    // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
-    if (!getFeesResponse) {
-      this.#cleanup();
-      return useRegularTransactionSubmit;
-    }
-
     try {
+      const getFeesResponse = await this.#getFees();
+      // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
+      if (!getFeesResponse) {
+        return useRegularTransactionSubmit;
+      }
+
       const submitTransactionResponse = await this.#signAndSubmitTransactions({
         getFeesResponse,
       });
@@ -191,16 +190,15 @@ class SmartTransactionHook {
         this.#updateSwapsTransactions(transactionHash);
       }
 
-      this.#cleanup();
-
       return { transactionHash };
     } catch (error: any) {
       Logger.error(
         error,
         `${LOG_PREFIX} Error in smart transaction publish hook`,
       );
-      this.#cleanup();
       throw error;
+    } finally {
+      this.#cleanup();
     }
   }
 
