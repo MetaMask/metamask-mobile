@@ -157,10 +157,12 @@ class Gestures {
       .swipe(direction, speed, percentage, xStart, yStart);
   }
 
-  // Scroll to the web element until its top is at the top of the viewport.
-  static async scrollToWebViewPort(elementID) {
+  /**
+   * Scrolls the web element until its top is at the top of the viewport.
+   * @param {Promise<Element>} elementID - A promise resolving to the target element's ID or element itself.
+   */
+  static async scrollToViewport(elementID) {
     const element = await elementID;
-
     await element.scrollToView();
   }
 
