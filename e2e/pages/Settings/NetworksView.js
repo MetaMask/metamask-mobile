@@ -88,6 +88,10 @@ class NetworkView {
     return Matchers.getElementByLabel(NetworkViewSelectorsText.BLOCK_EXPLORER);
   }
 
+  get chainIdLabel() {
+    return Matchers.getElementByLabel(NetworkViewSelectorsText.CHAIN_ID_LABEL);
+  }
+
   get rpcWarningBanner() {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_WARNING_BANNER);
   }
@@ -169,7 +173,7 @@ class NetworkView {
 
   async swipeToRPCTitleAndDismissKeyboard() {
     // Because in bitrise the keyboard is blocking the "Add" CTA
-    await Gestures.waitAndTap(this.blockExplorer);
+    await Gestures.waitAndTap(this.chainIdLabel);
   }
 }
 

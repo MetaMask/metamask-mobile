@@ -1,5 +1,7 @@
+import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import { NameType } from '../../UI/Name/Name.types';
 import useDisplayName, { DisplayNameVariant } from './useDisplayName';
+import { useFirstPartyContractName } from './useFirstPartyContractName';
 import useWatchedNFTName from './useWatchedNFTName';
 
 const UNKNOWN_ADDRESS_CHECKSUMMED =
@@ -7,16 +9,28 @@ const UNKNOWN_ADDRESS_CHECKSUMMED =
 const KNOWN_NFT_ADDRESS_CHECKSUMMED =
   '0x495f947276749Ce646f68AC8c248420045cb7b5e';
 const KNOWN_NFT_NAME_MOCK = 'Known NFT';
+const KNOWN_FIRST_PARTY_CONTRACT_NAME = 'MetaMask Pool Staking';
 
 jest.mock('./useWatchedNFTName', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+jest.mock('./useFirstPartyContractName', () => ({
+  useFirstPartyContractName: jest.fn(),
 }));
 
 describe('useDisplayName', () => {
   const mockUseWatchedNFTName = useWatchedNFTName as jest.MockedFunction<
     typeof useWatchedNFTName
   >;
+  const mockUseFirstPartyContractName =
+    useFirstPartyContractName as jest.MockedFunction<
+      typeof useFirstPartyContractName
+    >;
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
 
   describe('unknown address', () => {
     it('should not return a name', () => {
@@ -31,12 +45,34 @@ describe('useDisplayName', () => {
   });
 
   describe('recognized address', () => {
+    it('should return first party contract name', () => {
+      mockUseFirstPartyContractName.mockReturnValue(
+        KNOWN_FIRST_PARTY_CONTRACT_NAME,
+      );
+
+      const displayName = useDisplayName(
+        NameType.EthereumAddress,
+        KNOWN_NFT_ADDRESS_CHECKSUMMED,
+        NETWORKS_CHAIN_ID.MAINNET,
+      );
+      expect(displayName).toEqual({
+        variant: DisplayNameVariant.Recognized,
+        name: KNOWN_FIRST_PARTY_CONTRACT_NAME,
+      });
+    });
+
     it('should return watched nft name', () => {
       mockUseWatchedNFTName.mockReturnValue(KNOWN_NFT_NAME_MOCK);
 
       const displayName = useDisplayName(
         NameType.EthereumAddress,
         KNOWN_NFT_ADDRESS_CHECKSUMMED,
+        NETWORKS_CHAIN_ID.MAINNET,
+      );
+
+      expect(mockUseFirstPartyContractName).toHaveBeenCalledWith(
+        KNOWN_NFT_ADDRESS_CHECKSUMMED.toLowerCase(),
+        NETWORKS_CHAIN_ID.MAINNET,
       );
 
       expect(displayName).toEqual({

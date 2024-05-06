@@ -1700,14 +1700,14 @@
   resolved "https://registry.yarnpkg.com/@endo/env-options/-/env-options-1.1.1.tgz#eee630f8eff01580ec49e0dedcb1b6cef05d89a4"
   integrity sha512-uCwlJ8Vkndx/VBBo36BdYHdxSoQPy7ZZpwyJNfv86Rh4B1IZfqzCRPf0u0mPgJdzOr7lShQey60SuYwoMSZ9Xg==
 
-"@es-joy/jsdoccomment@~0.36.1":
-  version "0.36.1"
-  resolved "https://registry.yarnpkg.com/@es-joy/jsdoccomment/-/jsdoccomment-0.36.1.tgz#c37db40da36e4b848da5fd427a74bae3b004a30f"
-  integrity sha512-922xqFsTpHs6D0BUiG4toiyPOMc8/jafnWKxz1KWgS4XzKPy2qXf1Pe6UFuNSCQqt6tOuhAWXBNuuyUhJmw9Vg==
+"@es-joy/jsdoccomment@~0.37.1":
+  version "0.37.1"
+  resolved "https://registry.yarnpkg.com/@es-joy/jsdoccomment/-/jsdoccomment-0.37.1.tgz#fa32a41ba12097452693343e09ad4d26d157aedd"
+  integrity sha512-5vxWJ1gEkEF0yRd0O+uK6dHJf7adrxwQSX8PuRiPfFSAbNLnY0ZJfXaZucoz14Jj2N11xn2DnlEPwWRpYpvRjg==
   dependencies:
     comment-parser "1.3.1"
-    esquery "^1.4.0"
-    jsdoc-type-pratt-parser "~3.1.0"
+    esquery "^1.5.0"
+    jsdoc-type-pratt-parser "~4.0.0"
 
 "@esbuild/android-arm64@0.18.20":
   version "0.18.20"
@@ -2288,14 +2288,6 @@
     "@ethersproject/logger" "^5.7.0"
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
-
-"@exodus/react-native-payments@git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5":
-  version "1.5.0"
-  resolved "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5"
-  dependencies:
-    es6-error "^4.0.2"
-    uuid "3.3.2"
-    validator "^7.0.0"
 
 "@expo/config-plugins@^7.2.5":
   version "7.2.5"
@@ -3589,11 +3581,12 @@
     "@metamask/utils" "^8.0.0"
     superstruct "^1.0.3"
 
-"@metamask/accounts-controller@^10.0.0":
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-10.0.0.tgz#415248402117cc8af79f12abd93443bca30ac8a8"
-  integrity sha512-uWIl9ekRF5Lc2rMMv/jtI6KuPqAAWFpUOgNtnPjCXD0lBJuz6VMFc36SjLhHvPOrcF6FFrCFR9JzmxgrIhEpGg==
+"@metamask/accounts-controller@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-11.0.0.tgz#898cba99e0df0f7632af98a61d6d524ef7d75885"
+  integrity sha512-8/KGdLdxu7G90a+4w30RJaC6W4GqEg7O8LG9S6ZfzeofrlUe/uJl+PkqjU8W1KclXyPlK0XdnSW+2DQjw1jpLQ==
   dependencies:
+    "@ethereumjs/util" "^8.1.0"
     "@metamask/base-controller" "^4.1.1"
     "@metamask/eth-snap-keyring" "^2.1.1"
     "@metamask/keyring-api" "^3.0.0"
@@ -3601,7 +3594,7 @@
     "@metamask/snaps-utils" "^5.1.2"
     "@metamask/utils" "^8.3.0"
     deepmerge "^4.2.2"
-    ethereumjs-util "^7.0.10"
+    ethereum-cryptography "^2.1.2"
     immer "^9.0.6"
     uuid "^8.3.2"
 
@@ -3928,19 +3921,6 @@
     "@metamask/safe-event-emitter" "^3.0.0"
     "@metamask/utils" "^8.3.0"
 
-"@metamask/eth-keyring-controller@^15.0.0":
-  version "15.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-keyring-controller/-/eth-keyring-controller-15.1.0.tgz#dc7c5ec3a075a2eb3f90b1f452cd67232714451d"
-  integrity sha512-FL6bVet2Rp3n6z+tKM9Lp0dBhTNj7wPKFLBvTTqJq7wBEbXir/AdN7JtnSXWC4BzbfsonXtnGuX353z0x3+8lw==
-  dependencies:
-    "@ethereumjs/tx" "^4.2.0"
-    "@metamask/browser-passworder" "^4.3.0"
-    "@metamask/eth-hd-keyring" "^7.0.1"
-    "@metamask/eth-sig-util" "^7.0.0"
-    "@metamask/eth-simple-keyring" "^6.0.1"
-    "@metamask/obs-store" "^8.1.0"
-    "@metamask/utils" "^8.2.0"
-
 "@metamask/eth-query@^3.0.1":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/eth-query/-/eth-query-3.0.1.tgz#3439eb6c7d5ccff1d6a66df1d1802bae0c890444"
@@ -4103,19 +4083,22 @@
     superstruct "^1.0.3"
     uuid "^9.0.0"
 
-"@metamask/keyring-controller@^9.0.0":
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-9.0.0.tgz#d0b3790ed43b8626edd6c4e092c14a9e3c8a3de4"
-  integrity sha512-KSD59AiYvChFt2NyIuHslU6IW5F5pMxyEWKQ3FqjmNEtbtk36DCvXay//8IK+ZURWh6TdWanu2O/+9bn/UcUVQ==
+"@metamask/keyring-controller@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-13.0.0.tgz#6552f95dc2c19003f1c5f4e8f48ac221d8a1c063"
+  integrity sha512-b8vvTqnsWi7xVpzGf7XDUVgX3xthQ1pUYWhoDlNhq6JLuocNgq9H1Rr3F5Vz0RtC2Caz2VnSYxecGHvGUlvlhQ==
   dependencies:
+    "@ethereumjs/util" "^8.1.0"
     "@keystonehq/metamask-airgapped-keyring" "^0.13.1"
-    "@metamask/base-controller" "^3.2.3"
-    "@metamask/eth-keyring-controller" "^15.0.0"
-    "@metamask/message-manager" "^7.3.5"
-    "@metamask/preferences-controller" "^4.4.3"
-    "@metamask/utils" "^8.2.0"
+    "@metamask/base-controller" "^4.1.1"
+    "@metamask/browser-passworder" "^4.3.0"
+    "@metamask/eth-hd-keyring" "^7.0.1"
+    "@metamask/eth-sig-util" "^7.0.1"
+    "@metamask/eth-simple-keyring" "^6.0.1"
+    "@metamask/keyring-api" "^3.0.0"
+    "@metamask/message-manager" "^7.3.9"
+    "@metamask/utils" "^8.3.0"
     async-mutex "^0.2.6"
-    ethereumjs-util "^7.0.10"
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
 
@@ -4128,7 +4111,7 @@
     "@metamask/controller-utils" "^4.3.2"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^7.3.2", "@metamask/message-manager@^7.3.5":
+"@metamask/message-manager@^7.3.2", "@metamask/message-manager@^7.3.9":
   version "7.3.9"
   resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-7.3.9.tgz#4d416998bbdda30d80ebbb50b5efc7475b816ec9"
   integrity sha512-B0+Qa1bPGMuVdBDaq8zcAKkRXWAt1CYAXW2NXzfO85a2ePFCUIrIhF9W8LflatXDXqesE5Y8Dij0sHGmsUfF8w==
@@ -4264,14 +4247,6 @@
     "@metamask/safe-event-emitter" "^2.0.0"
     through2 "^2.0.3"
 
-"@metamask/obs-store@^8.1.0":
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/obs-store/-/obs-store-8.1.0.tgz#15a9e2f059104362b1b4c9a265c0730d3b3e83c7"
-  integrity sha512-MBi8UwzWoCQXVMLp7iOCppU9grSqbjshckNryUidx6Ozx1LJH6gNBmqayXLKjPqwNcsPajyh76PMKWYKBYNy2A==
-  dependencies:
-    "@metamask/safe-event-emitter" "^2.0.0"
-    through2 "^2.0.3"
-
 "@metamask/permission-controller@7.1.0", "@metamask/permission-controller@^7.1.0":
   version "7.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/permission-controller/-/permission-controller-7.1.0.tgz#e6a2e6c66e8b1c4a46a59eac6fdbdc20d0d7d19d"
@@ -4349,13 +4324,21 @@
     eslint-plugin-n "^16.6.2"
     json-rpc-random-id "^1.0.1"
 
-"@metamask/preferences-controller@^4.0.0", "@metamask/preferences-controller@^4.4.3":
+"@metamask/preferences-controller@^4.4.3":
   version "4.4.3"
   resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-4.4.3.tgz#f0f05793370892d2d7bc9b07e685583a1f4d80c9"
   integrity sha512-ftDRfOEgRrQqFyfZEQk9AVD1YMdP54NvtiBCrlqAG4hiFgBXQbQTcyl0i/jR/cfki8hYMuH1gPdId14CCAJbDQ==
   dependencies:
     "@metamask/base-controller" "^3.2.3"
     "@metamask/controller-utils" "^5.0.2"
+
+"@metamask/preferences-controller@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-8.0.0.tgz#097b1f83c17b56d06a3aee6ceeb55bbb8e93f04f"
+  integrity sha512-N3SuZ9DwHGnN6Xx58j7vkPLPPIIgEYoPm2RgMzSPS5fnJ1Pyrv7Qql/PBc86Ncz0AZUTJLhewGF1rCQJluZXnQ==
+  dependencies:
+    "@metamask/base-controller" "^4.1.1"
+    "@metamask/controller-utils" "^8.0.4"
 
 "@metamask/providers@^13.1.0":
   version "13.1.0"
@@ -4392,6 +4375,11 @@
     readable-stream "^3.6.2"
     webextension-polyfill "^0.10.0"
 
+"@metamask/react-native-actionsheet@2.4.2":
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-actionsheet/-/react-native-actionsheet-2.4.2.tgz#9f956fe9e784d92c8e33656877fcfaabe4a482f1"
+  integrity sha512-oibRXUzF+7DB0Nyzp2cMGN7ztB9Sl21W1NFq1IMa00mB4/X43JY+u+LCkx625WvQUeq0GO2ZQ6hG1L5XjMumSA==
+
 "@metamask/react-native-animated-fox@^2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/react-native-animated-fox/-/react-native-animated-fox-2.1.0.tgz#504e1f68e13ad273fb193c6f6a3832f3a5242518"
@@ -4405,6 +4393,15 @@
   integrity sha512-LFQb3uCcTT384c8CiBOgIu0XK45fmJ3ei81K4+GQPTV4xacfbj+EYztBq0ASe8uEcjXVOPM8UQ58TeEvFfcEJw==
   dependencies:
     prop-types "^15.5.10"
+
+"@metamask/react-native-payments@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-payments/-/react-native-payments-2.0.0.tgz#64d48028a8c0de1bf5332b01c3ddd5ca61c8fbdb"
+  integrity sha512-XUdZsD+RpNGwUPpwdgcVqe+ugRqhpvEU9ihL9n3VbWN7g6p3RdK0JuQ9g19WA7xcU1l2Rg9dCxkMytNin+uOSA==
+  dependencies:
+    es6-error "^4.0.2"
+    uuid "3.3.2"
+    validator "^7.0.0"
 
 "@metamask/react-native-splash-screen@^3.2.0":
   version "3.2.0"
@@ -8565,17 +8562,19 @@
     "@types/node" "*"
     form-data "^4.0.0"
 
-"@types/node@*":
-  version "20.8.0"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.8.0.tgz#10ddf0119cf20028781c06d7115562934e53f745"
-  integrity sha512-LzcWltT83s1bthcvjBmiBvGJiiUe84NWRHkw+ZV6Fr41z2FbIzvc815dk2nQ3RAKMuN2fkenM/z3Xv2QzEpYxQ==
+"@types/node@*", "@types/node@^20.12.8":
+  version "20.12.8"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.12.8.tgz#35897bf2bfe3469847ab04634636de09552e8256"
+  integrity sha512-NU0rJLJnshZWdE/097cdCBbyW1h4hEg0xpovcoAQYHl8dnEyp/NAOiE45pvc+Bd1Dt+2r94v2eGFpQJ4R7g+2w==
+  dependencies:
+    undici-types "~5.26.4"
 
 "@types/node@16.9.1":
   version "16.9.1"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.9.1.tgz#0611b37db4246c937feef529ddcc018cf8e35708"
   integrity sha512-QpLcX9ZSsq3YYUUnD3nFDY8H7wctAhQj/TFKL8Ya8v5fMm3CFXxo8zStsLAl780ltoYoo1WvKUVGBQK+1ifr7g==
 
-"@types/node@^17.0.21", "@types/node@^17.0.31", "@types/node@^17.0.4":
+"@types/node@^17.0.31", "@types/node@^17.0.4":
   version "17.0.45"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.45.tgz#2c0fafd78705e7a18b7906b5201a522719dc5190"
   integrity sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==
@@ -8675,13 +8674,6 @@
   version "18.0.6"
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-18.0.6.tgz#36652900024842b74607a17786b6662dd1e103a1"
   integrity sha512-/5OFZgfIPSwy+YuIBP/FgJnQnsxhZhjjrnxudMddeblOouIodEQ75X14Rr4wGSG/bknL+Omy9iWlLo1u/9GzAA==
-  dependencies:
-    "@types/react" "*"
-
-"@types/react-native-actionsheet@^2.4.3":
-  version "2.4.3"
-  resolved "https://registry.yarnpkg.com/@types/react-native-actionsheet/-/react-native-actionsheet-2.4.3.tgz#8a7f3f02d298482cade5b2f9cfe9b7fe6173b6ec"
-  integrity sha512-pAL+G0Ug6GPpB+Qc7WMYdAs8T3B0CHTfMXKL3HnIFrCnfd43fK3aZuGgK1ZRmTZSIqOxl+Y9LjeVmaZJxA7+pg==
   dependencies:
     "@types/react" "*"
 
@@ -11199,6 +11191,11 @@ archy@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/archy/-/archy-1.0.0.tgz#f9c8c13757cc1dd7bc379ac77b2c62a5c2868c40"
   integrity sha512-Xg+9RwCg/0p32teKdGMPTPnVXKD0w3DfHnFTficozsAgsvq2XenPJq/MYpzzQ/v8zrOyJn6Ds39VA4JIDwFfqw==
+
+are-docs-informative@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/are-docs-informative/-/are-docs-informative-0.0.2.tgz#387f0e93f5d45280373d387a59d34c96db321963"
+  integrity sha512-ixiS0nLNNG5jNQzgZJNoUpBKdo9yTYZMGJ+QgT2jmjR7G7+QHRCc4v6LQ3NgE7EBJq+o0ams3waJwkrlBom8Ig==
 
 are-we-there-yet@^2.0.0:
   version "2.0.0"
@@ -14732,9 +14729,9 @@ ee-first@1.1.1:
   integrity sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=
 
 ejs@^3.0.1:
-  version "3.1.8"
-  resolved "https://registry.yarnpkg.com/ejs/-/ejs-3.1.8.tgz#758d32910c78047585c7ef1f92f9ee041c1c190b"
-  integrity sha512-/sXZeMlhS0ArkfX2Aw780gJzXSMPnKjtspYZv+f3NiKLlubezAHDU5+9xz6gd3/NhG3txQCo6xlglmTS+oTGEQ==
+  version "3.1.10"
+  resolved "https://registry.yarnpkg.com/ejs/-/ejs-3.1.10.tgz#69ab8358b14e896f80cc39e62087b88500c3ac3b"
+  integrity sha512-UeJmFfOrAQS8OJWPZ4qtgHyWExa088/MtK5UEyoJGFH67cDEXkZSviOiKRCZ4Xij0zxI3JECgYs3oKx+AizQBA==
   dependencies:
     jake "^10.8.5"
 
@@ -15313,17 +15310,18 @@ eslint-plugin-jest@22.4.1:
   resolved "https://registry.yarnpkg.com/eslint-plugin-jest/-/eslint-plugin-jest-22.4.1.tgz#a5fd6f7a2a41388d16f527073b778013c5189a9c"
   integrity sha512-gcLfn6P2PrFAVx3AobaOzlIEevpAEf9chTpFZz7bYfc7pz8XRv7vuKTIE4hxPKZSha6XWKKplDQ0x9Pq8xX2mg==
 
-eslint-plugin-jsdoc@^39.2.5:
-  version "39.9.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-39.9.1.tgz#e9ce1723411fd7ea0933b3ef0dd02156ae3068e2"
-  integrity sha512-Rq2QY6BZP2meNIs48aZ3GlIlJgBqFCmR55+UBvaDkA3ZNQ0SvQXOs2QKkubakEijV8UbIVbVZKsOVN8G3MuqZw==
+eslint-plugin-jsdoc@43.0.7:
+  version "43.0.7"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-43.0.7.tgz#e15acd04d702e089867c78391ae172e34bac8364"
+  integrity sha512-32Sx5I9VzO/bqbtslCu3L1GHIPo+QEliwqwjWq+qzbUv76wrkH6ifUEE0EbkuNEn+cHlSIOrg/IJ1PGNN72QZA==
   dependencies:
-    "@es-joy/jsdoccomment" "~0.36.1"
+    "@es-joy/jsdoccomment" "~0.37.1"
+    are-docs-informative "^0.0.2"
     comment-parser "1.3.1"
     debug "^4.3.4"
     escape-string-regexp "^4.0.0"
-    esquery "^1.4.0"
-    semver "^7.3.8"
+    esquery "^1.5.0"
+    semver "^7.5.0"
     spdx-expression-parse "^3.0.1"
 
 eslint-plugin-n@^16.6.2:
@@ -15518,7 +15516,7 @@ esprima@^4.0.0, esprima@^4.0.1, esprima@~4.0.0:
   resolved "https://registry.yarnpkg.com/esprima/-/esprima-4.0.1.tgz#13b04cdb3e6c5d19df91ab6987a8695619b0aa71"
   integrity sha512-eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A==
 
-esquery@^1.4.0:
+esquery@^1.4.0, esquery@^1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/esquery/-/esquery-1.5.0.tgz#6ce17738de8577694edd7361c57182ac8cb0db0b"
   integrity sha512-YQLXUplAwJgCydQ78IMJywZCceoqk1oH01OERdSAJc/7U2AylwjhSCLDEtqwg811idIS/9fIU5GjG73IgjKMVg==
@@ -16246,10 +16244,10 @@ event-target-shim@^5.0.0, event-target-shim@^5.0.1:
   resolved "https://registry.yarnpkg.com/event-target-shim/-/event-target-shim-5.0.1.tgz#5d4d3ebdf9583d63a5333ce2deb7480ab2b05789"
   integrity sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==
 
-eventemitter2@^6.4.5:
-  version "6.4.5"
-  resolved "https://registry.yarnpkg.com/eventemitter2/-/eventemitter2-6.4.5.tgz#97380f758ae24ac15df8353e0cc27f8b95644655"
-  integrity sha512-bXE7Dyc1i6oQElDG0jMRZJrRAn9QR2xyyFGmBdZleNmyQX0FqGYmhZIrIrpPfm/w//LTo4tVQGOGQcGCb5q9uw==
+eventemitter2@^6.4.9:
+  version "6.4.9"
+  resolved "https://registry.yarnpkg.com/eventemitter2/-/eventemitter2-6.4.9.tgz#41f2750781b4230ed58827bc119d293471ecb125"
+  integrity sha512-JEPTiaOt9f04oa6NOkc4aH+nVp5I3wEjpHbIPqfgCdD5v5bUzy7xQqwcVO2aDQgOWhI28da57HksMrzK9HlRxg==
 
 eventemitter3@^4.0.0, eventemitter3@^4.0.7:
   version "4.0.7"
@@ -19609,10 +19607,10 @@ jscodeshift@^0.14.0:
     temp "^0.8.4"
     write-file-atomic "^2.3.0"
 
-jsdoc-type-pratt-parser@~3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/jsdoc-type-pratt-parser/-/jsdoc-type-pratt-parser-3.1.0.tgz#a4a56bdc6e82e5865ffd9febc5b1a227ff28e67e"
-  integrity sha512-MgtD0ZiCDk9B+eI73BextfRrVQl0oyzRG8B2BjORts6jbunj4ScKPcyXGTbB6eXL4y9TzxCm6hyeLq/2ASzNdw==
+jsdoc-type-pratt-parser@~4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/jsdoc-type-pratt-parser/-/jsdoc-type-pratt-parser-4.0.0.tgz#136f0571a99c184d84ec84662c45c29ceff71114"
+  integrity sha512-YtOli5Cmzy3q4dP26GraSOeAhqecewG04hoO8DY56CH4KJ9Fvv5qKWUCCo3HZob7esJQHCv6/+bnTy72xZZaVQ==
 
 jsesc@^2.5.1:
   version "2.5.2"
@@ -23907,10 +23905,6 @@ react-mixin@^3.0.5:
     object-assign "^4.0.1"
     smart-mixin "^2.0.0"
 
-react-native-actionsheet@beefe/react-native-actionsheet#107/head:
-  version "2.4.2"
-  resolved "https://codeload.github.com/beefe/react-native-actionsheet/tar.gz/fb97d7c6a33bc3213b928a36257dd0c23b42fa6f"
-
 "react-native-aes-crypto-forked@git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25":
   version "1.2.1"
   resolved "git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
@@ -27376,6 +27370,11 @@ uncrypto@^0.1.3:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/uncrypto/-/uncrypto-0.1.3.tgz#e1288d609226f2d02d8d69ee861fa20d8348ef2b"
   integrity sha512-Ql87qFHB3s/De2ClA9e0gsnS6zXG27SkTiSJwjCc9MebbfapQfuPzumMIUMi38ezPZVNFcHI9sUIepeQfw8J8Q==
+
+undici-types@~5.26.4:
+  version "5.26.5"
+  resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-5.26.5.tgz#bcd539893d00b56e964fd2657a4866b221a65617"
+  integrity sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==
 
 undici@^5.25.4:
   version "5.28.4"
