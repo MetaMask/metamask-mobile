@@ -38,7 +38,7 @@ import { isEqual } from 'lodash';
 import URL from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import setNavOptions from './utils';
+import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -102,13 +102,14 @@ export const Browser = (props) => {
 
   useEffect(
     () =>
-      setNavOptions(
-        route,
-        colors,
-        handleRightTopButtonAnalyticsEvent,
-        navigation,
+      navigation.setOptions(
+        getBrowserViewNavbarOptions(
+          route,
+          colors,
+          handleRightTopButtonAnalyticsEvent,
+          false,
+        ),
       ),
-
     /* eslint-disable-next-line */
     [navigation, route, colors],
   );
