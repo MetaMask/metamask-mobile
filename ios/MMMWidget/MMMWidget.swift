@@ -16,55 +16,71 @@ struct WidgetData: Decodable {
 
 typealias ConfigurationIntent = INIntent
 
-struct Provider: IntentTimelineProvider {
-  typealias Entry = SimpleEntry
-  typealias Intent = ConfigurationIntent
+struct MMProvider: TimelineProvider {
   func placeholder(in context: Context) -> SimpleEntry {
-    print("placeholder called")
-    
-     return SimpleEntry(date: Date(), configuration: ConfigurationIntent(), text: "Placeholder")
-  }
-  
-  func getSnapshot(for configuration: ConfigurationIntent, in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-    print("placeholder called")
-      let entry = SimpleEntry(date: Date(), configuration: configuration, text: "Data goes here")
-      completion(entry)
-  }
-  
-   func getTimeline(for configuration: ConfigurationIntent, in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> Void) {
-     print("placeholder called")
+      print("placeholder called")
       let userDefaults = UserDefaults.init(suiteName: "group.io.metamask.MetaMask")
-      if userDefaults != nil {
-        let entryDate = Date()
-        if let savedData = userDefaults!.value(forKey: "widgetKey") as? String {
-            let decoder = JSONDecoder()
-            let data = savedData.data(using: .utf8)
-            if let parsedData = try? decoder.decode(WidgetData.self, from: data!) {
-                let nextRefresh = Calendar.current.date(byAdding: .minute, value: 5, to: entryDate)!
-                let entry = SimpleEntry(date: nextRefresh, configuration: configuration, text: parsedData.text)
-                let timeline = Timeline(entries: [entry], policy: .atEnd)
-                completion(timeline)
-            } else {
-                print("Could not parse data")
-            }
-        } else {
-            let nextRefresh = Calendar.current.date(byAdding: .minute, value: 5, to: entryDate)!
-            let entry = SimpleEntry(date: nextRefresh, configuration: configuration, text: "No data set")
-            let timeline = Timeline(entries: [entry], policy: .atEnd)
-            completion(timeline)
-        }
+      print("placeholder called", userDefaults!.value(forKey: "widgetKey") as? String)
+      return SimpleEntry(date: Date(), text: "Placeholder")
+  }
+  
+  func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> Void) {
+    print("getSnapshot")
+    let entry = SimpleEntry(date: Date(), text: "Data goes here")
+    completion(entry)
+  }
+  
+  func getTimeline(in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> Void) {
+      print("getTimeline")
+      let entryDate = Date()
+      let userDefaults = UserDefaults(suiteName: "group.io.metamask.MetaMask")
+      guard let userDefaults = userDefaults else {
+          print("UserDefaults not accessible")
+          let entry = SimpleEntry(date: entryDate, text: "UserDefaults not accessible")
+          let timeline = Timeline(entries: [entry], policy: .atEnd)
+          completion(timeline)
+          return
+      }
+
+      if let savedData = userDefaults.value(forKey: "widgetKey") as? String {
+          guard let data = savedData.data(using: .utf8) else {
+              print("Data encoding failed")
+              let entry = SimpleEntry(date: entryDate, text: "Data encoding failed")
+              let timeline = Timeline(entries: [entry], policy: .atEnd)
+              completion(timeline)
+              return
+          }
+
+          do {
+              let parsedData = try JSONDecoder().decode(WidgetData.self, from: data)
+              let nextRefresh = Calendar.current.date(byAdding: .minute, value: 1, to: entryDate)!
+              let entry = SimpleEntry(date: nextRefresh, text: parsedData.text)
+              let timeline = Timeline(entries: [entry], policy: .atEnd)
+              completion(timeline)
+          } catch {
+              print("Data parsing error: \(error)")
+              let entry = SimpleEntry(date: entryDate, text: "Data parsing error")
+              let timeline = Timeline(entries: [entry], policy: .atEnd)
+              completion(timeline)
+          }
+      } else {
+          print("No data set in UserDefaults")
+          let nextRefresh = Calendar.current.date(byAdding: .minute, value: 1, to: entryDate)!
+          let entry = SimpleEntry(date: nextRefresh, text: "No data set")
+          let timeline = Timeline(entries: [entry], policy: .atEnd)
+          completion(timeline)
       }
   }
+
 }
 
 struct SimpleEntry: TimelineEntry {
-   let date: Date
-      let configuration: ConfigurationIntent
+      let date: Date
       let text: String
 }
 
 struct MMMWidgetEntryView : View {
-  var entry: Provider.Entry
+  var entry: MMProvider.Entry
   
   var body: some View {
     HStack {
@@ -81,7 +97,6 @@ struct MMMWidgetEntryView : View {
           .foregroundColor(Color(red: 0.69, green: 0.69, blue: 0.69))
           .font(Font.system(size: 14))
           .frame(maxWidth: .infinity)
-        
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -92,17 +107,17 @@ struct MMMWidget: Widget {
   let kind: String = "MMMWidget"
   
   var body: some WidgetConfiguration {
-    IntentConfiguration(kind: kind, intent: ConfigurationIntent.self, provider: Provider()) { entry in
+    StaticConfiguration(kind: kind, provider: MMProvider()) { entry in
       MMMWidgetEntryView(entry: entry)
     }
-    .configurationDisplayName("My Widget")
-    .description("This is an example widget.")
+    .configurationDisplayName("MetaMask Widgets")
+    .description("Checkout my NFT")
   }
 }
 
 struct MMMWidget_Previews: PreviewProvider {
   static var previews: some View {
-    MMMWidgetEntryView(entry: SimpleEntry(date: Date(), configuration: ConfigurationIntent(), text: "Widget preview"))
+    MMMWidgetEntryView(entry: SimpleEntry(date: Date(), text: "Widget preview"))
       .previewContext(WidgetPreviewContext(family: .systemSmall))
   }
 }

@@ -7,8 +7,6 @@
 //
 
 #import "ViewController.h"
-#import <React/RCTBundleURLProvider.h>
-#import <React/RCTRootView.h>
 
 @interface ViewController ()
 

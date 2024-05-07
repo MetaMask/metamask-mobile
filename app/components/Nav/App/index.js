@@ -140,10 +140,6 @@ const clearStackNavigatorOptions = {
 
 const Stack = createStackNavigator();
 
-//Widget Storage
-const SharedStorage = NativeModules.SharedStorage;
-const group = 'group.io.metamask.MetaMask';
-
 const OnboardingSuccessComponent = () => (
   <OnboardingSuccess
     onDone={() =>
@@ -308,6 +304,10 @@ const VaultRecoveryFlow = () => (
   </Stack.Navigator>
 );
 
+//Widget Storage
+const SharedStorage = NativeModules.SharedStorage;
+const group = 'group.io.metamask.MetaMask';
+
 const App = ({ userLoggedIn }) => {
   const [text, setText] = useState('');
   const widgetData = {
@@ -317,9 +317,10 @@ const App = ({ userLoggedIn }) => {
   const handleSubmit = async () => {
     try {
       // iOS
+      console.log('widgetData', widgetData)
       await SharedGroupPreferences.setItem('widgetKey', widgetData, group);
     } catch (error) {
-      console.log({ error });
+      console.log('TEST TEST', { error });
     }
     const value = `${text} days`;
     // Android
@@ -358,7 +359,7 @@ const App = ({ userLoggedIn }) => {
               placeholder="Enter the text to display..."
             />
 
-            <Button
+            <AwesomeButton
               backgroundColor={'#33b8f6'}
               height={50}
               width={'100%'}
@@ -368,7 +369,7 @@ const App = ({ userLoggedIn }) => {
               onPress={handleSubmit}
             >
               Submit
-            </Button>
+            </AwesomeButton>
           </View>
         </View>
       </KeyboardAwareScrollView>
