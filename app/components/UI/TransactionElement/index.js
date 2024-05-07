@@ -323,8 +323,9 @@ class TransactionElement extends PureComponent {
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
     const renderNormalActions =
-      status === 'submitted' ||
-      (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount);
+      (status === 'submitted' ||
+        (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
+      !isSmartTransaction;
     const renderUnsignedQRActions =
       status === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
@@ -359,7 +360,7 @@ class TransactionElement extends PureComponent {
               </ListItem.Amounts>
             )}
           </ListItem.Content>
-          {renderNormalActions && !isSmartTransaction && (
+          {renderNormalActions && (
             <ListItem.Actions>
               {this.renderSpeedUpButton()}
               {this.renderCancelButton()}
