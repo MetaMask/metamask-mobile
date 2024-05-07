@@ -42,7 +42,7 @@ import {
 } from '../../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { providerErrors } from '@metamask/rpc-errors';
-import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
+import { getDeviceId } from '../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
 import { getDecimalChainId } from '../../../../util/networks';
@@ -469,14 +469,14 @@ class Approval extends PureComponent {
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
-        const ledgerKeyring = await getLedgerKeyring();
+        const deviceId = getDeviceId();
         this.setState({ transactionHandled: true });
         this.setState({ transactionConfirmed: false });
 
         this.props.navigation.navigate(
           ...createLedgerTransactionModalNavDetails({
             transactionId: transaction.id,
-            deviceId: ledgerKeyring.deviceId,
+            deviceId,
             onConfirmationComplete: (approve) =>
               this.onLedgerConfirmation(
                 approve,

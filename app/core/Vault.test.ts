@@ -1,7 +1,6 @@
 import Logger from '../util/Logger';
 import Engine from './Engine';
 
-import { getLedgerKeyring } from './Ledger/Ledger';
 import { restoreLedgerKeyring, restoreQRKeyring } from './Vault';
 
 jest.mock('./Engine', () => ({
@@ -19,10 +18,6 @@ const MockEngine = jest.mocked(Engine);
 
 jest.mock('../util/Logger', () => ({
   error: jest.fn(),
-}));
-
-jest.mock('./Ledger/Ledger', () => ({
-  getLedgerKeyring: jest.fn(),
 }));
 
 describe('Vault', () => {
@@ -70,13 +65,9 @@ describe('Vault', () => {
 
       const mockSerialisedKeyring = jest.fn();
       const mockDeserializedKeyring = jest.fn();
-      (getLedgerKeyring as jest.Mock).mockResolvedValue({
-        deserialize: mockDeserializedKeyring,
-      });
       await restoreLedgerKeyring({ serialize: mockSerialisedKeyring });
 
       expect(mockSerialisedKeyring).toHaveBeenCalled();
-      expect(getLedgerKeyring).toHaveBeenCalled();
       expect(mockDeserializedKeyring).toHaveBeenCalled();
       expect(KeyringController.persistAllKeyrings).toHaveBeenCalled();
     });
@@ -90,11 +81,6 @@ describe('Vault', () => {
 
     it('should log error if an exception is thrown', async () => {
       const { KeyringController } = MockEngine.context;
-
-      (getLedgerKeyring as jest.Mock).mockResolvedValue({
-        deserialize: jest.fn(),
-      });
-
       const error = new Error('Test error');
       KeyringController.persistAllKeyrings.mockRejectedValue(error);
 
