@@ -3,7 +3,6 @@ import {
   CurrencyRateState,
   NftDetectionController,
   NftState,
-  TokenBalancesState,
   TokenDetectionController,
   TokenListState,
   TokenRatesState,
@@ -22,6 +21,7 @@ import { PPOMState } from '@metamask/ppom-validator';
 import { ApprovalControllerState } from '@metamask/approval-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapController } from '@metamask/snaps-controllers';
+import { TokenBalancesControllerState } from '@metamask/assets-controllers/dist/TokenBalancesController';
 ///: END:ONLY_INCLUDE_IF
 export interface EngineState {
   engine: {
@@ -37,7 +37,7 @@ export interface EngineState {
       PreferencesController: PreferencesState;
       PhishingController: PhishingControllerState;
       PPOMController: PPOMState;
-      TokenBalancesController: TokenBalancesState;
+      TokenBalancesController: TokenBalancesControllerState;
       TokenRatesController: TokenRatesState;
       TransactionController: TransactionState;
       SwapsController: SwapsController;
