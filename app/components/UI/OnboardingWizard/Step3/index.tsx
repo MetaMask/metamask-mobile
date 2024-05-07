@@ -13,6 +13,7 @@ import {
 import { useTheme } from '../../../../util/theme';
 import { useMetrics } from '../../../hooks/useMetrics';
 import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
+import useHandleLayout from '../useHandleLayout';
 
 const styles = StyleSheet.create({
   main: {
@@ -35,34 +36,7 @@ const Step3 = ({ coachmarkRef, onClose }: Step3Props) => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const dispatch = useDispatch();
-  const [coachmarkTop, setCoachmarkTop] = useState(0);
-
-  const handleLayout = useCallback(() => {
-    const yourAccRef = coachmarkRef.yourAccountRef?.current;
-    if (!yourAccRef) return;
-
-    yourAccRef.measure(
-      (
-        accActionsFx: number,
-        accActionsFy: number,
-        accActionsWidth: number,
-        accActionsHeight: number,
-        accActionsPageX: number,
-        accActionsPageY: number,
-      ) => {
-        const top = accActionsHeight + accActionsPageY;
-        setCoachmarkTop(top);
-      },
-    );
-  }, [coachmarkRef.yourAccountRef]);
-
-  useEffect(() => {
-    handleLayout();
-  }, [handleLayout]);
-
-  useEffect(() => {
-    handleLayout();
-  }, [handleLayout]);
+  const { coachmarkTop } = useHandleLayout(coachmarkRef);
 
   const onNext = () => {
     dispatch(setOnboardingWizardStep?.(4));
