@@ -19,7 +19,7 @@ index 0000000..e78640f
 +* Run "yarn patch:assets <core-directory>" in the mobile repo
 +* If you have changes also add them to the branch: patch/mobile-assets-controllers-v-18-0-0
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index ee99eb2..eaf26f3 100644
+index ee99eb2..a447b70 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 @@ -69,8 +69,12 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
@@ -36,77 +36,201 @@ index ee99eb2..eaf26f3 100644
                      };
                  }
                  this.update(Object.assign(Object.assign({}, (chainId === this.getCurrentChainId() && {
+@@ -78,8 +82,12 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
+                 })), { accountsByChainId: Object.assign(Object.assign({}, this.state.accountsByChainId), { [chainId]: accountsForChain }) }));
+             }
+             catch (err) {
+-                releaseLock();
+                 throw err;
++            } finally {
++                /**
++                 * This change is not present on the core repo
++                 */
++                releaseLock();
+             }
+         });
+         this.defaultConfig = {
+diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
+index 45e07b8..b052856 100644
+--- a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
+@@ -116,6 +116,10 @@ export interface Nft extends NftMetadata {
+     address: string;
+     isCurrentlyOwned?: boolean;
+ }
++export declare type NftUpdate = {
++    nft: Nft;
++    newMetadata: NftMetadata;
++};
+ /**
+  * @type NftContract
+  *
+@@ -356,6 +360,19 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
+      * @param options.userAddress - The address of the account where the NFT is being removed.
+      */
+     private removeIndividualNft;
++    /**
++     * Refetches NFT metadata and updates the state
++     *
++     * @param options - Options for refetching NFT metadata
++     * @param options.nfts - nfts to update metadata for.
++     * @param options.userAddress - The current user address
++     * @param options.networkClientId - The networkClientId that can be used to identify the network client to use for this request.
++     */
++    updateNftMetadata({ nfts, userAddress, networkClientId, }: {
++        nfts: Nft[];
++        userAddress?: string;
++        networkClientId?: NetworkClientId;
++    }): Promise<void>;
+     /**
+      * Removes an NFT contract to the stored NFT contracts list.
+      *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 0873ccd..8a1b6a7 100644
+index 0873ccd..32835eb 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
-@@ -81,7 +81,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
-             selectedAddress: '',
-             chainId: initialChainId,
-             ipfsGateway: controller_utils_1.IPFS_DEFAULT_GATEWAY_URL,
--            openSeaEnabled: false,
-+            displayNftMedia: true,
-             useIPFSSubdomains: true,
-             isIpfsGatewayEnabled: true,
-         };
-@@ -96,11 +96,11 @@ class NftController extends base_controller_1.BaseControllerV1 {
-         this.getNetworkClientById = getNetworkClientById;
-         this.onNftAdded = onNftAdded;
-         this.messagingSystem = messenger;
--        onPreferencesStateChange(({ selectedAddress, ipfsGateway, openSeaEnabled, isIpfsGatewayEnabled, }) => {
-+        onPreferencesStateChange(({ selectedAddress, ipfsGateway, displayNftMedia, isIpfsGatewayEnabled, }) => {
-             this.configure({
-                 selectedAddress,
-                 ipfsGateway,
--                openSeaEnabled,
-+                displayNftMedia,
-                 isIpfsGatewayEnabled,
-             });
-         });
-@@ -197,7 +197,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
-                     tokenURI: tokenURI !== null && tokenURI !== void 0 ? tokenURI : null,
-                 };
-             }
--            const isDisplayNFTMediaToggleEnabled = this.config.openSeaEnabled;
-+            const isDisplayNFTMediaToggleEnabled = this.config.displayNftMedia;
-             if (!hasIpfsTokenURI && !isDisplayNFTMediaToggleEnabled) {
-                 return {
-                     image: null,
-@@ -294,7 +294,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
-             });
-             const [blockchainMetadata, openSeaMetadata] = yield Promise.all([
-                 (0, controller_utils_1.safelyExecute)(() => this.getNftInformationFromTokenURI(contractAddress, tokenId, networkClientId)),
--                this.config.openSeaEnabled && chainId === '0x1'
-+                this.config.displayNftMedia && chainId === '0x1'
-                     ? (0, controller_utils_1.safelyExecute)(() => this.getNftInformationFromApi(contractAddress, tokenId))
-                     : undefined,
-             ]);
-@@ -377,7 +377,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
-             });
-             const [blockchainContractData, openSeaContractData] = yield Promise.all([
-                 (0, controller_utils_1.safelyExecute)(() => this.getNftContractInformationFromContract(contractAddress, networkClientId)),
--                this.config.openSeaEnabled && chainId === '0x1'
-+                this.config.displayNftMedia && chainId === '0x1'
-                     ? (0, controller_utils_1.safelyExecute)(() => this.getNftContractInformationFromApi(contractAddress))
-                     : undefined,
-             ]);
-diff --git a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
-index 7d09db2..861f984 100644
---- a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
-+++ b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
-@@ -135,6 +135,16 @@ class TokenBalancesController extends base_controller_1.BaseController {
-             });
+@@ -568,6 +568,49 @@ class NftController extends base_controller_1.BaseControllerV1 {
+             chainId,
          });
      }
-+
++    /**
++     * Refetches NFT metadata and updates the state
++     *
++     * @param options - Options for refetching NFT metadata
++     * @param options.nfts - nfts to update metadata for.
++     * @param options.userAddress - The current user address
++     * @param options.networkClientId - The networkClientId that can be used to identify the network client to use for this request.
++     */
++    updateNftMetadata({ nfts, userAddress = this.config.selectedAddress, networkClientId, }) {
++        var _a;
++        return __awaiter(this, void 0, void 0, function* () {
++            const chainId = this.getCorrectChainId({ networkClientId });
++            const nftsWithChecksumAdr = nfts.map((nft) => {
++                return Object.assign(Object.assign({}, nft), { address: (0, controller_utils_1.toChecksumHexAddress)(nft.address) });
++            });
++            const nftMetadataResults = yield Promise.allSettled(nftsWithChecksumAdr.map((nft) => __awaiter(this, void 0, void 0, function* () {
++                const resMetadata = yield this.getNftInformation(nft.address, nft.tokenId, networkClientId);
++                return {
++                    nft,
++                    newMetadata: resMetadata,
++                };
++            })));
++            const successfulNewFetchedNfts = nftMetadataResults.filter((result) => result.status === 'fulfilled');
++            // We want to avoid updating the state if the state and fetched nft info are the same
++            const nftsWithDifferentMetadata = [];
++            const { allNfts } = this.state;
++            const stateNfts = ((_a = allNfts[userAddress]) === null || _a === void 0 ? void 0 : _a[chainId]) || [];
++            successfulNewFetchedNfts.forEach((singleNft) => {
++                const existingEntry = stateNfts.find((nft) => nft.address.toLowerCase() ===
++                    singleNft.value.nft.address.toLowerCase() &&
++                    nft.tokenId === singleNft.value.nft.tokenId);
++                if (existingEntry) {
++                    const differentMetadata = (0, assetsUtil_1.compareNftMetadata)(singleNft.value.newMetadata, existingEntry);
++                    if (differentMetadata) {
++                        nftsWithDifferentMetadata.push(singleNft);
++                    }
++                }
++            });
++            if (nftsWithDifferentMetadata.length !== 0) {
++                nftsWithDifferentMetadata.forEach((elm) => this.updateNft(elm.value.nft, elm.value.newMetadata, userAddress, chainId));
++            }
++        });
++    }
+     /**
+      * Removes an NFT contract to the stored NFT contracts list.
+      *
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.d.ts b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.d.ts
+index 796f2be..86d635f 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.d.ts
+@@ -2,7 +2,7 @@ import { type RestrictedControllerMessenger, type ControllerGetStateAction, type
+ import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
+ import type { AssetsContractController } from './AssetsContractController';
+ import type { Token } from './TokenRatesController';
+-import type { TokensControllerStateChangeEvent } from './TokensController';
++import type { TokensControllerStateChangeEvent, TokensState } from './TokensController';
+ declare const controllerName = "TokenBalancesController";
+ /**
+  * Token balances controller options
+@@ -15,6 +15,7 @@ declare type TokenBalancesControllerOptions = {
+     interval?: number;
+     tokens?: Token[];
+     disabled?: boolean;
++    onTokensStateChange: (listener: (tokensState: TokensState) => void) => void;
+     getERC20BalanceOf: AssetsContractController['getERC20BalanceOf'];
+     messenger: TokenBalancesControllerMessenger;
+     state?: Partial<TokenBalancesControllerState>;
+@@ -56,11 +57,12 @@ export declare class TokenBalancesController extends BaseController<typeof contr
+      * @param options.interval - Polling interval used to fetch new token balances.
+      * @param options.tokens - List of tokens to track balances for.
+      * @param options.disabled - If set to true, all tracked tokens contract balances updates are blocked.
++     * @param options.onTokensStateChange - Allows subscribing to token controller state changes.
+      * @param options.getERC20BalanceOf - Gets the balance of the given account at the given contract address.
+      * @param options.state - Initial state to set on this controller.
+      * @param options.messenger - The controller restricted messenger.
+      */
+-    constructor({ interval, tokens, disabled, getERC20BalanceOf, messenger, state, }: TokenBalancesControllerOptions);
++    constructor({ interval, tokens, disabled, onTokensStateChange, getERC20BalanceOf, messenger, state, }: TokenBalancesControllerOptions);
+     /**
+      * Allows controller to update tracked tokens contract balances.
+      */
+@@ -79,6 +81,11 @@ export declare class TokenBalancesController extends BaseController<typeof contr
+      * Updates balances for all tokens.
+      */
+     updateBalances(): Promise<void>;
 +    /**
 +     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
 +     * Resets to the default state
 +     */
-+    reset(){
++    reset(): void;
+ }
+ export default TokenBalancesController;
+ //# sourceMappingURL=TokenBalancesController.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
+index 7d09db2..fa7866f 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
++++ b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
+@@ -52,11 +52,12 @@ class TokenBalancesController extends base_controller_1.BaseController {
+      * @param options.interval - Polling interval used to fetch new token balances.
+      * @param options.tokens - List of tokens to track balances for.
+      * @param options.disabled - If set to true, all tracked tokens contract balances updates are blocked.
++     * @param options.onTokensStateChange - Allows subscribing to token controller state changes.
+      * @param options.getERC20BalanceOf - Gets the balance of the given account at the given contract address.
+      * @param options.state - Initial state to set on this controller.
+      * @param options.messenger - The controller restricted messenger.
+      */
+-    constructor({ interval = DEFAULT_INTERVAL, tokens = [], disabled = false, getERC20BalanceOf, messenger, state = {}, }) {
++    constructor({ interval = DEFAULT_INTERVAL, tokens = [], disabled = false, onTokensStateChange, getERC20BalanceOf, messenger, state = {}, }) {
+         super({
+             name: controllerName,
+             metadata,
+@@ -71,10 +72,10 @@ class TokenBalancesController extends base_controller_1.BaseController {
+         __classPrivateFieldSet(this, _TokenBalancesController_disabled, disabled, "f");
+         __classPrivateFieldSet(this, _TokenBalancesController_interval, interval, "f");
+         __classPrivateFieldSet(this, _TokenBalancesController_tokens, tokens, "f");
+-        this.messagingSystem.subscribe('TokensController:stateChange', ({ tokens: newTokens, detectedTokens }) => {
++        onTokensStateChange(({ tokens: newTokens, detectedTokens }) => __awaiter(this, void 0, void 0, function* () {
+             __classPrivateFieldSet(this, _TokenBalancesController_tokens, [...newTokens, ...detectedTokens], "f");
+-            this.updateBalances();
+-        });
++            yield this.updateBalances();
++        }));
+         __classPrivateFieldSet(this, _TokenBalancesController_getERC20BalanceOf, getERC20BalanceOf, "f");
+         this.poll();
+     }
+@@ -135,6 +136,15 @@ class TokenBalancesController extends base_controller_1.BaseController {
+             });
+         });
+     }
++    /**
++     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
++     * Resets to the default state
++     */
++    reset() {
 +        this.update((state) => {
-+           state.contractBalances= {}
-+        })
++            state.contractBalances = {};
++        });
 +    }
  }
  exports.TokenBalancesController = TokenBalancesController;

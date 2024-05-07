@@ -13,7 +13,6 @@ import {
   NftDetectionController,
   NftState,
   TokenBalancesController,
-  //  TokenBalancesControllerState,
   TokenDetectionController,
   TokenListController,
   TokenListState,
@@ -192,6 +191,7 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
+import { TokenBalancesControllerState } from '@metamask/assets-controllers/dist/TokenBalancesController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -274,8 +274,7 @@ export interface EngineState {
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
   PhishingController: PhishingControllerState;
-  // Change this to import TokenBalancesControllerState
-  TokenBalancesController: any;
+  TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesState;
   TransactionController: TransactionState;
   SwapsController: SwapsState;
@@ -1070,6 +1069,8 @@ class Engine {
           allowedActions: ['PreferencesController:getState'],
           allowedEvents: ['TokensController:stateChange'],
         }),
+        // onTokensStateChange will be removed when Tokens Controller extends Base Controller v2
+        onTokensStateChange: (listener) => tokensController.subscribe(listener),
         getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
           assetsContractController,
         ),
