@@ -4397,6 +4397,11 @@
     uuid "3.3.2"
     validator "^7.0.0"
 
+"@metamask/react-native-search-api@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-search-api/-/react-native-search-api-1.0.1.tgz#b3a2069ff851b88e1fe64b86f1fab7088a4daceb"
+  integrity sha512-ceCzyRZDZM0lpQSNUiFpo16nysTDIMUhkdyUcvBbkpiSUnYV+SjVMxYVn2Q+h7P9tce8wrb6zoxdlfK5BXtbAQ==
+
 "@metamask/react-native-splash-screen@^3.2.0":
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/react-native-splash-screen/-/react-native-splash-screen-3.2.0.tgz#06a6547c143b088e47af40eacea9ac6657ac937f"
@@ -24293,10 +24298,6 @@ react-native-scrollable-tab-view@^1.0.0:
     create-react-class "^15.6.2"
     prop-types "^15.6.0"
     react-timer-mixin "^0.13.3"
-
-react-native-search-api@ombori/react-native-search-api#8/head:
-  version "1.0.1"
-  resolved "https://codeload.github.com/ombori/react-native-search-api/tar.gz/08dbdf1ffd53801057662aa3207c11d2f78e8a94"
 
 react-native-sensors@5.3.0:
   version "5.3.0"
