@@ -374,9 +374,6 @@ class Engine {
      * @param listener - The callback function to execute when the state changes.
      */
     const onPreferencesStateChange = (
-      // preferencesState is typed as any because if not will give an ts error on every assets-controllers using this function
-      // because assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
-      // and because of that preferencesState would be two different objects
       listener: (preferencesState: PreferencesState) => void,
     ) => {
       const eventName = `PreferencesController:stateChange`;
