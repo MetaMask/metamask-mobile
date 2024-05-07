@@ -162,10 +162,10 @@ export const deepJSONParse = ({ jsonString, skipNumbers = true }) => {
 };
 
 /**
- * Generates an array with unique items from a list of arrays
+ * Generates an array with unique items from a list of flattened arrays
  *
- * @param  {...Array} arrays - A list of arrays
- * @returns {Array} - Returns an array with unique items
+ * @param  {...Array} arrays - A list of flattened arrays
+ * @returns {Array} - Returns a flattened array with unique items
  * @throws {Error} - Throws if arrays is not defined
  * @throws {TypeError} - Throws if any of the arguments is not an array
  */
