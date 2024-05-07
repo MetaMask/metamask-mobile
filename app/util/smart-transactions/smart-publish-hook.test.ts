@@ -492,7 +492,7 @@ describe('submitSmartTransactionHook', () => {
         },
       });
 
-      expect(request.transactionController.update).toHaveBeenCalledTimes(2);
+      expect(request.transactionController.update).toHaveBeenCalledTimes(1);
     });
   });
 });
