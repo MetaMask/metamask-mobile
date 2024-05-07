@@ -88,6 +88,19 @@ export default {
   },
   MAX_SAFE_CHAIN_ID: 4503599627370476,
   URLS: {
+    ICONS: {
+      MASTERCARD_LIGHT:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png',
+      MASTERCARD_DARK:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard@3x.png',
+      VISA_LIGHT:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png',
+      VISA_DARK: 'https://on-ramp.dev-api.cx.metamask.io/assets/Visa@3x.png',
+      ACH_LIGHT:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
+      ACH_DARK:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
+    },
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
     PRIVACY_POLICY: 'https://consensys.io/privacy-policy',
     DATA_RETENTION_UPDATE:
@@ -183,11 +196,15 @@ export default {
     'PPOMController:initialisationStateChangeEvent',
   BASIC_FUNCTIONALITY_BLOCK_LIST: [
     'token-api',
+    'token.api',
     'gas-api',
+    'gas.api',
     'price-api',
+    'price.api',
     'phishing-detection',
     'infura.io',
     'static.metafi',
+    'static.cx',
     'config-api.metamask.io/featureFlags',
   ],
 } as const;

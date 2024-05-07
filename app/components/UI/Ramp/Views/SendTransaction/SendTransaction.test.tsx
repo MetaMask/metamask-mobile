@@ -5,10 +5,10 @@ import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import Routes from '../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
-
 import { addTransaction } from '../../../../../util/transaction-controller';
-
 import SendTransaction from './SendTransaction';
+import APP_CONSTANTS from '../../../../../core/AppConstants';
+const { ACH_LIGHT, ACH_DARK } = APP_CONSTANTS.URLS.ICONS;
 
 type DeepPartial<BaseType> = {
   [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
@@ -51,12 +51,8 @@ const mockOrder = {
         },
       ],
       logo: {
-        light: [
-          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png',
-        ],
-        dark: [
-          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer@3x.png',
-        ],
+        light: [ACH_LIGHT],
+        dark: [ACH_DARK],
       },
       delay: [0, 0],
       amountTier: [3, 3],
@@ -99,7 +95,7 @@ const mockOrder = {
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
       },
-      logo: 'https://token.metaswap.codefi.network/assets/nativeCurrencyLogos/ethereum.svg',
+      logo: 'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg',
       decimals: 18,
       address: '0x0000000000000000000000000000000000000000',
       symbol: 'ETH',
@@ -157,12 +153,8 @@ const mockOrder2 = {
         },
       ],
       logo: {
-        light: [
-          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png',
-        ],
-        dark: [
-          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer@3x.png',
-        ],
+        light: [ACH_LIGHT],
+        dark: [ACH_DARK],
       },
       delay: [0, 0],
       amountTier: [3, 3],
@@ -205,7 +197,7 @@ const mockOrder2 = {
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
       },
-      logo: 'https://token.metaswap.codefi.network/assets/nativeCurrencyLogos/usdc.png',
+      logo: 'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/usdc.png',
       decimals: 18,
       address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
       symbol: 'USDC',
@@ -243,12 +235,8 @@ const mockOrder3 = {
         },
       ],
       logo: {
-        light: [
-          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png',
-        ],
-        dark: [
-          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer@3x.png',
-        ],
+        light: [ACH_LIGHT],
+        dark: [ACH_DARK],
       },
       delay: [0, 0],
       amountTier: [3, 3],
