@@ -1,6 +1,6 @@
 import { withHook } from '../../../util/withHook';
 import useWallet from './hooks/useWallet';
-import useUITheme from './hooks/useUITheme';
+import withUITheme from './hooks/withUITheme';
 
 /**
  * The main UI componente for the Wallet view will be dependent of the chosen theme
@@ -8,6 +8,6 @@ import useUITheme from './hooks/useUITheme';
  * This way we can have as many "Views" we want, since the logic is separeted from the UI
  */
 
-const Wallet = useUITheme('custom01');
+const Wallet = withUITheme('custom02');
 
 export default withHook(useWallet)(Wallet);

@@ -27,9 +27,7 @@ const Custom01 = ({
       title: strings('asset_overview.earn_button'),
       iconName: IconName.Graph,
       onPress: () => navigation.navigate('SendFlowView'),
-      onLongPress: () => {
-        console.log('long press');
-      },
+      onLongPress: () => {},
       tooltip: 'teste',
     },
     {
@@ -37,9 +35,7 @@ const Custom01 = ({
       label: 'Hot',
       iconName: IconName.Send2,
       onPress: () => navigation.navigate('SendFlowView'),
-      onLongPress: () => {
-        console.log('long press');
-      },
+      onLongPress: () => {},
       tooltip: 'teste',
       disabled: false,
     },
@@ -47,26 +43,20 @@ const Custom01 = ({
       title: strings('asset_overview.receive_button'),
       iconName: IconName.Received,
       onPress: () => navigation.navigate('PaymentRequestView'),
-      onLongPress: () => {
-        console.log('long press');
-      },
+      onLongPress: () => {},
     },
     {
       title: strings('asset_overview.swap'),
       iconName: IconName.SwapHorizontal,
       onPress: () => navigation.navigate('Swaps'),
-      onLongPress: () => {
-        console.log('long press');
-      },
+      onLongPress: () => {},
       tooltip: 'teste',
     },
     {
       title: strings('asset_overview.more_button'),
       iconName: IconName.MoreHorizontal,
       onPress: () => {},
-      onLongPress: () => {
-        console.log('long press');
-      },
+      onLongPress: () => {},
       tooltip: 'teste',
     },
   ];
