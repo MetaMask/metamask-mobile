@@ -189,7 +189,6 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
-import { constants } from 'buffer';
 
 const NON_EMPTY = 'NON_EMPTY';
 
