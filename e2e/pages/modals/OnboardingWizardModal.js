@@ -1,3 +1,10 @@
+import {
+  ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID,
+  ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID,
+  ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID,
+  ONBOARDING_WIZARD_SEVENTH_STEP_CONTENT_ID,
+} from '../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import TestHelpers from '../../helpers';
 import { OnboardingWizardModalSelectorsIDs } from '../../selectors/Modals/OnboardingWizardModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
@@ -51,6 +58,17 @@ class OnboardingWizardModal {
     );
   }
 
+  static async isNotificationsTutorialStepVisible() {
+    await TestHelpers.checkIfVisible(ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID);
+  }
+
+  static async isMainNavigationTutorialStepVisible() {
+    await TestHelpers.checkIfVisible(ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID);
+  }
+
+  static async isExploreTheBrowserTutorialStepVisible() {
+    await TestHelpers.checkIfVisible(ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID);
+  }
   get gotItButton() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON)
@@ -79,6 +97,10 @@ class OnboardingWizardModal {
 
   async tapBackButton() {
     await Gestures.waitAndTap(this.backButton);
+  }
+
+  static async isBrowserSearchStepTutorialVisible() {
+    await TestHelpers.checkIfVisible(ONBOARDING_WIZARD_SEVENTH_STEP_CONTENT_ID);
   }
 }
 

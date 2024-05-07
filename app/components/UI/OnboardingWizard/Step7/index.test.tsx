@@ -1,13 +1,16 @@
 import React from 'react';
-import Step1 from './';
+import Step7 from './';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
-const closeOnboardingWizard = jest.fn();
+const navigationMock = {
+  navigate: jest.fn(),
+};
 
-describe('Step1', () => {
+const closeOnboardingWizard = jest.fn();
+describe('Step7', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
-      <Step1 onClose={closeOnboardingWizard} />,
+      <Step7 navigation={navigationMock} onClose={closeOnboardingWizard} />,
     );
     expect(toJSON()).toMatchSnapshot();
   });
