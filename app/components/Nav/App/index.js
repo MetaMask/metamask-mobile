@@ -6,7 +6,20 @@ import React, {
   useState,
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
-import { Animated, Linking } from 'react-native';
+import {
+  Animated,
+  Linking,
+  View,
+  TextInput,
+  StyleSheet,
+  NativeModules,
+  SafeAreaView,
+  Text,
+  Image,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  ToastAndroid } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
@@ -107,6 +120,9 @@ import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSet
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
+import SharedGroupPreferences from 'react-native-shared-group-preferences';
+import AwesomeButton from 'react-native-really-awesome-button';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -122,6 +138,10 @@ const clearStackNavigatorOptions = {
 };
 
 const Stack = createStackNavigator();
+
+//Widget Storage
+const SharedStorage = NativeModules.SharedStorage;
+const group = 'group.metamask';
 
 const OnboardingSuccessComponent = () => (
   <OnboardingSuccess
@@ -288,584 +308,648 @@ const VaultRecoveryFlow = () => (
 );
 
 const App = ({ userLoggedIn }) => {
-  const animationRef = useRef(null);
-  const animationNameRef = useRef(null);
-  const opacity = useRef(new Animated.Value(1)).current;
-  const [navigator, setNavigator] = useState(undefined);
-  const prevNavigator = useRef(navigator);
-  const [route, setRoute] = useState();
-  const queueOfHandleDeeplinkFunctions = useRef([]);
-  const [animationPlayed, setAnimationPlayed] = useState(false);
-  const { colors } = useTheme();
-  const { toastRef } = useContext(ToastContext);
-  const dispatch = useDispatch();
-  const sdkInit = useRef();
-  const [onboarded, setOnboarded] = useState(false);
-  const triggerSetCurrentRoute = (route) => {
-    dispatch(setCurrentRoute(route));
-    if (route === 'Wallet' || route === 'BrowserView') {
-      setOnboarded(true);
-      dispatch(setCurrentBottomNavRoute(route));
-    }
+
+  const [text, setText] = useState('');
+  const widgetData = {
+    text,
   };
 
-  useEffect(() => {
-    if (prevNavigator.current || !navigator) return;
-    const appTriggeredAuth = async () => {
-      const { PreferencesController } = Engine.context;
-      const selectedAddress = PreferencesController.state.selectedAddress;
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      try {
-        if (existingUser && selectedAddress) {
-          await Authentication.appTriggeredAuth({ selectedAddress });
-          // we need to reset the navigator here so that the user cannot go back to the login screen
-          navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
-        }
-      } catch (error) {
-        // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
-        if (
-          error.message === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS
-        ) {
-          navigator.dispatch(
-            CommonActions.setParams({
-              locked: true,
-            }),
-          );
-        }
-        await Authentication.lockApp(false);
-        trackErrorAsAnalytics(
-          'App: Max Attempts Reached',
-          error?.message,
-          `Unlock attempts: 1`,
-        );
-      } finally {
-        animationRef?.current?.play();
-        animationNameRef?.current?.play();
-      }
-    };
-    appTriggeredAuth()
-      .then(() => {
-        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
-
-        queueOfHandleDeeplinkFunctions.current = [];
-      })
-      .catch((error) => {
-        Logger.error(error, 'App: Error in appTriggeredAuth');
-      });
-  }, [navigator, queueOfHandleDeeplinkFunctions]);
-
-  const handleDeeplink = useCallback(({ error, params, uri }) => {
-    if (error) {
-      trackErrorAsAnalytics(error, 'Branch:');
-    }
-    const deeplink = params?.['+non_branch_link'] || uri || null;
+  const handleSubmit = async () => {
     try {
-      if (deeplink) {
-        SharedDeeplinkManager.parse(deeplink, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-        });
-      }
-    } catch (e) {
-      Logger.error(e, `Deeplink: Error parsing deeplink`);
+      // iOS
+      await SharedGroupPreferences.setItem('widgetKey', widgetData, group);
+    } catch (error) {
+      console.log({error});
     }
-  }, []);
-
-  // on Android devices, this creates a listener
-  // to deeplinks used to open the app
-  // when it is in background (so not closed)
-  // Documentation: https://reactnative.dev/docs/linking#handling-deep-links
-  useEffect(() => {
-    if (Device.isAndroid())
-      Linking.addEventListener('url', (params) => {
-        const { url } = params;
-        if (url) {
-          handleDeeplink({ uri: url });
-        }
-      });
-  }, [handleDeeplink]);
-
-  useEffect(() => {
-    if (navigator) {
-      // Initialize deep link manager
-      SharedDeeplinkManager.init({
-        navigation: {
-          navigate: (routeName, opts) => {
-            const params = { name: routeName, params: opts };
-            navigator.dispatch?.(CommonActions.navigate(params));
-          },
-        },
-        dispatch,
-      });
-      if (!prevNavigator.current) {
-        // Setup navigator with Sentry instrumentation
-        routingInstrumentation.registerNavigationContainer(navigator);
-        // Subscribe to incoming deeplinks
-        // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
-        branch.subscribe((opts) => {
-          const { error } = opts;
-
-          if (error) {
-            // Log error for analytics and continue handling deeplink
-            const branchError = new Error(error);
-            Logger.error(branchError, 'Error subscribing to branch.');
-          }
-
-          if (sdkInit.current) {
-            handleDeeplink(opts);
-          } else {
-            queueOfHandleDeeplinkFunctions.current =
-              queueOfHandleDeeplinkFunctions.current.concat(() => {
-                handleDeeplink(opts);
-              });
-          }
-        });
-      }
-      prevNavigator.current = navigator;
-    }
-  }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
-
-  useEffect(() => {
-    const initMetrics = async () => {
-      const metrics = MetaMetrics.getInstance();
-      await metrics.configure();
-      // identify user with the latest traits
-      // run only after the MetaMetrics is configured
-      const consolidatedTraits = {
-        ...generateDeviceAnalyticsMetaData(),
-        ...generateUserSettingsAnalyticsMetaData(),
-      };
-      await metrics.addTraitsToUser(consolidatedTraits);
-    };
-
-    initMetrics().catch((err) => {
-      Logger.error(err, 'Error initializing MetaMetrics');
-    });
-  }, []);
-
-  useEffect(() => {
-    // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
-    async function initSDKConnect() {
-      if (
-        navigator?.getCurrentRoute &&
-        onboarded &&
-        sdkInit.current === undefined &&
-        userLoggedIn
-      ) {
-        sdkInit.current = false;
-        try {
-          const sdkConnect = SDKConnect.getInstance();
-          await sdkConnect.init({ navigation: navigator, context: 'Nav/App' });
-          await SDKConnect.getInstance().postInit();
-          sdkInit.current = true;
-        } catch (err) {
-          sdkInit.current = undefined;
-          console.error(`Cannot initialize SDKConnect`, err);
-        }
-      }
-    }
-    initSDKConnect().catch((err) => {
-      Logger.error(err, 'Error initializing SDKConnect');
-    });
-  }, [navigator, onboarded, userLoggedIn]);
-
-  useEffect(() => {
-    const currentRoute = navigator?.getCurrentRoute();
-    if (isWC2Enabled && currentRoute !== undefined) {
-      DevLogger.log(
-        `WalletConnect: Initializing WalletConnect Manager route=${currentRoute.name}`,
-      );
-      WC2Manager.init({ navigation: navigator }).catch((err) => {
-        console.error('Cannot initialize WalletConnect Manager.', err);
-      });
-    }
-  }, [navigator]);
-
-  useEffect(() => {
-    async function checkExisting() {
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      setOnboarded(!!existingUser);
-      const route = !existingUser
-        ? Routes.ONBOARDING.ROOT_NAV
-        : Routes.ONBOARDING.LOGIN;
-      setRoute(route);
-    }
-
-    checkExisting().catch((error) => {
-      Logger.error(error, 'Error checking existing user');
-    });
-    /* eslint-disable react-hooks/exhaustive-deps */
-  }, []);
-
-  useEffect(() => {
-    async function startApp() {
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      try {
-        const currentVersion = getVersion();
-        const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
-        if (currentVersion !== savedVersion) {
-          if (savedVersion)
-            await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
-          await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
-        }
-
-        const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
-        if (!lastVersion) {
-          if (existingUser) {
-            // Setting last version to first version if user exists and lastVersion does not, to simulate update
-            await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
-          } else {
-            // Setting last version to current version so that it's not treated as an update
-            await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
-          }
-        }
-      } catch (error) {
-        Logger.error(error);
-      }
-    }
-
-    startApp().catch((error) => {
-      Logger.error(error, 'Error starting app');
-    });
-  }, []);
-
-  const setNavigatorRef = (ref) => {
-    if (!prevNavigator.current) {
-      setNavigator(ref);
-      NavigationService.setNavigationRef(ref);
-    }
+    const value = `${text} days`;
+    // Android
+    SharedStorage.set(JSON.stringify({text: value}));
+    ToastAndroid.show('Change value successfully!', ToastAndroid.SHORT);
   };
-
-  const onAnimationFinished = useCallback(() => {
-    Animated.timing(opacity, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-      isInteraction: false,
-    }).start(() => {
-      setAnimationPlayed(true);
-    });
-  }, [opacity]);
-
-  const renderSplash = () => {
-    if (!animationPlayed) {
-      return (
-        <MetaMaskAnimation
-          animationRef={animationRef}
-          animationName={animationNameRef}
-          opacity={opacity}
-          onAnimationFinish={onAnimationFinished}
-        />
-      );
-    }
-    return null;
-  };
-
-  const DetectedTokensFlow = () => (
-    <Stack.Navigator
-      mode={'modal'}
-      screenOptions={clearStackNavigatorOptions}
-      initialRouteName={'DetectedTokens'}
-    >
-      <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
-      <Stack.Screen
-        name={'DetectedTokensConfirmation'}
-        component={DetectedTokensConfirmation}
-      />
-    </Stack.Navigator>
-  );
-
-  const RootModalFlow = () => (
-    <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
-      <Stack.Screen
-        name={Routes.MODAL.WALLET_ACTIONS}
-        component={WalletActions}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.DELETE_WALLET}
-        component={DeleteWalletModal}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.MODAL_CONFIRMATION}
-        component={ModalConfirmation}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.MODAL_MANDATORY}
-        component={ModalMandatory}
-      />
-      <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
-      <Stack.Screen
-        name={Routes.SHEET.ACCOUNT_SELECTOR}
-        component={AccountSelector}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SDK_LOADING}
-        component={SDKLoadingModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SDK_FEEDBACK}
-        component={SDKFeedbackModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
-        component={SDKSessionModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SDK_DISCONNECT}
-        component={SDKDisconnectModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.ACCOUNT_CONNECT}
-        component={AccountConnect}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-        component={AccountPermissions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.NETWORK_SELECTOR}
-        component={NetworkSelector}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.BASIC_FUNCTIONALITY}
-        component={BasicFunctionalityModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
-        component={ReturnToAppModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.AMBIGUOUS_ADDRESS}
-        component={AmbiguousAddressSheet}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
-        component={TurnOffRememberMeModal}
-      />
-      <Stack.Screen
-        name={'AssetHideConfirmation'}
-        component={AssetHideConfirmation}
-      />
-      <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
-      <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
-      <Stack.Screen
-        name={Routes.MODAL.UPDATE_NEEDED}
-        component={UpdateNeeded}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
-        component={EnableAutomaticSecurityChecksModal}
-      />
-      <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
-      <Stack.Screen
-        name={Routes.SHEET.ACCOUNT_ACTIONS}
-        component={AccountActions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.ETH_SIGN_FRICTION}
-        component={EthSignFriction}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SHOW_IPFS}
-        component={ShowIpfsGatewaySheet}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
-        component={ShowDisplayNftMediaSheet}
-      />
-    </Stack.Navigator>
-  );
-
-  const ImportPrivateKeyView = () => (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
-      <Stack.Screen
-        name="ImportPrivateKeySuccess"
-        component={ImportPrivateKeySuccess}
-      />
-      <Stack.Screen
-        name={Routes.QR_SCANNER}
-        component={QRScanner}
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
-    </Stack.Navigator>
-  );
-
-  const ConnectQRHardwareFlow = () => (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
-    </Stack.Navigator>
-  );
-
-  const LedgerConnectFlow = () => (
-    <Stack.Navigator initialRouteName={Routes.HW.LEDGER_CONNECT}>
-      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={LedgerConnect} />
-    </Stack.Navigator>
-  );
-
-  const ConnectHardwareWalletFlow = () => (
-    <Stack.Navigator name="ConnectHardwareWallet">
-      <Stack.Screen
-        name={Routes.HW.SELECT_DEVICE}
-        component={SelectHardwareWallet}
-        options={SelectHardwareWallet.navigationOptions}
-      />
-      <Stack.Screen name="LedgerAccountInfo" component={LedgerAccountInfo} />
-    </Stack.Navigator>
-  );
-
-  const EditAccountNameFlow = () => (
-    <Stack.Navigator>
-      <Stack.Screen name="EditAccountName" component={EditAccountName} />
-    </Stack.Navigator>
-  );
-
-  // eslint-disable-next-line react/prop-types
-  const AddNetworkFlow = ({ route }) => (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="AddNetwork"
-        component={NetworkSettings}
-        // eslint-disable-next-line react/prop-types
-        initialParams={route?.params}
-      />
-    </Stack.Navigator>
-  );
 
   return (
-    // do not render unless a route is defined
-    (route && (
-      <>
-        {isBlockaidFeatureEnabled() && <PPOMView />}
-        <NavigationContainer
-          // Prevents artifacts when navigating between screens
-          theme={{
-            colors: {
-              background: colors.background.default,
-            },
-          }}
-          ref={setNavigatorRef}
-          onStateChange={(state) => {
-            // Updates redux with latest route. Used by DrawerView component.
-            const currentRoute = findRouteNameFromNavigatorState(state.routes);
-            triggerSetCurrentRoute(currentRoute);
-          }}
-        >
-          <Stack.Navigator
-            initialRouteName={route}
-            mode={'modal'}
-            screenOptions={{
-              headerShown: false,
-              cardStyle: { backgroundColor: importedColors.transparent },
-              animationEnabled: false,
-            }}
-          >
-            <Stack.Screen
-              name={Routes.ONBOARDING.LOGIN}
-              component={Login}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="OnboardingRootNav"
-              component={OnboardingRootNav}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.ONBOARDING.SUCCESS_FLOW}
-              component={OnboardingSuccessFlow}
-              options={{ headerShown: false }}
-            />
-            {userLoggedIn && (
-              <Stack.Screen
-                name={Routes.ONBOARDING.HOME_NAV}
-                component={Main}
-                options={{ headerShown: false }}
+    <SafeAreaView style={styles.safeAreaContainer}>
+      <KeyboardAwareScrollView
+        enableOnAndroid
+        extraScrollHeight={100}
+        keyboardShouldPersistTaps="handled">
+        <View style={styles.container}>
+          <Text style={styles.heading}>Change Widget Value</Text>
+          <View style={styles.bodyContainer}>
+            <View style={styles.instructionContainer}>
+              <View style={styles.thoughtContainer}>
+                <Text style={styles.thoughtTitle}>
+                  Enter the value that you want to display on your home widget
+                </Text>
+              </View>
+              <View style={styles.thoughtPointer}></View>
+              <Image
+                source={require('./assets/bea.png')}
+                style={styles.avatarImg}
               />
-            )}
-            <Stack.Screen
-              name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
-              component={VaultRecoveryFlow}
+            </View>
+
+            <TextInput
+              style={styles.input}
+              onChangeText={newText => setText(newText)}
+              value={text}
+              keyboardType="decimal-pad"
+              placeholder="Enter the text to display..."
             />
-            <Stack.Screen
-              name={Routes.MODAL.ROOT_MODAL_FLOW}
-              component={RootModalFlow}
-            />
-            <Stack.Screen
-              name="ImportPrivateKeyView"
-              component={ImportPrivateKeyView}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name="ConnectQRHardwareFlow"
-              component={ConnectQRHardwareFlow}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name={Routes.HW.CONNECT_LEDGER}
-              component={LedgerConnectFlow}
-            />
-            <Stack.Screen
-              name={Routes.HW.CONNECT}
-              component={ConnectHardwareWalletFlow}
-            />
-            <Stack.Screen
-              options={{
-                //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-                cardStyle: { backgroundColor: importedColors.transparent },
-                cardStyleInterpolator: () => ({
-                  overlayStyle: {
-                    opacity: 0,
-                  },
-                }),
-              }}
-              name={Routes.LEDGER_TRANSACTION_MODAL}
-              component={LedgerTransactionModal}
-            />
-            <Stack.Screen
-              options={{
-                //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-                cardStyle: { backgroundColor: importedColors.transparent },
-                cardStyleInterpolator: () => ({
-                  overlayStyle: {
-                    opacity: 0,
-                  },
-                }),
-              }}
-              name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
-              component={LedgerMessageSignModal}
-            />
-            <Stack.Screen
-              name="EditAccountName"
-              component={EditAccountNameFlow}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name={Routes.ADD_NETWORK}
-              component={AddNetworkFlow}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name={Routes.LOCK_SCREEN}
-              component={LockScreen}
-              options={{ gestureEnabled: false }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-        {renderSplash()}
-        <Toast ref={toastRef} />
-      </>
-    )) ||
-    null
+
+            <AwesomeButton
+              backgroundColor={'#33b8f6'}
+              height={50}
+              width={'100%'}
+              backgroundDarker={'#eeefef'}
+              backgroundShadow={'#f1f1f0'}
+              style={styles.actionButton}
+              onPress={handleSubmit}>
+              Submit
+            </AwesomeButton>
+          </View>
+        </View>
+      </KeyboardAwareScrollView>
+    </SafeAreaView>
   );
+  // const animationRef = useRef(null);
+  // const animationNameRef = useRef(null);
+  // const opacity = useRef(new Animated.Value(1)).current;
+  // const [navigator, setNavigator] = useState(undefined);
+  // const prevNavigator = useRef(navigator);
+  // const [route, setRoute] = useState();
+  // const queueOfHandleDeeplinkFunctions = useRef([]);
+  // const [animationPlayed, setAnimationPlayed] = useState(false);
+  // const { colors } = useTheme();
+  // const { toastRef } = useContext(ToastContext);
+  // const dispatch = useDispatch();
+  // const sdkInit = useRef();
+  // const [onboarded, setOnboarded] = useState(false);
+  // const triggerSetCurrentRoute = (route) => {
+  //   dispatch(setCurrentRoute(route));
+  //   if (route === 'Wallet' || route === 'BrowserView') {
+  //     setOnboarded(true);
+  //     dispatch(setCurrentBottomNavRoute(route));
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   if (prevNavigator.current || !navigator) return;
+  //   const appTriggeredAuth = async () => {
+  //     const { PreferencesController } = Engine.context;
+  //     const selectedAddress = PreferencesController.state.selectedAddress;
+  //     const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+  //     try {
+  //       if (existingUser && selectedAddress) {
+  //         await Authentication.appTriggeredAuth({ selectedAddress });
+  //         // we need to reset the navigator here so that the user cannot go back to the login screen
+  //         navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
+  //       }
+  //     } catch (error) {
+  //       // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
+  //       if (
+  //         error.message === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS
+  //       ) {
+  //         navigator.dispatch(
+  //           CommonActions.setParams({
+  //             locked: true,
+  //           }),
+  //         );
+  //       }
+  //       await Authentication.lockApp(false);
+  //       trackErrorAsAnalytics(
+  //         'App: Max Attempts Reached',
+  //         error?.message,
+  //         `Unlock attempts: 1`,
+  //       );
+  //     } finally {
+  //       animationRef?.current?.play();
+  //       animationNameRef?.current?.play();
+  //     }
+  //   };
+  //   appTriggeredAuth()
+  //     .then(() => {
+  //       queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
+
+  //       queueOfHandleDeeplinkFunctions.current = [];
+  //     })
+  //     .catch((error) => {
+  //       Logger.error(error, 'App: Error in appTriggeredAuth');
+  //     });
+  // }, [navigator, queueOfHandleDeeplinkFunctions]);
+
+  // const handleDeeplink = useCallback(({ error, params, uri }) => {
+  //   if (error) {
+  //     trackErrorAsAnalytics(error, 'Branch:');
+  //   }
+  //   const deeplink = params?.['+non_branch_link'] || uri || null;
+  //   try {
+  //     if (deeplink) {
+  //       SharedDeeplinkManager.parse(deeplink, {
+  //         origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+  //       });
+  //     }
+  //   } catch (e) {
+  //     Logger.error(e, `Deeplink: Error parsing deeplink`);
+  //   }
+  // }, []);
+
+  // // on Android devices, this creates a listener
+  // // to deeplinks used to open the app
+  // // when it is in background (so not closed)
+  // // Documentation: https://reactnative.dev/docs/linking#handling-deep-links
+  // useEffect(() => {
+  //   if (Device.isAndroid())
+  //     Linking.addEventListener('url', (params) => {
+  //       const { url } = params;
+  //       if (url) {
+  //         handleDeeplink({ uri: url });
+  //       }
+  //     });
+  // }, [handleDeeplink]);
+
+  // useEffect(() => {
+  //   if (navigator) {
+  //     // Initialize deep link manager
+  //     SharedDeeplinkManager.init({
+  //       navigation: {
+  //         navigate: (routeName, opts) => {
+  //           const params = { name: routeName, params: opts };
+  //           navigator.dispatch?.(CommonActions.navigate(params));
+  //         },
+  //       },
+  //       dispatch,
+  //     });
+  //     if (!prevNavigator.current) {
+  //       // Setup navigator with Sentry instrumentation
+  //       routingInstrumentation.registerNavigationContainer(navigator);
+  //       // Subscribe to incoming deeplinks
+  //       // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
+  //       branch.subscribe((opts) => {
+  //         const { error } = opts;
+
+  //         if (error) {
+  //           // Log error for analytics and continue handling deeplink
+  //           const branchError = new Error(error);
+  //           Logger.error(branchError, 'Error subscribing to branch.');
+  //         }
+
+  //         if (sdkInit.current) {
+  //           handleDeeplink(opts);
+  //         } else {
+  //           queueOfHandleDeeplinkFunctions.current =
+  //             queueOfHandleDeeplinkFunctions.current.concat(() => {
+  //               handleDeeplink(opts);
+  //             });
+  //         }
+  //       });
+  //     }
+  //     prevNavigator.current = navigator;
+  //   }
+  // }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
+
+  // useEffect(() => {
+  //   const initMetrics = async () => {
+  //     const metrics = MetaMetrics.getInstance();
+  //     await metrics.configure();
+  //     // identify user with the latest traits
+  //     // run only after the MetaMetrics is configured
+  //     const consolidatedTraits = {
+  //       ...generateDeviceAnalyticsMetaData(),
+  //       ...generateUserSettingsAnalyticsMetaData(),
+  //     };
+  //     await metrics.addTraitsToUser(consolidatedTraits);
+  //   };
+
+  //   initMetrics().catch((err) => {
+  //     Logger.error(err, 'Error initializing MetaMetrics');
+  //   });
+  // }, []);
+
+  // useEffect(() => {
+  //   // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
+  //   async function initSDKConnect() {
+  //     if (
+  //       navigator?.getCurrentRoute &&
+  //       onboarded &&
+  //       sdkInit.current === undefined &&
+  //       userLoggedIn
+  //     ) {
+  //       sdkInit.current = false;
+  //       try {
+  //         const sdkConnect = SDKConnect.getInstance();
+  //         await sdkConnect.init({ navigation: navigator, context: 'Nav/App' });
+  //         await SDKConnect.getInstance().postInit();
+  //         sdkInit.current = true;
+  //       } catch (err) {
+  //         sdkInit.current = undefined;
+  //         console.error(`Cannot initialize SDKConnect`, err);
+  //       }
+  //     }
+  //   }
+  //   initSDKConnect().catch((err) => {
+  //     Logger.error(err, 'Error initializing SDKConnect');
+  //   });
+  // }, [navigator, onboarded, userLoggedIn]);
+
+  // useEffect(() => {
+  //   const currentRoute = navigator?.getCurrentRoute();
+  //   if (isWC2Enabled && currentRoute !== undefined) {
+  //     DevLogger.log(
+  //       `WalletConnect: Initializing WalletConnect Manager route=${currentRoute.name}`,
+  //     );
+  //     WC2Manager.init({ navigation: navigator }).catch((err) => {
+  //       console.error('Cannot initialize WalletConnect Manager.', err);
+  //     });
+  //   }
+  // }, [navigator]);
+
+  // useEffect(() => {
+  //   async function checkExisting() {
+  //     const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+  //     setOnboarded(!!existingUser);
+  //     const route = !existingUser
+  //       ? Routes.ONBOARDING.ROOT_NAV
+  //       : Routes.ONBOARDING.LOGIN;
+  //     setRoute(route);
+  //   }
+
+  //   checkExisting().catch((error) => {
+  //     Logger.error(error, 'Error checking existing user');
+  //   });
+  //   /* eslint-disable react-hooks/exhaustive-deps */
+  // }, []);
+
+  // useEffect(() => {
+  //   async function startApp() {
+  //     const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+  //     try {
+  //       const currentVersion = getVersion();
+  //       const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+  //       if (currentVersion !== savedVersion) {
+  //         if (savedVersion)
+  //           await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
+  //         await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
+  //       }
+
+  //       const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
+  //       if (!lastVersion) {
+  //         if (existingUser) {
+  //           // Setting last version to first version if user exists and lastVersion does not, to simulate update
+  //           await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
+  //         } else {
+  //           // Setting last version to current version so that it's not treated as an update
+  //           await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       Logger.error(error);
+  //     }
+  //   }
+
+  //   startApp().catch((error) => {
+  //     Logger.error(error, 'Error starting app');
+  //   });
+  // }, []);
+
+  // const setNavigatorRef = (ref) => {
+  //   if (!prevNavigator.current) {
+  //     setNavigator(ref);
+  //     NavigationService.setNavigationRef(ref);
+  //   }
+  // };
+
+  // const onAnimationFinished = useCallback(() => {
+  //   Animated.timing(opacity, {
+  //     toValue: 0,
+  //     duration: 300,
+  //     useNativeDriver: true,
+  //     isInteraction: false,
+  //   }).start(() => {
+  //     setAnimationPlayed(true);
+  //   });
+  // }, [opacity]);
+
+  // const renderSplash = () => {
+  //   if (!animationPlayed) {
+  //     return (
+  //       <MetaMaskAnimation
+  //         animationRef={animationRef}
+  //         animationName={animationNameRef}
+  //         opacity={opacity}
+  //         onAnimationFinish={onAnimationFinished}
+  //       />
+  //     );
+  //   }
+  //   return null;
+  // };
+
+  // const DetectedTokensFlow = () => (
+  //   <Stack.Navigator
+  //     mode={'modal'}
+  //     screenOptions={clearStackNavigatorOptions}
+  //     initialRouteName={'DetectedTokens'}
+  //   >
+  //     <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
+  //     <Stack.Screen
+  //       name={'DetectedTokensConfirmation'}
+  //       component={DetectedTokensConfirmation}
+  //     />
+  //   </Stack.Navigator>
+  // );
+
+  // const RootModalFlow = () => (
+  //   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+  //     <Stack.Screen
+  //       name={Routes.MODAL.WALLET_ACTIONS}
+  //       component={WalletActions}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.MODAL.DELETE_WALLET}
+  //       component={DeleteWalletModal}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.MODAL.MODAL_CONFIRMATION}
+  //       component={ModalConfirmation}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.MODAL.MODAL_MANDATORY}
+  //       component={ModalMandatory}
+  //     />
+  //     <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.ACCOUNT_SELECTOR}
+  //       component={AccountSelector}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.SDK_LOADING}
+  //       component={SDKLoadingModal}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.SDK_FEEDBACK}
+  //       component={SDKFeedbackModal}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
+  //       component={SDKSessionModal}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.SDK_DISCONNECT}
+  //       component={SDKDisconnectModal}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.ACCOUNT_CONNECT}
+  //       component={AccountConnect}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.ACCOUNT_PERMISSIONS}
+  //       component={AccountPermissions}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.NETWORK_SELECTOR}
+  //       component={NetworkSelector}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.BASIC_FUNCTIONALITY}
+  //       component={BasicFunctionalityModal}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
+  //       component={ReturnToAppModal}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.AMBIGUOUS_ADDRESS}
+  //       component={AmbiguousAddressSheet}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
+  //       component={TurnOffRememberMeModal}
+  //     />
+  //     <Stack.Screen
+  //       name={'AssetHideConfirmation'}
+  //       component={AssetHideConfirmation}
+  //     />
+  //     <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
+  //     <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+  //     <Stack.Screen
+  //       name={Routes.MODAL.UPDATE_NEEDED}
+  //       component={UpdateNeeded}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
+  //       component={EnableAutomaticSecurityChecksModal}
+  //     />
+  //     <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.ACCOUNT_ACTIONS}
+  //       component={AccountActions}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.ETH_SIGN_FRICTION}
+  //       component={EthSignFriction}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.SHOW_IPFS}
+  //       component={ShowIpfsGatewaySheet}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
+  //       component={ShowDisplayNftMediaSheet}
+  //     />
+  //   </Stack.Navigator>
+  // );
+
+  // const ImportPrivateKeyView = () => (
+  //   <Stack.Navigator
+  //     screenOptions={{
+  //       headerShown: false,
+  //     }}
+  //   >
+  //     <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+  //     <Stack.Screen
+  //       name="ImportPrivateKeySuccess"
+  //       component={ImportPrivateKeySuccess}
+  //     />
+  //     <Stack.Screen
+  //       name={Routes.QR_SCANNER}
+  //       component={QRScanner}
+  //       screenOptions={{
+  //         headerShown: false,
+  //       }}
+  //     />
+  //   </Stack.Navigator>
+  // );
+
+  // const ConnectQRHardwareFlow = () => (
+  //   <Stack.Navigator
+  //     screenOptions={{
+  //       headerShown: false,
+  //     }}
+  //   >
+  //     <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+  //   </Stack.Navigator>
+  // );
+
+  // const LedgerConnectFlow = () => (
+  //   <Stack.Navigator initialRouteName={Routes.HW.LEDGER_CONNECT}>
+  //     <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={LedgerConnect} />
+  //   </Stack.Navigator>
+  // );
+
+  // const ConnectHardwareWalletFlow = () => (
+  //   <Stack.Navigator name="ConnectHardwareWallet">
+  //     <Stack.Screen
+  //       name={Routes.HW.SELECT_DEVICE}
+  //       component={SelectHardwareWallet}
+  //       options={SelectHardwareWallet.navigationOptions}
+  //     />
+  //     <Stack.Screen name="LedgerAccountInfo" component={LedgerAccountInfo} />
+  //   </Stack.Navigator>
+  // );
+
+  // const EditAccountNameFlow = () => (
+  //   <Stack.Navigator>
+  //     <Stack.Screen name="EditAccountName" component={EditAccountName} />
+  //   </Stack.Navigator>
+  // );
+
+  // // eslint-disable-next-line react/prop-types
+  // const AddNetworkFlow = ({ route }) => (
+  //   <Stack.Navigator>
+  //     <Stack.Screen
+  //       name="AddNetwork"
+  //       component={NetworkSettings}
+  //       // eslint-disable-next-line react/prop-types
+  //       initialParams={route?.params}
+  //     />
+  //   </Stack.Navigator>
+  // );
+
+  // return (
+  //   // do not render unless a route is defined
+  //   (route && (
+  //     <>
+  //       {isBlockaidFeatureEnabled() && <PPOMView />}
+  //       <NavigationContainer
+  //         // Prevents artifacts when navigating between screens
+  //         theme={{
+  //           colors: {
+  //             background: colors.background.default,
+  //           },
+  //         }}
+  //         ref={setNavigatorRef}
+  //         onStateChange={(state) => {
+  //           // Updates redux with latest route. Used by DrawerView component.
+  //           const currentRoute = findRouteNameFromNavigatorState(state.routes);
+  //           triggerSetCurrentRoute(currentRoute);
+  //         }}
+  //       >
+  //         <Stack.Navigator
+  //           initialRouteName={route}
+  //           mode={'modal'}
+  //           screenOptions={{
+  //             headerShown: false,
+  //             cardStyle: { backgroundColor: importedColors.transparent },
+  //             animationEnabled: false,
+  //           }}
+  //         >
+  //           <Stack.Screen
+  //             name={Routes.ONBOARDING.LOGIN}
+  //             component={Login}
+  //             options={{ headerShown: false }}
+  //           />
+  //           <Stack.Screen
+  //             name="OnboardingRootNav"
+  //             component={OnboardingRootNav}
+  //             options={{ headerShown: false }}
+  //           />
+  //           <Stack.Screen
+  //             name={Routes.ONBOARDING.SUCCESS_FLOW}
+  //             component={OnboardingSuccessFlow}
+  //             options={{ headerShown: false }}
+  //           />
+  //           {userLoggedIn && (
+  //             <Stack.Screen
+  //               name={Routes.ONBOARDING.HOME_NAV}
+  //               component={Main}
+  //               options={{ headerShown: false }}
+  //             />
+  //           )}
+  //           <Stack.Screen
+  //             name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+  //             component={VaultRecoveryFlow}
+  //           />
+  //           <Stack.Screen
+  //             name={Routes.MODAL.ROOT_MODAL_FLOW}
+  //             component={RootModalFlow}
+  //           />
+  //           <Stack.Screen
+  //             name="ImportPrivateKeyView"
+  //             component={ImportPrivateKeyView}
+  //             options={{ animationEnabled: true }}
+  //           />
+  //           <Stack.Screen
+  //             name="ConnectQRHardwareFlow"
+  //             component={ConnectQRHardwareFlow}
+  //             options={{ animationEnabled: true }}
+  //           />
+  //           <Stack.Screen
+  //             name={Routes.HW.CONNECT_LEDGER}
+  //             component={LedgerConnectFlow}
+  //           />
+  //           <Stack.Screen
+  //             name={Routes.HW.CONNECT}
+  //             component={ConnectHardwareWalletFlow}
+  //           />
+  //           <Stack.Screen
+  //             options={{
+  //               //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+  //               cardStyle: { backgroundColor: importedColors.transparent },
+  //               cardStyleInterpolator: () => ({
+  //                 overlayStyle: {
+  //                   opacity: 0,
+  //                 },
+  //               }),
+  //             }}
+  //             name={Routes.LEDGER_TRANSACTION_MODAL}
+  //             component={LedgerTransactionModal}
+  //           />
+  //           <Stack.Screen
+  //             options={{
+  //               //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+  //               cardStyle: { backgroundColor: importedColors.transparent },
+  //               cardStyleInterpolator: () => ({
+  //                 overlayStyle: {
+  //                   opacity: 0,
+  //                 },
+  //               }),
+  //             }}
+  //             name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
+  //             component={LedgerMessageSignModal}
+  //           />
+  //           <Stack.Screen
+  //             name="EditAccountName"
+  //             component={EditAccountNameFlow}
+  //             options={{ animationEnabled: true }}
+  //           />
+  //           <Stack.Screen
+  //             name={Routes.ADD_NETWORK}
+  //             component={AddNetworkFlow}
+  //             options={{ animationEnabled: true }}
+  //           />
+  //           <Stack.Screen
+  //             name={Routes.LOCK_SCREEN}
+  //             component={LockScreen}
+  //             options={{ gestureEnabled: false }}
+  //           />
+  //         </Stack.Navigator>
+  //       </NavigationContainer>
+  //       {renderSplash()}
+  //       <Toast ref={toastRef} />
+  //     </>
+  //   )) ||
+  //   null
+  // );
 };
 
 const mapStateToProps = (state) => ({
