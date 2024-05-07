@@ -152,7 +152,7 @@ const SmartTransactionsOptInModal = () => {
     dismissModal();
   };
 
-  const onDismiss = async () => {
+  const handleDismiss = async () => {
     // Opt out of STX if no prior decision made
     if (hasOptedIn.current === null) {
       optOut();
@@ -167,7 +167,11 @@ const SmartTransactionsOptInModal = () => {
   };
 
   return (
-    <ReusableModal ref={modalRef} style={styles.screen} onDismiss={onDismiss}>
+    <ReusableModal
+      ref={modalRef}
+      style={styles.screen}
+      onDismiss={handleDismiss}
+    >
       <View
         style={styles.modal}
         testID={SmartTransactionsOptInModalSelectorsIDs.CONTAINER}
