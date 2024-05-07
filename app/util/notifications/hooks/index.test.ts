@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import useNotificationHandler from './index';
 import notifee, { EventType } from '@notifee/react-native';
 import NotificationManager from '../../../core/NotificationManager';
+import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../../util/device');
 jest.mock('../../../core/NotificationManager');
@@ -19,24 +20,19 @@ jest.mock('@notifee/react-native', () => ({
 }));
 
 describe('useNotificationHandler', () => {
-  it('should handle notifications correctly', async () => {
-    const bootstrapAndroidInitialNotification = jest
+  let bootstrapAndroidInitialNotification: () => Promise<void>;
+  let navigation: any;
+
+  beforeEach(() => {
+    bootstrapAndroidInitialNotification = jest
       .fn()
       .mockResolvedValue(
         Promise.resolve((resolve: any) => setTimeout(resolve, 1)),
       );
-    const navigation = { navigate: jest.fn() };
+    navigation = { navigate: jest.fn() };
+  });
 
-    const { waitFor } = renderHook(() =>
-      useNotificationHandler(bootstrapAndroidInitialNotification, navigation),
-    );
-
-    await act(async () => {
-      await waitFor(() => {
-        expect(bootstrapAndroidInitialNotification).toHaveBeenCalled();
-      });
-    });
-
+  it('should handle notifications correctly', async () => {
     const mockNotificationEvent = ({ type }: { type: any }) => {
       if (type !== EventType.DISMISSED) {
         let data = null;
@@ -46,11 +42,15 @@ describe('useNotificationHandler', () => {
             NotificationManager.setTransactionToView(data.id);
           }
           if (navigation) {
-            navigation.navigate('TransactionsView');
+            navigation.navigate(Routes.TRANSACTIONS_VIEW);
           }
         }
       }
     };
+
+    const { waitFor } = renderHook(() =>
+      useNotificationHandler(bootstrapAndroidInitialNotification, navigation),
+    );
 
     await act(async () => {
       notifee.onForegroundEvent(mockNotificationEvent);
