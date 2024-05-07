@@ -141,6 +141,12 @@ class SmartTransactionHook {
 
   async submit() {
     // Will cause TransactionController to publish to the RPC provider as normal.
+    Logger.log(
+      LOG_PREFIX,
+      'isSmartTransaction',
+      this.#isSmartTransaction,
+      this.#transactionMeta.type,
+    );
     const useRegularTransactionSubmit = { transactionHash: undefined };
     if (!this.#isSmartTransaction) {
       return useRegularTransactionSubmit;
@@ -164,7 +170,7 @@ class SmartTransactionHook {
       }
 
       // We do this so we can show the Swap data (e.g. ETH to USDC, fiat values) in the app/components/Views/TransactionsView/index.js
-      if (this.#isSwapTransaction) {
+      if (this.#isSwapTransaction || this.#isSwapApproveTx) {
         this.#updateSwapsTransactions(uuid);
       }
 
