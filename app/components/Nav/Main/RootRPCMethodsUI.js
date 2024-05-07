@@ -220,8 +220,7 @@ const RootRPCMethodsUI = (props) => {
   const autoSign = useCallback(
     async (transactionMeta) => {
       const { TransactionController, KeyringController } = Engine.context;
-      const swapsTransactions =
-        Engine.context.TransactionController.state.swapsTransactions;
+      const swapsTransactions = TransactionController.state.swapsTransactions;
       try {
         TransactionController.hub.once(
           `${transactionMeta.id}:finished`,
