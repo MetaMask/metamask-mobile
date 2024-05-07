@@ -43,6 +43,7 @@ export default function BlockingActionModal({
       backdropOpacity={1}
       isVisible={modalVisible}
       style={styles.modal}
+      hideModalContentWhileAnimating
     >
       <View style={styles.modalView}>
         <View style={baseStyles.flexGrow}>

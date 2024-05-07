@@ -1,6 +1,6 @@
 // Third party dependencies.
-import React, { useCallback, useMemo, useRef } from 'react';
-import { Alert, Platform, View } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { Alert, Platform, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
@@ -48,13 +48,18 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { forgetLedger } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
+import BlockingActionModal from '../../UI/BlockingActionModal';
+import { useTheme } from '../../../util/theme';
 
 const AccountActions = () => {
-  const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
+  const styles = styleSheet(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
   const { trackEvent } = useMetrics();
+
+  const [blockingModalVisible, setBlockingModalVisible] = useState(false);
 
   const Controller = useMemo(() => {
     const { KeyringController, PreferencesController } = Engine.context as any;
@@ -150,9 +155,11 @@ const AccountActions = () => {
         {
           text: strings('accounts.remove_account_alert_remove_btn'),
           onPress: async () => {
+            setBlockingModalVisible(true);
             const kr = getKeyringByAddress(selectedAddress);
             let requestForgetDevice = false;
 
+            // Remove account from KeyringController
             await Controller.KeyringController.removeAccount(selectedAddress);
             await removeAccountsFromPermissions([selectedAddress]);
             const newAccounts =
@@ -168,6 +175,7 @@ const AccountActions = () => {
               (keyring: { type: any }) => keyring.type === kr.type,
             );
 
+            // If there are no more accounts in the keyring, forget the device
             if (updatedKeyring) {
               if (updatedKeyring.accounts.length === 0) {
                 requestForgetDevice = true;
@@ -194,6 +202,8 @@ const AccountActions = () => {
                   break;
               }
             }
+
+            setBlockingModalVisible(false);
           },
         },
       ],
@@ -256,6 +266,11 @@ const AccountActions = () => {
           />
         )}
       </View>
+      <BlockingActionModal modalVisible={blockingModalVisible} isLoadingAction>
+        <Text style={styles.text}>
+          {strings('connect_qr_hardware.please_wait')}
+        </Text>
+      </BlockingActionModal>
     </BottomSheet>
   );
 };
