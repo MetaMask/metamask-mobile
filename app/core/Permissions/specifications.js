@@ -61,7 +61,6 @@ export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
     decorator: (method, caveat) => async (args) => {
       const allAccounts = await method(args);
       const res = caveat.value.filter((address) => {
-        // TODO: Should addresses in allAccounts be checksummed instead of lowercase?
         const addressToCompare = address.toLowerCase();
         return allAccounts.includes(addressToCompare);
       });
