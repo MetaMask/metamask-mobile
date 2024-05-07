@@ -107,7 +107,7 @@ export const Browser = (props) => {
           route,
           colors,
           handleRightTopButtonAnalyticsEvent,
-          false,
+          !(route.params?.showTabs ?? false),
         ),
       ),
     /* eslint-disable-next-line */
