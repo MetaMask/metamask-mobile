@@ -311,7 +311,9 @@ class TransactionDetails extends PureComponent {
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
 
-    const renderTxActions = status === 'submitted' || status === 'approved';
+    const renderTxActions =
+      (status === 'submitted' || status === 'approved') &&
+      !shouldUseSmartTransaction;
     const { rpcBlockExplorer } = this.state;
 
     return updatedTransactionDetails ? (
@@ -322,7 +324,7 @@ class TransactionDetails extends PureComponent {
               {strings('transactions.status')}
             </DetailsModal.SectionTitle>
             <StatusText status={status} />
-            {!!renderTxActions && !shouldUseSmartTransaction && (
+            {!!renderTxActions && (
               <View style={styles.transactionActionsContainer}>
                 {this.renderSpeedUpButton()}
                 {this.renderCancelButton()}
