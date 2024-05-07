@@ -27,6 +27,7 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
+import Device from '../../../util/device';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -276,16 +277,11 @@ const Main = (props) => {
   });
 
   const bootstrapInitialNotification = useCallback(async () => {
-    const initialNotification = await notifee.getInitialNotification();
+    if (Device.isAndroid()) {
+      const initialNotification = await notifee.getInitialNotification();
 
-    if (initialNotification) {
-      if (
-        initialNotification.data &&
-        initialNotification.data.action === 'tx'
-      ) {
-        if (initialNotification.data.id) {
-          NotificationManager.setTransactionToView(initialNotification.data.id);
-        }
+      if (initialNotification?.data?.action === 'tx' && initialNotification.data.id) {
+        NotificationManager.setTransactionToView(initialNotification.data.id);
         props.navigation.navigate('TransactionsView');
       }
     }
