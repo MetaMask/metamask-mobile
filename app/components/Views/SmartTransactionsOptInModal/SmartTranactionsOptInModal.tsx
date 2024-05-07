@@ -32,11 +32,11 @@ import Button, {
 import AppConstants from '../../../core/AppConstants';
 import backgroundImage from '../../../images/smart-transactions-opt-in-bg.png';
 
-const modalMargin = 24;
-const modalPadding = 24;
+const MODAL_MARGIN = 24;
+const MODAL_PADDING = 24;
 const screenWidth = Device.getDeviceWidth();
 const screenHeight = Device.getDeviceHeight();
-const itemWidth = screenWidth - modalMargin * 2;
+const itemWidth = screenWidth - MODAL_MARGIN * 2;
 const maxItemHeight = screenHeight - 200;
 
 const createStyles = (colors: Colors) =>
@@ -46,7 +46,7 @@ const createStyles = (colors: Colors) =>
     },
     content: {
       gap: 16,
-      paddingHorizontal: modalPadding,
+      paddingHorizontal: MODAL_PADDING,
     },
     buttons: {
       gap: 10,
@@ -66,7 +66,7 @@ const createStyles = (colors: Colors) =>
     modal: {
       backgroundColor: colors.background.default,
       borderRadius: 10,
-      marginHorizontal: modalMargin,
+      marginHorizontal: MODAL_MARGIN,
     },
     bodyContainer: {
       width: itemWidth,
