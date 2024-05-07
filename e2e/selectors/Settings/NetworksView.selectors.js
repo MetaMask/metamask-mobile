@@ -28,4 +28,5 @@ export const NetworkViewSelectorsText = {
   POPULAR_NETWORK_TAB: enContent.app_settings.popular,
   NO_MATCHING_SEARCH_RESULTS: enContent.networks.no_match,
   EMPTY_POPULAR_NETWORKS: enContent.networks.empty_popular_networks,
+  SAVE_BUTTON: enContent.app_settings.network_save,
 };
