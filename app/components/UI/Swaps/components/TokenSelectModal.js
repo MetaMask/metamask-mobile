@@ -185,7 +185,7 @@ function TokenSelectModal({
     () =>
       initialTokens?.length > 0
         ? initialTokens
-            .filter((token) => token !== undefined)
+            .filter((token) => typeof token !== 'undefined')
             .filter(
               (token) =>
                 !excludedAddresses.includes(token?.address?.toLowerCase()),
