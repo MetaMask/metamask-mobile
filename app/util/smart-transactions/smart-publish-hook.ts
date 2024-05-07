@@ -322,7 +322,7 @@ class SmartTransactionHook {
     });
   };
 
-  #addApprovalRequest = async ({ uuid }: { uuid: string }) => {
+  #addApprovalRequest = ({ uuid }: { uuid: string }) => {
     const origin = this.#transactionMeta.origin;
 
     if (!origin) throw new Error('Origin is required');
