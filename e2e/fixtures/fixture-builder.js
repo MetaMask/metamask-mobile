@@ -638,12 +638,7 @@ class FixtureBuilder {
               caveats: [
                 {
                   type: 'restrictReturnedAccounts',
-                  value: [
-                    {
-                      address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
-                      lastUsed: 1692603404804,
-                    },
-                  ],
+                  value: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
                 },
               ],
               date: 1664388714636,
