@@ -902,7 +902,7 @@ const Settings: React.FC = () => {
             key={chainId}
             variant={CellVariant.Display}
             title={name}
-            secondaryText={myNetworks[chainId].domain}
+            secondaryText={myNetworks[chainId]?.domain}
             avatarProps={{
               variant: AvatarVariant.Network,
               name,

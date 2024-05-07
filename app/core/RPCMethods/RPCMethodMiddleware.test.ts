@@ -6,7 +6,7 @@ import {
   JsonRpcResponse,
   JsonRpcSuccess,
 } from 'json-rpc-engine';
-import type { Transaction } from '@metamask/transaction-controller';
+import type { TransactionParams } from '@metamask/transaction-controller';
 import type { ProviderConfig } from '@metamask/network-controller';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import Engine from '../Engine';
@@ -830,7 +830,7 @@ describe('getRpcMethodMiddleware', () => {
     it('returns a JSON-RPC error if an error is thrown when adding this transaction', async () => {
       // Omit `from` and `chainId` here to skip validation for simplicity
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as Transaction;
+      const mockTransactionParameters = {} as TransactionParams;
       // Transaction fails before returning a result
       mockAddTransaction.mockImplementation(async () => {
         throw new Error('Failed to add transaction');
@@ -858,7 +858,7 @@ describe('getRpcMethodMiddleware', () => {
     it('returns a JSON-RPC error if an error is thrown after approval', async () => {
       // Omit `from` and `chainId` here to skip validation for simplicity
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as Transaction;
+      const mockTransactionParameters = {} as TransactionParams;
       setupGlobalState({
         addTransactionResult: Promise.reject(
           new Error('Failed to process transaction'),
