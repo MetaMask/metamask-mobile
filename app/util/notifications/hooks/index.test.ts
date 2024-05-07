@@ -36,6 +36,21 @@ const bootstrapAndroidInitialNotification = jest
   .fn()
   .mockResolvedValue(Promise.resolve((resolve: any) => setTimeout(resolve, 1)));
 
+const mockNotificationEvent = ({ type }: { type: any }) => {
+  if (type === EventType.PRESS) {
+    let data = null;
+    data = { action: 'tx', id: '123' };
+    if (data && data.action === 'tx') {
+      if (data.id) {
+        NotificationManager.setTransactionToView(data.id);
+      }
+      if (mockNavigation) {
+        mockNavigation.navigate(Routes.TRANSACTIONS_VIEW);
+      }
+    }
+  }
+};
+
 describe('useNotificationHandler', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -56,21 +71,6 @@ describe('useNotificationHandler', () => {
   });
 
   it('should handle notifications correctly', async () => {
-    const mockNotificationEvent = ({ type }: { type: any }) => {
-      if (type !== EventType.DISMISSED) {
-        let data = null;
-        data = { action: 'tx', id: '123' };
-        if (data && data.action === 'tx') {
-          if (data.id) {
-            NotificationManager.setTransactionToView(data.id);
-          }
-          if (mockNavigation) {
-            mockNavigation.navigate(Routes.TRANSACTIONS_VIEW);
-          }
-        }
-      }
-    };
-
     const { waitFor } = renderHook(() =>
       useNotificationHandler(
         bootstrapAndroidInitialNotification,
@@ -80,6 +80,30 @@ describe('useNotificationHandler', () => {
 
     await act(async () => {
       notifee.onForegroundEvent(mockNotificationEvent);
+      await waitFor(() => {
+        expect(notifee.onForegroundEvent).toHaveBeenCalled();
+      });
+    });
+  });
+
+  it('should do nothing if the EventType is DISMISSED', async () => {
+    const { waitFor } = renderHook(() =>
+      useNotificationHandler(
+        bootstrapAndroidInitialNotification,
+        mockNavigation,
+      ),
+    );
+
+    await act(async () => {
+      notifee.onForegroundEvent({
+        type: EventType.DISMISSED,
+        notification: {
+          data: {
+            action: 'tx',
+            id: '123',
+          },
+        },
+      });
       await waitFor(() => {
         expect(notifee.onForegroundEvent).toHaveBeenCalled();
       });
