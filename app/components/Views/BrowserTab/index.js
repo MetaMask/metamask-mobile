@@ -47,7 +47,7 @@ import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
-import SearchApi from 'react-native-search-api';
+import SearchApi from '@metamask/react-native-search-api';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
@@ -873,6 +873,7 @@ export const BrowserTab = (props) => {
     // Continue request loading it the protocol is whitelisted
     const { protocol } = new URL(url);
     if (protocolAllowList.includes(protocol)) return true;
+    Logger.message(`Protocol not allowed ${protocol}`);
 
     // If it is a trusted deeplink protocol, do not show the
     // warning alert. Allow the OS to deeplink the URL
@@ -882,6 +883,9 @@ export const BrowserTab = (props) => {
       return false;
     }
 
+    // TODO: add logging for untrusted protocol being used
+    // Sentry
+    //
     const alertMsg = getAlertMessage(protocol, strings);
 
     // Pop up an alert dialog box to prompt the user for permission

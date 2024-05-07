@@ -172,7 +172,7 @@ export function getNetwork(chain_id: HalRawNotification['chain_id']) {
 }
 
 export const isNotificationsFeatureEnabled = () =>
-  process.env.MM_NOTIFICATIONS_UI_ENABLED;
+  process.env.MM_NOTIFICATIONS_UI_ENABLED === 'true';
 
 export function formatNotificationTitle(rawTitle: string): string {
   const words = rawTitle.split('_');
