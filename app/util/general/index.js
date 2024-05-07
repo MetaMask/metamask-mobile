@@ -169,7 +169,7 @@ export const deepJSONParse = ({ jsonString, skipNumbers = true }) => {
  * @throws {Error} - Throws if arrays is not defined
  * @throws {TypeError} - Throws if any of the arguments is not an array
  */
-export const uniqueList = (...arrays) => {
+export const getUniqueList = (...arrays) => {
   if (arrays.length === 0) {
     throw new Error('At least one array must be defined.');
   }
