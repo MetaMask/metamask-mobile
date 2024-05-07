@@ -4,14 +4,14 @@ exports[`BottomSheetDialog should render correctly 1`] = `
 <View
   onLayout={[Function]}
   style={
-    Array [
-      Object {
+    [
+      {
         "bottom": 0,
         "left": 0,
         "position": "absolute",
         "right": 0,
       },
-      Object {
+      {
         "paddingBottom": 0,
       },
     ]
@@ -23,8 +23,8 @@ exports[`BottomSheetDialog should render correctly 1`] = `
     onGestureHandlerStateChange={[Function]}
     onLayout={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "backgroundColor": "#FFFFFF",
           "borderColor": "#D6D9DC",
           "borderTopLeftRadius": 8,
@@ -34,16 +34,16 @@ exports[`BottomSheetDialog should render correctly 1`] = `
           "overflow": "hidden",
           "paddingBottom": 3,
           "shadowColor": "#0000001A",
-          "shadowOffset": Object {
+          "shadowOffset": {
             "height": 2,
             "width": 0,
           },
           "shadowOpacity": 1,
           "shadowRadius": 40,
         },
-        Object {
-          "transform": Array [
-            Object {
+        {
+          "transform": [
+            {
               "translateY": 1334,
             },
           ],
@@ -53,7 +53,7 @@ exports[`BottomSheetDialog should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "alignSelf": "stretch",
           "padding": 4,
@@ -62,7 +62,7 @@ exports[`BottomSheetDialog should render correctly 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "backgroundColor": "#D6D9DC",
             "borderRadius": 2,
             "height": 4,

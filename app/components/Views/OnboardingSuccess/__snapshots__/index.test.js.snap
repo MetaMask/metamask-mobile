@@ -3,7 +3,7 @@
 exports[`OnboardingSuccess should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "flex": 1,
     }
@@ -12,15 +12,15 @@ exports[`OnboardingSuccess should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "flex": 1,
-        "paddingTop": "20%",
+        "paddingTop": "10%",
       }
     }
   >
     <Text
       style={
-        Object {
+        {
           "fontSize": 65,
           "marginBottom": 16,
           "textAlign": "center",
@@ -32,7 +32,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 24,
@@ -48,7 +48,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
     </Text>
     <View
       style={
-        Object {
+        {
           "width": "90%",
         }
       }
@@ -56,7 +56,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -72,7 +72,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -88,7 +88,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
             accessibilityRole="text"
             onPress={[Function]}
             style={
-              Object {
+              {
                 "color": "#0376C9",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -102,13 +102,12 @@ exports[`OnboardingSuccess should render correctly 1`] = `
              
           </Text>
           to keep this set of words safe so you can always access your funds.
-
         </Text>
       </Text>
     </View>
     <View
       style={
-        Object {
+        {
           "minHeight": 50,
         }
       }
@@ -116,15 +115,20 @@ exports[`OnboardingSuccess should render correctly 1`] = `
       <TouchableOpacity
         onPress={[Function]}
         style={
-          Object {
-            "alignItems": "center",
-            "flexDirection": "row",
-          }
+          [
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            },
+            {
+              "paddingTop": 10,
+            },
+          ]
         }
       >
         <View
           style={
-            Object {
+            {
               "marginRight": 6,
             }
           }
@@ -134,7 +138,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
             height={16}
             name="Setting"
             style={
-              Object {
+              {
                 "height": 16,
                 "width": 16,
               }
@@ -145,7 +149,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#0376C9",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -161,7 +165,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
@@ -179,7 +183,7 @@ Change these at any time.
   </View>
   <View
     style={
-      Object {
+      {
         "bottom": 50,
         "width": "85%",
       }
@@ -192,7 +196,7 @@ Change these at any time.
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "alignSelf": "stretch",
           "backgroundColor": "#0376C9",
@@ -209,7 +213,7 @@ Change these at any time.
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#FFFFFF",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -242,7 +246,7 @@ Change these at any time.
     scrollTo={null}
     statusBarTranslucent={false}
     supportedOrientations={
-      Array [
+      [
         "portrait",
         "landscape",
       ]

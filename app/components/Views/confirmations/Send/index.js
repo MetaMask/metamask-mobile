@@ -48,6 +48,7 @@ import {
 
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { getBlockaidTransactionMetricsParams } from '../../../../util/blockaid';
 import {
   selectChainId,
   selectProviderType,
@@ -686,6 +687,7 @@ class Send extends PureComponent {
   getTrackingParams = () => {
     const {
       networkType,
+      transaction,
       transaction: { selectedAsset, assetType },
     } = this.props;
 
@@ -697,6 +699,7 @@ class Send extends PureComponent {
           (selectedAsset.symbol || selectedAsset.contractName)) ||
         'ETH',
       assetType,
+      ...getBlockaidTransactionMetricsParams(transaction),
     };
   };
 

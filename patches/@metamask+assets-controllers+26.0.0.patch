@@ -18,6 +18,24 @@ index 0000000..e78640f
 +* Run "yarn build" in the core monorepo
 +* Run "yarn patch:assets <core-directory>" in the mobile repo
 +* If you have changes also add them to the branch: patch/mobile-assets-controllers-v-18-0-0
+diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
+index ee99eb2..eaf26f3 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
++++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
+@@ -69,8 +69,12 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
+                     : [this.getSelectedAddress()];
+                 const accountsForChain = Object.assign({}, accountsByChainId[chainId]);
+                 for (const address of accountsToUpdate) {
++                    /**
++                     * IMPORTANT NOTE ABOUT THIS PATCH
++                     * This patch can be removed once Assets Controller is updated to v^27
++                     */
+                     accountsForChain[address] = {
+-                        balance: (0, controller_utils_1.BNToHex)(yield this.getBalanceFromChain(address, ethQuery)),
++                        balance: yield this.getBalanceFromChain(address, ethQuery),
+                     };
+                 }
+                 this.update(Object.assign(Object.assign({}, (chainId === this.getCurrentChainId() && {
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
 index 0873ccd..8a1b6a7 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
@@ -72,3 +90,120 @@ index 0873ccd..8a1b6a7 100644
                      ? (0, controller_utils_1.safelyExecute)(() => this.getNftContractInformationFromApi(contractAddress))
                      : undefined,
              ]);
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
+index 7d09db2..861f984 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
++++ b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
+@@ -135,6 +135,16 @@ class TokenBalancesController extends base_controller_1.BaseController {
+             });
+         });
+     }
++
++    /**
++     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
++     * Resets to the default state
++     */
++    reset(){
++        this.update((state) => {
++           state.contractBalances= {}
++        })
++    }
+ }
+ exports.TokenBalancesController = TokenBalancesController;
+ _TokenBalancesController_handle = new WeakMap(), _TokenBalancesController_getERC20BalanceOf = new WeakMap(), _TokenBalancesController_interval = new WeakMap(), _TokenBalancesController_tokens = new WeakMap(), _TokenBalancesController_disabled = new WeakMap();
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.ts b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.ts
+index 528f665..87859b7 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.ts
+@@ -6,7 +6,7 @@ import { StaticIntervalPollingController } from '@metamask/polling-controller';
+ import type { PreferencesControllerGetStateAction, PreferencesControllerStateChangeEvent } from '@metamask/preferences-controller';
+ import type { AssetsContractController } from './AssetsContractController';
+ import type { GetTokenListState, TokenListMap, TokenListStateChange } from './TokenListController';
+-import type { TokensControllerAddDetectedTokensAction, TokensControllerGetStateAction } from './TokensController';
++import type { TokensControllerAddDetectedTokensAction, TokensControllerGetStateAction, TokensState } from './TokensController';
+ /**
+  * Compare 2 given strings and return boolean
+  * eg: "foo" and "FOO" => true
+@@ -54,11 +54,12 @@ export declare class TokenDetectionController extends StaticIntervalPollingContr
+      * @param options.getBalancesInSingleCall - Gets the balances of a list of tokens for the given address.
+      * @param options.trackMetaMetricsEvent - Sets options for MetaMetrics event tracking.
+      */
+-    constructor({ selectedAddress, interval, disabled, getBalancesInSingleCall, trackMetaMetricsEvent, messenger, }: {
++    constructor({ selectedAddress, interval, disabled, getBalancesInSingleCall, getTokensState, trackMetaMetricsEvent, messenger, }: {
+         selectedAddress?: string;
+         interval?: number;
+         disabled?: boolean;
+         getBalancesInSingleCall: AssetsContractController['getBalancesInSingleCall'];
++        getTokensState: () => TokensState;
+         trackMetaMetricsEvent: (options: {
+             event: string;
+             category: string;
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
+index 9aa0914..d91cd80 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
++++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
+@@ -33,7 +33,7 @@ var __rest = (this && this.__rest) || function (s, e) {
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+-var _TokenDetectionController_instances, _TokenDetectionController_intervalId, _TokenDetectionController_selectedAddress, _TokenDetectionController_networkClientId, _TokenDetectionController_tokenList, _TokenDetectionController_disabled, _TokenDetectionController_isUnlocked, _TokenDetectionController_isDetectionEnabledFromPreferences, _TokenDetectionController_isDetectionEnabledForNetwork, _TokenDetectionController_getBalancesInSingleCall, _TokenDetectionController_trackMetaMetricsEvent, _TokenDetectionController_registerEventListeners, _TokenDetectionController_stopPolling, _TokenDetectionController_startPolling, _TokenDetectionController_getCorrectChainIdAndNetworkClientId, _TokenDetectionController_restartTokenDetection, _TokenDetectionController_getSlicesOfTokensToDetect, _TokenDetectionController_addDetectedTokens;
++var _TokenDetectionController_instances, _TokenDetectionController_intervalId, _TokenDetectionController_selectedAddress, _TokenDetectionController_networkClientId, _TokenDetectionController_tokenList, _TokenDetectionController_disabled, _TokenDetectionController_isUnlocked, _TokenDetectionController_isDetectionEnabledFromPreferences, _TokenDetectionController_isDetectionEnabledForNetwork, _TokenDetectionController_getBalancesInSingleCall, _TokenDetectionController_getTokensState, _TokenDetectionController_trackMetaMetricsEvent, _TokenDetectionController_registerEventListeners, _TokenDetectionController_stopPolling, _TokenDetectionController_startPolling, _TokenDetectionController_getCorrectChainIdAndNetworkClientId, _TokenDetectionController_restartTokenDetection, _TokenDetectionController_getSlicesOfTokensToDetect, _TokenDetectionController_addDetectedTokens;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TokenDetectionController = exports.controllerName = exports.STATIC_MAINNET_TOKEN_LIST = exports.isEqualCaseInsensitive = void 0;
+ const contract_metadata_1 = __importDefault(require("@metamask/contract-metadata"));
+@@ -63,6 +63,12 @@ exports.STATIC_MAINNET_TOKEN_LIST = Object.entries(contract_metadata_1.default).
+     return Object.assign(Object.assign({}, acc), { [base.toLowerCase()]: Object.assign(Object.assign({}, tokenMetadata), { address: base.toLowerCase(), iconUrl: `images/contract/${logo}`, aggregators: [] }) });
+ }, {});
+ exports.controllerName = 'TokenDetectionController';
++
++/**
++ * **IMPORTANT NOTE ABOUT THIS PATCH**
++ * TokenDetectionController patch can be removed once Tokens Controller extends Base Controller v2
++ */
++
+ /**
+  * Controller that passively polls on a set interval for Tokens auto detection
+  * @property intervalId - Polling interval used to fetch new token rates
+@@ -85,7 +91,7 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
+      * @param options.getBalancesInSingleCall - Gets the balances of a list of tokens for the given address.
+      * @param options.trackMetaMetricsEvent - Sets options for MetaMetrics event tracking.
+      */
+-    constructor({ selectedAddress, interval = DEFAULT_INTERVAL, disabled = true, getBalancesInSingleCall, trackMetaMetricsEvent, messenger, }) {
++    constructor({ selectedAddress, interval = DEFAULT_INTERVAL, disabled = true, getBalancesInSingleCall, getTokensState, trackMetaMetricsEvent, messenger, }) {
+         super({
+             name: exports.controllerName,
+             messenger,
+@@ -102,6 +108,7 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
+         _TokenDetectionController_isDetectionEnabledFromPreferences.set(this, void 0);
+         _TokenDetectionController_isDetectionEnabledForNetwork.set(this, void 0);
+         _TokenDetectionController_getBalancesInSingleCall.set(this, void 0);
++        _TokenDetectionController_getTokensState.set(this, void 0);
+         _TokenDetectionController_trackMetaMetricsEvent.set(this, void 0);
+         __classPrivateFieldSet(this, _TokenDetectionController_disabled, disabled, "f");
+         this.setIntervalLength(interval);
+@@ -113,6 +120,7 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
+         __classPrivateFieldSet(this, _TokenDetectionController_isDetectionEnabledFromPreferences, defaultUseTokenDetection, "f");
+         __classPrivateFieldSet(this, _TokenDetectionController_isDetectionEnabledForNetwork, (0, assetsUtil_1.isTokenDetectionSupportedForNetwork)(chainId), "f");
+         __classPrivateFieldSet(this, _TokenDetectionController_getBalancesInSingleCall, getBalancesInSingleCall, "f");
++        __classPrivateFieldSet(this, _TokenDetectionController_getTokensState, getTokensState, "f");
+         __classPrivateFieldSet(this, _TokenDetectionController_trackMetaMetricsEvent, trackMetaMetricsEvent, "f");
+         const { isUnlocked } = this.messagingSystem.call('KeyringController:getState');
+         __classPrivateFieldSet(this, _TokenDetectionController_isUnlocked, isUnlocked, "f");
+@@ -210,7 +218,7 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
+     }
+ }
+ exports.TokenDetectionController = TokenDetectionController;
+-_TokenDetectionController_intervalId = new WeakMap(), _TokenDetectionController_selectedAddress = new WeakMap(), _TokenDetectionController_networkClientId = new WeakMap(), _TokenDetectionController_tokenList = new WeakMap(), _TokenDetectionController_disabled = new WeakMap(), _TokenDetectionController_isUnlocked = new WeakMap(), _TokenDetectionController_isDetectionEnabledFromPreferences = new WeakMap(), _TokenDetectionController_isDetectionEnabledForNetwork = new WeakMap(), _TokenDetectionController_getBalancesInSingleCall = new WeakMap(), _TokenDetectionController_trackMetaMetricsEvent = new WeakMap(), _TokenDetectionController_instances = new WeakSet(), _TokenDetectionController_registerEventListeners = function _TokenDetectionController_registerEventListeners() {
++_TokenDetectionController_intervalId = new WeakMap(), _TokenDetectionController_selectedAddress = new WeakMap(), _TokenDetectionController_networkClientId = new WeakMap(), _TokenDetectionController_tokenList = new WeakMap(), _TokenDetectionController_disabled = new WeakMap(), _TokenDetectionController_isUnlocked = new WeakMap(), _TokenDetectionController_isDetectionEnabledFromPreferences = new WeakMap(), _TokenDetectionController_isDetectionEnabledForNetwork = new WeakMap(), _TokenDetectionController_getBalancesInSingleCall = new WeakMap(), _TokenDetectionController_getTokensState = new WeakMap(), _TokenDetectionController_trackMetaMetricsEvent = new WeakMap(), _TokenDetectionController_instances = new WeakSet(), _TokenDetectionController_registerEventListeners = function _TokenDetectionController_registerEventListeners() {
+     this.messagingSystem.subscribe('KeyringController:unlock', () => __awaiter(this, void 0, void 0, function* () {
+         __classPrivateFieldSet(this, _TokenDetectionController_isUnlocked, true, "f");
+         yield __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this);
+@@ -298,7 +306,7 @@ _TokenDetectionController_intervalId = new WeakMap(), _TokenDetectionController_
+         this.setIntervalLength(DEFAULT_INTERVAL);
+     });
+ }, _TokenDetectionController_getSlicesOfTokensToDetect = function _TokenDetectionController_getSlicesOfTokensToDetect({ chainId, selectedAddress, }) {
+-    const { allTokens, allDetectedTokens, allIgnoredTokens } = this.messagingSystem.call('TokensController:getState');
++    const { allTokens, allDetectedTokens, allIgnoredTokens } = __classPrivateFieldGet(this, _TokenDetectionController_getTokensState, "f").call(this);
+     const [tokensAddresses, detectedTokensAddresses, ignoredTokensAddresses] = [
+         allTokens,
+         allDetectedTokens,

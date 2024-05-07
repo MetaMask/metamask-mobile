@@ -3,7 +3,7 @@
 exports[`MessageSign ExpandedMessage should render ExpandedMessage correctly 1`] = `
 <div
   currentPageInformation={
-    Object {
+    {
       "title": "title",
       "url": "http://localhost:8545",
     }
@@ -21,7 +21,7 @@ exports[`MessageSign ExpandedMessage should render ExpandedMessage correctly 1`]
 exports[`MessageSign ExpandedMessage should render Message text correctly 1`] = `
 <Text
   style={
-    Object {
+    {
       "color": "#24272A",
       "fontFamily": "EuclidCircularB-Regular",
       "fontSize": 14,
@@ -37,14 +37,14 @@ exports[`MessageSign ExpandedMessage should render Message text correctly 1`] = 
 exports[`MessageSign SignatureRequest should render correctly 1`] = `
 <div
   currentPageInformation={
-    Object {
+    {
       "title": "title",
       "url": "http://localhost:8545",
     }
   }
   fromAddress="0xE413f7dB07f9B93936189867588B1440D823e651"
   navigation={
-    Object {
+    {
       "navigate": [MockFunction],
     }
   }
@@ -62,7 +62,7 @@ exports[`MessageSign SignatureRequest should render correctly 1`] = `
   </span>
   <View
     style={
-      Object {
+      {
         "marginBottom": 4,
       }
     }
@@ -70,7 +70,7 @@ exports[`MessageSign SignatureRequest should render correctly 1`] = `
     <Text
       onTextLayout={[Function]}
       style={
-        Object {
+        {
           "color": "#24272A",
         }
       }

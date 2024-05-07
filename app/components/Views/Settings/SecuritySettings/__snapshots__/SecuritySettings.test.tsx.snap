@@ -3,7 +3,7 @@
 exports[`SecuritySettings should render correctly 1`] = `
 <RCTScrollView
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "paddingBottom": 48,
       "paddingHorizontal": 16,
@@ -15,18 +15,18 @@ exports[`SecuritySettings should render correctly 1`] = `
   <View>
     <View
       style={
-        Object {
+        {
           "paddingBottom": 112,
         }
       }
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "marginTop": 32,
             },
-            Object {
+            {
               "marginTop": 0,
             },
           ]
@@ -35,7 +35,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 24,
@@ -51,11 +51,11 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "marginTop": 30,
             },
-            Object {
+            {
               "marginTop": 0,
             },
           ]
@@ -64,7 +64,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -78,14 +78,14 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "marginTop": 16,
             }
           }
         >
           <View
             style={
-              Object {
+              {
                 "height": 240,
                 "width": "100%",
               }
@@ -95,7 +95,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -115,7 +115,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           onPressIn={[Function]}
           onPressOut={[Function]}
           style={
-            Object {
+            {
               "backgroundColor": "transparent",
               "color": "#24272A",
             }
@@ -125,7 +125,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#0376C9",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -140,7 +140,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "backgroundColor": "#D7384719",
               "borderColor": "#D73847",
               "borderLeftWidth": 4,
@@ -156,7 +156,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "marginRight": 8,
               }
             }
@@ -166,7 +166,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               height={24}
               name="Danger"
               style={
-                Object {
+                {
                   "height": 24,
                   "width": 24,
                 }
@@ -176,7 +176,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </View>
           <View
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -184,7 +184,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#24272A",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 16,
@@ -206,7 +206,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           onPressIn={[Function]}
           onPressOut={[Function]}
           style={
-            Object {
+            {
               "alignItems": "center",
               "alignSelf": "stretch",
               "backgroundColor": "#0376C9",
@@ -223,7 +223,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#FFFFFF",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -239,7 +239,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "marginTop": 32,
           }
         }
@@ -248,7 +248,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -263,7 +263,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -284,7 +284,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           onPressIn={[Function]}
           onPressOut={[Function]}
           style={
-            Object {
+            {
               "alignItems": "center",
               "alignSelf": "stretch",
               "backgroundColor": "transparent",
@@ -304,7 +304,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#0376C9",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -320,7 +320,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "marginTop": 32,
           }
         }
@@ -329,7 +329,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -344,7 +344,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -359,7 +359,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "borderColor": "#BBC0C5",
               "borderRadius": 5,
               "borderWidth": 2,
@@ -369,14 +369,14 @@ exports[`SecuritySettings should render correctly 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
           >
             <View
               style={
-                Object {
+                {
                   "flex": 1,
                 }
               }
@@ -386,7 +386,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
@@ -394,7 +394,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   <Text
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "alignSelf": "flex-start",
                         "color": "#24272A",
                         "flex": 1,
@@ -410,24 +410,24 @@ exports[`SecuritySettings should render correctly 1`] = `
                   <Text
                     allowFontScaling={false}
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "color": "#24272A",
                           "fontSize": 24,
                         },
-                        Object {
+                        {
                           "height": 25,
                           "justifyContent": "flex-end",
                           "marginRight": 10,
                           "marginTop": 7,
                           "textAlign": "right",
                         },
-                        Object {
+                        {
                           "fontFamily": "Material Icons",
                           "fontStyle": "normal",
                           "fontWeight": "normal",
                         },
-                        Object {},
+                        {},
                       ]
                     }
                   >
@@ -453,7 +453,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 scrollTo={null}
                 statusBarTranslucent={false}
                 supportedOrientations={
-                  Array [
+                  [
                     "portrait",
                     "landscape",
                   ]
@@ -471,7 +471,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       />
       <View
         style={
-          Object {
+          {
             "marginTop": 32,
           }
         }
@@ -479,7 +479,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <View>
           <View
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
               }
@@ -488,7 +488,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#24272A",
                   "flex": 1,
                   "fontFamily": "Euclid Circular B",
@@ -503,7 +503,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             </Text>
             <View
               style={
-                Object {
+                {
                   "marginLeft": 16,
                 }
               }
@@ -515,16 +515,16 @@ exports[`SecuritySettings should render correctly 1`] = `
                 onStartShouldSetResponder={[Function]}
                 onTintColor="#0376C9"
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "height": 31,
                       "width": 51,
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "alignSelf": "flex-start",
                       },
-                      Object {
+                      {
                         "backgroundColor": "#D6D9DC",
                         "borderRadius": 16,
                       },
@@ -541,7 +541,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -558,7 +558,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "marginTop": 32,
           }
         }
@@ -567,7 +567,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -582,7 +582,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -603,7 +603,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           onPressIn={[Function]}
           onPressOut={[Function]}
           style={
-            Object {
+            {
               "alignItems": "center",
               "alignSelf": "stretch",
               "backgroundColor": "#0376C9",
@@ -620,7 +620,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#FFFFFF",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -636,15 +636,19 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
-            "marginVertical": 16,
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginTop": 32,
           }
         }
       >
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -656,48 +660,6 @@ exports[`SecuritySettings should render correctly 1`] = `
         >
           Security alerts
         </Text>
-        <Text
-          accessibilityRole="text"
-          style={
-            Object {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-              "marginTop": 8,
-            }
-          }
-        >
-          This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.
-        </Text>
-      </View>
-      <View
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Blockaid
-        </Text>
         <RCTSwitch
           accessibilityRole="switch"
           onChange={[Function]}
@@ -705,16 +667,16 @@ exports[`SecuritySettings should render correctly 1`] = `
           onStartShouldSetResponder={[Function]}
           onTintColor="#0376C9"
           style={
-            Array [
-              Object {
+            [
+              {
                 "height": 31,
                 "width": 51,
               },
-              Array [
-                Object {
+              [
+                {
                   "alignSelf": "flex-end",
                 },
-                Object {
+                {
                   "backgroundColor": "#D6D9DC",
                   "borderRadius": 16,
                 },
@@ -730,7 +692,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -745,8 +707,8 @@ exports[`SecuritySettings should render correctly 1`] = `
       </Text>
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "marginTop": 32,
             },
             undefined,
@@ -756,7 +718,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 24,
@@ -774,7 +736,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -789,14 +751,14 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "marginVertical": 16,
             }
           }
         >
           <View
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
                 "justifyContent": "space-between",
@@ -807,7 +769,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#24272A",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 16,
@@ -826,12 +788,12 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "height": 31,
                     "width": 51,
                   },
-                  Object {
+                  {
                     "backgroundColor": "#D6D9DC",
                     "borderRadius": 16,
                   },
@@ -845,7 +807,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -862,7 +824,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
@@ -877,7 +839,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "marginTop": 16,
           }
         }
@@ -886,7 +848,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -901,7 +863,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -916,7 +878,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "marginTop": 16,
             }
           }
@@ -929,7 +891,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
@@ -947,7 +909,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#0376C9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
@@ -964,8 +926,8 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "marginTop": 32,
             },
           ]
@@ -975,7 +937,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -990,7 +952,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -1005,7 +967,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "marginTop": 16,
             }
           }
@@ -1018,7 +980,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
@@ -1036,7 +998,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#0376C9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
@@ -1069,7 +1031,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           scrollTo={null}
           statusBarTranslucent={false}
           supportedOrientations={
-            Array [
+            [
               "portrait",
               "landscape",
             ]
@@ -1082,7 +1044,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "marginTop": 32,
           }
         }
@@ -1091,7 +1053,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -1106,7 +1068,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -1121,7 +1083,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "marginTop": 16,
             }
           }
@@ -1135,7 +1097,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
@@ -1154,7 +1116,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#0376C9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
@@ -1171,7 +1133,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "marginTop": 32,
           }
         }
@@ -1180,7 +1142,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -1195,7 +1157,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -1210,7 +1172,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "marginTop": 16,
             }
           }
@@ -1224,7 +1186,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
@@ -1243,7 +1205,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#0376C9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
@@ -1277,7 +1239,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         scrollTo={null}
         statusBarTranslucent={false}
         supportedOrientations={
-          Array [
+          [
             "portrait",
             "landscape",
           ]
@@ -1290,7 +1252,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
@@ -1305,7 +1267,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "marginTop": 16,
           }
         }
@@ -1313,7 +1275,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
               "flexDirection": "row",
             }
@@ -1322,7 +1284,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "flex": 1,
                 "fontFamily": "Euclid Circular B",
@@ -1337,7 +1299,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
           <View
             style={
-              Object {
+              {
                 "marginLeft": 16,
               }
             }
@@ -1349,16 +1311,16 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "height": 31,
                     "width": 51,
                   },
-                  Array [
-                    Object {
+                  [
+                    {
                       "alignSelf": "flex-start",
                     },
-                    Object {
+                    {
                       "backgroundColor": "#D6D9DC",
                       "borderRadius": 16,
                     },
@@ -1375,7 +1337,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -1390,7 +1352,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -1410,7 +1372,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
@@ -1425,7 +1387,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "marginTop": 16,
           }
         }
@@ -1433,7 +1395,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
               "flexDirection": "row",
             }
@@ -1442,7 +1404,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "flex": 1,
                 "fontFamily": "Euclid Circular B",
@@ -1457,7 +1419,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
           <View
             style={
-              Object {
+              {
                 "marginLeft": 16,
               }
             }
@@ -1469,16 +1431,16 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "height": 31,
                     "width": 51,
                   },
-                  Array [
-                    Object {
+                  [
+                    {
                       "alignSelf": "flex-start",
                     },
-                    Object {
+                    {
                       "backgroundColor": "#D6D9DC",
                       "borderRadius": 16,
                     },
@@ -1495,7 +1457,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -1511,7 +1473,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "marginTop": 32,
           }
         }
@@ -1520,7 +1482,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -1535,7 +1497,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -1550,7 +1512,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "marginLeft": -16,
               "marginRight": -16,
               "marginTop": 24,
@@ -1559,8 +1521,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         >
           <TouchableOpacity
             avatarProps={
-              Object {
-                "imageSource": Object {
+              {
+                "imageSource": {
                   "uri": "MockImage",
                 },
                 "name": "Ethereum Main Network",
@@ -1569,7 +1531,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
             secondaryText="etherscan.io"
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderColor": "#BBC0C5",
                 "borderRadius": 4,
@@ -1582,17 +1544,19 @@ exports[`SecuritySettings should render correctly 1`] = `
           >
             <View
               style={
-                Object {
+                {
                   "flexDirection": "row",
                 }
               }
             >
               <View
                 style={
-                  Object {
+                  {
+                    "alignItems": "center",
                     "backgroundColor": "#FFFFFF",
                     "borderRadius": 16,
                     "height": 32,
+                    "justifyContent": "center",
                     "marginRight": 16,
                     "overflow": "hidden",
                     "width": 32,
@@ -1604,15 +1568,14 @@ exports[`SecuritySettings should render correctly 1`] = `
                   onError={[Function]}
                   resizeMode="contain"
                   source={
-                    Object {
+                    {
                       "uri": "MockImage",
                     }
                   }
                   style={
-                    Object {
-                      "flex": 1,
-                      "height": undefined,
-                      "width": undefined,
+                    {
+                      "height": 32,
+                      "width": 32,
                     }
                   }
                   testID="network-avatar-image"
@@ -1620,7 +1583,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               </View>
               <View
                 style={
-                  Object {
+                  {
                     "alignItems": "flex-start",
                     "flex": 1,
                   }
@@ -1630,7 +1593,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   accessibilityRole="text"
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 16,
@@ -1647,7 +1610,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   accessibilityRole="text"
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#535A61",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
@@ -1662,7 +1625,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               </View>
               <View
                 style={
-                  Object {
+                  {
                     "marginLeft": 16,
                   }
                 }
@@ -1674,16 +1637,16 @@ exports[`SecuritySettings should render correctly 1`] = `
                   onStartShouldSetResponder={[Function]}
                   onTintColor="#0376C9"
                   style={
-                    Array [
-                      Object {
+                    [
+                      {
                         "height": 31,
                         "width": 51,
                       },
-                      Array [
-                        Object {
+                      [
+                        {
                           "alignSelf": "flex-start",
                         },
-                        Object {
+                        {
                           "backgroundColor": "#D6D9DC",
                           "borderRadius": 16,
                         },
@@ -1699,8 +1662,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
           <TouchableOpacity
             avatarProps={
-              Object {
-                "imageSource": Object {
+              {
+                "imageSource": {
                   "uri": "MockImage",
                 },
                 "name": "Linea Main Network",
@@ -1709,7 +1672,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
             secondaryText="lineascan.build"
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderColor": "#BBC0C5",
                 "borderRadius": 4,
@@ -1722,17 +1685,19 @@ exports[`SecuritySettings should render correctly 1`] = `
           >
             <View
               style={
-                Object {
+                {
                   "flexDirection": "row",
                 }
               }
             >
               <View
                 style={
-                  Object {
+                  {
+                    "alignItems": "center",
                     "backgroundColor": "#FFFFFF",
                     "borderRadius": 16,
                     "height": 32,
+                    "justifyContent": "center",
                     "marginRight": 16,
                     "overflow": "hidden",
                     "width": 32,
@@ -1744,15 +1709,14 @@ exports[`SecuritySettings should render correctly 1`] = `
                   onError={[Function]}
                   resizeMode="contain"
                   source={
-                    Object {
+                    {
                       "uri": "MockImage",
                     }
                   }
                   style={
-                    Object {
-                      "flex": 1,
-                      "height": undefined,
-                      "width": undefined,
+                    {
+                      "height": 32,
+                      "width": 32,
                     }
                   }
                   testID="network-avatar-image"
@@ -1760,7 +1724,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               </View>
               <View
                 style={
-                  Object {
+                  {
                     "alignItems": "flex-start",
                     "flex": 1,
                   }
@@ -1770,7 +1734,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   accessibilityRole="text"
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 16,
@@ -1787,7 +1751,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   accessibilityRole="text"
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#535A61",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
@@ -1802,7 +1766,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               </View>
               <View
                 style={
-                  Object {
+                  {
                     "marginLeft": 16,
                   }
                 }
@@ -1814,16 +1778,16 @@ exports[`SecuritySettings should render correctly 1`] = `
                   onStartShouldSetResponder={[Function]}
                   onTintColor="#0376C9"
                   style={
-                    Array [
-                      Object {
+                    [
+                      {
                         "height": 31,
                         "width": 51,
                       },
-                      Array [
-                        Object {
+                      [
+                        {
                           "alignSelf": "flex-start",
                         },
-                        Object {
+                        {
                           "backgroundColor": "#D6D9DC",
                           "borderRadius": 16,
                         },
@@ -1858,7 +1822,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         scrollTo={null}
         statusBarTranslucent={false}
         supportedOrientations={
-          Array [
+          [
             "portrait",
             "landscape",
           ]
@@ -1871,7 +1835,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
@@ -1886,7 +1850,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "marginTop": 16,
           }
         }
@@ -1894,7 +1858,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
               "flexDirection": "row",
             }
@@ -1903,7 +1867,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "flex": 1,
                 "fontFamily": "Euclid Circular B",
@@ -1918,7 +1882,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
           <View
             style={
-              Object {
+              {
                 "marginLeft": 16,
               }
             }
@@ -1930,16 +1894,16 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "height": 31,
                     "width": 51,
                   },
-                  Array [
-                    Object {
+                  [
+                    {
                       "alignSelf": "flex-start",
                     },
-                    Object {
+                    {
                       "backgroundColor": "#D6D9DC",
                       "borderRadius": 16,
                     },
@@ -1956,7 +1920,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -1972,7 +1936,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "marginTop": 32,
           }
         }
@@ -1980,7 +1944,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
               "flexDirection": "row",
             }
@@ -1989,7 +1953,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "flex": 1,
                 "fontFamily": "Euclid Circular B",
@@ -2004,7 +1968,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
           <View
             style={
-              Object {
+              {
                 "marginLeft": 16,
               }
             }
@@ -2016,16 +1980,16 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "height": 31,
                     "width": 51,
                   },
-                  Array [
-                    Object {
+                  [
+                    {
                       "alignSelf": "flex-start",
                     },
-                    Object {
+                    {
                       "backgroundColor": "#D6D9DC",
                       "borderRadius": 16,
                     },
@@ -2041,7 +2005,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -2057,7 +2021,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "marginTop": 32,
           }
         }
@@ -2065,7 +2029,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
               "flexDirection": "row",
             }
@@ -2074,7 +2038,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "flex": 1,
                 "fontFamily": "Euclid Circular B",
@@ -2089,7 +2053,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
           <View
             style={
-              Object {
+              {
                 "marginLeft": 16,
               }
             }
@@ -2101,16 +2065,16 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "height": 31,
                     "width": 51,
                   },
-                  Array [
-                    Object {
+                  [
+                    {
                       "alignSelf": "flex-start",
                     },
-                    Object {
+                    {
                       "backgroundColor": "#D6D9DC",
                       "borderRadius": 16,
                     },
@@ -2126,7 +2090,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -2141,7 +2105,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "marginTop": 16,
             }
           }
@@ -2149,7 +2113,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -2164,7 +2128,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
           <View
             style={
-              Object {
+              {
                 "borderColor": "#BBC0C5",
                 "borderRadius": 5,
                 "borderWidth": 2,
@@ -2183,7 +2147,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
@@ -2198,7 +2162,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "marginTop": 16,
           }
         }
@@ -2206,7 +2170,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <View>
           <View
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
               }
@@ -2215,7 +2179,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#24272A",
                   "flex": 1,
                   "fontFamily": "Euclid Circular B",
@@ -2230,7 +2194,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             </Text>
             <View
               style={
-                Object {
+                {
                   "marginLeft": 16,
                 }
               }
@@ -2242,16 +2206,16 @@ exports[`SecuritySettings should render correctly 1`] = `
                 onStartShouldSetResponder={[Function]}
                 onTintColor="#0376C9"
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "height": 31,
                       "width": 51,
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "alignSelf": "flex-start",
                       },
-                      Object {
+                      {
                         "backgroundColor": "#D6D9DC",
                         "borderRadius": 16,
                       },
@@ -2267,7 +2231,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -2285,7 +2249,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
@@ -2300,7 +2264,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "marginTop": 16,
           }
         }
@@ -2308,7 +2272,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
               "flexDirection": "row",
             }
@@ -2317,7 +2281,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "flex": 1,
                 "fontFamily": "Euclid Circular B",
@@ -2332,7 +2296,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
           <View
             style={
-              Object {
+              {
                 "marginLeft": 16,
               }
             }
@@ -2344,16 +2308,16 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "height": 31,
                     "width": 51,
                   },
-                  Array [
-                    Object {
+                  [
+                    {
                       "alignSelf": "flex-start",
                     },
-                    Object {
+                    {
                       "backgroundColor": "#D6D9DC",
                       "borderRadius": 16,
                     },
@@ -2370,7 +2334,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -2386,7 +2350,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "marginTop": 32,
           }
         }
@@ -2394,7 +2358,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -2409,7 +2373,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -2423,7 +2387,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -2439,7 +2403,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -2455,7 +2419,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -2475,7 +2439,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
-              Object {
+              {
                 "backgroundColor": "transparent",
                 "color": "#24272A",
               }
@@ -2485,7 +2449,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#0376C9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
@@ -2501,7 +2465,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "marginTop": 16,
             }
           }
@@ -2515,7 +2479,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
@@ -2534,7 +2498,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#0376C9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
@@ -2568,7 +2532,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         scrollTo={null}
         statusBarTranslucent={false}
         supportedOrientations={
-          Array [
+          [
             "portrait",
             "landscape",
           ]
@@ -2580,7 +2544,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       />
       <View
         style={
-          Object {
+          {
             "marginTop": 32,
           }
         }
@@ -2588,7 +2552,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -2603,7 +2567,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -2620,7 +2584,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "marginTop": 16,
             }
           }
@@ -2633,7 +2597,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
@@ -2652,7 +2616,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#0376C9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
@@ -2686,7 +2650,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         scrollTo={null}
         statusBarTranslucent={false}
         supportedOrientations={
-          Array [
+          [
             "portrait",
             "landscape",
           ]
