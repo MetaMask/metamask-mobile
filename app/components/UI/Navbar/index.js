@@ -996,7 +996,7 @@ export function getWalletNavbarOptions(
     ),
     headerRight: () => (
       <View style={styles.leftButtonContainer}>
-        {!isNotificationsFeatureEnabled() && (
+        {isNotificationsFeatureEnabled() && (
           <ButtonIcon
             variant={ButtonIconVariants.Primary}
             onPress={handleNotificationOnPress}
