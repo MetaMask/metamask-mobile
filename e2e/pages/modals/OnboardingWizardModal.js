@@ -58,10 +58,6 @@ class OnboardingWizardModal {
     );
   }
 
-  static async isNotificationsTutorialStepVisible() {
-    await TestHelpers.checkIfVisible(ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID);
-  }
-
   static async isMainNavigationTutorialStepVisible() {
     await TestHelpers.checkIfVisible(ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID);
   }
@@ -73,8 +69,8 @@ class OnboardingWizardModal {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON)
       : Matchers.getElementByLabel(
-          OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON,
-        );
+        OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON,
+      );
   }
 
   get backButton() {
