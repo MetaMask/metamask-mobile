@@ -189,6 +189,7 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
+import { constants } from 'buffer';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1434,12 +1435,9 @@ class Engine {
     const { selectedAddress } = PreferencesController.state;
     const { currentCurrency } = CurrencyRateController.state;
     const networkProvider = NetworkController.state.providerConfig;
-    let conversionRate =
+    const conversionRate =
       CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
-        ?.conversionRate;
-    if (conversionRate === null) {
-      conversionRate = 0;
-    }
+        ?.conversionRate ?? 0;
     const { accountsByChainId } = AccountTrackerController.state;
 
     const { tokens } = TokensController.state;
