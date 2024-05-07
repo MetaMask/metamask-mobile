@@ -168,7 +168,7 @@ const SmartTransactionStatus = ({
   // Set block explorer link and show explorer on click
   const txUrl = getPortfolioStxLink(providerConfig.chainId, uuid);
 
-  const onViewTransaction = () => {
+  const handleViewTransaction = () => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -318,7 +318,7 @@ const SmartTransactionStatus = ({
         <View style={styles.textWrapper}>
           {description && <Text style={styles.desc}>{description}</Text>}
 
-          <TouchableOpacity onPress={onViewTransaction}>
+          <TouchableOpacity onPress={handleViewTransaction}>
             <Text style={styles.link}>
               {strings('smart_transactions.view_transaction')}
             </Text>
