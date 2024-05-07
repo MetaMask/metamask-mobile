@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import notifee, {
   Event as NotifeeEvent,
   EventType,
@@ -12,33 +12,40 @@ const useNotificationHandler = (
   bootstrapAndroidInitialNotification: () => Promise<void>,
   navigation: any,
 ) => {
-  const performActionBasedOnOpenedNotificationType = async (
-    notification: SimpleNotification,
-  ) => {
-    const { data } = notification;
+  const performActionBasedOnOpenedNotificationType = useCallback(
+    async (notification: SimpleNotification) => {
+      const { data } = notification;
 
-    if (data && data.action === 'tx') {
-      if (data.id) {
-        NotificationManager.setTransactionToView(data.id);
+      if (data && data.action === 'tx') {
+        if (data.id) {
+          NotificationManager.setTransactionToView(data.id);
+        }
+        if (navigation) {
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        }
       }
-      if (navigation) {
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    },
+    [navigation],
+  );
+
+  const handleOpenedNotification = useCallback(
+    (notification?: SimpleNotification) => {
+      if (!notification) {
+        return;
       }
-    }
-  };
+      performActionBasedOnOpenedNotificationType(notification);
+    },
+    [performActionBasedOnOpenedNotificationType],
+  );
 
-  const handleOpenedNotification = (notification?: SimpleNotification) => {
-    if (!notification) {
-      return;
-    }
-    performActionBasedOnOpenedNotificationType(notification);
-  };
-
-  const handleNotificationPressed = (event: NotifeeEvent) => {
-    if (event.type === EventType.PRESS) {
-      handleOpenedNotification(event.detail.notification);
-    }
-  };
+  const handleNotificationPressed = useCallback(
+    (event: NotifeeEvent) => {
+      if (event.type === EventType.PRESS) {
+        handleOpenedNotification(event.detail.notification);
+      }
+    },
+    [handleOpenedNotification],
+  );
 
   useEffect(() => {
     // Reset badge count https://notifee.app/react-native/docs/ios/badges#removing-the-badge-count
@@ -50,7 +57,11 @@ const useNotificationHandler = (
 
       setupAndroidChannel();
     }, 1000);
-  }, [bootstrapAndroidInitialNotification, navigation]);
+  }, [
+    bootstrapAndroidInitialNotification,
+    navigation,
+    handleNotificationPressed,
+  ]);
 };
 
 export default useNotificationHandler;

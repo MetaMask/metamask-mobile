@@ -281,7 +281,10 @@ const Main = (props) => {
     if (Device.isAndroid()) {
       const initialNotification = await notifee.getInitialNotification();
 
-      if (initialNotification?.data?.action === 'tx' && initialNotification.data.id) {
+      if (
+        initialNotification?.data?.action === 'tx' &&
+        initialNotification.data.id
+      ) {
         NotificationManager.setTransactionToView(initialNotification.data.id);
         props.navigation.navigate(Routes.TRANSACTIONS_VIEW);
       }
