@@ -190,11 +190,6 @@ class SmartTransactionHook {
         uuid,
       );
 
-      if (transactionHash && this.#isSwapTransaction) {
-        // The original STX gets replaced by another tx, which has a different tx.id, so we need to associate the TxController.state.swapsTransactions somehow
-        this.#updateSwapsTransactions(transactionHash);
-      }
-
       return { transactionHash };
     } catch (error: any) {
       Logger.error(
