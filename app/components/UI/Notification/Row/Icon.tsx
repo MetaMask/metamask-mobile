@@ -27,7 +27,8 @@ function NotificationIcon({
   imageUrl,
 }: NotificationIconProps) {
   const customStyles = () => {
-    if (notificationType.toLowerCase().includes('erc721' || 'erc1155')) {
+    const types = ['erc721', 'erc1155'];
+    if (types.some(type => notificationType.toLowerCase().includes(type))) {
       return {
         style: styles.nftLogo,
         placeholderStyle: styles.nftPlaceholder,
