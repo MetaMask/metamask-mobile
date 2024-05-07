@@ -200,6 +200,8 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                echo "Gems being installed with bundler gem"
+                bundle install
                 echo "Node $NODE_VERSION being installed with asdf"
                 asdf list all nodejs
                 asdf install nodejs "$NODE_VERSION"
