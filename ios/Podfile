@@ -97,7 +97,7 @@ def common_target_logic
   # Adding OpenSSL-Universal to fix build issues in react-native-quick-crypto
   # Ref: https://github.com/margelo/react-native-quick-crypto/issues/121
   # Ref: https://stackoverflow.com/questions/29082174/ios-xcode-build-failing-due-to-openssl/76455587#76455587
-  # pod 'OpenSSL-Universal', :modular_headers => true, :configurations => ['Release']
+  pod 'OpenSSL-Universal', :modular_headers => true, :configurations => ['Release']
 end
 
 target 'MetaMask' do
@@ -112,9 +112,9 @@ target 'MetaMask-Flask' do
 	common_target_logic
 end
 
-target 'TestClip' do
-  inherit! :complete
-end
+# target 'TestClip' do
+#   inherit! :complete
+# end
 
 
 post_install do |installer|

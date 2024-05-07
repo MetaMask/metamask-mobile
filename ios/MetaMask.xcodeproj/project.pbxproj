@@ -87,7 +87,6 @@
 		7C0226ABD9694AEDBAF3016F /* Roboto-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CF552F79C77A4184A690513A /* Roboto-ThinItalic.ttf */; };
 		7CFB6EF0B7853F1C4E863E5E /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CC4BA1B4AFA5C6EA75133110 /* libPods-MetaMask.a */; };
 		7E08FB90F3754D47994208B4 /* Roboto-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D9A37B5BF2914CF1B49EEF80 /* Roboto-Thin.ttf */; };
-		80B252D780C1A4553524128B /* libPods-TestClip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E70EC0F38FE106306841A8D7 /* libPods-TestClip.a */; };
 		813214A2220E40C7BBB5ED9E /* Roboto-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A783D1CD7D27456796FE2E1B /* Roboto-Bold.ttf */; };
 		887E75FB64A54509A08D6C50 /* Roboto-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E020F42F788744B3BCE17F05 /* Roboto-LightItalic.ttf */; };
 		8DEB44A7E7EF48E1B3298910 /* EuclidCircularB-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = CE0434C5FB7C4C6F9FEBDCE2 /* EuclidCircularB-Medium.otf */; };
@@ -331,12 +330,10 @@
 		8E369AC13A2049B6B21E5120 /* libRCTSearchApi.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTSearchApi.a; sourceTree = "<group>"; };
 		9499B01ECAC44DA29AC44E80 /* EuclidCircularB-SemiboldItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-SemiboldItalic.otf"; path = "../app/fonts/EuclidCircularB-SemiboldItalic.otf"; sourceTree = "<group>"; };
 		A498EA4CD2F8488DB666B94C /* Entypo.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Entypo.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
-		A55DC02017C5CCA8E76D0186 /* Pods-TestClip.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TestClip.debug.xcconfig"; path = "Target Support Files/Pods-TestClip/Pods-TestClip.debug.xcconfig"; sourceTree = "<group>"; };
 		A783D1CD7D27456796FE2E1B /* Roboto-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Bold.ttf"; path = "../app/fonts/Roboto-Bold.ttf"; sourceTree = "<group>"; };
 		A8DE9C5BC0714D648276E123 /* EuclidCircularB-Semibold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-Semibold.otf"; path = "../app/fonts/EuclidCircularB-Semibold.otf"; sourceTree = "<group>"; };
 		A98029A3662F4C1391489A6B /* EuclidCircularB-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-Light.otf"; path = "../app/fonts/EuclidCircularB-Light.otf"; sourceTree = "<group>"; };
 		A98DB430A7DA47EFB97EDF8B /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
-		AA3AA9D050E13909C756F8FE /* Pods-TestClip.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TestClip.release.xcconfig"; path = "Target Support Files/Pods-TestClip/Pods-TestClip.release.xcconfig"; sourceTree = "<group>"; };
 		AA9EDF17249955C7005D89EE /* MetaMaskDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MetaMaskDebug.entitlements; path = MetaMask/MetaMaskDebug.entitlements; sourceTree = "<group>"; };
 		B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = ThemeColors.xcassets; sourceTree = "<group>"; };
 		B339FEA72899852C001B89FB /* MetaMask-QA-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "MetaMask-QA-Info.plist"; path = "MetaMask/MetaMask-QA-Info.plist"; sourceTree = "<group>"; };
@@ -358,7 +355,6 @@
 		E020F42F788744B3BCE17F05 /* Roboto-LightItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-LightItalic.ttf"; path = "../app/fonts/Roboto-LightItalic.ttf"; sourceTree = "<group>"; };
 		E0B857D61941CE8A3F59C662 /* libPods-MetaMask-QA.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask-QA.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2CC0CA5C079854C6CC0D78C /* Pods-MetaMask-QA.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-QA.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask-QA/Pods-MetaMask-QA.debug.xcconfig"; sourceTree = "<group>"; };
-		E70EC0F38FE106306841A8D7 /* libPods-TestClip.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TestClip.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = MetaMask/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
 		E8BF7AD02BE98CF600C81D55 /* TestClip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E8BF7AD22BE98CF700C81D55 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -438,7 +434,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				80B252D780C1A4553524128B /* libPods-TestClip.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -531,7 +526,6 @@
 				E0B857D61941CE8A3F59C662 /* libPods-MetaMask-QA.a */,
 				FA078AF57878ABB05D063C8F /* libPods-MetaMask-Flask.a */,
 				CC4BA1B4AFA5C6EA75133110 /* libPods-MetaMask.a */,
-				E70EC0F38FE106306841A8D7 /* libPods-TestClip.a */,
 				E8BF7B262BEA922A00C81D55 /* WidgetKit.framework */,
 				E8BF7B282BEA922A00C81D55 /* SwiftUI.framework */,
 			);
@@ -656,8 +650,6 @@
 				5D89472CA15F3091AE95E296 /* Pods-MetaMask-QA.release.xcconfig */,
 				1B3D5DF5831949FE98EDCB6D /* Pods-MetaMask-Flask.debug.xcconfig */,
 				1A00E5D287314FBFECB220E4 /* Pods-MetaMask-Flask.release.xcconfig */,
-				A55DC02017C5CCA8E76D0186 /* Pods-TestClip.debug.xcconfig */,
-				AA3AA9D050E13909C756F8FE /* Pods-TestClip.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -795,7 +787,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E8BF7AEE2BE98CF800C81D55 /* Build configuration list for PBXNativeTarget "TestClip" */;
 			buildPhases = (
-				2F1DB8389429470291BE2D68 /* [CP] Check Pods Manifest.lock */,
 				E8BF7ACC2BE98CF600C81D55 /* Sources */,
 				E8BF7ACD2BE98CF600C81D55 /* Frameworks */,
 				E8BF7ACE2BE98CF600C81D55 /* Resources */,
@@ -1170,28 +1161,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MetaMask-Flask/Pods-MetaMask-Flask-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		2F1DB8389429470291BE2D68 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-TestClip-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		54113A1E76112B187F92C803 /* [CP] Check Pods Manifest.lock */ = {
@@ -1974,7 +1943,6 @@
 		};
 		E8BF7AEB2BE98CF800C81D55 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A55DC02017C5CCA8E76D0186 /* Pods-TestClip.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -2035,7 +2003,6 @@
 		};
 		E8BF7AEC2BE98CF800C81D55 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = AA3AA9D050E13909C756F8FE /* Pods-TestClip.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;

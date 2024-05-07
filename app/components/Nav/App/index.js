@@ -357,7 +357,7 @@ const App = ({ userLoggedIn }) => {
               placeholder="Enter the text to display..."
             />
 
-            <AwesomeButton
+            <Button
               backgroundColor={'#33b8f6'}
               height={50}
               width={'100%'}
@@ -366,7 +366,7 @@ const App = ({ userLoggedIn }) => {
               style={styles.actionButton}
               onPress={handleSubmit}>
               Submit
-            </AwesomeButton>
+            </Button>
           </View>
         </View>
       </KeyboardAwareScrollView>

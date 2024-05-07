@@ -24248,6 +24248,11 @@ react-native-randombytes@^3.5.3:
     buffer "^4.9.1"
     sjcl "^1.0.3"
 
+react-native-really-awesome-button@^2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/react-native-really-awesome-button/-/react-native-really-awesome-button-2.0.4.tgz#10ffcc6debf43fbf4d3b6aa89c909e17ba7026ed"
+  integrity sha512-dC8K6/sj3MixM/7MGIkDiuy8oGrbVSoYxbhR2e2LMw8Zvp7s5uxY5R8Ka4AZfEFhreXNL2bFV3Jrxd8QlNNGAg==
+
 react-native-reanimated@3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-3.1.0.tgz#6fe757dadf06a59b365c1c0339e992751ab03792"
