@@ -447,7 +447,6 @@ class Engine {
         // noop
       },
     };
-
     const networkController = new NetworkController(networkControllerOpts);
 
     networkController.initializeProvider();
@@ -463,7 +462,6 @@ class Engine {
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
-
     const nftController = new NftController(
       {
         onPreferencesStateChange,
@@ -513,7 +511,6 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
       },
     );
-
     const accountsControllerMessenger = this.controllerMessenger.getRestricted({
       name: 'AccountsController',
       allowedEvents: [
@@ -539,7 +536,6 @@ class Engine {
       messenger: accountsControllerMessenger,
       state: initialState.AccountsController ?? defaultAccountsControllerState,
     });
-
     const tokensController = new TokensController({
       chainId: networkController.state.providerConfig.chainId,
       config: {
@@ -563,7 +559,6 @@ class Engine {
         ],
       }),
     });
-
     const tokenListController = new TokenListController({
       chainId: networkController.state.providerConfig.chainId,
       onNetworkStateChange: (listener) =>
@@ -580,7 +575,6 @@ class Engine {
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
-
     const currencyRateController = new CurrencyRateController({
       messenger: this.controllerMessenger.getRestricted<
         'CurrencyRateController',
@@ -595,7 +589,6 @@ class Engine {
     currencyRateController.startPollingByNetworkClientId(
       networkController.state.selectedNetworkClientId,
     );
-
     const gasFeeController = new GasFeeController({
       messenger: this.controllerMessenger.getRestricted<
         'GasFeeController',
@@ -762,7 +755,6 @@ class Engine {
       ),
     });
     ///: END:ONLY_INCLUDE_IF
-
     const accountTrackerController = new AccountTrackerController({
       onPreferencesStateChange,
       getIdentities: () => preferencesController.state.identities,
@@ -774,7 +766,6 @@ class Engine {
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
-
     const permissionController = new PermissionController({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -981,9 +972,7 @@ class Engine {
         }),
     });
     ///: END:ONLY_INCLUDE_IF
-
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
-
     const controllers = [
       keyringController,
       accountTrackerController,
@@ -1554,7 +1543,6 @@ class Engine {
       ignoredTokens: [],
       tokens: [],
     });
-
     NftController.update({
       allNftContracts: {},
       allNfts: {},
@@ -1562,7 +1550,6 @@ class Engine {
     });
 
     TokenBalancesController.reset();
-
     TokenRatesController.update({ contractExchangeRates: {} });
 
     TransactionController.update({
