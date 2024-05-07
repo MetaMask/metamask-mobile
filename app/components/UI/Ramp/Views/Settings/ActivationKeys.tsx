@@ -26,7 +26,7 @@ import useActivationKeys from '../../hooks/useActivationKeys';
 import { useRampSDK } from '../../sdk';
 
 // Internal dependencies
-import { creatActivationKeyFormNavDetails } from './ActivationKeyForm';
+import { createActivationKeyFormNavDetails } from './ActivationKeyForm';
 
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
@@ -63,7 +63,7 @@ function ActivationKeys() {
 
   const handleAddNewKeyPress = useCallback(() => {
     navigation.navigate(
-      ...creatActivationKeyFormNavDetails({
+      ...createActivationKeyFormNavDetails({
         onSubmit: handleAddNewKey,
         key: '',
         label: '',
@@ -75,7 +75,7 @@ function ActivationKeys() {
   const handleEditPress = useCallback(
     (key: string, label: string, active: boolean) => {
       navigation.navigate(
-        ...creatActivationKeyFormNavDetails({
+        ...createActivationKeyFormNavDetails({
           onSubmit: handleUpdateKey,
           key,
           label,
