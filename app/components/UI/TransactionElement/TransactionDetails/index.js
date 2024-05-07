@@ -40,7 +40,7 @@ import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { regex } from '../../../../../app/util/regex';
-import { getIsSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { getShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -126,9 +126,9 @@ class TransactionDetails extends PureComponent {
     primaryCurrency: PropTypes.string,
 
     /**
-     * Boolean that indicates if the transaction is a smart transaction
+     * Boolean that indicates if smart transaction should be used
      */
-    isSmartTransaction: PropTypes.bool,
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -306,7 +306,7 @@ class TransactionDetails extends PureComponent {
     const {
       chainId,
       transactionObject: { status, time, txParams },
-      isSmartTransaction,
+      shouldUseSmartTransaction,
     } = this.props;
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
@@ -322,7 +322,7 @@ class TransactionDetails extends PureComponent {
               {strings('transactions.status')}
             </DetailsModal.SectionTitle>
             <StatusText status={status} />
-            {!!renderTxActions && !isSmartTransaction && (
+            {!!renderTxActions && !shouldUseSmartTransaction && (
               <View style={styles.transactionActionsContainer}>
                 {this.renderSpeedUpButton()}
                 {this.renderCancelButton()}
@@ -432,7 +432,7 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   swapsTokens: state.engine.backgroundState.SwapsController.tokens,
-  isSmartTransaction: getIsSmartTransaction(state),
+  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
 });
 
 TransactionDetails.contextType = ThemeContext;

@@ -192,7 +192,7 @@ import {
 } from '../core/redux/slices/inpageProvider';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
-import { getIsSmartTransaction } from '../selectors/smartTransactionsController';
+import { getShouldUseSmartTransaction } from '../selectors/smartTransactionsController';
 import { getSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
@@ -1086,13 +1086,15 @@ class Engine {
 
       hooks: {
         publish: (transactionMeta) => {
-          const isSmartTransaction = getIsSmartTransaction(store.getState());
+          const shouldUseSmartTransaction = getShouldUseSmartTransaction(
+            store.getState(),
+          );
 
           return submitSmartTransactionHook({
             transactionMeta,
             transactionController: this.transactionController,
             smartTransactionsController: this.smartTransactionsController,
-            isSmartTransaction,
+            shouldUseSmartTransaction,
             approvalController,
             featureFlags: getSwapsChainFeatureFlags(store.getState()),
           });

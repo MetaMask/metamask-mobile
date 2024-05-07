@@ -118,7 +118,7 @@ const createRequest = ({
   },
   smartTransactionsController: createSmartTransactionsControllerMock(),
   transactionController: createTransactionControllerMock(),
-  isSmartTransaction: true,
+  shouldUseSmartTransaction: true,
   approvalController: createApprovalControllerMock({
     addAndShowApprovalRequest,
     pendingApprovals,
@@ -141,7 +141,7 @@ jest.setTimeout(10 * 1000);
 describe('submitSmartTransactionHook', () => {
   it('does not submit a transaction that is not a smart transaction', async () => {
     const request: SubmitSmartTransactionRequestMocked = createRequest();
-    request.isSmartTransaction = false;
+    request.shouldUseSmartTransaction = false;
     const result = await submitSmartTransactionHook(request);
     expect(result).toEqual({ transactionHash: undefined });
   });

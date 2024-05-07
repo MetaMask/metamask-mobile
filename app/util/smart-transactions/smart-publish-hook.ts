@@ -27,7 +27,7 @@ export interface SubmitSmartTransactionRequest {
   transactionMeta: TransactionMeta;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
-  isSmartTransaction: boolean;
+  shouldUseSmartTransaction: boolean;
   approvalController: ApprovalController;
   featureFlags: {
     mobile_active: boolean;
@@ -67,7 +67,7 @@ class SmartTransactionHook {
       returnTxHashAsap?: boolean;
     };
   };
-  #isSmartTransaction: boolean;
+  #shouldUseSmartTransaction: boolean;
   #smartTransactionsController: SmartTransactionsController;
   #transactionController: TransactionController;
   #approvalController: ApprovalController;
@@ -89,7 +89,7 @@ class SmartTransactionHook {
       transactionMeta,
       smartTransactionsController,
       transactionController,
-      isSmartTransaction,
+      shouldUseSmartTransaction,
       approvalController,
       featureFlags,
     } = request;
@@ -99,7 +99,7 @@ class SmartTransactionHook {
     this.#smartTransactionsController = smartTransactionsController;
     this.#transactionController = transactionController;
     this.#approvalController = approvalController;
-    this.#isSmartTransaction = isSmartTransaction;
+    this.#shouldUseSmartTransaction = shouldUseSmartTransaction;
     this.#featureFlags = featureFlags;
     this.#chainId = transactionMeta.chainId;
     this.#txParams = transactionMeta.txParams;
@@ -142,16 +142,21 @@ class SmartTransactionHook {
     // Will cause TransactionController to publish to the RPC provider as normal.
     Logger.log(
       LOG_PREFIX,
-      'isSmartTransaction',
-      this.#isSmartTransaction,
-      this.#transactionMeta.type,
+      'shouldUseSmartTransaction',
+      this.#shouldUseSmartTransaction,
     );
     const useRegularTransactionSubmit = { transactionHash: undefined };
-    if (!this.#isSmartTransaction) {
+    if (!this.#shouldUseSmartTransaction) {
       return useRegularTransactionSubmit;
     }
 
-    Logger.log(LOG_PREFIX, 'Started submit hook', this.#transactionMeta.id);
+    Logger.log(
+      LOG_PREFIX,
+      'Started submit hook',
+      this.#transactionMeta.id,
+      'transactionMeta.type',
+      this.#transactionMeta.type,
+    );
 
     try {
       const getFeesResponse = await this.#getFees();

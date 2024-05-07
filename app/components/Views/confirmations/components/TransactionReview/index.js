@@ -57,7 +57,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { getIsSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { getShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -249,9 +249,9 @@ class TransactionReview extends PureComponent {
      */
     metrics: PropTypes.object,
     /**
-     * Whether the transaction is a smart transaction
+     * Boolean that indicates if smart transaction should be used
      */
-    isSmartTransaction: PropTypes.bool,
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -297,7 +297,7 @@ class TransactionReview extends PureComponent {
       chainId,
       tokenList,
       metrics,
-      isSmartTransaction,
+      shouldUseSmartTransaction,
     } = this.props;
     let { showHexData } = this.props;
     let assetAmount, conversionRate, fiatValue;
@@ -330,7 +330,7 @@ class TransactionReview extends PureComponent {
     });
 
     metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED, {
-      is_smart_transaction: isSmartTransaction,
+      is_smart_transaction: shouldUseSmartTransaction,
     });
 
     if (isMultiLayerFeeNetwork(chainId)) {
@@ -664,7 +664,7 @@ const mapStateToProps = (state) => ({
   browser: state.browser,
   primaryCurrency: state.settings.primaryCurrency,
   tokenList: selectTokenList(state),
-  isSmartTransaction: getIsSmartTransaction(state),
+  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
 });
 
 TransactionReview.contextType = ThemeContext;

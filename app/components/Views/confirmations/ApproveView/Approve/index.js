@@ -75,7 +75,7 @@ import { updateTransaction } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
-import { getIsSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { getShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 
 const EDIT = 'edit';
@@ -174,9 +174,9 @@ class Approve extends PureComponent {
      */
     metrics: PropTypes.object,
     /**
-     * Indicates if a transaction is going to be routed through smart tx
+     * Boolean that indicates if smart transaction should be used
      */
-    isSmartTransaction: PropTypes.bool,
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -511,7 +511,7 @@ class Approve extends PureComponent {
       gasEstimateType,
       metrics,
       chainId,
-      isSmartTransaction,
+      shouldUseSmartTransaction,
     } = this.props;
     const {
       legacyGasTransaction,
@@ -586,7 +586,7 @@ class Approve extends PureComponent {
         return;
       }
 
-      if (isSmartTransaction) {
+      if (shouldUseSmartTransaction) {
         await ApprovalController.accept(transaction.id, undefined, {
           waitForResult: false,
         });
@@ -935,7 +935,7 @@ const mapStateToProps = (state) => ({
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
-  isSmartTransaction: getIsSmartTransaction(state),
+  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

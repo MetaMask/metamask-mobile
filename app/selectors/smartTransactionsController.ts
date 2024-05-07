@@ -43,7 +43,7 @@ export const getSmartTransactionsEnabled = (state: RootState) => {
       smartTransactionsLiveness,
   );
 };
-export const getIsSmartTransaction = (state: RootState) => {
+export const getShouldUseSmartTransaction = (state: RootState) => {
   const isSmartTransactionsEnabled = getSmartTransactionsEnabled(state);
   const smartTransactionsOptInStatus =
     selectSmartTransactionsOptInStatus(state);

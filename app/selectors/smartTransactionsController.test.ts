@@ -1,5 +1,5 @@
 import {
-  getIsSmartTransaction,
+  getShouldUseSmartTransaction,
   getSmartTransactionsEnabled,
 } from './smartTransactionsController';
 import initialBackgroundState from '../util/test/initial-background-state.json';
@@ -99,27 +99,27 @@ describe('SmartTransactionsController Selectors', () => {
       expect(enabled).toEqual(true);
     });
   });
-  describe('getIsSmartTransaction', () => {
+  describe('getShouldUseSmartTransaction', () => {
     it('should return false if smart transactions are not opted into', () => {
       const state = getDefaultState();
       state.engine.backgroundState.PreferencesController.smartTransactionsOptInStatus =
         false;
-      const isSmartTransaction = getIsSmartTransaction(state);
-      expect(isSmartTransaction).toEqual(false);
+      const shouldUseSmartTransaction = getShouldUseSmartTransaction(state);
+      expect(shouldUseSmartTransaction).toEqual(false);
     });
     it('should return false if smart transactions are not enabled', () => {
       const state = getDefaultState();
       state.swaps['0x1'].smartTransactions = {};
-      const isSmartTransaction = getIsSmartTransaction(state);
-      expect(isSmartTransaction).toEqual(false);
+      const shouldUseSmartTransaction = getShouldUseSmartTransaction(state);
+      expect(shouldUseSmartTransaction).toEqual(false);
     });
     it('should return true if smart transactions are enabled and opted into', () => {
       const state = getDefaultState();
       state.swaps.featureFlags.smart_transactions.mobile_active = true;
       state.swaps.featureFlags.smartTransactions.mobileActive = true;
 
-      const isSmartTransaction = getIsSmartTransaction(state);
-      expect(isSmartTransaction).toEqual(true);
+      const shouldUseSmartTransaction = getShouldUseSmartTransaction(state);
+      expect(shouldUseSmartTransaction).toEqual(true);
     });
   });
 });

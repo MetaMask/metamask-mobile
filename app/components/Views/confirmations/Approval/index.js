@@ -42,7 +42,7 @@ import {
 } from '../../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { providerErrors } from '@metamask/rpc-errors';
-import { getIsSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { getShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
@@ -118,9 +118,9 @@ class Approval extends PureComponent {
     metrics: PropTypes.object,
 
     /**
-     * Indicates if a transaction is going to be routed through smart tx
+     * Boolean that indicates if smart transaction should be used
      */
-    isSmartTransaction: PropTypes.bool,
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -280,14 +280,14 @@ class Approval extends PureComponent {
     const {
       networkType,
       transaction: { selectedAsset, assetType },
-      isSmartTransaction,
+      shouldUseSmartTransaction,
     } = this.props;
     return {
       view: APPROVAL,
       network: networkType,
       activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
       assetType,
-      is_smart_transaction: isSmartTransaction,
+      is_smart_transaction: shouldUseSmartTransaction,
     };
   };
 
@@ -309,8 +309,12 @@ class Approval extends PureComponent {
 
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
     try {
-      const { chainId, transaction, selectedAddress, isSmartTransaction } =
-        this.props;
+      const {
+        chainId,
+        transaction,
+        selectedAddress,
+        shouldUseSmartTransaction,
+      } = this.props;
       const { selectedAsset } = transaction;
       const { TransactionController, SmartTransactionsController } =
         Engine.context;
@@ -349,7 +353,7 @@ class Approval extends PureComponent {
           : this.originIsWalletConnect
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
-        is_smart_transaction: isSmartTransaction,
+        is_smart_transaction: shouldUseSmartTransaction,
         ...smartTransactionMetadata,
       };
     } catch (error) {
@@ -434,7 +438,7 @@ class Approval extends PureComponent {
       transaction: { assetType, selectedAsset },
       showCustomNonce,
       chainId,
-      isSmartTransaction,
+      shouldUseSmartTransaction,
     } = this.props;
     let { transaction } = this.props;
     const { nonce } = transaction;
@@ -471,7 +475,7 @@ class Approval extends PureComponent {
       }
 
       // For STX, don't wait for TxController to get finished event, since it will take some time to get hash for STX
-      if (isSmartTransaction) {
+      if (shouldUseSmartTransaction) {
         this.setState({ transactionHandled: true });
         this.props.hideModal();
       }
@@ -698,7 +702,7 @@ const mapStateToProps = (state) => ({
   showCustomNonce: state.settings.showCustomNonce,
   chainId: selectChainId(state),
   activeTabUrl: getActiveTabUrl(state),
-  isSmartTransaction: getIsSmartTransaction(state),
+  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

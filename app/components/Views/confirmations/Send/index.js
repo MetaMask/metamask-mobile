@@ -63,7 +63,7 @@ import {
 } from '../../../../selectors/preferencesController';
 import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
-import { getIsSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { getShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 
 const REVIEW = 'review';
@@ -158,9 +158,9 @@ class Send extends PureComponent {
      */
     metrics: PropTypes.object,
     /**
-     * Boolean that represents whether the transaction is a smart transaction
+     * Boolean that indicates if smart transaction should be used
      */
-    isSmartTransaction: PropTypes.bool,
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -698,7 +698,7 @@ class Send extends PureComponent {
       networkType,
       transaction,
       transaction: { selectedAsset, assetType },
-      isSmartTransaction,
+      shouldUseSmartTransaction,
     } = this.props;
 
     return {
@@ -710,7 +710,7 @@ class Send extends PureComponent {
         'ETH',
       assetType,
       ...getBlockaidTransactionMetricsParams(transaction),
-      is_smart_transaction: isSmartTransaction,
+      is_smart_transaction: shouldUseSmartTransaction,
     };
   };
 
@@ -787,7 +787,7 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedAddress(state),
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
   tokenList: selectTokenList(state),
-  isSmartTransaction: getIsSmartTransaction(state),
+  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

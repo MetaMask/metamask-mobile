@@ -63,7 +63,7 @@ import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { getIsSmartTransaction } from '../../../selectors/smartTransactionsController';
+import { getShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -197,7 +197,7 @@ const RootRPCMethodsUI = (props) => {
           estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
           quote_vs_executionRatio: quoteVsExecutionRatio,
           token_to_amount_received: tokenToAmountReceived.toString(),
-          is_smart_transaction: props.isSmartTransaction,
+          is_smart_transaction: props.shouldUseSmartTransaction,
           ...smartTransactionProperties,
         };
 
@@ -211,7 +211,7 @@ const RootRPCMethodsUI = (props) => {
     },
     [
       props.selectedAddress,
-      props.isSmartTransaction,
+      props.shouldUseSmartTransaction,
       trackEvent,
       trackAnonymousEvent,
     ],
@@ -490,9 +490,9 @@ RootRPCMethodsUI.propTypes = {
    */
   chainId: PropTypes.string,
   /**
-   * If the transaction is a smart transaction
+   * If smart tranactions should be used
    */
-  isSmartTransaction: PropTypes.bool,
+  shouldUseSmartTransaction: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -500,7 +500,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   tokens: selectTokens(state),
   providerType: selectProviderType(state),
-  isSmartTransaction: getIsSmartTransaction(state),
+  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -119,7 +119,7 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { selectTransactionGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { updateTransaction } from '../../../../../util/transaction-controller';
-import { getIsSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { getShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 
 const EDIT = 'edit';
@@ -243,9 +243,9 @@ class Confirm extends PureComponent {
      */
     setTransactionId: PropTypes.func,
     /**
-     * Indicates if a transaction is going to be routed through smart tx
+     * Boolean that indicates if smart transaction should be used
      */
-    isSmartTransaction: PropTypes.bool,
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -287,8 +287,12 @@ class Confirm extends PureComponent {
 
   getAnalyticsParams = (transactionMeta) => {
     try {
-      const { selectedAsset, gasEstimateType, chainId, isSmartTransaction } =
-        this.props;
+      const {
+        selectedAsset,
+        gasEstimateType,
+        chainId,
+        shouldUseSmartTransaction,
+      } = this.props;
       const { gasSelected, fromSelectedAddress } = this.state;
       const { SmartTransactionsController } = Engine.context;
 
@@ -318,7 +322,7 @@ class Confirm extends PureComponent {
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
 
-        is_smart_transaction: isSmartTransaction,
+        is_smart_transaction: shouldUseSmartTransaction,
         ...smartTransactionMetadata,
       };
     } catch (error) {
@@ -828,7 +832,7 @@ class Confirm extends PureComponent {
       navigation,
       resetTransaction,
       gasEstimateType,
-      isSmartTransaction,
+      shouldUseSmartTransaction,
     } = this.props;
 
     const {
@@ -894,7 +898,7 @@ class Confirm extends PureComponent {
 
       await KeyringController.resetQRKeyringState();
 
-      if (isSmartTransaction) {
+      if (shouldUseSmartTransaction) {
         await ApprovalController.accept(transactionMeta.id, undefined, {
           waitForResult: false,
         });
@@ -927,7 +931,7 @@ class Confirm extends PureComponent {
         stopGasPolling();
         resetTransaction();
 
-        if (!isSmartTransaction) {
+        if (!shouldUseSmartTransaction) {
           // We popped it already earlier
           navigation && navigation.dangerouslyGetParent()?.pop();
         }
@@ -1208,7 +1212,7 @@ class Confirm extends PureComponent {
       chainId,
       gasEstimateType,
       isNativeTokenBuySupported,
-      isSmartTransaction,
+      shouldUseSmartTransaction,
     } = this.props;
     const { nonce } = this.props.transaction;
     const {
@@ -1339,7 +1343,7 @@ class Confirm extends PureComponent {
               updateGasState={this.updateGasState}
             />
           )}
-          {showCustomNonce && !isSmartTransaction && (
+          {showCustomNonce && !shouldUseSmartTransaction && (
             <CustomNonce
               nonce={nonce}
               onNonceEdit={() => this.toggleConfirmationModal(EDIT_NONCE)}
@@ -1443,7 +1447,7 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
-  isSmartTransaction: getIsSmartTransaction(state),
+  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

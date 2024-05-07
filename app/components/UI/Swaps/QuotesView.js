@@ -100,7 +100,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
-import { getIsSmartTransaction } from '../../../selectors/smartTransactionsController';
+import { getShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -389,7 +389,7 @@ function SwapsQuotesView({
   usedCustomGas,
   setRecipient,
   resetTransaction,
-  isSmartTransaction,
+  shouldUseSmartTransaction,
 }) {
   const navigation = useNavigation();
   /* Get params from navigation */
@@ -994,7 +994,7 @@ function SwapsQuotesView({
             16,
           ).toString(10),
         };
-        if (isHardwareAddress || isSmartTransaction) {
+        if (isHardwareAddress || shouldUseSmartTransaction) {
           TransactionController.hub.once(
             `${transactionMeta.id}:confirmed`,
             (transactionMeta) => {
@@ -1023,7 +1023,7 @@ function SwapsQuotesView({
       selectedAddress,
       setRecipient,
       resetTransaction,
-      isSmartTransaction,
+      shouldUseSmartTransaction,
     ],
   );
 
@@ -1056,7 +1056,10 @@ function SwapsQuotesView({
       }
     }
 
-    if (!isSmartTransaction || (isSmartTransaction && !approvalTransaction)) {
+    if (
+      !shouldUseSmartTransaction ||
+      (shouldUseSmartTransaction && !approvalTransaction)
+    ) {
       handleSwapTransaction(
         TransactionController,
         newSwapsTransactions,
@@ -1074,7 +1077,7 @@ function SwapsQuotesView({
     handleApprovaltransaction,
     handleSwapTransaction,
     navigation,
-    isSmartTransaction,
+    shouldUseSmartTransaction,
   ]);
 
   const onEditQuoteTransactionsGas = useCallback(() => {
@@ -2308,7 +2311,7 @@ SwapsQuotesView.propTypes = {
   usedCustomGas: PropTypes.object,
   setRecipient: PropTypes.func,
   resetTransaction: PropTypes.func,
-  isSmartTransaction: PropTypes.bool,
+  shouldUseSmartTransaction: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -2341,7 +2344,7 @@ const mapStateToProps = (state) => ({
   usedCustomGas: state.engine.backgroundState.SwapsController.usedCustomGas,
   primaryCurrency: state.settings.primaryCurrency,
   swapsTokens: swapsTokensSelector(state),
-  isSmartTransaction: getIsSmartTransaction(state),
+  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
