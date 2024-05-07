@@ -169,7 +169,7 @@ const RootRPCMethodsUI = (props) => {
         delete newSwapsTransactions[transactionMeta.id].analytics;
         delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 
-        let smartTransactionMetadata = {};
+        let smartTransactionProperties = {};
         if (transactionMeta) {
           const smartTransaction =
             SmartTransactionsController.getSmartTransactionByMinedTxHash(
@@ -177,7 +177,7 @@ const RootRPCMethodsUI = (props) => {
             );
 
           if (smartTransaction) {
-            smartTransactionMetadata = {
+            smartTransactionProperties = {
               duplicated: smartTransaction.statusMetadata.duplicated,
               timedOut: smartTransaction.statusMetadata.timedOut,
               proxied: smartTransaction.statusMetadata.proxied,
@@ -192,7 +192,7 @@ const RootRPCMethodsUI = (props) => {
           quote_vs_executionRatio: quoteVsExecutionRatio,
           token_to_amount_received: tokenToAmountReceived.toString(),
           is_smart_transaction: props.isSmartTransaction,
-          ...smartTransactionMetadata,
+          ...smartTransactionProperties,
         };
 
         trackAnonymousEvent(event, parameters);
