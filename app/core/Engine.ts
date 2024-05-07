@@ -376,8 +376,8 @@ class Engine {
   snapExecutionService: WebViewExecutionService;
   ///: END:ONLY_INCLUDE_IF
 
-  txController: TransactionController;
-  stxController: SmartTransactionsController;
+  transactionController: TransactionController;
+  smartTransactionsController: SmartTransactionsController;
 
   /**
    * Creates a CoreController instance
@@ -1034,7 +1034,7 @@ class Engine {
     });
     ///: END:ONLY_INCLUDE_IF
 
-    this.txController = new TransactionController({
+    this.transactionController = new TransactionController({
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       blockTracker: networkController.getProviderAndBlockTracker().blockTracker,
       disableSendFlowHistory: true,
@@ -1079,7 +1079,7 @@ class Engine {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       getExternalPendingTransactions: (address: string) =>
-        this.stxController.getTransactions({
+        this.smartTransactionsController.getTransactions({
           addressFrom: address,
           status: SmartTransactionStatuses.PENDING,
         }),
@@ -1090,8 +1090,8 @@ class Engine {
 
           return submitSmartTransactionHook({
             transactionMeta,
-            transactionController: this.txController,
-            smartTransactionsController: this.stxController,
+            transactionController: this.transactionController,
+            smartTransactionsController: this.smartTransactionsController,
             isSmartTransaction,
             approvalController,
             featureFlags: getSwapsChainFeatureFlags(store.getState()),
@@ -1102,7 +1102,7 @@ class Engine {
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
-    this.stxController = new SmartTransactionsController(
+    this.smartTransactionsController = new SmartTransactionsController(
       {
         // @ts-expect-error this fine, STX controller has been downgraded to network controller v8
         getNetworkClientById: networkController.getNetworkClientById,
@@ -1111,14 +1111,18 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        getNonceLock: this.txController.getNonceLock.bind(this.txController),
+        getNonceLock: this.transactionController.getNonceLock.bind(
+          this.transactionController,
+        ),
         confirmExternalTransaction:
-          this.txController.confirmExternalTransaction.bind(this.txController),
+          this.transactionController.confirmExternalTransaction.bind(
+            this.transactionController,
+          ),
         provider: networkController.getProviderAndBlockTracker()
           .provider as any,
         // @ts-expect-error txController.getTransactions only uses txMeta.status and txMeta.transactionHash, which v8 TxController has
-        getTransactions: this.txController.getTransactions.bind(
-          this.txController,
+        getTransactions: this.transactionController.getTransactions.bind(
+          this.transactionController,
         ),
         trackMetaMetricsEvent: (params: {
           event: string;
@@ -1244,8 +1248,8 @@ class Engine {
         interval: 30 * 60 * 1000,
       }),
 
-      this.txController,
-      this.stxController,
+      this.transactionController,
+      this.smartTransactionsController,
 
       new SwapsController(
         {
