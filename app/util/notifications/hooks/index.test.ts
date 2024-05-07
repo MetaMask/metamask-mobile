@@ -5,31 +5,54 @@ import NotificationManager from '../../../core/NotificationManager';
 import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../../util/device');
-jest.mock('../../../core/NotificationManager');
+jest.mock('../../../core/NotificationManager', () => ({
+  setTransactionToView: jest.fn(),
+}));
+jest.mock('../setupAndroidChannels', () => jest.fn());
 jest.mock('@notifee/react-native', () => ({
+  setBadgeCount: jest.fn(),
   decrementBadgeCount: jest.fn(),
   onForegroundEvent: jest.fn(),
   createChannel: jest.fn(),
   EventType: {
     DISMISSED: 'dismissed',
     DELIVERED: 'delivered',
+    PRESS: 'press',
   },
   AndroidImportance: {
     HIGH: 'high',
   },
 }));
 
-describe('useNotificationHandler', () => {
-  let bootstrapAndroidInitialNotification: () => Promise<void>;
-  let navigation: any;
+interface NavigationMock {
+  navigate: jest.Mock;
+}
 
+const mockNavigate: jest.Mock = jest.fn();
+const mockNavigation: NavigationMock = {
+  navigate: mockNavigate,
+};
+const bootstrapAndroidInitialNotification = jest
+  .fn()
+  .mockResolvedValue(Promise.resolve((resolve: any) => setTimeout(resolve, 1)));
+
+describe('useNotificationHandler', () => {
   beforeEach(() => {
-    bootstrapAndroidInitialNotification = jest
-      .fn()
-      .mockResolvedValue(
-        Promise.resolve((resolve: any) => setTimeout(resolve, 1)),
-      );
-    navigation = { navigate: jest.fn() };
+    jest.clearAllMocks();
+  });
+
+  it('sets initial badge count and initializes Android notifications on mount', async () => {
+    renderHook(() =>
+      useNotificationHandler(
+        bootstrapAndroidInitialNotification,
+        mockNavigation,
+      ),
+    );
+
+    expect(notifee.setBadgeCount).toHaveBeenCalledWith(0);
+    expect(bootstrapAndroidInitialNotification).toHaveBeenCalled();
+
+    jest.runAllTimers();
   });
 
   it('should handle notifications correctly', async () => {
@@ -41,15 +64,18 @@ describe('useNotificationHandler', () => {
           if (data.id) {
             NotificationManager.setTransactionToView(data.id);
           }
-          if (navigation) {
-            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          if (mockNavigation) {
+            mockNavigation.navigate(Routes.TRANSACTIONS_VIEW);
           }
         }
       }
     };
 
     const { waitFor } = renderHook(() =>
-      useNotificationHandler(bootstrapAndroidInitialNotification, navigation),
+      useNotificationHandler(
+        bootstrapAndroidInitialNotification,
+        mockNavigation,
+      ),
     );
 
     await act(async () => {
