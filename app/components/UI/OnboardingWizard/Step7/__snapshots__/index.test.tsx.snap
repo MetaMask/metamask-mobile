@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Step4 should render correctly 1`] = `
+exports[`Step7 should render correctly 1`] = `
 <View
   style={
     {
@@ -18,7 +18,7 @@ exports[`Step4 should render correctly 1`] = `
           "right": 0,
         },
         {
-          "top": 82,
+          "top": 320,
         },
       ]
     }
@@ -34,10 +34,9 @@ exports[`Step4 should render correctly 1`] = `
       <View
         style={
           {
-            "alignItems": "flex-end",
+            "alignItems": "center",
             "bottom": -2,
             "marginBottom": 10,
-            "marginRight": 38,
           }
         }
       >
@@ -123,7 +122,7 @@ exports[`Step4 should render correctly 1`] = `
               }
             }
           >
-            Notifications
+            Using the browser
           </Text>
           <TouchableOpacity
             accessible={true}
@@ -175,9 +174,9 @@ exports[`Step4 should render correctly 1`] = `
                 "textAlign": "left",
               }
             }
-            testID="onboarding-wizard-step4-content"
+            testID="onboarding-wizard-step7-content"
           >
-            Stay in the loop on what's happening in your wallet
+            Search for sites by keyword or enter a URL. Have fun out there! 
           </Text>
         </View>
         <View
@@ -203,7 +202,7 @@ exports[`Step4 should render correctly 1`] = `
                 }
               }
             >
-              3
+              6
               /6
             </Text>
           </View>
