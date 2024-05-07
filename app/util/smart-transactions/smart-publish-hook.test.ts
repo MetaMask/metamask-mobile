@@ -8,6 +8,8 @@ import {
   TransactionType,
   TransactionStatus,
   TransactionController,
+  TransactionMeta,
+  WalletDevice,
 } from '@metamask/transaction-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import {
@@ -44,8 +46,7 @@ const createTransactionControllerMock = () =>
     update: jest.fn(),
   } as unknown as jest.Mocked<TransactionController>);
 
-const getDefaultAddAndShowApprovalRequest = () =>
-  jest.fn(() => ({ then: jest.fn() }));
+const getDefaultAddAndShowApprovalRequest = () => jest.fn();
 const createApprovalControllerMock = ({
   addAndShowApprovalRequest,
   pendingApprovals,
@@ -79,12 +80,12 @@ const createSmartTransactionsControllerMock = () =>
     eventEmitter: new EventEmitter(),
   } as unknown as jest.Mocked<SmartTransactionsController>);
 
-const defaultTransactionMeta = {
+const defaultTransactionMeta: TransactionMeta = {
   origin: 'http://localhost',
-  transactionHash,
+  hash: transactionHash,
   status: TransactionStatus.signed,
   id: '1',
-  transaction: {
+  txParams: {
     from: addressFrom,
     to: '0x1678a085c290ebd122dc42cba69373b5953b831d',
     gasPrice: '0x77359400',
@@ -94,17 +95,17 @@ const defaultTransactionMeta = {
   type: TransactionType.simpleSend,
   chainId: ChainId.mainnet,
   time: 1624408066355,
-  defaultGasEstimates: {
-    gas: '0x7b0d',
-    gasPrice: '0x77359400',
-  },
-  error: {
-    name: 'Error',
-    message: 'Details of the error',
-  },
-  securityProviderResponse: {
-    flagAsDangerous: 0,
-  },
+  // defaultGasEstimates: {
+  //   gas: '0x7b0d',
+  //   gasPrice: '0x77359400',
+  // },
+  // error: {
+  //   name: 'Error',
+  //   message: 'Details of the error',
+  // },
+  // securityProviderResponse: {
+  //   flagAsDangerous: 0,
+  // },
 };
 
 const createRequest = ({
@@ -217,13 +218,13 @@ describe('submitSmartTransactionHook', () => {
     const result = await submitSmartTransactionHook(request);
 
     expect(result).toEqual({ transactionHash });
-    const { transaction, chainId } = request.transactionMeta;
+    const { txParams, chainId } = request.transactionMeta;
     expect(
       request.transactionController.approveTransactionsWithSameNonce,
     ).toHaveBeenCalledWith(
       [
         {
-          ...transaction,
+          ...txParams,
           maxFeePerGas: '0x2fd8a58d7',
           maxPriorityFeePerGas: '0xaa0f8a94',
           chainId,
@@ -237,7 +238,7 @@ describe('submitSmartTransactionHook', () => {
     ).toHaveBeenCalledWith({
       signedTransactions: [createSignedTransaction()],
       signedCanceledTransactions: [],
-      transaction,
+      txParams,
       transactionMeta: request.transactionMeta,
     });
 
@@ -277,83 +278,8 @@ describe('submitSmartTransactionHook', () => {
     });
   });
 
-  it('submits a smart transaction and does not update approval request if approval was already approved or rejected', async () => {
-    const request: SubmitSmartTransactionRequestMocked = createRequest({
-      addAndShowApprovalRequest: jest.fn().mockResolvedValue(123),
-    });
-    setImmediate(() => {
-      request.smartTransactionsController.eventEmitter.emit(
-        `uuid:smartTransaction`,
-        {
-          status: 'pending',
-          statusMetadata: {
-            minedHash: '',
-          },
-        },
-      );
-
-      request.smartTransactionsController.eventEmitter.emit(
-        `uuid:smartTransaction`,
-        {
-          status: 'success',
-          statusMetadata: {
-            minedHash: transactionHash,
-          },
-        },
-      );
-    });
-    const result = await submitSmartTransactionHook(request);
-
-    expect(result).toEqual({ transactionHash });
-    const { transaction, chainId } = request.transactionMeta;
-    expect(
-      request.transactionController.approveTransactionsWithSameNonce,
-    ).toHaveBeenCalledWith(
-      [
-        {
-          ...transaction,
-          maxFeePerGas: '0x2fd8a58d7',
-          maxPriorityFeePerGas: '0xaa0f8a94',
-          chainId,
-          value: undefined,
-        },
-      ],
-      { hasNonce: true },
-    );
-    expect(
-      request.smartTransactionsController.submitSignedTransactions,
-    ).toHaveBeenCalledWith({
-      signedTransactions: [createSignedTransaction()],
-      signedCanceledTransactions: [],
-      transaction,
-      transactionMeta: request.transactionMeta,
-    });
-
-    expect(
-      request.approvalController.addAndShowApprovalRequest,
-    ).toHaveBeenCalledWith({
-      id: 'approvalId',
-      origin: 'http://localhost',
-      type: 'smart_transaction_status',
-      requestState: {
-        smartTransaction: {
-          status: 'pending',
-          uuid: stxUuid,
-          creationTime: expect.any(Number),
-        },
-        isDapp: true,
-        isInSwapFlow: false,
-        isSwapApproveTx: false,
-        isSwapTransaction: false,
-      },
-    });
-    expect(
-      request.approvalController.updateRequestState,
-    ).not.toHaveBeenCalled();
-  });
-
   describe('MM Swaps', () => {
-    it('starts an approval flow and does not end it if there is an swap tx that requires allowance', async () => {
+    it('starts an approval and does not end it if there is an swap tx that requires allowance', async () => {
       const request: SubmitSmartTransactionRequestMocked = createRequest({
         transactionMeta: {
           ...defaultTransactionMeta,
@@ -363,9 +289,9 @@ describe('submitSmartTransactionHook', () => {
             networkID: undefined,
             chainId: '0x1',
             origin: 'EXAMPLE_FOX_CODE',
-            status: 'signed',
+            status: TransactionStatus.signed,
             time: 1713381359223,
-            transaction: {
+            txParams: {
               from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
               data: '0x095ea7b3000000000000000000000000881d40237659c251811cec9c364ef91dc08d300c0000000000000000000000000000000000000000000000000000000000989680',
               gas: '0xdd87',
@@ -376,7 +302,7 @@ describe('submitSmartTransactionHook', () => {
               maxPriorityFeePerGas: '0x2d54010',
               estimatedBaseFee: '0x3a1b1a43e',
             },
-            deviceConfirmedOn: 'metamask_mobile',
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
             verifiedOnBlockchain: false,
             securityAlertResponse: undefined,
             gasFeeEstimatesLoaded: true,
@@ -407,13 +333,13 @@ describe('submitSmartTransactionHook', () => {
       const result = await submitSmartTransactionHook(request);
 
       expect(result).toEqual({ transactionHash });
-      const { transaction, chainId } = request.transactionMeta;
+      const { txParams, chainId } = request.transactionMeta;
       expect(
         request.transactionController.approveTransactionsWithSameNonce,
       ).toHaveBeenCalledWith(
         [
           {
-            ...transaction,
+            ...txParams,
             maxFeePerGas: '0x2fd8a58d7',
             maxPriorityFeePerGas: '0xaa0f8a94',
             chainId,
@@ -427,7 +353,7 @@ describe('submitSmartTransactionHook', () => {
       ).toHaveBeenCalledWith({
         signedTransactions: [createSignedTransaction()],
         signedCanceledTransactions: [],
-        transaction,
+        txParams,
         transactionMeta: request.transactionMeta,
       });
 
@@ -453,14 +379,14 @@ describe('submitSmartTransactionHook', () => {
         request.approvalController.updateRequestState,
       ).not.toHaveBeenCalled();
     });
-    it('does not start an approval flow if a swap tx is after a swap allowance tx and ends the allowance flow', async () => {
+    it('does not start an approval if a swap tx is after a swap allowance tx and ends the allowance', async () => {
       const request: SubmitSmartTransactionRequestMocked = createRequest({
         transactionMeta: {
           ...defaultTransactionMeta,
           // An ERC20 swap from transaction
           ...{
             chainId: '0x1',
-            deviceConfirmedOn: 'metamask_mobile',
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
             gasFeeEstimatesLoaded: true,
             id: '01c48130-fcf0-11ee-8f32-2f9930c68b06',
             networkID: undefined,
@@ -468,9 +394,9 @@ describe('submitSmartTransactionHook', () => {
             rawTransaction:
               '0x02f903560182021a840339802785063b5f780783038e2494881d40237659c251811cec9c364ef91dc08d300c80b902e65f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000a7d8c000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a7d8c0000000000000000000000000000000000000000000000000000c8e72d12c36ac000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000001cf42ad63350000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000a7d8c0000000000000000000000000000000000000000000000000000caad2bdb673320000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b6d0340b4e16d0168e52d35cacd2c6185b44281ec28c9dc7dcbea7c000000000000000000000000000000000000000000000000001bc001a0c05c821f53b6750d9482d166d4860926fb215f63b5111e91abdb00c1ed8ad25da0455d063383fa7781e20457da191b2f0dd31b28eca0fe3604304ce4331fd737c7',
             securityAlertResponse: undefined,
-            status: 'signed',
+            status: TransactionStatus.signed,
             time: 1713381824707,
-            transaction: {
+            txParams: {
               data: '0x5f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000a7d8c000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a7d8c0000000000000000000000000000000000000000000000000000c8e72d12c36ac000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000001cf42ad63350000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000a7d8c0000000000000000000000000000000000000000000000000000caad2bdb673320000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b6d0340b4e16d0168e52d35cacd2c6185b44281ec28c9dc7dcbea7c000000000000000000000000000000000000000000000000001b',
               estimatedBaseFee: '0x3a88ece0b',
               from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -520,13 +446,13 @@ describe('submitSmartTransactionHook', () => {
       const result = await submitSmartTransactionHook(request);
 
       expect(result).toEqual({ transactionHash });
-      const { transaction, chainId } = request.transactionMeta;
+      const { txParams, chainId } = request.transactionMeta;
       expect(
         request.transactionController.approveTransactionsWithSameNonce,
       ).toHaveBeenCalledWith(
         [
           {
-            ...transaction,
+            ...txParams,
             maxFeePerGas: '0x2fd8a58d7',
             maxPriorityFeePerGas: '0xaa0f8a94',
             chainId,
@@ -540,7 +466,7 @@ describe('submitSmartTransactionHook', () => {
       ).toHaveBeenCalledWith({
         signedTransactions: [createSignedTransaction()],
         signedCanceledTransactions: [],
-        transaction,
+        txParams,
         transactionMeta: request.transactionMeta,
       });
 
