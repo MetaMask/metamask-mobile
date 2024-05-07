@@ -302,7 +302,8 @@ class Confirm extends PureComponent {
             duplicated: smartTransaction.statusMetadata.duplicated,
             timedOut: smartTransaction.statusMetadata.timedOut,
             proxied: smartTransaction.statusMetadata.proxied,
-        } : {};
+          }
+        : {};
 
       return {
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
