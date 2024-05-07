@@ -1475,7 +1475,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           resizeMode="contain"
                                           source={
                                             {
-                                              "uri": "https://static.metafi.codefi.network/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png",
+                                              "uri": "https://static.cx.metamask.io/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png",
                                             }
                                           }
                                           style={
@@ -2640,7 +2640,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           resizeMode="contain"
                                           source={
                                             {
-                                              "uri": "https://static.metafi.codefi.network/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png",
+                                              "uri": "https://static.cx.metamask.io/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png",
                                             }
                                           }
                                           style={
@@ -3805,7 +3805,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           resizeMode="contain"
                                           source={
                                             {
-                                              "uri": "https://static.metafi.codefi.network/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png",
+                                              "uri": "https://static.cx.metamask.io/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png",
                                             }
                                           }
                                           style={
@@ -4970,7 +4970,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           resizeMode="contain"
                                           source={
                                             {
-                                              "uri": "https://static.metafi.codefi.network/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png",
+                                              "uri": "https://static.cx.metamask.io/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png",
                                             }
                                           }
                                           style={
