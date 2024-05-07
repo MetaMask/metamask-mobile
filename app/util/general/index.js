@@ -162,14 +162,14 @@ export const deepJSONParse = ({ jsonString, skipNumbers = true }) => {
 };
 
 /**
- * Generates an array with unique items from a list of flattened arrays
+ * Generates an array of referentially unique items from a list of flattened arrays.
  *
  * @param  {...Array} arrays - A list of flattened arrays
  * @returns {Array} - Returns a flattened array with unique items
  * @throws {Error} - Throws if arrays is not defined
  * @throws {TypeError} - Throws if any of the arguments is not an array
  */
-export const uniqueList = (...arrays) => {
+export const getUniqueList = (...arrays) => {
   if (arrays.length === 0) {
     throw new Error('At least one array must be defined.');
   }

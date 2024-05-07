@@ -211,7 +211,7 @@ describe('uniqueList function', () => {
     const expectedArray = ['0x1', '0x2', '0x3'];
     expect(uniqueList(testArray, testArray2)).toEqual(expectedArray);
   });
-  it('should return the same array if all arrays from the arguements are the same', async () => {
+  it('should return the same array if all arrays from the arguments are the same', async () => {
     const testArray = ['0x1', '0x2', '0x3'];
     const sameTestArray = [...testArray];
     expect(uniqueList(testArray, sameTestArray)).toEqual(testArray);
