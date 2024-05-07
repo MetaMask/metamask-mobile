@@ -101,6 +101,9 @@ export const addPermittedAccounts = (
     newPermittedAccountsAddresses.length ===
     existingPermittedAccountAddresses.length
   ) {
+    console.error(
+      `eth_accounts permission for hostname: (${hostname}) already exists for account addresses: (${existingPermittedAccountAddresses}).`,
+    );
     return existingPermittedAccountAddresses[0];
   }
 
