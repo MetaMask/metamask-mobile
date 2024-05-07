@@ -41,7 +41,7 @@ const Step4 = ({ onClose }: Step4Props) => {
   const [coachmarkTop, setCoachmarkTop] = useState(0);
 
   const handleLayout = useCallback(() => {
-    const top = Device.isIphoneX() ? 80 : Device.isIos() ? 64 : 60;
+    const top = Device.isIphoneX() ? 82 : Device.isIos() ? 64 : 60;
     setCoachmarkTop(top);
   }, []);
 

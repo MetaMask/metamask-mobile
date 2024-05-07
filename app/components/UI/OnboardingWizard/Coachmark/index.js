@@ -105,7 +105,7 @@ const createStyles = (colors) =>
       marginBottom: 10,
       bottom: -2,
       alignItems: 'flex-end',
-      marginRight: 30,
+      marginRight: 38,
     },
     topLeftCorner: {
       marginBottom: 10,
