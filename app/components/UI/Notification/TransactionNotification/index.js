@@ -433,15 +433,22 @@ TransactionNotification.propTypes = {
 
 const mapStateToProps = (state) => {
   const chainId = selectChainId(state);
+
+  const {
+    SmartTransactionsController,
+    TransactionController,
+    SwapsController,
+  } = state.engine.backgroundState;
+
   const smartTransactions =
-    state.engine.backgroundState.SmartTransactionsController
-      ?.smartTransactionsState?.smartTransactions?.[chainId] || [];
+    SmartTransactionsController?.smartTransactionsState?.smartTransactions?.[
+      chainId
+    ] || [];
 
   return {
     accounts: selectAccounts(state),
     selectedAddress: selectSelectedAddress(state),
-    transactions:
-      state.engine.backgroundState.TransactionController.transactions,
+    transactions: TransactionController.transactions,
     ticker: selectTicker(state),
     chainId,
     tokens: selectTokensByAddress(state),
@@ -450,10 +457,8 @@ const mapStateToProps = (state) => {
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
     primaryCurrency: state.settings.primaryCurrency,
-    swapsTransactions:
-      state.engine.backgroundState.TransactionController.swapsTransactions ||
-      {},
-    swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+    swapsTransactions: TransactionController.swapsTransactions || {},
+    swapsTokens: SwapsController.tokens,
     smartTransactions,
   };
 };
