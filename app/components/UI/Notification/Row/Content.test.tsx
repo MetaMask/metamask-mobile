@@ -43,7 +43,7 @@ describe('NotificationContent', () => {
       />,
     );
 
-    expect(getByText('Sent 0.01 ETH to 0x10000')).toBeTruthy();
+    expect(getByText(titleWithTo)).toBeTruthy();
   });
 
   it('renders title with two parts - with from', () => {
@@ -57,7 +57,7 @@ describe('NotificationContent', () => {
       />,
     );
 
-    expect(getByText('Received 0.01 ETH from 0x10000')).toBeTruthy();
+    expect(getByText(titleWithFrom)).toBeTruthy();
   });
 
   it('renders description as asset and value', () => {

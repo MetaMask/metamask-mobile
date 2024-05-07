@@ -41,8 +41,9 @@ function NotificationContent({
     if (parts.length > 1) {
       return (
         <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
-          {parts[1]}
+          {parts[0]}
           <Text variant={TextVariant.BodySM} color={TextColor.Info}>
+            {parts[1]}
             {parts[2]}
           </Text>
         </Text>
