@@ -19,7 +19,8 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ToastAndroid } from 'react-native';
+  ToastAndroid,
+} from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
@@ -122,7 +123,7 @@ import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import SharedGroupPreferences from 'react-native-shared-group-preferences';
 import AwesomeButton from 'react-native-really-awesome-button';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -141,7 +142,7 @@ const Stack = createStackNavigator();
 
 //Widget Storage
 const SharedStorage = NativeModules.SharedStorage;
-const group = 'group.metamask';
+const group = 'group.io.metamask.MetaMask';
 
 const OnboardingSuccessComponent = () => (
   <OnboardingSuccess
@@ -308,7 +309,6 @@ const VaultRecoveryFlow = () => (
 );
 
 const App = ({ userLoggedIn }) => {
-
   const [text, setText] = useState('');
   const widgetData = {
     text,
@@ -319,12 +319,12 @@ const App = ({ userLoggedIn }) => {
       // iOS
       await SharedGroupPreferences.setItem('widgetKey', widgetData, group);
     } catch (error) {
-      console.log({error});
+      console.log({ error });
     }
     const value = `${text} days`;
     // Android
-    SharedStorage.set(JSON.stringify({text: value}));
-    ToastAndroid.show('Change value successfully!', ToastAndroid.SHORT);
+    // SharedStorage.set(JSON.stringify({ text: value }));
+    // ToastAndroid.show('Change value successfully!', ToastAndroid.SHORT);
   };
 
   return (
@@ -332,7 +332,8 @@ const App = ({ userLoggedIn }) => {
       <KeyboardAwareScrollView
         enableOnAndroid
         extraScrollHeight={100}
-        keyboardShouldPersistTaps="handled">
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.container}>
           <Text style={styles.heading}>Change Widget Value</Text>
           <View style={styles.bodyContainer}>
@@ -342,16 +343,16 @@ const App = ({ userLoggedIn }) => {
                   Enter the value that you want to display on your home widget
                 </Text>
               </View>
-              <View style={styles.thoughtPointer}></View>
-              <Image
+              <View style={styles.thoughtPointer} />
+              {/* <Image
                 source={require('./assets/bea.png')}
                 style={styles.avatarImg}
-              />
+              /> */}
             </View>
 
             <TextInput
               style={styles.input}
-              onChangeText={newText => setText(newText)}
+              onChangeText={(newText) => setText(newText)}
               value={text}
               keyboardType="decimal-pad"
               placeholder="Enter the text to display..."
@@ -364,7 +365,8 @@ const App = ({ userLoggedIn }) => {
               backgroundDarker={'#eeefef'}
               backgroundShadow={'#f1f1f0'}
               style={styles.actionButton}
-              onPress={handleSubmit}>
+              onPress={handleSubmit}
+            >
               Submit
             </Button>
           </View>
@@ -957,3 +959,80 @@ const mapStateToProps = (state) => ({
 });
 
 export default connect(mapStateToProps)(App);
+
+const styles = StyleSheet.create({
+  safeAreaContainer: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: '#fafaf3',
+  },
+  container: {
+    flex: 1,
+    width: '100%',
+    padding: 12,
+  },
+  heading: {
+    fontSize: 24,
+    color: '#979995',
+    textAlign: 'center',
+  },
+  input: {
+    width: '100%',
+    // fontSize: 20,
+    minHeight: 50,
+    borderWidth: 1,
+    borderColor: '#c6c6c6',
+    borderRadius: 8,
+    padding: 12,
+  },
+  bodyContainer: {
+    flex: 1,
+    margin: 18,
+  },
+  instructionContainer: {
+    margin: 25,
+    paddingHorizontal: 20,
+    paddingTop: 30,
+    borderWidth: 1,
+    borderRadius: 12,
+    backgroundColor: '#ecedeb',
+    borderColor: '#bebfbd',
+    marginBottom: 35,
+  },
+  avatarImg: {
+    height: 180,
+    width: 180,
+    resizeMode: 'contain',
+    alignSelf: 'flex-end',
+  },
+  thoughtContainer: {
+    minHeight: 50,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    backgroundColor: '#ffffff',
+    borderColor: '#c6c6c6',
+  },
+  thoughtPointer: {
+    width: 0,
+    height: 0,
+    borderStyle: 'solid',
+    overflow: 'hidden',
+    borderTopWidth: 12,
+    borderRightWidth: 10,
+    borderBottomWidth: 0,
+    borderLeftWidth: 10,
+    borderTopColor: 'blue',
+    borderRightColor: 'transparent',
+    borderBottomColor: 'transparent',
+    borderLeftColor: 'transparent',
+    marginTop: -1,
+    marginLeft: '50%',
+  },
+  thoughtTitle: {
+    fontSize: 14,
+  },
+  actionButton: {
+    marginTop: 40,
+  },
+});
