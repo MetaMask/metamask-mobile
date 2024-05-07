@@ -1,53 +1,56 @@
 import { useEffect } from 'react';
-import notifee, { EventType, AndroidImportance } from '@notifee/react-native';
-import Device from '../../../util/device';
-import { STORAGE_IDS } from '../../../util/notifications/settings/storage/constants';
+import notifee, {
+  Event as NotifeeEvent,
+  EventType,
+} from '@notifee/react-native';
 import NotificationManager from '../../../core/NotificationManager';
 import Routes from '../../../constants/navigation/Routes';
+import { setupAndroidChannel } from '../setupAndroidChannels';
+import { SimpleNotification } from '../types';
 
 const useNotificationHandler = (
-  bootstrapInitialNotification: () => Promise<void>,
+  bootstrapAndroidInitialNotification: () => Promise<void>,
   navigation: any,
 ) => {
-  useEffect(() => {
-    notifee.decrementBadgeCount(1);
+  const performActionBasedOnOpenedNotificationType = async (
+    notification: SimpleNotification,
+  ) => {
+    const { data } = notification;
 
-    bootstrapInitialNotification();
+    if (data && data.action === 'tx') {
+      if (data.id) {
+        NotificationManager.setTransactionToView(data.id);
+      }
+      if (navigation) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      }
+    }
+  };
+
+  const handleOpenedNotification = (notification?: SimpleNotification) => {
+    if (!notification) {
+      return;
+    }
+    performActionBasedOnOpenedNotificationType(notification);
+  };
+
+  const handleNotificationPressed = (event: NotifeeEvent) => {
+    if (event.type === EventType.PRESS) {
+      handleOpenedNotification(event.detail.notification);
+    }
+  };
+
+  useEffect(() => {
+    // Reset badge count https://notifee.app/react-native/docs/ios/badges#removing-the-badge-count
+    notifee.setBadgeCount(0);
+
+    bootstrapAndroidInitialNotification();
     setTimeout(() => {
-      notifee.onForegroundEvent(
-        ({ type, detail }: { type: any; detail: any }) => {
-          // Reset badge count https://notifee.app/react-native/docs/ios/badges#removing-the-badge-count
-          notifee.setBadgeCount(0);
-          if (type !== EventType.DISMISSED) {
-            let data = null;
-            if (Device.isAndroid()) {
-              if (detail.notification.data) {
-                data = JSON.parse(detail.notification.data);
-              }
-            } else if (detail.notification.data) {
-              data = detail.notification.data;
-            }
-            if (data && data.action === 'tx') {
-              if (data.id) {
-                NotificationManager.setTransactionToView(data.id);
-              }
-              if (navigation) {
-                navigation.navigate(Routes.TRANSACTIONS_VIEW);
-              }
-            }
-          }
-        },
-      );
-      /**
-       * Creates a channel (required for Android)
-       */
-      notifee.createChannel({
-        id: STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID,
-        name: 'Default',
-        importance: AndroidImportance.HIGH,
-      });
+      notifee.onForegroundEvent(handleNotificationPressed);
+
+      setupAndroidChannel();
     }, 1000);
-  }, [bootstrapInitialNotification, navigation]);
+  }, [bootstrapAndroidInitialNotification, navigation]);
 };
 
 export default useNotificationHandler;

@@ -20,7 +20,7 @@ jest.mock('@notifee/react-native', () => ({
 
 describe('useNotificationHandler', () => {
   it('should handle notifications correctly', async () => {
-    const bootstrapInitialNotification = jest
+    const bootstrapAndroidInitialNotification = jest
       .fn()
       .mockResolvedValue(
         Promise.resolve((resolve: any) => setTimeout(resolve, 1)),
@@ -28,12 +28,12 @@ describe('useNotificationHandler', () => {
     const navigation = { navigate: jest.fn() };
 
     const { waitFor } = renderHook(() =>
-      useNotificationHandler(bootstrapInitialNotification, navigation),
+      useNotificationHandler(bootstrapAndroidInitialNotification, navigation),
     );
 
     await act(async () => {
       await waitFor(() => {
-        expect(bootstrapInitialNotification).toHaveBeenCalled();
+        expect(bootstrapAndroidInitialNotification).toHaveBeenCalled();
       });
     });
 
