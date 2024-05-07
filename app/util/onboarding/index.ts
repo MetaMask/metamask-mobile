@@ -27,12 +27,13 @@ export const shouldShowSmartTransactionsOptInModal = async (
   chainId: string,
   providerConfigRpcUrl: string | undefined,
 ) => {
-  // Check chain and RPC
+  // Check chain and RPC, undefined is the default RPC
   if (
     !(
       chainId === NETWORKS_CHAIN_ID.MAINNET &&
       providerConfigRpcUrl === undefined
-    )
+    ) ||
+    process.env.IS_TEST === 'true'
   ) {
     return false;
   }
