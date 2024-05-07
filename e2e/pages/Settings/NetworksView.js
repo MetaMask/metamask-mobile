@@ -106,6 +106,10 @@ class NetworkView {
     return Matchers.getElementByText(NetworkViewSelectorsText.REMOVE_NETWORK);
   }
 
+  get saveButton() {
+    return Matchers.getElementByText(NetworkViewSelectorsText.SAVE_BUTTON);
+  }
+
   async getnetworkName(networkName) {
     return Matchers.getElementByText(networkName);
   }
@@ -174,6 +178,16 @@ class NetworkView {
   async swipeToRPCTitleAndDismissKeyboard() {
     // Because in bitrise the keyboard is blocking the "Add" CTA
     await Gestures.waitAndTap(this.chainIdLabel);
+  }
+
+  async tapSave() {
+    device.getPlatform() === 'ios'
+      ? await (async () => {
+          //swipe to dismiss iOS keypad
+          await Gestures.swipe(this.chainIDInput, 'up', 'fast', 0.3);
+          await Gestures.doubleTap(this.saveButton);
+        })()
+      : await Gestures.waitAndTap(this.saveButton);
   }
 }
 
