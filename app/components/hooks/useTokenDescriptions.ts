@@ -59,7 +59,7 @@ const useTokenDescriptions = ({
     const fetchPrices = async () => {
       setIsLoading(true);
       try {
-        const baseUri = `https://token-api.metaswap.codefi.network`;
+        const baseUri = `https://token.api.cx.metamask.io`;
         const uri = new URL(
           `${baseUri}/token/${getDecimalChainId(chainId)}/description`,
         );
