@@ -5,7 +5,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
   accessibilityRole="button"
   activeOpacity={1}
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "borderColor": "#BBC0C5",
@@ -24,7 +24,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
     accessibilityRole="none"
     accessible={true}
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "flexDirection": "row",
@@ -35,7 +35,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "flex": -1,
         }
       }
@@ -43,7 +43,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "backgroundColor": "#FFFFFF",
             "borderRadius": 16,
             "height": 32,
@@ -54,11 +54,11 @@ exports[`SelectButton should render snapshot correctly 1`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": "hidden",
               },
-              Object {
+              {
                 "backgroundColor": "#F1D702",
                 "borderRadius": 16,
                 "height": 32,
@@ -74,12 +74,12 @@ exports[`SelectButton should render snapshot correctly 1`] = `
             focusable={false}
             height={32}
             style={
-              Array [
-                Object {
+              [
+                {
                   "backgroundColor": "transparent",
                   "borderWidth": 0,
                 },
-                Object {
+                {
                   "flex": 0,
                   "height": 32,
                   "width": 32,
@@ -93,7 +93,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
                 fill={4278401629}
                 height={32}
                 matrix={
-                  Array [
+                  [
                     0.9865721616069695,
                     0.16332596224162158,
                     -0.16332596224162158,
@@ -103,7 +103,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
                   ]
                 }
                 propList={
-                  Array [
+                  [
                     "fill",
                   ]
                 }
@@ -115,7 +115,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
                 fill={4293653248}
                 height={32}
                 matrix={
-                  Array [
+                  [
                     -0.9510565162951535,
                     0.3090169943749475,
                     -0.3090169943749475,
@@ -125,7 +125,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
                   ]
                 }
                 propList={
-                  Array [
+                  [
                     "fill",
                   ]
                 }
@@ -137,7 +137,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
                 fill={4291236897}
                 height={32}
                 matrix={
-                  Array [
+                  [
                     -0.9438009515832294,
                     0.3305143927132231,
                     -0.3305143927132231,
@@ -147,7 +147,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
                   ]
                 }
                 propList={
-                  Array [
+                  [
                     "fill",
                   ]
                 }
@@ -163,7 +163,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
     <View
       accessible={false}
       style={
-        Object {
+        {
           "width": 8,
         }
       }
@@ -171,7 +171,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
     />
     <View
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -180,7 +180,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -196,7 +196,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
         accessibilityRole="text"
         numberOfLines={1}
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
@@ -216,7 +216,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
       height={16}
       name="ArrowDown"
       style={
-        Object {
+        {
           "height": 16,
           "width": 16,
         }

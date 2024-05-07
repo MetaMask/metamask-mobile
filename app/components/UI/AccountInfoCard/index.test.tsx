@@ -39,14 +39,19 @@ const mockInitialState = {
         },
       },
       CurrencyRateController: {
-        conversionRate: 10,
         currentCurrency: 'inr',
+        currencyRates: {
+          ETH: {
+            conversionRate: 10,
+          },
+        },
       },
       NetworkController: {
         providerConfig: {
           chainId: '0xaa36a7',
           type: 'sepolia',
           nickname: 'Sepolia',
+          ticker: 'ETH',
         },
       },
       TokenBalancesController: {

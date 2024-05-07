@@ -456,6 +456,11 @@ class Confirm extends PureComponent {
     } = this.props;
     this.updateNavBar();
 
+    const transaction = this.prepareTransactionToSend();
+    const { EIP1559GasTransaction, legacyGasTransaction } = this.state;
+
+    let error;
+
     if (this.state?.closeModal) this.toggleConfirmationModal(REVIEW);
 
     const { errorMessage, fromSelectedAddress } = this.state;
@@ -496,6 +501,11 @@ class Confirm extends PureComponent {
         gasEstimateTypeChanged
       ) {
         if (this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+          error = this.validateAmount({
+            transaction,
+            total: EIP1559GasTransaction.totalMaxHex,
+          });
+          this.setError(error);
           // eslint-disable-next-line react/no-did-update-set-state
           this.setState(
             {
@@ -520,6 +530,12 @@ class Confirm extends PureComponent {
               this.setState({ animateOnChange: false });
             },
           );
+        } else {
+          error = this.validateAmount({
+            transaction,
+            total: legacyGasTransaction.totalHex,
+          });
+          this.setError(error);
         }
         this.parseTransactionDataHeader();
       }
@@ -825,8 +841,6 @@ class Confirm extends PureComponent {
       const isLedgerAccount = isHardwareAccount(transaction.from, [
         ExtendedKeyringTypes.ledger,
       ]);
-
-      await this.persistTransactionParameters(transaction);
 
       if (isLedgerAccount) {
         const ledgerKeyring = await getLedgerKeyring();
@@ -1134,9 +1148,14 @@ class Confirm extends PureComponent {
         (tx) => tx.id === transactionId,
       );
 
-    controllerTransactionMeta.transaction = transactionParams;
-
-    await updateTransaction(controllerTransactionMeta);
+    const updatedTx = {
+      ...controllerTransactionMeta,
+      txParams: {
+        ...transactionParams,
+        chainId: controllerTransactionMeta.chainId,
+      },
+    };
+    await updateTransaction(updatedTx);
   }
 
   render = () => {

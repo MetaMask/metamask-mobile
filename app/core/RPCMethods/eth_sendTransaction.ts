@@ -3,7 +3,7 @@ import {
   TransactionController,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import { ethErrors } from 'eth-rpc-errors';
+import { rpcErrors } from '@metamask/rpc-errors';
 import ppomUtil from '../../lib/ppom/ppom-util';
 
 /**
@@ -78,13 +78,13 @@ async function eth_sendTransaction({
     !Array.isArray(req.params) &&
     !(isObject(req.params) && hasProperty(req.params, 0))
   ) {
-    throw ethErrors.rpc.invalidParams({
+    throw rpcErrors.invalidParams({
       message: `Invalid parameters: expected an array`,
     });
   }
   const transactionParameters = req.params[0];
   if (!isObject(transactionParameters)) {
-    throw ethErrors.rpc.invalidParams({
+    throw rpcErrors.invalidParams({
       message: `Invalid parameters: expected the first parameter to be an object`,
     });
   }

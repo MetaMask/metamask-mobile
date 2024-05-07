@@ -1,0 +1,68 @@
+name: Crowdin - Check translation progress and download if complete (unless main)
+# This is a reusable workflow that is called by crowdin-pull-branch-pr-completed-translations
+# across all branches which have a label of "ready-for-translation" aka being translated.
+# This workflow will check the translation progress and download the translations if
+# they are 100% translated. If the branch that is running this is main it will skip completion
+# check and just pull whatever translations are available.
+
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        required: true
+        type: string
+    secrets:
+      gh_token:
+        required: true
+      crowdin_project_id: 
+        required: true
+      crowdin_personal_token:
+        required: true
+
+jobs:
+  crowdin:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.gh_token }}
+      CROWDIN_PERSONAL_TOKEN: ${{ secrets.crowdin_personal_token }}
+      CROWDIN_PROJECT_ID: ${{ secrets.crowdin_project_id }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+      
+      - name: Modified branch name
+        run: echo "modified_branch_name="${{ inputs.branch }} | sed 's#/#-#g'"" >> "$GITHUB_OUTPUT"
+        id: extract_modified_branch_name      
+      
+      - name: Check translation progress
+        # when main just pull whatever you have (aka skip this) - need to test
+        if: ${{ inputs.branch != 'main' }} 
+        uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
+        with:
+          command: 'status translation'
+          command_args: '-b ${{ steps.extract_modified_branch_name.outputs.modified_branch_name }} --fail-if-incomplete'
+      
+      - name: Synchronize with Crowdin
+        uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
+        with:
+          crowdin_branch_name: ${{ steps.extract_modified_branch_name.outputs.modified_branch_name }}
+          upload_sources: true
+          upload_translations: true
+          download_translations: true
+          skip_untranslated_strings: true
+          export_only_approved: true
+          localization_branch_name: l10n_crowdin_translations_${{ inputs.branch }}
+
+          create_pull_request: true
+          skip_ref_checkout: true
+          pull_request_title: New Crowdin translations for ${{ inputs.branch }}
+          pull_request_body: New Crowdin pull request with translations for ${{ inputs.branch }}
+          pull_request_base_branch_name: ${{ inputs.branch }}

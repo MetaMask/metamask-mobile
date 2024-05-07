@@ -94,6 +94,24 @@
     "your_wallet": "지갑을 성공적으로 지웠습니다",
     "delete_current": "현재 지갑 삭제"
   },
+  "onboarding_success": {
+    "title": "Congratulations!",
+    "description": "Your wallet is protected and ready to use. You can find your Secret Recovery Phrase in ",
+    "description_bold": "Settings > Security & Privacy.",
+    "description_continued": "Keep a reminder of your Secret Recovery Phrase somewhere safe. If you lose it, no one can help you get it back. Even worse, you won’t be able access to your wallet ever again.",
+    "learn_more": "Learn more",
+    "learn_how": "Learn how",
+    "leave_hint": "Leave yourself a hint?",
+    "default_settings": "Default settings",
+    "manage_default_settings": "Manage default settings",
+    "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
+    "no_srp_title": "Reminder set!",
+    "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
+    "import_title": "Your Wallet is ready",
+    "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
+    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
+    "done": "Done"
+  },
   "onboarding_carousel": {
     "title1": "MetaMask에 오신 것을 환영합니다",
     "title2": "디지털 자산을 관리하세요",
@@ -160,16 +178,20 @@
       "content1": "이 아이콘을 탭하여 계정 이름 편집, Etherscan에서 트랜잭션 확인, 공개 키 공유, 개인 키 확인이 가능합니다"
     },
     "step4": {
-      "title": "지갑 사용",
-      "content1": "이 아이콘을 탭하여 자산을 구매, 전송, 교환 및 수령하세요."
+      "title": "알림",
+      "content1": "지갑에서 무슨 일이 일어나고 있는지 계속 확인하세요."
     },
     "step5": {
+      "title": "지갑 사용",
+      "content1": "이 아이콘을 탭하여 자산을 구매, 전송 및 수령하세요."
+    },
+    "step6": {
       "title": "Web3 탐색",
       "content1": "이 아이콘을 탭하여 브라우저를 여세요"
     },
-    "step6": {
+    "step7": {
       "title": "브라우저 사용",
-      "content1": "키워드로 사이트를 검색하거나 URL을 입력하세요. 좋은 시간 보내세요! "
+      "content1": "키워드로 사이트를 검색하거나 URL을 입력하세요. 즐겁게 이용하시기 바랍니다! "
     }
   },
   "create_wallet": {
@@ -351,17 +373,17 @@
     "no_collectibles": "회원님의 NFT가 보이지 않나요?",
     "no_available_tokens": "토큰이 보이지 않나요?",
     "add_tokens": "토큰 가져오기",
-    "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
-    "import_token": "Would you like to import this token?",
+    "are_you_sure_exit": "정말로 나가시겠습니까?",
+    "search_information_not_saved": "검색 정보는 저장되지 않습니다.",
+    "import_token": "이 토큰을 가져올까요?",
     "tokens_detected_in_account": "계정에서 {{tokenCount}}개의 신규 {{tokensLabel}} 발견됨",
     "token_toast": {
       "tokens_imported_title": "가져온 토큰",
       "tokens_imported_desc": "{{tokenSymbols}} 가져오기 성공",
       "token_imported_title": "가져온 토큰",
       "token_imported_desc": "{{tokenSymbol}} 가져오기 성공",
-      "token_imported_desc_1": "You’ve imported a token.",
-      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
+      "token_imported_desc_1": "토큰을 가져왔습니다.",
+      "tokens_import_success_multiple": "토큰 {{tokensNumber}}개를 가져왔습니다.",
       "tokens_hidden_title": "토큰 숨기기",
       "tokens_hidden_desc": "지갑에서 감지된 토큰 숨기기",
       "token_hidden_title": "토큰 숨기기",
@@ -422,7 +444,11 @@
     "nfts_autodetect_cta": "설정에서 NFT 자동 감지 켜기",
     "turn_on_network_check_cta": "네트워크 세부 정보 확인 켜기",
     "display_nft_media_cta_new_1": "NFT를 보려면, 다음에서 NFT 미디어 표시를 켜세요",
-    "display_nft_media_cta_new_2": "설정 > 보안 및 개인정보."
+    "display_nft_media_cta_new_2": "설정 > 보안 및 개인정보.",
+    "banner": {
+      "title": "Basic functionality is off",
+      "link": "Turn on basic functionality"
+    }
   },
   "asset_details": {
     "token": "토큰",
@@ -446,8 +472,8 @@
   "add_asset": {
     "title": "토큰 가져오기",
     "title_nft": "NFT 가져오기",
-    "search_token": "Search",
-    "custom_token": "Custom token",
+    "search_token": "검색",
+    "custom_token": "맞춤 토큰",
     "tokens": {
       "cancel_add_token": "취소",
       "add_token": "가져오기"
@@ -504,16 +530,16 @@
     "resultPageErrorDefaultMessage": "작업에 실패했습니다."
   },
   "token": {
-    "token_symbol": "Token symbol",
+    "token_symbol": "토큰 기호",
     "token_address": "토큰 주소",
-    "token_decimal": "Token decimal",
+    "token_decimal": "토큰 십진수",
     "search_tokens_placeholder": "토큰 검색",
     "address_cant_be_empty": "토큰 주소는 비워둘 수 없습니다.",
     "address_must_be_valid": "토큰 주소는 유효한 주소여야 합니다.",
     "symbol_cant_be_empty": "토큰 기호는 비워둘 수 없습니다.",
-    "symbol_length": "Symbol must be 11 characters or fewer",
+    "symbol_length": "기호는 11자 이하여야 합니다",
     "decimals_cant_be_empty": "토큰 십진수는 비워둘 수 없습니다.",
-    "decimals_is_required": "Decimal is required. Find it on:",
+    "decimals_is_required": "십진수가 필요합니다. 다음에서 찾을 수 있습니다.",
     "no_tokens_found": "해당 이름의 토큰을 찾을 수 없습니다.",
     "select_token": "토큰을 선택하세요",
     "address_must_be_smart_contract": "개인 주소가 탐지되었습니다. 토큰 트랜잭션 주소를 입력하세요."
@@ -541,7 +567,8 @@
     "collectible_asset_contract": "자산 계약",
     "share_check_out_nft": "나의 NFT를 확인하세요!",
     "share_via": "다음을 통해 공유:",
-    "untitled_collection": "제목 없는 콜렉션"
+    "untitled_collection": "제목 없는 콜렉션",
+    "collection": "컬렉션"
   },
   "transfer": {
     "title": "송금",
@@ -682,6 +709,12 @@
     "nft_opensea_desc": "NFT 미디어와 데이터를 표시하면, IP 주소가 중앙 서버에 노출될 수 있습니다. OpenSea의 API를 사용하여 NFT 데이터를 가져오세요. NFT 자동 감지 기능은 OpenSea의 API에 의존하기 때문에 OpenSea의 API가 꺼지면 사용할 수 없습니다. NFT 자동 감지를 활성화하면 사용자가 모두에게 노출되어 누구나 사용자의 지갑으로 가짜 NFT를 보낼 수 있습니다. 심지어 공격자가 사용자의 에테르리움 주소로부터 IP주소를 파악할 수도 있습니다.",
     "nft_autodetect_mode": "NFT 자동 감지",
     "nft_autodetect_desc": "NFT 미디어와 데이터를 표시하면, IP 주소가 중앙 서버에 노출될 수 있습니다. 타사 API(OpenSea 등)는 지갑의 NFT를 감지하는 데 사용됩니다. 그러면 해당 서비스의 계정 주소가 노출됩니다. 앱이 이러한 서비스에서 데이터를 가져오지 않게 하려면 이 옵션을 사용하지 않도록 설정하세요.",
+    "show_fiat_on_testnets": "Show conversion on test networks",
+    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks",
+    "show_fiat_on_testnets_modal_title": "Be careful",
+    "show_fiat_on_testnets_modal_description": "If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.",
+    "show_fiat_on_testnets_modal_learn_more": "Learn more.",
+    "show_fiat_on_testnets_modal_button": "Continue",
     "show_hex_data": "헥스 데이터 표시",
     "show_hex_data_desc": "보내기 화면에 헥스 데이터를 표시하려면 이것을 선택하세요.",
     "toggleEthSignBannerDescription": "피싱 공격의 위험이 있습니다. eth_sign 비활성화로 자신을 보호하세요.",
@@ -712,6 +745,26 @@
     "general_desc": "통화 변환, 기본 통화, 언어 및 검색 엔진",
     "advanced_title": "고급",
     "advanced_desc": "개발자 기능 액세스, 계정 초기화, 테스트넷 설정, 상태 로그, IPFS 게이트웨이 및 맞춤 RPC",
+    "notifications_title": "알림",
+    "notifications_desc": "알림 관리",
+    "allow_notifications": "알림 허용",
+    "allow_notifications_desc": "지갑에서 무슨 일이 일어나고 있는지 계속 확인하세요. 알림 기능을 사용하려면 회원 프로필의 일부 설정을 기기 전체에 동기화해야 합니다. 이 기능을 사용하는 동안 개인정보를 어떤 방식으로 보호하는지 알아보세요.",
+    "notifications_opts": {
+      "customize_session_title": "알림 기능을 개인 맞춤하세요",
+      "customize_session_desc": "받고자 하는 알림의 유형을 켜세요:",
+      "account_session_title": "계정 활동",
+      "account_session_desc": "알림 받기 원하는 계정을 선택하세요:",
+      "assets_sent_title": "자산 보냄",
+      "assets_sent_desc": "자금 및 NFT",
+      "assets_received_title": "자산 받음",
+      "assets_received_desc": "자금 및 NFT",
+      "defi_title": "디파이",
+      "defi_desc": "스태킹, 스와핑 및 브릿지",
+      "snaps_title": "Snap",
+      "snaps_desc": "새 기능 및 업데이트",
+      "products_announcements_title": "상품 공지",
+      "products_announcements_desc": "신 상품 및 기능"
+    },
     "contacts_title": "연락처",
     "contacts_desc": "계정 추가, 편집, 제거 및 관리",
     "security_title": "보안 & 개인정보 보호",
@@ -774,6 +827,7 @@
     "ses_heading": "코드 록다운",
     "ses_description": "앱의 자바스크립트 코드 무단 변경을 차단하는 테스트 기능입니다.",
     "ses_link": "자세히 알아보기",
+    "general_heading": "General",
     "privacy_heading": "개인정보 보호",
     "failed_to_fetch_chain_id": "체인 ID를 가져올 수 없습니다. RPC URL이 맞습니까?",
     "endpoint_returned_different_chain_id": "엔드포인트가 다른 체인 ID 결과를 나타냅니다: %{chainIdReturned}",
@@ -899,10 +953,12 @@
     "token_nft_ens_subheading": "토큰, NFT 및 ENS 자동 감지",
     "security_check_subheading": "보안 점검",
     "symbol_required": "심볼은 필수입니다.",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "개인정보 보호 - 제3자와 데이터를 공유하지 않습니다. Arbitrum, Avalanche, BNB chain, 이더리움 메인넷, Optimism, Polygon, Sepolia에서 사용할 수 있습니다.",
+    "blockaid_desc": "개인정보 보호 - 제3자와 데이터를 공유하지 않습니다. Arbitrum, Avalanche, BNB chain, 이더리움 메인넷, Optimism, Polygon, Sepolia, Base에서 사용할 수 있습니다.",
     "security_alerts": "보안 경고",
-    "security_alerts_desc": "이 기능은 트랜잭션 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동을 탐지하는 것은 아닙니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다."
+    "security_alerts_desc": "이 기능은 트랜잭션 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동을 탐지하는 것은 아닙니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다.",
+    "smart_transactions_opt_in_heading": "스마트 트랜잭션",
+    "smart_transactions_opt_in_desc": "스마트 트랜잭션을 켜서 더욱 안전하고 안정적으로 트랜잭션하고 ETH 메인넷에서 수수료를 조정하세요.",
+    "smart_transactions_learn_more": "자세히 알아보세요."
   },
   "sdk": {
     "disconnect_title": "모든 사이트를 연결 해제할까요?",
@@ -1129,6 +1185,7 @@
     "confirm": "컨펌"
   },
   "transaction": {
+    "transaction_id": "트랜잭션 ID",
     "alert": "경고",
     "amount": "금액",
     "next": "다음",
@@ -1301,7 +1358,7 @@
     "contract": "({{address}}) 계약",
     "contract_name": "계약 이름:",
     "contract_address": "계약 주소:",
-    "invalid_contract_address": " Contract address is invalid. Enter a new one",
+    "invalid_contract_address": " 계약 주소가 잘못되었습니다. 새 주소를 입력하세요",
     "contract_allowance": "한도:",
     "data": "데이터",
     "function_approve": "기능: 승인",
@@ -1410,8 +1467,12 @@
     "to": "수신:",
     "details": "세부 사항",
     "amount": "금액",
+    "gas_used": "사용한 가스(단위)",
     "gas_limit": "가스 한도 (Units)",
     "gas_price": "가스 가격 (GWEI)",
+    "base_fee": "기본 요금(GWEI)",
+    "priority_fee": "우선 요금(GWEI)",
+    "max_fee": "가스당 최대 요금",
     "total": "총",
     "view_on": "다음에서 보기:",
     "view_on_etherscan": "Etherscan에서 보기",
@@ -1433,7 +1494,26 @@
     "sign_title_device": "키스톤으로",
     "sign_description_1": "키스톤으로 서명한 후",
     "sign_description_2": "서명 받기를 누르세요",
-    "sign_get_signature": "서명 받기"
+    "sign_get_signature": "서명 받기",
+    "network_fee": "네트워크 수수료"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "트랜잭션 제출 중",
+    "status_submitting_description": "예상 잔여 시간: {{timeLeft}}",
+    "status_success_header": "트랜잭션이 완료되었습니다",
+    "status_submitting_past_estimated_deadline_header": "기다리게 해서 죄송합니다",
+    "status_submitting_past_estimated_deadline_description": "{{timeLeft}} 이내에 트랜잭션이 완료되지 않으면 트랜잭션이 취소되고 가스비가 부과되지 않습니다.",
+    "status_cancelled_header": "트랜잭션이 취소되었습니다",
+    "status_cancelled_description": "트랜잭션이 완료되지 않았습니다. 가스비 지출이 없도록 트랜잭션을 취소했습니다.",
+    "status_failed_header": "트랜잭션 실패",
+    "status_failed_description": "시장 상황이 갑자기 변하면 실패할 수 있습니다. 문제가 지속되면 MetaMask 고객 지원으로 문의하세요.",
+    "view_transaction": "트랜잭션 보기",
+    "view_activity": "활동 보기",
+    "return_to_dapp": "{{dappName}}(으)로 돌아가기",
+    "try_again": "다시 시도",
+    "create_new": "새 {{txType}} 생성",
+    "swap": "스왑",
+    "send": "전송"
   },
   "address_book": {
     "recents": "최근",
@@ -1782,6 +1862,16 @@
     "back_to_safety": "안전성으로 돌아가기"
   },
   "notifications": {
+    "stake_completed": "스테이킹 완료",
+    "withdrawal_completed": "인출 완료",
+    "unstake_completed": "언스테이킹 완료",
+    "withdrawal_requested": "인출 요청됨",
+    "stake_ready_to_be_withdrawn": "스테이킹이 인출 준비됨",
+    "swap_completed": "{{from}}에서 {{to}}(으)로 스왑됨",
+    "sent": "{{address}}(으)로 보냄",
+    "received": "{{address}}에서 받음",
+    "sent_nft": "{{address}}로 NFT 보냄",
+    "received_nft": "{{address}}에서 NFT 받음",
     "pending_title": "제출된 트랜잭션",
     "pending_deposit_title": "입금이 진행 중입니다!",
     "pending_withdrawal_title": "인출이 진행 중입니다!",
@@ -1797,9 +1887,9 @@
     "pending_deposit_message": "입금 완료 대기 중",
     "pending_withdrawal_message": "인출 완료 대기 중",
     "error_message": "눌러서 이 트랜잭션을 확인하세요",
-    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
-    "error_fcm_not_found": "getFCMToken: No FCM token found",
-    "error_checking_permission": "Error checking if a user has push notifications permission",
+    "error_retrieving_fcm_token": "FCM 토큰을 가져오고 저장하는 동안 오류가 발생했습니다",
+    "error_fcm_not_found": "getFCMToken: FCM 토큰을 찾을 수 없습니다",
+    "error_checking_permission": "사용자에게 푸시 알림 권한이 있는지 확인하는 중 오류가 발생했습니다",
     "success_message": "눌러서 이 트랜잭션을 확인하세요",
     "speedup_message": "트랜잭션 속도 향상을 시도하는 중",
     "success_deposit_message": "자금 사용 준비가 되었습니다",
@@ -1819,7 +1909,30 @@
     "wc_signed_failed_title": "이 서명 요청은 실패했습니다",
     "wc_sent_tx_rejected_title": "트랜잭션 요청을 거부했습니다",
     "approved_tx_rejected_title": "권한 승인을 거부했습니다",
-    "wc_description": "애플리케이션을 확인하세요"
+    "wc_description": "애플리케이션을 확인하세요",
+    "wallet": "지갑",
+    "web3": "웹3",
+    "empty": {
+      "title": "표시할 항목이 없습니다",
+      "message": "지갑에 활동이 있으면 여기서 알림을 확인할 수 있습니다. "
+    },
+    "list": {
+      "0": "모두",
+      "1": "지갑",
+      "2": "공지"
+    },
+    "address_copied_to_clipboard": "주소가 클립보드에 복사되었습니다",
+    "transaction_id_copied_to_clipboard": "트랜잭션 ID를 클립보드에 복사했습니다",
+    "activation_card": {
+      "title": "알림 켜기",
+      "description_1": "알림을 통해 지갑에서 무슨 일이 일어나고 있는지 계속 확인하세요. ",
+      "description_2": "이 기능 사용을 위해 계정에 대한 익명 ID가 생성됩니다. 이는 MetaMask에서 데이터를 동기화하는 데에만 사용되며 활동이나 기타 식별자와 링크되지 않으므로 개인정보가 보호됩니다.",
+      "learn_more": "이 기능을 사용하는 동안 개인정보가 어떻게 보호되는지 알아보세요. ",
+      "manage_preferences_1": "다음에서 언제든지 알림을 끌 수 있습니다: ",
+      "manage_preferences_2": "설정 > 알림",
+      "cancel": "취소",
+      "cta": "켜기"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "지갑 보호하기",
@@ -2420,13 +2533,28 @@
       "title": "보안 경고로 안전성을 유지하세요",
       "description_1": "Blockaid가 제공하는 보안 경고를 통해 개인정보를 보호하고 사기도 방지하세요. 이 기능은 이제 모든 MetaMask 사용자에게 기본적으로 적용됩니다.",
       "description_2": "요청을 승인하기 전에 항상 직접 확인하세요.",
-      "description_3": "Arbitrum, Avalanche, BNB chain, 이더리움 메인넷, Linea, Optimism, Polygon, Sepolia에서 사용할 수 있습니다.",
+      "description_3": "Arbitrum, Avalanche, BNB chain, 이더리움 메인넷, Linea, Optimism, Polygon, Sepolia, Base에서 사용할 수 있습니다.",
       "got_it": "확인"
     },
     "sell": {
       "title": "간편한 현금 인출",
       "description": "MetaMask에서 바로 암호화폐를 매도하세요! 신뢰할 수 있는 제공업체의 견적을 찾을 수 있도록 도와드립니다. 언제나 쉽고 빠르며 안전한 방법으로 암호화폐를 매도할 수 있습니다.",
       "action_text": "사용해 보세요"
+    },
+    "stx": {
+      "header": "스마트 트랜잭션 소개",
+      "description_1": "더 스마트한 웹3 탐색 방법, 쉽고 안전하며 가장 신뢰성 높은 트랜잭션을 경험해 보세요.",
+      "description_2": "트랜잭션 실패 및 프론트러닝으로 인해 매달 수백만 달러의 손실이 발생합니다. 스마트 트랜잭션이 이를 해결합니다.",
+      "description_3": "현재 스마트 트랜잭션은 ETH 메인넷에서만 이용할 수 있습니다. 언제든지 설정에서 이 기능을 끌 수 있습니다.",
+      "secondary_button": "나중에",
+      "primary_button": "스마트 트랜잭션 활성화",
+      "learn_more": "자세히 알아보세요.",
+      "benefit_1_1": "실패 82% 감소",
+      "benefit_1_2": "트랜잭션",
+      "benefit_2_1": "트랜잭션",
+      "benefit_2_2": "보호",
+      "benefit_3_1": "실시간",
+      "benefit_3_2": "업데이트"
     }
   },
   "invalid_network": {
@@ -2845,6 +2973,31 @@
     "error_description": "{{snap}} 설치에 실패했습니다."
   },
   "stake": {
-    "stake": "Stake"
+    "stake": "스테이크"
+  },
+  "default_settings": {
+    "title": "Your Wallet is ready",
+    "description": "MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.",
+    "learn_more_about_privacy": "Learn more about privacy best practices.",
+    "privacy_policy": "Privacy policy",
+    "default_settings": "Default Settings",
+    "done": "Done",
+    "basic_functionality": "Basic functionality",
+    "manage_networks": "Manage networks",
+    "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
+    "manage_networks_body2": " to learn more about how Infura handles data.",
+    "functionality_body": "Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.",
+    "sheet": {
+      "title_off": "Turn off basic functionality",
+      "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
+      "title_on": "Turn on basic functionality",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, and others) are important to the web3 experience.",
+      "checkbox_label": "I understand and want to continue",
+      "buttons": {
+        "cancel": "Cancel",
+        "turn_on": "Turn on",
+        "turn_off": "Turn off"
+      }
+    }
   }
 }

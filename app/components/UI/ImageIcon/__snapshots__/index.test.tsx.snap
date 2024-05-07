@@ -3,10 +3,10 @@
 exports[`ImageIcon should render correctly 1`] = `
 <Image
   source={
-    Object {
+    {
       "uri": "MockImage",
     }
   }
-  style={Object {}}
+  style={{}}
 />
 `;

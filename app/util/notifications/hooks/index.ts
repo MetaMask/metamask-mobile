@@ -3,6 +3,7 @@ import notifee, { EventType, AndroidImportance } from '@notifee/react-native';
 import Device from '../../../util/device';
 import { STORAGE_IDS } from '../../../util/notifications/settings/storage/constants';
 import NotificationManager from '../../../core/NotificationManager';
+import Routes from '../../../constants/navigation/Routes';
 
 const useNotificationHandler = (
   bootstrapInitialNotification: () => Promise<void>,
@@ -15,6 +16,8 @@ const useNotificationHandler = (
     setTimeout(() => {
       notifee.onForegroundEvent(
         ({ type, detail }: { type: any; detail: any }) => {
+          // Reset badge count https://notifee.app/react-native/docs/ios/badges#removing-the-badge-count
+          notifee.setBadgeCount(0);
           if (type !== EventType.DISMISSED) {
             let data = null;
             if (Device.isAndroid()) {
@@ -29,7 +32,7 @@ const useNotificationHandler = (
                 NotificationManager.setTransactionToView(data.id);
               }
               if (navigation) {
-                navigation.navigate('TransactionsView');
+                navigation.navigate(Routes.TRANSACTIONS_VIEW);
               }
             }
           }
