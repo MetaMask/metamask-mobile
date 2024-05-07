@@ -15,11 +15,14 @@ export const getFeatureFlagDeviceKey = () => {
   const isIphone = Device.isIos();
   const isAndroid = Device.isAndroid();
 
-  const featureFlagDeviceKey = isIphone
-    ? 'mobileActiveIOS'
-    : isAndroid
-    ? 'mobileActiveAndroid'
-    : 'mobileActive';
+  let featureFlagDeviceKey;
+  if (isIphone) {
+    featureFlagDeviceKey = 'mobileActiveIOS';
+  } else if (isAndroid) {
+    featureFlagDeviceKey = 'mobileActiveAndroid';
+  } else {
+    featureFlagDeviceKey = 'mobileActive';
+  }
 
   return featureFlagDeviceKey;
 };
