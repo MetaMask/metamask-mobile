@@ -1056,7 +1056,7 @@ function SwapsQuotesView({
       }
     }
 
-    if (!isSmartTransaction) {
+    if (!isSmartTransaction || (isSmartTransaction && !approvalTransaction)) {
       handleSwapTransaction(
         TransactionController,
         newSwapsTransactions,
