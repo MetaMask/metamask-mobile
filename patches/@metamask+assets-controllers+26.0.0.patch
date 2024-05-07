@@ -51,7 +51,7 @@ index ee99eb2..a447b70 100644
          });
          this.defaultConfig = {
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
-index 45e07b8..b052856 100644
+index 45e07b8..80619dd 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
 @@ -116,6 +116,10 @@ export interface Nft extends NftMetadata {
@@ -65,6 +65,15 @@ index 45e07b8..b052856 100644
  /**
   * @type NftContract
   *
+@@ -190,7 +194,7 @@ export interface NftConfig extends BaseConfig {
+     selectedAddress: string;
+     chainId: Hex;
+     ipfsGateway: string;
+-    openSeaEnabled: boolean;
++    displayNftMedia: boolean;
+     useIPFSSubdomains: boolean;
+     isIpfsGatewayEnabled: boolean;
+ }
 @@ -356,6 +360,19 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
       * @param options.userAddress - The address of the account where the NFT is being removed.
       */
@@ -86,9 +95,59 @@ index 45e07b8..b052856 100644
       * Removes an NFT contract to the stored NFT contracts list.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 0873ccd..32835eb 100644
+index 0873ccd..868a517 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
+@@ -81,7 +81,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
+             selectedAddress: '',
+             chainId: initialChainId,
+             ipfsGateway: controller_utils_1.IPFS_DEFAULT_GATEWAY_URL,
+-            openSeaEnabled: false,
++            displayNftMedia: false,
+             useIPFSSubdomains: true,
+             isIpfsGatewayEnabled: true,
+         };
+@@ -96,11 +96,11 @@ class NftController extends base_controller_1.BaseControllerV1 {
+         this.getNetworkClientById = getNetworkClientById;
+         this.onNftAdded = onNftAdded;
+         this.messagingSystem = messenger;
+-        onPreferencesStateChange(({ selectedAddress, ipfsGateway, openSeaEnabled, isIpfsGatewayEnabled, }) => {
++        onPreferencesStateChange(({ selectedAddress, ipfsGateway, displayNftMedia, isIpfsGatewayEnabled, }) => {
+             this.configure({
+                 selectedAddress,
+                 ipfsGateway,
+-                openSeaEnabled,
++                displayNftMedia,
+                 isIpfsGatewayEnabled,
+             });
+         });
+@@ -197,7 +197,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
+                     tokenURI: tokenURI !== null && tokenURI !== void 0 ? tokenURI : null,
+                 };
+             }
+-            const isDisplayNFTMediaToggleEnabled = this.config.openSeaEnabled;
++            const isDisplayNFTMediaToggleEnabled = this.config.displayNftMedia;
+             if (!hasIpfsTokenURI && !isDisplayNFTMediaToggleEnabled) {
+                 return {
+                     image: null,
+@@ -294,7 +294,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
+             });
+             const [blockchainMetadata, openSeaMetadata] = yield Promise.all([
+                 (0, controller_utils_1.safelyExecute)(() => this.getNftInformationFromTokenURI(contractAddress, tokenId, networkClientId)),
+-                this.config.openSeaEnabled && chainId === '0x1'
++                this.config.displayNftMedia && chainId === '0x1'
+                     ? (0, controller_utils_1.safelyExecute)(() => this.getNftInformationFromApi(contractAddress, tokenId))
+                     : undefined,
+             ]);
+@@ -377,7 +377,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
+             });
+             const [blockchainContractData, openSeaContractData] = yield Promise.all([
+                 (0, controller_utils_1.safelyExecute)(() => this.getNftContractInformationFromContract(contractAddress, networkClientId)),
+-                this.config.openSeaEnabled && chainId === '0x1'
++                this.config.displayNftMedia && chainId === '0x1'
+                     ? (0, controller_utils_1.safelyExecute)(() => this.getNftContractInformationFromApi(contractAddress))
+                     : undefined,
+             ]);
 @@ -568,6 +568,49 @@ class NftController extends base_controller_1.BaseControllerV1 {
              chainId,
          });
