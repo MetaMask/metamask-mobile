@@ -149,7 +149,7 @@ jest.mock('react-native-branch', () => ({
   },
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
-jest.mock('react-native-search-api', () => 'SearchApi');
+jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
 jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
 );
