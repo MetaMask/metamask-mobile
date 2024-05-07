@@ -111,3 +111,11 @@ export interface MarketingNotificationData {
   route?: string;
   routeProps?: string;
 }
+
+export interface SimpleNotification {
+  title?: string | undefined;
+  body?: string | undefined;
+  data?: {
+    [key: string]: string | object | number;
+  };
+}
