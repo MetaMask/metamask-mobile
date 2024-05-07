@@ -1,28 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
-import onboardingStyles from '../styles';
-import Routes from '../../../../constants/navigation/Routes';
-
+import onboardingStyles from './../styles';
 import Device from '../../../../util/device';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
-
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_SEVENTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
-import { useMetrics } from '../../../hooks/useMetrics';
+import Routes from '../../../../constants/navigation/Routes';
+import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
   main: {
     flex: 1,
   },
   coachmarkContainer: {
+    flex: 1,
     position: 'absolute',
     left: 0,
     right: 0,
@@ -30,14 +29,10 @@ const styles = StyleSheet.create({
   },
 });
 
-interface Step7Props {
-  navigation: any;
-  onClose: (arg0: boolean) => void;
-}
-
-const Step7 = ({ navigation, onClose }: Step7Props) => {
+const Step6 = (props) => {
+  const { setOnboardingWizardStep, onClose, navigation } = props;
   const { trackEvent } = useMetrics();
-  const dispatch = useDispatch();
+
   const [ready, setReady] = useState(false);
   const [coachmarkTop, setCoachmarkTop] = useState(0);
   const { colors } = useTheme();
@@ -53,7 +48,10 @@ const Step7 = ({ navigation, onClose }: Step7Props) => {
   };
 
   useEffect(() => {
-    getPosition();
+    // As we're changing the view on this step, we have to make sure Browser is rendered
+    setTimeout(() => {
+      getPosition();
+    }, 1200);
   }, []);
 
   /**
@@ -61,13 +59,18 @@ const Step7 = ({ navigation, onClose }: Step7Props) => {
    */
   const onBack = () => {
     navigation?.navigate?.(Routes.WALLET.HOME);
-    setTimeout(() => {
-      dispatch(setOnboardingWizardStep?.(6));
-    }, 1);
+    setOnboardingWizardStep && setOnboardingWizardStep(5);
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
-      tutorial_step_count: 7,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[7],
+      tutorial_step_count: 6,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[6],
     });
+  };
+
+  /**
+   * Calls props onClose
+   */
+  const triggerOnClose = () => {
+    onClose && onClose(false);
   };
 
   /**
@@ -77,9 +80,9 @@ const Step7 = ({ navigation, onClose }: Step7Props) => {
     <View style={dynamicOnboardingStyles.contentContainer}>
       <Text
         style={dynamicOnboardingStyles.content}
-        {...generateTestId(Platform, ONBOARDING_WIZARD_SEVENTH_STEP_CONTENT_ID)}
+        testID={OnboardingWizardModalSelectorsIDs.STEP_SIX_CONTAINER}
       >
-        {strings('onboarding_wizard_new.step7.content1')}
+        {strings('onboarding_wizard_new.step6.content1')}
       </Text>
     </View>
   );
@@ -90,17 +93,36 @@ const Step7 = ({ navigation, onClose }: Step7Props) => {
     <View style={styles.main}>
       <View style={[styles.coachmarkContainer, { top: coachmarkTop }]}>
         <Coachmark
-          title={strings('onboarding_wizard_new.step7.title')}
+          title={strings('onboarding_wizard_new.step6.title')}
           content={content()}
-          onNext={onClose}
+          onNext={triggerOnClose}
           onBack={onBack}
           topIndicatorPosition={'topCenter'}
           onClose={onClose}
-          currentStep={6}
+          currentStep={5}
         />
       </View>
     </View>
   );
 };
 
-export default Step7;
+const mapDispatchToProps = (dispatch) => ({
+  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
+});
+
+Step6.propTypes = {
+  /**
+   * Object that represents the navigator
+   */
+  navigation: PropTypes.object,
+  /**
+   * Dispatch set onboarding wizard step
+   */
+  setOnboardingWizardStep: PropTypes.func,
+  /**
+   * Callback to call when closing
+   */
+  onClose: PropTypes.func,
+};
+
+export default connect(null, mapDispatchToProps)(Step6);
