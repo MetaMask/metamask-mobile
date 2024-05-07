@@ -292,21 +292,17 @@ class Confirm extends PureComponent {
       const { gasSelected, fromSelectedAddress } = this.state;
       const { SmartTransactionsController } = Engine.context;
 
-      let smartTransactionMetadata = {};
-      if (transactionMeta) {
-        const smartTransaction =
-          SmartTransactionsController.getSmartTransactionByMinedTxHash(
+      const smartTransaction = transactionMeta
+        ? SmartTransactionsController.getSmartTransactionByMinedTxHash(
             transactionMeta.hash,
-          );
-
-        if (smartTransaction) {
-          smartTransactionMetadata = {
+          )
+        : null;
+      const smartTransactionMetadata = smartTransaction
+        ? {
             duplicated: smartTransaction.statusMetadata.duplicated,
             timedOut: smartTransaction.statusMetadata.timedOut,
             proxied: smartTransaction.statusMetadata.proxied,
-          };
-        }
-      }
+        } : {};
 
       return {
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
