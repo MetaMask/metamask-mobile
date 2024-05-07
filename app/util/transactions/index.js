@@ -1454,8 +1454,7 @@ export const getIsInSwapFlowTransaction = (data, origin, to, chainId) => {
     origin === process.env.MM_FOX_CODE &&
     to &&
     (swapsUtils.isValidContractAddress(chainId, to) ||
-      (data &&
-        data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+      (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
         decodeApproveData(data).spenderAddress?.toLowerCase() ===
           swapsUtils.getSwapsContractAddress(chainId)))
   );
