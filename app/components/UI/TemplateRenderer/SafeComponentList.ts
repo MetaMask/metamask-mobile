@@ -12,9 +12,9 @@ export const safeComponentList = {
   Button,
   Icon,
   SheetHeader,
+  SmartTransactionStatus,
   Text,
   View,
-  SmartTransactionStatus,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;
