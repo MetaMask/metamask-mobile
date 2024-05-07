@@ -28,6 +28,7 @@ import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
 import Device from '../../../util/device';
+import Routes from '../../../constants/navigation/Routes';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -276,18 +277,18 @@ const Main = (props) => {
     }
   });
 
-  const bootstrapInitialNotification = useCallback(async () => {
+  const bootstrapAndroidInitialNotification = useCallback(async () => {
     if (Device.isAndroid()) {
       const initialNotification = await notifee.getInitialNotification();
 
       if (initialNotification?.data?.action === 'tx' && initialNotification.data.id) {
         NotificationManager.setTransactionToView(initialNotification.data.id);
-        props.navigation.navigate('TransactionsView');
+        props.navigation.navigate(Routes.TRANSACTIONS_VIEW);
       }
     }
   }, [props.navigation]);
 
-  useNotificationHandler(bootstrapInitialNotification, props.navigation);
+  useNotificationHandler(bootstrapAndroidInitialNotification, props.navigation);
 
   // Remove all notifications that aren't visible
   useEffect(() => {
