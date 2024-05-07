@@ -162,7 +162,7 @@ export const deepJSONParse = ({ jsonString, skipNumbers = true }) => {
 };
 
 /**
- * Generates an array with unique items from a list of arrays
+ * Generates an array of referentially unique items from a list of arrays.
  *
  * @param  {...Array} arrays - A list of arrays
  * @returns {Array} - Returns an array with unique items
