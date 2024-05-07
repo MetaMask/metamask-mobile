@@ -169,21 +169,28 @@ const RootRPCMethodsUI = (props) => {
         delete newSwapsTransactions[transactionMeta.id].analytics;
         delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 
-        let smartTransactionProperties = {};
-        if (transactionMeta) {
+        const getSmartTransactionProperties = () => {
+          if (!transactionMeta) return {};
+
           const smartTransaction =
             SmartTransactionsController.getSmartTransactionByMinedTxHash(
               transactionMeta.transactionHash,
             );
 
-          if (smartTransaction) {
-            smartTransactionProperties = {
-              duplicated: smartTransaction.statusMetadata.duplicated,
-              timedOut: smartTransaction.statusMetadata.timedOut,
-              proxied: smartTransaction.statusMetadata.proxied,
-            };
-          }
-        }
+          if (!smartTransaction) return {};
+
+          const {
+            statusMetadata: { duplicated, timedOut, proxied },
+          } = smartTransaction;
+
+          return {
+            duplicated,
+            timedOut,
+            proxied,
+          };
+        };
+
+        const smartTransactionProperties = getSmartTransactionProperties();
 
         const parameters = {
           ...analyticsParams,
