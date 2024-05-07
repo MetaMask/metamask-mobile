@@ -179,9 +179,8 @@ const RootRPCMethodsUI = (props) => {
 
           if (!smartTransaction) return {};
 
-          const {
-            statusMetadata: { duplicated, timedOut, proxied },
-          } = smartTransaction;
+          const { duplicated, timedOut, proxied } =
+            smartTransaction.statusMetadata;
 
           return {
             duplicated,
