@@ -6,7 +6,7 @@ import {
   getURLProtocol,
   isIPFSUri,
   deepJSONParse,
-  uniqueList,
+  getUniqueList,
 } from '.';
 
 describe('capitalize', () => {
@@ -192,16 +192,16 @@ describe('deepJSONParse function', () => {
   });
 });
 
-describe('uniqueList function', () => {
+describe('getUniqueList function', () => {
   it('should throw error if no arguments are passed in', async () => {
     const expectedError = 'At least one array must be defined.';
-    expect(() => uniqueList()).toThrow(expectedError);
+    expect(() => getUniqueList()).toThrow(expectedError);
   });
   it('should throw type error if an argument is not an array', async () => {
     const testArray = ['0x1', '0x2', '0x3'];
     const notAnArray = 'X' as unknown as string[];
     const expectedErrorMessage = 'Argument at position 1 is not an array.';
-    expect(() => uniqueList(testArray, notAnArray)).toThrow(
+    expect(() => getUniqueList(testArray, notAnArray)).toThrow(
       expectedErrorMessage,
     );
   });
@@ -209,11 +209,11 @@ describe('uniqueList function', () => {
     const testArray = ['0x1', '0x2'];
     const testArray2 = ['0x2', '0x3'];
     const expectedArray = ['0x1', '0x2', '0x3'];
-    expect(uniqueList(testArray, testArray2)).toEqual(expectedArray);
+    expect(getUniqueList(testArray, testArray2)).toEqual(expectedArray);
   });
   it('should return the same array if all arrays from the arguments are the same', async () => {
     const testArray = ['0x1', '0x2', '0x3'];
     const sameTestArray = [...testArray];
-    expect(uniqueList(testArray, sameTestArray)).toEqual(testArray);
+    expect(getUniqueList(testArray, sameTestArray)).toEqual(testArray);
   });
 });

@@ -2,7 +2,7 @@ import { errorCodes as rpcErrorCodes } from '@metamask/rpc-errors';
 import { RestrictedMethods, CaveatTypes } from './constants';
 import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
-import { uniqueList } from '../../util/general';
+import { getUniqueList } from '../../util/general';
 const Engine = ImportedEngine as any;
 
 function getAccountsCaveatFromPermission(accountsPermission: any = {}) {
@@ -66,7 +66,7 @@ export const switchActiveAccounts = (hostname: string, accAddress: string) => {
   }
   let newPermittedAccountAddresses = [...existingPermittedAccountAddresses];
   newPermittedAccountAddresses.splice(accountIndex, 1);
-  newPermittedAccountAddresses = uniqueList([
+  newPermittedAccountAddresses = getUniqueList([
     accAddress,
     ...newPermittedAccountAddresses,
   ]);
@@ -91,7 +91,7 @@ export const addPermittedAccounts = (
   );
   const existingPermittedAccountAddresses: string[] = existing.value;
 
-  const newPermittedAccountsAddresses = uniqueList(
+  const newPermittedAccountsAddresses = getUniqueList(
     addresses,
     existingPermittedAccountAddresses,
   );
