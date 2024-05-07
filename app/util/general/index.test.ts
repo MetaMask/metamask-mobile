@@ -200,7 +200,7 @@ describe('getUniqueList function', () => {
   it('should throw type error if an argument is not an array', async () => {
     const testArray = ['0x1', '0x2', '0x3'];
     const notAnArray = 'X' as unknown as string[];
-    const expectedErrorMessage = 'Argument at position 1 is not an array.';
+    const expectedErrorMessage = `Argument at position 1 is not an array. Found ${typeof notAnArray}`;
     expect(() => getUniqueList(testArray, notAnArray)).toThrow(
       expectedErrorMessage,
     );

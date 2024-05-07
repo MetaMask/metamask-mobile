@@ -176,7 +176,9 @@ export const getUniqueList = (...arrays) => {
   // Check if every argument is an array
   arrays.forEach((array, index) => {
     if (!Array.isArray(array)) {
-      throw new TypeError(`Argument at position ${index} is not an array.`);
+      throw new TypeError(
+        `Argument at position ${index} is not an array. Found ${typeof array}.`,
+      );
     }
   });
 
