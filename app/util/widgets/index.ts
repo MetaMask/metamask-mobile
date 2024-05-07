@@ -2,7 +2,7 @@ import SharedGroupPreferences from 'react-native-shared-group-preferences';
 
 const group = 'group.io.metamask.MetaMask';
 
-//Need to add in the location where we can get this data
+//TODO Need to add in the location where we can get this data
 export async function setSmallBalanceWidget(widgetData: object) {
   try {
     // iOS
@@ -13,7 +13,7 @@ export async function setSmallBalanceWidget(widgetData: object) {
   }
 }
 
-//Need to add in the location where we can get this data
+//TODO Need to add in the location where we can get this data
 export async function setSendRecieveBalanceWidgetWidget(widgetData: object) {
   try {
     // iOS
@@ -24,7 +24,7 @@ export async function setSendRecieveBalanceWidgetWidget(widgetData: object) {
   }
 }
 
-//Need to add in the location where we can get this data
+//TODO Need to add in the location where we can get this data
 export async function recentActivityWidget(widgetData: object) {
   try {
     // iOS
