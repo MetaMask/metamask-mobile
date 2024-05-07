@@ -18,7 +18,7 @@ exports[`Step4 should render correctly 1`] = `
           "right": 0,
         },
         {
-          "top": 80,
+          "top": 82,
         },
       ]
     }
@@ -37,7 +37,7 @@ exports[`Step4 should render correctly 1`] = `
             "alignItems": "flex-end",
             "bottom": -2,
             "marginBottom": 10,
-            "marginRight": 30,
+            "marginRight": 38,
           }
         }
       >
