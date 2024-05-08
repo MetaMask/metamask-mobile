@@ -54,7 +54,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
             "paddingLeft": 15,
           }
         }
-        testID="url-input"
+        testID="browser-modal-url-input"
       />
     </View>
     <TouchableOpacity
