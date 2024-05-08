@@ -1106,6 +1106,10 @@ class Engine {
 
     this.smartTransactionsController = new SmartTransactionsController(
       {
+        confirmExternalTransaction:
+          this.transactionController.confirmExternalTransaction.bind(
+            this.transactionController,
+          ),
         // @ts-expect-error this fine, STX controller has been downgraded to network controller v8
         getNetworkClientById: networkController.getNetworkClientById,
         onNetworkStateChange: (listener) =>
@@ -1116,16 +1120,14 @@ class Engine {
         getNonceLock: this.transactionController.getNonceLock.bind(
           this.transactionController,
         ),
-        confirmExternalTransaction:
-          this.transactionController.confirmExternalTransaction.bind(
-            this.transactionController,
-          ),
-        provider: networkController.getProviderAndBlockTracker()
-          .provider as any,
         // @ts-expect-error txController.getTransactions only uses txMeta.status and txMeta.transactionHash, which v8 TxController has
         getTransactions: this.transactionController.getTransactions.bind(
           this.transactionController,
         ),
+
+        provider: networkController.getProviderAndBlockTracker()
+          .provider as any,
+
         trackMetaMetricsEvent: (params: {
           event: string;
           category: string;
