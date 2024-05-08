@@ -1,6 +1,8 @@
+/* eslint-disable no-undef */
+
 import { getGanachePort } from './utils';
 import { merge } from 'lodash';
-
+import { PopularNetworksList } from '../resources/networks.e2e';
 const DAPP_URL = 'localhost';
 
 /**
@@ -90,7 +92,7 @@ class FixtureBuilder {
                   decimals: 18,
                   name: 'Synthetix Network Token',
                   iconUrl:
-                    'https://static.metafi.codefi.network/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
+                    'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
                   type: 'erc20',
                   aggregators: [
                     'Aave',
@@ -115,13 +117,14 @@ class FixtureBuilder {
               preventPollingOnNetworkRestart: false,
             },
             CurrencyRateController: {
-              conversionDate: 1684232383.997,
-              conversionRate: 1815.41,
-              nativeCurrency: 'ETH',
               currentCurrency: 'usd',
-              pendingCurrentCurrency: null,
-              pendingNativeCurrency: null,
-              usdConversionRate: 1815.41,
+              currencyRates: {
+                ETH: {
+                  conversionDate: 1684232383.997,
+                  conversionRate: 1815.41,
+                  usdConversionRate: 1815.41,
+                },
+              },
             },
             KeyringController: {
               vault:
@@ -258,6 +261,7 @@ class FixtureBuilder {
                   '0xfa2': true,
                   '0xaa36a7': true,
                   '0xe704': true,
+                  '0xe705': true,
                   '0xe708': true,
                   '0x504': true,
                   '0x507': true,
@@ -343,6 +347,7 @@ class FixtureBuilder {
               gasFeeEstimates: {},
               estimatedGasFeeTimeBounds: {},
               gasEstimateType: 'none',
+              gasFeeEstimatesByChainId: {},
             },
             TokenDetectionController: {},
             NftDetectionController: {},
@@ -386,6 +391,7 @@ class FixtureBuilder {
           lockTime: 30000,
           useBlockieIcon: true,
           hideZeroBalanceTokens: false,
+          basicFunctionalityEnabled: true,
         },
         alert: {
           isVisible: false,
@@ -632,12 +638,7 @@ class FixtureBuilder {
               caveats: [
                 {
                   type: 'restrictReturnedAccounts',
-                  value: [
-                    {
-                      address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
-                      lastUsed: 1692603404804,
-                    },
-                  ],
+                  value: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
                 },
               ],
               date: 1664388714636,
@@ -672,6 +673,27 @@ class FixtureBuilder {
         ticker: 'ETH',
       },
     };
+    return this;
+  }
+
+  withPopularNetworks() {
+    const fixtures = this.fixture.state.engine.backgroundState;
+    const networkIDs = {}; // Object to store network configurations
+
+    // Loop through each network in PopularNetworkList
+    for (const key in PopularNetworksList) {
+      const network = PopularNetworksList[key];
+      const { rpcUrl, chainId, ticker, nickname } = network.providerConfig;
+
+      networkIDs[nickname] = { rpcUrl, chainId, ticker, nickname };
+    }
+
+    // Assign networkIDs object to NetworkController in fixtures
+    fixtures.NetworkController = {
+      isCustomNetwork: true,
+      networkConfigurations: networkIDs,
+    };
+
     return this;
   }
 

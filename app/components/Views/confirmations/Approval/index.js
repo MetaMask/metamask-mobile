@@ -41,7 +41,7 @@ import {
   selectProviderType,
 } from '../../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
@@ -153,7 +153,7 @@ class Approval extends PureComponent {
         } else {
           Engine.rejectPendingApproval(
             transaction?.id,
-            ethErrors.provider.userRejectedRequest(),
+            providerErrors.userRejectedRequest(),
             {
               ignoreMissing: true,
               logErrors: false,
@@ -197,7 +197,7 @@ class Approval extends PureComponent {
         if (transaction?.id && this.isTxStatusCancellable(currentTransaction)) {
           Engine.rejectPendingApproval(
             transaction.id,
-            ethErrors.provider.userRejectedRequest(),
+            providerErrors.userRejectedRequest(),
             {
               ignoreMissing: true,
               logErrors: false,
@@ -399,6 +399,7 @@ class Approval extends PureComponent {
       transactions,
       transaction: { assetType, selectedAsset },
       showCustomNonce,
+      chainId,
     } = this.props;
     let { transaction } = this.props;
     const { nonce } = transaction;
@@ -453,7 +454,16 @@ class Approval extends PureComponent {
       );
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
-      const updatedTx = { ...fullTx, transaction };
+
+      const updatedTx = {
+        ...fullTx,
+        txParams: {
+          ...fullTx.txParams,
+          ...transaction,
+          chainId,
+        },
+      };
+
       await updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
 

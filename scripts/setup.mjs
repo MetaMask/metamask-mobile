@@ -2,13 +2,16 @@ import fs from 'fs';
 import { $ } from 'execa';
 import { Listr } from 'listr2';
 
+const IS_OSX = process.platform === 'darwin';
+// iOS builds are enabled by default on macOS only but can be enabled explicitly
+const BUILD_IOS = process.argv.slice(2)?.[0] === '--build-ios' || IS_OSX;
+
 const rendererOptions = {
   collapseErrors: false,
   showSkipMessage: false,
   suffixSkips: true,
   collapseSubtasks: false
 };
-
 
 /*
  * FIXME: We shouldn't be making system wide installs without user consent.
@@ -26,8 +29,7 @@ const detoxGlobalInstallTask = {
     {
       title: 'Install applesimutils globally',
       task: async (_, appSimTask) => {
-        const isOSX = process.platform === 'darwin';
-        if (!isOSX) {
+        if (!IS_OSX) {
           appSimTask.skip('Not macOS.');
         } else {
           await $`brew tap wix/brew`;
@@ -107,22 +109,35 @@ const ppomBuildTask = {
   }
 }
 
+const gemInstallTask = {
+  title: 'Install gems',
+  task: (_, task) => task.newListr([
+    {
+      title: 'Install gems using bundler',
+      task: async (_, gemInstallTask) => {
+        if (!BUILD_IOS) {
+          return gemInstallTask.skip('Skipping iOS.')
+        }
+        await $`bundle install`;
+      },
+    },
+  ], {
+    exitOnError: true,
+    concurrent: false,
+    rendererOptions
+  })
+}
+
 const mainSetupTask = {
   title: 'Dependencies setup',
   task: (_, task) => task.newListr([
     {
       title: 'Install iOS Pods',
       task: async (_, podInstallTask) => {
-        const isOSX = process.platform === 'darwin';
-        if (!isOSX) {
-          podInstallTask.skip('Not macOS.');
-        } else {
-          try {
-            await $`pod install --project-directory=ios`;
-          } catch (error) {
-            throw new Error(error);
-          }
+        if (!BUILD_IOS) {
+          return podInstallTask.skip('Skipping iOS.')
         }
+        await $`bundle exec pod install --project-directory=ios`;
       },
     },
     {
@@ -189,13 +204,14 @@ const patchModulesTask = {
     })
 }
 const tasks = new Listr([
+  gemInstallTask,
   mainSetupTask,
   ppomBuildTask,
   patchModulesTask
 ],
   {
     exitOnError: true,
-    concurrent: true,
+    concurrent: false,
   });
 
 await tasks.run();

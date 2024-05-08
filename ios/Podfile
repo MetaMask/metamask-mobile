@@ -3,6 +3,8 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 
 platform :ios, '12.4' #min_ios_version_supported
 prepare_react_native_project!
+# Ensures that versions from Gemfile is respected
+ensure_bundler!
 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
@@ -80,7 +82,7 @@ def common_target_logic
 
   # Pods for MetaMask
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
-  pod 'ReactNativePayments', :path => '../node_modules/@exodus/react-native-payments/lib/ios/'
+  pod 'ReactNativePayments', :path => '../node_modules/@metamask/react-native-payments/lib/ios/'
 
     # Pods for Push Notifications
   pod 'Firebase', :modular_headers => true

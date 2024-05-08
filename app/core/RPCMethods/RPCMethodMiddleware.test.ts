@@ -6,21 +6,31 @@ import {
   JsonRpcResponse,
   JsonRpcSuccess,
 } from 'json-rpc-engine';
-import type { Transaction } from '@metamask/transaction-controller';
+import type { TransactionParams } from '@metamask/transaction-controller';
 import type { ProviderConfig } from '@metamask/network-controller';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import Engine from '../Engine';
 import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
 import { RPC } from '../../constants/network';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import AppConstants from '../AppConstants';
-import { PermissionConstraint } from '@metamask/permission-controller';
+import {
+  PermissionConstraint,
+  PermissionController,
+} from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import initialBackgroundState from '../../util/test/initial-background-state.json';
 import { Store } from 'redux';
 import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
+import { ControllerMessenger } from '@metamask/base-controller';
+import {
+  getCaveatSpecifications,
+  getPermissionSpecifications,
+  unrestrictedMethods,
+} from '../Permissions/specifications';
+import { EthAccountType, EthMethod } from '@metamask/keyring-api';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -293,7 +303,7 @@ function setupSignature() {
 }
 
 describe('getRpcMethodMiddleware', () => {
-  it('allows unrecognized methods to pass through', async () => {
+  it('allows unrecognized methods to pass through without PermissionController middleware', async () => {
     const engine = new JsonRpcEngine();
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
     engine.push(middleware);
@@ -313,6 +323,123 @@ describe('getRpcMethodMiddleware', () => {
 
     assertIsJsonRpcSuccess(response);
     expect(response.result).toBe('success');
+  });
+
+  describe('with permission middleware before', () => {
+    const engine = new JsonRpcEngine();
+    const controllerMessenger = new ControllerMessenger();
+    const baseEoaAccount = {
+      type: EthAccountType.Eoa,
+      options: {},
+      methods: [
+        EthMethod.PersonalSign,
+        EthMethod.Sign,
+        EthMethod.SignTransaction,
+        EthMethod.SignTypedDataV1,
+        EthMethod.SignTypedDataV3,
+        EthMethod.SignTypedDataV4,
+      ],
+    };
+    const mockGetInternalAccounts = jest.fn().mockImplementationOnce(() => [
+      {
+        address: '0x1',
+        id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
+        metadata: {
+          name: 'Test Account 1',
+          lastSelected: 1,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+        ...baseEoaAccount,
+      },
+    ]);
+    const permissionController = new PermissionController({
+      messenger: controllerMessenger.getRestricted({
+        name: 'PermissionController',
+      }),
+      caveatSpecifications: getCaveatSpecifications({
+        getInternalAccounts: mockGetInternalAccounts,
+      }),
+      // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
+      permissionSpecifications: {
+        ...getPermissionSpecifications({
+          getAllAccounts: jest.fn().mockImplementation(async () => ['0x1']),
+          getInternalAccounts: mockGetInternalAccounts,
+          captureKeyringTypesWithMissingIdentities: jest
+            .fn()
+            .mockImplementation(() => []),
+        }),
+      },
+      unrestrictedMethods,
+    });
+    const permissionMiddleware =
+      permissionController.createPermissionMiddleware({
+        origin: hostMock,
+      });
+    // @ts-expect-error JsonRpcId (number | string | void) doesn't match PS middleware's id, which is (string | number | null)
+    engine.push(permissionMiddleware);
+    const middleware = getRpcMethodMiddleware(getMinimalOptions());
+    engine.push(middleware);
+
+    it('returns method not found error', async () => {
+      const fakeMethodName = 'this-is-a-fake-method';
+      const response = await engine.handle({
+        jsonrpc,
+        id: 1,
+        method: fakeMethodName,
+      });
+
+      const expectedError = rpcErrors.methodNotFound(
+        `The method "${fakeMethodName}" does not exist / is not available.`,
+      );
+
+      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      expect((response as JsonRpcFailure).error.message).toBe(
+        expectedError.message,
+      );
+    });
+
+    it('returns unauthorized error on restricted method without permission', async () => {
+      const ethAccountsMethodName = 'eth_accounts';
+      const response = await engine.handle({
+        jsonrpc,
+        id: 1,
+        method: ethAccountsMethodName,
+      });
+
+      const expectedError = providerErrors.unauthorized(
+        'Unauthorized to perform action. Try requesting the required permission(s) first. For more information, see: https://docs.metamask.io/guide/rpc-api.html#permissions',
+      );
+
+      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      expect((response as JsonRpcFailure).error.message).toBe(
+        expectedError.message,
+      );
+    });
+
+    it('handles restricted method with permission', async () => {
+      const ethAccountsMethodName = 'eth_accounts';
+      permissionController.grantPermissions({
+        subject: { origin: hostMock },
+        approvedPermissions: {
+          eth_accounts: {},
+        },
+        requestData: {
+          approvedAccounts: ['0x1'],
+        },
+      });
+      const response = await engine.handle({
+        jsonrpc,
+        id: 1,
+        method: ethAccountsMethodName,
+      });
+
+      expect((response as JsonRpcFailure).error).toBeUndefined();
+      expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
+        '0x1',
+      ]);
+    });
   });
 
   const accountMethods = [
@@ -572,7 +699,7 @@ describe('getRpcMethodMiddleware', () => {
           method: 'eth_sendTransaction',
           params: [mockTransactionParameters],
         };
-        const expectedError = ethErrors.provider.userRejectedRequest();
+        const expectedError = providerErrors.userRejectedRequest();
 
         const response = await callMiddleware({ middleware, request });
 
@@ -611,7 +738,7 @@ describe('getRpcMethodMiddleware', () => {
           method: 'eth_sendTransaction',
           params: [mockTransactionParameters],
         };
-        const expectedError = ethErrors.rpc.invalidParams({
+        const expectedError = rpcErrors.invalidParams({
           message: `Invalid parameters: must provide an Ethereum address.`,
         });
 
@@ -684,7 +811,7 @@ describe('getRpcMethodMiddleware', () => {
           method: 'eth_sendTransaction',
           params: [mockTransactionParameters],
         };
-        const expectedError = ethErrors.rpc.invalidParams({
+        const expectedError = rpcErrors.invalidParams({
           message: `Invalid parameters: must provide an Ethereum address.`,
         });
 
@@ -759,7 +886,7 @@ describe('getRpcMethodMiddleware', () => {
           method: 'eth_sendTransaction',
           params: [mockTransactionParameters],
         };
-        const expectedError = ethErrors.rpc.invalidParams({
+        const expectedError = rpcErrors.invalidParams({
           message: `Invalid parameters: must provide an Ethereum address.`,
         });
 
@@ -830,7 +957,7 @@ describe('getRpcMethodMiddleware', () => {
     it('returns a JSON-RPC error if an error is thrown when adding this transaction', async () => {
       // Omit `from` and `chainId` here to skip validation for simplicity
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as Transaction;
+      const mockTransactionParameters = {} as TransactionParams;
       // Transaction fails before returning a result
       mockAddTransaction.mockImplementation(async () => {
         throw new Error('Failed to add transaction');
@@ -845,7 +972,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'eth_sendTransaction',
         params: [mockTransactionParameters],
       };
-      const expectedError = ethErrors.rpc.internal('Failed to add transaction');
+      const expectedError = rpcErrors.internal('Failed to add transaction');
 
       const response = await callMiddleware({ middleware, request });
 
@@ -858,7 +985,7 @@ describe('getRpcMethodMiddleware', () => {
     it('returns a JSON-RPC error if an error is thrown after approval', async () => {
       // Omit `from` and `chainId` here to skip validation for simplicity
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as Transaction;
+      const mockTransactionParameters = {} as TransactionParams;
       setupGlobalState({
         addTransactionResult: Promise.reject(
           new Error('Failed to process transaction'),
@@ -874,9 +1001,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'eth_sendTransaction',
         params: [mockTransactionParameters],
       };
-      const expectedError = ethErrors.rpc.internal(
-        'Failed to process transaction',
-      );
+      const expectedError = rpcErrors.internal('Failed to process transaction');
 
       const response = await callMiddleware({ middleware, request });
 
@@ -949,9 +1074,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'personal_ecRecover',
         params: [helloWorldMessage],
       };
-      const expectedError = ethErrors.rpc.internal(
-        'Missing signature parameter',
-      );
+      const expectedError = rpcErrors.internal('Missing signature parameter');
 
       const response = await callMiddleware({ middleware, request });
 
@@ -972,7 +1095,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'personal_ecRecover',
         params: [undefined, helloWorldSignature],
       };
-      const expectedError = ethErrors.rpc.internal('Missing data parameter');
+      const expectedError = rpcErrors.internal('Missing data parameter');
 
       const response = await callMiddleware({ middleware, request });
 

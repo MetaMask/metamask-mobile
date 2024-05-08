@@ -1,4 +1,5 @@
 import { waitFor } from 'detox';
+import Matchers from './Matchers';
 
 // Global timeout variable
 const TIMEOUT = 15000;
@@ -45,6 +46,26 @@ class Assertions {
     return await waitFor(await elementId)
       .toHaveText(text)
       .withTimeout(timeout);
+  }
+
+  /**
+   * Check if text is visible.
+   * @param {string} text - The text to check if displayed.
+   * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
+   */
+  static async checkIfTextIsDisplayed(text, timeout = TIMEOUT) {
+    const element = Matchers.getElementByText(text);
+    return this.checkIfVisible(element, timeout);
+  }
+
+  /**
+   * Check if text is not visible.
+   * @param {string} text - The text to check if not displayed.
+   * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
+   */
+  static async checkIfTextIsNotDisplayed(text, timeout = TIMEOUT) {
+    const element = Matchers.getElementByText(text);
+    return this.checkIfNotVisible(element, timeout);
   }
 
   /**

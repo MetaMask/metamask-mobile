@@ -20,6 +20,11 @@ jest.mock('react-native', () => {
   return originalModule;
 });
 
+jest.mock('../../lib/snaps/preinstalled-snaps', () =>
+  // eslint-disable-next-line no-console
+  console.log("do nothing since we aren't testing the pre installed snaps"),
+);
+
 jest.mock('react-native-fs', () => ({
   CachesDirectoryPath: jest.fn(),
   DocumentDirectoryPath: jest.fn(),
@@ -149,7 +154,7 @@ jest.mock('react-native-branch', () => ({
   },
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
-jest.mock('react-native-search-api', () => 'SearchApi');
+jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
 jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
 );
@@ -194,6 +199,23 @@ NativeModules.Aes = {
     const hashBase = '012345678987654';
     return Promise.resolve(hashBase + uniqueAddressChar);
   }),
+  pbkdf2: jest
+    .fn()
+    .mockImplementation((_password, _salt, _iterations, _keyLength) =>
+      Promise.resolve('mockedKey'),
+    ),
+  randomKey: jest.fn().mockResolvedValue('mockedIV'),
+  encrypt: jest.fn().mockResolvedValue('mockedCipher'),
+  decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainText"}'),
+};
+
+NativeModules.AesForked = {
+  pbkdf2: jest
+    .fn()
+    .mockImplementation((_password, _salt) =>
+      Promise.resolve('mockedKeyForked'),
+    ),
+  decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainTextForked"}'),
 };
 
 jest.mock(
@@ -274,6 +296,7 @@ jest.mock('react-native-default-preference', () => ({
 // eslint-disable-next-line import/no-commonjs
 require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
+global.__DEV__ = false;
 
 jest.mock(
   '../../core/Engine',
@@ -284,3 +307,13 @@ afterEach(() => {
   jest.restoreAllMocks();
   global.gc && global.gc(true);
 });
+
+global.crypto = {
+  getRandomValues: (arr) => {
+    const uint8Max = 255;
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = Math.floor(Math.random() * (uint8Max + 1));
+    }
+    return arr;
+  },
+};
