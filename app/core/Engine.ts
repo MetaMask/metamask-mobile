@@ -26,6 +26,7 @@ import {
   TokensControllerEvents,
   TokenListControllerActions,
   TokenListControllerEvents,
+  TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { AppState } from 'react-native';
@@ -193,7 +194,6 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
-import { TokenBalancesControllerState } from '@metamask/assets-controllers/dist/TokenBalancesController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -401,11 +401,7 @@ class Engine {
 
     const approvalController = new ApprovalController({
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-      messenger: this.controllerMessenger.getRestricted<
-        'ApprovalController',
-        never,
-        never
-      >({
+      messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
         allowedEvents: [],
         allowedActions: [],
@@ -422,11 +418,7 @@ class Engine {
     });
 
     const preferencesController = new PreferencesController({
-      messenger: this.controllerMessenger.getRestricted<
-        'PreferencesController',
-        never,
-        'KeyringController:stateChange'
-      >({
+      messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
         allowedEvents: ['KeyringController:stateChange'],
       }),
@@ -435,7 +427,6 @@ class Engine {
         useTokenDetection:
           initialState?.PreferencesController?.useTokenDetection ?? true,
         useNftDetection: false,
-        // Take a look
         displayNftMedia: true,
         securityAlertsEnabled: true,
         ...initialState.PreferencesController,
@@ -445,15 +436,9 @@ class Engine {
     const networkControllerOpts = {
       infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
       state: initialState.NetworkController,
-      messenger: this.controllerMessenger.getRestricted<
-        'NetworkController',
-        never,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore // TODO: fix this type mismatch after the base-controller version is updated
-        'NetworkController:networkDidChange'
-      >({
+      messenger: this.controllerMessenger.getRestricted({
         name: 'NetworkController',
-        allowedEvents: ['NetworkController:networkDidChange'],
+        allowedEvents: [],
         allowedActions: [],
       }),
       // Metrics event tracking is handled in this repository instead
@@ -487,12 +472,7 @@ class Engine {
           ),
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
-        messenger: this.controllerMessenger.getRestricted<
-          'NftController',
-          | 'ApprovalController:addRequest'
-          | 'NetworkController:getNetworkClientById',
-          never
-        >({
+        messenger: this.controllerMessenger.getRestricted({
           name: 'NftController',
           allowedActions: [
             `${approvalController.name}:addRequest`,
@@ -570,13 +550,7 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
         selectedAddress: preferencesController.state.selectedAddress,
       },
-      messenger: this.controllerMessenger.getRestricted<
-        'TokensController',
-        'ApprovalController:addRequest',
-        | 'PreferencesController:stateChange'
-        | 'NetworkController:networkDidChange'
-        | 'TokenListController:stateChange'
-      >({
+      messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [`${approvalController.name}:addRequest`],
         allowedEvents: [
@@ -593,21 +567,13 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
-      messenger: this.controllerMessenger.getRestricted<
-        'TokenListController',
-        never,
-        'NetworkController:stateChange'
-      >({
+      messenger: this.controllerMessenger.getRestricted({
         name: 'TokenListController',
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
     const currencyRateController = new CurrencyRateController({
-      messenger: this.controllerMessenger.getRestricted<
-        'CurrencyRateController',
-        'NetworkController:getNetworkClientById',
-        never
-      >({
+      messenger: this.controllerMessenger.getRestricted({
         name: 'CurrencyRateController',
         allowedActions: [`${networkController.name}:getNetworkClientById`],
       }),
@@ -617,12 +583,7 @@ class Engine {
       networkController.state.selectedNetworkClientId,
     );
     const gasFeeController = new GasFeeController({
-      messenger: this.controllerMessenger.getRestricted<
-        'GasFeeController',
-        | 'NetworkController:getNetworkClientById'
-        | 'NetworkController:getEIP1559Compatibility',
-        'NetworkController:networkDidChange'
-      >({
+      messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
           `${networkController.name}:getNetworkClientById`,
@@ -675,11 +636,7 @@ class Engine {
         preferencesController,
       ),
       encryptor,
-      messenger: this.controllerMessenger.getRestricted<
-        'KeyringController',
-        never,
-        never
-      >({
+      messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
       }),
       state: initialKeyringState || initialState.KeyringController,
@@ -860,11 +817,7 @@ class Engine {
     const subjectMetadataController = new SubjectMetadataController({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-      messenger: this.controllerMessenger.getRestricted<
-        'SubjectMetadataController',
-        'PermissionController:hasPermissions',
-        never
-      >({
+      messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
         allowedActions: [`${permissionController.name}:hasPermissions`],
       }),
@@ -1011,25 +964,7 @@ class Engine {
       tokensController,
       tokenListController,
       new TokenDetectionController({
-        messenger: this.controllerMessenger.getRestricted<
-          'TokenDetectionController',
-          | 'AccountsController:getSelectedAccount'
-          | 'NetworkController:getNetworkClientById'
-          | 'NetworkController:getNetworkConfigurationByNetworkClientId'
-          | 'NetworkController:getState'
-          | 'KeyringController:getState'
-          | 'PreferencesController:getState'
-          | 'TokenListController:getState'
-          | 'TokensController:getState'
-          | 'TokensController:addDetectedTokens',
-          | 'AccountsController:selectedAccountChange'
-          | 'KeyringController:lock'
-          | 'KeyringController:unlock'
-          | 'PreferencesController:stateChange'
-          | 'NetworkController:networkDidChange'
-          | 'TokenListController:stateChange'
-          | 'TokensController:stateChange'
-        >({
+        messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
             'AccountsController:getSelectedAccount',
@@ -1091,11 +1026,7 @@ class Engine {
       phishingController,
       preferencesController,
       new TokenBalancesController({
-        messenger: this.controllerMessenger.getRestricted<
-          'TokenBalancesController',
-          'PreferencesController:getState',
-          'TokensController:stateChange'
-        >({
+        messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: ['PreferencesController:getState'],
           allowedEvents: ['TokensController:stateChange'],
@@ -1154,11 +1085,7 @@ class Engine {
           updateTransactions: true,
         },
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-        messenger: this.controllerMessenger.getRestricted<
-          'TransactionController',
-          'ApprovalController:addRequest',
-          never
-        >({
+        messenger: this.controllerMessenger.getRestricted({
           name: 'TransactionController',
           allowedActions: [`${approvalController.name}:addRequest`],
         }),
@@ -1204,15 +1131,7 @@ class Engine {
       permissionController,
       new SignatureController({
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-        messenger: this.controllerMessenger.getRestricted<
-          'SignatureController',
-          | 'ApprovalController:addRequest'
-          | 'KeyringController:signPersonalMessage'
-          | 'KeyringController:signMessage'
-          | 'KeyringController:signTypedMessage'
-          | 'LoggingController:add',
-          never
-        >({
+        messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
           allowedActions: [
             `${approvalController.name}:addRequest`,
@@ -1243,11 +1162,7 @@ class Engine {
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-        messenger: this.controllerMessenger.getRestricted<
-          'PPOMController',
-          never,
-          'NetworkController:stateChange'
-        >({
+        messenger: this.controllerMessenger.getRestricted({
           name: 'PPOMController',
           allowedEvents: [`${networkController.name}:stateChange`],
         }),

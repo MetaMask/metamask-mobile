@@ -1319,3 +1319,16 @@ index 2768926..1e81cde 100644
  /**
   * Retrieves token prices for a set of contract addresses in a specific currency and chainId.
   *
+diff --git a/node_modules/@metamask/assets-controllers/dist/index.d.ts b/node_modules/@metamask/assets-controllers/dist/index.d.ts
+index 9c19787..489b198 100644
+--- a/node_modules/@metamask/assets-controllers/dist/index.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/index.d.ts
+@@ -3,7 +3,7 @@ export * from './AssetsContractController';
+ export * from './CurrencyRateController';
+ export * from './NftController';
+ export * from './NftDetectionController';
+-export type { TokenBalancesControllerMessenger, TokenBalancesControllerActions, TokenBalancesControllerGetStateAction, TokenBalancesControllerEvents, TokenBalancesControllerStateChangeEvent, } from './TokenBalancesController';
++export type { TokenBalancesControllerMessenger, TokenBalancesControllerActions, TokenBalancesControllerGetStateAction, TokenBalancesControllerEvents, TokenBalancesControllerStateChangeEvent, TokenBalancesControllerState, } from './TokenBalancesController';
+ export { TokenBalancesController } from './TokenBalancesController';
+ export type { TokenDetectionControllerMessenger, TokenDetectionControllerActions, TokenDetectionControllerGetStateAction, TokenDetectionControllerEvents, TokenDetectionControllerStateChangeEvent, } from './TokenDetectionController';
+ export { TokenDetectionController } from './TokenDetectionController';
