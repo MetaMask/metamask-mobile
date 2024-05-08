@@ -7,15 +7,15 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
+
 import TabBarComponent from '../../pages/TabBarComponent';
-import { TestDApp } from '../../pages/TestDApp';
+import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import enContent from '../../../locales/languages/en.json';
 import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
 import Assertions from '../../utils/Assertions';
+import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
-const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {
@@ -45,11 +45,10 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
 
-        // Approve ERC20 tokens
-        await TestDApp.tapButtonWithContract({
-          buttonId: WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID,
+        await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });
+        await TestDApp.tapApproveButton();
 
         //Input custom token amount
         await ContractApprovalModal.clearInput();
@@ -60,7 +59,6 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
           ContractApprovalModal.approveTokenAmount,
           '2',
         );
-
         // Tap next button
         await ContractApprovalModal.tapNextButton();
 
@@ -69,10 +67,9 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
-
         // Assert erc20 is approved
-        await TestHelpers.checkIfElementByTextIsVisible(
-          enContent.transaction.confirmed,
+        await Assertions.checkIfTextIsDisplayed(
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
         );
       },
     );

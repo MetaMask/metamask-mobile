@@ -79,9 +79,12 @@ class Gestures {
    * Clear the text field of an element identified by ID.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to clear
-   */
-  static async clearField(elementID) {
+   * @param {number} timeout - Timeout for waiting (default: 8000ms)
+
+  */
+  static async clearField(elementID, timeout = 2500) {
     const element = await elementID;
+    await waitFor(element).toBeVisible().withTimeout(timeout);
 
     await element.replaceText('');
   }
@@ -94,9 +97,8 @@ class Gestures {
    */
   static async typeTextAndHideKeyboard(elementID, text) {
     const element = await elementID;
-    if (device.getPlatform() === 'android') {
-      await this.clearField(element);
-    }
+    await this.clearField(element);
+
     await element.typeText(text + '\n');
   }
 
@@ -153,6 +155,15 @@ class Gestures {
     await element
       .atIndex(index)
       .swipe(direction, speed, percentage, xStart, yStart);
+  }
+
+  /**
+   * Scrolls the web element until its top is at the top of the viewport.
+   * @param {Promise<Element>} elementID - A promise resolving to the target element.
+   */
+  static async scrollToWebViewPort(elem) {
+    const element = await elem;
+    await element.scrollToView();
   }
 
   /**

@@ -7,7 +7,7 @@ import ActionView from '../../UI/ActionView';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
-import { AddBookmarkViewSelectorsIDs } from '../../../../e2e/selectors/AddBookmarkView.selectors';
+import { AddBookmarkViewSelectorsIDs } from '../../../../e2e/selectors/Browser/AddBookmarkView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
