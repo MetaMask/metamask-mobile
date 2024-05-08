@@ -1102,6 +1102,8 @@ class Engine {
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
         getCurrentNetworkEIP1559Compatibility:
           networkController.getEIP1559Compatibility.bind(networkController),
+        //@ts-expect-error Expected due to Transaction Controller do not have controller utils containing linea-sepolia data
+        // This can be removed when controller-utils be updated to v^9
         getNetworkState: () => networkController.state,
         getSelectedAddress: () =>
           accountsController.getSelectedAccount().address,
