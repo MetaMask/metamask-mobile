@@ -19,8 +19,9 @@ describe('NotificationRoot', () => {
         handleOnPress={handleOnPress}
         onDismiss={onDismiss}
         styles={styles}
-        children={children}
-      />,
+      >
+        {children}
+      </NotificationRoot>,
     );
     expect(toJSON()).toMatchSnapshot();
   });
