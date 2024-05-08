@@ -34,6 +34,10 @@ jest.mock('react-native-webview', () => {
   };
 });
 
+jest.mock('../../lib/snaps/preinstalled-snaps', () =>
+  // eslint-disable-next-line no-console
+  console.log("do nothing since we aren't testing the pre installed snaps"),
+);
 
 jest.mock('react-native-fs', () => ({
   CachesDirectoryPath: jest.fn(),
@@ -164,7 +168,7 @@ jest.mock('react-native-branch', () => ({
   },
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
-jest.mock('react-native-search-api', () => 'SearchApi');
+jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
 jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
 );
