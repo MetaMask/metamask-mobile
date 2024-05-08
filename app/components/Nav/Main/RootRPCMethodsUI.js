@@ -44,7 +44,7 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
-import SignatureApproval from '../../Approvals/SignatureApproval';
+// import SignatureApproval from '../../Approvals/SignatureApproval';
 import AddChainApproval from '../../Approvals/AddChainApproval';
 import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
 import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
@@ -66,6 +66,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../util/smart-transactions';
+import Confirm from '../../Views/confirmations/Confirm';
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
@@ -424,7 +425,8 @@ const RootRPCMethodsUI = (props) => {
 
   return (
     <React.Fragment>
-      <SignatureApproval />
+      <Confirm />
+      {/* <SignatureApproval /> */}
       <WalletConnectApproval />
       <TransactionApproval
         transactionType={transactionModalType}
