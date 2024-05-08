@@ -132,6 +132,7 @@ import {
   isMainnetByChainId,
   fetchEstimatedMultiLayerL1Fee,
   deprecatedGetNetworkId,
+  getDecimalChainId,
 } from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
@@ -148,7 +149,7 @@ import Logger from '../util/Logger';
 import { EndowmentPermissions } from '../constants/permissions';
 ///: END:ONLY_INCLUDE_IF
 import { isZero } from '../util/lodash';
-import { MetaMetricsEvents } from './Analytics';
+import { MetaMetricsEvents, MetaMetrics } from './Analytics';
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
@@ -1021,19 +1022,17 @@ class Engine {
             'TokensController:stateChange',
           ],
         }),
-        // TODO: Revisit this event it's not with the right properties
-        trackMetaMetricsEvent: () => ({
-          event: MetaMetricsEvents.TOKEN_DETECTED,
-          category: '',
-          properties: {
-            token_standard: 'ERC20',
-            asset_type: 'token',
-            tokens: [],
-            /*  chain_id: getDecimalChainId(
-              networkController.state.providerConfig.chainId,
-            ), */
-          },
-        }),
+        trackMetaMetricsEvent: () =>
+          MetaMetrics.getInstance().trackEvent(
+            MetaMetricsEvents.TOKEN_DETECTED,
+            {
+              token_standard: 'ERC20',
+              asset_type: 'token',
+              chain_id: getDecimalChainId(
+                networkController.state.providerConfig.chainId,
+              ),
+            },
+          ),
         // Remove this when TokensController is extending Base Controller v2
         getTokensState: () => tokensController.state,
         getBalancesInSingleCall:
