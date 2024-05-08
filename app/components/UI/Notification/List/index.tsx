@@ -57,7 +57,7 @@ const Notifications = ({
           backgroundColor={colors.background.default}
           tabStyle={styles.tabStyle}
           textStyle={styles.textStyle}
-          tabPadding={16}
+          tabPadding={12}
           style={styles.tabBar}
           {...props}
         />
