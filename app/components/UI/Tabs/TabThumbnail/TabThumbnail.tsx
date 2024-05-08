@@ -26,8 +26,7 @@ import createStyles from './TabThumbnail.styles';
 import { TabThumbnailProps } from './types';
 import useNetworkInfo from './useNetworkInfo';
 import useSelectedAccount from './useSelectedAccount';
-/* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const METAMASK_FOX = require('../../../../images/fox.png');
+import METAMASK_FOX from '../../../../images/fox.png';
 
 const { HOMEPAGE_URL } = AppConstants;
 
