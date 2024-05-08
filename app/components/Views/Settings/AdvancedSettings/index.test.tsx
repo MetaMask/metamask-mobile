@@ -176,8 +176,7 @@ describe('AdvancedSettings', () => {
       );
       expect(switchElement.props.value).toBe(false);
     });
-    it('should call PreferencesController.setSmartTransactionsOptInStatus \
-        when smart transactions opt in is pressed', async () => {
+    it('should update smartTransactionsOptInStatus when smart transactions opt in is pressed', async () => {
       const { findByLabelText } = renderWithProvider(
         <AdvancedSettings
           navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
