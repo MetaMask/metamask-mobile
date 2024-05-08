@@ -4,7 +4,9 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { withLedgerKeyring } from './Ledger/Ledger';
 
 /**
- * Restores the QR keyring if it exists.
+ * Restore the given serialized QR keyring.
+ *
+ * @param {unknown} serializedQrKeyring - A serialized QR keyring.
  */
 export const restoreQRKeyring = async (serializedQrKeyring) => {
   const { KeyringController } = Engine.context;
@@ -17,7 +19,9 @@ export const restoreQRKeyring = async (serializedQrKeyring) => {
 };
 
 /**
- * Restores the Ledger keyring if it exists.
+ * Restore the given serialized Ledger keyring.
+ *
+ * @param {unknown} serializedLedgerKeyring - A serialized Ledger keyring.
  */
 export const restoreLedgerKeyring = async (serializedLedgerKeyring) => {
   try {
