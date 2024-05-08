@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/utils/dist/chunk-QEPVHEP7.js b/node_modules/@metamask/utils/dist/chunk-QEPVHEP7.js
+index b852707..b9698e0 100644
+--- a/node_modules/@metamask/utils/dist/chunk-QEPVHEP7.js
++++ b/node_modules/@metamask/utils/dist/chunk-QEPVHEP7.js
+@@ -233,7 +233,7 @@ function add0x(hexadecimal) {
+ }
+ function remove0x(hexadecimal) {
+   if (hexadecimal.startsWith("0x") || hexadecimal.startsWith("0X")) {
+-    return hexadecimal.substring(2);
++    return hexadecimal.slice(2);
+   }
+   return hexadecimal;
+ }
