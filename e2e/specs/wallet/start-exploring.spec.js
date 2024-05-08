@@ -84,7 +84,7 @@ describe(SmokeCore('Start Exploring'), () => {
     await OnboardingWizardModal.tapGotItButton();
     // Ensure step 3 is shown correctly
     await Assertions.checkIfVisible(OnboardingWizardModal.stepThreeContainer);
-    // await WalletView.editAccountName(ACCOUNT);stepSixContainer
+    // await WalletView.editAccountName(ACCOUNT);
     await OnboardingWizardModal.tapGotItButton();
     await WalletView.isAccountNameCorrect(ACCOUNT);
     // Ensure step 4 is shown correctly
