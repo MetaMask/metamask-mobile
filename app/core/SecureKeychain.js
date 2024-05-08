@@ -1,5 +1,5 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
-import { Encryptor, LEGACY_DERIVATION_PARAMS } from './Encryptor';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import { strings } from '../../locales/i18n';
 import AsyncStorage from '../store/async-storage-wrapper';
 import { Platform } from 'react-native';
@@ -15,7 +15,7 @@ import Device from '../util/device';
 
 const privates = new WeakMap();
 const encryptor = new Encryptor({
-  derivationParams: LEGACY_DERIVATION_PARAMS,
+  keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
 });
 const defaultOptions = {
   service: 'com.metamask',
