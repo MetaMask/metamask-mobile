@@ -175,7 +175,7 @@ class NetworkView {
     await Gestures.waitAndTap(this.rpcAddButton);
   }
 
-  async swipeToRPCTitleAndDismissKeyboard() {
+  async tapChainIDLabel() {
     // Because in bitrise the keyboard is blocking the "Add" CTA
     await Gestures.waitAndTap(this.chainIdLabel);
   }

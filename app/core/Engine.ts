@@ -124,7 +124,7 @@ import {
   LoggingControllerActions,
 } from '@metamask/logging-controller';
 import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
-import { Encryptor, LEGACY_DERIVATION_PARAMS } from './Encryptor';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import {
   isMainnetByChainId,
   getDecimalChainId,
@@ -194,7 +194,7 @@ import {
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor({
-  derivationParams: LEGACY_DERIVATION_PARAMS,
+  keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
 });
 let currentChainId: any;
 
@@ -289,6 +289,51 @@ export interface EngineState {
 }
 
 /**
+ * All mobile controllers, keyed by name
+ */
+interface Controllers {
+  AccountsController: AccountsController;
+  AccountTrackerController: AccountTrackerController;
+  AddressBookController: AddressBookController;
+  ApprovalController: ApprovalController;
+  AssetsContractController: AssetsContractController;
+  CurrencyRateController: CurrencyRateController;
+  GasFeeController: GasFeeController;
+  KeyringController: KeyringController;
+  LoggingController: LoggingController;
+  NetworkController: NetworkController;
+  NftController: NftController;
+  NftDetectionController: NftDetectionController;
+  // TODO: Fix permission types
+  PermissionController: PermissionController<any, any>;
+  PhishingController: PhishingController;
+  PreferencesController: PreferencesController;
+  PPOMController: PPOMController;
+  TokenBalancesController: TokenBalancesController;
+  TokenListController: TokenListController;
+  TokenDetectionController: TokenDetectionController;
+  TokenRatesController: TokenRatesController;
+  TokensController: TokensController;
+  TransactionController: TransactionController;
+  SignatureController: SignatureController;
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  SnapController: SnapController;
+  SubjectMetadataController: SubjectMetadataController;
+  ///: END:ONLY_INCLUDE_IF
+  SwapsController: SwapsController;
+}
+
+/**
+ * Controllers that area always instantiated
+ */
+type RequiredControllers = Omit<Controllers, 'PPOMController'>;
+
+/**
+ * Controllers that are sometimes not instantiated
+ */
+type OptionalControllers = Pick<Controllers, 'PPOMController'>;
+
+/**
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
  */
@@ -300,35 +345,7 @@ class Engine {
   /**
    * A collection of all controller instances
    */
-  context:
-    | {
-        AccountTrackerController: AccountTrackerController;
-        AddressBookController: AddressBookController;
-        ApprovalController: ApprovalController;
-        AssetsContractController: AssetsContractController;
-        CurrencyRateController: CurrencyRateController;
-        GasFeeController: GasFeeController;
-        KeyringController: KeyringController;
-        LoggingController: LoggingController;
-        NetworkController: NetworkController;
-        NftController: NftController;
-        NftDetectionController: NftDetectionController;
-        // TODO: Fix permission types
-        PermissionController: PermissionController<any, any>;
-        PhishingController: PhishingController;
-        PreferencesController: PreferencesController;
-        PPOMController?: PPOMController;
-        TokenBalancesController: TokenBalancesController;
-        TokenListController: TokenListController;
-        TokenDetectionController: TokenDetectionController;
-        TokenRatesController: TokenRatesController;
-        TokensController: TokensController;
-        TransactionController: TransactionController;
-        SignatureController: SignatureController;
-        SwapsController: SwapsController;
-        AccountsController: AccountsController;
-      }
-    | any;
+  context: RequiredControllers & Partial<OptionalControllers>;
   /**
    * The global controller messenger.
    */
@@ -511,6 +528,17 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
       },
     );
+
+    const loggingController = new LoggingController({
+      messenger: this.controllerMessenger.getRestricted<
+        'LoggingController',
+        never,
+        never
+      >({
+        name: 'LoggingController',
+      }),
+      state: initialState.LoggingController,
+    });
 
     const accountsControllerMessenger = this.controllerMessenger.getRestricted({
       name: 'AccountsController',
@@ -997,7 +1025,7 @@ class Engine {
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
-    const controllers = [
+    const controllers: Controllers[keyof Controllers][] = [
       keyringController,
       accountTrackerController,
       new AddressBookController(),
@@ -1172,7 +1200,8 @@ class Engine {
           | 'ApprovalController:addRequest'
           | 'KeyringController:signPersonalMessage'
           | 'KeyringController:signMessage'
-          | 'KeyringController:signTypedMessage',
+          | 'KeyringController:signTypedMessage'
+          | 'LoggingController:add',
           never
         >({
           name: 'SignatureController',
@@ -1181,6 +1210,7 @@ class Engine {
             `${keyringController.name}:signPersonalMessage`,
             `${keyringController.name}:signMessage`,
             `${keyringController.name}:signTypedMessage`,
+            `${loggingController.name}:add`,
           ],
         }),
         isEthSignEnabled: () =>
@@ -1190,17 +1220,7 @@ class Engine {
         getAllState: () => store.getState(),
         getCurrentChainId: () => networkController.state.providerConfig.chainId,
       }),
-      new LoggingController({
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-        messenger: this.controllerMessenger.getRestricted<
-          'LoggingController',
-          never,
-          never
-        >({
-          name: 'LoggingController',
-        }),
-        state: initialState.LoggingController,
-      }),
+      loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       snapController,
       subjectMetadataController,
@@ -1209,42 +1229,37 @@ class Engine {
     ];
 
     if (isBlockaidFeatureEnabled()) {
-      try {
-        const ppomController = new PPOMController({
-          chainId: networkController.state.providerConfig.chainId,
-          blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
-          cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-          // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-          messenger: this.controllerMessenger.getRestricted<
-            'PPOMController',
-            never,
-            'NetworkController:stateChange'
-          >({
-            name: 'PPOMController',
-            allowedEvents: [`${networkController.name}:stateChange`],
-          }),
-          onPreferencesChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              `${preferencesController.name}:stateChange`,
-              listener,
-            ),
-          provider: networkController.getProviderAndBlockTracker()
-            .provider as any,
-          ppomProvider: {
-            PPOM: PPOM as any,
-            ppomInit,
-          },
-          storageBackend: new RNFSStorageBackend('PPOMDB'),
-          securityAlertsEnabled:
-            initialState.PreferencesController?.securityAlertsEnabled ?? false,
-          state: initialState.PPOMController,
-          nativeCrypto: Crypto as any,
-        });
-        controllers.push(ppomController as any);
-      } catch (e) {
-        Logger.log(`Error initializing PPOMController: ${e}`);
-        return;
-      }
+      const ppomController = new PPOMController({
+        chainId: networkController.state.providerConfig.chainId,
+        blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
+        cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
+        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
+        messenger: this.controllerMessenger.getRestricted<
+          'PPOMController',
+          never,
+          'NetworkController:stateChange'
+        >({
+          name: 'PPOMController',
+          allowedEvents: [`${networkController.name}:stateChange`],
+        }),
+        onPreferencesChange: (listener) =>
+          this.controllerMessenger.subscribe(
+            `${preferencesController.name}:stateChange`,
+            listener,
+          ),
+        provider: networkController.getProviderAndBlockTracker()
+          .provider as any,
+        ppomProvider: {
+          PPOM: PPOM as any,
+          ppomInit,
+        },
+        storageBackend: new RNFSStorageBackend('PPOMDB'),
+        securityAlertsEnabled:
+          initialState.PreferencesController?.securityAlertsEnabled ?? false,
+        state: initialState.PPOMController,
+        nativeCrypto: Crypto as any,
+      });
+      controllers.push(ppomController);
     }
 
     // set initial state
@@ -1275,9 +1290,7 @@ class Engine {
         ...context,
         [controller.name]: controller,
       }),
-      {
-        controllerMessenger: this.controllerMessenger,
-      },
+      {},
     ) as typeof this.context;
 
     const {
@@ -1290,6 +1303,7 @@ class Engine {
       nfts.setApiKey(process.env.MM_OPENSEA_KEY);
     }
 
+    // @ts-expect-error TODO: Align transaction types between keyring and TransactionController
     transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
 
     transaction.hub.on('incomingTransactionBlock', (blockNumber: number) => {
@@ -1389,7 +1403,12 @@ class Engine {
     } = this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
 
+    // Skip configuration if this is called before the provider is initialized
+    if (!provider) {
+      return;
+    }
     provider.sendAsync = provider.sendAsync.bind(provider);
+    // @ts-expect-error TODO: Align provider types
     AccountTrackerController.configure({ provider });
     AssetsContractController.configure({ provider });
 
@@ -1422,10 +1441,7 @@ class Engine {
     const networkProvider = NetworkController.state.providerConfig;
     const conversionRate =
       CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
-        ?.conversionRate === null
-        ? 0
-        : CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
-            ?.conversionRate;
+        ?.conversionRate ?? 0;
     const { accountsByChainId } = AccountTrackerController.state;
 
     const { tokens } = TokensController.state;
