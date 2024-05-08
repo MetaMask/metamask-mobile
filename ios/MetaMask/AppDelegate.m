@@ -4,6 +4,7 @@
 #import <React/RCTRootView.h>
 #import <React/RCTPushNotificationManager.h>
 #import <RNBranch/RNBranch.h>
+#import <React/RCTBridgeModule.h>
 #if DEBUG
 #ifdef FB_SONARKIT_ENABLED
 #import <FlipperKit/FlipperClient.h>

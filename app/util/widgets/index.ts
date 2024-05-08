@@ -14,7 +14,7 @@ export async function setSmallBalanceWidget(widgetData: object) {
 }
 
 //TODO Need to add in the location where we can get this data
-export async function setSendRecieveBalanceWidgetWidget(widgetData: object) {
+export async function setSendReceiveBalanceWidgetWidget(widgetData: string) {
   try {
     // iOS
     console.log('widgetData', widgetData);

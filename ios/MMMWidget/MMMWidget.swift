@@ -18,10 +18,9 @@ typealias ConfigurationIntent = INIntent
 
 struct MMProvider: TimelineProvider {
   func placeholder(in context: Context) -> SimpleEntry {
-      print("placeholder called")
       let userDefaults = UserDefaults.init(suiteName: "group.io.metamask.MetaMask")
       print("placeholder called", userDefaults!.value(forKey: "widgetKey") as? String)
-      return SimpleEntry(date: Date(), text: "Placeholder")
+      return SimpleEntry(date: Date(), text: "Provider")
   }
   
   func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> Void) {
@@ -111,7 +110,7 @@ struct MMMWidget: Widget {
   var body: some WidgetConfiguration {
     StaticConfiguration(kind: kind, provider: MMProvider()) { entry in
       //Widget Init
-      SendRecieveBalanceWidgetMedium(entry: entry)
+      SendReceiveBalanceWidgetMedium(entry: entry)
     }
     .configurationDisplayName("Web3 Widgets")
     .description("Balance, quick links & more")
@@ -125,9 +124,11 @@ struct MMMWidget_Previews: PreviewProvider {
   }
 }
 
+let balanceKey = "widgetKey"
 //Small Balance Widget https://www.figma.com/file/l3YXLHorNYToVwql5Gwzir/Widgets?type=design&node-id=37-1137&mode=design&t=P3OKttRwaQ1UIMG7-4
 struct SmallBalanceWidgetSmall: View {
   var entry: MMProvider.Entry
+    @AppStorage(balanceKey) var balance: String = "0"
   
   var body: some View {
     ZStack() {
@@ -136,7 +137,7 @@ struct SmallBalanceWidgetSmall: View {
           .font(Font.custom("SF Pro Rounded", size: 17).weight(.semibold))
           .tracking(0.20)
           .foregroundColor(.black)
-        Text("$7,235.00")
+        Text("$\(balance)")
           .font(Font.custom("SF Pro Rounded", size: 22).weight(.bold))
           .tracking(0.20)
           .foregroundColor(.black)
@@ -463,18 +464,19 @@ struct RecentActivityWidgetLarge: View {
 }
 
 //Send/Recieve Balance https://www.figma.com/file/l3YXLHorNYToVwql5Gwzir/Widgets?type=design&node-id=37-978&mode=design&t=P3OKttRwaQ1UIMG7-4
-struct SendRecieveBalanceWidgetMedium: View {
+struct SendReceiveBalanceWidgetMedium: View {
   var entry: MMProvider.Entry
+  @AppStorage("widgetKey", store: UserDefaults(suiteName: "group.io.metamask.MetaMask")) var widgetValue: String = "0"  
   
   var body: some View {
     ZStack() {
       ZStack() {
-        Text("jenny.eth")
+        Text("Balance")
           .font(Font.custom("SF Pro Rounded", size: 17).weight(.semibold))
           .tracking(0.20)
           .foregroundColor(Color(red: 0.53, green: 0.53, blue: 0.53))
           .offset(x: -116, y: -27.50)
-        Text("$7,235.00")
+        Text("$\(widgetValue)")
           .font(Font.custom("SF Pro Rounded", size: 22).weight(.bold))
           .tracking(0.20)
           .foregroundColor(.black)
@@ -535,6 +537,9 @@ struct SendRecieveBalanceWidgetMedium: View {
       .frame(width: 34.07, height: 33)
       .offset(x: 130.34, y: -41.50)
     }
-    .frame(width: 340, height: 161);
+    .frame(width: 340, height: 161)
+   .onAppear {
+      print("Widget Value: \(widgetValue)")
+    }
   }
 }

@@ -107,6 +107,7 @@ import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSet
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
+import { setSendReceiveBalanceWidgetWidget } from '../../../util/widgets';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -740,6 +741,8 @@ const App = ({ userLoggedIn }) => {
       />
     </Stack.Navigator>
   );
+
+  setSendReceiveBalanceWidgetWidget('1234');
 
   return (
     // do not render unless a route is defined
