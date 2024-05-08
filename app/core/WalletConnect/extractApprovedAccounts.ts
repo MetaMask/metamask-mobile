@@ -7,20 +7,9 @@ export const extractApprovedAccounts = (
     | undefined,
 ) => {
   const approvedAccounts = accountPermission?.caveats
-    ?.map((restrictedAccount) => {
-      if (Array.isArray(restrictedAccount?.value)) {
-        return restrictedAccount.value
-          .map((account) => {
-            if (
-              typeof account === 'object' &&
-              account &&
-              'address' in account
-            ) {
-              return account.address;
-            }
-            return undefined;
-          })
-          .flat();
+    ?.map((caveat) => {
+      if (Array.isArray(caveat?.value)) {
+        return caveat.value;
       }
       return undefined;
     })
