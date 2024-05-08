@@ -46,8 +46,4 @@ describe('useAsyncResultStrict', () => {
     await waitForNextUpdate();
     expect(result.current).toEqual({ pending: false, value: 'test' });
   });
-
-  it('should throw error on async function error', async () => {
-    // TODO
-  });
 });
