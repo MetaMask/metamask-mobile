@@ -385,7 +385,13 @@ export class BackgroundBridge extends EventEmitter {
     // filter and subscription polyfills
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
-    // watch asset
+
+    // Add PermissionController middleware
+    engine.push(
+      Engine.context.PermissionController.createPermissionMiddleware({
+        origin,
+      }),
+    );
 
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // Snaps middleware

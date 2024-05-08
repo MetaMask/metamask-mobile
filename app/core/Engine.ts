@@ -26,6 +26,7 @@ import {
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { AppState } from 'react-native';
+import PREINSTALLED_SNAPS from '../lib/snaps/preinstalled-snaps';
 ///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
@@ -528,6 +529,17 @@ class Engine {
       },
     );
 
+    const loggingController = new LoggingController({
+      messenger: this.controllerMessenger.getRestricted<
+        'LoggingController',
+        never,
+        never
+      >({
+        name: 'LoggingController',
+      }),
+      state: initialState.LoggingController,
+    });
+
     const accountsControllerMessenger = this.controllerMessenger.getRestricted({
       name: 'AccountsController',
       allowedEvents: [
@@ -825,8 +837,7 @@ class Engine {
         getInternalAccounts:
           accountsController.listAccounts.bind(accountsController),
       }),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
         ...getPermissionSpecifications({
           getAllAccounts: () => keyringController.getAccounts(),
@@ -1007,6 +1018,8 @@ class Engine {
           allowLocal: allowLocalSnaps,
           fetch: fetchFunction,
         }),
+      //@ts-expect-error types need to be aligned with snaps-controllers
+      preinstalledSnaps: PREINSTALLED_SNAPS,
     });
     ///: END:ONLY_INCLUDE_IF
 
@@ -1187,7 +1200,8 @@ class Engine {
           | 'ApprovalController:addRequest'
           | 'KeyringController:signPersonalMessage'
           | 'KeyringController:signMessage'
-          | 'KeyringController:signTypedMessage',
+          | 'KeyringController:signTypedMessage'
+          | 'LoggingController:add',
           never
         >({
           name: 'SignatureController',
@@ -1196,6 +1210,7 @@ class Engine {
             `${keyringController.name}:signPersonalMessage`,
             `${keyringController.name}:signMessage`,
             `${keyringController.name}:signTypedMessage`,
+            `${loggingController.name}:add`,
           ],
         }),
         isEthSignEnabled: () =>
@@ -1205,17 +1220,7 @@ class Engine {
         getAllState: () => store.getState(),
         getCurrentChainId: () => networkController.state.providerConfig.chainId,
       }),
-      new LoggingController({
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-        messenger: this.controllerMessenger.getRestricted<
-          'LoggingController',
-          never,
-          never
-        >({
-          name: 'LoggingController',
-        }),
-        state: initialState.LoggingController,
-      }),
+      loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       snapController,
       subjectMetadataController,
