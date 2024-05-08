@@ -1443,7 +1443,12 @@ export const minimumTokenAllowance = (tokenDecimals) => {
 /**
  * For a MM Swap tx: Determines if the transaction is an ERC20 approve tx OR the actual swap tx where tokens are transferred
  */
-export const getIsInSwapFlowTransaction = (data, origin, to, chainId) => {
+export const getIsSwapApproveOrSwapTransaction = (
+  data,
+  origin,
+  to,
+  chainId,
+) => {
   if (!data) {
     return false;
   }
@@ -1482,10 +1487,15 @@ export const getIsSwapApproveTransaction = (data, origin, to, chainId) => {
  * For a MM Swap tx: Determines if the transaction is the actual swap tx where tokens are transferred
  */
 export const getIsSwapTransaction = (data, origin, to, chainId) => {
-  const isInSwapFlow = getIsInSwapFlowTransaction(data, origin, to, chainId);
+  const isSwapApproveOrSwapTransction = getIsSwapApproveOrSwapTransaction(
+    data,
+    origin,
+    to,
+    chainId,
+  );
   const isSwapApprove = getIsSwapApproveTransaction(data, origin, to, chainId);
 
-  return isInSwapFlow && !isSwapApprove;
+  return isSwapApproveOrSwapTransction && !isSwapApprove;
 };
 
 /**

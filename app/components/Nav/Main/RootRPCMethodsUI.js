@@ -23,7 +23,7 @@ import {
   getTokenAddressParam,
   calcTokenAmount,
   getTokenValueParamAsHex,
-  getIsInSwapFlowTransaction,
+  getIsSwapApproveOrSwapTransaction,
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
@@ -307,7 +307,7 @@ const RootRPCMethodsUI = (props) => {
       const { data } = transactionMeta.txParams;
 
       if (
-        getIsInSwapFlowTransaction(
+        getIsSwapApproveOrSwapTransaction(
           data,
           transactionMeta.origin,
           to,

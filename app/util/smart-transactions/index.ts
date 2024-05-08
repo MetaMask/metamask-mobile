@@ -3,7 +3,7 @@ import { Hex } from './smart-publish-hook';
 import TransactionTypes from '../../core/TransactionTypes';
 import {
   getIsSwapApproveTransaction,
-  getIsInSwapFlowTransaction,
+  getIsSwapApproveOrSwapTransaction,
   getIsSwapTransaction,
   getIsNativeTokenTransferred,
 } from '../transactions';
@@ -22,7 +22,7 @@ export const getTransactionType = (
   const to = transactionMeta.txParams.to?.toLowerCase();
   const data = transactionMeta.txParams.data; // undefined for send txs of gas tokens
 
-  const isInSwapFlow = getIsInSwapFlowTransaction(
+  const isSwapApproveOrSwapTransaction = getIsSwapApproveOrSwapTransaction(
     data,
     transactionMeta.origin,
     to,
@@ -45,12 +45,12 @@ export const getTransactionType = (
     transactionMeta.txParams,
   );
 
-  const isSend = !isDapp && !isInSwapFlow;
+  const isSend = !isDapp && !isSwapApproveOrSwapTransaction;
 
   return {
     isDapp,
     isSend,
-    isInSwapFlow,
+    isInSwapFlow: isSwapApproveOrSwapTransaction,
     isSwapApproveTx,
     isSwapTransaction,
     isNativeTokenTransferred,
