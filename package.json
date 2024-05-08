@@ -317,7 +317,7 @@
     "react-native-vector-icons": "6.4.2",
     "react-native-video": "5.2.1",
     "react-native-view-shot": "^3.1.2",
-    "react-native-webview": "https://github.com/MetaMask/react-native-webview-mm#b27669c0dddf5420a3147113d475f3fbe1a27f60",
+    "react-native-webview": "metamask/react-native-webview-mm",
     "react-native-webview-invoke": "^0.6.2",
     "react-redux": "7.2.4",
     "readable-stream": "2.3.7",
