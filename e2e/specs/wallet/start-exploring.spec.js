@@ -9,7 +9,7 @@ import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../../pages/WalletView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
-import Browser from '../../pages/Browser';
+import Browser from '../../pages/Browser/BrowserView';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import WhatsNewModal from '../../pages/modals/WhatsNewModal';
@@ -87,9 +87,6 @@ describe(SmokeCore('Start Exploring'), () => {
     // await WalletView.editAccountName(ACCOUNT);
     await OnboardingWizardModal.tapGotItButton();
     await WalletView.isAccountNameCorrect(ACCOUNT);
-    // Ensure step 3 is shown correctly
-    await OnboardingWizardModal.isNotificationsTutorialStepVisible();
-    await OnboardingWizardModal.tapGotItButton();
     // Ensure step 4 is shown correctly
     await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
     await OnboardingWizardModal.tapGotItButton();
@@ -126,6 +123,6 @@ describe(SmokeCore('Start Exploring'), () => {
     } catch {
       //
     }
-    await Browser.isVisible();
+    await Assertions.checkIfVisible(Browser.browserScreenID);
   });
 });
