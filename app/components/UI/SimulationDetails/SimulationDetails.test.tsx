@@ -3,6 +3,7 @@ import { render } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
+import AnimatedSpinner from '../AnimatedSpinner';
 import SimulationDetails from './SimulationDetails';
 import useBalanceChanges from './useBalanceChanges';
 import {
@@ -55,12 +56,15 @@ jest.mock('../../hooks/useStyles', () => ({
     },
   }),
 }));
-jest.mock('../AnimatedSpinner', () => 'AnimatedSpinner');
+
+jest.mock('../AnimatedSpinner');
 jest.mock('./BalanceChangeList', () => 'BalanceChangeList');
 jest.mock('./useBalanceChanges');
 
 describe('SimulationDetails', () => {
   const useBalanceChangesMock = jest.mocked(useBalanceChanges);
+  const animatedSpinnerMock = jest.mocked(AnimatedSpinner);
+
   beforeAll(() => {
     useBalanceChangesMock.mockReturnValue({
       pending: false,
@@ -74,20 +78,14 @@ describe('SimulationDetails', () => {
       value: [],
     });
 
-    const { getByTestId, queryByTestId } = render(
+    render(
       <SimulationDetails
         simulationData={simulationDataMock}
         transactionId={mockTransactionId}
       />,
     );
 
-    expect(getByTestId('simulation-details-spinner')).toBeDefined();
-    expect(
-      queryByTestId('simulation-details-balance-change-list-outgoing'),
-    ).toBeDefined();
-    expect(
-      queryByTestId('simulation-details-balance-change-list-incoming'),
-    ).toBeDefined();
+    expect(animatedSpinnerMock).toHaveBeenCalled();
   });
 
   describe("doesn't render", () => {
@@ -132,7 +130,7 @@ describe('SimulationDetails', () => {
         />,
       );
 
-      expect(getByText('Transaction reverted')).toBeDefined();
+      expect(getByText('This transaction is likely to fail')).toBeDefined();
     });
 
     it('if simulation is failed', () => {
@@ -146,7 +144,9 @@ describe('SimulationDetails', () => {
         />,
       );
 
-      expect(getByText('Failed')).toBeDefined();
+      expect(
+        getByText('There was an error loading your estimation.'),
+      ).toBeDefined();
     });
   });
 
@@ -158,7 +158,7 @@ describe('SimulationDetails', () => {
       />,
     );
 
-    expect(getByText('No balance change')).toBeDefined();
+    expect(getByText('No changes predicted for your wallet')).toBeDefined();
   });
 
   it('renders balance changes', () => {

@@ -13,7 +13,7 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import { useStyles } from '../../hooks/useStyles';
-import AnimatedSpinner from '../AnimatedSpinner';
+import AnimatedSpinner, { SpinnerSize } from '../AnimatedSpinner';
 import useBalanceChanges from './useBalanceChanges';
 import BalanceChangeList from './BalanceChangeList';
 import { SimulationData, SimulationError, SimulationErrorCode } from './types';
@@ -144,7 +144,10 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
     return (
       <SimulationDetailsLayout
         inHeader={
-          <AnimatedSpinner testID="simulation-details-spinner" size={24} />
+          <AnimatedSpinner
+            testID="simulation-details-spinner"
+            size={SpinnerSize.SM}
+          />
         }
       />
     );
