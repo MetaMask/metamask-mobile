@@ -23,7 +23,6 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
-import { SelectedAccount } from '../../../components/UI/AccountSelectorList/AccountSelectorList.types';
 import { USER_INTENT } from '../../../constants/permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import UntypedEngine from '../../../core/Engine';
@@ -304,20 +303,17 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleConnect = useCallback(async () => {
-    const selectedAccounts: SelectedAccount[] = selectedAddresses.map(
-      (address, index) => ({ address, lastUsed: Date.now() - index }),
-    );
     const request = {
       ...hostInfo,
       metadata: {
         ...hostInfo.metadata,
         origin: channelIdOrHostname,
       },
-      approvedAccounts: selectedAccounts,
+      approvedAccounts: selectedAddresses,
     };
 
-    const connectedAccountLength = selectedAccounts.length;
-    const activeAddress = selectedAccounts[0].address;
+    const connectedAccountLength = selectedAddresses.length;
+    const activeAddress = selectedAddresses[0];
     const activeAccountName = getAccountNameWithENS({
       accountAddress: activeAddress,
       accounts,

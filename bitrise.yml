@@ -200,7 +200,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo "Node $NODE_VERSION being installed with asdf"
+                echo "Node and Yarn being installed"
                 asdf list all nodejs
                 asdf install nodejs "$NODE_VERSION"
                 asdf global nodejs "$NODE_VERSION"
