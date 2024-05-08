@@ -9,7 +9,7 @@ import {
 import {
   render,
   renderHook,
-  RenderHookResult,
+  RenderHookOptions,
 } from '@testing-library/react-native';
 
 import { mockTheme, ThemeContext } from '../theme';
@@ -72,10 +72,10 @@ export function renderScreen(
   );
 }
 
-export function renderHookWithProvider(
-  hook: () => void,
+export function renderHookWithProvider<Result, Props>(
+  hook: (props: Props) => Result,
   providerValues?: ProviderValues,
-): RenderHookResult<any, any> {
+) {
   const { state = {} } = providerValues ?? {};
   const store = configureStore(state);
 
@@ -83,5 +83,5 @@ export function renderHookWithProvider(
     <Provider store={store}>{children}</Provider>
   );
 
-  return renderHook(hook, { wrapper: Providers });
+  return renderHook(hook, { wrapper: Providers } as RenderHookOptions<Props>);
 }
