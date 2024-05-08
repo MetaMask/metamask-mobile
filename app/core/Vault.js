@@ -147,7 +147,7 @@ export const recreateVaultWithSamePassword = async (
  * @returns Whether the type was found in state.
  */
 function hasKeyringType(state, type) {
-  return state.keyrings.some((keyring) => keyring.type === type);
+  return state?.keyrings?.some((keyring) => keyring.type === type);
 }
 
 /**
