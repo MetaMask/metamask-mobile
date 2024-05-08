@@ -628,14 +628,14 @@ class Engine {
           `${networkController.name}:getNetworkClientById`,
           `${networkController.name}:getEIP1559Compatibility`,
         ],
-        allowedEvents: [`${networkController.name}:networkDidChange`],
+        allowedEvents: [AppConstants.NETWORK_DID_CHANGE_EVENT],
       }),
       getProvider: () =>
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         networkController.getProviderAndBlockTracker().provider,
       onNetworkDidChange: (listener) =>
         this.controllerMessenger.subscribe(
-          'NetworkController:networkDidChange',
+          AppConstants.NETWORK_DID_CHANGE_EVENT,
           listener,
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
