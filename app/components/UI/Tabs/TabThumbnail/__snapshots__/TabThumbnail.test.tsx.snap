@@ -48,9 +48,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           "alignItems": "center",
           "backgroundColor": "#FFFFFF",
           "flexDirection": "row",
-          "justifyContent": "flex-start",
-          "paddingHorizontal": 8,
-          "paddingVertical": 8,
+          "padding": 8,
         }
       }
     >
@@ -77,7 +75,6 @@ exports[`TabThumbnail should render correctly 1`] = `
                   "width": 54,
                 },
                 {
-                  "alignSelf": "flex-start",
                   "height": 22,
                   "marginLeft": 2,
                   "marginRight": 5,
@@ -156,10 +153,8 @@ exports[`TabThumbnail should render correctly 1`] = `
     <View
       style={
         {
-          "alignItems": "flex-start",
           "backgroundColor": "#FFFFFF",
           "flex": 1,
-          "justifyContent": "flex-start",
         }
       }
     >
@@ -191,7 +186,6 @@ exports[`TabThumbnail should render correctly 1`] = `
           "borderTopWidth": 1,
           "flexDirection": "row",
           "height": 36,
-          "justifyContent": "flex-start",
           "padding": 8,
         }
       }
