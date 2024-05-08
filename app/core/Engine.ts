@@ -1165,6 +1165,8 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            // @ts-expect-error This is because the network type is still missing linea-sepolia
+            // When transaction controller be updated to v^25
             listener,
           ),
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
@@ -1415,7 +1417,6 @@ class Engine {
       return;
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
-    // @ts-expect-error TODO: Align provider types
     AccountTrackerController.configure({ provider });
     AssetsContractController.configure({ provider });
 
