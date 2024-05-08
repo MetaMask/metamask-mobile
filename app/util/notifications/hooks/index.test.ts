@@ -8,7 +8,6 @@ jest.mock('../../../util/device');
 jest.mock('../../../core/NotificationManager', () => ({
   setTransactionToView: jest.fn(),
 }));
-jest.mock('../setupAndroidChannels', () => jest.fn());
 jest.mock('@notifee/react-native', () => ({
   setBadgeCount: jest.fn(),
   decrementBadgeCount: jest.fn(),
