@@ -201,6 +201,7 @@ import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1369,6 +1370,46 @@ class Engine {
       `${networkController.name}:networkWillChange`,
       () => {
         store.dispatch(networkIdWillUpdate());
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      'PreferencesController:stateChange',
+      (preferencesState: PreferencesState) => {
+        // eslint-disable-next-line no-console
+        console.log('accounts/ sync state', preferencesState.selectedAddress);
+        const currentAccountId =
+          accountsController.state.internalAccounts.selectedAccount;
+        const currentSelectedAccount =
+          accountsController.state.internalAccounts.accounts[currentAccountId];
+
+        // Ensure selectedAddress exists in preferencesState
+        const selectedAddressFromPreferences = preferencesState.selectedAddress;
+
+        if (
+          toChecksumHexAddress(currentSelectedAccount.address) !==
+          toChecksumHexAddress(selectedAddressFromPreferences)
+        ) {
+          // eslint-disable-next-line no-console
+          console.log('accounts/ sync state accounts inside if');
+          const checksumAddress = toChecksumHexAddress(
+            selectedAddressFromPreferences,
+          );
+
+          const account = accountsController.getAccountByAddress(
+            selectedAddressFromPreferences,
+          );
+          if (account) {
+            // eslint-disable-next-line no-console
+            console.log('accounts/ sync calling methods');
+            accountsController.setSelectedAccount(account.id);
+            preferencesController.setSelectedAddress(
+              selectedAddressFromPreferences,
+            );
+          } else {
+            throw new Error(`No account found for address: ${checksumAddress}`);
+          }
+        }
       },
     );
 

@@ -60,6 +60,33 @@ const useAccounts = ({
     selectIsMultiAccountBalancesEnabled,
   );
 
+  // TODO remove this useEffect before merging
+  useEffect(() => {
+    const id =
+      Engine.context.AccountsController.state.internalAccounts.selectedAccount;
+    const selectedAccount =
+      Engine.context.AccountsController.state.internalAccounts.accounts[id];
+    // eslint-disable-next-line no-console
+    console.log(
+      'Accounts/ AccountController',
+      JSON.stringify(selectedAccount, null, 2),
+    );
+    // eslint-disable-next-line no-console
+    console.log(
+      'Accounts/ PreferencesController',
+      JSON.stringify(
+        Engine.context.PreferencesController.state.selectedAddress,
+        null,
+        2,
+      ),
+    );
+  }, [
+    Engine.context.AccountsController.state,
+    Engine.context.PreferencesController.identities,
+    Engine.context.PreferencesController.state.identities,
+    Engine.context.PreferencesController.state.selectedAddress,
+  ]);
+
   const fetchENSNames = useCallback(
     async ({
       flattenedAccounts,
