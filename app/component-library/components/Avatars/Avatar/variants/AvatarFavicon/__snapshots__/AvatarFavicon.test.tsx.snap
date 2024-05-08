@@ -3,18 +3,18 @@
 exports[`AvatarFavicon should match the snapshot 1`] = `
 <AvatarBase
   size="32"
-  style={Object {}}
+  style={{}}
 >
   <Image
     onError={[Function]}
     resizeMode="contain"
     source={
-      Object {
+      {
         "uri": "https://uniswap.org/favicon.ico",
       }
     }
     style={
-      Object {
+      {
         "flex": 1,
         "height": undefined,
         "width": undefined,
@@ -28,21 +28,24 @@ exports[`AvatarFavicon should match the snapshot 1`] = `
 exports[`AvatarFavicon should render SVG 1`] = `
 <AvatarBase
   size="32"
-  style={Object {}}
+  style={{}}
 >
-  <SvgUri
-    height="100%"
+  <Image
     onError={[Function]}
+    resizeMode="contain"
+    source={
+      {
+        "uri": "https://metamask.github.io/test-dapp/metamask-fox.svg",
+      }
+    }
     style={
-      Object {
+      {
         "flex": 1,
         "height": undefined,
         "width": undefined,
       }
     }
     testID="favicon-avatar-image"
-    uri="https://metamask.github.io/test-dapp/metamask-fox.svg"
-    width="100%"
   />
 </AvatarBase>
 `;
@@ -50,11 +53,24 @@ exports[`AvatarFavicon should render SVG 1`] = `
 exports[`AvatarFavicon should render fallback when svg has error 1`] = `
 <AvatarBase
   size="32"
-  style={Object {}}
+  style={{}}
 >
-  <Icon
-    name="Global"
-    size="20"
+  <Image
+    onError={[Function]}
+    resizeMode="contain"
+    source={
+      {
+        "uri": "https://metamask.github.io/test-dapp/metamask-fox.svg",
+      }
+    }
+    style={
+      {
+        "flex": 1,
+        "height": undefined,
+        "width": undefined,
+      }
+    }
+    testID="favicon-avatar-image"
   />
 </AvatarBase>
 `;

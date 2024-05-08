@@ -3,7 +3,7 @@
 exports[`AddAsset component renders correctly 1`] = `
 <RCTSafeAreaView
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
@@ -12,16 +12,15 @@ exports[`AddAsset component renders correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "marginTop": 10,
-        "paddingHorizontal": 16,
       }
     }
   >
     <View
       style={
-        Object {
+        {
           "backgroundColor": "#BF520819",
           "borderColor": "#BF5208",
           "borderLeftWidth": 4,
@@ -36,7 +35,7 @@ exports[`AddAsset component renders correctly 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "marginRight": 8,
           }
         }
@@ -46,7 +45,7 @@ exports[`AddAsset component renders correctly 1`] = `
           height={24}
           name="Danger"
           style={
-            Object {
+            {
               "height": 24,
               "width": 24,
             }
@@ -56,7 +55,7 @@ exports[`AddAsset component renders correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "flex": 1,
           }
         }
@@ -64,7 +63,7 @@ exports[`AddAsset component renders correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -82,7 +81,7 @@ exports[`AddAsset component renders correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "flex": 1,
       }
@@ -91,7 +90,7 @@ exports[`AddAsset component renders correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -99,7 +98,7 @@ exports[`AddAsset component renders correctly 1`] = `
       <RCTScrollView
         automaticallyAdjustContentInsets={false}
         contentInset={
-          Object {
+          {
             "bottom": 0,
           }
         }
@@ -117,7 +116,7 @@ exports[`AddAsset component renders correctly 1`] = `
         onScroll={[Function]}
         resetKeyboardSpace={[Function]}
         resetScrollToCoords={
-          Object {
+          {
             "x": 0,
             "y": 0,
           }
@@ -130,8 +129,8 @@ exports[`AddAsset component renders correctly 1`] = `
         scrollToPosition={[Function]}
         showsVerticalScrollIndicator={true}
         style={
-          Array [
-            Object {
+          [
+            {
               "flex": 1,
             },
             undefined,
@@ -143,7 +142,7 @@ exports[`AddAsset component renders correctly 1`] = `
         <View>
           <View
             accessibilityState={
-              Object {
+              {
                 "busy": undefined,
                 "checked": undefined,
                 "disabled": undefined,
@@ -163,14 +162,14 @@ exports[`AddAsset component renders correctly 1`] = `
           >
             <View
               style={
-                Object {
+                {
                   "padding": 20,
                 }
               }
             >
               <Text
                 style={
-                  Object {
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontWeight": "400",
@@ -188,8 +187,8 @@ exports[`AddAsset component renders correctly 1`] = `
                 placeholder="0x..."
                 placeholderTextColor="#BBC0C5"
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "borderColor": "#BBC0C5",
                       "borderRadius": 4,
                       "borderWidth": 1,
@@ -198,7 +197,7 @@ exports[`AddAsset component renders correctly 1`] = `
                       "fontWeight": "400",
                       "padding": 16,
                     },
-                    Object {},
+                    {},
                   ]
                 }
                 testID="input-collectible-address"
@@ -206,7 +205,7 @@ exports[`AddAsset component renders correctly 1`] = `
               />
               <Text
                 style={
-                  Object {
+                  {
                     "color": "#D73847",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontWeight": "400",
@@ -218,14 +217,14 @@ exports[`AddAsset component renders correctly 1`] = `
             </View>
             <View
               style={
-                Object {
+                {
                   "padding": 20,
                 }
               }
             >
               <Text
                 style={
-                  Object {
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontWeight": "400",
@@ -245,8 +244,8 @@ exports[`AddAsset component renders correctly 1`] = `
                 placeholderTextColor="#BBC0C5"
                 returnKeyType="done"
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "borderColor": "#BBC0C5",
                       "borderRadius": 4,
                       "borderWidth": 1,
@@ -255,7 +254,7 @@ exports[`AddAsset component renders correctly 1`] = `
                       "fontWeight": "400",
                       "padding": 16,
                     },
-                    Object {},
+                    {},
                   ]
                 }
                 testID="input-token-decimals"
@@ -263,7 +262,7 @@ exports[`AddAsset component renders correctly 1`] = `
               />
               <Text
                 style={
-                  Object {
+                  {
                     "color": "#D73847",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontWeight": "400",
@@ -276,7 +275,7 @@ exports[`AddAsset component renders correctly 1`] = `
           </View>
           <View
             style={
-              Object {
+              {
                 "flex": 0,
                 "flexDirection": "row",
                 "paddingHorizontal": 24,
@@ -291,23 +290,23 @@ exports[`AddAsset component renders correctly 1`] = `
               disabled={false}
               onPress={[Function]}
               style={
-                Array [
-                  Array [
-                    Object {
+                [
+                  [
+                    {
                       "borderRadius": 100,
                       "justifyContent": "center",
                       "padding": 15,
                     },
-                    Object {
+                    {
                       "backgroundColor": "#FFFFFF",
                       "borderColor": "#535A61",
                       "borderWidth": 1,
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "flex": 1,
                       },
-                      Object {
+                      {
                         "marginRight": 8,
                       },
                     ],
@@ -319,22 +318,22 @@ exports[`AddAsset component renders correctly 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#007aff",
                       "fontSize": 17,
                       "fontWeight": "500",
                       "textAlign": "center",
                     },
                     null,
-                    Array [
-                      Object {
+                    [
+                      {
                         "fontFamily": "EuclidCircularB-Bold",
                         "fontSize": 14,
                         "fontWeight": "600",
                         "textAlign": "center",
                       },
-                      Object {
+                      {
                         "color": "#535A61",
                       },
                       undefined,
@@ -352,30 +351,30 @@ exports[`AddAsset component renders correctly 1`] = `
               activeOpacity={1}
               disabled={true}
               style={
-                Array [
-                  Array [
-                    Object {
+                [
+                  [
+                    {
                       "borderRadius": 100,
                       "justifyContent": "center",
                       "padding": 15,
                     },
-                    Object {
+                    {
                       "backgroundColor": "#FFFFFF",
                       "borderColor": "#0376C9",
                       "borderWidth": 1,
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "flex": 1,
                       },
-                      Object {
+                      {
                         "marginLeft": 8,
                       },
-                      Object {},
-                      Object {},
+                      {},
+                      {},
                     ],
                   ],
-                  Object {
+                  {
                     "opacity": 0.6,
                   },
                 ]
@@ -384,29 +383,29 @@ exports[`AddAsset component renders correctly 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#007aff",
                       "fontSize": 17,
                       "fontWeight": "500",
                       "textAlign": "center",
                     },
-                    Object {
+                    {
                       "color": "#dcdcdc",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "fontFamily": "EuclidCircularB-Bold",
                         "fontSize": 14,
                         "fontWeight": "600",
                         "textAlign": "center",
                       },
-                      Object {
+                      {
                         "color": "#0376C9",
                       },
                       undefined,
                     ],
-                    Object {
+                    {
                       "opacity": 0.6,
                     },
                   ]

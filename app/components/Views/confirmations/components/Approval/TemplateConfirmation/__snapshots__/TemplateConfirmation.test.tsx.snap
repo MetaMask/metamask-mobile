@@ -1,0 +1,173 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TemplateConfirmation renders content and actions 1`] = `
+<View
+  collapsable={false}
+  forwardedRef={[Function]}
+  style={
+    {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "minHeight": 200,
+      "paddingBottom": 20,
+      "paddingTop": 24,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#24272A",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    CONTENT_MOCK
+  </Text>
+  <View
+    collapsable={false}
+    forwardedRef={[Function]}
+    style={
+      {
+        "flex": 0,
+        "justifyContent": "center",
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "backgroundColor": "#FFFFFF",
+          "flexDirection": "row",
+          "paddingHorizontal": 8,
+          "paddingVertical": 4,
+        }
+      }
+      testID="bottomsheetfooter"
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[MockFunction]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#0376C9",
+            "borderRadius": 24,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="bottomsheetfooter-button"
+        variant="Primary"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#FFFFFF",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          CONFIRM_TEXT_MOCK
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[MockFunction]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#0376C9",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginLeft": 16,
+            "marginTop": 0,
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="bottomsheetfooter-button-subsequent"
+        variant="Secondary"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          CANCEL_TEXT_MOCK
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`TemplateConfirmation renders content without actions 1`] = `
+<View
+  collapsable={false}
+  forwardedRef={[Function]}
+  style={
+    {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "minHeight": 200,
+      "paddingBottom": 20,
+      "paddingTop": 24,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#24272A",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    CONTENT_MOCK
+  </Text>
+</View>
+`;

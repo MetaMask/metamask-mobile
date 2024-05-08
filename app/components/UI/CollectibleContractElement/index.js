@@ -6,7 +6,7 @@ import { fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
-import ActionSheet from 'react-native-actionsheet';
+import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
@@ -92,7 +92,6 @@ function CollectibleContractElement({
   chainId,
   selectedAddress,
   removeFavoriteCollectible,
-  toggleRemovingProgress,
 }) {
   const [collectiblesGrid, setCollectiblesGrid] = useState([]);
   const [collectiblesVisible, setCollectiblesVisible] = useState(
@@ -150,11 +149,7 @@ function CollectibleContractElement({
 
   const handleMenuAction = (index) => {
     if (index === 1) {
-      // set toggle to true
-      toggleRemovingProgress();
       removeNft();
-      // set toggle to false to indicate that removing the NFT has finished
-      toggleRemovingProgress();
     } else if (index === 0) {
       refreshMetadata();
     }
@@ -306,7 +301,6 @@ CollectibleContractElement.propTypes = {
    * Dispatch remove collectible from favorites action
    */
   removeFavoriteCollectible: PropTypes.func,
-  toggleRemovingProgress: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({

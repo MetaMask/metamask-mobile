@@ -42,6 +42,7 @@ const Routes = {
     MODAL_CONFIRMATION: 'ModalConfirmation',
     MODAL_MANDATORY: 'ModalMandatory',
     WHATS_NEW: 'WhatsNewModal',
+    SMART_TRANSACTIONS_OPT_IN: 'SmartTransactionsOptInModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
@@ -51,6 +52,9 @@ const Routes = {
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
+    SUCCESS_FLOW: 'OnboardingSuccessFlow',
+    SUCCESS: 'OnboardingSuccess',
+    DEFAULT_SETTINGS: 'DefaultSettings',
     HOME_NAV: 'HomeNav',
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
@@ -74,10 +78,13 @@ const Routes = {
     CHANGE_PASSWORD: 'ResetPassword',
     EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
+    ADVANCED_SETTINGS: 'AdvancedSettings',
+    NOTIFICATIONS: 'NotificationsSettings',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
+    BASIC_FUNCTIONALITY: 'BasicFunctionality',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     SDK_MANAGE_CONNECTIONS: 'SDKManageConnections',
@@ -86,7 +93,6 @@ const Routes = {
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     NETWORK_SELECTOR: 'NetworkSelector',
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
-    BLOCKAID_INDICATOR: 'BlockaidIndicator',
     ACCOUNT_ACTIONS: 'AccountActions',
     ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
     SHOW_IPFS: 'ShowIpfs',
@@ -104,6 +110,7 @@ const Routes = {
   WALLET: {
     HOME: 'WalletTabHome',
     TAB_STACK_FLOW: 'WalletTabStackFlow',
+    WALLET_CONNECT_SESSIONS_VIEW: 'WalletConnectSessionsView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -113,6 +120,10 @@ const Routes = {
   ADD_NETWORK: 'AddNetwork',
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
+  NOTIFICATIONS: {
+    OPT_IN: 'OptIn',
+    OPT_IN_STACK: 'OptInStack',
+  },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',

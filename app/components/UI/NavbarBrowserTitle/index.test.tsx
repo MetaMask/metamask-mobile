@@ -1,19 +1,42 @@
 import React from 'react';
-import { shallow } from 'enzyme';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import NavbarBrowserTitle from './';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import Engine from '../../../core/Engine';
 
-const mockStore = configureMockStore();
-const store = mockStore({});
+const mockedEngine = Engine;
+
+const mockInitialState = {
+  engine: {
+    backgroundState: {
+      ...initialBackgroundState,
+      PreferencesController: {
+        selectedAddress: '0x',
+        identities: {
+          '0x': { name: 'Account 1', address: '0x' },
+        },
+      },
+    },
+  },
+};
+
+jest.mock('../../../core/Engine', () => ({
+  init: () => mockedEngine.init({}),
+  context: {
+    NetworkController: {
+      state: {
+        providerConfig: { chainId: '0x1' },
+      },
+    },
+  },
+}));
 
 describe('NavbarBrowserTitle', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <NavbarBrowserTitle hostname={'faucet.metamask.io'} https />
-      </Provider>,
+    const { toJSON } = renderWithProvider(
+      <NavbarBrowserTitle hostname={'faucet.metamask.io'} https />,
+      { state: mockInitialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

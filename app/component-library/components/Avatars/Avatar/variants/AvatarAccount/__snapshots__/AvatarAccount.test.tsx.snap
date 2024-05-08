@@ -1,12 +1,122 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AvatarAccount should render correctly 1`] = `
-<AvatarBase
-  size="32"
+<View
+  style={
+    {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 16,
+      "height": 32,
+      "overflow": "hidden",
+      "width": 32,
+    }
+  }
 >
-  <Jazzicon
-    address="0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092"
-    size={32}
-  />
-</AvatarBase>
+  <View
+    style={
+      [
+        {
+          "overflow": "hidden",
+        },
+        {
+          "backgroundColor": "#F1D702",
+          "borderRadius": 16,
+          "height": 32,
+          "width": 32,
+        },
+        undefined,
+      ]
+    }
+  >
+    <RNSVGSvgView
+      bbHeight={32}
+      bbWidth={32}
+      focusable={false}
+      height={32}
+      style={
+        [
+          {
+            "backgroundColor": "transparent",
+            "borderWidth": 0,
+          },
+          {
+            "flex": 0,
+            "height": 32,
+            "width": 32,
+          },
+        ]
+      }
+      width={32}
+    >
+      <RNSVGGroup>
+        <RNSVGRect
+          fill={4278401629}
+          height={32}
+          matrix={
+            [
+              0.9865721616069695,
+              0.16332596224162158,
+              -0.16332596224162158,
+              0.9865721616069695,
+              4.46613167496758,
+              -5.783427567500757,
+            ]
+          }
+          propList={
+            [
+              "fill",
+            ]
+          }
+          width={32}
+          x={0}
+          y={0}
+        />
+        <RNSVGRect
+          fill={4293653248}
+          height={32}
+          matrix={
+            [
+              -0.9510565162951535,
+              0.3090169943749475,
+              -0.3090169943749475,
+              -0.9510565162951535,
+              56.99785298993899,
+              28.83420484922151,
+            ]
+          }
+          propList={
+            [
+              "fill",
+            ]
+          }
+          width={32}
+          x={0}
+          y={0}
+        />
+        <RNSVGRect
+          fill={4291236897}
+          height={32}
+          matrix={
+            [
+              -0.9438009515832294,
+              0.3305143927132231,
+              -0.3305143927132231,
+              -0.9438009515832294,
+              58.82830600098727,
+              40.20612936020905,
+            ]
+          }
+          propList={
+            [
+              "fill",
+            ]
+          }
+          width={32}
+          x={0}
+          y={0}
+        />
+      </RNSVGGroup>
+    </RNSVGSvgView>
+  </View>
+</View>
 `;

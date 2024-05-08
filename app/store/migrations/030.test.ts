@@ -1,45 +1,13 @@
-import migration from './030';
+import migrate from './030';
 import { merge } from 'lodash';
-import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
-import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
-import { GOERLI, SEPOLIA } from '../../../app/constants/network';
-import NetworkList from '../../../app/util/networks';
+import initialRootState from '../../util/test/initial-root-state';
 
-const oldState = {
+const expectedState = {
   engine: {
     backgroundState: {
-      NetworkController: {
-        isCustomNetwork: true,
-        networkConfigurations: {},
-        networkDetails: { EIPS: { '1559': true } },
-        networkId: '5',
-        networkStatus: 'available',
-        providerConfig: {
-          chainId: CHAIN_IDS.GOERLI,
-          rpcPrefs: { blockExplorerUrl: 'https://goerli.etherscan.io' },
-          ticker: 'GoerliETH',
-          type: GOERLI,
-        },
-      },
-    },
-  },
-};
-
-const expectedNewState = {
-  engine: {
-    backgroundState: {
-      NetworkController: {
-        isCustomNetwork: true,
-        networkConfigurations: {},
-        networkDetails: { EIPS: { '1559': true } },
-        networkId: `${NetworkList[SEPOLIA].networkId}`,
-        networkStatus: 'available',
-        providerConfig: {
-          chainId: CHAIN_IDS.SEPOLIA,
-          ticker: 'SepoliaETH',
-          type: SEPOLIA,
-        },
+      PreferencesController: {
+        securityAlertsEnabled: true,
       },
     },
   },
@@ -58,10 +26,15 @@ describe('Migration #30', () => {
 
   const invalidStates = [
     {
+      state: null,
+      errorMessage: "Migration 30: Invalid root state: 'object'",
+      scenario: 'state is invalid',
+    },
+    {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 30: Invalid engine state error: 'object'",
+      errorMessage: "Migration 30: Invalid root engine state: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -71,39 +44,14 @@ describe('Migration #30', () => {
         },
       }),
       errorMessage:
-        "Migration 30: Invalid engine backgroundState error: 'object'",
+        "Migration 30: Invalid root engine backgroundState: 'object'",
       scenario: 'backgroundState is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: null,
-          },
-        },
-      }),
-      errorMessage:
-        "Migration 30: Invalid NetworkController state error: 'object'",
-      scenario: 'NetworkController state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: { providerConfig: { chainId: null } },
-          },
-        },
-      }),
-      errorMessage:
-        "Migration 30: NetworkController providerConfig chainId not found: 'null'",
-      scenario: 'chainId is invalid',
     },
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, () => {
-      const newState = migration(state);
-
+    it(`should capture exception if ${scenario}`, async () => {
+      const newState = await migrate(state);
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
@@ -112,8 +60,32 @@ describe('Migration #30', () => {
     });
   }
 
-  it('All states changing as expected', () => {
-    const newState = migration(oldState);
-    expect(newState).toStrictEqual(expectedNewState);
+  it('should not change anything if security alert is already enabled', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            securityAlertsEnabled: true,
+          },
+        },
+      },
+    };
+
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(expectedState);
+  });
+
+  it('should enable security alert if it is not enabled', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            securityAlertsEnabled: false,
+          },
+        },
+      },
+    };
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(expectedState);
   });
 });

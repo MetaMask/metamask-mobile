@@ -9,14 +9,15 @@
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
-	<uses-permission android:name="android.permission.BLUETOOTH" />
-	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-	<uses-feature android:name="android.hardware.bluetooth_le" android:required="false"/>
+  <!-- Android < 12 -->
+  <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
 
-	<!-- Bluetooth permissions: Android API >= 31 (Android 12)-->
-	<uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
-	<uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+  <!-- Bluetooth permissions: Android API >= 31 (Android 12)-->
+  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
 
 	<uses-sdk tools:overrideLibrary="com.tectiv3.aes" />
 
@@ -126,10 +127,6 @@
 		android:value="io.metamask"/>
 		<meta-data	android:name="com.dieam.reactnativepushnotification.notification_color"
 		android:resource="@color/lightgray"/>
-		<!-- MIXPANEL -->
-		<meta-data android:name="com.mixpanel.android.mpmetrics.MixpanelAPI.token" android:value="${MM_MIXPANEL_TOKEN}"	/>
-		<activity android:name="com.mixpanel.android.takeoverinapp.TakeoverInAppActivity"
-		android:theme="@style/com_mixpanel_android_TakeoverInAppActivityTheme"/>
 
 		<provider
 			android:name="androidx.core.content.FileProvider"

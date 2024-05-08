@@ -2,7 +2,7 @@
 
 exports[`BadgeBase - snapshots should render badge correctly 1`] = `
 <View
-  style={Object {}}
+  style={{}}
   testID="badge-base"
 >
   <Tag

@@ -181,14 +181,13 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1267
-        versionName "7.17.0"
+        versionCode 1317
+        versionName "7.21.0"
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy 'react-native-camera', 'general'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
         manifestPlaceholders.MM_BRANCH_KEY_LIVE = "$System.env.MM_BRANCH_KEY_LIVE"
-        manifestPlaceholders.MM_MIXPANEL_TOKEN = "$System.env.MM_MIXPANEL_TOKEN"
     }
 
 	  packagingOptions {
@@ -294,7 +293,6 @@ dependencies {
     implementation(files("../libs/nativesdk.aar"))
     implementation("com.facebook.react:react-android")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.0.0")
-    implementation('com.mixpanel.android:mixpanel-android:5.+')
     implementation 'org.apache.commons:commons-compress:1.22'
     androidTestImplementation 'org.mockito:mockito-android:4.2.0'
     androidTestImplementation 'androidx.test:core:1.5.0'
@@ -310,7 +308,7 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-    androidTestImplementation('com.wix:detox:+') {
+    androidTestImplementation('com.wix:detox-legacy:+') {
          exclude module: "protobuf-lite"
      }
     androidTestImplementation ('androidx.test.espresso:espresso-contrib:3.4.0')

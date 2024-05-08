@@ -1,37 +1,204 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OfflineMode should render correctly 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
+<RCTSafeAreaView
+  style={
+    {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
     }
   }
 >
-  <Component />
-</ContextProvider>
+  <Image
+    source={
+      {
+        "default": {
+          "uri": "MockImage",
+        },
+      }
+    }
+    style={
+      {
+        "alignSelf": "center",
+        "height": 200,
+        "marginTop": 60,
+        "width": 200,
+      }
+    }
+  />
+  <View
+    style={
+      {
+        "flex": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 18,
+        "marginVertical": 30,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            {
+              "textAlign": "center",
+            },
+            undefined,
+            {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontWeight": "600",
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 18,
+              "fontWeight": "600",
+              "marginBottom": 10,
+            },
+          ]
+        }
+      >
+        You're offline
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            {
+              "textAlign": "center",
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+            },
+          ]
+        }
+      >
+        Unable to connect to the blockchain host.
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "marginHorizontal": 18,
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={0.2}
+        onPress={[Function]}
+        style={
+          [
+            [
+              {
+                "borderRadius": 100,
+                "justifyContent": "center",
+                "padding": 15,
+              },
+              {
+                "backgroundColor": "#0376C9",
+              },
+              undefined,
+            ],
+            null,
+          ]
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "color": "#007aff",
+                "fontSize": 17,
+                "fontWeight": "500",
+                "textAlign": "center",
+              },
+              null,
+              [
+                {
+                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontSize": 14,
+                  "fontWeight": "600",
+                  "textAlign": "center",
+                },
+                {
+                  "color": "#FFFFFF",
+                },
+                undefined,
+              ],
+              null,
+            ]
+          }
+        >
+          Try again
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</RCTSafeAreaView>
 `;

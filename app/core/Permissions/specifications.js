@@ -51,16 +51,16 @@ const CaveatFactories = Object.freeze({
  * PermissionController.
  *
  * @param {{
- *   getIdentities: () => Record<string, Identity>,
+ * getInternalAccounts: () => import('@metamask/keyring-api').InternalAccount[],
  * }} options - Options bag.
  */
-export const getCaveatSpecifications = ({ getIdentities }) => ({
+export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
   [CaveatTypes.restrictReturnedAccounts]: {
     type: CaveatTypes.restrictReturnedAccounts,
 
     decorator: (method, caveat) => async (args) => {
       const allAccounts = await method(args);
-      const res = caveat.value.filter(({ address }) => {
+      const res = caveat.value.filter((address) => {
         const addressToCompare = address.toLowerCase();
         return allAccounts.includes(addressToCompare);
       });
@@ -69,7 +69,7 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
     },
 
     validator: (caveat, _origin, _target) =>
-      validateCaveatAccounts(caveat.value, getIdentities),
+      validateCaveatAccounts(caveat.value, getInternalAccounts),
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   ...snapsCaveatsSpecifications,
@@ -83,17 +83,23 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
  *
  * @param {{
  *   getAllAccounts: () => Promise<string[]>,
+ *   getInternalAccounts: () => import('@metamask/keyring-api').InternalAccount[],
+ *   captureKeyringTypesWithMissingIdentities: (internalAccounts?: import('@metamask/keyring-api').InternalAccount[], accounts?: string[]) => void,
  * }} options - Options bag.
  * @param options.getAllAccounts - A function that returns all Ethereum accounts
  * in the current MetaMask instance.
- * @param options.getIdentities - A function that returns the
- * `PreferencesController` identity objects for all Ethereum accounts in the
+ * @param options.getInternalAccounts - A function that returns the
+ * `AccountsController` internalAccount objects for all accounts in the current Metamask instance
  * @param options.captureKeyringTypesWithMissingIdentities - A function that
  * captures extra error information about the "Missing identity for address"
  * error.
  * current MetaMask instance.
  */
-export const getPermissionSpecifications = ({ getAllAccounts }) => ({
+export const getPermissionSpecifications = ({
+  getAllAccounts,
+  getInternalAccounts,
+  captureKeyringTypesWithMissingIdentities,
+}) => ({
   [PermissionKeys.eth_accounts]: {
     permissionType: PermissionType.RestrictedMethod,
     targetName: PermissionKeys.eth_accounts,
@@ -126,7 +132,43 @@ export const getPermissionSpecifications = ({ getAllAccounts }) => ({
 
     methodImplementation: async (_args) => {
       const accounts = await getAllAccounts();
-      return accounts;
+      const internalAccounts = getInternalAccounts();
+
+      return accounts.sort((firstAddress, secondAddress) => {
+        const lowerCaseFirstAddress = firstAddress.toLowerCase();
+        const firstAccount = internalAccounts.find(
+          (internalAccount) =>
+            internalAccount.address.toLowerCase() === lowerCaseFirstAddress,
+        );
+
+        const lowerCaseSecondAddress = secondAddress.toLowerCase();
+        const secondAccount = internalAccounts.find(
+          (internalAccount) =>
+            internalAccount.address.toLowerCase() === lowerCaseSecondAddress,
+        );
+
+        if (!firstAccount) {
+          captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
+          throw new Error(`Missing identity for address: "${firstAddress}".`);
+        } else if (!secondAccount) {
+          captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
+          throw new Error(`Missing identity for address: "${secondAddress}".`);
+        } else if (
+          firstAccount.metadata.lastSelected ===
+          secondAccount.metadata.lastSelected
+        ) {
+          return 0;
+        } else if (firstAccount.metadata.lastSelected === undefined) {
+          return 1;
+        } else if (secondAccount.metadata.lastSelected === undefined) {
+          return -1;
+        }
+
+        return (
+          secondAccount.metadata.lastSelected -
+          firstAccount.metadata.lastSelected
+        );
+      });
     },
 
     validator: (permission, _origin, _target) => {
@@ -150,26 +192,30 @@ export const getPermissionSpecifications = ({ getAllAccounts }) => ({
  * corresponds to a PreferencesController identity.
  *
  * @param {string[]} accounts - The accounts associated with the caveat.
- * @param {() => Record<string, Identity>} getIdentities - Gets all
- * PreferencesController identities.
+ * @param {() => import('@metamask/keyring-api').InternalAccount[]} getInternalAccounts -
+ * Gets all AccountsController InternalAccounts.
  */
-function validateCaveatAccounts(accounts, getIdentities) {
+function validateCaveatAccounts(accounts, getInternalAccounts) {
   if (!Array.isArray(accounts) || accounts.length === 0) {
     throw new Error(
       `${PermissionKeys.eth_accounts} error: Expected non-empty array of Ethereum addresses.`,
     );
   }
 
-  const identities = getIdentities();
-  accounts.forEach((account) => {
-    const address = account?.address;
+  const internalAccounts = getInternalAccounts();
+  accounts.forEach((address) => {
     if (!address || typeof address !== 'string') {
       throw new Error(
         `${PermissionKeys.eth_accounts} error: Expected an array of objects that contains an Ethereum addresses. Received: "${address}".`,
       );
     }
-
-    if (!identities[address.toLowerCase()]) {
+    const lowerCaseAddress = address.toLowerCase();
+    if (
+      !internalAccounts.some(
+        (internalAccount) =>
+          internalAccount.address.toLowerCase() === lowerCaseAddress,
+      )
+    ) {
       throw new Error(
         `${PermissionKeys.eth_accounts} error: Received unrecognized address: "${address}".`,
       );
@@ -187,8 +233,6 @@ function validateCaveatAccounts(accounts, getIdentities) {
 export const unrestrictedMethods = Object.freeze([
   'eth_blockNumber',
   'eth_call',
-  'eth_chainId',
-  'eth_coinbase',
   'eth_decrypt',
   'eth_estimateGas',
   'eth_feeHistory',
@@ -205,9 +249,6 @@ export const unrestrictedMethods = Object.freeze([
   'eth_getLogs',
   'eth_getProof',
   'eth_getStorageAt',
-  'eth_getTransactionByBlockHashAndIndex',
-  'eth_getTransactionByBlockNumberAndIndex',
-  'eth_getTransactionByHash',
   'eth_getTransactionCount',
   'eth_getTransactionReceipt',
   'eth_getUncleByBlockHashAndIndex',
@@ -215,31 +256,50 @@ export const unrestrictedMethods = Object.freeze([
   'eth_getUncleCountByBlockHash',
   'eth_getUncleCountByBlockNumber',
   'eth_getWork',
-  'eth_hashrate',
-  'eth_mining',
   'eth_newBlockFilter',
   'eth_newFilter',
   'eth_newPendingTransactionFilter',
   'eth_protocolVersion',
   'eth_sendRawTransaction',
-  'eth_sendTransaction',
-  'eth_sign',
-  'eth_signTypedData',
   'eth_signTypedData_v1',
-  'eth_signTypedData_v3',
-  'eth_signTypedData_v4',
   'eth_submitHashrate',
   'eth_submitWork',
   'eth_syncing',
   'eth_uninstallFilter',
-  'metamask_getProviderState',
   'metamask_watchAsset',
-  'net_listening',
   'net_peerCount',
-  'net_version',
-  'personal_ecRecover',
-  'personal_sign',
-  'wallet_watchAsset',
-  'web3_clientVersion',
   'web3_sha3',
+  // Define unrestricted methods below to bypass PermissionController. These are eventually handled by RPCMethodMiddleware (User facing RPC methods)
+  'wallet_getPermissions',
+  'wallet_requestPermissions',
+  'eth_getTransactionByHash',
+  'eth_getTransactionByBlockHashAndIndex',
+  'eth_getTransactionByBlockNumberAndIndex',
+  'eth_chainId',
+  'eth_hashrate',
+  'eth_mining',
+  'net_listening',
+  'net_version',
+  'eth_requestAccounts',
+  'eth_coinbase',
+  'parity_defaultAccount',
+  'eth_sendTransaction',
+  'eth_signTransaction',
+  'eth_sign',
+  'personal_sign',
+  'personal_ecRecover',
+  'parity_checkRequest',
+  'eth_signTypedData',
+  'eth_signTypedData_v3',
+  'eth_signTypedData_v4',
+  'web3_clientVersion',
+  'wallet_scanQRCode',
+  'wallet_watchAsset',
+  'metamask_removeFavorite',
+  'metamask_showTutorial',
+  'metamask_showAutocomplete',
+  'metamask_injectHomepageScripts',
+  'metamask_getProviderState',
+  'metamask_logWeb3ShimUsage',
+  'wallet_switchEthereumChain',
 ]);

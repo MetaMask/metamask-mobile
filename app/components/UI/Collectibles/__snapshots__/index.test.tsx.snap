@@ -3,18 +3,18 @@
 exports[`Collectibles should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
   }
   testID="collectibles"
 >
-  <ScrollView
+  <RCTScrollView
     refreshControl={
       <RefreshControlMock
         colors={
-          Array [
+          [
             "#0376C9",
           ]
         }
@@ -23,42 +23,32 @@ exports[`Collectibles should render correctly 1`] = `
       />
     }
   >
-    <View
-      style={
-        Object {
-          "alignItems": "center",
-          "backgroundColor": "#FFFFFF",
-          "justifyContent": "center",
-          "marginTop": 50,
-        }
-      }
-    >
-      <Text
+    <RCTRefreshControl />
+    <View>
+      <View
         style={
-          Object {
-            "color": "#BBC0C5",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 20,
-            "fontWeight": "400",
+          {
+            "alignItems": "center",
+            "backgroundColor": "#FFFFFF",
+            "justifyContent": "center",
+            "marginTop": 50,
           }
         }
       >
-        Don’t see your NFT?
-      </Text>
+        <Text
+          style={
+            {
+              "color": "#BBC0C5",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 20,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Don’t see your NFT?
+        </Text>
+      </View>
     </View>
-  </ScrollView>
-  <ActionSheet
-    cancelButtonIndex={2}
-    destructiveButtonIndex={1}
-    onPress={[Function]}
-    options={
-      Array [
-        "Refresh Metadata",
-        "Hide",
-        "Cancel",
-      ]
-    }
-    title="Collectible Options"
-  />
+  </RCTScrollView>
 </View>
 `;

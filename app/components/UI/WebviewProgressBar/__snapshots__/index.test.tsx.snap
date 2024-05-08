@@ -1,25 +1,61 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`WebviewProgressBar should render correctly 1`] = `
-<FadeView
+<View
+  collapsable={false}
+  style={
+    {
+      "opacity": 1,
+    }
+  }
   visible={true}
 >
-  <ProgressBar
+  <View
     animated={true}
     animationConfig={
-      Object {
+      {
         "bounciness": 0,
       }
     }
     animationType="spring"
-    borderRadius={0}
-    borderWidth={0}
-    color="#0376C9"
-    height={3}
     indeterminate={false}
+    onLayout={[Function]}
     progress={0}
+    style={
+      [
+        {
+          "backgroundColor": undefined,
+          "borderColor": "#0376C9",
+          "borderRadius": 0,
+          "borderWidth": 0,
+          "overflow": "hidden",
+          "width": null,
+        },
+        undefined,
+      ]
+    }
     useNativeDriver={true}
-    width={null}
-  />
-</FadeView>
+  >
+    <View
+      collapsable={false}
+      style={
+        {
+          "backgroundColor": "#0376C9",
+          "height": 3,
+          "transform": [
+            {
+              "translateX": -0,
+            },
+            {
+              "translateX": -0,
+            },
+            {
+              "scaleX": 0.0001,
+            },
+          ],
+        }
+      }
+    />
+  </View>
+</View>
 `;

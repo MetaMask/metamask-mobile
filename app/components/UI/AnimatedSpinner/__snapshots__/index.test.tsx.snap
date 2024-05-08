@@ -3,7 +3,7 @@
 exports[`AnimatedSpinner should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "borderColor": "#F2F4F6",
       "borderRadius": 64,
       "borderWidth": 3.5,
@@ -12,32 +12,43 @@ exports[`AnimatedSpinner should render correctly 1`] = `
     }
   }
 >
-  <ForwardRef(AnimatedComponentWrapper)
+  <View
+    collapsable={false}
     style={
-      Array [
-        Object {
-          "height": 40,
-          "left": -5.5,
-          "position": "relative",
-          "top": -5.5,
-          "width": 40,
-        },
-        Object {
-          "transform": Array [
-            Object {
-              "rotate": "0deg",
-            },
-          ],
-        },
-      ]
+      {
+        "height": 40,
+        "left": -5.5,
+        "position": "relative",
+        "top": -5.5,
+        "transform": [
+          {
+            "rotate": "0deg",
+          },
+        ],
+        "width": 40,
+      }
     }
   >
-    <Icon
+    <Text
       allowFontScaling={false}
-      color="#0376C9"
-      name="loading"
-      size={36}
-    />
-  </ForwardRef(AnimatedComponentWrapper)>
+      style={
+        [
+          {
+            "color": "#0376C9",
+            "fontSize": 36,
+          },
+          undefined,
+          {
+            "fontFamily": "Material Design Icons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          {},
+        ]
+      }
+    >
+      
+    </Text>
+  </View>
 </View>
 `;

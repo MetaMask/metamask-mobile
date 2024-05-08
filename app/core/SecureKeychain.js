@@ -1,5 +1,5 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
-import Encryptor from './Encryptor';
+import { Encryptor, LEGACY_DERIVATION_PARAMS } from './Encryptor';
 import { strings } from '../../locales/i18n';
 import AsyncStorage from '../store/async-storage-wrapper';
 import { Platform } from 'react-native';
@@ -14,7 +14,9 @@ import {
 import Device from '../util/device';
 
 const privates = new WeakMap();
-const encryptor = new Encryptor();
+const encryptor = new Encryptor({
+  derivationParams: LEGACY_DERIVATION_PARAMS,
+});
 const defaultOptions = {
   service: 'com.metamask',
   authenticationPromptTitle: strings('authentication.auth_prompt_title'),
@@ -25,7 +27,8 @@ const defaultOptions = {
   fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel'),
 };
 import AUTHENTICATION_TYPE from '../constants/userProperties';
-import { AUTHENTICATION_TYPE as NATIVE_AUTH_TYPE } from 'react-native-keychain';
+import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+
 /**
  * Class that wraps Keychain from react-native-keychain
  * abstracting metamask specific functionality and settings
@@ -81,7 +84,7 @@ export default {
     await AsyncStorage.removeItem(PASSCODE_CHOICE);
     // This is called to remove other auth types and set the user back to the default password login
     await MetaMetrics.getInstance().addTraitsToUser({
-      [NATIVE_AUTH_TYPE]: AUTHENTICATION_TYPE.PASSWORD,
+      [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSWORD,
     });
     return Keychain.resetGenericPassword(options);
   },
@@ -118,16 +121,18 @@ export default {
     if (type === this.TYPES.BIOMETRICS) {
       authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET;
       await metrics.addTraitsToUser({
-        [NATIVE_AUTH_TYPE]: AUTHENTICATION_TYPE.BIOMETRIC,
+        [UserProfileProperty.AUTHENTICATION_TYPE]:
+          AUTHENTICATION_TYPE.BIOMETRIC,
       });
     } else if (type === this.TYPES.PASSCODE) {
       authOptions.accessControl = Keychain.ACCESS_CONTROL.DEVICE_PASSCODE;
       await metrics.addTraitsToUser({
-        [NATIVE_AUTH_TYPE]: AUTHENTICATION_TYPE.PASSCODE,
+        [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSCODE,
       });
     } else if (type === this.TYPES.REMEMBER_ME) {
       await metrics.addTraitsToUser({
-        [NATIVE_AUTH_TYPE]: AUTHENTICATION_TYPE.REMEMBER_ME,
+        [UserProfileProperty.AUTHENTICATION_TYPE]:
+          AUTHENTICATION_TYPE.REMEMBER_ME,
       });
       //Don't need to add any parameter
     } else {

@@ -1,0 +1,54 @@
+name: Crowdin - Ready for translations label added, push to crowdin
+
+# When an individual is working on a feature which requires translations, they can
+# add a label "ready-for-translation" which will trigger this action to push the 
+# source and translation files to Crowdin. We will always push main as the base of
+# the crowdin branch creation and then push in the changes over the top. This ensures
+# that the translations which have already been done and approved previously do not
+# show as needing to be translated again in the crowdin branch.
+
+# TODO: switch to trigger on label add once testing complete
+on: workflow_dispatch
+   
+jobs:
+  crowdin-upload:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+      CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+    
+    steps:
+      - name: Extract current branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> "$GITHUB_OUTPUT"
+        id: extract_current_branch
+      
+      - name: Modified branch name
+        run: echo "modified_branch_name="${{ steps.extract_current_branch.outputs.branch }} | sed 's#/#-#g'"" >> "$GITHUB_OUTPUT"
+        id: extract_modified_branch_name
+      
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: main
+      
+      - name: Crowdin push main as baseline
+        uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
+        with:
+          crowdin_branch_name: ${{ steps.extract_modified_branch_name.outputs.modified_branch_name }}
+          upload_sources: true
+          upload_translations_args: --import-eq-suggestions --auto-approve-imported --verbose
+          upload_translations: true
+      
+      - name: Checkout Branch and push to crowdin
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.extract_current_branch.outputs.branch }}
+      - name: Crowdin sources push
+        uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
+        with:
+          crowdin_branch_name: ${{ steps.extract_modified_branch_name.outputs.modified_branch_name }}
+          upload_sources: true
+          upload_sources_args: --auto-update --verbose
+          upload_translations: false

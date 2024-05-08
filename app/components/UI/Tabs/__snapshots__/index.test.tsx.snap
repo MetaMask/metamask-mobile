@@ -1,30 +1,369 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Tabs should render correctly 1`] = `
-<Tabs
-  metrics={
-    Object {
-      "addTraitsToUser": [Function],
-      "checkDataDeleteStatus": [Function],
-      "createDataDeletionTask": [Function],
-      "enable": [Function],
-      "getDeleteRegulationCreationDate": [Function],
-      "getDeleteRegulationId": [Function],
-      "getMetaMetricsId": [Function],
-      "isDataRecorded": [Function],
-      "isEnabled": [Function],
-      "trackAnonymousEvent": [Function],
-      "trackEvent": [Function],
+<View
+  style={
+    {
+      "backgroundColor": "#FFFFFF",
+      "bottom": 0,
+      "flex": 1,
+      "left": 0,
+      "position": "absolute",
+      "right": 0,
+      "top": 0,
     }
   }
-  tabs={
-    Array [
-      Object {
-        "id": 1,
-        "image": "",
-        "url": "about:blank",
-      },
-    ]
-  }
-/>
+>
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "backgroundColor": "transparent",
+        "padding": 15,
+      }
+    }
+    style={
+      {
+        "backgroundColor": "#F2F4F6",
+        "flex": 1,
+      }
+    }
+  >
+    <View>
+      <View
+        style={
+          [
+            {
+              "shadowOffset": {
+                "height": 4.8,
+              },
+              "shadowOpacity": 0.192,
+              "shadowRadius": 4.32,
+            },
+            {
+              "backgroundColor": "transparent",
+              "overflow": "hidden",
+            },
+          ]
+        }
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            [
+              {
+                "borderColor": "#BBC0C5",
+                "borderRadius": 10,
+                "borderWidth": 1,
+                "elevation": 8,
+                "height": 266.8,
+                "justifyContent": "space-evenly",
+                "marginBottom": 15,
+                "overflow": "hidden",
+                "width": 720,
+              },
+              false,
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "backgroundColor": "#FFFFFF",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingHorizontal": 10,
+                "paddingVertical": 10,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": "transparent",
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "marginRight": 40,
+                }
+              }
+            >
+              <View>
+                <View
+                  style={
+                    [
+                      {
+                        "alignContent": "center",
+                        "backgroundColor": "#FFFFFF",
+                        "borderRadius": 27,
+                        "height": 54,
+                        "justifyContent": "center",
+                        "width": 54,
+                      },
+                      {
+                        "alignSelf": "flex-start",
+                        "height": 22,
+                        "marginLeft": 2,
+                        "marginRight": 5,
+                        "marginTop": 1,
+                        "width": 22,
+                      },
+                    ]
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#24272A",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 24,
+                          "fontWeight": "400",
+                          "textAlign": "center",
+                          "textTransform": "uppercase",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    a
+                  </Text>
+                </View>
+              </View>
+              <Text
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 18,
+                    "fontWeight": "600",
+                    "marginLeft": 5,
+                    "marginRight": 40,
+                    "marginTop": 0,
+                  }
+                }
+              >
+                about:blank
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={[Function]}
+              style={
+                {
+                  "backgroundColor": "transparent",
+                  "height": 24,
+                  "marginRight": -5,
+                  "width": 30,
+                }
+              }
+            >
+              <Text
+                allowFontScaling={false}
+                style={
+                  [
+                    {
+                      "color": undefined,
+                      "fontSize": 12,
+                    },
+                    {
+                      "color": "#24272A",
+                      "fontSize": 32,
+                      "marginTop": -7,
+                      "paddingHorizontal": 10,
+                      "paddingTop": 3,
+                      "position": "absolute",
+                      "right": 0,
+                    },
+                    {
+                      "fontFamily": "Ionicons",
+                      "fontStyle": "normal",
+                      "fontWeight": "normal",
+                    },
+                    {},
+                  ]
+                }
+              >
+                
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "backgroundColor": "#FFFFFF",
+                "flex": 1,
+                "justifyContent": "flex-start",
+              }
+            }
+          >
+            <Image
+              source={
+                {
+                  "uri": "",
+                }
+              }
+              style={
+                {
+                  "bottom": 0,
+                  "height": null,
+                  "left": 0,
+                  "paddingTop": 1079,
+                  "position": "absolute",
+                  "resizeMode": "cover",
+                  "right": 0,
+                  "top": 0,
+                  "width": null,
+                }
+              }
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </RCTScrollView>
+  <View
+    style={
+      {
+        "backgroundColor": "#FFFFFF",
+        "flexDirection": "row",
+        "height": 50,
+        "paddingHorizontal": 20,
+        "paddingTop": 17,
+        "shadowColor": "#0000001A",
+        "shadowOffset": {
+          "height": 2,
+          "width": 0,
+        },
+        "shadowOpacity": 1,
+        "shadowRadius": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      style={
+        [
+          {
+            "alignContent": "center",
+            "alignSelf": "flex-start",
+            "flex": 1,
+            "justifyContent": "center",
+          },
+          {
+            "justifyContent": "center",
+          },
+        ]
+      }
+      testID="tabs_close_all"
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#0376C9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+            },
+            null,
+          ]
+        }
+      >
+        Close All
+      </Text>
+    </TouchableOpacity>
+    <View
+      style={
+        {
+          "alignContent": "center",
+          "alignSelf": "flex-start",
+          "flex": 1,
+          "justifyContent": "center",
+        }
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignContent": "flex-start",
+            "alignSelf": "center",
+            "backgroundColor": "#0376C9",
+            "borderRadius": 100,
+            "height": 30,
+            "justifyContent": "flex-start",
+            "marginTop": -7,
+            "width": 30,
+          }
+        }
+        testID="tabs_add"
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 15,
+              },
+              {
+                "alignContent": "center",
+                "color": "#FFFFFF",
+                "fontSize": 24,
+                "justifyContent": "center",
+                "marginTop": 3,
+                "textAlign": "center",
+              },
+              {
+                "fontFamily": "Material Design Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <TouchableOpacity
+      style={
+        [
+          {
+            "alignContent": "center",
+            "alignSelf": "flex-start",
+            "flex": 1,
+            "justifyContent": "center",
+          },
+          {
+            "alignItems": "flex-end",
+            "justifyContent": "center",
+          },
+        ]
+      }
+      testID="tabs_done"
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#0376C9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+            },
+            {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontWeight": "600",
+            },
+            null,
+          ]
+        }
+      >
+        Done
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
 `;

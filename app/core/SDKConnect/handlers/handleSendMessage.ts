@@ -77,16 +77,34 @@ export const handleSendMessage = async ({
         connection.rpcQueueManager,
       );
       connection.setLoading(false);
-      // Remove once sdk has migrated away from DefaultPreferences storage and AccountConnect.tsx is using hooks to prevent re-rendering.
-      // This specific case is used to fix issue of AccountConnect backgrop not closing properly after connecting to dapp on ios.
-      if (connection.navigation?.getCurrentRoute()?.name === 'AccountConnect') {
+      const currentRoute = connection.navigation?.getCurrentRoute()?.name;
+      if (!method && currentRoute === 'AccountConnect') {
         DevLogger.log(`[handleSendMessage] remove modal`);
-        if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
+        if (
+          Device.isIos() &&
+          parseInt(Platform.Version as string) >= 17 &&
+          connection.navigation?.canGoBack()
+        ) {
+          const isLastPendingRequest = connection.rpcQueueManager.isEmpty();
+          if (!isLastPendingRequest) {
+            DevLogger.log(
+              `[handleSendMessage] pending request --- skip goback`,
+            );
+            return;
+          }
           try {
+            DevLogger.log(
+              `[handleSendMessage] goBack()`,
+              connection.navigation.getCurrentOptions(),
+            );
             connection.navigation?.goBack();
-            await wait(100); // delay to allow modal to close
+            await wait(200); // delay to allow modal to close
+            DevLogger.log(
+              `[handleSendMessage] navigate to ROOT_MODAL_FLOW from ${currentRoute}`,
+            );
           } catch (_e) {
             // Ignore temporarily until next stage of permissions system implementation
+            DevLogger.log(`[handleSendMessage] error goBack()`, _e);
           }
           connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
@@ -96,11 +114,15 @@ export const handleSendMessage = async ({
       return;
     }
 
-    if (connection.trigger !== 'deeplink') {
+    if (
+      connection.trigger !== 'deeplink' &&
+      connection.origin !== AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+    ) {
       DevLogger.log(`[handleSendMessage] NOT deeplink --- skip goBack()`);
       return;
     }
 
+    // Add delay to display UI feedback before redirecting
     if (METHODS_TO_DELAY[method]) {
       await wait(1200);
     }

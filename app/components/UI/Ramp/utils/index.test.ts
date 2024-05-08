@@ -344,7 +344,7 @@ describe('getOrderAmount', () => {
     expect(getOrderAmount(mockOrder)).toBe('...');
   });
 
-  it('should render correctly when data is provided. ', () => {
+  it('render matches latest snapshot when data is provided. ', () => {
     expect(
       getOrderAmount({
         ...mockOrder,
@@ -353,7 +353,7 @@ describe('getOrderAmount', () => {
     ).toBe('0.01236');
   });
 
-  it('should render correctly when decimals is not provided. ', () => {
+  it('render matches latest snapshot when decimals is not provided. ', () => {
     expect(
       getOrderAmount({
         ...mockOrder,
@@ -453,7 +453,7 @@ describe('getNotificationDetails', () => {
   it('should return correct details for buy orders', () => {
     const pendingDetails = getNotificationDetails(mockOrder);
     expect(pendingDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "This should only take a few minutes...",
         "duration": 5000,
         "status": "pending",
@@ -465,7 +465,7 @@ describe('getNotificationDetails', () => {
       state: FIAT_ORDER_STATES.CANCELLED,
     });
     expect(cancelledDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Verify your payment method and card support",
         "duration": 5000,
         "status": "cancelled",
@@ -477,7 +477,7 @@ describe('getNotificationDetails', () => {
       state: FIAT_ORDER_STATES.FAILED,
     });
     expect(failedDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Verify your payment method and card support",
         "duration": 5000,
         "status": "error",
@@ -490,7 +490,7 @@ describe('getNotificationDetails', () => {
       state: FIAT_ORDER_STATES.COMPLETED,
     });
     expect(completedDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Your ETH is now available",
         "duration": 5000,
         "status": "success",
@@ -502,7 +502,7 @@ describe('getNotificationDetails', () => {
   it('should return correct details for sell orders', () => {
     const pendingDetails = getNotificationDetails(mockSellOrder);
     expect(pendingDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Your order is now being processed.",
         "duration": 5000,
         "status": "pending",
@@ -514,7 +514,7 @@ describe('getNotificationDetails', () => {
       state: FIAT_ORDER_STATES.CANCELLED,
     });
     expect(cancelledDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Your order couldn´t be completed.",
         "duration": 5000,
         "status": "cancelled",
@@ -526,7 +526,7 @@ describe('getNotificationDetails', () => {
       state: FIAT_ORDER_STATES.FAILED,
     });
     expect(failedDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Your order couldn´t be completed.",
         "duration": 5000,
         "status": "error",
@@ -539,7 +539,7 @@ describe('getNotificationDetails', () => {
       state: FIAT_ORDER_STATES.COMPLETED,
     });
     expect(completedDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Your order was successful!.",
         "duration": 5000,
         "status": "success",
