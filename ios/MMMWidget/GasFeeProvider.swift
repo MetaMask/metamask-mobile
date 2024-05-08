@@ -29,15 +29,22 @@ final class GasFeeProvider {
 
   private init() {}
 
-    public func fetchGasFees(chain_id: Integer) -> GasEstimates? {
+  private func apiToken() -> String? {
+      guard let token = Bundle.main.object(forInfoDictionaryKey: "MM_GAS_API_TOKEN") as? String else {
+          return nil
+      }
+      return token
+  }
+  
+  public func fetchGasFees() -> GasEstimates? {
     // Make a network request to the API.
-    let url = URL(string: "https://gas.api.infura.io/networks/\(chain_id)/suggestedGasFees")!
-
+    let url = URL(string: "https://gas.api.infura.io/networks/1/suggestedGasFees")!
+      
     let semaphore = DispatchSemaphore(value: 0)
 
     var gasFees: GasEstimates?
     var request = URLRequest(url: url)
-    request.setValue("<basic_authorization_token>", forHTTPHeaderField: "Authorization")
+    request.setValue("<need to add gas>", forHTTPHeaderField: "Authorization")
     let task = URLSession.shared.dataTask(with: request) { data, response, error in
         if let data = data {
           let dataRes = String(data: data, encoding: .utf8)
@@ -56,5 +63,5 @@ final class GasFeeProvider {
     task.resume()
     semaphore.wait(wallTimeout: .distantFuture)
     return gasFees
-}
+  }
 }

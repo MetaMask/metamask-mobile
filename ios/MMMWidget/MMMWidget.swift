@@ -18,75 +18,41 @@ typealias ConfigurationIntent = INIntent
 let gasFeeProvider = GasFeeProvider.shared
 
 struct MMProvider: TimelineProvider {  
-  func placeholder(in context: Context) -> SimpleEntry {
-    gasFeeProvider.fetchGasFees(chain_id: "1")
-      let userDefaults = UserDefaults.init(suiteName: "group.io.metamask.MetaMask")
-      print("placeholder called", userDefaults!.value(forKey: "chainId") as? String)
-      return SimpleEntry(date: Date(), text: "Provider")
+  func placeholder(in context: Context) -> GasFeeEntry {
+      return GasFeeEntry(date: Date(), lowGwei: "-", marketGwei: "-", aggressiveGwei: "-")
   }
   
-  func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> Void) {
+  func getSnapshot(in context: Context, completion: @escaping (GasFeeEntry) -> Void) {
     print("getSnapshot")
-    let entry = SimpleEntry(date: Date(), text: "Data goes here")
+    let entry = GasFeeEntry(date: Date(), lowGwei: "", marketGwei: "", aggressiveGwei: "")
     completion(entry)
   }
   
-  func getTimeline(in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> Void) {
+  func getTimeline(in context: Context, completion: @escaping (Timeline<GasFeeEntry>) -> Void) {
       print("getTimeline")
-      let entryDate = Date()
-      let userDefaults = UserDefaults(suiteName: "group.io.metamask.MetaMask")
-      guard let userDefaults = userDefaults else {
-          print("UserDefaults not accessible")
-          let entry = SimpleEntry(date: entryDate, text: "UserDefaults not accessible")
-          let timeline = Timeline(entries: [entry], policy: .atEnd)
-          completion(timeline)
-          return
-      }
-  
-      if let savedData = userDefaults.value(forKey: "chainId") as? String {
-          guard let data = savedData.data(using: .utf8) else {
-              print("Data encoding failed")
-              let entry = SimpleEntry(date: entryDate, text: "Data encoding failed")
-              let timeline = Timeline(entries: [entry], policy: .atEnd)
-              completion(timeline)
-              return
-          }
-
-          do {
-              let parsedData = try JSONDecoder().decode(WidgetData.self, from: data)
-              let nextRefresh = Calendar.current.date(byAdding: .minute, value: 1, to: entryDate)!
-              let entry = SimpleEntry(date: nextRefresh, text: parsedData.text)
-              let timeline = Timeline(entries: [entry], policy: .atEnd)
-              completion(timeline)
-          } catch {
-              print("Data parsing error: \(error)")
-              let entry = SimpleEntry(date: entryDate, text: "Data parsing error")
-              let timeline = Timeline(entries: [entry], policy: .atEnd)
-              completion(timeline)
-          }
+      if let gasFees = gasFeeProvider.fetchGasFees() {
+        print("Gas Fees", gasFees)
+        let low = String(format: "%.2f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.low.suggestedMaxPriorityFeePerGas) ?? 0)))
+        let market = String(format: "%.2f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.medium.suggestedMaxPriorityFeePerGas) ?? 0)))
+        let high = String(format: "%.2f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.high.suggestedMaxPriorityFeePerGas) ?? 0)))
+        let entry = GasFeeEntry(date: Date(), lowGwei: low, marketGwei: market, aggressiveGwei: high)
+        let timeline = Timeline(entries: [entry], policy: .atEnd)
+        completion(timeline)
+        return
       } else {
-          print("No data set in UserDefaults")
-          let nextRefresh = Calendar.current.date(byAdding: .minute, value: 1, to: entryDate)!
-          let entry = SimpleEntry(date: nextRefresh, text: "No data set")
-          let timeline = Timeline(entries: [entry], policy: .atEnd)
-          completion(timeline)
+        let entry = GasFeeEntry(date: Date(), lowGwei: "-", marketGwei: "-", aggressiveGwei: "-")
+        let timeline = Timeline(entries: [entry], policy: .atEnd)
+        completion(timeline)
       }
   }
 
-}
-
-struct SimpleEntry: TimelineEntry {
-      let date: Date
-      let text: String
 }
 
 struct GasFeeEntry: TimelineEntry {
   let date: Date
-  let networkName: String
-  let chainId: String
-  let lowGwei: Int
-  let marketGwei: Int
-  let aggressiveGwei: Int
+  let lowGwei: String
+  let marketGwei: String
+  let aggressiveGwei: String
 }
 
 
@@ -106,30 +72,17 @@ struct MMMWidget: Widget {
 
 struct MMMWidget_Previews: PreviewProvider {
   static var previews: some View {
-    SmallBalanceWidgetSmall(entry: SimpleEntry(date: Date(), text: "Widget preview"))
+    SmallBalanceWidgetSmall(entry: GasFeeEntry(date: Date(), lowGwei: "", marketGwei: "", aggressiveGwei: ""))
       .previewContext(WidgetPreviewContext(family: .systemSmall))
   }
 }
 
-let balanceKey = "widgetKey"
 //Small Balance Widget https://www.figma.com/file/l3YXLHorNYToVwql5Gwzir/Widgets?type=design&node-id=37-1137&mode=design&t=P3OKttRwaQ1UIMG7-4
 struct SmallBalanceWidgetSmall: View {
-  var entry: MMProvider.Entry
-  @AppStorage(balanceKey) var balance: String = "0"
+  var entry: GasFeeEntry
   
   var body: some View {
     ZStack() {
-//      Rectangle()
-//        .foregroundColor(.clear)
-//        .frame(width: 155, height: 155)
-//        .background(.white)
-//        .cornerRadius(16)
-//        .offset(x: 0, y: 0)
-//      Rectangle()
-//        .foregroundColor(.clear)
-//        .frame(width: 155, height: 155)
-//        .background(.white)
-//        .offset(x: 0, y: 0)
       VStack(alignment: .leading, spacing: 8) {
         HStack(spacing: 32) {
           Text("🐢")
@@ -141,7 +94,7 @@ struct SmallBalanceWidgetSmall: View {
                 .font(Font.custom("SF Pro Rounded", size: 10).weight(.bold))
                 .lineSpacing(14.06)
                 .foregroundColor(Color(red: 0.62, green: 0.65, blue: 0.68))
-            Text("4 GWEI")
+            Text(entry.lowGwei + " GWEI")
                 .font(Font.custom("SF Pro Rounded", size: 12).weight(.bold))
                 .lineSpacing(16.88)
                 .foregroundColor(Color(red: 0.08, green: 0.09, blue: 0.09))
@@ -159,7 +112,7 @@ struct SmallBalanceWidgetSmall: View {
                 .font(Font.custom("SF Pro Rounded", size: 10).weight(.bold))
                 .lineSpacing(14.06)
                 .foregroundColor(Color(red: 0.62, green: 0.65, blue: 0.68))
-            Text("4 GWEI")
+            Text(entry.marketGwei + " GWEI")
                 .font(Font.custom("SF Pro Rounded", size: 12).weight(.bold))
                 .lineSpacing(16.88)
                 .foregroundColor(Color(red: 0.08, green: 0.09, blue: 0.09))
@@ -177,7 +130,7 @@ struct SmallBalanceWidgetSmall: View {
                 .font(Font.custom("SF Pro Rounded", size: 10).weight(.bold))
                 .lineSpacing(14.06)
                 .foregroundColor(Color(red: 0.62, green: 0.65, blue: 0.68))
-            Text("4 GWEI")
+            Text(entry.aggressiveGwei + " GWEI")
                 .font(Font.custom("SF Pro Rounded", size: 12).weight(.bold))
                 .lineSpacing(16.88)
                 .foregroundColor(Color(red: 0.08, green: 0.09, blue: 0.09))
@@ -188,17 +141,20 @@ struct SmallBalanceWidgetSmall: View {
       }
       .offset(x: 0, y: 14.50)
       HStack(spacing: 8) {
-        Image("MetaMaskLogo")
-          .foregroundColor(.clear)
-          .frame(width: 16, height: 16)
-          .background(Color(red: 0.95, green: 0.96, blue: 0.96))
-        Text("ETH Mainnet")
-            .font(Font.custom("SF Pro Rounded", size: 12).weight(.bold))
-            .tracking(0.15)
+        Image("EthMainnet")
+          .resizable()
+          .frame(width: 16, height: 16.0)
+          .padding([.leading])
+        Text("Mainnet")
+            .font(Font.custom("SF Pro Rounded", size: 14).weight(.bold))
             .foregroundColor(Color(red: 0.08, green: 0.09, blue: 0.09))
         Image("MetaMaskLogo")
+          .resizable()
+          .frame(width: 20.0, height: 20.0)
+          .padding([.trailing])
+          .offset(x: 13, y: 0)
       }
-      .offset(x: -26, y: -53.50)
+      .offset(x: -13, y: -53.50)
     }
     .frame(width: 155, height: 155)
     .background(Color(red: 1, green: 1, blue: 1).opacity(0))
