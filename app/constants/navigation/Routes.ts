@@ -80,6 +80,7 @@ const Routes = {
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     ADVANCED_SETTINGS: 'AdvancedSettings',
     NOTIFICATIONS: 'NotificationsSettings',
+    VIEW: 'ViewSettings',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',

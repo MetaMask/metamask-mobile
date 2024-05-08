@@ -14,6 +14,7 @@ import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import ViewSettings from '../../Views/Settings/ViewSettings';
 import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
@@ -340,6 +341,11 @@ const SettingsFlow = () => (
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
       options={NotificationsSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.VIEW}
+      component={ViewSettings}
+      options={ViewSettings.navigationOptions}
     />
     {
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)

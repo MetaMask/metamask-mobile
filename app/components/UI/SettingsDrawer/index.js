@@ -37,6 +37,16 @@ const createStyles = (colors, titleColor) =>
       borderRadius: 12,
       backgroundColor: colors.error.muted,
     },
+    hotTag: {
+      flexDirection: 'row',
+      alignSelf: 'flex-start',
+      alignItems: 'center',
+      height: 24,
+      paddingHorizontal: 8,
+      marginTop: 8,
+      borderRadius: 12,
+      backgroundColor: colors.success.muted,
+    },
     warningText: {
       marginLeft: 4,
     },
@@ -66,6 +76,10 @@ const propTypes = {
    */
   warning: PropTypes.string,
   /**
+   * Display SettingsNotification
+   */
+  hot: PropTypes.string,
+  /**
    * Display arrow right
    */
   renderArrowRight: PropTypes.bool,
@@ -88,6 +102,7 @@ const SettingsDrawer = ({
   description,
   onPress,
   warning,
+  hot,
   renderArrowRight = true,
   testID,
   titleColor = TextColor.Default,
@@ -105,6 +120,22 @@ const SettingsDrawer = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {description}
             </Text>
+          )}
+          {hot && (
+            <View style={styles.hotTag}>
+              <Icon
+                size={IconSize.Sm}
+                color={IconColor.Success}
+                name={IconName.Check}
+              />
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Success}
+                style={styles.warningText}
+              >
+                {hot}
+              </Text>
+            </View>
           )}
           {warning && (
             <View style={styles.warningTag}>

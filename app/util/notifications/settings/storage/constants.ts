@@ -11,6 +11,7 @@ export const STORAGE_IDS = {
   REQUEST_PERMISSION_GRANTED: 'REQUEST_PERMISSION_GRANTED',
   NOTIFICATION_DATE_FORMAT: 'DD/MM/YYYY HH:mm:ss',
   NOTIFICATIONS_SETTINGS: 'notifications-settings',
+  CURRENT_VIEW: 'current-view',
 };
 
 export const STORAGE_TYPES = {

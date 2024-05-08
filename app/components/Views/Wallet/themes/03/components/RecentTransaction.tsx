@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../../../../util/theme';
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { AvatarSize, AvatarVariant } from '../../../../../../component-library/components/Avatars/Avatar';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../../../component-library/components/Avatars/Avatar';
 const listTransations = [
   {
     type: 'Linea',
@@ -77,14 +80,12 @@ const styleSheet = (colors: any) =>
 const renderTransactionItem = (item: any, styles: any) => (
   <View key={item.type} style={styles.items}>
     <View style={styles.icon}>
-
-    <AvatarNetwork
-      variant={AvatarVariant.Network}
-      name={name}
-      imageSource={item.icon}
-      style={styles.networkIcon}
-      size={AvatarSize.Md}
-    />
+      <AvatarNetwork
+        variant={AvatarVariant.Network}
+        imageSource={item.icon}
+        style={styles.networkIcon}
+        size={AvatarSize.Md}
+      />
     </View>
     <View style={styles.itemBody}>
       <Text style={styles.type}>{item.type}</Text>
