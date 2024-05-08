@@ -1,20 +1,23 @@
 import Logger from '../util/Logger';
 import Engine from './Engine';
+import { withLedgerKeyring } from './Ledger/Ledger';
 
 import { restoreLedgerKeyring, restoreQRKeyring } from './Vault';
 
 jest.mock('./Engine', () => ({
   context: {
     KeyringController: {
-      getKeyringsByType: jest.fn(),
       restoreQRKeyring: jest.fn(),
-      addNewKeyring: jest.fn(),
-      persistAllKeyrings: jest.fn(),
-      getAccounts: jest.fn().mockReturnValue(['account']),
+      withKeyring: jest.fn(),
     },
   },
 }));
 const MockEngine = jest.mocked(Engine);
+
+jest.mock('./Ledger/Ledger', () => ({
+  withLedgerKeyring: jest.fn(),
+}));
+const mockWithLedgerKeyring = jest.mocked(withLedgerKeyring);
 
 jest.mock('../util/Logger', () => ({
   error: jest.fn(),
@@ -27,31 +30,27 @@ describe('Vault', () => {
   describe('restoreQRKeyring', () => {
     it('should restore QR keyring if it exists', async () => {
       const { KeyringController } = MockEngine.context;
-      const mockQRKeyring = {
-        serialize: jest.fn().mockResolvedValue('serialized-keyring-data'),
-      };
+      const mockSerializedQrKeyring = 'serialized-keyring';
 
-      await restoreQRKeyring(mockQRKeyring);
+      await restoreQRKeyring(mockSerializedQrKeyring);
 
-      expect(mockQRKeyring.serialize).toHaveBeenCalled();
+      expect(
+        MockEngine.context.KeyringController.restoreQRKeyring,
+      ).toHaveBeenCalled();
       expect(KeyringController.restoreQRKeyring).toHaveBeenCalledWith(
-        'serialized-keyring-data',
+        mockSerializedQrKeyring,
       );
-    });
-
-    it('should not restore QR keyring if it does not exist', async () => {
-      const { KeyringController } = MockEngine.context;
-
-      await restoreQRKeyring([]);
-
-      expect(KeyringController.restoreQRKeyring).not.toHaveBeenCalled();
     });
 
     it('should log error if an exception is thrown', async () => {
       const error = new Error('Test error');
-      const mockKeyring = { serialize: jest.fn().mockRejectedValue(error) };
+      MockEngine.context.KeyringController.restoreQRKeyring.mockRejectedValue(
+        error,
+      );
+      const mockSerializedQrKeyring = 'serialized-keyring';
 
-      await restoreQRKeyring(mockKeyring);
+      await restoreQRKeyring(mockSerializedQrKeyring);
+
       expect(Logger.error).toHaveBeenCalledWith(
         error,
         'error while trying to get qr accounts on recreate vault',
@@ -61,30 +60,47 @@ describe('Vault', () => {
 
   describe('restoreLedgerKeyring', () => {
     it('should restore ledger keyring if it exists', async () => {
-      const { KeyringController } = MockEngine.context;
+      const mockLedgerKeyring = {
+        deserialize: jest.fn(),
+      };
+      mockWithLedgerKeyring.mockImplementation(
+        // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
+        (operation) => operation(mockLedgerKeyring),
+      );
+      const mockSerializedLedgerKeyring = 'serialized-keyring';
 
-      const mockSerialisedKeyring = jest.fn();
-      const mockDeserializedKeyring = jest.fn();
-      await restoreLedgerKeyring({ serialize: mockSerialisedKeyring });
+      await restoreLedgerKeyring(mockSerializedLedgerKeyring);
 
-      expect(mockSerialisedKeyring).toHaveBeenCalled();
-      expect(mockDeserializedKeyring).toHaveBeenCalled();
-      expect(KeyringController.persistAllKeyrings).toHaveBeenCalled();
+      expect(mockLedgerKeyring.deserialize).toHaveBeenCalledWith(
+        mockSerializedLedgerKeyring,
+      );
     });
 
-    it('should not restore ledger keyring if it does not exist', async () => {
-      const { KeyringController } = MockEngine.context;
-
-      await restoreLedgerKeyring();
-      expect(KeyringController.persistAllKeyrings).not.toHaveBeenCalled();
-    });
-
-    it('should log error if an exception is thrown', async () => {
-      const { KeyringController } = MockEngine.context;
+    it('should log error if the Ledger keyring throws an error', async () => {
       const error = new Error('Test error');
-      KeyringController.persistAllKeyrings.mockRejectedValue(error);
+      const mockLedgerKeyring = {
+        deserialize: jest.fn().mockRejectedValue(error),
+      };
+      mockWithLedgerKeyring.mockImplementation(
+        // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
+        (operation) => operation(mockLedgerKeyring),
+      );
+      const mockSerializedLedgerKeyring = 'serialized-keyring';
 
-      await restoreLedgerKeyring({ serialize: jest.fn() });
+      await restoreLedgerKeyring(mockSerializedLedgerKeyring);
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'error while trying to restore Ledger accounts on recreate vault',
+      );
+    });
+
+    it('should log error if the KeyringController throws an error', async () => {
+      const error = new Error('Test error');
+      mockWithLedgerKeyring.mockRejectedValue(error);
+      const mockSerializedLedgerKeyring = 'serialized-keyring';
+
+      await restoreLedgerKeyring(mockSerializedLedgerKeyring);
 
       expect(Logger.error).toHaveBeenCalledWith(
         error,

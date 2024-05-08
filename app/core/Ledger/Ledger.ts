@@ -62,11 +62,8 @@ export const unlockLedgerDefaultAccount = async (
   address: string;
   balance: string;
 }> => {
-  const keyringController = Engine.context.KeyringController;
-
   const address = await withLedgerKeyring(async (keyring: LedgerKeyring) => {
     if (isAccountImportReq) {
-      // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
       await keyring.addAccounts(1);
     }
     return await keyring.getDefaultAccount();
