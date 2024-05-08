@@ -20,7 +20,6 @@ if (Device.isAndroid()) {
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     tabFavicon: {
-      alignSelf: 'flex-start',
       width: 22,
       height: 22,
       marginRight: 5,
@@ -38,10 +37,8 @@ const createStyles = (colors: ThemeColors) =>
     tabHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'flex-start',
       backgroundColor: colors.background.default,
-      paddingVertical: 8,
-      paddingHorizontal: 8,
+      padding: 8,
     },
     tabWrapper: {
       marginBottom: 15,
@@ -61,8 +58,6 @@ const createStyles = (colors: ThemeColors) =>
     tab: {
       backgroundColor: colors.background.default,
       flex: 1,
-      alignItems: 'flex-start',
-      justifyContent: 'flex-start',
     },
     tabImage: {
       ...StyleSheet.absoluteFillObject,
@@ -79,7 +74,7 @@ const createStyles = (colors: ThemeColors) =>
       fontSize: 32,
       color: colors.text.default,
       right: 0,
-      marginTop: -7,
+      marginBottom: 7,
       position: 'absolute',
     },
     titleButton: {
@@ -95,7 +90,6 @@ const createStyles = (colors: ThemeColors) =>
     },
     footerContainer: {
       flexDirection: 'row',
-      justifyContent: 'flex-start',
       alignItems: 'center',
       height: 36,
       backgroundColor: colors.background.default,

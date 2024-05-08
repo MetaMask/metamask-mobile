@@ -6,7 +6,7 @@ const useSelectedAccount = (): Account | undefined => {
   const { accounts } = useAccounts();
 
   const selectedAccount = useMemo(
-    () => accounts.find((account: Account) => account.isSelected) ?? undefined,
+    () => accounts.find((account: Account) => account.isSelected),
     [accounts],
   );
 
