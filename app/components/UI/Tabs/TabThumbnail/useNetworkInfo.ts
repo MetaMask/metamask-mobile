@@ -6,8 +6,11 @@ import {
   getNetworkNameFromProviderConfig,
 } from '../../../../util/networks';
 
-const useNetworkInfo = () => {
-  const providerConfig = useSelector(selectProviderConfig);
+import { ProviderConfig } from '@metamask/network-controller';
+import { FooterNetworkInfo } from './types';
+
+const useNetworkInfo = (): FooterNetworkInfo => {
+  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
 
   const networkName = useMemo(
     () => getNetworkNameFromProviderConfig(providerConfig),

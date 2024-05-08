@@ -67,8 +67,6 @@ const createStyles = (colors: ThemeColors) =>
     tabImage: {
       ...StyleSheet.absoluteFillObject,
       paddingTop,
-      // width: null,
-      // height: null,
       resizeMode: 'cover',
     },
     activeTab: {
@@ -94,7 +92,6 @@ const createStyles = (colors: ThemeColors) =>
       backgroundColor: importedColors.transparent,
       width: Device.isIos() ? 30 : 35,
       height: 24,
-      // marginRight: -5,
     },
     footerContainer: {
       flexDirection: 'row',
@@ -111,13 +108,6 @@ const createStyles = (colors: ThemeColors) =>
     },
     badgeWrapperContainer: {
       paddingRight: 8,
-      // paddingLeft: 2,
-    },
-    networkBadge: {
-      // borderWidth: 2,
-      // borderColor: colors.background.default,
-      // borderRadius: 8,
-      // minHeight: 14,
     },
   });
 

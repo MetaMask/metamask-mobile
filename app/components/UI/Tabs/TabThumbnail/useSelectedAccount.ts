@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { useAccounts } from '../../../hooks/useAccounts';
+import { Account } from './../../../hooks/useAccounts/useAccounts.types';
 
-const useSelectedAccount = () => {
+const useSelectedAccount = (): Account | undefined => {
   const { accounts } = useAccounts();
 
   const selectedAccount = useMemo(
-    () => accounts.find((account) => account.isSelected) ?? undefined,
+    () => accounts.find((account: Account) => account.isSelected) ?? undefined,
     [accounts],
   );
 
