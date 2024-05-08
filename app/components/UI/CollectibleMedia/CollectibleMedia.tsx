@@ -45,11 +45,11 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   const fallback = useCallback(() => setSourceUri(null), []);
 
   useEffect(() => {
-    const { image, imagePreview, address } = collectible;
+    const { image, imageOriginal, imagePreview, address } = collectible;
     if (address) {
       if (small && imagePreview && imagePreview !== '')
         setSourceUri(imagePreview);
-      else setSourceUri(image);
+      else setSourceUri((image || imageOriginal) ?? null);
     }
   }, [collectible, small, big, setSourceUri]);
 
