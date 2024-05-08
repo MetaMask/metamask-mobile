@@ -54,7 +54,7 @@ import { getNonceLock } from '../../util/transaction-controller';
  * This values are used in certain places like
  * navbar and the network switcher.
  */
-const NetworkList = {
+export const NetworkList = {
   [MAINNET]: {
     name: 'Ethereum Main Network',
     shortName: 'Ethereum',

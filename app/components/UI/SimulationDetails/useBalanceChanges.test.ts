@@ -1,13 +1,10 @@
 import { Hex } from '@metamask/utils';
 import { renderHook } from '@testing-library/react-hooks';
-import {
-  SimulationData,
-  SimulationTokenStandard,
-} from './DO_NOT_MERGE_TransactionController.types';
 import { BigNumber } from 'bignumber.js';
+
 import { getTokenDetails } from '../../../util/address';
 import useBalanceChanges from './useBalanceChanges';
-import { AssetType } from './types';
+import { AssetType, SimulationData, SimulationTokenStandard } from './types';
 
 jest.mock('../../../util/address', () => ({
   getTokenDetails: jest.fn(),

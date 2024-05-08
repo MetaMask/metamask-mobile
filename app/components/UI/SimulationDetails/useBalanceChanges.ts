@@ -1,19 +1,18 @@
 import { Hex } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
+
+import { getTokenDetails } from '../../../util/address';
+import { useAsyncResultOrThrow } from '../../hooks/useAsyncResult';
 import {
+  AssetType,
+  BalanceChange,
+  NATIVE_ASSET_IDENTIFIER,
   SimulationBalanceChange,
   SimulationData,
   SimulationTokenBalanceChange,
   SimulationTokenStandard,
-} from './DO_NOT_MERGE_TransactionController.types';
-import { BigNumber } from 'bignumber.js';
-import {
-  BalanceChange,
-  NATIVE_ASSET_IDENTIFIER,
   TokenAssetIdentifier,
-  AssetType,
 } from './types';
-import { getTokenDetails } from '../../../util/address';
-import { useAsyncResultOrThrow } from '../../hooks/useAsyncResult';
 
 const NATIVE_DECIMALS = 18;
 
