@@ -12,6 +12,15 @@ const mockInitialState = {
   },
 };
 
+jest.mock('react-native-safe-area-context', () => {
+  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
+  return {
+    SafeAreaInsetsContext: {
+      Consumer: jest.fn().mockImplementation(({ children }) => children(inset)),
+    },
+  };
+});
+
 describe('Tabs', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
