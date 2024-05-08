@@ -196,6 +196,7 @@ import { selectShouldUseSmartTransaction } from '../selectors/smartTransactionsC
 import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
+import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -277,7 +278,7 @@ export interface EngineState {
   TokenBalancesController: TokenBalancesState;
   TokenRatesController: TokenRatesState;
   TransactionController: TransactionState;
-  SmartTransactionsController: any; // TODO look into improving this, smart tx cont. needs to export the SmartTransactionsControllerState type
+  SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsState;
   GasFeeController: GasFeeState;
   TokensController: TokensState;
