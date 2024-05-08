@@ -9,6 +9,9 @@ import Engine from '../Engine';
  *
  * If no Ledger keyring is found, one is created.
  *
+ * Note that the `operation` function should only be used for interactions with the ledger keyring.
+ * If you call KeyringController methods within this function, it could result in a deadlock.
+ *
  * @param operation - The keyring operation to perform.
  * @returns The stored Ledger Keyring
  */
