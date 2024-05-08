@@ -1,5 +1,5 @@
 import React, { FC, useEffect } from 'react';
-import { ScrollView, Switch, View } from 'react-native';
+import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { camelCase } from 'lodash';
 
@@ -125,13 +125,17 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 
   const MainNotificationSettings: FC = () => (
     <>
-      <View style={styles.switchElement}>
+      <Pressable
+        style={styles.switchElement}
+        onPressOut={toggleNotificationsEnabled}
+      >
         <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.allow_notifications')}
         </Text>
         <Switch
+          disabled={!notificationsSettingsState?.isEnabled}
           value={notificationsSettingsState?.isEnabled}
-          onValueChange={toggleNotificationsEnabled}
+          onChange={toggleNotificationsEnabled}
           trackColor={{
             true: colors.primary.default,
             false: colors.border.muted,
@@ -140,7 +144,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
         />
-      </View>
+      </Pressable>
       <View style={styles.setting}>
         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
           {strings('app_settings.allow_notifications_desc')}
