@@ -179,6 +179,80 @@ const SmartTransactionsOptInModal = () => {
     );
   };
 
+  const Header = () => (
+    <View style={styles.header}>
+      <Text color={TextColor.Default} variant={TextVariant.HeadingSM}>
+        {strings('whats_new.stx.header')}
+      </Text>
+    </View>
+  );
+
+  const Benefits = () => (
+    <View style={styles.benefits}>
+      <Benefit
+        iconName={IconName.Confirmation}
+        text={[
+          strings('whats_new.stx.benefit_1_1'),
+          strings('whats_new.stx.benefit_1_2'),
+        ]}
+      />
+      <Benefit
+        iconName={IconName.Security}
+        text={[
+          strings('whats_new.stx.benefit_2_1'),
+          strings('whats_new.stx.benefit_2_2'),
+        ]}
+      />
+      <Benefit
+        iconName={IconName.Clock}
+        text={[
+          strings('whats_new.stx.benefit_3_1'),
+          strings('whats_new.stx.benefit_3_2'),
+        ]}
+      />
+    </View>
+  );
+
+  const Descriptions = () => (
+    <View style={styles.descriptions}>
+      <Text>{strings('whats_new.stx.description_1')}</Text>
+      <Text>{strings('whats_new.stx.description_2')}</Text>
+      <Text>
+        {strings('whats_new.stx.description_3')}{' '}
+        <Text
+          color={TextColor.Primary}
+          onPress={() => {
+            Linking.openURL(AppConstants.URLS.SMART_TXS);
+          }}
+        >
+          {strings('whats_new.stx.learn_more')}
+        </Text>
+      </Text>
+    </View>
+  );
+
+  const PrimaryButton = () => (
+    <Button
+      style={styles.button}
+      variant={ButtonVariants.Primary}
+      onPress={optIn}
+      label={strings('whats_new.stx.primary_button')}
+    >
+      {strings('whats_new.stx.primary_button')}
+    </Button>
+  );
+
+  const SecondaryButton = () => (
+    <Button
+      style={styles.button}
+      variant={ButtonVariants.Link}
+      onPress={optOut}
+      label={strings('whats_new.stx.secondary_button')}
+    >
+      {strings('whats_new.stx.secondary_button')}
+    </Button>
+  );
+
   return (
     <ReusableModal
       ref={modalRef}
@@ -195,76 +269,18 @@ const SmartTransactionsOptInModal = () => {
             resizeMode="cover"
             style={styles.backgroundImage}
           >
-            {/* Header */}
-            <View style={styles.header}>
-              <Text color={TextColor.Default} variant={TextVariant.HeadingSM}>
-                {strings('whats_new.stx.header')}
-              </Text>
-            </View>
-
-            {/* Benefits */}
-            <View style={styles.benefits}>
-              <Benefit
-                iconName={IconName.Confirmation}
-                text={[
-                  strings('whats_new.stx.benefit_1_1'),
-                  strings('whats_new.stx.benefit_1_2'),
-                ]}
-              />
-              <Benefit
-                iconName={IconName.Security}
-                text={[
-                  strings('whats_new.stx.benefit_2_1'),
-                  strings('whats_new.stx.benefit_2_2'),
-                ]}
-              />
-              <Benefit
-                iconName={IconName.Clock}
-                text={[
-                  strings('whats_new.stx.benefit_3_1'),
-                  strings('whats_new.stx.benefit_3_2'),
-                ]}
-              />
-            </View>
+            <Header />
+            <Benefits />
           </ImageBackground>
 
           {/* Content */}
           <ScrollView>
             <View style={styles.content}>
-              <View style={styles.descriptions}>
-                <Text>{strings('whats_new.stx.description_1')}</Text>
-                <Text>{strings('whats_new.stx.description_2')}</Text>
-                <Text>
-                  {strings('whats_new.stx.description_3')}{' '}
-                  <Text
-                    color={TextColor.Primary}
-                    onPress={() => {
-                      Linking.openURL(AppConstants.URLS.SMART_TXS);
-                    }}
-                  >
-                    {strings('whats_new.stx.learn_more')}
-                  </Text>
-                </Text>
-              </View>
+              <Descriptions />
 
               <View style={styles.buttons}>
-                <Button
-                  style={styles.button}
-                  variant={ButtonVariants.Primary}
-                  onPress={optIn}
-                  label={strings('whats_new.stx.primary_button')}
-                >
-                  {strings('whats_new.stx.primary_button')}
-                </Button>
-
-                <Button
-                  style={styles.button}
-                  variant={ButtonVariants.Link}
-                  onPress={optOut}
-                  label={strings('whats_new.stx.secondary_button')}
-                >
-                  {strings('whats_new.stx.secondary_button')}
-                </Button>
+                <PrimaryButton />
+                <SecondaryButton />
               </View>
             </View>
           </ScrollView>
