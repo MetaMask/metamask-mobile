@@ -121,6 +121,7 @@ import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gas
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { getShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
+import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -296,18 +297,11 @@ class Confirm extends PureComponent {
       const { gasSelected, fromSelectedAddress } = this.state;
       const { SmartTransactionsController } = Engine.context;
 
-      const smartTransaction = transactionMeta
-        ? SmartTransactionsController.getSmartTransactionByMinedTxHash(
-            transactionMeta.hash,
-          )
-        : null;
-      const smartTransactionMetadata = smartTransaction
-        ? {
-            duplicated: smartTransaction.statusMetadata.duplicated,
-            timedOut: smartTransaction.statusMetadata.timedOut,
-            proxied: smartTransaction.statusMetadata.proxied,
-          }
-        : {};
+      const smartTransactionMetricsProperties =
+        getSmartTransactionMetricsProperties(
+          SmartTransactionsController,
+          transactionMeta,
+        );
 
       return {
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
@@ -323,7 +317,7 @@ class Confirm extends PureComponent {
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
 
         is_smart_transaction: shouldUseSmartTransaction,
-        ...smartTransactionMetadata,
+        ...smartTransactionMetricsProperties,
       };
     } catch (error) {
       return {};

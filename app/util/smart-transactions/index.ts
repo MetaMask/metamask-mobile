@@ -76,7 +76,7 @@ export const getShouldUpdateApprovalRequest = (
 
 export const getSmartTransactionMetricsProperties = (
   smartTransactionsController: SmartTransactionsController,
-  transactionMeta: TransactionMeta,
+  transactionMeta: TransactionMeta | undefined,
 ) => {
   if (!transactionMeta) return {};
 
@@ -85,14 +85,14 @@ export const getSmartTransactionMetricsProperties = (
       transactionMeta.hash,
     );
 
-  if (!smartTransaction) return {};
+  if (smartTransaction?.statusMetadata) {
+    const { duplicated, timedOut, proxied } = smartTransaction.statusMetadata;
+    return {
+      duplicated,
+      timedOut,
+      proxied,
+    };
+  }
 
-  const { duplicated, timedOut, proxied } =
-    smartTransaction.statusMetadata || {};
-
-  return {
-    duplicated,
-    timedOut,
-    proxied,
-  };
+  return {};
 };
