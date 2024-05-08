@@ -10,9 +10,10 @@ export const createStyles = ({ colors, typography }: Theme) =>
     },
     wrapper: {
       flex: 1,
-      backgroundColor: colors.background.default,
       paddingHorizontal: 16,
       paddingVertical: 10,
+      justifyContent: 'center',
+      borderRadius: 10,
     },
     loaderContainer: {
       position: 'absolute',
@@ -33,7 +34,6 @@ export const createStyles = ({ colors, typography }: Theme) =>
     },
     tabBar: {
       borderColor: colors.background.default,
-      marginTop: 16,
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
@@ -59,7 +59,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       justifyContent: 'center',
       alignSelf: 'flex-start',
       position: 'absolute',
-      top: '25%',
+      top: '10%',
     },
     assetLogo: {
       width: 32,
@@ -126,8 +126,16 @@ export const createStyles = ({ colors, typography }: Theme) =>
     },
     trashIconContainer: {
       position: 'absolute',
-      right: '10%',
-      top: '25%',
-      alignSelf: 'center',
+      paddingHorizontal: 24,
+      flex: 1,
+      flexDirection: 'row',
+      backgroundColor: colors.background.hover,
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      overflow: 'hidden',
+      height: '100%',
+      right: 0,
+      left: 0,
+      zIndex: -1,
     },
   });

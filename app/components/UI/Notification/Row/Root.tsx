@@ -72,12 +72,14 @@ function NotificationRoot({
 
   const rChildrenStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: transX.value }],
+    ...styles.container,
   }));
 
   const rIconStyle = useAnimatedStyle(() => {
     const opct = withTiming(transX.value < SWIPE_THRESHOLD ? 1 : 0, {
       duration: 300,
     });
+
     return { opacity: opct };
   });
 
@@ -93,7 +95,7 @@ function NotificationRoot({
         simultaneousHandlers={simultaneousHandlers}
         onGestureEvent={panGesture}
       >
-        <Animated.View onPress={handleOnPress} style={[rChildrenStyle]}>
+        <Animated.View onPress={handleOnPress} style={rChildrenStyle}>
           <TouchableOpacity onPress={handleOnPress}>
             {children}
           </TouchableOpacity>
@@ -103,7 +105,7 @@ function NotificationRoot({
         <Icon
           size={IconSize.Md}
           name={IconName.Trash}
-          color={IconColor.Default}
+          color={IconColor.Alternative}
         />
       </Animated.View>
     </Animated.View>
