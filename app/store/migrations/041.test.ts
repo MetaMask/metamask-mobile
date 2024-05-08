@@ -80,7 +80,8 @@ describe('Migration #41', () => {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 41: Invalid engine state error: 'object'",
+      errorMessage:
+        "FATAL ERROR: Migration 41: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -90,7 +91,7 @@ describe('Migration #41', () => {
         },
       }),
       errorMessage:
-        "Migration 41: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 41: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
