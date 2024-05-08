@@ -7,6 +7,10 @@ import { RootState } from '../reducers';
 import { swapsSmartTxFlagEnabled } from '../reducers/swaps';
 import { isHardwareAccount } from '../util/address';
 import { selectChainId, selectProviderConfig } from './networkController';
+import {
+  SmartTransaction,
+  SmartTransactionStatuses,
+} from '@metamask/smart-transactions-controller/dist/types';
 
 export const ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.MAINNET,
@@ -49,4 +53,40 @@ export const getShouldUseSmartTransaction = (state: RootState) => {
     selectSmartTransactionsOptInStatus(state);
 
   return isSmartTransactionsEnabled && smartTransactionsOptInStatus;
+};
+
+export const selectPendingSmartTransactionsBySender = (state: RootState) => {
+  const selectedAddress = selectSelectedAddress(state);
+  const chainId = selectChainId(state);
+
+  const smartTransactions: SmartTransaction[] =
+    state.engine.backgroundState.SmartTransactionsController
+      ?.smartTransactionsState?.smartTransactions?.[chainId] || [];
+
+  const pendingSmartTransactions =
+    smartTransactions
+      ?.filter((stx) => {
+        const { txParams } = stx;
+        return (
+          txParams?.from.toLowerCase() === selectedAddress.toLowerCase() &&
+          ![
+            SmartTransactionStatuses.SUCCESS,
+            SmartTransactionStatuses.CANCELLED,
+          ].includes(stx.status as SmartTransactionStatuses)
+        );
+      })
+      .map((stx) => ({
+        ...stx,
+        // stx.uuid is one from sentinel API, not the same as tx.id which is generated client side
+        // Doesn't matter too much because we only care about the pending stx, confirmed txs are handled like normal
+        // However, this does make it impossible to read Swap data from TxController.swapsTransactions as that relies on client side tx.id
+        // To fix that we do transactionController.update({ swapsTransactions: newSwapsTransactions }) in app/util/smart-transactions/smart-tx.ts
+        id: stx.uuid,
+        status: stx.status?.startsWith(SmartTransactionStatuses.CANCELLED)
+          ? SmartTransactionStatuses.CANCELLED
+          : stx.status,
+        isSmartTransaction: true,
+      })) ?? [];
+
+  return pendingSmartTransactions;
 };
