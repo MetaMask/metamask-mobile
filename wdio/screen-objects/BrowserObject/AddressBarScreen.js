@@ -11,7 +11,7 @@ import {
 
 class AddressBarScreen {
   get urlCancelButton() {
-    return Selectors.getElementByPlatform(CANCEL_BUTTON_ON_BROWSER_ID);
+    return Selectors.getXpathElementByResourceId(CANCEL_BUTTON_ON_BROWSER_ID);
   }
 
   get urlModalInput() {
@@ -27,7 +27,7 @@ class AddressBarScreen {
   }
 
   get urlClearIcon() {
-    return Selectors.getElementByPlatform(URL_CLEAR_ICON);
+    return Selectors.getXpathElementByResourceId(URL_CLEAR_ICON);
   }
 
   async isAddressInputViewDisplayed() {
