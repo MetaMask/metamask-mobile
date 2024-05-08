@@ -188,15 +188,15 @@ struct SmallBalanceWidgetSmall: View {
       }
       .offset(x: 0, y: 14.50)
       HStack(spacing: 8) {
-        Ellipse()
+        Image("MetaMaskLogo")
           .foregroundColor(.clear)
           .frame(width: 16, height: 16)
           .background(Color(red: 0.95, green: 0.96, blue: 0.96))
-        Text("Ethereum")
+        Text("ETH Mainnet")
             .font(Font.custom("SF Pro Rounded", size: 12).weight(.bold))
             .tracking(0.15)
             .foregroundColor(Color(red: 0.08, green: 0.09, blue: 0.09))
-//        Image("MetaMaskLogo")
+        Image("MetaMaskLogo")
       }
       .offset(x: -26, y: -53.50)
     }
