@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Icon, {
@@ -16,7 +16,6 @@ import {
 import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
-import { getSwapsChainFeatureFlags } from '../../../reducers/swaps';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
@@ -25,6 +24,7 @@ import TransactionBackgroundTop from '../../../images/transaction-background-top
 import TransactionBackgroundBottom from '../../../images/transaction-background-bottom.svg';
 import LoopingScrollAnimation from './LoopingScrollAnimation';
 import { hexToDecimal } from '../../../util/conversions';
+import useRemainingTime from './useRemainingTime';
 
 const getPortfolioStxLink = (chainId: Hex, uuid: string) => {
   const chainIdDec = hexToDecimal(chainId);
@@ -63,23 +63,9 @@ const SmartTransactionStatus = ({
 }: Props) => {
   const { status, creationTime, uuid } = smartTransaction;
   const providerConfig = useSelector(selectProviderConfig);
-  const swapFeatureFlags = useSelector(getSwapsChainFeatureFlags);
 
   const navigation = useNavigation();
   const { colors } = useTheme();
-
-  const stxEstimatedDeadlineSec =
-    swapFeatureFlags?.smartTransactions?.expectedDeadline ||
-    FALLBACK_STX_ESTIMATED_DEADLINE_SEC;
-  const stxMaxDeadlineSec =
-    swapFeatureFlags?.smartTransactions?.maxDeadline ||
-    FALLBACK_STX_MAX_DEADLINE_SEC;
-
-  const [isStxPastEstimatedDeadline, setIsStxPastEstimatedDeadline] =
-    useState(false);
-  const [timeLeftForPendingStxInSec, setTimeLeftForPendingStxInSec] = useState(
-    stxEstimatedDeadlineSec,
-  );
 
   // Setup styles
   const styles = StyleSheet.create({
@@ -134,41 +120,19 @@ const SmartTransactionStatus = ({
 
   const isStxPending = status === SmartTransactionStatuses.PENDING;
 
-  // Calc time left for progress bar and timer display
-  const stxDeadlineSec = isStxPastEstimatedDeadline
-    ? stxMaxDeadlineSec
-    : stxEstimatedDeadlineSec;
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-    if (isStxPending && creationTime) {
-      const calculateRemainingTime = () => {
-        const secondsAfterStxSubmission = Math.round(
-          (Date.now() - creationTime) / 1000,
-        );
-        if (secondsAfterStxSubmission > stxDeadlineSec) {
-          if (isStxPastEstimatedDeadline) {
-            setTimeLeftForPendingStxInSec(0);
-            clearInterval(intervalId);
-            return;
-          }
-          setIsStxPastEstimatedDeadline(true);
-        }
-        setTimeLeftForPendingStxInSec(
-          stxDeadlineSec - secondsAfterStxSubmission,
-        );
-      };
-      intervalId = setInterval(calculateRemainingTime, 1000);
-      calculateRemainingTime();
-    }
-
-    return () => clearInterval(intervalId);
-  }, [isStxPending, isStxPastEstimatedDeadline, creationTime, stxDeadlineSec]);
+  const {
+    timeLeftForPendingStxInSec,
+    stxDeadlineSec,
+    isStxPastEstimatedDeadline,
+  } = useRemainingTime({
+    creationTime,
+    isStxPending,
+  });
 
   // Set block explorer link and show explorer on click
   const txUrl = getPortfolioStxLink(providerConfig.chainId, uuid);
 
-  const handleViewTransaction = () => {
+  const onViewTransaction = () => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -318,7 +282,7 @@ const SmartTransactionStatus = ({
         <View style={styles.textWrapper}>
           {description && <Text style={styles.desc}>{description}</Text>}
 
-          <TouchableOpacity onPress={handleViewTransaction}>
+          <TouchableOpacity onPress={onViewTransaction}>
             <Text style={styles.link}>
               {strings('smart_transactions.view_transaction')}
             </Text>
