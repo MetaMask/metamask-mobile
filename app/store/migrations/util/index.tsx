@@ -15,7 +15,7 @@ export function ensureValidState<T>(
   if (!isObject(state)) {
     captureException(
       new Error(
-        `Migration ${migrationNumber}: Invalid state error: '${typeof state}'`,
+        `FATAL ERROR: Migration ${migrationNumber}: Invalid state error: '${typeof state}'`,
       ),
     );
     return false;
@@ -24,7 +24,7 @@ export function ensureValidState<T>(
   if (!isObject(state.engine)) {
     captureException(
       new Error(
-        `Migration ${migrationNumber}: Invalid engine state error: '${typeof state.engine}'`,
+        `FATAL ERROR: Migration ${migrationNumber}: Invalid engine state error: '${typeof state.engine}'`,
       ),
     );
     return false;
@@ -33,7 +33,7 @@ export function ensureValidState<T>(
   if (!isObject(state.engine.backgroundState)) {
     captureException(
       new Error(
-        `Migration ${migrationNumber}: Invalid engine backgroundState error: '${typeof state
+        `FATAL ERROR: Migration ${migrationNumber}: Invalid engine backgroundState error: '${typeof state
           .engine.backgroundState}'`,
       ),
     );
