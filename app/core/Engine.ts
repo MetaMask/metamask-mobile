@@ -1104,6 +1104,24 @@ class Engine {
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
+    const smartTransactionsControllerTrackMetaMetricsEvent = (params: {
+      event: string;
+      category: string;
+      sensitiveProperties: any;
+    }) => {
+      const { event, category, ...restParams } = params;
+
+      MetaMetrics.getInstance().trackEvent(
+        {
+          category,
+          properties: {
+            name: event,
+            // action?: string;
+          },
+        },
+        restParams,
+      );
+    };
     this.smartTransactionsController = new SmartTransactionsController(
       {
         confirmExternalTransaction:
@@ -1121,7 +1139,7 @@ class Engine {
         getNonceLock: this.transactionController.getNonceLock.bind(
           this.transactionController,
         ),
-        // @ts-expect-error txController.getTransactions only uses txMeta.status and txMeta.transactionHash, which v8 TxController has
+        // @ts-expect-error txController.getTransactions only uses txMeta.status and txMeta.hash, which v13 TxController has
         getTransactions: this.transactionController.getTransactions.bind(
           this.transactionController,
         ),
@@ -1129,24 +1147,7 @@ class Engine {
         provider: networkController.getProviderAndBlockTracker()
           .provider as any,
 
-        trackMetaMetricsEvent: (params: {
-          event: string;
-          category: string;
-          sensitiveProperties: any;
-        }) => {
-          const { event, category, ...restParams } = params;
-
-          MetaMetrics.getInstance().trackEvent(
-            {
-              category,
-              properties: {
-                name: event,
-                // action?: string;
-              },
-            },
-            restParams,
-          );
-        },
+        trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
       },
       {
         supportedChainIds: [
