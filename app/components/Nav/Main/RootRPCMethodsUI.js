@@ -65,6 +65,7 @@ import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
+import { getSmartTransactionMetricsProperties } from '../../../util/smart-transactions';
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
@@ -169,27 +170,11 @@ const RootRPCMethodsUI = (props) => {
         delete newSwapsTransactions[transactionMeta.id].analytics;
         delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 
-        const getSmartTransactionProperties = () => {
-          if (!transactionMeta) return {};
-
-          const smartTransaction =
-            SmartTransactionsController.getSmartTransactionByMinedTxHash(
-              transactionMeta.transactionHash,
-            );
-
-          if (!smartTransaction) return {};
-
-          const { duplicated, timedOut, proxied } =
-            smartTransaction.statusMetadata;
-
-          return {
-            duplicated,
-            timedOut,
-            proxied,
-          };
-        };
-
-        const smartTransactionProperties = getSmartTransactionProperties();
+        const smartTransactionMetricsProperties =
+          getSmartTransactionMetricsProperties(
+            SmartTransactionsController,
+            transactionMeta,
+          );
 
         const parameters = {
           ...analyticsParams,
@@ -198,7 +183,7 @@ const RootRPCMethodsUI = (props) => {
           quote_vs_executionRatio: quoteVsExecutionRatio,
           token_to_amount_received: tokenToAmountReceived.toString(),
           is_smart_transaction: props.shouldUseSmartTransaction,
-          ...smartTransactionProperties,
+          ...smartTransactionMetricsProperties,
         };
 
         trackAnonymousEvent(event, parameters);

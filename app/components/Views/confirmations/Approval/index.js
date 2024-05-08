@@ -51,6 +51,7 @@ import { getDecimalChainId } from '../../../../util/networks';
 import { updateTransaction } from '../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
+import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -323,21 +324,11 @@ class Approval extends PureComponent {
         transaction.id,
       );
 
-      let smartTransactionMetadata = {};
-      if (transactionMeta) {
-        const smartTransaction =
-          SmartTransactionsController.getSmartTransactionByMinedTxHash(
-            transactionMeta.transactionHash,
-          );
-
-        if (smartTransaction) {
-          smartTransactionMetadata = {
-            duplicated: smartTransaction.statusMetadata.duplicated,
-            timedOut: smartTransaction.statusMetadata.timedOut,
-            proxied: smartTransaction.statusMetadata.proxied,
-          };
-        }
-      }
+      const smartTransactionMetricsProperties =
+        getSmartTransactionMetricsProperties(
+          SmartTransactionsController,
+          transactionMeta,
+        );
 
       return {
         account_type: getAddressAccountType(selectedAddress),
@@ -354,7 +345,7 @@ class Approval extends PureComponent {
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
         is_smart_transaction: shouldUseSmartTransaction,
-        ...smartTransactionMetadata,
+        ...smartTransactionMetricsProperties,
       };
     } catch (error) {
       return {};

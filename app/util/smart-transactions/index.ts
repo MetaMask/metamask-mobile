@@ -7,6 +7,7 @@ import {
   getIsSwapTransaction,
   getIsNativeTokenTransferred,
 } from '../transactions';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
 
 export const getTransactionType = (
   transactionMeta: TransactionMeta,
@@ -72,3 +73,26 @@ export const getShouldUpdateApprovalRequest = (
   isSend: boolean,
   isSwapTransaction: boolean,
 ): boolean => isDapp || isSend || isSwapTransaction;
+
+export const getSmartTransactionMetricsProperties = (
+  smartTransactionsController: SmartTransactionsController,
+  transactionMeta: TransactionMeta,
+) => {
+  if (!transactionMeta) return {};
+
+  const smartTransaction =
+    smartTransactionsController.getSmartTransactionByMinedTxHash(
+      transactionMeta.hash,
+    );
+
+  if (!smartTransaction) return {};
+
+  const { duplicated, timedOut, proxied } =
+    smartTransaction.statusMetadata || {};
+
+  return {
+    duplicated,
+    timedOut,
+    proxied,
+  };
+};
