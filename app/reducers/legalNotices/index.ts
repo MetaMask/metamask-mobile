@@ -1,4 +1,5 @@
 import { RootState } from '..';
+import { Action } from 'redux';
 import ACTIONS from './types';
 
 const newPrivacyPolicyDate = new Date('2024-06-04T00:00:00Z');
@@ -41,7 +42,19 @@ export const shouldShowNewPrivacyToastSelector = (
   );
 };
 
-const legalNoticesReducer = (state = initialState, action: any = {}) => {
+export interface iAccountActions extends Action {
+  newPrivacyPolicyToastShownDate: boolean;
+  payload: number;
+}
+
+const legalNoticesReducer = (
+  state = initialState,
+  action: iAccountActions = {
+    type: '',
+    newPrivacyPolicyToastShownDate: false,
+    payload: 0,
+  },
+) => {
   switch (action.type) {
     case ACTIONS.STORE_PRIVACY_POLICY_SHOWN_DATE: {
       if (state.newPrivacyPolicyToastShownDate !== null) {
