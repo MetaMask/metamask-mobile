@@ -369,6 +369,7 @@ class AdvancedSettings extends PureComponent {
 
     this.props.metrics.trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
       stx_opt_in: smartTransactionsOptInStatus,
+      location: 'Advanced Settings',
     });
   };
 

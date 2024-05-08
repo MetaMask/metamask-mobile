@@ -31,6 +31,7 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import AppConstants from '../../../core/AppConstants';
 import backgroundImage from '../../../images/smart-transactions-opt-in-bg.png';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 const MODAL_MARGIN = 24;
 const MODAL_PADDING = 24;
@@ -132,6 +133,8 @@ const Benefit = ({ iconName, text }: Props) => {
 const SmartTransactionsOptInModal = () => {
   const modalRef = useRef<ReusableModalRef>(null);
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
+
   const styles = createStyles(colors);
 
   const hasOptedIn = useRef<boolean | null>(null);
@@ -142,12 +145,22 @@ const SmartTransactionsOptInModal = () => {
 
   const optIn = () => {
     Engine.context.PreferencesController.setSmartTransactionsOptInStatus(true);
+    trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
+      stx_opt_in: true,
+      location: 'SmartTransactionsOptInModal',
+    });
+
     hasOptedIn.current = true;
     dismissModal();
   };
 
   const optOut = () => {
     Engine.context.PreferencesController.setSmartTransactionsOptInStatus(false);
+    trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
+      stx_opt_in: false,
+      location: 'SmartTransactionsOptInModal',
+    });
+
     hasOptedIn.current = false;
     dismissModal();
   };
