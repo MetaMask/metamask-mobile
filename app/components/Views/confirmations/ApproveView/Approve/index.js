@@ -586,15 +586,11 @@ class Approve extends PureComponent {
         return;
       }
 
+      await ApprovalController.accept(transaction.id, undefined, {
+        waitForResult: !shouldUseSmartTransaction,
+      });
       if (shouldUseSmartTransaction) {
-        await ApprovalController.accept(transaction.id, undefined, {
-          waitForResult: false,
-        });
         this.props.hideModal();
-      } else {
-        await ApprovalController.accept(transaction.id, undefined, {
-          waitForResult: true,
-        });
       }
 
       metrics.trackEvent(
