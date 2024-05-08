@@ -122,6 +122,7 @@
     "axios": "^1.6.8",
     "react-native-ble-plx": "3.1.2",
     "**/babel-runtime/regenerator-runtime": "^0.13.8",
+    "@babel/plugin-proposal-numeric-separator": "npm:@babel/plugin-transform-numeric-separator",
     "@metamask/transaction-controller/@metamask/controller-utils": "^5.0.0",
     "xmldom": "npm:@xmldom/xmldom@0.7.13",
     "web3-provider-engine": "^16.0.8"
