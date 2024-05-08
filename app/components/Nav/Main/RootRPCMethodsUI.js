@@ -63,7 +63,7 @@ import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { getShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../util/smart-transactions';
 
@@ -485,7 +485,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   tokens: selectTokens(state),
   providerType: selectProviderType(state),
-  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

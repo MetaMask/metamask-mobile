@@ -36,7 +36,7 @@ import {
   selectSmartTransactionsOptInStatus,
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
-import { getSmartTransactionsEnabled } from '../../../../selectors/smartTransactionsController';
+import { selectSmartTransactionsEnabled } from '../../../../selectors/smartTransactionsController';
 import Routes from '../../../../constants/navigation/Routes';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -621,7 +621,7 @@ const mapStateToProps = (state) => ({
   isTokenDetectionEnabled: selectUseTokenDetection(state),
   chainId: selectChainId(state),
   smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
-  smartTransactionsEnabled: getSmartTransactionsEnabled(state),
+  smartTransactionsEnabled: selectSmartTransactionsEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

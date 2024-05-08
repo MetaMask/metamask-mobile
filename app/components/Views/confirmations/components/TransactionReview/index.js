@@ -57,7 +57,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { getShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -664,7 +664,7 @@ const mapStateToProps = (state) => ({
   browser: state.browser,
   primaryCurrency: state.settings.primaryCurrency,
   tokenList: selectTokenList(state),
-  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 TransactionReview.contextType = ThemeContext;

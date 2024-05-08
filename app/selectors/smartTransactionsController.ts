@@ -17,7 +17,7 @@ export const ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.GOERLI,
   NETWORKS_CHAIN_ID.SEPOLIA,
 ];
-export const getSmartTransactionsEnabled = (state: RootState) => {
+export const selectSmartTransactionsEnabled = (state: RootState) => {
   const selectedAddress = selectSelectedAddress(state);
   const addrIshardwareAccount = isHardwareAccount(selectedAddress);
   const chainId = selectChainId(state);
@@ -47,8 +47,8 @@ export const getSmartTransactionsEnabled = (state: RootState) => {
       smartTransactionsLiveness,
   );
 };
-export const getShouldUseSmartTransaction = (state: RootState) => {
-  const isSmartTransactionsEnabled = getSmartTransactionsEnabled(state);
+export const selectShouldUseSmartTransaction = (state: RootState) => {
+  const isSmartTransactionsEnabled = selectSmartTransactionsEnabled(state);
   const smartTransactionsOptInStatus =
     selectSmartTransactionsOptInStatus(state);
 

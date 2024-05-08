@@ -63,7 +63,7 @@ import {
 } from '../../../../selectors/preferencesController';
 import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
-import { getShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 
 const REVIEW = 'review';
@@ -787,7 +787,7 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedAddress(state),
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
   tokenList: selectTokenList(state),
-  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -62,7 +62,7 @@ import { isNetworkRampNativeTokenSupported } from '../../../../../../components/
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
-import { getShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
+import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -752,7 +752,7 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
-  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

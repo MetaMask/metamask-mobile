@@ -42,7 +42,7 @@ import {
 } from '../../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { providerErrors } from '@metamask/rpc-errors';
-import { getShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
@@ -693,7 +693,7 @@ const mapStateToProps = (state) => ({
   showCustomNonce: state.settings.showCustomNonce,
   chainId: selectChainId(state),
   activeTabUrl: getActiveTabUrl(state),
-  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

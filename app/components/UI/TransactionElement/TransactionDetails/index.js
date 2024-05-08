@@ -40,7 +40,7 @@ import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { regex } from '../../../../../app/util/regex';
-import { getShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -434,7 +434,7 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   swapsTokens: state.engine.backgroundState.SwapsController.tokens,
-  shouldUseSmartTransaction: getShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 TransactionDetails.contextType = ThemeContext;
