@@ -123,6 +123,7 @@
     "react-native-ble-plx": "3.1.2",
     "**/babel-runtime/regenerator-runtime": "^0.13.8",
     "@metamask/transaction-controller/@metamask/controller-utils": "^5.0.0",
+    "@metamask/swaps-controller/@metamask/controllers": "git+https://github.com/MetaMask/core.git#d4e9507d9612f2d36c3f848333b33330a19b811b",
     "xmldom": "npm:@xmldom/xmldom@0.7.13",
     "web3-provider-engine": "^16.0.8"
   },

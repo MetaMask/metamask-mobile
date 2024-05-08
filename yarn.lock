@@ -3762,9 +3762,9 @@
     eth-ens-namehash "^2.0.8"
     fast-deep-equal "^3.1.3"
 
-"@metamask/controllers@^26.0.0":
+"@metamask/controllers@^26.0.0", "@metamask/controllers@git+https://github.com/MetaMask/core.git#d4e9507d9612f2d36c3f848333b33330a19b811b":
   version "26.0.0"
-  resolved "git+https://github.com/MetaMask/controllers.git#d4e9507d9612f2d36c3f848333b33330a19b811b"
+  resolved "git+https://github.com/MetaMask/core.git#d4e9507d9612f2d36c3f848333b33330a19b811b"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
