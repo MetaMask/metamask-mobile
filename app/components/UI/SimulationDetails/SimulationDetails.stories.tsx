@@ -49,6 +49,10 @@ const storeMock = configureStore({
             ticker: 'ETH',
           },
         },
+        NftController: {
+          allNfts: {},
+          allNftContracts: {},
+        },
         TokenListController: {
           tokenList: {
             [ERC20_TOKEN_1_MOCK]: {
