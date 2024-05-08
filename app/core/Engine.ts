@@ -1132,11 +1132,6 @@ class Engine {
         // @ts-expect-error this fine, STX controller has been downgraded to network controller v15
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
-        onNetworkStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            listener,
-          ),
         getNonceLock: this.transactionController.getNonceLock.bind(
           this.transactionController,
         ),
@@ -1144,6 +1139,11 @@ class Engine {
         getTransactions: this.transactionController.getTransactions.bind(
           this.transactionController,
         ),
+        onNetworkStateChange: (listener) =>
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
 
         provider: networkController.getProviderAndBlockTracker()
           .provider as any,
