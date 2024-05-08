@@ -1,6 +1,5 @@
 import {
   ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID,
-  ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID,
   ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID,
   ONBOARDING_WIZARD_SEVENTH_STEP_CONTENT_ID,
 } from '../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
@@ -69,8 +68,8 @@ class OnboardingWizardModal {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON)
       : Matchers.getElementByLabel(
-        OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON,
-      );
+          OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON,
+        );
   }
 
   get backButton() {
