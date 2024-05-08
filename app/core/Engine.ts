@@ -1110,8 +1110,9 @@ class Engine {
           this.transactionController.confirmExternalTransaction.bind(
             this.transactionController,
           ),
-        // @ts-expect-error this fine, STX controller has been downgraded to network controller v8
-        getNetworkClientById: networkController.getNetworkClientById,
+        // @ts-expect-error this fine, STX controller has been downgraded to network controller v15
+        getNetworkClientById:
+          networkController.getNetworkClientById.bind(networkController),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
