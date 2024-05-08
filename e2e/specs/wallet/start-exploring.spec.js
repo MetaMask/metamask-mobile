@@ -84,7 +84,7 @@ describe(SmokeCore('Start Exploring'), () => {
     await OnboardingWizardModal.tapGotItButton();
     // Ensure step 3 is shown correctly
     await Assertions.checkIfVisible(OnboardingWizardModal.stepThreeContainer);
-    // await WalletView.editAccountName(ACCOUNT);
+    // await WalletView.editAccountName(ACCOUNT);stepSixContainer
     await OnboardingWizardModal.tapGotItButton();
     await WalletView.isAccountNameCorrect(ACCOUNT);
     // Ensure step 4 is shown correctly
@@ -113,6 +113,9 @@ describe(SmokeCore('Start Exploring'), () => {
     await OnboardingWizardModal.tapGotItButton();
     // Ensure step 6 is shown correctly
     await Assertions.checkIfVisible(OnboardingWizardModal.stepSixContainer);
+    await OnboardingWizardModal.tapGotItButton();
+    // Ensure step 7 is shown correctly
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepSevenContainer);
     await OnboardingWizardModal.tapGotItButton();
     // Check that we are on the Browser page
     // dealing with flakiness on bitrise.

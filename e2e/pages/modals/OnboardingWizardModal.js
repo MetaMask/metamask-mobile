@@ -45,6 +45,12 @@ class OnboardingWizardModal {
     );
   }
 
+  get stepSevenContainer() {
+    return Matchers.getElementByID(
+      OnboardingWizardModalSelectorsIDs.STEP_SEVENTH_CONTAINER,
+    );
+  }
+
   get noThanksButton() {
     return Matchers.getElementByID(
       OnboardingWizardModalSelectorsIDs.NO_THANKS_BUTTON,
@@ -68,8 +74,8 @@ class OnboardingWizardModal {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON)
       : Matchers.getElementByLabel(
-          OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON,
-        );
+        OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON,
+      );
   }
 
   get backButton() {
