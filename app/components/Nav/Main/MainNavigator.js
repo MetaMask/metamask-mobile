@@ -51,7 +51,7 @@ import Drawer from '../../UI/Drawer';
 import RampRoutes from '../../UI/Ramp/routes';
 import { RampType } from '../../UI/Ramp/types';
 import RampSettings from '../../UI/Ramp/Views/Settings';
-import RampAddActivationKey from '../../UI/Ramp/Views/Settings/AddActivationKey';
+import RampActivationKeyForm from '../../UI/Ramp/Views/Settings/ActivationKeyForm';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
@@ -269,8 +269,8 @@ const SettingsFlow = () => (
     />
     <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
     <Stack.Screen
-      name={Routes.RAMP.ADD_ACTIVATION_KEY}
-      component={RampAddActivationKey}
+      name={Routes.RAMP.ACTIVATION_KEY_FORM}
+      component={RampActivationKeyForm}
     />
     <Stack.Screen
       name="ExperimentalSettings"
