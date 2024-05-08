@@ -742,7 +742,7 @@ const App = ({ userLoggedIn }) => {
     </Stack.Navigator>
   );
 
-  setSendReceiveBalanceWidgetWidget('1234');
+  setSendReceiveBalanceWidgetWidget('5000');
 
   return (
     // do not render unless a route is defined

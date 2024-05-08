@@ -15,11 +15,13 @@ struct WidgetData: Decodable {
 }
 
 typealias ConfigurationIntent = INIntent
+let gasFeeProvider = GasFeeProvider.shared
 
-struct MMProvider: TimelineProvider {
+struct MMProvider: TimelineProvider {  
   func placeholder(in context: Context) -> SimpleEntry {
+    gasFeeProvider.fetchGasFees(chain_id: "1")
       let userDefaults = UserDefaults.init(suiteName: "group.io.metamask.MetaMask")
-      print("placeholder called", userDefaults!.value(forKey: "widgetKey") as? String)
+      print("placeholder called", userDefaults!.value(forKey: "chainId") as? String)
       return SimpleEntry(date: Date(), text: "Provider")
   }
   
@@ -41,7 +43,7 @@ struct MMProvider: TimelineProvider {
           return
       }
   
-      if let savedData = userDefaults.value(forKey: "widgetKey") as? String {
+      if let savedData = userDefaults.value(forKey: "chainId") as? String {
           guard let data = savedData.data(using: .utf8) else {
               print("Data encoding failed")
               let entry = SimpleEntry(date: entryDate, text: "Data encoding failed")
@@ -200,5 +202,6 @@ struct SmallBalanceWidgetSmall: View {
     }
     .frame(width: 155, height: 155)
     .background(Color(red: 1, green: 1, blue: 1).opacity(0))
+    
   }
 }

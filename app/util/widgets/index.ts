@@ -1,3 +1,4 @@
+import { Hex, isStrictHexString, remove0x } from '@metamask/utils';
 import SharedGroupPreferences from 'react-native-shared-group-preferences';
 
 const group = 'group.io.metamask.MetaMask';
@@ -7,6 +8,7 @@ export async function setSmallBalanceWidget(widgetData: object) {
   try {
     // iOS
     console.log('widgetData', widgetData);
+
     await SharedGroupPreferences.setItem('widgetKey', widgetData, group);
   } catch (error) {
     console.log('setBalanceWidget TEST', { error });
