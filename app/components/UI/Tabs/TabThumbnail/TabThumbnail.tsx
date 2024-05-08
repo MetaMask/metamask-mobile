@@ -23,7 +23,7 @@ import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import WebsiteIcon from '../../WebsiteIcon';
 import createStyles from './TabThumbnail.styles';
-import { TabThumbnailProps } from './types';
+import { TabThumbnailProps } from './TabThumbnail.types';
 import useNetworkInfo from './useNetworkInfo';
 import useSelectedAccount from './useSelectedAccount';
 import METAMASK_FOX from '../../../../images/fox.png';
