@@ -28,7 +28,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const PendingApprovals = {
+const PENDING_APPROVALS = {
   Dapp: {
     pending: {
       id: '8pJ0jVaREyCysgt8DeHcO',
@@ -306,14 +306,14 @@ describe('SmartTransactionStatus', () => {
           <SmartTransactionStatus
             requestState={{
               smartTransaction: {
-                ...PendingApprovals.Send.pending.requestState.smartTransaction,
+                ...PENDING_APPROVALS.Send.pending.requestState.smartTransaction,
                 creationTime: Date.now(),
               } as any,
-              isDapp: PendingApprovals.Send.pending.requestState.isDapp,
+              isDapp: PENDING_APPROVALS.Send.pending.requestState.isDapp,
               isInSwapFlow:
-                PendingApprovals.Send.pending.requestState.isInSwapFlow,
+                PENDING_APPROVALS.Send.pending.requestState.isInSwapFlow,
             }}
-            origin={PendingApprovals.Send.pending.origin}
+            origin={PENDING_APPROVALS.Send.pending.origin}
             onConfirm={jest.fn()}
           />,
           { state: initialState },
@@ -329,15 +329,15 @@ describe('SmartTransactionStatus', () => {
           <SmartTransactionStatus
             requestState={{
               smartTransaction: {
-                ...PendingApprovals.Send.pending.requestState.smartTransaction,
+                ...PENDING_APPROVALS.Send.pending.requestState.smartTransaction,
                 creationTime:
                   Date.now() - (FALLBACK_STX_ESTIMATED_DEADLINE_SEC + 1) * 1000,
               } as any,
-              isDapp: PendingApprovals.Send.pending.requestState.isDapp,
+              isDapp: PENDING_APPROVALS.Send.pending.requestState.isDapp,
               isInSwapFlow:
-                PendingApprovals.Send.pending.requestState.isInSwapFlow,
+                PENDING_APPROVALS.Send.pending.requestState.isInSwapFlow,
             }}
-            origin={PendingApprovals.Send.pending.origin}
+            origin={PENDING_APPROVALS.Send.pending.origin}
             onConfirm={jest.fn()}
           />,
           { state: initialState },
@@ -356,8 +356,8 @@ describe('SmartTransactionStatus', () => {
       it('should render success when STX has success status', () => {
         const { getByText } = renderWithProvider(
           <SmartTransactionStatus
-            requestState={PendingApprovals.Send.success.requestState as any}
-            origin={PendingApprovals.Send.success.origin}
+            requestState={PENDING_APPROVALS.Send.success.requestState as any}
+            origin={PENDING_APPROVALS.Send.success.origin}
             onConfirm={jest.fn()}
           />,
           { state: initialState },
@@ -373,8 +373,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Activity page on press of primary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Dapp.success.requestState as any}
-              origin={PendingApprovals.Dapp.success.origin}
+              requestState={PENDING_APPROVALS.Dapp.success.requestState as any}
+              origin={PENDING_APPROVALS.Dapp.success.origin}
               onConfirm={jest.fn()}
             />,
             { state: initialState },
@@ -390,8 +390,8 @@ describe('SmartTransactionStatus', () => {
           const onConfirm = jest.fn();
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Dapp.success.requestState as any}
-              origin={PendingApprovals.Dapp.success.origin}
+              requestState={PENDING_APPROVALS.Dapp.success.requestState as any}
+              origin={PENDING_APPROVALS.Dapp.success.origin}
               onConfirm={onConfirm}
             />,
             { state: initialState },
@@ -399,7 +399,7 @@ describe('SmartTransactionStatus', () => {
 
           const secondaryButton = getByText(
             strings('smart_transactions.return_to_dapp', {
-              dappName: PendingApprovals.Dapp.success.origin,
+              dappName: PENDING_APPROVALS.Dapp.success.origin,
             }),
           );
           fireEvent.press(secondaryButton);
@@ -412,8 +412,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Send page on press of primary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Send.success.requestState as any}
-              origin={PendingApprovals.Send.success.origin}
+              requestState={PENDING_APPROVALS.Send.success.requestState as any}
+              origin={PENDING_APPROVALS.Send.success.origin}
               onConfirm={jest.fn()}
             />,
             { state: initialState },
@@ -430,8 +430,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Send.success.requestState as any}
-              origin={PendingApprovals.Send.success.origin}
+              requestState={PENDING_APPROVALS.Send.success.requestState as any}
+              origin={PENDING_APPROVALS.Send.success.origin}
               onConfirm={jest.fn()}
             />,
             { state: initialState },
@@ -449,8 +449,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Swaps page on press of primary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Swap.success.requestState as any}
-              origin={PendingApprovals.Swap.success.origin}
+              requestState={PENDING_APPROVALS.Swap.success.requestState as any}
+              origin={PENDING_APPROVALS.Swap.success.origin}
               onConfirm={jest.fn()}
             />,
             { state: initialState },
@@ -467,8 +467,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Swap.success.requestState as any}
-              origin={PendingApprovals.Swap.success.origin}
+              requestState={PENDING_APPROVALS.Swap.success.requestState as any}
+              origin={PENDING_APPROVALS.Swap.success.origin}
               onConfirm={jest.fn()}
             />,
             { state: initialState },
@@ -487,8 +487,8 @@ describe('SmartTransactionStatus', () => {
       it('should render cancelled when STX has cancelled status', () => {
         const { getByText } = renderWithProvider(
           <SmartTransactionStatus
-            requestState={PendingApprovals.Send.cancelled.requestState as any}
-            origin={PendingApprovals.Send.cancelled.origin}
+            requestState={PENDING_APPROVALS.Send.cancelled.requestState as any}
+            origin={PENDING_APPROVALS.Send.cancelled.origin}
             onConfirm={jest.fn()}
           />,
           { state: initialState },
@@ -505,8 +505,10 @@ describe('SmartTransactionStatus', () => {
           const onConfirm = jest.fn();
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Dapp.cancelled.requestState as any}
-              origin={PendingApprovals.Dapp.cancelled.origin}
+              requestState={
+                PENDING_APPROVALS.Dapp.cancelled.requestState as any
+              }
+              origin={PENDING_APPROVALS.Dapp.cancelled.origin}
               onConfirm={onConfirm}
             />,
             { state: initialState },
@@ -514,7 +516,7 @@ describe('SmartTransactionStatus', () => {
 
           const secondaryButton = getByText(
             strings('smart_transactions.return_to_dapp', {
-              dappName: PendingApprovals.Dapp.cancelled.origin,
+              dappName: PENDING_APPROVALS.Dapp.cancelled.origin,
             }),
           );
           fireEvent.press(secondaryButton);
@@ -526,8 +528,10 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Send page on press of primary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Send.cancelled.requestState as any}
-              origin={PendingApprovals.Send.cancelled.origin}
+              requestState={
+                PENDING_APPROVALS.Send.cancelled.requestState as any
+              }
+              origin={PENDING_APPROVALS.Send.cancelled.origin}
               onConfirm={jest.fn()}
             />,
             { state: initialState },
@@ -542,8 +546,10 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Send.cancelled.requestState as any}
-              origin={PendingApprovals.Send.cancelled.origin}
+              requestState={
+                PENDING_APPROVALS.Send.cancelled.requestState as any
+              }
+              origin={PENDING_APPROVALS.Send.cancelled.origin}
               onConfirm={jest.fn()}
             />,
             { state: initialState },
@@ -560,8 +566,10 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Swaps page on press of primary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Swap.cancelled.requestState as any}
-              origin={PendingApprovals.Swap.cancelled.origin}
+              requestState={
+                PENDING_APPROVALS.Swap.cancelled.requestState as any
+              }
+              origin={PENDING_APPROVALS.Swap.cancelled.origin}
               onConfirm={jest.fn()}
             />,
             { state: initialState },
@@ -576,8 +584,10 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Swap.cancelled.requestState as any}
-              origin={PendingApprovals.Swap.cancelled.origin}
+              requestState={
+                PENDING_APPROVALS.Swap.cancelled.requestState as any
+              }
+              origin={PENDING_APPROVALS.Swap.cancelled.origin}
               onConfirm={jest.fn()}
             />,
             { state: initialState },
@@ -596,8 +606,8 @@ describe('SmartTransactionStatus', () => {
       it('should render failed when STX has unknown status', () => {
         const { getByText } = renderWithProvider(
           <SmartTransactionStatus
-            requestState={PendingApprovals.Send.unknown.requestState as any}
-            origin={PendingApprovals.Send.unknown.origin}
+            requestState={PENDING_APPROVALS.Send.unknown.requestState as any}
+            origin={PENDING_APPROVALS.Send.unknown.origin}
             onConfirm={jest.fn()}
           />,
           { state: initialState },
@@ -614,8 +624,8 @@ describe('SmartTransactionStatus', () => {
           const onConfirm = jest.fn();
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Dapp.unknown.requestState as any}
-              origin={PendingApprovals.Dapp.unknown.origin}
+              requestState={PENDING_APPROVALS.Dapp.unknown.requestState as any}
+              origin={PENDING_APPROVALS.Dapp.unknown.origin}
               onConfirm={onConfirm}
             />,
             { state: initialState },
@@ -623,7 +633,7 @@ describe('SmartTransactionStatus', () => {
 
           const secondaryButton = getByText(
             strings('smart_transactions.return_to_dapp', {
-              dappName: PendingApprovals.Dapp.unknown.origin,
+              dappName: PENDING_APPROVALS.Dapp.unknown.origin,
             }),
           );
           fireEvent.press(secondaryButton);
@@ -636,8 +646,8 @@ describe('SmartTransactionStatus', () => {
           const onConfirm = jest.fn();
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Send.unknown.requestState as any}
-              origin={PendingApprovals.Send.unknown.origin}
+              requestState={PENDING_APPROVALS.Send.unknown.requestState as any}
+              origin={PENDING_APPROVALS.Send.unknown.origin}
               onConfirm={onConfirm}
             />,
             { state: initialState },
@@ -653,8 +663,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Send.unknown.requestState as any}
-              origin={PendingApprovals.Send.unknown.origin}
+              requestState={PENDING_APPROVALS.Send.unknown.requestState as any}
+              origin={PENDING_APPROVALS.Send.unknown.origin}
               onConfirm={jest.fn()}
             />,
             { state: initialState },
@@ -672,8 +682,8 @@ describe('SmartTransactionStatus', () => {
           const onConfirm = jest.fn();
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Swap.unknown.requestState as any}
-              origin={PendingApprovals.Swap.unknown.origin}
+              requestState={PENDING_APPROVALS.Swap.unknown.requestState as any}
+              origin={PENDING_APPROVALS.Swap.unknown.origin}
               onConfirm={onConfirm}
             />,
             { state: initialState },
@@ -689,8 +699,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
-              requestState={PendingApprovals.Swap.unknown.requestState as any}
-              origin={PendingApprovals.Swap.unknown.origin}
+              requestState={PENDING_APPROVALS.Swap.unknown.requestState as any}
+              origin={PENDING_APPROVALS.Swap.unknown.origin}
               onConfirm={jest.fn()}
             />,
             { state: initialState },
