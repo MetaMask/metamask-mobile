@@ -193,7 +193,7 @@ import {
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
 import { getShouldUseSmartTransaction } from '../selectors/smartTransactionsController';
-import { getSwapsChainFeatureFlags } from '../reducers/swaps';
+import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 
@@ -1096,7 +1096,7 @@ class Engine {
             smartTransactionsController: this.smartTransactionsController,
             shouldUseSmartTransaction,
             approvalController,
-            featureFlags: getSwapsChainFeatureFlags(store.getState()),
+            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
           });
         },
       },

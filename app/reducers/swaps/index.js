@@ -93,7 +93,7 @@ export const swapsSmartTxFlagEnabled = createSelector(
 /**
  * Returns the swaps feature flags
  */
-export const getSwapsChainFeatureFlags = createSelector(
+export const selectSwapsChainFeatureFlags = createSelector(
   swapsStateSelector,
   chainIdSelector,
   (swapsState, chainId) => swapsState[chainId].featureFlags,

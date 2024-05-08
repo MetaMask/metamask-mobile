@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { getSwapsChainFeatureFlags } from '../../../reducers/swaps';
+import { selectSwapsChainFeatureFlags } from '../../../reducers/swaps';
 
 export const FALLBACK_STX_ESTIMATED_DEADLINE_SEC = 45;
 export const FALLBACK_STX_MAX_DEADLINE_SEC = 150;
@@ -11,7 +11,7 @@ interface Props {
 }
 
 const useRemainingTime = ({ creationTime, isStxPending }: Props) => {
-  const swapFeatureFlags = useSelector(getSwapsChainFeatureFlags);
+  const swapFeatureFlags = useSelector(selectSwapsChainFeatureFlags);
 
   const [isStxPastEstimatedDeadline, setIsStxPastEstimatedDeadline] =
     useState(false);
