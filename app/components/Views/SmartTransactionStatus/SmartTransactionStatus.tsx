@@ -327,6 +327,38 @@ const SmartTransactionStatus = ({
   const percentComplete =
     (1 - timeLeftForPendingStxInSec / stxDeadlineSec) * 100;
 
+  const PrimaryButton = () =>
+    handlePrimaryButtonPress ? (
+      <Button
+        variant={ButtonVariants.Primary}
+        label={primaryButtonText}
+        onPress={handlePrimaryButtonPress}
+        style={styles.button}
+      >
+        {primaryButtonText}
+      </Button>
+    ) : null;
+
+  const SecondaryButton = () =>
+    handleSecondaryButtonPress ? (
+      <Button
+        variant={ButtonVariants.Secondary}
+        label={secondaryButtonText}
+        onPress={handleSecondaryButtonPress}
+        style={styles.button}
+      >
+        {secondaryButtonText}
+      </Button>
+    ) : null;
+
+  const ViewTransactionLink = () => (
+    <TouchableOpacity onPress={onViewTransaction}>
+      <Text style={styles.link}>
+        {strings('smart_transactions.view_transaction')}
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.wrapper}>
       <TouchableOpacity onPress={onConfirm} style={styles.close}>
@@ -344,11 +376,7 @@ const SmartTransactionStatus = ({
         <View style={styles.textWrapper}>
           {description && <Text style={styles.desc}>{description}</Text>}
 
-          <TouchableOpacity onPress={onViewTransaction}>
-            <Text style={styles.link}>
-              {strings('smart_transactions.view_transaction')}
-            </Text>
-          </TouchableOpacity>
+          <ViewTransactionLink />
         </View>
       </View>
       <LoopingScrollAnimation width={800}>
@@ -356,26 +384,8 @@ const SmartTransactionStatus = ({
       </LoopingScrollAnimation>
 
       <View style={styles.buttonWrapper}>
-        {handlePrimaryButtonPress && (
-          <Button
-            variant={ButtonVariants.Primary}
-            label={primaryButtonText}
-            onPress={handlePrimaryButtonPress}
-            style={styles.button}
-          >
-            {primaryButtonText}
-          </Button>
-        )}
-        {handleSecondaryButtonPress && (
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={secondaryButtonText}
-            onPress={handleSecondaryButtonPress}
-            style={styles.button}
-          >
-            {secondaryButtonText}
-          </Button>
-        )}
+        <PrimaryButton />
+        <SecondaryButton />
       </View>
     </View>
   );
