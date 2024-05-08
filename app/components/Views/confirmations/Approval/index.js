@@ -399,6 +399,7 @@ class Approval extends PureComponent {
       transactions,
       transaction: { assetType, selectedAsset },
       showCustomNonce,
+      chainId,
     } = this.props;
     let { transaction } = this.props;
     const { nonce } = transaction;
@@ -453,7 +454,16 @@ class Approval extends PureComponent {
       );
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
-      const updatedTx = { ...fullTx, transaction };
+
+      const updatedTx = {
+        ...fullTx,
+        txParams: {
+          ...fullTx.txParams,
+          ...transaction,
+          chainId,
+        },
+      };
+
       await updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
 
