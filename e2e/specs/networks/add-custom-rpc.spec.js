@@ -64,11 +64,14 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkView.typeInChainId(
       CustomNetworks.Gnosis.providerConfig.chainId,
     );
+    await NetworkView.tapChainIDLabel(); // Focus outside of text input field
+
     await NetworkView.typeInNetworkSymbol(
       `${CustomNetworks.Gnosis.providerConfig.ticker}\n`,
     );
     if (device.getPlatform() === 'ios') {
-      await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
+      await NetworkView.tapChainIDLabel(); // Focus outside of text input field
+      await NetworkView.tapChainIDLabel(); // Focus outside of text input field
       await NetworkView.tapRpcNetworkAddButton();
     }
     await Assertions.checkIfVisible(NetworkApprovalModal.container);

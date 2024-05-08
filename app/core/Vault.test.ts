@@ -15,6 +15,7 @@ jest.mock('./Engine', () => ({
     },
   },
 }));
+const MockEngine = jest.mocked(Engine);
 
 jest.mock('../util/Logger', () => ({
   error: jest.fn(),
@@ -30,7 +31,7 @@ describe('Vault', () => {
   });
   describe('restoreQRKeyring', () => {
     it('should restore QR keyring if it exists', async () => {
-      const { KeyringController } = Engine.context;
+      const { KeyringController } = MockEngine.context;
       const mockQRKeyring = {
         serialize: jest.fn().mockResolvedValue('serialized-keyring-data'),
       };
@@ -44,7 +45,7 @@ describe('Vault', () => {
     });
 
     it('should not restore QR keyring if it does not exist', async () => {
-      const { KeyringController } = Engine.context;
+      const { KeyringController } = MockEngine.context;
 
       await restoreQRKeyring([]);
 
@@ -65,7 +66,7 @@ describe('Vault', () => {
 
   describe('restoreLedgerKeyring', () => {
     it('should restore ledger keyring if it exists', async () => {
-      const { KeyringController } = Engine.context;
+      const { KeyringController } = MockEngine.context;
 
       const mockSerialisedKeyring = jest.fn();
       const mockDeserializedKeyring = jest.fn();
@@ -81,14 +82,14 @@ describe('Vault', () => {
     });
 
     it('should not restore ledger keyring if it does not exist', async () => {
-      const { KeyringController } = Engine.context;
+      const { KeyringController } = MockEngine.context;
 
       await restoreLedgerKeyring();
       expect(KeyringController.persistAllKeyrings).not.toHaveBeenCalled();
     });
 
     it('should log error if an exception is thrown', async () => {
-      const { KeyringController } = Engine.context;
+      const { KeyringController } = MockEngine.context;
 
       (getLedgerKeyring as jest.Mock).mockResolvedValue({
         deserialize: jest.fn(),
