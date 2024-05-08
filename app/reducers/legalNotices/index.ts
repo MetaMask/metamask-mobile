@@ -1,5 +1,5 @@
 import { RootState } from '..';
-import { ACTIONS } from './types';
+import ACTIONS from './types';
 
 const newPrivacyPolicyDate = new Date('2024-06-04T00:00:00Z');
 
@@ -41,7 +41,7 @@ export const shouldShowNewPrivacyToastSelector = (
   );
 };
 
-const legalNoticesReducer = (state = initialState, action) => {
+const legalNoticesReducer = (state = initialState, action: any = {}) => {
   switch (action.type) {
     case ACTIONS.STORE_PRIVACY_POLICY_SHOWN_DATE: {
       if (state.newPrivacyPolicyToastShownDate !== null) {
