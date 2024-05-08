@@ -64,7 +64,7 @@ export const unlockLedgerDefaultAccount = async (
   const address = await withLedgerKeyring(async (keyring: LedgerKeyring) => {
     if (isAccountImportReq) {
       // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
-      await keyringController.addNewAccountForKeyring(keyring);
+      await keyring.addAccounts(1);
     }
     return await keyring.getDefaultAccount();
   });
