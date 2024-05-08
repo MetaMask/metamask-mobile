@@ -19,15 +19,13 @@ exports[`NotificationRoot matches snapshot 1`] = `
     onGestureHandlerStateChange={[Function]}
     onPress={[MockFunction]}
     style={
-      [
-        {
-          "transform": [
-            {
-              "translateX": 0,
-            },
-          ],
-        },
-      ]
+      {
+        "transform": [
+          {
+            "translateX": 0,
+          },
+        ],
+      }
     }
   >
     <TouchableOpacity
@@ -45,7 +43,7 @@ exports[`NotificationRoot matches snapshot 1`] = `
     }
   >
     <SvgMock
-      color="#24272A"
+      color="#6A737D"
       height={20}
       name="Trash"
       style={
