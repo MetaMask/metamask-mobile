@@ -32,7 +32,7 @@ import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
+import type LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

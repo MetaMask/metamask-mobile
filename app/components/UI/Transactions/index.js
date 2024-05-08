@@ -552,7 +552,7 @@ class Transactions extends PureComponent {
   };
 
   signLedgerTransaction = async (transaction) => {
-    const deviceId = getDeviceId();
+    const deviceId = await getDeviceId();
 
     const onConfirmation = (isComplete) => {
       if (isComplete) {

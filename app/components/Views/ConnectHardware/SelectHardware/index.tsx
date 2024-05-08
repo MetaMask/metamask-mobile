@@ -25,7 +25,7 @@ import {
 } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
-import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
+import type LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 
 const createStyle = (colors: any) =>
   StyleSheet.create({

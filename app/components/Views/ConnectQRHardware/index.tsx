@@ -27,7 +27,7 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { safeToChecksumAddress } from '../../../util/address';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
+import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
 
 interface IConnectQRHardwareProps {
   navigation: any;
