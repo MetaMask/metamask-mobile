@@ -7,9 +7,13 @@ import {
   ledgerSignTypedMessage,
   unlockLedgerDefaultAccount,
   getDeviceId,
+  withLedgerKeyring,
 } from './Ledger';
 import Engine from '../../core/Engine';
-import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import {
+  KeyringTypes,
+  SignTypedDataVersion,
+} from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 
 jest.mock('../../core/Engine', () => ({
@@ -66,6 +70,31 @@ describe('Ledger core', () => {
     it('should return app name', async () => {
       const value = await connectLedgerHardware(mockTransport, 'bar');
       expect(value).toBe('appName');
+    });
+  });
+
+  describe('withLedgerKeyring', () => {
+    it('runs the operation with a Ledger keyring', async () => {
+      const mockOperation = jest.fn();
+      const mockLedgerKeyring = {};
+      MockEngine.context.KeyringController.withKeyring.mockImplementation(
+        async (
+          selector: Record<string, unknown>,
+          operation: Parameters<
+            typeof MockEngine.context.KeyringController.withKeyring
+          >[1],
+          options?: Record<string, unknown>,
+        ) => {
+          expect(selector).toStrictEqual({ type: KeyringTypes.ledger });
+          expect(options).toStrictEqual({ createIfMissing: true });
+          // @ts-expect-error This mock keyring is not type compatible
+          await operation(mockLedgerKeyring);
+        },
+      );
+
+      await withLedgerKeyring(mockOperation);
+
+      expect(mockOperation).toHaveBeenCalledWith(mockLedgerKeyring);
     });
   });
 
