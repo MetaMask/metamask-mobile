@@ -1,6 +1,7 @@
 import { Hex } from '@metamask/utils';
 import { NameType } from '../../UI/Name/Name.types';
 import { useFirstPartyContractName } from './useFirstPartyContractName';
+import useWatchedNFTName from './useWatchedNFTName';
 
 /**
  * Indicate the source and nature of a display name for a given address.
@@ -52,15 +53,18 @@ const useDisplayName: (
 ) => DisplayName = (_type, value, chainId) => {
   const normalizedValue = value.toLowerCase();
 
+  const watchedNftName = useWatchedNFTName(normalizedValue);
   const firstPartyContractName = useFirstPartyContractName(
     normalizedValue,
     chainId,
   );
 
-  if (firstPartyContractName) {
+  const recognizedName = watchedNftName || firstPartyContractName;
+
+  if (recognizedName) {
     return {
       variant: DisplayNameVariant.Recognized,
-      name: firstPartyContractName,
+      name: recognizedName,
     };
   }
 
