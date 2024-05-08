@@ -47,11 +47,13 @@ jest.mock('@react-navigation/native', () => {
 const mockedActivationKeys: ActivationKey[] = [
   {
     key: 'testKey1',
+    label: 'test key 1',
     active: true,
   },
 
   {
     key: 'testKey2',
+    label: 'test key 2',
     active: false,
   },
 ];
@@ -194,24 +196,28 @@ describe('Settings', () => {
       });
       fireEvent.press(addActivationKeyButton);
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.RAMP.ADD_ACTIVATION_KEY,
+        Routes.RAMP.ACTIVATION_KEY_FORM,
         {
           onSubmit: expect.any(Function),
+          active: true,
+          key: '',
+          label: '',
         },
       );
     });
 
     it('calls addActivationKey when navigated view calls onSubmit', () => {
       const testKey = 'example-test-key';
+      const testLabel = 'example-test-label';
       mockNavigate.mockImplementationOnce((_route, { onSubmit }) => {
-        onSubmit(testKey);
+        onSubmit(testKey, testLabel);
       });
       render(Settings);
       const addActivationKeyButton = screen.getByRole('button', {
         name: 'Add Activation Key',
       });
       fireEvent.press(addActivationKeyButton);
-      expect(mockAddActivationKey).toHaveBeenCalledWith(testKey);
+      expect(mockAddActivationKey).toHaveBeenCalledWith(testKey, testLabel);
     });
 
     it('updates the activation key value when pressing the switch', () => {
@@ -228,6 +234,7 @@ describe('Settings', () => {
       fireEvent(switchButton, 'onValueChange');
       expect(mockUpdateActivationKey).toHaveBeenCalledWith(
         testActivationKey.key,
+        testActivationKey.label,
         !testActivationKey.active,
       );
     });
