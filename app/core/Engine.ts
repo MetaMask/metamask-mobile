@@ -1165,7 +1165,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            // @ts-expect-error This is because the network type is still missing linea-sepolia
+            //@ts-expect-error This is because the network type is still missing linea-sepolia
             // When transaction controller be updated to v^25
             listener,
           ),
