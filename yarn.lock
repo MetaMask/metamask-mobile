@@ -4483,10 +4483,10 @@
     "@noble/hashes" "~1.1.1"
     "@scure/base" "~1.1.0"
 
-"@metamask/sdk-communication-layer@^0.18.1":
-  version "0.18.1"
-  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.18.1.tgz#1551f61754902115dfc525fb760cc151f19a0b88"
-  integrity sha512-4VhGzOnaim4SPtYWiUNxcUdPVHMQE58BvgtbbBKQz+VHUqFuKJZajBxDjJOuwkl8HWtjUj7WUajO9Ztc5MprXg==
+"@metamask/sdk-communication-layer@^0.19.0":
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.19.0.tgz#22dd6ad67d9211335b54b5bbac70206ee2a75296"
+  integrity sha512-FIobUca5HVjGD7g8SYzvsPa8DKzmnAFVpLkjm9jql6WkY5BzDulzEmo/HlQlQ23jKWwnp71/SpfKg31erCtUcg==
   dependencies:
     bufferutil "^4.0.8"
     date-fns "^2.29.3"
