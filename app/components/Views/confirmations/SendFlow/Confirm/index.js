@@ -337,11 +337,15 @@ class Confirm extends PureComponent {
      * Remove token that was added to the account temporarily
      * Ref.: https://github.com/MetaMask/metamask-mobile/pull/3989#issuecomment-1367558394
      */
-    if (selectedAsset.isETH || selectedAsset.tokenId) {
+    if (
+      selectedAsset.isETH ||
+      selectedAsset.tokenId ||
+      !selectedAsset.address
+    ) {
       return;
     }
 
-    const weiBalance = contractBalances[selectedAsset.address];
+    const weiBalance = hexToBN(contractBalances[selectedAsset.address]);
     if (weiBalance?.isZero()) {
       await TokensController.ignoreTokens([selectedAsset.address]);
     }
@@ -730,7 +734,9 @@ class Confirm extends PureComponent {
         }
       } else {
         const [, , amount] = decodeTransferData('transfer', transaction.data);
-        weiBalance = contractBalances[selectedAsset.address];
+
+        weiBalance = hexToBN(contractBalances[selectedAsset.address]);
+
         weiInput = hexToBN(amount);
         error =
           weiBalance && weiBalance.gte(weiInput)
