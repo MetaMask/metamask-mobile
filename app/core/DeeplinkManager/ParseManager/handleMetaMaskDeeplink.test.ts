@@ -162,6 +162,7 @@ describe('handleMetaMaskProtocol', () => {
         url,
         context: 'deeplink_scheme',
         otherPublicKey: params.pubkey,
+        protocolVersion: 1,
         sdkConnect: {
           getConnections: mockGetConnections,
           connectToChannel: mockConnectToChannel,
