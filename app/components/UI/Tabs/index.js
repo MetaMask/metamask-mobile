@@ -1,28 +1,29 @@
+import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
-  InteractionManager,
   Dimensions,
-  View,
-  Text,
+  InteractionManager,
   ScrollView,
-  TouchableOpacity,
   StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
-import TabThumbnail from './TabThumbnail';
-import { colors as importedColors, fontStyles } from '../../../styles/common';
-import Device from '../../../util/device';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import withMetricsAwareness from '../../hooks/useMetrics/withMetricsAwareness';
-import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   MULTI_TAB_ADD_BUTTON,
   MULTI_TAB_CLOSE_ALL_BUTTON,
   MULTI_TAB_DONE_BUTTON,
   MULTI_TAB_NO_TABS_MESSAGE,
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
+import Device from '../../../util/device';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import withMetricsAwareness from '../../hooks/useMetrics/withMetricsAwareness';
+import TabThumbnail from './TabThumbnail';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
@@ -334,12 +335,16 @@ class Tabs extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <View style={styles.tabsView}>
-        {tabs.length === 0
-          ? this.renderNoTabs()
-          : this.renderTabs(tabs, activeTab)}
-        {this.renderTabActions()}
-      </View>
+      <SafeAreaInsetsContext.Consumer>
+        {(insets) => (
+          <View style={{ ...styles.tabsView, paddingTop: insets.top }}>
+            {tabs.length === 0
+              ? this.renderNoTabs()
+              : this.renderTabs(tabs, activeTab)}
+            {this.renderTabActions()}
+          </View>
+        )}
+      </SafeAreaInsetsContext.Consumer>
     );
   }
 }

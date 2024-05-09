@@ -49,6 +49,7 @@ const validateRequest = async (req: any, transactionId?: string) => {
   } = Engine.context;
   const currentChainId = NetworkController.state.providerConfig.chainId;
   if (
+    !ppomController ||
     !isBlockaidFeatureEnabled() ||
     !PreferencesController.state.securityAlertsEnabled ||
     !ConfirmationMethods.includes(req.method) ||
@@ -104,10 +105,12 @@ const validateRequest = async (req: any, transactionId?: string) => {
       );
       updateSecurityAlertResponse(
         transactionId as string,
+        // @ts-expect-error TODO: fix types
         securityAlertResponse,
       );
     } else {
       store.dispatch(
+        // @ts-expect-error TODO: fix types
         setSignatureRequestSecurityAlertResponse(securityAlertResponse),
       );
     }
