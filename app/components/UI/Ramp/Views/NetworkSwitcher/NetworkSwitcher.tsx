@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { RefreshControl, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import { ChainId, toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 
 import LoadingNetworksSkeleton from './LoadingNetworksSkeleton';
@@ -140,7 +140,7 @@ function NetworkSwitcher() {
   const switchToMainnet = useCallback(
     (type: 'mainnet' | 'linea-mainnet') => {
       const { NetworkController } = Engine.context;
-      NetworkController.setProviderType(type as NetworkType);
+      NetworkController.setProviderType(type);
       navigateToGetStarted();
     },
     [navigateToGetStarted],
