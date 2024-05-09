@@ -87,6 +87,11 @@ const Settings = () => {
     navigation.navigate('CompanySettings');
   };
 
+  const onPressView = () => {
+    trackEvent(MetaMetricsEvents.SETTINGS_ABOUT);
+    navigation.navigate(Routes.SETTINGS.VIEW);
+  };
+
   const onPressContacts = () => {
     navigation.navigate('ContactsSettings');
   };
@@ -189,6 +194,12 @@ const Settings = () => {
         onPress={onPressAdvanced}
         title={strings('app_settings.advanced_title')}
         testID={SettingsViewSelectorsIDs.ADVANCED}
+      />
+      <SettingsDrawer
+        title={strings('app_settings.views.title')}
+        description={strings('app_settings.views.description')}
+        onPress={onPressView}
+        hot={strings('app_settings.views.hot')}
       />
       {isNotificationsFeatureEnabled() && (
         <SettingsDrawer

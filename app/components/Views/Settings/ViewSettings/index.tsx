@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Image, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useRef } from 'react';
+import { Image, TouchableOpacity, View } from 'react-native';
 
 import Button, {
   ButtonVariants,
@@ -14,12 +13,17 @@ import { useTheme } from '../../../../util/theme';
 import ViewCardPlaceholder from '../../../../images/viewCard.png';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import Routes from '../../../../constants/navigation/Routes';
-import { CONSENSYS_PRIVACY_POLICY } from '../../../../constants/urls';
-import { useSelector } from 'react-redux';
-import { mmStorage } from '../../../../util/notifications';
-import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
+
 import VIEWS from './constants';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../component-library/components/BottomSheets/BottomSheet';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
+import Routes from '../../../../constants/navigation/Routes';
 
 const ViewSettings = ({
   navigation,
@@ -32,7 +36,8 @@ const ViewSettings = ({
   const { colors } = theme;
   const styles = createStyles(theme);
   const isFullScreenModal = route?.params?.isFullScreenModal;
-
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const [isChoosingView, setIsChoosingView] = React.useState(false);
   useEffect(
     () => {
       navigation.setOptions(
@@ -49,44 +54,93 @@ const ViewSettings = ({
     [colors],
   );
 
+  const onClose = () => {
+    setIsChoosingView(false);
+    if (bottomSheetRef.current) {
+      bottomSheetRef.current.onCloseBottomSheet();
+    }
+  };
+
+  const onOpen = () => {
+    setIsChoosingView(true);
+    if (bottomSheetRef.current) {
+      bottomSheetRef.current.onOpenBottomSheet();
+    }
+  };
+
+  const onChoose = (value: string) => {
+    //TODO: use value to set global view in store
+    setIsChoosingView(true);
+    navigation.navigate(Routes.WALLET.HOME);
+  };
+
+  const renderBottomSheet = () => (
+    <BottomSheet
+      ref={bottomSheetRef}
+      onClose={onClose}
+      shouldNavigateBack={false}
+    >
+      <View style={styles.actionsContainer}>
+        {Object.entries(VIEWS).map(([key, value]) => (
+          <TouchableOpacity
+            key={key}
+            onPress={() => onChoose(value)}
+            style={styles.viewRow}
+          >
+            <Icon
+              name={IconName.ArrowRight}
+              style={styles.icon}
+              color={IconColor.Default}
+              size={IconSize.Md}
+            />
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {key}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </BottomSheet>
+  );
+
   return (
-    <View style={styles.wrapper}>
-      <Text
-        variant={TextVariant.HeadingMD}
-        color={TextColor.Default}
-        style={styles.textTitle}
-      >
-        {strings('app_settings.views.settings.card.title')}
-      </Text>
-      <View style={styles.card}>
-        <Image source={ViewCardPlaceholder} style={styles.image} />
-      </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.textSpace}
-      >
-        {strings('app_settings.views.settings.card.description')}
-      </Text>
-
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-        {strings('app_settings.views.settings.card.manage_preferences_1')}
-        <Text variant={TextVariant.BodyMDBold} color={TextColor.Alternative}>
-          {strings('app_settings.views.settings.card.manage_preferences_2')}
+    <>
+      <View style={styles.wrapper}>
+        <Text
+          variant={TextVariant.HeadingMD}
+          color={TextColor.Default}
+          style={styles.textTitle}
+        >
+          {strings('app_settings.views.settings.card.title')}
         </Text>
-      </Text>
+        <View style={styles.card}>
+          <Image source={ViewCardPlaceholder} style={styles.image} />
+        </View>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.textSpace}
+        >
+          {strings('app_settings.views.settings.card.description')}
+        </Text>
 
-      <View style={styles.btnContainer}>
-        <Button
-          variant={ButtonVariants.Primary}
-          label={strings('app_settings.views.settings.card.cta')}
-          onPress={() =>
-            mmStorage.saveLocal(STORAGE_IDS.CURRENT_VIEW, VIEWS.DEFAULT)
-          }
-          style={styles.ctaBtn}
-        />
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          {strings('app_settings.views.settings.card.manage_preferences_1')}
+          <Text variant={TextVariant.BodyMDBold} color={TextColor.Alternative}>
+            {strings('app_settings.views.settings.card.manage_preferences_2')}
+          </Text>
+        </Text>
+
+        <View style={styles.btnContainer}>
+          <Button
+            variant={ButtonVariants.Primary}
+            label={strings('app_settings.views.settings.card.cta')}
+            onPress={onOpen}
+            style={styles.ctaBtn}
+          />
+        </View>
       </View>
-    </View>
+      {isChoosingView && renderBottomSheet()}
+    </>
   );
 };
 

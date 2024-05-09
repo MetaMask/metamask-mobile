@@ -47,4 +47,18 @@ export const createStyles = ({ colors }: Theme) =>
       marginBottom: 16,
       alignSelf: 'center',
     },
+    actionsContainer: {
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      padding: 16,
+    },
+    icon: {
+      marginRight: 16,
+    },
+    viewRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 16,
+    },
   });
