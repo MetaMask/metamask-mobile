@@ -1,27 +1,11 @@
+/* eslint-disable react-native/no-color-literals */
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable import/no-commonjs */
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../../../../../util/theme';
-
-const listService = [
-  {
-    name: 'Wallet',
-    icon: require('../assets/ic_wallet.png'),
-  },
-  {
-    name: 'Transfer',
-    icon: require('../assets/ic_transfer.png'),
-  },
-  {
-    name: 'Pay',
-    icon: require('../assets/ic_pay.png'),
-  },
-  {
-    name: 'Top Up',
-    icon: require('../assets/ic_topup.png'),
-  },
-];
+import Routes from '../../../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
 
 const styleSheet = (colors: any) =>
   StyleSheet.create({
@@ -57,21 +41,51 @@ const styleSheet = (colors: any) =>
   });
 
 const renderServiceItem = (item: any, styles: any) => (
-  <View key={item.name} style={styles.items}>
+  <TouchableOpacity
+    key={item.name}
+    style={styles.items}
+    onPress={item.onPressNavigation}
+  >
     <View style={styles.icon}>
       <Image source={item.icon} />
     </View>
     <Text style={styles.itemText}>{item.name}</Text>
-  </View>
+  </TouchableOpacity>
 );
 
 const ListService = () => {
   const { colors } = useTheme();
   const styles = styleSheet(colors);
+  const navigation = useNavigation();
+  const listService = [
+    {
+      name: 'Buy',
+      icon: require('../assets/ic_pay.png'),
+      onPressNavigation: () => navigation.navigate(Routes.RAMP.BUY),
+    },
+    {
+      name: 'Send',
+      icon: require('../assets/ic_wallet.png'),
+      onPressNavigation: () => navigation.navigate('SendFlowView'),
+    },
+    {
+      name: 'Swap',
+      icon: require('../assets/ic_transfer.png'),
+      onPressNavigation: () => navigation.navigate(Routes.SWAPS),
+    },
+    {
+      name: 'Pay',
+      icon: require('../assets/ic_topup.png'),
+      onPressNavigation: () => navigation.navigate(Routes.QR_SCANNER),
+    },
+  ];
+
   return (
     <View>
       <Text style={styles.title}>Service</Text>
-      <View style={styles.list}>{listService.map((item) => renderServiceItem(item, styles))}</View>
+      <View style={styles.list}>
+        {listService.map((item) => renderServiceItem(item, styles))}
+      </View>
     </View>
   );
 };

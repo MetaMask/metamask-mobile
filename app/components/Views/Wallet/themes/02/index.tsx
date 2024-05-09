@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, SafeAreaView } from 'react-native';
+import { ScrollView } from 'react-native';
 
 import { baseStyles } from '../../../../../styles/common';
 import ErrorBoundary from '../../../ErrorBoundary';
@@ -69,7 +69,6 @@ const Custom01 = ({
       >
         <NftBackground />
         <SmartActions actions={WALLET_SMART_ACTIONS} showToolTips />
-        {/* {renderContent()} */}
       </ScrollView>
     </ErrorBoundary>
   );

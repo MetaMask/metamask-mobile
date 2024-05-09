@@ -339,7 +339,11 @@ const useWallet = () => {
   );
 
   return {
+    navigation,
+    ensForSelectedAccount,
     selectedAddress,
+    providerConfig,
+    accountsByChainId,
     renderContent,
     renderLoader,
     renderOnboardingWizard,
