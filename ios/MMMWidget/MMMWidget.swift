@@ -20,17 +20,27 @@ struct MMProvider: TimelineProvider {
   
   func getSnapshot(in context: Context, completion: @escaping (GasFeeEntry) -> Void) {
     print("getSnapshot")
-    let entry = GasFeeEntry(date: Date(), lowGwei: "", marketGwei: "", aggressiveGwei: "")
-    completion(entry)
+    if let gasFees = gasFeeProvider.fetchGasFees() {
+      print("Gas Fees", gasFees)
+      let low = String(format: "%.3f", gasFees.low.suggestedMaxFeePerGas)
+      let market = String(format: "%.3f", gasFees.medium.suggestedMaxFeePerGas)
+      let high = String(format: "%.3f", gasFees.high.suggestedMaxFeePerGas)
+      let entry = GasFeeEntry(date: Date(), lowGwei: low, marketGwei: market, aggressiveGwei: high)
+      completion(entry)
+      return
+    } else {
+      let entry = GasFeeEntry(date: Date(), lowGwei: "-", marketGwei: "-", aggressiveGwei: "-")
+      completion(entry)
+    }
   }
   
   func getTimeline(in context: Context, completion: @escaping (Timeline<GasFeeEntry>) -> Void) {
       print("getTimeline")
       if let gasFees = gasFeeProvider.fetchGasFees() {
         print("Gas Fees", gasFees)
-        let low = String(format: "%.2f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.low.suggestedMaxPriorityFeePerGas) ?? 0)))
-        let market = String(format: "%.2f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.medium.suggestedMaxPriorityFeePerGas) ?? 0)))
-        let high = String(format: "%.2f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.high.suggestedMaxPriorityFeePerGas) ?? 0)))
+        let low = String(format: "%.3f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.low.suggestedMaxPriorityFeePerGas) ?? 0)))
+        let market = String(format: "%.3f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.medium.suggestedMaxPriorityFeePerGas) ?? 0)))
+        let high = String(format: "%.3f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.high.suggestedMaxPriorityFeePerGas) ?? 0)))
         let entry = GasFeeEntry(date: Date(), lowGwei: low, marketGwei: market, aggressiveGwei: high)
         let timeline = Timeline(entries: [entry], policy: .atEnd)
         completion(timeline)
@@ -60,15 +70,15 @@ struct MMMWidget: Widget {
       //Widget Init
       SmallBalanceWidgetSmall(entry: entry)
     }
-    .configurationDisplayName("Web3 Widgets")
-    .description("Balance, quick links & more")
-    .supportedFamilies([.systemSmall, .systemMedium])
+    .configurationDisplayName("Gas Guage")
+    .description("Check current Ethereum Mainnet gas cost")
+    .supportedFamilies([.systemSmall])
   }
 }
 
 struct MMMWidget_Previews: PreviewProvider {
   static var previews: some View {
-    SmallBalanceWidgetSmall(entry: GasFeeEntry(date: Date(), lowGwei: "", marketGwei: "", aggressiveGwei: ""))
+    SmallBalanceWidgetSmall(entry: GasFeeEntry(date: Date(), lowGwei: "3.02", marketGwei: "5.18", aggressiveGwei: "6.23"))
       .previewContext(WidgetPreviewContext(family: .systemSmall))
   }
 }
@@ -141,7 +151,7 @@ struct SmallBalanceWidgetSmall: View {
           .resizable()
           .frame(width: 16, height: 16.0)
           .padding([.leading])
-        Text("Mainnet")
+        Text("Ethereum")
             .font(Font.custom("SF Pro Rounded", size: 14).weight(.bold))
             .foregroundColor(Color(red: 0.08, green: 0.09, blue: 0.09))
         Image("MetaMaskLogo")

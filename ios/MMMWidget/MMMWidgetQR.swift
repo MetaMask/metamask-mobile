@@ -36,14 +36,14 @@ struct MMMWidgetQR: Widget {
       MMMWidgetQRSmall(entry: QREntry(date: Date(), QRString: "", accountName: "", accountAddress: ""))
     }
     .configurationDisplayName("Receive Funds Widget")
-    .description("Quick scan for receiving funds")
+    .description("Quick scan for receiving funds on your current account")
     .supportedFamilies([.systemSmall, .systemMedium])
   }
 }
 
 struct MMMWidgetQR_Previews: PreviewProvider {
   static var previews: some View {
-    MMMWidgetQRSmall(entry: QREntry(date: Date(), QRString: "", accountName: "", accountAddress: ""))
+    MMMWidgetQRSmall(entry: QREntry(date: Date(), QRString: "", accountName: "sss.eth", accountAddress: "0x0000...000"))
       .previewContext(WidgetPreviewContext(family: .systemSmall))
   }
 }
@@ -190,12 +190,12 @@ struct MMMWidgetQRSmall: View {
                     .font(Font.custom("SF Pro Rounded", size: 14).weight(.bold))
                     .tracking(0.15)
                     .foregroundColor(Color(red: 0.62, green: 0.65, blue: 0.68))
-                Text("Account 1")
+                Text(entry.accountName)
                     .font(Font.custom("SF Pro Rounded", size: 18).weight(.bold))
                     .lineSpacing(24)
                     .foregroundColor(Color(red: 0.08, green: 0.09, blue: 0.09))
             }
-            Text("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045")
+            Text(entry.accountAddress)
                 .font(Font.custom("SF Pro Rounded", size: 10).weight(.semibold))
                 .tracking(0.25)
                 .lineSpacing(16)
