@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
-import ActionSheet from 'react-native-actionsheet';
+import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import {
   renderFromTokenMinimalUnit,
@@ -97,7 +97,7 @@ import { selectDetectedTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import useIsOriginalNativeTokenSymbol from '../../UI/Ramp/hooks/useIsOriginalNativeTokenSymbol';
+import useIsOriginalNativeTokenSymbol from '../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import ButtonIcon, {
   ButtonIconVariants,
 } from '../../../../app/component-library/components/Buttons/ButtonIcon';
@@ -162,7 +162,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const goToNetworkEdit = () => {
     navigation.navigate(Routes.ADD_NETWORK, {
       network: rpcUrl,
-      isEdit: true,
     });
 
     setShowScamWarningModal(false);

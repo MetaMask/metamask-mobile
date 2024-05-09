@@ -55,7 +55,7 @@ describe('useMetrics', () => {
   it('uses MetaMetrics instance', async () => {
     const { result } = renderHook(() => useMetrics());
     expect(result.current).toMatchInlineSnapshot(`
-      Object {
+      {
         "addTraitsToUser": [MockFunction],
         "checkDataDeleteStatus": [MockFunction],
         "createDataDeletionTask": [MockFunction],

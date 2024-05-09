@@ -13,7 +13,7 @@ const collectibleB2 = { tokenId: '102', address: '0xB' };
 const selectedAddressA = '0x0A';
 const selectedAddressB = '0x0B';
 
-describe('swaps reducer', () => {
+describe('collectibles reducer', () => {
   it('should add favorite', () => {
     const initalState = reducer(undefined, emptyAction);
     const firstState = reducer(initalState, {

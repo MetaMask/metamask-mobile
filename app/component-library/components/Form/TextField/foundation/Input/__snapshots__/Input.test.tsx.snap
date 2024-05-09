@@ -7,7 +7,7 @@ exports[`Input should render correctly 1`] = `
   onBlur={[Function]}
   onFocus={[Function]}
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderColor": "transparent",
       "borderWidth": 1,

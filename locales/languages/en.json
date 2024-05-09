@@ -109,7 +109,7 @@
     "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
     "import_title": "Your Wallet is ready",
     "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
-    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
+    "import_description2": "to keep this set of words safe so you can always access your funds.",
     "done": "Done"
   },
   "onboarding_carousel": {
@@ -890,8 +890,13 @@
       "sdk_activation_keys": "SDK Activation Keys",
       "activation_keys_description": "Activation Keys will enable specific features or providers.",
       "add_activation_key": "Add Activation Key",
+      "edit_activation_key": "Edit Activation Key",
       "paste_or_type_activation_key": "Paste or type an Activation Key",
+      "add_label": "Add a label to this key",
+      "label": "Label",
+      "key": "Key",
       "add": "Add",
+      "update": "Update",
       "cancel": "Cancel"
     },
     "request_feature": "Request a feature",
@@ -957,7 +962,6 @@
     "token_nft_ens_subheading": "Token, NFT, and ENS autodetection",
     "security_check_subheading": "Security checks",
     "symbol_required": "Symbol is required.",
-    "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon, Sepolia and Base.",
     "security_alerts": "Security alerts",
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
@@ -1407,6 +1411,9 @@
     "remove_bookmark_title": "Remove favorite",
     "remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
     "yes": "Yes",
+    "undefined_account": "Undefined account",
+    "close_tab": "Close tab",
+    "switch_tab": "Switch tab", 
     "protocol_alert_options": {
       "ignore": "Ignore",
       "allow": "Allow"

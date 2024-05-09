@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
-import ActionSheet from 'react-native-actionsheet';
+import ActionSheet from '@metamask/react-native-actionsheet';
 import { fontStyles } from '../../../../styles/common';
 import CustomText from '../../../../components/Base/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -170,7 +170,6 @@ class NetworksSettings extends PureComponent {
     const { navigation } = this.props;
     navigation.navigate(Routes.ADD_NETWORK, {
       network: networkTypeOrRpcUrl,
-      isEdit: true,
     });
   };
 

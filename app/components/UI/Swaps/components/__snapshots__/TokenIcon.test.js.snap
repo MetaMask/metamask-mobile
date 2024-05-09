@@ -7,15 +7,15 @@ exports[`TokenIcon component should Render correctly 2`] = `
   fadeIn={true}
   onError={[Function]}
   source={
-    Object {
-      "default": Object {
+    {
+      "default": {
         "uri": "MockImage",
       },
     }
   }
   style={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 12,
         "height": 24,
         "width": 24,
@@ -33,8 +33,8 @@ exports[`TokenIcon component should Render correctly 3`] = `
 <EmptyIcon>
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontSize": 16,
           "textAlign": "center",
@@ -56,13 +56,13 @@ exports[`TokenIcon component should Render correctly 4`] = `
   fadeIn={true}
   onError={[Function]}
   source={
-    Object {
+    {
       "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
     }
   }
   style={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 12,
         "height": 24,
         "width": 24,
@@ -87,20 +87,20 @@ exports[`TokenIcon component should Render correctly 6`] = `
   fadeIn={true}
   onError={[Function]}
   source={
-    Object {
-      "default": Object {
+    {
+      "default": {
         "uri": "MockImage",
       },
     }
   }
   style={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 12,
         "height": 24,
         "width": 24,
       },
-      Object {
+      {
         "borderRadius": 18,
         "height": 36,
         "width": 36,
@@ -119,14 +119,14 @@ exports[`TokenIcon component should Render correctly 7`] = `
 >
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontSize": 16,
           "textAlign": "center",
           "textAlignVertical": "center",
         },
-        Object {
+        {
           "color": "#24272A",
           "fontSize": 22,
         },
@@ -145,18 +145,18 @@ exports[`TokenIcon component should Render correctly 8`] = `
   fadeIn={true}
   onError={[Function]}
   source={
-    Object {
+    {
       "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
     }
   }
   style={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 12,
         "height": 24,
         "width": 24,
       },
-      Object {
+      {
         "borderRadius": 18,
         "height": 36,
         "width": 36,

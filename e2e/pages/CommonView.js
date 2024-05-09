@@ -1,6 +1,9 @@
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
-import { CommonSelectorsIDs } from '../selectors/Common.selectors';
+import {
+  CommonSelectorsIDs,
+  CommonSelectorsText,
+} from '../selectors/Common.selectors';
 
 class CommonView {
   get okAlertByText() {
@@ -18,6 +21,11 @@ class CommonView {
   get errorMessage() {
     return Matchers.getElementByID(CommonSelectorsIDs.ERROR_MESSAGE);
   }
+
+  get disconnectedAccountsText() {
+    return Matchers.getElementByText(CommonSelectorsText.TOAST_REVOKE_ACCOUNTS);
+  }
+
   async tapBackButton() {
     await Gestures.waitAndTap(this.backButton);
   }

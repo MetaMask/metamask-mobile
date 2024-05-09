@@ -3,7 +3,7 @@
 exports[`BottomSheetFooter should render snapshot correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flexDirection": "row",
       "paddingHorizontal": 8,
@@ -20,7 +20,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
     onPressIn={[Function]}
     onPressOut={[Function]}
     style={
-      Object {
+      {
         "alignItems": "center",
         "alignSelf": "flex-start",
         "backgroundColor": "transparent",
@@ -40,7 +40,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
+        {
           "color": "#0376C9",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -61,7 +61,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
     onPressIn={[Function]}
     onPressOut={[Function]}
     style={
-      Object {
+      {
         "alignItems": "center",
         "alignSelf": "flex-start",
         "backgroundColor": "#0376C9",
@@ -81,7 +81,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
+        {
           "color": "#FFFFFF",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
