@@ -268,7 +268,7 @@ const useWallet = () => {
           <WalletAccount
             account={selectedAccount}
             ens={ensForSelectedAccount}
-            style={styles.walletAccount}
+            style={{}}
             ref={walletRef}
           />
         ) : null}

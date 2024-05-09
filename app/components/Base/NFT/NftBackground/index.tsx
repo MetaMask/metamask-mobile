@@ -27,16 +27,10 @@ export function NftBackground({
 }: {
   image?: string;
 } & BaseNftProps) {
-  if (!image) {
-    return (
-      <FastImage
-        source={require('./foxRevamp.png')}
-        style={styles.background}
-      />
-    );
-  }
-
   return (
-    <BaseNft source={{ uri: image }} style={styles.background} {...props} />
+    <FastImage
+      source={image ? { uri: image } : require('./foxRevamp.png')}
+      style={styles.background}
+    />
   );
 }

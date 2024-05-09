@@ -92,6 +92,7 @@ function CollectibleContractElement({
   chainId,
   selectedAddress,
   removeFavoriteCollectible,
+  setBackgroundImage,
 }) {
   const [collectiblesGrid, setCollectiblesGrid] = useState([]);
   const [collectiblesVisible, setCollectiblesVisible] = useState(
@@ -147,11 +148,20 @@ function CollectibleContractElement({
     );
   };
 
-  const handleMenuAction = (index) => {
-    if (index === 1) {
+  const handleMenuAction = (index, img) => {
+    if (index === 3) {
       removeNft();
-    } else if (index === 0) {
+    } else if (index === 2) {
       refreshMetadata();
+    } else if (index === 1) {
+      setBackgroundImage && setBackgroundImage(img.logo);
+    } else if (index === 0) {
+      console.log(
+        'longPressedCollectible.current',
+        longPressedCollectible.current,
+      );
+      setBackgroundImage &&
+        setBackgroundImage(longPressedCollectible.current.image);
     }
   };
 
@@ -257,14 +267,16 @@ function CollectibleContractElement({
         ref={actionSheetRef}
         title={strings('wallet.collectible_action_title')}
         options={[
+          'Use as background',
+          'Use collection image as background',
           strings('wallet.refresh_metadata'),
           strings('wallet.remove'),
           strings('wallet.cancel'),
         ]}
-        cancelButtonIndex={2}
-        destructiveButtonIndex={1}
+        cancelButtonIndex={4}
+        destructiveButtonIndex={3}
         // eslint-disable-next-line react/jsx-no-bind
-        onPress={handleMenuAction}
+        onPress={(index) => handleMenuAction(index, { logo: asset.logo })}
         theme={themeAppearance}
       />
     </View>

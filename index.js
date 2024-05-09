@@ -27,6 +27,7 @@ import { isNotificationsFeatureEnabled } from './app/util/notifications/methods'
 // List of warnings that we're ignoring
 
 LogBox.ignoreLogs([
+  'VirtualizedLists should never be nested',
   '{}',
   // Uncomment the below lines (21 and 22) to run browser-tests.spec.js in debug mode
   // in e2e tests until issue https://github.com/MetaMask/metamask-mobile/issues/1395 is resolved

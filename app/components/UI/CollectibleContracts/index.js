@@ -102,6 +102,7 @@ const CollectibleContracts = ({
   removeFavoriteCollectible,
   useNftDetection,
   isIpfsGatewayEnabled,
+  setBackgroundImage,
 }) => {
   const collectibles = allCollectibles.filter(
     (singleCollectible) => singleCollectible.isCurrentlyOwned === true,
@@ -263,10 +264,11 @@ const CollectibleContracts = ({
           key={item.address}
           contractCollectibles={contractCollectibles}
           collectiblesVisible={index === 0}
+          setBackgroundImage={setBackgroundImage}
         />
       );
     },
-    [collectibles, onItemPress],
+    [collectibles, onItemPress, setBackgroundImage],
   );
 
   const renderFavoriteCollectibles = useCallback(() => {
