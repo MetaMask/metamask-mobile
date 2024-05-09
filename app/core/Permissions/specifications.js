@@ -231,6 +231,7 @@ function validateCaveatAccounts(accounts, getInternalAccounts) {
  * "method not found" error.
  */
 export const unrestrictedMethods = Object.freeze([
+  'eth_accounts',
   'eth_blockNumber',
   'eth_call',
   'eth_decrypt',
