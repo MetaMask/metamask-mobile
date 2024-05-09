@@ -1,5 +1,4 @@
 import { useSelector } from 'react-redux';
-import { withHook } from '../../../util/withHook';
 import useWallet from './hooks/useWallet';
 import withUITheme from './hooks/withUITheme';
 import { RootState } from '../../../reducers';
@@ -12,7 +11,6 @@ import { RootState } from '../../../reducers';
 
 const WalletWithTheme = () => {
   const uiTheme = useSelector((state: RootState) => state.uiTheme);
-  console.log('ENTER uiTheme', uiTheme);
   const props = useWallet();
   return withUITheme(uiTheme.wallet, props);
 };
