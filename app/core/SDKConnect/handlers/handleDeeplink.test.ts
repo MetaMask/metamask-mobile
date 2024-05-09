@@ -1,8 +1,8 @@
-import handleDeeplink from './handleDeeplink';
-import SDKConnect from '../SDKConnect';
-import AppConstants from '../../AppConstants';
-import { waitForCondition } from '../utils/wait.util';
 import Logger from '../../../util/Logger';
+import AppConstants from '../../AppConstants';
+import SDKConnect from '../SDKConnect';
+import { waitForCondition } from '../utils/wait.util';
+import handleDeeplink from './handleDeeplink';
 
 jest.mock('../SDKConnect');
 jest.mock('../../AppConstants');
@@ -59,7 +59,7 @@ describe('handleDeeplink', () => {
 
   it('should waits for SDKConnect to initialize if not already initialized', async () => {
     mockHasInitialized.mockReturnValueOnce(false).mockReturnValueOnce(true);
-    mockWaitForCondition.mockResolvedValue();
+    mockWaitForCondition.mockResolvedValue(true);
 
     await handleDeeplink({
       sdkConnect,
