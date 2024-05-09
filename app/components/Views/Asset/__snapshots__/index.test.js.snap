@@ -37,5 +37,68 @@ exports[`Asset should render correctly 1`] = `
       />
     </View>
   </View>
+  <View
+    style={
+      {
+        "backgroundColor": "#FFFFFF",
+        "elevation": 2,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "paddingBottom": 32,
+        "paddingHorizontal": 16,
+        "paddingTop": 16,
+        "shadowColor": "#00000099",
+        "shadowOffset": {
+          "height": 4,
+          "width": 0,
+        },
+        "shadowOpacity": 0.3,
+        "shadowRadius": 8,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#0376C9",
+          "borderRadius": 24,
+          "flexBasis": "50%",
+          "flexDirection": "row",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "height": 48,
+          "justifyContent": "center",
+          "marginLeft": 8,
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="token-swap-button"
+      variant="Primary"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#FFFFFF",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Swap
+      </Text>
+    </TouchableOpacity>
+  </View>
 </View>
 `;
