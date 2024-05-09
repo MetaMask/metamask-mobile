@@ -57,8 +57,9 @@ export const createStyles = ({ colors }: Theme) =>
     },
     viewRow: {
       flexDirection: 'row',
+      width: '100%',
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       paddingVertical: 16,
     },
   });

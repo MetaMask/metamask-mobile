@@ -25,7 +25,8 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../constants/navigation/Routes';
 import { walletUIUpdated } from '../../../../core/redux/slices/uiTheme';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../../../reducers';
 
 const ViewSettings = ({
   navigation,
@@ -40,6 +41,7 @@ const ViewSettings = ({
   const isFullScreenModal = route?.params?.isFullScreenModal;
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChoosingView, setIsChoosingView] = React.useState(false);
+  const uiTheme = useSelector((state: RootState) => state.uiTheme);
   const dispatch = useDispatch();
   useEffect(
     () => {
@@ -88,7 +90,12 @@ const ViewSettings = ({
           <TouchableOpacity
             key={key}
             onPress={() => onChoose(value)}
-            style={styles.viewRow}
+            style={[
+              styles.viewRow,
+              {
+                backgroundColor: uiTheme.wallet === value && colors.info.muted,
+              },
+            ]}
           >
             <Icon
               name={IconName.ArrowRight}
