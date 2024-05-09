@@ -127,6 +127,7 @@ export class SDKConnect {
     trigger,
     otherPublicKey,
     origin,
+    protocolVersion,
     initialConnection,
     validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
   }: ConnectionProps) {
@@ -134,6 +135,7 @@ export class SDKConnect {
       id,
       trigger,
       otherPublicKey,
+      protocolVersion,
       origin,
       validUntil,
       initialConnection,
@@ -177,6 +179,7 @@ export class SDKConnect {
     channelId,
     otherPublicKey,
     initialConnection,
+    protocolVersion,
     trigger,
     updateKey,
     context,
@@ -184,6 +187,7 @@ export class SDKConnect {
     channelId: string;
     otherPublicKey: string;
     context?: string;
+    protocolVersion?: ConnectionProps['protocolVersion'];
     updateKey?: boolean;
     trigger?: ConnectionProps['trigger'];
     initialConnection: boolean;
@@ -192,6 +196,7 @@ export class SDKConnect {
       channelId,
       otherPublicKey,
       context,
+      protocolVersion,
       updateKey,
       trigger,
       initialConnection,
