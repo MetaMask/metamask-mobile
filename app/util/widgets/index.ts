@@ -1,17 +1,15 @@
-import { Hex, isStrictHexString, remove0x } from '@metamask/utils';
 import SharedGroupPreferences from 'react-native-shared-group-preferences';
 
 const group = 'group.io.metamask.MetaMask';
 
-//TODO Need to add in the location where we can get this data
-export async function setSmallBalanceWidget(widgetData: object) {
+export async function setWidgetQR(widgetData: object) {
   try {
     // iOS
-    console.log('widgetData', widgetData);
+    console.log('setWidgetQR', widgetData);
 
-    await SharedGroupPreferences.setItem('widgetKey', widgetData, group);
+    await SharedGroupPreferences.setItem('qrData', widgetData, group);
   } catch (error) {
-    console.log('setBalanceWidget TEST', { error });
+    console.log('setWidgetQR TEST', { error });
   }
 }
 

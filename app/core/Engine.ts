@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
 import {
@@ -189,6 +190,7 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
+import { setWidgetQR } from '../../app/util/widgets';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1335,6 +1337,15 @@ class Engine {
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
+
+    //Set Widget data on init
+    setWidgetQR({
+      accountName:
+        preferencesController?.state?.identities[
+          preferencesController.state.selectedAddress
+        ]?.name,
+      accountNumber: preferencesController?.state?.selectedAddress,
+    });
 
     Engine.instance = this;
   }

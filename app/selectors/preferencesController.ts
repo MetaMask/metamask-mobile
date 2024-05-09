@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { RootState } from '../reducers';
+import { setWidgetQR } from '../../app/util/widgets';
 
 const selectPreferencesControllerState = (state: RootState) =>
   state.engine.backgroundState.PreferencesController;
@@ -19,8 +20,17 @@ export const selectIpfsGateway = createSelector(
 
 export const selectSelectedAddress = createSelector(
   selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.selectedAddress,
+  (preferencesControllerState: PreferencesState) => {
+    //Set Widget data on init
+    setWidgetQR({
+      accountName:
+        preferencesControllerState?.identities[
+          preferencesControllerState.selectedAddress
+        ]?.name,
+      accountNumber: preferencesControllerState?.selectedAddress,
+    });
+    return preferencesControllerState.selectedAddress;
+  },
 );
 
 export const selectUseNftDetection = createSelector(
