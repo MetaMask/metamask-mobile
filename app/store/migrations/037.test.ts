@@ -47,16 +47,6 @@ describe('Migration #37', () => {
         "Migration 37: Invalid NetworkController state error: 'object'",
       scenario: 'NetworkController is invalid',
     },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: { NetworkController: { networkId: null } },
-        },
-      }),
-      errorMessage:
-        "Migration 37: Invalid NetworkController networkId not found: 'null'",
-      scenario: 'providerConfig is invalid',
-    },
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {

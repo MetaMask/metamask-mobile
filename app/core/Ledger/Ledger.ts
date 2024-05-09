@@ -28,6 +28,7 @@ export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
     ExtendedKeyringTypes.ledger,
   );
 
+  // @ts-expect-error The Ledger keyring isn't compatible with our keyring type yet
   return keyring.length ? keyring[0] : await addLedgerKeyring();
 };
 
@@ -64,6 +65,7 @@ export const unlockLedgerDefaultAccount = async (
   const keyring = await getLedgerKeyring();
 
   if (isAccountImportReq) {
+    // @ts-expect-error The Ledger keyring isn't compatible with our keyring type yet
     await keyringController.addNewAccountForKeyring(keyring);
   }
   const address = await keyring.getDefaultAccount();
@@ -94,13 +96,12 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  * Forgets the ledger keyring's previous device specific state.
  */
 export const forgetLedger = async (): Promise<void> => {
-  const { KeyringController, PreferencesController } = Engine.context;
+  const { KeyringController } = Engine.context;
 
   const keyring = await getLedgerKeyring();
   keyring.forgetDevice();
 
   await KeyringController.persistAllKeyrings();
-  PreferencesController.updateIdentities(await KeyringController.getAccounts());
 };
 
 /**
@@ -130,9 +131,8 @@ export const ledgerSignTypedMessage = async (
   return await keyringController.signTypedMessage(
     {
       from: messageParams.from,
-      data: messageParams.data as
-        | Record<string, unknown>
-        | Record<string, unknown>[],
+      // @ts-expect-error TODO: Fix types
+      data: messageParams.data,
     },
     version,
   );

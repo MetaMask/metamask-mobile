@@ -10,10 +10,10 @@
   "devDependencies": {
     "@lavamoat/allow-scripts": "^2.3.1",
     "@lavamoat/preinstall-always-fail": "^2.0.0",
-    "@metamask/oss-attribution-generator": "^2.0.1"
+    "@metamask/oss-attribution-generator": "^2.0.2"
   },
   "engines": {
-    "node": "~18.18.2",
+    "node": "^20.12.2",
     "yarn": "^1.22.0"
   },
   "lavamoat": {

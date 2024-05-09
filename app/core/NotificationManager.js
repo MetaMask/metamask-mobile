@@ -172,7 +172,7 @@ class NotificationManager {
     // If it fails we hide the pending tx notification
     this._removeNotificationById(transactionMeta.id);
     const transaction =
-      this._transactionsWatchTable[transactionMeta.transaction.nonce];
+      this._transactionsWatchTable[transactionMeta.txParams.nonce];
     transaction &&
       transaction.length &&
       setTimeout(() => {
@@ -185,14 +185,14 @@ class NotificationManager {
         });
         // Clean up
         this._removeListeners(transactionMeta.id);
-        delete this._transactionsWatchTable[transactionMeta.transaction.nonce];
+        delete this._transactionsWatchTable[transactionMeta.txParams.nonce];
       }, 2000);
   };
 
   _confirmedCallback = (transactionMeta, originalTransaction) => {
     // Once it's confirmed we hide the pending tx notification
     this._removeNotificationById(transactionMeta.id);
-    this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
+    this._transactionsWatchTable[transactionMeta.txParams.nonce].length &&
       setTimeout(() => {
         // Then we show the success notification
         this._showNotification({
@@ -200,7 +200,7 @@ class NotificationManager {
           autoHide: true,
           transaction: {
             id: transactionMeta.id,
-            nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`,
+            nonce: `${hexToBN(transactionMeta.txParams.nonce).toString()}`,
           },
           duration: 5000,
         });
@@ -243,7 +243,7 @@ class NotificationManager {
         ReviewManager.promptReview();
 
         this._removeListeners(transactionMeta.id);
-        delete this._transactionsWatchTable[transactionMeta.transaction.nonce];
+        delete this._transactionsWatchTable[transactionMeta.txParams.nonce];
       }, 2000);
   };
 
@@ -255,7 +255,7 @@ class NotificationManager {
         type: 'speedup',
         transaction: {
           id: transactionMeta.id,
-          nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`,
+          nonce: `${hexToBN(transactionMeta.txParams.nonce).toString()}`,
         },
       });
     }, 2000);
@@ -334,20 +334,24 @@ class NotificationManager {
   watchSubmittedTransaction(transaction, speedUp = false) {
     if (transaction.silent) return false;
     const { TransactionController } = Engine.context;
-    const nonce = transaction.transaction.nonce;
+    const transactionMeta = TransactionController.state.transactions.find(
+      ({ id }) => id === transaction.id,
+    );
+
+    const nonce = transactionMeta.txParams.nonce;
     // First we show the pending tx notification if is not an speed up tx
     !speedUp &&
       this._showNotification({
         type: 'pending',
         autoHide: false,
         transaction: {
-          id: transaction.id,
+          id: transactionMeta.id,
         },
       });
 
     this._transactionsWatchTable[nonce]
-      ? this._transactionsWatchTable[nonce].push(transaction.id)
-      : (this._transactionsWatchTable[nonce] = [transaction.id]);
+      ? this._transactionsWatchTable[nonce].push(transactionMeta.id)
+      : (this._transactionsWatchTable[nonce] = [transactionMeta.id]);
 
     TransactionController.hub.once(
       `${transaction.id}:confirmed`,
@@ -392,8 +396,8 @@ class NotificationManager {
         .reverse()
         .filter(
           (tx) =>
-            safeToChecksumAddress(tx.transaction?.to) === selectedAddress &&
-            safeToChecksumAddress(tx.transaction?.from) !== selectedAddress &&
+            safeToChecksumAddress(tx.txParams?.to) === selectedAddress &&
+            safeToChecksumAddress(tx.txParams?.from) !== selectedAddress &&
             tx.chainId === chainId &&
             tx.status === 'confirmed' &&
             lastBlock <= parseInt(tx.blockNumber, 10) &&
@@ -403,8 +407,8 @@ class NotificationManager {
         this._showNotification({
           type: 'received',
           transaction: {
-            nonce: `${hexToBN(txs[0].transaction.nonce).toString()}`,
-            amount: `${renderFromWei(hexToBN(txs[0].transaction.value))}`,
+            nonce: `${hexToBN(txs[0].txParams.nonce).toString()}`,
+            amount: `${renderFromWei(hexToBN(txs[0].txParams.value))}`,
             id: txs[0]?.id,
             assetType: strings('unit.eth'),
           },
