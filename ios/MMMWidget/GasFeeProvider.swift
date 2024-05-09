@@ -44,7 +44,7 @@ final class GasFeeProvider {
 
     var gasFees: GasEstimates?
     var request = URLRequest(url: url)
-    request.setValue("<need to add gas>", forHTTPHeaderField: "Authorization")
+    request.setValue(apiToken(), forHTTPHeaderField: "Authorization")
     let task = URLSession.shared.dataTask(with: request) { data, response, error in
         if let data = data {
           let dataRes = String(data: data, encoding: .utf8)
