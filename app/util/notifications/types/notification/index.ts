@@ -113,7 +113,7 @@ export interface MarketingNotificationData {
 }
 
 export interface SimpleNotification {
-  title?: string | undefined;
+  title?: string;
   body?: string;
   data?: {
     [key: string]: string | object | number;
