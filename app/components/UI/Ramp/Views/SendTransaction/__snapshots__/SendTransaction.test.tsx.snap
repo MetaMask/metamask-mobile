@@ -1355,7 +1355,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                       resizeMode="contain"
                                       source={
                                         {
-                                          "uri": "https://token.metaswap.codefi.network/assets/nativeCurrencyLogos/usdc.png",
+                                          "uri": "https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/usdc.png",
                                         }
                                       }
                                       style={
@@ -2088,7 +2088,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                       resizeMode="contain"
                                       source={
                                         {
-                                          "uri": "https://token.metaswap.codefi.network/assets/nativeCurrencyLogos/usdc.png",
+                                          "uri": "https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/usdc.png",
                                         }
                                       }
                                       style={

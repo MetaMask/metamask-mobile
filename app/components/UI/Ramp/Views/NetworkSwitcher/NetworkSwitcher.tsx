@@ -63,18 +63,24 @@ function NetworkSwitcher() {
   const error = errorFetchingNetworks || errorFetchingNetworksDetail;
   const rampNetworksDetails = useMemo(() => {
     const activeNetworkDetails: Network[] = [];
+    // TODO(ramp, chainId-string): filter supportedNetworks by EVM compatible chains (chainId are strings of decimal numbers)
     supportedNetworks.forEach(({ chainId: supportedChainId, active }) => {
-      const currentChainId = toHex(supportedChainId);
+      let rampSupportedNetworkChainIdAsHex: `0x${string}`;
+      try {
+        rampSupportedNetworkChainIdAsHex = toHex(supportedChainId);
+      } catch {
+        return;
+      }
       if (
-        currentChainId === ChainId['linea-mainnet'] ||
-        currentChainId === ChainId.mainnet ||
+        rampSupportedNetworkChainIdAsHex === ChainId['linea-mainnet'] ||
+        rampSupportedNetworkChainIdAsHex === ChainId.mainnet ||
         !active
       ) {
         return;
       }
 
-      const popularNetworkDetail = PopularList.find(
-        ({ chainId }) => chainId === currentChainId,
+      const popularNetwork = PopularList.find(
+        ({ chainId }) => chainId === rampSupportedNetworkChainIdAsHex,
       );
 
       if (popularNetworkDetail) {
@@ -83,7 +89,7 @@ function NetworkSwitcher() {
       }
 
       const networkDetail = networksDetails.find(
-        ({ chainId }) => toHex(chainId) === currentChainId,
+        ({ chainId }) => toHex(chainId) === rampSupportedNetworkChainIdAsHex,
       );
       if (networkDetail) {
         activeNetworkDetails.push(networkDetail);

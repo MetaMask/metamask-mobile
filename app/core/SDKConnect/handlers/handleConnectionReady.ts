@@ -78,6 +78,7 @@ export const handleConnectionReady = async ({
   }
 
   try {
+    // if (connection.protocolVersion < 2) {
     // TODO following logic blocks should be simplified (too many conditions)
     // Should be done in a separate PR to avoid breaking changes and separate SDKConnect / Connection logic in different files.
     if (
@@ -86,38 +87,32 @@ export const handleConnectionReady = async ({
     ) {
       // Ask for authorisation?
       // Always need to re-approve connection first.
-      await checkPermissions({
-        connection,
-        engine,
-        lastAuthorized: connection.lastAuthorized,
-      });
+      // await checkPermissions({
+      //   connection,
+      //   engine,
+      //   lastAuthorized: connection.lastAuthorized,
+      // });
       connection.sendAuthorized(true);
     } else if (
       !connection.initialConnection &&
       connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
     ) {
       const currentTime = Date.now();
-
       const OTPExpirationDuration =
         Number(process.env.OTP_EXPIRATION_DURATION_IN_MS) || HOUR_IN_MS;
-
       const channelWasActiveRecently =
         !!connection.lastAuthorized &&
         currentTime - connection.lastAuthorized < OTPExpirationDuration;
-
       if (channelWasActiveRecently) {
         connection.approvalPromise = undefined;
-
         // Prevent auto approval if metamask is killed and restarted
         disapprove(connection.channelId);
-
         // Always need to re-approve connection first.
         await checkPermissions({
           connection,
           engine,
           lastAuthorized: connection.lastAuthorized,
         });
-
         connection.sendAuthorized(true);
       } else {
         if (approvalController.get(connection.channelId)) {
@@ -129,11 +124,9 @@ export const handleConnectionReady = async ({
           );
         }
         connection.approvalPromise = undefined;
-
         if (!connection.otps) {
           connection.otps = generateOTP();
         }
-
         const msg = {
           type: MessageType.OTP,
           otpAnswer: connection.otps?.[0],
@@ -146,7 +139,6 @@ export const handleConnectionReady = async ({
         });
         // Prevent auto approval if metamask is killed and restarted
         disapprove(connection.channelId);
-
         // Always need to re-approve connection first.
         await checkPermissions({
           connection,
@@ -181,6 +173,7 @@ export const handleConnectionReady = async ({
       await checkPermissions({ connection, engine });
       connection.sendAuthorized(true);
     }
+    // }
 
     DevLogger.log(`SDKConnect::CLIENTS_READY setup bridge`);
     connection.backgroundBridge = setupBridge({

@@ -23,7 +23,7 @@ import {
 } from '../../../../../util/address';
 import ErrorMessage from '../../../confirmations/SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
-import ActionSheet from 'react-native-actionsheet';
+import ActionSheet from '@metamask/react-native-actionsheet';
 import { mockTheme, ThemeContext } from '../../../../../util/theme';
 import {
   CONTACT_ALREADY_SAVED,

@@ -66,11 +66,7 @@ describe('PermissionController specifications', () => {
       describe('decorator', () => {
         it('returns array members included in the caveat value', async () => {
           const getIdentities = jest.fn();
-          const caveatValues = [
-            { address: '0x1', lastUsed: '1' },
-            { address: '0x2', lastUsed: '2' },
-            { address: '0x3', lastUsed: '3' },
-          ];
+          const caveatValues = ['0x1', '0x2', '0x3'];
           const { decorator } = getCaveatSpecifications({ getIdentities })[
             CaveatTypes.restrictReturnedAccounts
           ];
@@ -90,7 +86,7 @@ describe('PermissionController specifications', () => {
 
         it('returns an empty array if no array members are included in the caveat value', async () => {
           const getIdentities = jest.fn();
-          const caveatValues = [{ address: '0x5', lastUsed: '1' }];
+          const caveatValues = ['0x5'];
           const { decorator } = getCaveatSpecifications({ getIdentities })[
             CaveatTypes.restrictReturnedAccounts
           ];
@@ -106,10 +102,7 @@ describe('PermissionController specifications', () => {
 
         it('returns an empty array if the method result is an empty array', async () => {
           const getIdentities = jest.fn();
-          const caveatValues = [
-            { address: '0x1', lastUsed: '1' },
-            { address: '0x2', lastUsed: '2' },
-          ];
+          const caveatValues = ['0x1', '0x2'];
           const { decorator } = getCaveatSpecifications({ getIdentities })[
             CaveatTypes.restrictReturnedAccounts
           ];
@@ -178,11 +171,7 @@ describe('PermissionController specifications', () => {
               ...baseEoaAccount,
             },
           ]);
-          const caveatValues = [
-            { address: '0x1', lastUsed: '1' },
-            { address: '0x2', lastUsed: '2' },
-            { address: '0x3', lastUsed: '3' },
-          ];
+          const caveatValues = ['0x1', '0x2', '0x3'];
 
           const { validator } = getCaveatSpecifications({
             getInternalAccounts,

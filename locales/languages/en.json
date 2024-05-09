@@ -109,7 +109,7 @@
     "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
     "import_title": "Your Wallet is ready",
     "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
-    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
+    "import_description2": "to keep this set of words safe so you can always access your funds.",
     "done": "Done"
   },
   "onboarding_carousel": {
@@ -887,8 +887,13 @@
       "sdk_activation_keys": "SDK Activation Keys",
       "activation_keys_description": "Activation Keys will enable specific features or providers.",
       "add_activation_key": "Add Activation Key",
+      "edit_activation_key": "Edit Activation Key",
       "paste_or_type_activation_key": "Paste or type an Activation Key",
+      "add_label": "Add a label to this key",
+      "label": "Label",
+      "key": "Key",
       "add": "Add",
+      "update": "Update",
       "cancel": "Cancel"
     },
     "request_feature": "Request a feature",

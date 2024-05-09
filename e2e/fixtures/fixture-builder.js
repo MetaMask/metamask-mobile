@@ -92,7 +92,7 @@ class FixtureBuilder {
                   decimals: 18,
                   name: 'Synthetix Network Token',
                   iconUrl:
-                    'https://static.metafi.codefi.network/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
+                    'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
                   type: 'erc20',
                   aggregators: [
                     'Aave',
@@ -261,6 +261,7 @@ class FixtureBuilder {
                   '0xfa2': true,
                   '0xaa36a7': true,
                   '0xe704': true,
+                  '0xe705': true,
                   '0xe708': true,
                   '0x504': true,
                   '0x507': true,
@@ -637,12 +638,7 @@ class FixtureBuilder {
               caveats: [
                 {
                   type: 'restrictReturnedAccounts',
-                  value: [
-                    {
-                      address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
-                      lastUsed: 1692603404804,
-                    },
-                  ],
+                  value: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
                 },
               ],
               date: 1664388714636,
