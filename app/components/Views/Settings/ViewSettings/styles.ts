@@ -53,7 +53,7 @@ export const createStyles = ({ colors }: Theme) =>
       padding: 16,
     },
     icon: {
-      marginRight: 16,
+      marginHorizontal: 16,
     },
     viewRow: {
       flexDirection: 'row',
@@ -61,5 +61,6 @@ export const createStyles = ({ colors }: Theme) =>
       alignItems: 'center',
       justifyContent: 'flex-start',
       paddingVertical: 16,
+      borderRadius: 8,
     },
   });
