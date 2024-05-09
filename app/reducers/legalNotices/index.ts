@@ -42,14 +42,14 @@ export const shouldShowNewPrivacyToastSelector = (
   );
 };
 
-export interface iAccountActions extends Action {
+export interface LegalNoticesAction extends Action {
   newPrivacyPolicyToastShownDate: boolean;
   payload: number;
 }
 
 const legalNoticesReducer = (
   state = initialState,
-  action: iAccountActions = {
+  action: LegalNoticesAction = {
     type: '',
     newPrivacyPolicyToastShownDate: false,
     payload: 0,
