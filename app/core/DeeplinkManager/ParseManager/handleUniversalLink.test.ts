@@ -195,6 +195,8 @@ describe('handleUniversalLinks', () => {
         origin: 'test-origin',
         context: 'deeplink_universal',
         url: 'test-url',
+        protocolVersion: 1,
+
         otherPublicKey: '',
         sdkConnect: {
           getConnections: mockGetConnections,

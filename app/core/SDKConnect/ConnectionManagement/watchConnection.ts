@@ -40,6 +40,16 @@ function watchConnection(connection: Connection, instance: SDKConnect) {
     },
   );
 
+  connection.remote.on(EventType.CHANNEL_PERSISTENCE, () => {
+    DevLogger.log(
+      `SDKConnect::watchConnection CHANNEL_PERSISTENCE ${connection.channelId}`,
+    );
+    if (instance.state.connections[connection.channelId]) {
+      instance.state.connections[connection.channelId].relayPersistence = true;
+      store.dispatch(resetConnections(instance.state.connections));
+    }
+  });
+
   connection.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
     const host = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + connection.channelId;
     // Prevent disabled connection ( if user chose do not remember session )
