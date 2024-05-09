@@ -4254,22 +4254,7 @@
     "@metamask/safe-event-emitter" "^2.0.0"
     through2 "^2.0.3"
 
-"@metamask/permission-controller@7.1.0", "@metamask/permission-controller@^7.1.0":
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/permission-controller/-/permission-controller-7.1.0.tgz#e6a2e6c66e8b1c4a46a59eac6fdbdc20d0d7d19d"
-  integrity sha512-CrE+TU1MQSMgQJ3PDV3KsDD+mhRr+KQ40/XNL/Vk3ShKHqOkCpZLskIm5cawcqgwkTSoRgRY4DYgipIr1ISgpw==
-  dependencies:
-    "@metamask/base-controller" "^4.0.1"
-    "@metamask/controller-utils" "^8.0.1"
-    "@metamask/json-rpc-engine" "^7.3.1"
-    "@metamask/rpc-errors" "^6.1.0"
-    "@metamask/utils" "^8.2.0"
-    "@types/deep-freeze-strict" "^1.1.0"
-    deep-freeze-strict "^1.1.1"
-    immer "^9.0.6"
-    nanoid "^3.1.31"
-
-"@metamask/permission-controller@^8.0.0":
+"@metamask/permission-controller@8.0.0", "@metamask/permission-controller@^8.0.0":
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/permission-controller/-/permission-controller-8.0.0.tgz#2f358e9793cab5f047cb536906b6b0a71c93d107"
   integrity sha512-VwrkxKnvUSrpQeqljC/okrJG47tuLKkNrfmaj1SJ9S6/TUQjeRpsE0abKRt6pprTCbDpzJdyspexZq2aWykGLQ==
@@ -4279,6 +4264,21 @@
     "@metamask/json-rpc-engine" "^7.3.2"
     "@metamask/rpc-errors" "^6.1.0"
     "@metamask/utils" "^8.3.0"
+    "@types/deep-freeze-strict" "^1.1.0"
+    deep-freeze-strict "^1.1.1"
+    immer "^9.0.6"
+    nanoid "^3.1.31"
+
+"@metamask/permission-controller@^7.1.0":
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/permission-controller/-/permission-controller-7.1.0.tgz#e6a2e6c66e8b1c4a46a59eac6fdbdc20d0d7d19d"
+  integrity sha512-CrE+TU1MQSMgQJ3PDV3KsDD+mhRr+KQ40/XNL/Vk3ShKHqOkCpZLskIm5cawcqgwkTSoRgRY4DYgipIr1ISgpw==
+  dependencies:
+    "@metamask/base-controller" "^4.0.1"
+    "@metamask/controller-utils" "^8.0.1"
+    "@metamask/json-rpc-engine" "^7.3.1"
+    "@metamask/rpc-errors" "^6.1.0"
+    "@metamask/utils" "^8.2.0"
     "@types/deep-freeze-strict" "^1.1.0"
     deep-freeze-strict "^1.1.1"
     immer "^9.0.6"
