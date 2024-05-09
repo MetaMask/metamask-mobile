@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-export default function choseUITheme(theme: string) {
+export default function withUITheme(theme: string) {
   switch (theme) {
     case 'default':
       return require('../themes/01').default;
