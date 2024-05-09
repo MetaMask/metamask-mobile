@@ -92,12 +92,13 @@ function parseDeeplink({
 
     return true;
   } catch (error) {
-    Logger.error(
-      error as Error,
-      'DeepLinkManager:parse error parsing deeplink',
-    );
+    const isPrivateKey = url.length === 64;
+    if (error && !isPrivateKey) {
+      Logger.error(
+        error as Error,
+        'DeepLinkManager:parse error parsing deeplink',
+      );
 
-    if (error) {
       Alert.alert(strings('deeplink.invalid'), `Invalid URL: ${url}`);
     }
 
