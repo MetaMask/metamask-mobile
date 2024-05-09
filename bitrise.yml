@@ -120,8 +120,8 @@ stages:
       # - run_tag_smoke_swaps_ios: {}
       # - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
-  #     - run_tag_smoke_core_android: {}
-  # build_regression_e2e_ios_android_stage:
+      # - run_tag_smoke_core_android: {}
+  build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
       - android_build_regression_tests: {}
@@ -731,10 +731,10 @@ workflows:
             - paths: |-
                 ccache
       - deploy-to-bitrise-io@2.2.3:
-        inputs:
-          - pipeline_intermediate_files: |-
-              ios/build/Build:INTERMEDIATE_IOS_BUILD
-              ../Library/Detox/ios:INTERMEDIATE_DETOX_BUILD
+          inputs:
+            - pipeline_intermediate_files: |-
+                ios/build/Build:INTERMEDIATE_IOS_BUILD
+                ../Library/Detox/ios:INTERMEDIATE_DETOX_BUILD
       - save-cache@1:
           title: Save node_modules
           inputs:
