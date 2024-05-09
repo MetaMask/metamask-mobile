@@ -3,7 +3,6 @@ import { toHex } from '@metamask/controller-utils';
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
-const TENDERLY_KEY = process.env.TENDERLY_NETWORK_ID;
 
 const PopularNetworksList = {
   Avalanche: {
