@@ -1,3 +1,4 @@
+import { store } from '../../../store';
 import { withHook } from '../../../util/withHook';
 import useWallet from './hooks/useWallet';
 import withUITheme from './hooks/withUITheme';
@@ -7,7 +8,7 @@ import withUITheme from './hooks/withUITheme';
  * and all the logic is hosted in a use[screnName] hook.
  * This way we can have as many "Views" we want, since the logic is separeted from the UI
  */
-
-const Wallet = withUITheme('custom02');
+const theme = store.getState().uiTheme;
+const Wallet = withUITheme(theme.wallet);
 
 export default withHook(useWallet)(Wallet);
