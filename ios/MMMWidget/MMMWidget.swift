@@ -36,17 +36,20 @@ struct MMProvider: TimelineProvider {
   
   func getTimeline(in context: Context, completion: @escaping (Timeline<GasFeeEntry>) -> Void) {
       print("getTimeline")
+      let entryDate = Date()
       if let gasFees = gasFeeProvider.fetchGasFees() {
         print("Gas Fees", gasFees)
         let low = String(format: "%.3f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.low.suggestedMaxPriorityFeePerGas) ?? 0)))
         let market = String(format: "%.3f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.medium.suggestedMaxPriorityFeePerGas) ?? 0)))
         let high = String(format: "%.3f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.high.suggestedMaxPriorityFeePerGas) ?? 0)))
-        let entry = GasFeeEntry(date: Date(), lowGwei: low, marketGwei: market, aggressiveGwei: high)
+        let nextRefresh = Calendar.current.date(byAdding: .minute, value: 1, to: entryDate)!
+        let entry = GasFeeEntry(date: nextRefresh, lowGwei: low, marketGwei: market, aggressiveGwei: high)
         let timeline = Timeline(entries: [entry], policy: .atEnd)
         completion(timeline)
         return
       } else {
-        let entry = GasFeeEntry(date: Date(), lowGwei: "-", marketGwei: "-", aggressiveGwei: "-")
+        let nextRefresh = Calendar.current.date(byAdding: .minute, value: 1, to: entryDate)!
+        let entry = GasFeeEntry(date: nextRefresh, lowGwei: "-", marketGwei: "-", aggressiveGwei: "-")
         let timeline = Timeline(entries: [entry], policy: .atEnd)
         completion(timeline)
       }

@@ -14,7 +14,7 @@ import CoreImage.CIFilterBuiltins
 struct MMQRProvider: TimelineProvider {
   func placeholder(in context: Context) -> QREntry {
     print("placeholder")
-    return QREntry(date: Date(), QRString: "-", accountName: "-", accountAddress: "-")
+    return QREntry(date: Date(), QRString: "", accountName: "", accountAddress: "")
   }
   
   func getSnapshot(in context: Context, completion: @escaping (QREntry) -> Void) {
@@ -23,6 +23,7 @@ struct MMQRProvider: TimelineProvider {
   
   func getTimeline(in context: Context, completion: @escaping (Timeline<QREntry>) -> Void) {
     print("getTimeline")
+    let entryDate = Date()
     let userDefaults = UserDefaults(suiteName: "group.io.metamask.MetaMask")
     guard let userDefaults = userDefaults else {
         print("UserDefaults not accessible")
@@ -42,9 +43,11 @@ struct MMQRProvider: TimelineProvider {
         }
 
         do {
+            print("Getting data")
             let parsedData = try JSONDecoder().decode(WidgetQRData.self, from: data)
+            print("parsedData", parsedData)
             let nextRefresh = Calendar.current.date(byAdding: .minute, value: 1, to: entryDate)!
-            let entry = QREntry(date: Date(), QRString: "", accountName: "", accountAddress: "")
+            let entry = QREntry(date: nextRefresh, QRString: "", accountName: parsedData.accountName, accountAddress: parsedData.accountNumber)
             let timeline = Timeline(entries: [entry], policy: .atEnd)
             completion(timeline)
         } catch {
@@ -56,7 +59,7 @@ struct MMQRProvider: TimelineProvider {
     } else {
         print("No data set in UserDefaults")
         let nextRefresh = Calendar.current.date(byAdding: .minute, value: 1, to: entryDate)!
-        let entry = QREntry(date: Date(), error: true, QRString: "", accountName: "", accountAddress: "")
+        let entry = QREntry(date: nextRefresh, error: true, QRString: "", accountName: "", accountAddress: "")
         let timeline = Timeline(entries: [entry], policy: .atEnd)
         completion(timeline)
     }
@@ -73,7 +76,7 @@ struct MMMWidgetQR: Widget {
   let kind: String = "MMMWidgetQR"
   
   var body: some WidgetConfiguration {
-    StaticConfiguration(kind: kind, provider: MMProvider()) { entry in
+    StaticConfiguration(kind: kind, provider: MMQRProvider()) { entry in
       //Widget Init
       MMMWidgetQRSmall(entry: QREntry(date: Date(), QRString: "", accountName: "", accountAddress: ""))
     }
@@ -229,7 +232,7 @@ struct MMMWidgetQRSmall: View {
         .offset(x: -87, y: 0)
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Receive")
+                Text(entry.accountName)
                     .font(Font.custom("SF Pro Rounded", size: 14).weight(.bold))
                     .tracking(0.15)
                     .foregroundColor(Color(red: 0.62, green: 0.65, blue: 0.68))
@@ -252,6 +255,10 @@ struct MMMWidgetQRSmall: View {
                 .background(
                     AsyncImage(url: URL(string: "https://via.placeholder.com/24x22"))
                 )
+          Text(entry.accountName)
+              .font(Font.custom("SF Pro Rounded", size: 14).weight(.bold))
+              .tracking(0.15)
+              .foregroundColor(Color(red: 0.62, green: 0.65, blue: 0.68))
         }
         .padding(EdgeInsets(top: 0.04, leading: 0, bottom: 0.04, trailing: 0))
         .frame(width: 24, height: 22.50)
