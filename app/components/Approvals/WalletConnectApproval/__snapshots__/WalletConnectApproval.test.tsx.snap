@@ -6,7 +6,7 @@ exports[`WalletConnectApproval populates page information using request data 1`]
 >
   <Component
     currentPageInformation={
-      Object {
+      {
         "icon": "testIcon",
         "title": "testName",
         "url": "testUrl",
@@ -23,7 +23,7 @@ exports[`WalletConnectApproval renders 1`] = `
 >
   <Component
     currentPageInformation={
-      Object {
+      {
         "icon": undefined,
         "title": undefined,
         "url": undefined,
@@ -40,7 +40,7 @@ exports[`WalletConnectApproval sets isVisible to false if incorrect approval req
 >
   <Component
     currentPageInformation={
-      Object {
+      {
         "icon": undefined,
         "title": undefined,
         "url": undefined,
@@ -57,7 +57,7 @@ exports[`WalletConnectApproval sets isVisible to false if no approval request 1`
 >
   <Component
     currentPageInformation={
-      Object {
+      {
         "icon": undefined,
         "title": undefined,
         "url": undefined,
