@@ -1,7 +1,7 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
-import Browser from '../../pages/Browser';
+import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
@@ -9,6 +9,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
+import CommonView from '../../pages/CommonView';
 
 describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
   beforeAll(async () => {
@@ -28,14 +29,16 @@ describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Browser.isVisible();
+        await Assertions.checkIfVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
-        await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
-        await ConnectedAccountsModal.tapPermissionsButton();
-        await ConnectedAccountsModal.tapDisconnectAllButton();
-        await Browser.isAccountToastVisible('Account 1');
+        await Browser.tapNetworkAvatarButtonOnBrowser();
 
-        await TestHelpers.delay(5500);
+        await ConnectedAccountsModal.tapPermissionsButton();
+        await TestHelpers.delay(5500); // this is because the toast is delayed.
+
+        await ConnectedAccountsModal.tapDisconnectAllButton();
+        await Assertions.checkIfNotVisible(await CommonView.toast);
+
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);

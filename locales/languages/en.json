@@ -901,8 +901,13 @@
       "sdk_activation_keys": "SDK Activation Keys",
       "activation_keys_description": "Activation Keys will enable specific features or providers.",
       "add_activation_key": "Add Activation Key",
+      "edit_activation_key": "Edit Activation Key",
       "paste_or_type_activation_key": "Paste or type an Activation Key",
+      "add_label": "Add a label to this key",
+      "label": "Label",
+      "key": "Key",
       "add": "Add",
+      "update": "Update",
       "cancel": "Cancel"
     },
     "request_feature": "Request a feature",
