@@ -23,8 +23,50 @@ struct MMQRProvider: TimelineProvider {
   
   func getTimeline(in context: Context, completion: @escaping (Timeline<QREntry>) -> Void) {
     print("getTimeline")
+    let userDefaults = UserDefaults(suiteName: "group.io.metamask.MetaMask")
+    guard let userDefaults = userDefaults else {
+        print("UserDefaults not accessible")
+        let entry = QREntry(date: Date(), error: true, QRString: "", accountName: "", accountAddress: "")
+        let timeline = Timeline(entries: [entry], policy: .atEnd)
+        completion(timeline)
+        return
+    }
+
+    if let savedData = userDefaults.value(forKey: "qrData") as? String {
+        guard let data = savedData.data(using: .utf8) else {
+            print("Data encoding failed")
+            let entry = QREntry(date: Date(), error: true, QRString: "", accountName: "", accountAddress: "")
+            let timeline = Timeline(entries: [entry], policy: .atEnd)
+            completion(timeline)
+            return
+        }
+
+        do {
+            let parsedData = try JSONDecoder().decode(WidgetQRData.self, from: data)
+            let nextRefresh = Calendar.current.date(byAdding: .minute, value: 1, to: entryDate)!
+            let entry = QREntry(date: Date(), QRString: "", accountName: "", accountAddress: "")
+            let timeline = Timeline(entries: [entry], policy: .atEnd)
+            completion(timeline)
+        } catch {
+            print("Data parsing error: \(error)")
+            let entry = QREntry(date: Date(), error: true, QRString: "", accountName: "", accountAddress: "")
+            let timeline = Timeline(entries: [entry], policy: .atEnd)
+            completion(timeline)
+        }
+    } else {
+        print("No data set in UserDefaults")
+        let nextRefresh = Calendar.current.date(byAdding: .minute, value: 1, to: entryDate)!
+        let entry = QREntry(date: Date(), error: true, QRString: "", accountName: "", accountAddress: "")
+        let timeline = Timeline(entries: [entry], policy: .atEnd)
+        completion(timeline)
+    }
   }
 
+}
+
+struct WidgetQRData: Decodable {
+  let accountName: String
+  let accountNumber: String
 }
 
 struct MMMWidgetQR: Widget {
@@ -50,6 +92,7 @@ struct MMMWidgetQR_Previews: PreviewProvider {
 
 struct QREntry : TimelineEntry {
   let date: Date
+  var error: Bool = false
   let QRString: String
   let accountName: String
   let accountAddress: String
