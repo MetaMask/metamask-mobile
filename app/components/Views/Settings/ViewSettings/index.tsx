@@ -25,6 +25,7 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../constants/navigation/Routes';
 import { walletUIUpdated } from '../../../../core/redux/slices/uiTheme';
+import { useDispatch } from 'react-redux';
 
 const ViewSettings = ({
   navigation,
@@ -39,6 +40,7 @@ const ViewSettings = ({
   const isFullScreenModal = route?.params?.isFullScreenModal;
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChoosingView, setIsChoosingView] = React.useState(false);
+  const dispatch = useDispatch();
   useEffect(
     () => {
       navigation.setOptions(
@@ -70,9 +72,8 @@ const ViewSettings = ({
   };
 
   const onChoose = (value: string) => {
-    //TODO: use value to set global view in store
     setIsChoosingView(true);
-    walletUIUpdated(value);
+    dispatch(walletUIUpdated(value));
     navigation.navigate(Routes.WALLET.HOME);
   };
 

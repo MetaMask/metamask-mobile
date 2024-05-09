@@ -1,14 +1,16 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable @typescript-eslint/no-require-imports */
-export default function withUITheme(theme: string) {
+import React from 'react';
+import WalletTheme01 from '../themes/01';
+import WalletTheme02 from '../themes/02';
+import WalletTheme03 from '../themes/03';
+export default function withUITheme(theme: string, props) {
   switch (theme) {
     case 'default':
-      return require('../themes/01').default;
+      return <WalletTheme01 {...props} />;
     case 'custom01':
-      return require('../themes/02').default;
+      return <WalletTheme02 {...props} />;
     case 'custom02':
-      return require('../themes/03').default;
+      return <WalletTheme03 {...props} />;
     default:
-      return require('../themes/01').default;
+      return <WalletTheme01 {...props} />;
   }
 }

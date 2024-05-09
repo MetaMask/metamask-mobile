@@ -8,20 +8,20 @@ import { NftBackground } from '../../../../Base/NFT';
 import { SmartActions, Action } from '../../../../Base/SmartActions';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
+import { useNavigation } from '@react-navigation/native';
 
 const Custom01 = ({
-  navigation,
   selectedAddress,
   renderContent,
   renderLoader,
   renderOnboardingWizard,
 }: {
-  navigation: any;
   selectedAddress: string;
   renderContent: () => JSX.Element;
   renderLoader: () => JSX.Element;
   renderOnboardingWizard: () => JSX.Element;
 }) => {
+  const navigation = useNavigation();
   const WALLET_SMART_ACTIONS: Action[] = [
     {
       title: strings('asset_overview.earn_button'),

@@ -20,14 +20,18 @@ const Default = ({
   renderContent: () => JSX.Element;
   renderLoader: () => JSX.Element;
   renderOnboardingWizard: () => JSX.Element;
-}) => (
-  <ErrorBoundary navigation={navigation} view="Wallet">
-    <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
-      {selectedAddress ? renderContent() : renderLoader()}
+}) => {
+  console.log('ENTER THEME 01');
 
-      {renderOnboardingWizard()}
-    </View>
-  </ErrorBoundary>
-);
+  return (
+    <ErrorBoundary navigation={navigation} view="Wallet">
+      <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
+        {selectedAddress ? renderContent() : renderLoader()}
+
+        {renderOnboardingWizard()}
+      </View>
+    </ErrorBoundary>
+  );
+};
 
 export default Default;
