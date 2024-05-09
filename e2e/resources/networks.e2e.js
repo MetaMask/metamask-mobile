@@ -98,7 +98,7 @@ const CustomNetworks = {
     providerConfig: {
       type: 'rpc',
       chainId: '0x1',
-      rpcUrl: `https://rpc.tenderly.co/fork/${TENDERLY_KEY}`,
+      rpcUrl: `https://rpc.tenderly.co/fork/${process.env.TENDERLY_NETWORK_ID}`,
       nickname: 'Tenderly',
       ticker: 'ETH',
     },
