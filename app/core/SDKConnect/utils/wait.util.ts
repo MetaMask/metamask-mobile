@@ -10,6 +10,10 @@ import { store } from '../../../../app/store/index';
 export const MAX_QUEUE_LOOP = Infinity;
 export const wait = (ms: number) =>
   new Promise((resolve) => {
+    if (isTest) {
+      return true;
+    }
+
     setTimeout(resolve, ms);
   });
 
@@ -19,6 +23,11 @@ export const waitForReadyClient = async (
     [clientId: string]: DappClient;
   },
 ) => {
+  // Disable during e2e tests otherwise Detox fails
+  if (isTest) {
+    return true;
+  }
+
   let i = 0;
   while (!connectedClients[id]) {
     i += 1;
@@ -53,6 +62,11 @@ export const waitForCondition = async ({
   waitTime?: number;
   context?: string;
 }) => {
+  // Disable during e2e tests otherwise Detox fails
+  if (isTest) {
+    return true;
+  }
+
   let i = 0;
   while (!fn()) {
     i += 1;
@@ -85,14 +99,14 @@ export const waitForKeychainUnlocked = async ({
   keyringController: KeyringController;
   context?: string;
 }) => {
-  let i = 1;
-  if (!keyringController) {
-    console.warn('Keyring controller not found');
-  }
-
   // Disable during e2e tests otherwise Detox fails
   if (isTest) {
     return true;
+  }
+
+  let i = 1;
+  if (!keyringController) {
+    console.warn('Keyring controller not found');
   }
 
   let unlocked = keyringController.isUnlocked();
