@@ -1,13 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import React, { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  ImageBackground,
-  Dimensions,
-  Image,
-} from 'react-native';
+import { StyleSheet, Text, View, Dimensions, Image } from 'react-native';
 
 import Animated, {
   Easing,
@@ -33,10 +26,23 @@ const card_size = {
 
 const styleSheet = (colors: any) =>
   StyleSheet.create({
-    card: {
+    cardContainer: {
       width: card_item,
       height: (card_item * card_size.height) / card_size.width,
       padding: 24,
+      backfaceVisibility: 'hidden',
+      borderRadius: 24,
+    },
+    cardBackImage: {
+      position: 'absolute',
+      height: (card_item * card_size.height) / card_size.width,
+      opacity: 0.9,
+    },
+    card: {
+      position: 'absolute',
+      width: card_item,
+      overflow: 'hidden',
+      borderRadius: 24,
     },
     cardIcon: {
       flexDirection: 'row',
@@ -95,18 +101,16 @@ const Card = (balance: any) => {
   };
 
   const frontCardStyle = useAnimatedStyle(() => ({
-    transform: [{ perspective: 1000 }, { rotateY: `${rotation.value}deg` }],
+    transform: [{ rotateY: `${rotation.value}deg` }],
   }));
 
   const backCardStyle = useAnimatedStyle(() => ({
-    transform: [
-      { perspective: 1000 },
-      { rotateY: `${rotation.value + 180}deg` },
-    ],
+    transform: [{ rotateY: `${rotation.value + 180}deg` }],
+    marginTop: 12,
   }));
 
   return (
-    <View>
+    <>
       <TapGestureHandler
         onHandlerStateChange={(event) => {
           if (event.nativeEvent.state === State.END) {
@@ -114,34 +118,48 @@ const Card = (balance: any) => {
           }
         }}
       >
-        <Animated.View style={[frontCardStyle]}>
-          <ImageBackground
+        <Animated.View style={[styles.cardContainer, frontCardStyle]}>
+          <Image
             source={require('../assets/card_visa_bg.png')}
             style={styles.card}
-          >
-            <View style={styles.cardHeaderRow}>
-              <Image
-                source={require('../../../../../../images/fox.png')}
-                style={styles.cardIcon}
-              />
-              <Text
-                style={styles.cardBalanceText}
-              >{`Balance: $${balance.balance}`}</Text>
+          />
+          <View style={styles.cardHeaderRow}>
+            <Image
+              source={require('../../../../../../images/fox.png')}
+              style={styles.cardIcon}
+            />
+            <Text
+              style={styles.cardBalanceText}
+            >{`Balance: $${balance.balance}`}</Text>
+          </View>
+          <View style={styles.cardNumber}>
+            <Text style={styles.cardNumberText}>{`1234 5678 1234 5678`}</Text>
+          </View>
+          <View style={styles.cardFooter}>
+            <View>
+              <Text style={styles.cardHolderName}>Card holder</Text>
+              <Text style={styles.cardName}>Jonathan Ferreira</Text>
             </View>
-            <View style={styles.cardNumber}>
-              <Text style={styles.cardNumberText}>{`1234 5678 1234 5678`}</Text>
-            </View>
-            <View style={styles.cardFooter}>
-              <View>
-                <Text style={styles.cardHolderName}>Card holder</Text>
-                <Text style={styles.cardName}>Jonathan Ferreira</Text>
-              </View>
-              <Image source={require('../assets/visa_text.png')} />
-            </View>
-          </ImageBackground>
+          </View>
         </Animated.View>
       </TapGestureHandler>
-    </View>
+      <TapGestureHandler
+        onHandlerStateChange={(event) => {
+          if (event.nativeEvent.state === State.END) {
+            toggleFlip();
+          }
+        }}
+      >
+        <Animated.View
+          style={[styles.cardContainer, backCardStyle, styles.card]}
+        >
+          <Image
+            source={require('../../../../../../components/Base/NFT/NftBackground/foxRevamp.png')}
+            style={styles.cardBackImage}
+          />
+        </Animated.View>
+      </TapGestureHandler>
+    </>
   );
 };
 
