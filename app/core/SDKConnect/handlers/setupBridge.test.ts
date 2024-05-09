@@ -21,6 +21,7 @@ describe('setupBridge', () => {
     jest.clearAllMocks();
     originatorInfo = {
       url: 'https://example.com',
+      dappId: 'https://example.com',
       title: 'Test Title',
       platform: 'testPlatform',
     };
