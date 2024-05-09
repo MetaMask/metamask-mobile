@@ -593,6 +593,7 @@ export function getBrowserViewNavbarOptions(
   route,
   themeColors,
   rightButtonAnalyticsEvent,
+  headerShown = true,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -632,6 +633,7 @@ export function getBrowserViewNavbarOptions(
       />
     ),
     headerStyle: innerStyles.headerStyle,
+    headerShown,
   };
 }
 
