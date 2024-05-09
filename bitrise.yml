@@ -685,6 +685,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                #brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
                 brew install ccache
                 ln -s $(which ccache) /usr/local/bin/gcc
                 ln -s $(which ccache) /usr/local/bin/g++
@@ -703,10 +704,6 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
-      - restore-cache@2:
-          title: Restore build from cache
-          inputs:
-            - key: ipa-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
           timeout: 1200
@@ -733,13 +730,11 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
-      - save-cache@1:
-          title: Save build
-          inputs:
-            - key: ipa-cache-{{ .CommitHash }}
-            - paths: |-
-                ios/build/Build
-                ../Library/Detox/ios
+      - deploy-to-bitrise-io@2.2.3:
+        inputs:
+          - pipeline_intermediate_files: |-
+              ios/build/Build:INTERMEDIATE_IOS_BUILD
+              ../Library/Detox/ios:INTERMEDIATE_DETOX_BUILD
       - save-cache@1:
           title: Save node_modules
           inputs:
@@ -752,10 +747,9 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - restore-cache@2:
-          title: Restore cache build
+      - pull-intermediate-files@1:
           inputs:
-            - key: ipa-cache-{{ .CommitHash }}
+            - artifact_sources: .*
       - restore-cocoapods-cache@2: {}
       - restore-cache@2:
           title: Restore cache node_modules
