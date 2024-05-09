@@ -153,7 +153,7 @@
     "@metamask/network-controller": "^17.2.0",
     "@metamask/logging-controller": "^2.0.0",
     "@metamask/message-signing-snap": "^0.3.3",
-    "@metamask/permission-controller": "8.0.0",
+    "@metamask/permission-controller": "^8.0.0",
     "@metamask/phishing-controller": "^8.0.0",
     "@metamask/post-message-stream": "8.0.0",
     "@metamask/ppom-validator": "0.30.0",
