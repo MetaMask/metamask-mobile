@@ -57,6 +57,9 @@ const createStyles = (colors: Colors) =>
       width: '100%',
       textAlign: 'center',
     },
+    secondaryButtonText: {
+      color: colors.text.alternative,
+    },
     header: {
       alignItems: 'center',
     },
@@ -119,7 +122,7 @@ const Benefit = ({ iconName, text }: Props) => {
           <Text
             key={t}
             color={TextColor.Alternative}
-            variant={TextVariant.BodyXS}
+            variant={TextVariant.BodySM}
             style={styles.benefitText}
           >
             {t}
@@ -216,9 +219,8 @@ const SmartTransactionsOptInModal = () => {
   const Descriptions = () => (
     <View style={styles.descriptions}>
       <Text>{strings('whats_new.stx.description_1')}</Text>
-      <Text>{strings('whats_new.stx.description_2')}</Text>
       <Text>
-        {strings('whats_new.stx.description_3')}{' '}
+        {strings('whats_new.stx.description_2')}{' '}
         <Text
           color={TextColor.Primary}
           onPress={() => {
@@ -247,7 +249,11 @@ const SmartTransactionsOptInModal = () => {
       style={styles.button}
       variant={ButtonVariants.Link}
       onPress={optOut}
-      label={strings('whats_new.stx.secondary_button')}
+      label={
+        <Text style={styles.secondaryButtonText}>
+          {strings('whats_new.stx.secondary_button')}
+        </Text>
+      }
     >
       {strings('whats_new.stx.secondary_button')}
     </Button>
