@@ -43,6 +43,7 @@ describe('handleConnectionReady', () => {
       apiVersion: '0.2.0',
       source: 'fakeExtensionId',
       url: 'fakeUrl',
+      dappId: 'fakeUrl',
       icon: 'fakeIcon',
       color: 'fakeColor',
       title: 'asdfsdf',

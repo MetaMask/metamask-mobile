@@ -23,6 +23,7 @@ describe('handleDeeplink', () => {
   const url = 'https://example.com';
   const otherPublicKey = 'publicKey';
   const context = 'testContext';
+  const protocolVersion = 2;
 
   const mockHasInitialized = jest.fn();
   const mockGetConnections = jest.fn();
@@ -66,6 +67,7 @@ describe('handleDeeplink', () => {
       origin,
       url,
       otherPublicKey,
+      protocolVersion,
       context,
     });
 
@@ -82,6 +84,7 @@ describe('handleDeeplink', () => {
       channelId,
       origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
       url: modifiedUrl,
+      protocolVersion,
       otherPublicKey,
       context,
     });
@@ -104,6 +107,7 @@ describe('handleDeeplink', () => {
       origin,
       url,
       otherPublicKey,
+      protocolVersion,
       context,
     });
 
@@ -126,6 +130,7 @@ describe('handleDeeplink', () => {
       channelId,
       origin,
       url,
+      protocolVersion,
       otherPublicKey,
       context,
     });
@@ -147,6 +152,7 @@ describe('handleDeeplink', () => {
       sdkConnect,
       channelId,
       origin,
+      protocolVersion,
       url,
       otherPublicKey,
       context,
