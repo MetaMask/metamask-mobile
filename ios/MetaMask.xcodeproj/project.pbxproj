@@ -144,6 +144,7 @@
 		DC6A024F56DD43E1A83B47B1 /* Roboto-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D5FF0FF1DFB74B3C8BB99E09 /* Roboto-MediumItalic.ttf */; };
 		DDB2D8FF8BDA806A38D61B1B /* libPods-MetaMask-QA.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E0B857D61941CE8A3F59C662 /* libPods-MetaMask-QA.a */; };
 		E34DE917F6FC4438A6E88402 /* EuclidCircularB-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 13EE4910D3BD408A8FCCA5D7 /* EuclidCircularB-BoldItalic.otf */; };
+		E82FB24F2BED4B6E00E84610 /* MMMWidgetQR.swift in Sources */ = {isa = PBXBuildFile; fileRef = E82FB24E2BED4B6E00E84610 /* MMMWidgetQR.swift */; };
 		E83DB5522BBDF2AA00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
 		E83DB5532BBDF2AE00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
 		E83DB5542BBDF2AF00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
@@ -358,6 +359,7 @@
 		E0B857D61941CE8A3F59C662 /* libPods-MetaMask-QA.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask-QA.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2CC0CA5C079854C6CC0D78C /* Pods-MetaMask-QA.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-QA.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask-QA/Pods-MetaMask-QA.debug.xcconfig"; sourceTree = "<group>"; };
 		E82FB23C2BEAB50500E84610 /* MMMWidgetExtensionDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MMMWidgetExtensionDebug.entitlements; sourceTree = "<group>"; };
+		E82FB24E2BED4B6E00E84610 /* MMMWidgetQR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMMWidgetQR.swift; sourceTree = "<group>"; };
 		E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = MetaMask/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
 		E8BF7AD02BE98CF600C81D55 /* TestClip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E8BF7AD22BE98CF700C81D55 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -702,6 +704,7 @@
 				E8BF7B2B2BEA922A00C81D55 /* MMMWidgetBundle.swift */,
 				E8BF7B2D2BEA922A00C81D55 /* MMMWidgetLiveActivity.swift */,
 				E8BF7B2F2BEA922A00C81D55 /* MMMWidget.swift */,
+				E82FB24E2BED4B6E00E84610 /* MMMWidgetQR.swift */,
 				E8BF7B312BEA922A00C81D55 /* AppIntent.swift */,
 				E8BF7B332BEA922B00C81D55 /* Assets.xcassets */,
 				E8BF7B352BEA922B00C81D55 /* Info.plist */,
@@ -1399,6 +1402,7 @@
 			files = (
 				E8BF7B2E2BEA922A00C81D55 /* MMMWidgetLiveActivity.swift in Sources */,
 				E8BF7B322BEA922A00C81D55 /* AppIntent.swift in Sources */,
+				E82FB24F2BED4B6E00E84610 /* MMMWidgetQR.swift in Sources */,
 				698C1C9C2BEC1E7000766B38 /* GasFeeProvider.swift in Sources */,
 				E8BF7B302BEA922A00C81D55 /* MMMWidget.swift in Sources */,
 				E8BF7B2C2BEA922A00C81D55 /* MMMWidgetBundle.swift in Sources */,

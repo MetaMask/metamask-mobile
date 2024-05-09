@@ -10,10 +10,6 @@ import WidgetKit
 import SwiftUI
 import Intents
 
-struct WidgetData: Decodable {
-   var text: String
-}
-
 typealias ConfigurationIntent = INIntent
 let gasFeeProvider = GasFeeProvider.shared
 

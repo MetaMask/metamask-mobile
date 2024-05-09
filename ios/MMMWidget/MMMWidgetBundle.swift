@@ -13,6 +13,7 @@ import SwiftUI
 struct MMMWidgetBundle: WidgetBundle {
     var body: some Widget {
         MMMWidget()
+        MMMWidgetQR()
         MMMWidgetLiveActivity()
     }
 }
