@@ -205,9 +205,9 @@ const patchModulesTask = {
 }
 const tasks = new Listr([
   gemInstallTask,
+  patchModulesTask,
   mainSetupTask,
   ppomBuildTask,
-  patchModulesTask
 ],
   {
     exitOnError: true,
