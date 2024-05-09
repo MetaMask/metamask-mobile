@@ -79,7 +79,7 @@ function NetworkSwitcher() {
         return;
       }
 
-      const popularNetwork = PopularList.find(
+      const popularNetworkDetail = PopularList.find(
         ({ chainId }) => chainId === rampSupportedNetworkChainIdAsHex,
       );
 
