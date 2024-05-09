@@ -1,0 +1,63 @@
+diff --git a/node_modules/react-native-svg/src/xml.tsx b/node_modules/react-native-svg/src/xml.tsx
+index 9e2352a..8eeaa98 100644
+--- a/node_modules/react-native-svg/src/xml.tsx
++++ b/node_modules/react-native-svg/src/xml.tsx
+@@ -124,9 +124,17 @@ export function SvgXml(props: XmlProps) {
+ 
+ export async function fetchText(uri: string) {
+   const response = await fetch(uri);
++  const excludeList = ['text/html', ''];
++  const contentType = response.headers.get('content-type') || '';
++
++  if (excludeList.includes(contentType)) {
++    throw new Error(`Fetching ${uri} resulted in invalid content-type ${contentType}`);
++  }
++
+   if (response.ok || (response.status === 0 && uri.startsWith('file://'))) {
+     return await response.text();
+   }
++
+   throw new Error(`Fetching ${uri} failed with status ${response.status}`);
+ }
+ 
+@@ -134,21 +142,28 @@ export function SvgUri(props: UriProps) {
+   const { onError = err, uri, onLoad, fallback } = props;
+   const [xml, setXml] = useState<string | null>(null);
+   const [isError, setIsError] = useState(false);
++
+   useEffect(() => {
+-    uri
+-      ? fetchText(uri)
+-          .then((data) => {
+-            setXml(data);
+-            isError && setIsError(false);
+-            onLoad?.();
+-          })
+-          .catch((e) => {
+-            onError(e);
+-            setIsError(true);
+-          })
+-      : setXml(null);
++    const fetchXml = async () => {
++      if (uri) {
++        try {
++          const data = await fetchText(uri);
++          setXml(data);
++          isError && setIsError(false);
++          onLoad?.();
++        } catch (e) {
++          onError(e);
++          setIsError(true);
++        }
++      } else {
++        setXml(null);
++      }
++    };
++
++    fetchXml();
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [onError, uri, onLoad]);
++
+   if (isError) {
+     return fallback ?? null;
+   }
