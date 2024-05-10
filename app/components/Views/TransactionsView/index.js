@@ -35,7 +35,6 @@ import {
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { selectPendingSmartTransactionsBySender } from '../../../selectors/smartTransactionsController';
 import { selectNonReplacedTransactions } from '../../../selectors/transactionController';
 
