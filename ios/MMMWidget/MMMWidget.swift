@@ -22,9 +22,9 @@ struct MMProvider: TimelineProvider {
     print("getSnapshot")
     if let gasFees = gasFeeProvider.fetchGasFees() {
       print("Gas Fees", gasFees)
-      let low = String(format: "%.3f", gasFees.low.suggestedMaxFeePerGas)
-      let market = String(format: "%.3f", gasFees.medium.suggestedMaxFeePerGas)
-      let high = String(format: "%.3f", gasFees.high.suggestedMaxFeePerGas)
+      let low = String(format: "%.0f", (Double(gasFees.low.suggestedMaxFeePerGas) ?? 0))
+      let market = String(format: "%.0f",  (Double(gasFees.medium.suggestedMaxFeePerGas) ?? 0))
+      let high = String(format: "%.0f", (Double(gasFees.high.suggestedMaxFeePerGas) ?? 0))
       let entry = GasFeeEntry(date: Date(), lowGwei: low, marketGwei: market, aggressiveGwei: high)
       completion(entry)
       return
@@ -39,9 +39,9 @@ struct MMProvider: TimelineProvider {
       let entryDate = Date()
       if let gasFees = gasFeeProvider.fetchGasFees() {
         print("Gas Fees", gasFees)
-        let low = String(format: "%.3f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.low.suggestedMaxPriorityFeePerGas) ?? 0)))
-        let market = String(format: "%.3f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.medium.suggestedMaxPriorityFeePerGas) ?? 0)))
-        let high = String(format: "%.3f", ((Double(gasFees.estimatedBaseFee) ?? 0) + (Double(gasFees.high.suggestedMaxPriorityFeePerGas) ?? 0)))
+        let low = String(format: "%.0f", (Double(gasFees.low.suggestedMaxFeePerGas) ?? 0))
+        let market = String(format: "%.0f",  (Double(gasFees.medium.suggestedMaxFeePerGas) ?? 0))
+        let high = String(format: "%.0f", (Double(gasFees.high.suggestedMaxFeePerGas) ?? 0))
         let nextRefresh = Calendar.current.date(byAdding: .minute, value: 1, to: entryDate)!
         let entry = GasFeeEntry(date: nextRefresh, lowGwei: low, marketGwei: market, aggressiveGwei: high)
         let timeline = Timeline(entries: [entry], policy: .atEnd)
