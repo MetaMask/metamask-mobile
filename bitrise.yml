@@ -533,8 +533,7 @@ workflows:
       - script@1:
           title: Run detox build
           timeout: 1200
-          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
-          is_always_run: false
+          is_always_run: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash
