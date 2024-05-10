@@ -55,4 +55,10 @@ describe('parseRampIntent', () => {
       currency: 'usd',
     });
   });
+
+  it('should return a RampIntent object with only defined values', () => {
+    const pathParams = { chainId: '56', amount: undefined, address: undefined };
+    const result = parseRampIntent(pathParams);
+    expect(result).toEqual({ chainId: '56' });
+  });
 });
