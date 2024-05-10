@@ -180,9 +180,11 @@ class OptinMetrics extends PureComponent {
         return {
           action: actionVal,
           prefix: actionVal
-            ? `${strings('privacy_policy.action_description_never')} `
+            ? `${strings('privacy_policy.action_description_never_legacy')} `
             : '',
-          description: strings(`privacy_policy.action_description_${value}`),
+          description: strings(
+            `privacy_policy.action_description_${value}_legacy`,
+          ),
         };
       });
 
