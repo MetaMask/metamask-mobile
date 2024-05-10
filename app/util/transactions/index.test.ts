@@ -21,7 +21,7 @@ import {
   calculateEIP1559Times,
   parseTransactionLegacy,
   getIsNativeTokenTransferred,
-  getIsInSwapFlowTransaction,
+  getIsSwapApproveOrSwapTransaction,
   getIsSwapApproveTransaction,
   getIsSwapTransaction,
 } from '.';
@@ -771,9 +771,9 @@ const swapFlowSwapEthTxMeta = {
   },
 };
 
-describe('Transactions utils :: getIsInSwapFlowTransaction', () => {
+describe('Transactions utils :: getIsSwapApproveOrSwapTransaction', () => {
   it('returns true if the transaction is an approve tx in the swap flow for ERC20 from token', () => {
-    const result = getIsInSwapFlowTransaction(
+    const result = getIsSwapApproveOrSwapTransaction(
       swapFlowApproveERC20TxMeta.transaction.data,
       swapFlowApproveERC20TxMeta.origin,
       swapFlowApproveERC20TxMeta.transaction.to,
@@ -782,7 +782,7 @@ describe('Transactions utils :: getIsInSwapFlowTransaction', () => {
     expect(result).toBe(true);
   });
   it('returns true if the transaction is a swap tx in the swap flow for ERC20 from token', () => {
-    const result = getIsInSwapFlowTransaction(
+    const result = getIsSwapApproveOrSwapTransaction(
       swapFlowSwapERC20TxMeta.transaction.data,
       swapFlowSwapERC20TxMeta.origin,
       swapFlowSwapERC20TxMeta.transaction.to,
@@ -791,7 +791,7 @@ describe('Transactions utils :: getIsInSwapFlowTransaction', () => {
     expect(result).toBe(true);
   });
   it('returns true if the transaction is a swap tx in the swap flow for ETH from token', () => {
-    const result = getIsInSwapFlowTransaction(
+    const result = getIsSwapApproveOrSwapTransaction(
       swapFlowSwapEthTxMeta.transaction.data,
       swapFlowSwapEthTxMeta.origin,
       swapFlowSwapEthTxMeta.transaction.to,
@@ -800,7 +800,7 @@ describe('Transactions utils :: getIsInSwapFlowTransaction', () => {
     expect(result).toBe(true);
   });
   it('returns false if the transaction is a send ERC20 tx', () => {
-    const result = getIsInSwapFlowTransaction(
+    const result = getIsSwapApproveOrSwapTransaction(
       sendERC20TxMeta.transaction.data,
       sendERC20TxMeta.origin,
       sendERC20TxMeta.transaction.to,
@@ -809,7 +809,7 @@ describe('Transactions utils :: getIsInSwapFlowTransaction', () => {
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a send ETH tx', () => {
-    const result = getIsInSwapFlowTransaction(
+    const result = getIsSwapApproveOrSwapTransaction(
       sendEthTxMeta.transaction.data,
       sendEthTxMeta.origin,
       sendEthTxMeta.transaction.to,
@@ -818,7 +818,7 @@ describe('Transactions utils :: getIsInSwapFlowTransaction', () => {
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a dapp tx', () => {
-    const result = getIsInSwapFlowTransaction(
+    const result = getIsSwapApproveOrSwapTransaction(
       dappTxMeta.transaction.data,
       dappTxMeta.origin,
       dappTxMeta.transaction.to,

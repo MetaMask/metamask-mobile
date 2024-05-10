@@ -1443,7 +1443,12 @@ export const minimumTokenAllowance = (tokenDecimals) => {
 /**
  * For a MM Swap tx: Determines if the transaction is an ERC20 approve tx OR the actual swap tx where tokens are transferred
  */
-export const getIsInSwapFlowTransaction = (data, origin, to, chainId) => {
+export const getIsSwapApproveOrSwapTransaction = (
+  data,
+  origin,
+  to,
+  chainId,
+) => {
   if (!data) {
     return false;
   }
@@ -1454,8 +1459,7 @@ export const getIsInSwapFlowTransaction = (data, origin, to, chainId) => {
     origin === process.env.MM_FOX_CODE &&
     to &&
     (swapsUtils.isValidContractAddress(chainId, to) ||
-      (data &&
-        data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+      (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
         decodeApproveData(data).spenderAddress?.toLowerCase() ===
           swapsUtils.getSwapsContractAddress(chainId)))
   );
@@ -1483,14 +1487,19 @@ export const getIsSwapApproveTransaction = (data, origin, to, chainId) => {
  * For a MM Swap tx: Determines if the transaction is the actual swap tx where tokens are transferred
  */
 export const getIsSwapTransaction = (data, origin, to, chainId) => {
-  const isInSwapFlow = getIsInSwapFlowTransaction(data, origin, to, chainId);
+  const isSwapApproveOrSwapTransction = getIsSwapApproveOrSwapTransaction(
+    data,
+    origin,
+    to,
+    chainId,
+  );
   const isSwapApprove = getIsSwapApproveTransaction(data, origin, to, chainId);
 
-  return isInSwapFlow && !isSwapApprove;
+  return isSwapApproveOrSwapTransction && !isSwapApprove;
 };
 
 /**
  * For a MM Swap tx: Determines if the transaction is a native swap
  */
-export const getIsNativeTokenTransferred = (transaction) =>
-  transaction?.value !== '0x0';
+export const getIsNativeTokenTransferred = (txParams) =>
+  txParams?.value !== '0x0';

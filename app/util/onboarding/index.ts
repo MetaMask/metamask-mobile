@@ -10,6 +10,11 @@ import { whatsNewList } from '../../components/UI/WhatsNewModal';
 import AsyncStorage from '../../store/async-storage-wrapper';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
+const isVersionSeenAndGreaterThanMinAppVersion = (
+  versionSeen: string,
+  minAppVersion: string,
+) => !!versionSeen && compareVersions.compare(versionSeen, minAppVersion, '>=');
+
 const STX_OPT_IN_MIN_APP_VERSION = '7.16.0';
 
 /**
@@ -22,12 +27,13 @@ export const shouldShowSmartTransactionsOptInModal = async (
   chainId: string,
   providerConfigRpcUrl: string | undefined,
 ) => {
-  // Check chain and RPC
+  // Check chain and RPC, undefined is the default RPC
   if (
     !(
       chainId === NETWORKS_CHAIN_ID.MAINNET &&
       providerConfigRpcUrl === undefined
-    )
+    ) ||
+    process.env.IS_TEST === 'true'
   ) {
     return false;
   }
@@ -38,9 +44,10 @@ export const shouldShowSmartTransactionsOptInModal = async (
   );
   const currentAppVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
 
-  const seen =
-    !!versionSeen &&
-    compareVersions.compare(versionSeen, STX_OPT_IN_MIN_APP_VERSION, '>=');
+  const seen = isVersionSeenAndGreaterThanMinAppVersion(
+    versionSeen,
+    STX_OPT_IN_MIN_APP_VERSION,
+  );
 
   if (seen) return false;
 
@@ -51,9 +58,7 @@ export const shouldShowSmartTransactionsOptInModal = async (
     '>=',
   );
 
-  if (!versionCorrect) return false;
-
-  return true;
+  return versionCorrect;
 };
 
 /**
@@ -70,13 +75,10 @@ export const shouldShowWhatsNewModal = async () => {
   const lastAppVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
   const isUpdate = !!lastAppVersion && currentAppVersion !== lastAppVersion;
 
-  const seen =
-    !!whatsNewAppVersionSeen &&
-    compareVersions.compare(
-      whatsNewAppVersionSeen,
-      whatsNewList.minAppVersion,
-      '>=',
-    );
+  const seen = isVersionSeenAndGreaterThanMinAppVersion(
+    whatsNewAppVersionSeen,
+    whatsNewList.minAppVersion,
+  );
 
   if (seen) return false;
 
