@@ -10,6 +10,7 @@ import { useTheme } from '../../../../../util/theme';
 import { AccountInformation } from '@metamask/assets-controllers';
 import { renderFromWei, toHexadecimal } from '../../../../../util/number';
 import { ProviderConfig } from '@metamask/network-controller';
+import WidgetList from './components/SortableList/WidgetList';
 
 const styleSheet = (colors: any) =>
   StyleSheet.create({
@@ -75,6 +76,8 @@ const Custom02 = ({
           </View>
           <ListService />
           <RecentTransaction />
+
+          <WidgetList />
         </ScrollView>
       ) : (
         renderLoader()
