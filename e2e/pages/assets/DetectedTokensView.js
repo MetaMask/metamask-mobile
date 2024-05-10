@@ -1,4 +1,4 @@
-import { DetectedTokensSelectorIDs } from '../../selectors/asseets/DetectedTokensView.selectors';
+import { DetectedTokensSelectorIDs } from '../../selectors/assets/DetectedTokensView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
