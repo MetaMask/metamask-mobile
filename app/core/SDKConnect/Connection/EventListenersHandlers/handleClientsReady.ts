@@ -27,7 +27,8 @@ function handleClientsReady({
   return async (clientsReadyMsg: { originatorInfo: OriginatorInfo }) => {
     try {
       await handleConnectionReady({
-        originatorInfo: clientsReadyMsg.originatorInfo,
+        originatorInfo:
+          clientsReadyMsg?.originatorInfo ?? instance.originatorInfo,
         engine: Engine,
         updateOriginatorInfos,
         approveHost,
