@@ -142,7 +142,7 @@ const AccountActions = () => {
     });
   };
 
-  const removeHardwareAccount = useCallback(() => {
+  const showRemoveHWAlert = useCallback(() => {
     Alert.alert(
       strings('accounts.remove_account_title'),
       strings('accounts.remove_account_alert_description'),
@@ -156,61 +156,61 @@ const AccountActions = () => {
           text: strings('accounts.remove_account_alert_remove_btn'),
           onPress: async () => {
             setBlockingModalVisible(true);
-            const kr = getKeyringByAddress(selectedAddress);
-            let requestForgetDevice = false;
-
-            // Remove account from KeyringController
-            await Controller.KeyringController.removeAccount(selectedAddress);
-            await removeAccountsFromPermissions([selectedAddress]);
-            const newAccounts =
-              await Controller.KeyringController.getAccounts();
-            Controller.PreferencesController.updateIdentities(newAccounts);
-
-            // setSelectedAddress to the initial account
-            Engine.setSelectedAddress(newAccounts[0]);
-
-            const { keyrings } = Controller.KeyringController.state;
-
-            const updatedKeyring = keyrings.find(
-              (keyring: { type: any }) => keyring.type === kr.type,
-            );
-
-            // If there are no more accounts in the keyring, forget the device
-            if (updatedKeyring) {
-              if (updatedKeyring.accounts.length === 0) {
-                requestForgetDevice = true;
-              }
-            } else {
-              requestForgetDevice = true;
-            }
-            if (requestForgetDevice) {
-              switch (kr.type) {
-                case ExtendedKeyringTypes.ledger:
-                  await forgetLedger();
-                  trackEvent(
-                    MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN,
-                    {
-                      device_type: 'Ledger',
-                    },
-                  );
-                  break;
-                case ExtendedKeyringTypes.qr:
-                  await Controller.KeyringController.forgetQRDevice();
-                  // there is not a MetaMetricsEvent for this action??
-                  break;
-                default:
-                  break;
-              }
-            }
-
-            setBlockingModalVisible(false);
           },
         },
       ],
     );
+  }, []);
+
+  const triggerRemoveHWAccount = useCallback(async () => {
+    if (blockingModalVisible) {
+      const kr = getKeyringByAddress(selectedAddress);
+      let requestForgetDevice = false;
+
+      // Remove account from KeyringController
+      await Controller.KeyringController.removeAccount(selectedAddress);
+      await removeAccountsFromPermissions([selectedAddress]);
+      const newAccounts = await Controller.KeyringController.getAccounts();
+
+      // setSelectedAddress to the initial account
+      Engine.setSelectedAddress(newAccounts[0]);
+
+      const { keyrings } = Controller.KeyringController.state;
+
+      const updatedKeyring = keyrings.find(
+        (keyring: { type: any }) => keyring.type === kr.type,
+      );
+
+      // If there are no more accounts in the keyring, forget the device
+      if (updatedKeyring) {
+        if (updatedKeyring.accounts.length === 0) {
+          requestForgetDevice = true;
+        }
+      } else {
+        requestForgetDevice = true;
+      }
+      if (requestForgetDevice) {
+        switch (kr.type) {
+          case ExtendedKeyringTypes.ledger:
+            await forgetLedger();
+            trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
+              device_type: 'Ledger',
+            });
+            break;
+          case ExtendedKeyringTypes.qr:
+            await Controller.KeyringController.forgetQRDevice();
+            // there is not a MetaMetricsEvent for this action??
+            break;
+          default:
+            break;
+        }
+      }
+
+      setBlockingModalVisible(false);
+    }
   }, [
     Controller.KeyringController,
-    Controller.PreferencesController,
+    blockingModalVisible,
     selectedAddress,
     trackEvent,
   ]);
@@ -260,13 +260,17 @@ const AccountActions = () => {
         {isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
-            iconName={IconName.Danger}
-            onPress={removeHardwareAccount}
+            iconName={IconName.Close}
+            onPress={showRemoveHWAlert}
             {...generateTestId(Platform, REMOVE_HARDWARE_ACCOUNT)}
           />
         )}
       </View>
-      <BlockingActionModal modalVisible={blockingModalVisible} isLoadingAction>
+      <BlockingActionModal
+        modalVisible={blockingModalVisible}
+        isLoadingAction
+        onAnimationCompleted={triggerRemoveHWAccount}
+      >
         <Text style={styles.text}>
           {strings('connect_qr_hardware.please_wait')}
         </Text>

@@ -93,6 +93,13 @@ const LedgerSelectAccount = ({ navigation }: ILedgerSelectAccountProps) => {
     { address: string; index: number; balance: string }[]
   >([]);
 
+  const [unlockAccounts, setUnlockAccounts] = useState({
+    trigger: false,
+    accountIndexes: [] as number[],
+  });
+
+  const [forgetDevice, setForgetDevice] = useState(false);
+
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
 
   useEffect(() => {
@@ -140,13 +147,36 @@ const LedgerSelectAccount = ({ navigation }: ILedgerSelectAccountProps) => {
   );
 
   const onForget = useCallback(async () => {
+    setBlockingModalVisible(true);
     await forgetLedger();
     dispatch(setReloadAccounts(true));
     trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
       device_type: 'Ledger',
     });
+    setBlockingModalVisible(false);
     navigation.dispatch(StackActions.pop(2));
   }, [dispatch, navigation, trackEvent]);
+
+  const onAnimationCompleted = useCallback(async () => {
+    if (blockingModalVisible) {
+      if (forgetDevice) {
+        await onForget();
+        setBlockingModalVisible(false);
+        setForgetDevice(false);
+      } else if (unlockAccounts.trigger) {
+        await onUnlock(unlockAccounts.accountIndexes);
+        setBlockingModalVisible(false);
+        setUnlockAccounts({ trigger: false, accountIndexes: [] });
+      }
+    }
+  }, [
+    blockingModalVisible,
+    forgetDevice,
+    onForget,
+    onUnlock,
+    unlockAccounts.accountIndexes,
+    unlockAccounts.trigger,
+  ]);
 
   return accounts.length <= 0 ? (
     <LedgerConnect onConnectLedger={onConnectHardware} />
@@ -170,12 +200,22 @@ const LedgerSelectAccount = ({ navigation }: ILedgerSelectAccountProps) => {
           nextPage={nextPage}
           prevPage={prevPage}
           toggleAccount={onToggle}
-          onUnlock={onUnlock}
-          onForget={onForget}
+          onUnlock={(accountIndex: number[]) => {
+            setUnlockAccounts({ trigger: true, accountIndexes: accountIndex });
+            setBlockingModalVisible(true);
+          }}
+          onForget={() => {
+            setForgetDevice(true);
+            setBlockingModalVisible(true);
+          }}
           title={strings('connect_qr_hardware.select_accounts')}
         />
       </View>
-      <BlockingActionModal modalVisible={blockingModalVisible} isLoadingAction>
+      <BlockingActionModal
+        modalVisible={blockingModalVisible}
+        isLoadingAction
+        onAnimationCompleted={onAnimationCompleted}
+      >
         <Text style={styles.text}>
           {strings('connect_qr_hardware.please_wait')}
         </Text>

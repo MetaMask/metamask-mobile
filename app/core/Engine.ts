@@ -113,7 +113,7 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
-import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
+import type { DialogType, EnumToUnion } from '@metamask/snaps-sdk';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Duplex } from 'stream';
 ///: END:ONLY_INCLUDE_IF
@@ -128,7 +128,7 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, LEGACY_DERIVATION_PARAMS } from './Encryptor';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import {
   isMainnetByChainId,
   getDecimalChainId,
@@ -198,7 +198,7 @@ import {
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor({
-  derivationParams: LEGACY_DERIVATION_PARAMS,
+  keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
 });
 let currentChainId: any;
 
@@ -213,6 +213,7 @@ interface TestOrigin {
   type: `${PhishingController['name']}:testOrigin`;
   handler: PhishingController['test'];
 }
+
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
 
 type SnapsGlobalActions =
@@ -240,7 +241,8 @@ type GlobalActions =
   | SnapsGlobalActions
   ///: END:ONLY_INCLUDE_IF
   | KeyringControllerActions
-  | AccountsControllerActions;
+  | AccountsControllerActions
+  | PreferencesControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -254,7 +256,8 @@ type GlobalEvents =
   | SignatureControllerEvents
   | KeyringControllerEvents
   | PPOMControllerEvents
-  | AccountsControllerEvents;
+  | AccountsControllerEvents
+  | PreferencesControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -291,6 +294,51 @@ export interface EngineState {
 }
 
 /**
+ * All mobile controllers, keyed by name
+ */
+interface Controllers {
+  AccountsController: AccountsController;
+  AccountTrackerController: AccountTrackerController;
+  AddressBookController: AddressBookController;
+  ApprovalController: ApprovalController;
+  AssetsContractController: AssetsContractController;
+  CurrencyRateController: CurrencyRateController;
+  GasFeeController: GasFeeController;
+  KeyringController: KeyringController;
+  LoggingController: LoggingController;
+  NetworkController: NetworkController;
+  NftController: NftController;
+  NftDetectionController: NftDetectionController;
+  // TODO: Fix permission types
+  PermissionController: PermissionController<any, any>;
+  PhishingController: PhishingController;
+  PreferencesController: PreferencesController;
+  PPOMController: PPOMController;
+  TokenBalancesController: TokenBalancesController;
+  TokenListController: TokenListController;
+  TokenDetectionController: TokenDetectionController;
+  TokenRatesController: TokenRatesController;
+  TokensController: TokensController;
+  TransactionController: TransactionController;
+  SignatureController: SignatureController;
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  SnapController: SnapController;
+  SubjectMetadataController: SubjectMetadataController;
+  ///: END:ONLY_INCLUDE_IF
+  SwapsController: SwapsController;
+}
+
+/**
+ * Controllers that area always instantiated
+ */
+type RequiredControllers = Omit<Controllers, 'PPOMController'>;
+
+/**
+ * Controllers that are sometimes not instantiated
+ */
+type OptionalControllers = Pick<Controllers, 'PPOMController'>;
+
+/**
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
  */
@@ -302,35 +350,7 @@ class Engine {
   /**
    * A collection of all controller instances
    */
-  context:
-    | {
-        AccountTrackerController: AccountTrackerController;
-        AddressBookController: AddressBookController;
-        ApprovalController: ApprovalController;
-        AssetsContractController: AssetsContractController;
-        CurrencyRateController: CurrencyRateController;
-        GasFeeController: GasFeeController;
-        KeyringController: KeyringController;
-        LoggingController: LoggingController;
-        NetworkController: NetworkController;
-        NftController: NftController;
-        NftDetectionController: NftDetectionController;
-        // TODO: Fix permission types
-        PermissionController: PermissionController<any, any>;
-        PhishingController: PhishingController;
-        PreferencesController: PreferencesController;
-        PPOMController?: PPOMController;
-        TokenBalancesController: TokenBalancesController;
-        TokenListController: TokenListController;
-        TokenDetectionController: TokenDetectionController;
-        TokenRatesController: TokenRatesController;
-        TokensController: TokensController;
-        TransactionController: TransactionController;
-        SignatureController: SignatureController;
-        SwapsController: SwapsController;
-        AccountsController: AccountsController;
-      }
-    | any;
+  context: RequiredControllers & Partial<OptionalControllers>;
   /**
    * The global controller messenger.
    */
@@ -351,6 +371,7 @@ class Engine {
    * Object that runs and manages the execution of Snaps
    */
   snapExecutionService: WebViewExecutionService;
+
   ///: END:ONLY_INCLUDE_IF
 
   /**
@@ -672,7 +693,8 @@ class Engine {
     const qrKeyringBuilder = () => new QRHardwareKeyring();
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
-    const ledgerKeyringBuilder = () => new LedgerKeyring();
+    const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
+    const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
     ledgerKeyringBuilder.type = LedgerKeyring.type;
 
     const keyringController = new KeyringController({

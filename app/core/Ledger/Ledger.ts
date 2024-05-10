@@ -29,7 +29,7 @@ export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
   // There should only be one ledger keyring.
   const keyring = keyringController.getKeyringsByType(
     ExtendedKeyringTypes.ledger,
-  );
+  ) as LedgerKeyring[];
 
   return keyring.length ? keyring[0] : await addLedgerKeyring();
 };
@@ -77,13 +77,12 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  * Forgets the ledger keyring previous device specific state.
  */
 export const forgetLedger = async (): Promise<void> => {
-  const { KeyringController, PreferencesController } = Engine.context;
+  const { KeyringController } = Engine.context;
 
   const keyring = await getLedgerKeyring();
   keyring.forgetDevice();
 
   await KeyringController.persistAllKeyrings();
-  PreferencesController.updateIdentities(await KeyringController.getAccounts());
 };
 
 /**

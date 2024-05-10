@@ -33,6 +33,7 @@ export default function BlockingActionModal({
   children,
   modalVisible,
   isLoadingAction,
+  onAnimationCompleted,
 }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -43,6 +44,7 @@ export default function BlockingActionModal({
       backdropOpacity={1}
       isVisible={modalVisible}
       style={styles.modal}
+      onModalShow={onAnimationCompleted}
       hideModalContentWhileAnimating
     >
       <View style={styles.modalView}>
@@ -70,4 +72,6 @@ BlockingActionModal.propTypes = {
    * Content to display above the action buttons
    */
   children: PropTypes.node,
+
+  onAnimationCompleted: PropTypes.func,
 };
