@@ -469,7 +469,7 @@ class Approval extends PureComponent {
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
-        const deviceId = getDeviceId();
+        const deviceId = await getDeviceId();
         this.setState({ transactionHandled: true });
         this.setState({ transactionConfirmed: false });
 

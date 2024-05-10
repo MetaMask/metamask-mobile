@@ -88,10 +88,10 @@ export const recreateVaultWithNewPassword = async (
   const existingAccountCount = hdKeyring.accounts.length;
 
   const serializedLedgerKeyring = hasKeyringType(KeyringTypes.ledger)
-    ? getSerializedKeyring(KeyringTypes.ledger)
+    ? await getSerializedKeyring(KeyringTypes.ledger)
     : undefined;
   const serializedQrKeyring = hasKeyringType(KeyringTypes.qr)
-    ? getSerializedKeyring(KeyringTypes.qr)
+    ? await getSerializedKeyring(KeyringTypes.qr)
     : undefined;
 
   // Recreate keyring with password given to this method
