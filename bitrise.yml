@@ -744,7 +744,7 @@ workflows:
       - save-cache@1:
           title: Save node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - key: node_modules-cache-{{ checksum "yarn.lock" }}
             - paths: node_modules
   ios_e2e_test:
     before_run:
@@ -776,7 +776,7 @@ workflows:
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - key: node_modules-cache-{{ checksum "yarn.lock" }}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
