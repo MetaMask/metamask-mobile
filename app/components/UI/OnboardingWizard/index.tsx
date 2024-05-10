@@ -1,30 +1,33 @@
 import React, { useContext } from 'react';
-import PropTypes from 'prop-types';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TextStyle } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import DefaultPreference from 'react-native-default-preference';
+import Modal from 'react-native-modal';
+import type { Theme } from '@metamask/design-tokens';
+import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { colors as importedColors } from '../../../styles/common';
-import { connect } from 'react-redux';
+
 import Step1 from './Step1';
 import Step2 from './Step2';
 import Step3 from './Step3';
 import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
+import Step7 from './Step7';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import DefaultPreference from 'react-native-default-preference';
-import Modal from 'react-native-modal';
+import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../core/Analytics';
-import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import AsyncStorageWrapper from '../../../store/async-storage-wrapper';
 import { isTest } from '../../../util/test/utils';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 
-const createStyles = ({ colors, typography }) =>
+const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     root: {
       top: 0,
@@ -62,30 +65,38 @@ const createStyles = ({ colors, typography }) =>
       justifyContent: 'center',
     },
     skipText: {
-      ...typography.BodyMD,
+      ...typography.sBodyMD,
       color: colors.primary.default,
-    },
+    } as TextStyle,
   });
 
-const OnboardingWizard = (props) => {
-  const {
-    setOnboardingWizardStep,
-    navigation,
-    wizard: { step },
-    coachmarkRef,
-    isAutomaticSecurityChecksModalOpen,
-  } = props;
+interface OnboardingWizardProps {
+  navigation: any;
+  coachmarkRef: React.RefObject<any> | null;
+}
+
+const OnboardingWizard = ({
+  navigation,
+  coachmarkRef,
+}: OnboardingWizardProps) => {
   const { drawerRef } = useContext(DrawerContext);
   const theme = useTheme();
+  const dispatch = useDispatch();
   const { trackEvent } = useMetrics();
   const styles = createStyles(theme);
+
+  const isAutomaticSecurityChecksModalOpen = useSelector(
+    (state: any) => state.security.isAutomaticSecurityChecksModalOpen,
+  );
+
+  const { step } = useSelector((state: any) => state.wizard);
 
   /**
    * Close onboarding wizard setting step to 0 and closing drawer
    */
   const closeOnboardingWizard = async () => {
     await DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED);
-    setOnboardingWizardStep && setOnboardingWizardStep(0);
+    dispatch(setOnboardingWizardStep(0));
     drawerRef?.current?.dismissDrawer?.();
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
       tutorial_step_count: step,
@@ -107,34 +118,29 @@ const OnboardingWizard = (props) => {
     inTestCloseOnboardingWizard();
   }
 
-  const onboardingWizardNavigator = (step) => {
-    const steps = {
+  const onboardingWizardNavigator = (s: number) => {
+    const steps: Record<number, JSX.Element> = {
       1: <Step1 onClose={closeOnboardingWizard} />,
       2: <Step2 coachmarkRef={coachmarkRef} onClose={closeOnboardingWizard} />,
       3: <Step3 coachmarkRef={coachmarkRef} onClose={closeOnboardingWizard} />,
-      4: <Step4 coachmarkRef={coachmarkRef} onClose={closeOnboardingWizard} />,
-      5: (
-        <Step5
-          coachmarkRef={coachmarkRef}
-          navigation={navigation}
-          onClose={closeOnboardingWizard}
-        />
-      ),
+      4: <Step4 onClose={closeOnboardingWizard} />,
+      5: <Step5 coachmarkRef={coachmarkRef} onClose={closeOnboardingWizard} />,
       6: <Step6 navigation={navigation} onClose={closeOnboardingWizard} />,
+      7: <Step7 navigation={navigation} onClose={closeOnboardingWizard} />,
     };
-    return steps[step];
+    return steps[s];
   };
 
   const getBackButtonBehavior = () => {
     if (step === 1) {
       return closeOnboardingWizard();
-    } else if (step === 5) {
-      setOnboardingWizardStep(4);
-      navigation.navigate('WalletView');
-      drawerRef?.current?.dismissDrawer?.();
     } else if (step === 6) {
+      dispatch(setOnboardingWizardStep(5));
+      navigation.navigate(Routes.WALLET.HOME);
+      drawerRef?.current?.dismissDrawer?.();
+    } else if (step === 7) {
       drawerRef?.current?.showDrawer?.();
-      setOnboardingWizardStep(5);
+      dispatch(setOnboardingWizardStep(6));
     }
     return setOnboardingWizardStep(step - 1);
   };
@@ -149,8 +155,6 @@ const OnboardingWizard = (props) => {
       animationOut={{ from: { opacity: 0 }, to: { opacity: 0 } }}
       isVisible
       backdropOpacity={0}
-      disableAnimation
-      transparent
       onBackButtonPress={getBackButtonBehavior}
       style={styles.root}
     >
@@ -159,37 +163,4 @@ const OnboardingWizard = (props) => {
   );
 };
 
-const mapDispatchToProps = (dispatch) => ({
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
-});
-
-const mapStateToProps = (state) => ({
-  wizard: state.wizard,
-  isAutomaticSecurityChecksModalOpen:
-    state.security.isAutomaticSecurityChecksModalOpen,
-});
-
-OnboardingWizard.propTypes = {
-  /**
-   * Object that represents the navigator
-   */
-  navigation: PropTypes.object,
-  /**
-   * Wizard state
-   */
-  wizard: PropTypes.object,
-  /**
-   * Dispatch set onboarding wizard step
-   */
-  setOnboardingWizardStep: PropTypes.func,
-  /**
-   * Coachmark ref to get position
-   */
-  coachmarkRef: PropTypes.object,
-  /**
-   * Boolean that determines if the user has selected the automatic security check option
-   */
-  isAutomaticSecurityChecksModalOpen: PropTypes.bool,
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(OnboardingWizard);
+export default OnboardingWizard;
