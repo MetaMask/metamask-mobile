@@ -734,6 +734,7 @@ workflows:
             - pipeline_intermediate_files: |-
                 ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
                 ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
+          title: Save iOS build
       - save-cache@1:
           title: Save node_modules
           inputs:
@@ -749,21 +750,22 @@ workflows:
       - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
+          title: Pull iOS build
       - script@1:
-          title: Restore iOS build directories
-          is_always_run: true
+          title: Copy iOS build for Detox
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
+
+                # Create directories for Detox
                 mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build"
                 mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
                 cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
-                ls -l "$INTERMEDIATE_IOS_BUILD_DIR"
-                ls -l "$INTERMEDIATE_IOS_DETOX_DIR"
-                ls -l "$BITRISE_SOURCE_DIR/ios/build/Build"
-                ls -l "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
       - restore-cocoapods-cache@2: {}
       - restore-cache@2:
           title: Restore cache node_modules
