@@ -11,10 +11,13 @@ import SwiftUI
 import Intents
 import CoreImage.CIFilterBuiltins
 
+    var accountName =  ""
+    var accountNumber = ""
+
 struct MMQRProvider: TimelineProvider {
   func placeholder(in context: Context) -> QREntry {
     print("placeholder")
-    return QREntry(date: Date(), QRString: "", accountName: "", accountAddress: "")
+    return QREntry(date: Date(), error: false, QRString: "", data: WidgetQRData(accountName: accountName, accountNumber: accountNumber))
   }
   
   func getSnapshot(in context: Context, completion: @escaping (QREntry) -> Void) {
@@ -27,39 +30,39 @@ struct MMQRProvider: TimelineProvider {
     let userDefaults = UserDefaults(suiteName: "group.io.metamask.MetaMask")
     guard let userDefaults = userDefaults else {
         print("UserDefaults not accessible")
-        let entry = QREntry(date: Date(), error: true, QRString: "", accountName: "", accountAddress: "")
+        let entry = QREntry(date: Date(), error: false, QRString: "", data: WidgetQRData(accountName: accountName, accountNumber: accountNumber))
         let timeline = Timeline(entries: [entry], policy: .atEnd)
         completion(timeline)
         return
     }
 
-    if let savedData = userDefaults.value(forKey: "qrData") as? String {
-        guard let data = savedData.data(using: .utf8) else {
-            print("Data encoding failed")
-            let entry = QREntry(date: Date(), error: true, QRString: "", accountName: "", accountAddress: "")
-            let timeline = Timeline(entries: [entry], policy: .atEnd)
-            completion(timeline)
-            return
-        }
+print("userDefaults", userDefaults.value(forKey: "qrData"))
+if let jsonString = userDefaults.string(forKey: "qrData") {
+    if let jsonData = jsonString.data(using: .utf8),
+    let savedData = try? JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: String] {
 
+     accountName = savedData["accountName"] ?? ""
+     accountNumber = savedData["accountNumber"] ?? ""
+    }
+    
         do {
             print("Getting data")
-            let parsedData = try JSONDecoder().decode(WidgetQRData.self, from: data)
-            print("parsedData", parsedData)
+            // let parsedData = try JSONDecoder().decode(WidgetQRData.self, from: data)
+            // print("parsedData", parsedData)
             let nextRefresh = Calendar.current.date(byAdding: .minute, value: 1, to: entryDate)!
-            let entry = QREntry(date: nextRefresh, QRString: "", accountName: parsedData.accountName, accountAddress: parsedData.accountNumber)
+            let entry = QREntry(date: nextRefresh, QRString: "",data: WidgetQRData(accountName: accountName, accountNumber: accountNumber))
             let timeline = Timeline(entries: [entry], policy: .atEnd)
             completion(timeline)
         } catch {
             print("Data parsing error: \(error)")
-            let entry = QREntry(date: Date(), error: true, QRString: "", accountName: "", accountAddress: "")
+            let entry = QREntry(date: Date(), error: false, QRString: "", data: WidgetQRData(accountName: accountName, accountNumber: accountNumber))
             let timeline = Timeline(entries: [entry], policy: .atEnd)
             completion(timeline)
         }
     } else {
         print("No data set in UserDefaults")
         let nextRefresh = Calendar.current.date(byAdding: .minute, value: 1, to: entryDate)!
-        let entry = QREntry(date: nextRefresh, error: true, QRString: "", accountName: "", accountAddress: "")
+        let entry = QREntry(date: Date(), error: false, QRString: "", data: WidgetQRData(accountName: accountName, accountNumber: accountNumber))
         let timeline = Timeline(entries: [entry], policy: .atEnd)
         completion(timeline)
     }
@@ -78,7 +81,7 @@ struct MMMWidgetQR: Widget {
   var body: some WidgetConfiguration {
     StaticConfiguration(kind: kind, provider: MMQRProvider()) { entry in
       //Widget Init
-      MMMWidgetQRSmall(entry: QREntry(date: Date(), QRString: "", accountName: "", accountAddress: ""))
+    MMMWidgetQRSmall(entry: QREntry(date: Date(), error: true, QRString: "", data: WidgetQRData(accountName: accountName, accountNumber: accountNumber))).previewContext(WidgetPreviewContext(family: .systemSmall))
     }
     .configurationDisplayName("Receive Funds Widget")
     .description("Quick scan for receiving funds on your current account")
@@ -88,17 +91,16 @@ struct MMMWidgetQR: Widget {
 
 struct MMMWidgetQR_Previews: PreviewProvider {
   static var previews: some View {
-    MMMWidgetQRSmall(entry: QREntry(date: Date(), QRString: "", accountName: "sss.eth", accountAddress: "0x0000...000"))
+    MMMWidgetQRSmall(entry: QREntry(date: Date(), error: false, QRString: "", data: WidgetQRData(accountName: "", accountNumber: "")))
       .previewContext(WidgetPreviewContext(family: .systemSmall))
   }
 }
 
 struct QREntry : TimelineEntry {
-  let date: Date
-  var error: Bool = false
-  let QRString: String
-  let accountName: String
-  let accountAddress: String
+    let date: Date
+    var error: Bool = false
+    let QRString: String
+    let data: WidgetQRData
 }
 
 // Small QR Widget
@@ -232,16 +234,16 @@ struct MMMWidgetQRSmall: View {
         .offset(x: -87, y: 0)
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 0) {
-                Text(entry.accountName)
+                Text("Receive")
                     .font(Font.custom("SF Pro Rounded", size: 14).weight(.bold))
                     .tracking(0.15)
                     .foregroundColor(Color(red: 0.62, green: 0.65, blue: 0.68))
-                Text(entry.accountName)
+                Text(entry.data.accountName)
                     .font(Font.custom("SF Pro Rounded", size: 18).weight(.bold))
                     .lineSpacing(24)
                     .foregroundColor(Color(red: 0.08, green: 0.09, blue: 0.09))
             }
-            Text(entry.accountAddress)
+            Text(entry.data.accountNumber)
                 .font(Font.custom("SF Pro Rounded", size: 10).weight(.semibold))
                 .tracking(0.25)
                 .lineSpacing(16)
@@ -255,7 +257,7 @@ struct MMMWidgetQRSmall: View {
                 .background(
                     AsyncImage(url: URL(string: "https://via.placeholder.com/24x22"))
                 )
-          Text(entry.accountName)
+          Text(entry.data.accountName)
               .font(Font.custom("SF Pro Rounded", size: 14).weight(.bold))
               .tracking(0.15)
               .foregroundColor(Color(red: 0.62, green: 0.65, blue: 0.68))
