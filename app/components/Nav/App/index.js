@@ -31,7 +31,7 @@ import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { routingInstrumentation } from '../../../util/sentry/utils';
-import { connect, useDispatch } from 'react-redux';
+import {connect, useDispatch, useSelector} from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   EXISTING_USER,
@@ -107,7 +107,6 @@ import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSet
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
-import { setSendReceiveBalanceWidgetWidget } from '../../../util/widgets';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -741,8 +740,6 @@ const App = ({ userLoggedIn }) => {
       />
     </Stack.Navigator>
   );
-
-  setSendReceiveBalanceWidgetWidget('5000');
 
   return (
     // do not render unless a route is defined

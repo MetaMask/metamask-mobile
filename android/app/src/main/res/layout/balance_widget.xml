@@ -2,7 +2,21 @@
     style="@style/Widget.MetaMask.AppWidget.Container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+  android:background="@color/exo_white"
     android:theme="@style/AppTheme.AppWidgetContainer">
+
+  <TextView
+    android:id="@+id/textView"
+    style="@style/Widget.MetaMask.AppWidget.InnerView"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_above="@+id/balance_widget_balance_text"
+    android:layout_centerInParent="true"
+    android:layout_marginStart="8dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="8dp"
+    android:text="@string/balancewidget_balance_label_text" />
 
   <TextView
     android:id="@+id/balance_widget_balance_text"
@@ -18,4 +32,5 @@
     android:text="@string/balancewidget_balance_text"
     android:textSize="24sp"
     android:textStyle="bold|italic" />
+
 </RelativeLayout>

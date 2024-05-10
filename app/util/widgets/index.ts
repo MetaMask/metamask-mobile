@@ -1,6 +1,9 @@
+import { NativeModules, Platform } from 'react-native';
 import SharedGroupPreferences from 'react-native-shared-group-preferences';
 
 const group = 'group.io.metamask.MetaMask';
+
+const SharedStorage = NativeModules.SharedStorage;
 
 export async function setWidgetQR(widgetData: object) {
   try {
@@ -13,14 +16,21 @@ export async function setWidgetQR(widgetData: object) {
   }
 }
 
-//TODO Need to add in the location where we can get this data
-export async function setSendReceiveBalanceWidgetWidget(widgetData: string) {
+export async function setBalanceWidgetBalanceValue(balance: string) {
   try {
-    // iOS
-    await SharedGroupPreferences.setItem('widgetKey', widgetData, group);
+    if (Platform.OS === 'ios') {
+      try {
+        // iOS
+        await SharedGroupPreferences.setItem('DATA', { balance }, group);
+      } catch (error) {
+        console.error({ error });
+      }
+    } else {
+      // Android
+      SharedStorage.set(JSON.stringify({ balance }));
+    }
   } catch (error) {
-    console.log('setSendReceiveWidget TEST', { error });
-    console.error('setBalanceWidget TEST', { error });
+    console.error('setBalanceWidget', { error });
   }
 }
 
