@@ -32,6 +32,10 @@ const createStyles = (colors) =>
 /**
  * View that renders a website logo depending of the context
  */
+/**
+ * @deprecated This `<WebsiteIcon>` component has been deprecated, any new usage of it should use AvatarFavIcon instead:
+ * https://github.com/MetaMask/metamask-mobile/blob/55a03f3dbc70afce731f3eaf2cf95ce01eaaa5a1/app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.tsx#L1
+ */
 class WebsiteIcon extends PureComponent {
   static propTypes = {
     /**
