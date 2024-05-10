@@ -23,7 +23,7 @@ describe('parseRampIntent', () => {
     });
   });
 
-  it('should default to chainId 1 if token is defined but chainId is not', () => {
+  it('should default to chainId 1 if token address is defined but chainId is not', () => {
     const pathParams = {
       address: '0x1234567890',
       chainId: undefined,
