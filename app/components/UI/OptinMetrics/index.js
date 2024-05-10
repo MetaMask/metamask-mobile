@@ -526,50 +526,6 @@ class OptinMetrics extends PureComponent {
   render() {
     const styles = this.getStyles();
 
-    if (isPastPrivacyPolicyDate) {
-      return (
-        <SafeAreaView
-          style={styles.root}
-          testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
-        >
-          <ScrollView
-            style={styles.root}
-            scrollEventThrottle={150}
-            onContentSizeChange={this.onContentSizeChange}
-            onLayout={this.onLayout}
-            onScroll={this.onScroll}
-          >
-            <View style={styles.wrapper}>
-              <Text
-                style={styles.title}
-                testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
-              >
-                {strings('privacy_policy.description_title')}
-              </Text>
-              <Text
-                style={styles.content}
-                testID={
-                  MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
-                }
-              >
-                {strings('privacy_policy.description_content_1')}
-              </Text>
-              <Text style={styles.content}>
-                {strings('privacy_policy.description_content_2')}
-              </Text>
-              {this.actionsList.map((action, i) =>
-                isPastPrivacyPolicyDate
-                  ? this.renderAction(action, i)
-                  : this.renderLegacyAction(action, i),
-              )}
-              {this.renderPrivacyPolicy()}
-            </View>
-          </ScrollView>
-          {this.renderActionButtons()}
-        </SafeAreaView>
-      );
-    }
-
     return (
       <SafeAreaView
         style={styles.root}
@@ -587,7 +543,11 @@ class OptinMetrics extends PureComponent {
               style={styles.title}
               testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
             >
-              {strings('privacy_policy.description_title')}
+              {strings(
+                isPastPrivacyPolicyDate
+                  ? 'privacy_policy.description_title'
+                  : 'privacy_policy.description_title_legacy',
+              )}
             </Text>
             <Text
               style={styles.content}
@@ -595,10 +555,18 @@ class OptinMetrics extends PureComponent {
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
               }
             >
-              {strings('privacy_policy.description_content_1_legacy')}
+              {strings(
+                isPastPrivacyPolicyDate
+                  ? 'privacy_policy.description_content_1'
+                  : 'privacy_policy.description_content_1_legacy',
+              )}
             </Text>
             <Text style={styles.content}>
-              {strings('privacy_policy.description_content_2_legacy')}
+              {strings(
+                isPastPrivacyPolicyDate
+                  ? 'privacy_policy.description_content_2'
+                  : 'privacy_policy.description_content_2_legacy',
+              )}
             </Text>
             {this.actionsList.map((action, i) =>
               isPastPrivacyPolicyDate
