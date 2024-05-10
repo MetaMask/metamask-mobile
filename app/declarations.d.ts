@@ -8,7 +8,6 @@ declare module 'react-native-fade-in-image';
 
 declare module 'react-native-minimizer';
 
-declare module 'xhr2';
 declare module 'react-native-scrollable-tab-view/DefaultTabBar' {
   const content: React.FC<any>;
   export default content;
