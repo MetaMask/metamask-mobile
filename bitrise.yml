@@ -685,8 +685,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                #brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
-                brew install ccache
+                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
                 ln -s $(which ccache) /usr/local/bin/gcc
                 ln -s $(which ccache) /usr/local/bin/g++
                 ln -s $(which ccache) /usr/local/bin/cc
