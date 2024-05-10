@@ -182,30 +182,33 @@ function NetworkSwitcher() {
         return;
       }
       if (getDecimalChainId(ChainId.mainnet) === chainId) {
-        switchToMainnet('mainnet');
-      } else if (getDecimalChainId(ChainId['linea-mainnet']) === chainId) {
-        switchToMainnet('linea-mainnet');
-      } else {
-        const supportedNetworkConfigurations = rampNetworksDetails.map(
-          (networkConfiguration: Network) => {
-            const isAdded = Object.values(networkConfigurations).some(
-              (savedNetwork: any) =>
-                savedNetwork.chainId === networkConfiguration.chainId,
-            );
-            return {
-              ...networkConfiguration,
-              isAdded,
-            };
-          },
-        );
+        return switchToMainnet('mainnet');
+      }
 
-        const networkConfiguration = supportedNetworkConfigurations.find(
-          ({ chainId: configurationChainId }) =>
-            toHex(configurationChainId) === toHex(chainId),
-        );
-        if (networkConfiguration) {
-          handleNetworkPress(networkConfiguration);
-        }
+      if (getDecimalChainId(ChainId['linea-mainnet']) === chainId) {
+        return switchToMainnet('linea-mainnet');
+      }
+
+      const supportedNetworkConfigurations = rampNetworksDetails.map(
+        (networkConfiguration: Network) => {
+          const isAdded = Object.values(networkConfigurations).some(
+            (savedNetwork: any) =>
+              savedNetwork.chainId === networkConfiguration.chainId,
+          );
+          return {
+            ...networkConfiguration,
+            isAdded,
+          };
+        },
+      );
+
+      const networkConfiguration = supportedNetworkConfigurations.find(
+        ({ chainId: configurationChainId }) =>
+          toHex(configurationChainId) === toHex(chainId),
+      );
+
+      if (networkConfiguration) {
+        handleNetworkPress(networkConfiguration);
       }
     },
     [
