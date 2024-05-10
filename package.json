@@ -174,7 +174,7 @@
     "@metamask/snaps-rpc-methods": "^6.0.0",
     "@metamask/snaps-sdk": "^2.0.0",
     "@metamask/snaps-utils": "^6.0.0",
-    "@metamask/swappable-obj-proxy": "^2.1.0",
+    "@metamask/swappable-obj-proxy": "^2.2.0",
     "@metamask/swaps-controller": "^6.9.3",
     "@metamask/transaction-controller": "^13.0.0",
     "@metamask/utils": "^8.1.0",
