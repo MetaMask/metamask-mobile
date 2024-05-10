@@ -433,7 +433,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                               }
                               testID="optin-metrics-privacy-policy-description"
                             >
-                              We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.
+                              MetaMask would like to gather usage data to better understand how our users interact with MetaMask. This data will be used to provide the service, which includes improving the service based on your use.
                             </Text>
                             <Text
                               style={
@@ -446,7 +446,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                                 }
                               }
                             >
-                              When we gather metrics, it will always be...
+                              MetaMask will...
                             </Text>
                             <View
                               style={
@@ -503,7 +503,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                                     }
                                   }
                                 />
-                                [missing "en.privacy_policy.action_description_1" translation]
+                                Always allow you to opt-out via Settings
                               </Text>
                             </View>
                             <View
@@ -561,7 +561,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                                     }
                                   }
                                 />
-                                [missing "en.privacy_policy.action_description_2" translation]
+                                Send anonymized click & pageview events
                               </Text>
                             </View>
                             <View
@@ -619,9 +619,9 @@ exports[`OptinMetrics should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  [missing "en.privacy_policy.action_description_never" translation] 
+                                  Never 
                                 </Text>
-                                [missing "en.privacy_policy.action_description_3" translation]
+                                collect information we don’t need to provide the service (such as keys, addresses, transaction hashes, or balances)
                               </Text>
                             </View>
                             <View
@@ -679,9 +679,9 @@ exports[`OptinMetrics should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  [missing "en.privacy_policy.action_description_never" translation] 
+                                  Never 
                                 </Text>
-                                [missing "en.privacy_policy.action_description_4" translation]
+                                collect your full IP address*
                               </Text>
                             </View>
                             <View
@@ -739,9 +739,9 @@ exports[`OptinMetrics should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  [missing "en.privacy_policy.action_description_never" translation] 
+                                  Never 
                                 </Text>
-                                [missing "en.privacy_policy.action_description_5" translation]
+                                sell data. Ever!
                               </Text>
                             </View>
                             <View>
