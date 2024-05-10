@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.21.0",
+  "version": "7.22.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -175,7 +175,7 @@
     "@metamask/snaps-sdk": "^2.0.0",
     "@metamask/snaps-utils": "^6.0.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/swaps-controller": "^8.0.0",
+    "@metamask/swaps-controller": "^6.9.3",
     "@metamask/transaction-controller": "^13.0.0",
     "@metamask/utils": "^8.1.0",
     "@ngraveio/bc-ur": "^1.1.6",
@@ -308,7 +308,7 @@
     "react-native-size-matters": "0.4.0",
     "react-native-skeleton-placeholder": "^5.0.0",
     "react-native-step-indicator": "^1.0.3",
-    "react-native-svg": "12.1.1",
+    "react-native-svg": "^15.2.0",
     "react-native-svg-charts": "^5.4.0",
     "react-native-swipe-gestures": "1.0.3",
     "react-native-tcp": "aprock/react-native-tcp#11/head",
@@ -468,7 +468,6 @@
     "wdio-cucumberjs-json-reporter": "^4.4.3",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
-    "xhr2": "^0.2.1",
     "xml2js": "^0.5.0",
     "yarn-deduplicate": "^6.0.2"
   },
