@@ -24,6 +24,7 @@ import {
   MAIN_WALLET_ACCOUNT_ACTIONS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { getLabelTextByAddress } from '../../../util/address';
+import {setBalanceWidgetAccountName} from "../../../util/widgets";
 
 const WalletAccount = (
   { style, account, ens }: WalletAccountProps,
@@ -52,14 +53,16 @@ const WalletAccount = (
     });
   };
 
+  const accountName =
+    isDefaultAccountName(account.name) && ens ? ens : account.name;
+  setBalanceWidgetAccountName(accountName);
+
   return (
     <View style={styles.base}>
       <PickerAccount
         ref={yourAccountRef}
         accountAddress={account.address}
-        accountName={
-          isDefaultAccountName(account.name) && ens ? ens : account.name
-        }
+        accountName={accountName}
         accountAvatarType={accountAvatarType}
         onPress={() => {
           navigate(...createAccountSelectorNavDetails({}));

@@ -3,5 +3,7 @@
   <string name="balancewidget_balance_text">Balance</string>
   <string name="add_widget">Add balance widget</string>
   <string name="app_widget_description">Wallet balance</string>
-  <string name="balancewidget_balance_label_text">TextView</string>
+  <string name="balancewidget_balance_label_text">Wallet name</string>
+  <string name="balancewidget_token_price_text">$367.00 (+5.66%)</string>
+  <string name="balancewidget_updated_text">Updated 10:23 AM</string>
 </resources>

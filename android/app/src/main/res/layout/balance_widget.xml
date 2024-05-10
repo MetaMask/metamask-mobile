@@ -1,36 +1,95 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
     style="@style/Widget.MetaMask.AppWidget.Container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-  android:background="@color/exo_white"
+    android:background="@color/exo_white"
     android:theme="@style/AppTheme.AppWidgetContainer">
 
+  <ImageView
+    android:id="@+id/balance_widget_logo_imageView"
+    android:layout_width="30dp"
+    android:layout_height="30dp"
+    android:layout_alignParentTop="true"
+    android:layout_alignParentEnd="true"
+    android:src="@drawable/widget_fox"
+    android:scaleType="fitCenter" />
+
   <TextView
-    android:id="@+id/textView"
-    style="@style/Widget.MetaMask.AppWidget.InnerView"
+    android:id="@+id/balance_widget_balance_label_text"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_above="@+id/balance_widget_balance_text"
-    android:layout_centerInParent="true"
+    android:layout_alignParentStart="true"
+    android:layout_alignParentTop="true"
     android:layout_marginStart="8dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginEnd="8dp"
-    android:layout_marginBottom="8dp"
-    android:text="@string/balancewidget_balance_label_text" />
+    android:contentDescription="@string/balancewidget_balance_text"
+    android:text="@string/balancewidget_balance_text"
+    android:textColor="@color/design_default_color_on_secondary"
+    android:textSize="24sp"
+    android:textStyle="bold" />
+
+  <TextView
+    android:id="@+id/balance_widget_account_name_text"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_below="@+id/balance_widget_balance_label_text"
+    android:layout_marginTop="0dp"
+    android:layout_marginStart="8dp"
+    android:textSize="16sp"
+    android:text="@string/balancewidget_balance_label_text"
+    android:textStyle="bold"
+    android:textColor="@color/muted" />
 
   <TextView
     android:id="@+id/balance_widget_balance_text"
-    style="@style/Widget.MetaMask.AppWidget.InnerView"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_centerInParent="true"
+    android:layout_below="@+id/balance_widget_account_name_text"
+    android:layout_alignParentStart="true"
     android:layout_marginStart="8dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginEnd="8dp"
-    android:layout_marginBottom="8dp"
+    android:layout_marginTop="16dp"
     android:contentDescription="@string/balancewidget_balance_text"
     android:text="@string/balancewidget_balance_text"
-    android:textSize="24sp"
-    android:textStyle="bold|italic" />
+    android:textColor="@color/design_default_color_on_secondary"
+    android:textSize="32sp"
+    android:textStyle="bold" />
+
+  <LinearLayout
+    android:id="@+id/balance_widget_token_price_layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_below="@+id/balance_widget_balance_text"
+    android:layout_alignParentStart="true"
+    android:layout_marginStart="8dp"
+    android:layout_marginTop="0dp"
+    android:gravity="start|center_vertical"
+    android:orientation="horizontal">
+
+    <ImageView
+      android:layout_width="16dp"
+      android:layout_height="16dp"
+      android:scaleType="fitCenter"
+      android:src="@drawable/Increase" />
+
+    <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="4dp"
+      android:text="@string/balancewidget_token_price_text"
+      android:textColor="@color/asset_bull"
+      android:textSize="16sp" />
+  </LinearLayout>
+
+  <TextView
+    android:id="@+id/balance_widget_updated_text"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_alignParentBottom="true"
+    android:layout_marginStart="8dp"
+    android:layout_marginBottom="8dp"
+    android:text="@string/balancewidget_updated_text"
+    android:textColor="@color/muted"
+    android:textSize="12sp" />
 
 </RelativeLayout>

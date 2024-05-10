@@ -18,12 +18,20 @@ public class BalanceWidget extends AppWidgetProvider {
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
       try {
         SharedPreferences sharedPref = context.getSharedPreferences("DATA", Context.MODE_PRIVATE);
-        String appString = sharedPref.getString("appData", "{\"balance\":'no data'}");
-        JSONObject appData = new JSONObject(appString);
+        Log.d("sharedPref", sharedPref.getAll().toString());
+
+        String accountName = sharedPref.getString("accountName", "no data");
+        String balance = sharedPref.getString("balance", "no data");
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.balance_widget);
-        views.setTextViewText(R.id.balance_widget_balance_text, appData.getString("balance"));
+
+        Log.d("accountName", accountName);
+        Log.d("balance", balance);
+
+        views.setTextViewText(R.id.balance_widget_account_name_text, accountName);
+        views.setTextViewText(R.id.balance_widget_balance_text, balance);
         appWidgetManager.updateAppWidget(appWidgetId, views);
-      }catch (JSONException e) {
+      }catch (Exception e) {
+        Log.e("BalanceWidget updateAppWidget", e.getMessage());
         e.printStackTrace();
       }
     }

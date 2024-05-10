@@ -16,22 +16,28 @@ export async function setWidgetQR(widgetData: object) {
   }
 }
 
-export async function setBalanceWidgetBalanceValue(balance: string) {
+async function setBalanceWidgetValue(name: string, value: string) {
   try {
     if (Platform.OS === 'ios') {
       try {
         // iOS
-        await SharedGroupPreferences.setItem('DATA', { balance }, group);
+        await SharedGroupPreferences.setItem('DATA', { [name]: value }, group);
       } catch (error) {
         console.error({ error });
       }
     } else {
       // Android
-      SharedStorage.set(JSON.stringify({ balance }));
+      SharedStorage.set(name, value);
     }
   } catch (error) {
     console.error('setBalanceWidget', { error });
   }
 }
 
-//Will need to create a generic function to set Android & iOS
+export async function setBalanceWidgetBalance(balance: string) {
+  setBalanceWidgetValue('balance', balance);
+}
+
+export async function setBalanceWidgetAccountName(name: string) {
+  setBalanceWidgetValue('accountName', name);
+}

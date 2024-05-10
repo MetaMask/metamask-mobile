@@ -104,7 +104,7 @@ import ButtonIcon, {
 import Box from '../../UI/Ramp/components/Box';
 import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
 import { isPortfolioUrl } from '../../../../app/util/url';
-import {setBalanceWidgetBalanceValue} from "../../../util/widgets";
+import { setBalanceWidgetBalance } from '../../../util/widgets';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -590,7 +590,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     console.debug('balance:', fiatBalance);
 
-    setBalanceWidgetBalanceValue(fiatBalance);
+    setBalanceWidgetBalance(fiatBalance);
 
     const onOpenPortfolio = () => {
       const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
