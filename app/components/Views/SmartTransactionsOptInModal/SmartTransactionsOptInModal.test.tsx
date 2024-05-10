@@ -67,13 +67,10 @@ describe('SmartTransactionsOptInModal', () => {
     const description1 = getByText(strings('whats_new.stx.description_1'));
     expect(description1).toBeDefined();
 
-    const description2 = getByText(strings('whats_new.stx.description_2'));
-    expect(description2).toBeDefined();
-
-    const description3 = getByText(strings('whats_new.stx.description_3'), {
+    const description2 = getByText(strings('whats_new.stx.description_2'), {
       exact: false,
     });
-    expect(description3).toBeDefined();
+    expect(description2).toBeDefined();
 
     const primaryButton = getByText(strings('whats_new.stx.primary_button'));
     expect(primaryButton).toBeDefined();
