@@ -41,9 +41,7 @@ import migration37 from './037';
 import migration38 from './038';
 import migration39 from './039';
 import migration40 from './040';
-// Change migration 41 to 41, there is an issue on main that needs to be solve, this migration disappeared: https://github.com/MetaMask/metamask-mobile/commit/547ca9dcb1e3364b94c513a5f0821e0200ac38d9#diff-66432273a569c184155bee010c2840e3724ea917009c3076d9b87ff5578fc3fd when it's fixed merge it back
-//import migration41 from './041';
-import migration42 from './042';
+import migration41 from './041';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -97,8 +95,7 @@ export const migrationList: MigrationsList = {
   38: migration38,
   39: migration39,
   40: migration40,
-  //  41: migration41,
-  42: migration42,
+  41: migration41,
 };
 
 // Enable both synchronous and asynchronous migrations
