@@ -587,7 +587,7 @@ class OptinMetrics extends PureComponent {
               style={styles.title}
               testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
             >
-              {strings('privacy_policy.description_title_legacy')}
+              {strings('privacy_policy.description_title')}
             </Text>
             <Text
               style={styles.content}
