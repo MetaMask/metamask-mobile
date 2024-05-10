@@ -104,6 +104,7 @@ import ButtonIcon, {
 import Box from '../../UI/Ramp/components/Box';
 import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
 import { isPortfolioUrl } from '../../../../app/util/url';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -512,7 +513,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         style={styles.tokensDetectedButton}
         onPress={showDetectedTokens}
       >
-        <Text style={styles.tokensDetectedText}>
+        <Text
+          style={styles.tokensDetectedText}
+          testID={WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINKBUTTON}
+        >
           {strings('wallet.tokens_detected_in_account', {
             tokenCount: detectedTokens.length,
             tokensLabel: detectedTokens.length > 1 ? 'tokens' : 'token',
