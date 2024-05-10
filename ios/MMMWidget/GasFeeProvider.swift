@@ -6,8 +6,6 @@ struct GasFees: Decodable {
     let high: Int
 }
 
-import Foundation
-
 // Define a single struct that includes everything
 struct GasEstimates: Codable {
     let low, medium, high: GasEstimateDetail
