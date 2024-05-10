@@ -1,22 +1,32 @@
 <resources>
 
-	<!-- Base application theme. -->
-	<style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-		<!-- Customize your theme here. -->
+  <!-- Base application theme. -->
+  <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <!-- Customize your theme here. -->
     <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
-		<item name="android:windowBackground">@color/theme</item>
-		<item name="android:statusBarColor">@color/theme</item>
-		<item name="android:navigationBarColor">@color/navBar</item>
-		<item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
-		<item name="android:textColor">@color/themeInverse</item>
-	</style>
+    <item name="android:windowBackground">@color/theme</item>
+    <item name="android:statusBarColor">@color/theme</item>
+    <item name="android:navigationBarColor">@color/navBar</item>
+    <item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
+    <item name="android:textColor">@color/themeInverse</item>
+  </style>
 
-	<style name="SplashTheme" parent="Theme.AppCompat.DayNight">
-		<item name="android:windowBackground">@drawable/background_splash</item>
-		<item name="android:statusBarColor">@color/theme</item>
-		<item name="android:navigationBarColor">@color/navBar</item>
-		<item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
-		<item name="android:textColor">@color/themeInverse</item>
-	</style>
+  <style name="SplashTheme" parent="Theme.AppCompat.DayNight">
+    <item name="android:windowBackground">@drawable/background_splash</item>
+    <item name="android:statusBarColor">@color/theme</item>
+    <item name="android:navigationBarColor">@color/navBar</item>
+    <item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
+    <item name="android:textColor">@color/themeInverse</item>
+  </style>
+
+  <style name="Widget.MetaMask.AppWidget.Container" parent="android:Widget">
+    <item name="android:id">@android:id/background</item>
+    <item name="android:background">?android:attr/colorBackground</item>
+  </style>
+
+  <style name="Widget.MetaMask.AppWidget.InnerView" parent="android:Widget">
+    <item name="android:background">?android:attr/colorBackground</item>
+    <item name="android:textColor">?android:attr/textColorPrimary</item>
+  </style>
 
 </resources>

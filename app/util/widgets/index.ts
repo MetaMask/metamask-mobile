@@ -18,9 +18,9 @@ export async function setSendReceiveBalanceWidgetWidget(widgetData: string) {
   try {
     // iOS
     console.log('widgetData', widgetData);
-    await SharedGroupPreferences.setItem('widgetKey', widgetData, group);
+    await SharedGroupPreferences.setItem('balance', widgetData, group);
   } catch (error) {
-    console.log('setBalanceWidget TEST', { error });
+    console.log('setBalanceWidget TEST', error);
   }
 }
 

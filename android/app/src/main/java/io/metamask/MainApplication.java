@@ -47,6 +47,7 @@ public class MainApplication extends Application implements ShareApplication, Re
       packages.add(new RCTMinimizerPackage());
       packages.add(new NativeSDKPackage());
       packages.add(new RNTarPackage());
+      packages.add(new SharedStoragePackager());
 
       return packages;
 		}

@@ -262,8 +262,11 @@ android {
             signingConfig signingConfigs.flask
           }
     	  }
+    buildFeatures {
+        viewBinding true
+    }
 
-	  buildTypes.each {
+    buildTypes.each {
 		  it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
       // Used to point to staging environment API for ramp
       it.buildConfigField 'String', 'IS_RAMP_UAT', "\"$System.env.RAMP_INTERNAL_BUILD\""

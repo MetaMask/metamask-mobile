@@ -1,3 +1,6 @@
 <resources>
-	<string name="app_name">MetaMask</string>
+  <string name="app_name">MetaMask</string>
+  <string name="balancewidget_balance_text">Balance</string>
+  <string name="add_widget">Add balance widget</string>
+  <string name="app_widget_description">Wallet balance</string>
 </resources>
