@@ -1,9 +1,9 @@
 'use strict';
-import Browser from '../../../pages/Browser';
+import Browser from '../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../pages/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
 import SigningModal from '../../../pages/modals/SigningModal';
-import { TestDApp } from '../../../pages/TestDApp';
+import TestDApp from '../../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,
@@ -12,8 +12,6 @@ import {
 import { SmokeConfirmations } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
-
-const MAX_ATTEMPTS = 3;
 
 describe(SmokeConfirmations('Typed Sign'), () => {
   beforeAll(async () => {
@@ -38,23 +36,19 @@ describe(SmokeConfirmations('Typed Sign'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-          await TestDApp.tapTypedSignButton();
-          await Assertions.checkIfVisible(SigningModal.typedRequest);
-          await SigningModal.tapCancelButton();
+        await TestDApp.tapTypedSignButton();
+        await Assertions.checkIfVisible(SigningModal.typedRequest);
+        await SigningModal.tapCancelButton();
+        await Assertions.checkIfNotVisible(SigningModal.typedRequest);
+        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
+        await Assertions.checkIfNotVisible(SigningModal.personalRequest);
 
-          await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-          await Assertions.checkIfNotVisible(SigningModal.ethRequest);
-          await Assertions.checkIfNotVisible(SigningModal.personalRequest);
-
-          await TestDApp.tapTypedSignButton();
-          await Assertions.checkIfVisible(SigningModal.typedRequest);
-          await SigningModal.tapSignButton();
-
-          await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-          await Assertions.checkIfNotVisible(SigningModal.ethRequest);
-          await Assertions.checkIfNotVisible(SigningModal.personalRequest);
-        });
+        await TestDApp.tapTypedSignButton();
+        await Assertions.checkIfVisible(SigningModal.typedRequest);
+        await SigningModal.tapSignButton();
+        await Assertions.checkIfNotVisible(SigningModal.typedRequest);
+        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
+        await Assertions.checkIfNotVisible(SigningModal.personalRequest);
       },
     );
   });
