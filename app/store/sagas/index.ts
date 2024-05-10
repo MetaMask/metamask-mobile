@@ -15,11 +15,6 @@ import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
 import AppConstants from '../../../app/core/AppConstants';
-import { XMLHttpRequest as _XMLHttpRequest } from 'xhr2';
-
-if (typeof global.XMLHttpRequest === 'undefined') {
-  global.XMLHttpRequest = _XMLHttpRequest;
-}
 
 const originalSend = XMLHttpRequest.prototype.send;
 const originalOpen = XMLHttpRequest.prototype.open;
