@@ -114,33 +114,46 @@ index 9d8a521..601fd18 100644
      [exports.ETH_CHAIN_ID]: 'ethereum',
      [exports.BSC_CHAIN_ID]: 'bsc',
 diff --git a/node_modules/@metamask/swaps-controller/dist/swapsInterfaces.d.ts b/node_modules/@metamask/swaps-controller/dist/swapsInterfaces.d.ts
-index 43f7356..74a382b 100644
+index 43f7356..5416244 100644
 --- a/node_modules/@metamask/swaps-controller/dist/swapsInterfaces.d.ts
 +++ b/node_modules/@metamask/swaps-controller/dist/swapsInterfaces.d.ts
-@@ -19,14 +19,38 @@ export interface SwapsToken extends SwapsAsset {
+@@ -19,14 +19,51 @@ export interface SwapsToken extends SwapsAsset {
      occurrences?: number;
      iconUrl?: string;
  }
+-export interface NetworkFeatureFlags {
 +
- export interface NetworkFeatureFlags {
++export type NetworkFeatureFlags = {
      mobile_active: boolean;
      extension_active: boolean;
--    fallback_to_v1?: boolean;
-+    fallback_to_v1: boolean;
+     fallback_to_v1?: boolean;
+-}
++  };
+ export interface NetworksFeatureStatus {
+     [network: string]: NetworkFeatureFlags;
+ }
++
++export type NetworkFeatureFlagsAll = {
++    mobile_active: boolean;
++    extension_active: boolean;
++    fallback_to_v1?: boolean;
 +    fallbackToV1: boolean;
 +    mobileActive: boolean;
 +    extensionActive: boolean;
 +    mobileActiveIOS: boolean;
 +    mobileActiveAndroid: boolean;
++  
 +    smartTransactions: {
-+        expectedDeadline: number;
-+        maxDeadline: number;
-+        returnTxHashAsap: boolean;
++      expectedDeadline: number;
++      maxDeadline: number;
++      returnTxHashAsap: boolean;
 +    };
- }
- export interface NetworksFeatureStatus {
-     [network: string]: NetworkFeatureFlags;
- }
++};
++
++export type NetworksFeatureStatusAll = {
++    [network: string]: NetworkFeatureFlagsAll;
++  };
++
 +export interface GlobalFeatureFlags {
 +    smart_transactions: {
 +        mobile_active: boolean;
@@ -153,7 +166,8 @@ index 43f7356..74a382b 100644
 +        mobileActiveAndroid: boolean;
 +    };
 +}
-+export declare type FeatureFlags = NetworksFeatureStatus & GlobalFeatureFlags;
++export type FeatureFlags = NetworksFeatureStatusAll & GlobalFeatureFlags;
++
  /**
   * Metadata needed to fetch quotes
   *
