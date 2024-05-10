@@ -108,4 +108,51 @@ describe('useNotificationHandler', () => {
       });
     });
   });
+
+  it('should do nothing if data.action is not tx', async () => {
+    const { waitFor } = renderHook(() =>
+      useNotificationHandler(
+        bootstrapAndroidInitialNotification,
+        mockNavigation,
+      ),
+    );
+
+    await act(async () => {
+      notifee.onForegroundEvent({
+        type: EventType.DELIVERED,
+        notification: {
+          data: {
+            action: 'no-tx',
+            id: '123',
+          },
+        },
+      });
+      await waitFor(() => {
+        expect(notifee.onForegroundEvent).toHaveBeenCalled();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  it('handleOpenedNotification should do nothing if notification is null', async () => {
+    const { waitFor } = renderHook(() =>
+      useNotificationHandler(
+        bootstrapAndroidInitialNotification,
+        mockNavigation,
+      ),
+    );
+
+    await act(async () => {
+      notifee.onForegroundEvent({
+        type: EventType.DELIVERED,
+        notification: null,
+      });
+      await waitFor(() => {
+        expect(notifee.onForegroundEvent).toHaveBeenCalled();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
 });
