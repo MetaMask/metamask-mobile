@@ -758,8 +758,8 @@ workflows:
                 set -ex
                 mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build"
                 mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
-                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build"
-                cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
+                cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
                 ls -l "$INTERMEDIATE_IOS_BUILD_DIR"
                 ls -l "$INTERMEDIATE_IOS_DETOX_DIR"
                 ls -l "$BITRISE_SOURCE_DIR/ios/build/Build"
