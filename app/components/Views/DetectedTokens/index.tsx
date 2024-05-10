@@ -25,7 +25,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/asseets/DetectedTokensView.selectors';
+import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/assets/DetectedTokensView.selectors';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
