@@ -23,7 +23,7 @@ import {
   getTokenAddressParam,
   calcTokenAmount,
   getTokenValueParamAsHex,
-  getIsSwapApproveOrSwapTransaction,
+  isSwapTransaction,
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
@@ -63,9 +63,6 @@ import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
-import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
-import { getSmartTransactionMetricsProperties } from '../../../util/smart-transactions';
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
@@ -85,11 +82,10 @@ const RootRPCMethodsUI = (props) => {
   };
 
   const trackSwaps = useCallback(
-    async (event, transactionMeta, swapsTransactions) => {
+    async (event, transactionMeta) => {
       try {
-        const { TransactionController, SmartTransactionsController } =
-          Engine.context;
-        const newSwapsTransactions = swapsTransactions;
+        const { TransactionController } = Engine.context;
+        const newSwapsTransactions = props.swapsTransactions;
         const swapTransaction = newSwapsTransactions[transactionMeta.id];
         const {
           sentAt,
@@ -170,20 +166,12 @@ const RootRPCMethodsUI = (props) => {
         delete newSwapsTransactions[transactionMeta.id].analytics;
         delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 
-        const smartTransactionMetricsProperties =
-          getSmartTransactionMetricsProperties(
-            SmartTransactionsController,
-            transactionMeta,
-          );
-
         const parameters = {
           ...analyticsParams,
           time_to_mine: timeToMine,
           estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
           quote_vs_executionRatio: quoteVsExecutionRatio,
           token_to_amount_received: tokenToAmountReceived.toString(),
-          is_smart_transaction: props.shouldUseSmartTransaction,
-          ...smartTransactionMetricsProperties,
         };
 
         trackAnonymousEvent(event, parameters);
@@ -196,7 +184,7 @@ const RootRPCMethodsUI = (props) => {
     },
     [
       props.selectedAddress,
-      props.shouldUseSmartTransaction,
+      props.swapsTransactions,
       trackEvent,
       trackAnonymousEvent,
     ],
@@ -205,7 +193,6 @@ const RootRPCMethodsUI = (props) => {
   const autoSign = useCallback(
     async (transactionMeta) => {
       const { TransactionController, KeyringController } = Engine.context;
-      const swapsTransactions = TransactionController.state.swapsTransactions;
       try {
         TransactionController.hub.once(
           `${transactionMeta.id}:finished`,
@@ -216,12 +203,8 @@ const RootRPCMethodsUI = (props) => {
                 assetType: transactionMeta.txParams.assetType,
               });
             } else {
-              if (swapsTransactions[transactionMeta.id]?.analytics) {
-                trackSwaps(
-                  MetaMetricsEvents.SWAP_FAILED,
-                  transactionMeta,
-                  swapsTransactions,
-                );
+              if (props.swapsTransactions[transactionMeta.id]?.analytics) {
+                trackSwaps(MetaMetricsEvents.SWAP_FAILED, transactionMeta);
               }
               throw transactionMeta.error;
             }
@@ -230,15 +213,8 @@ const RootRPCMethodsUI = (props) => {
         TransactionController.hub.once(
           `${transactionMeta.id}:confirmed`,
           (transactionMeta) => {
-            if (
-              swapsTransactions[transactionMeta.id]?.analytics &&
-              swapsTransactions[transactionMeta.id]?.paramsForAnalytics
-            ) {
-              trackSwaps(
-                MetaMetricsEvents.SWAP_COMPLETED,
-                transactionMeta,
-                swapsTransactions,
-              );
+            if (props.swapsTransactions[transactionMeta.id]?.analytics) {
+              trackSwaps(MetaMetricsEvents.SWAP_COMPLETED, transactionMeta);
             }
           },
         );
@@ -266,10 +242,7 @@ const RootRPCMethodsUI = (props) => {
           Engine.acceptPendingApproval(transactionMeta.id);
         }
       } catch (error) {
-        if (
-          !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
-          !error?.message.startsWith(STX_NO_HASH_ERROR)
-        ) {
+        if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
           Alert.alert(
             strings('transactions.transaction_error'),
             error && error.message,
@@ -281,7 +254,7 @@ const RootRPCMethodsUI = (props) => {
         }
       }
     },
-    [props.navigation, trackSwaps, trackEvent],
+    [props.navigation, props.swapsTransactions, trackSwaps, trackEvent],
   );
 
   const onUnapprovedTransaction = useCallback(
@@ -291,14 +264,7 @@ const RootRPCMethodsUI = (props) => {
       const to = transactionMeta.txParams.to?.toLowerCase();
       const { data } = transactionMeta.txParams;
 
-      if (
-        getIsSwapApproveOrSwapTransaction(
-          data,
-          transactionMeta.origin,
-          to,
-          props.chainId,
-        )
-      ) {
+      if (isSwapTransaction(data, transactionMeta.origin, to, props.chainId)) {
         autoSign(transactionMeta);
       } else {
         const {
@@ -450,6 +416,7 @@ const RootRPCMethodsUI = (props) => {
 };
 
 RootRPCMethodsUI.propTypes = {
+  swapsTransactions: PropTypes.object,
   /**
    * Object that represents the navigator
    */
@@ -474,18 +441,15 @@ RootRPCMethodsUI.propTypes = {
    * Chain id
    */
   chainId: PropTypes.string,
-  /**
-   * If smart tranactions should be used
-   */
-  shouldUseSmartTransaction: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedAddress(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
+  swapsTransactions:
+    state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
