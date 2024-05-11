@@ -31,12 +31,13 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import AppConstants from '../../../core/AppConstants';
 import backgroundImage from '../../../images/smart-transactions-opt-in-bg.png';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
-const modalMargin = 24;
-const modalPadding = 24;
+const MODAL_MARGIN = 24;
+const MODAL_PADDING = 24;
 const screenWidth = Device.getDeviceWidth();
 const screenHeight = Device.getDeviceHeight();
-const itemWidth = screenWidth - modalMargin * 2;
+const itemWidth = screenWidth - MODAL_MARGIN * 2;
 const maxItemHeight = screenHeight - 200;
 
 const createStyles = (colors: Colors) =>
@@ -46,7 +47,7 @@ const createStyles = (colors: Colors) =>
     },
     content: {
       gap: 16,
-      paddingHorizontal: modalPadding,
+      paddingHorizontal: MODAL_PADDING,
     },
     buttons: {
       gap: 10,
@@ -55,6 +56,9 @@ const createStyles = (colors: Colors) =>
     button: {
       width: '100%',
       textAlign: 'center',
+    },
+    secondaryButtonText: {
+      color: colors.text.alternative,
     },
     header: {
       alignItems: 'center',
@@ -66,7 +70,7 @@ const createStyles = (colors: Colors) =>
     modal: {
       backgroundColor: colors.background.default,
       borderRadius: 10,
-      marginHorizontal: modalMargin,
+      marginHorizontal: MODAL_MARGIN,
     },
     bodyContainer: {
       width: itemWidth,
@@ -118,7 +122,7 @@ const Benefit = ({ iconName, text }: Props) => {
           <Text
             key={t}
             color={TextColor.Alternative}
-            variant={TextVariant.BodyXS}
+            variant={TextVariant.BodySM}
             style={styles.benefitText}
           >
             {t}
@@ -132,6 +136,8 @@ const Benefit = ({ iconName, text }: Props) => {
 const SmartTransactionsOptInModal = () => {
   const modalRef = useRef<ReusableModalRef>(null);
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
+
   const styles = createStyles(colors);
 
   const hasOptedIn = useRef<boolean | null>(null);
@@ -142,17 +148,27 @@ const SmartTransactionsOptInModal = () => {
 
   const optIn = () => {
     Engine.context.PreferencesController.setSmartTransactionsOptInStatus(true);
+    trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
+      stx_opt_in: true,
+      location: 'SmartTransactionsOptInModal',
+    });
+
     hasOptedIn.current = true;
     dismissModal();
   };
 
   const optOut = () => {
     Engine.context.PreferencesController.setSmartTransactionsOptInStatus(false);
+    trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
+      stx_opt_in: false,
+      location: 'SmartTransactionsOptInModal',
+    });
+
     hasOptedIn.current = false;
     dismissModal();
   };
 
-  const onDismiss = async () => {
+  const handleDismiss = async () => {
     // Opt out of STX if no prior decision made
     if (hasOptedIn.current === null) {
       optOut();
@@ -166,8 +182,89 @@ const SmartTransactionsOptInModal = () => {
     );
   };
 
+  const Header = () => (
+    <View style={styles.header}>
+      <Text color={TextColor.Default} variant={TextVariant.HeadingSM}>
+        {strings('whats_new.stx.header')}
+      </Text>
+    </View>
+  );
+
+  const Benefits = () => (
+    <View style={styles.benefits}>
+      <Benefit
+        iconName={IconName.Confirmation}
+        text={[
+          strings('whats_new.stx.benefit_1_1'),
+          strings('whats_new.stx.benefit_1_2'),
+        ]}
+      />
+      <Benefit
+        iconName={IconName.Security}
+        text={[
+          strings('whats_new.stx.benefit_2_1'),
+          strings('whats_new.stx.benefit_2_2'),
+        ]}
+      />
+      <Benefit
+        iconName={IconName.Clock}
+        text={[
+          strings('whats_new.stx.benefit_3_1'),
+          strings('whats_new.stx.benefit_3_2'),
+        ]}
+      />
+    </View>
+  );
+
+  const Descriptions = () => (
+    <View style={styles.descriptions}>
+      <Text>{strings('whats_new.stx.description_1')}</Text>
+      <Text>
+        {strings('whats_new.stx.description_2')}{' '}
+        <Text
+          color={TextColor.Primary}
+          onPress={() => {
+            Linking.openURL(AppConstants.URLS.SMART_TXS);
+          }}
+        >
+          {strings('whats_new.stx.learn_more')}
+        </Text>
+      </Text>
+    </View>
+  );
+
+  const PrimaryButton = () => (
+    <Button
+      style={styles.button}
+      variant={ButtonVariants.Primary}
+      onPress={optIn}
+      label={strings('whats_new.stx.primary_button')}
+    >
+      {strings('whats_new.stx.primary_button')}
+    </Button>
+  );
+
+  const SecondaryButton = () => (
+    <Button
+      style={styles.button}
+      variant={ButtonVariants.Link}
+      onPress={optOut}
+      label={
+        <Text style={styles.secondaryButtonText}>
+          {strings('whats_new.stx.secondary_button')}
+        </Text>
+      }
+    >
+      {strings('whats_new.stx.secondary_button')}
+    </Button>
+  );
+
   return (
-    <ReusableModal ref={modalRef} style={styles.screen} onDismiss={onDismiss}>
+    <ReusableModal
+      ref={modalRef}
+      style={styles.screen}
+      onDismiss={handleDismiss}
+    >
       <View
         style={styles.modal}
         testID={SmartTransactionsOptInModalSelectorsIDs.CONTAINER}
@@ -178,76 +275,18 @@ const SmartTransactionsOptInModal = () => {
             resizeMode="cover"
             style={styles.backgroundImage}
           >
-            {/* Header */}
-            <View style={styles.header}>
-              <Text color={TextColor.Default} variant={TextVariant.HeadingSM}>
-                {strings('whats_new.stx.header')}
-              </Text>
-            </View>
-
-            {/* Benefits */}
-            <View style={styles.benefits}>
-              <Benefit
-                iconName={IconName.Confirmation}
-                text={[
-                  strings('whats_new.stx.benefit_1_1'),
-                  strings('whats_new.stx.benefit_1_2'),
-                ]}
-              />
-              <Benefit
-                iconName={IconName.Security}
-                text={[
-                  strings('whats_new.stx.benefit_2_1'),
-                  strings('whats_new.stx.benefit_2_2'),
-                ]}
-              />
-              <Benefit
-                iconName={IconName.Clock}
-                text={[
-                  strings('whats_new.stx.benefit_3_1'),
-                  strings('whats_new.stx.benefit_3_2'),
-                ]}
-              />
-            </View>
+            <Header />
+            <Benefits />
           </ImageBackground>
 
           {/* Content */}
           <ScrollView>
             <View style={styles.content}>
-              <View style={styles.descriptions}>
-                <Text>{strings('whats_new.stx.description_1')}</Text>
-                <Text>{strings('whats_new.stx.description_2')}</Text>
-                <Text>
-                  {strings('whats_new.stx.description_3')}{' '}
-                  <Text
-                    color={TextColor.Primary}
-                    onPress={() => {
-                      Linking.openURL(AppConstants.URLS.SMART_TXS);
-                    }}
-                  >
-                    {strings('whats_new.stx.learn_more')}
-                  </Text>
-                </Text>
-              </View>
+              <Descriptions />
 
               <View style={styles.buttons}>
-                <Button
-                  style={styles.button}
-                  variant={ButtonVariants.Primary}
-                  onPress={optIn}
-                  label={strings('whats_new.stx.primary_button')}
-                >
-                  {strings('whats_new.stx.primary_button')}
-                </Button>
-
-                <Button
-                  style={styles.button}
-                  variant={ButtonVariants.Link}
-                  onPress={optOut}
-                  label={strings('whats_new.stx.secondary_button')}
-                >
-                  {strings('whats_new.stx.secondary_button')}
-                </Button>
+                <PrimaryButton />
+                <SecondaryButton />
               </View>
             </View>
           </ScrollView>

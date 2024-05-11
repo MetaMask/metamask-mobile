@@ -35,7 +35,8 @@ import {
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { selectPendingSmartTransactionsBySender } from '../../../selectors/smartTransactionsController';
+import { selectNonReplacedTransactions } from '../../../selectors/transactionController';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -221,42 +222,13 @@ TransactionsView.propTypes = {
 const mapStateToProps = (state) => {
   const selectedAddress = selectSelectedAddress(state);
   const chainId = selectChainId(state);
-  const nonSmartTransactions =
-    state.engine.backgroundState.TransactionController.transactions; // these are transactionMeta objs
-  const smartTransactions =
-    state.engine.backgroundState.SmartTransactionsController
-      ?.smartTransactionsState?.smartTransactions?.[chainId] || [];
 
   // Remove duplicate confirmed STX
-
   // for replaced txs, only hide the ones that are confirmed
-  const filteredNonSmartTransactions = nonSmartTransactions.filter(
-    (tx) => !(tx.replacedBy && tx.replacedById && tx.transactionHash),
-  );
+  const nonReplacedTransactions = selectNonReplacedTransactions(state);
 
-  const filteredPendingSmartTransactions =
-    smartTransactions
-      ?.filter((stx) => {
-        const { transaction } = stx;
-        return (
-          transaction?.from.toLowerCase() === selectedAddress.toLowerCase() &&
-          stx.status &&
-          stx.status !== SmartTransactionStatuses.SUCCESS &&
-          stx.status !== SmartTransactionStatuses.CANCELLED
-        );
-      })
-      .map((stx) => ({
-        ...stx,
-        // stx.uuid is one from sentinel API, not the same as tx.id which is generated client side
-        // Doesn't matter too much because we only care about the pending stx, confirmed txs are handled like normal
-        // However, this does make it impossible to read Swap data from TxController.swapsTransactions as that relies on client side tx.id
-        // To fix that we do transactionController.update({ swapsTransactions: newSwapsTransactions }) in app/util/smart-transactions/smart-tx.ts
-        id: stx.uuid,
-        status: stx.status?.startsWith(SmartTransactionStatuses.CANCELLED)
-          ? SmartTransactionStatuses.CANCELLED
-          : stx.status,
-        isSmartTransaction: true,
-      })) ?? [];
+  const pendingSmartTransactions =
+    selectPendingSmartTransactionsBySender(state);
 
   return {
     conversionRate: selectConversionRate(state),
@@ -265,8 +237,8 @@ const mapStateToProps = (state) => {
     selectedAddress,
     identities: selectIdentities(state),
     transactions: [
-      ...filteredNonSmartTransactions,
-      ...filteredPendingSmartTransactions,
+      ...nonReplacedTransactions,
+      ...pendingSmartTransactions,
     ].sort((a, b) => b.time - a.time),
     networkType: selectProviderType(state),
     chainId,

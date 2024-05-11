@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Icon, {
@@ -16,7 +16,6 @@ import {
 import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
-import { getSwapsChainFeatureFlags } from '../../../reducers/swaps';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
@@ -25,6 +24,7 @@ import TransactionBackgroundTop from '../../../images/transaction-background-top
 import TransactionBackgroundBottom from '../../../images/transaction-background-bottom.svg';
 import LoopingScrollAnimation from './LoopingScrollAnimation';
 import { hexToDecimal } from '../../../util/conversions';
+import useRemainingTime from './useRemainingTime';
 
 const getPortfolioStxLink = (chainId: Hex, uuid: string) => {
   const chainIdDec = hexToDecimal(chainId);
@@ -56,6 +56,145 @@ export const showRemainingTimeInMinAndSec = (
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
+interface getDisplayValuesArgs {
+  status: string | undefined;
+  isStxPending: boolean;
+  isStxPastEstimatedDeadline: boolean;
+  timeLeftForPendingStxInSec: number;
+  isDapp: boolean;
+  isInSwapFlow: boolean;
+  origin: string;
+  viewActivity: () => void;
+  closeStatusPage: () => void;
+  createNewSwap: () => void;
+  createNewSend: () => void;
+}
+
+const getDisplayValuesAndHandlers = ({
+  status,
+  isStxPending,
+  isStxPastEstimatedDeadline,
+  timeLeftForPendingStxInSec,
+  isDapp,
+  isInSwapFlow,
+  origin,
+  viewActivity,
+  closeStatusPage,
+  createNewSwap,
+  createNewSend,
+}: getDisplayValuesArgs) => {
+  const returnTextDapp = strings('smart_transactions.return_to_dapp', {
+    dappName: origin,
+  });
+  const returnTextMM = strings('smart_transactions.try_again');
+
+  // Set icon, header, desc, and buttons
+  let icon;
+  let iconColor;
+  let header;
+  let description;
+  let primaryButtonText;
+  let secondaryButtonText;
+  let handlePrimaryButtonPress;
+  let handleSecondaryButtonPress;
+
+  if (isStxPending && isStxPastEstimatedDeadline) {
+    icon = IconName.Clock;
+    iconColor = IconColor.Primary;
+    header = strings(
+      'smart_transactions.status_submitting_past_estimated_deadline_header',
+    );
+    description = strings(
+      'smart_transactions.status_submitting_past_estimated_deadline_description',
+      {
+        timeLeft: showRemainingTimeInMinAndSec(timeLeftForPendingStxInSec),
+      },
+    );
+  } else if (isStxPending) {
+    icon = IconName.Clock;
+    iconColor = IconColor.Primary;
+    header = strings('smart_transactions.status_submitting_header');
+    description = strings('smart_transactions.status_submitting_description', {
+      timeLeft: showRemainingTimeInMinAndSec(timeLeftForPendingStxInSec),
+    });
+  } else if (status === SmartTransactionStatuses.SUCCESS) {
+    icon = IconName.Confirmation;
+    iconColor = IconColor.Success;
+    header = strings('smart_transactions.status_success_header');
+    description = undefined;
+
+    if (isDapp) {
+      primaryButtonText = strings('smart_transactions.view_activity');
+      handlePrimaryButtonPress = viewActivity;
+      secondaryButtonText = returnTextDapp;
+      handleSecondaryButtonPress = closeStatusPage;
+    } else {
+      if (isInSwapFlow) {
+        primaryButtonText = strings('smart_transactions.create_new', {
+          txType: strings('smart_transactions.swap'),
+        });
+        handlePrimaryButtonPress = createNewSwap;
+      } else {
+        primaryButtonText = strings('smart_transactions.create_new', {
+          txType: strings('smart_transactions.send'),
+        });
+        handlePrimaryButtonPress = createNewSend;
+      }
+
+      secondaryButtonText = strings('smart_transactions.view_activity');
+      handleSecondaryButtonPress = viewActivity;
+    }
+  } else if (status?.startsWith(SmartTransactionStatuses.CANCELLED)) {
+    icon = IconName.Danger;
+    iconColor = IconColor.Error;
+    header = strings('smart_transactions.status_cancelled_header');
+    description = strings('smart_transactions.status_cancelled_description');
+
+    if (isDapp) {
+      secondaryButtonText = returnTextDapp;
+      handleSecondaryButtonPress = closeStatusPage;
+    } else {
+      primaryButtonText = returnTextMM;
+
+      if (isInSwapFlow) {
+        handlePrimaryButtonPress = createNewSwap;
+      } else {
+        handlePrimaryButtonPress = createNewSend;
+      }
+
+      secondaryButtonText = strings('smart_transactions.view_activity');
+      handleSecondaryButtonPress = viewActivity;
+    }
+  } else {
+    // Reverted or unknown statuses (tx failed)
+    icon = IconName.Danger;
+    iconColor = IconColor.Error;
+    header = strings('smart_transactions.status_failed_header');
+    description = strings('smart_transactions.status_failed_description');
+
+    if (isDapp) {
+      secondaryButtonText = returnTextDapp;
+      handleSecondaryButtonPress = closeStatusPage;
+    } else {
+      primaryButtonText = returnTextMM;
+      handlePrimaryButtonPress = closeStatusPage;
+      secondaryButtonText = strings('smart_transactions.view_activity');
+      handleSecondaryButtonPress = viewActivity;
+    }
+  }
+
+  return {
+    icon,
+    iconColor,
+    header,
+    description,
+    primaryButtonText,
+    secondaryButtonText,
+    handlePrimaryButtonPress,
+    handleSecondaryButtonPress,
+  };
+};
+
 const SmartTransactionStatus = ({
   requestState: { smartTransaction, isDapp, isInSwapFlow },
   origin,
@@ -63,23 +202,9 @@ const SmartTransactionStatus = ({
 }: Props) => {
   const { status, creationTime, uuid } = smartTransaction;
   const providerConfig = useSelector(selectProviderConfig);
-  const swapFeatureFlags = useSelector(getSwapsChainFeatureFlags);
 
   const navigation = useNavigation();
   const { colors } = useTheme();
-
-  const stxEstimatedDeadlineSec =
-    swapFeatureFlags?.smartTransactions?.expectedDeadline ||
-    FALLBACK_STX_ESTIMATED_DEADLINE_SEC;
-  const stxMaxDeadlineSec =
-    swapFeatureFlags?.smartTransactions?.maxDeadline ||
-    FALLBACK_STX_MAX_DEADLINE_SEC;
-
-  const [isStxPastEstimatedDeadline, setIsStxPastEstimatedDeadline] =
-    useState(false);
-  const [timeLeftForPendingStxInSec, setTimeLeftForPendingStxInSec] = useState(
-    stxEstimatedDeadlineSec,
-  );
 
   // Setup styles
   const styles = StyleSheet.create({
@@ -134,60 +259,14 @@ const SmartTransactionStatus = ({
 
   const isStxPending = status === SmartTransactionStatuses.PENDING;
 
-  // Calc time left for progress bar and timer display
-  const stxDeadlineSec = isStxPastEstimatedDeadline
-    ? stxMaxDeadlineSec
-    : stxEstimatedDeadlineSec;
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-    if (isStxPending && creationTime) {
-      const calculateRemainingTime = () => {
-        const secondsAfterStxSubmission = Math.round(
-          (Date.now() - creationTime) / 1000,
-        );
-        if (secondsAfterStxSubmission > stxDeadlineSec) {
-          if (isStxPastEstimatedDeadline) {
-            setTimeLeftForPendingStxInSec(0);
-            clearInterval(intervalId);
-            return;
-          }
-          setIsStxPastEstimatedDeadline(true);
-        }
-        setTimeLeftForPendingStxInSec(
-          stxDeadlineSec - secondsAfterStxSubmission,
-        );
-      };
-      intervalId = setInterval(calculateRemainingTime, 1000);
-      calculateRemainingTime();
-    }
-
-    return () => clearInterval(intervalId);
-  }, [isStxPending, isStxPastEstimatedDeadline, creationTime, stxDeadlineSec]);
-
-  // Set block explorer link and show explorer on click
-  const txUrl = getPortfolioStxLink(providerConfig.chainId, uuid);
-
-  const onViewTransaction = () => {
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: txUrl,
-      },
-    });
-    // Close SmartTransactionStatus
-    onConfirm();
-  };
-
-  // Set icon, header, desc, and buttons
-  let icon;
-  let iconColor;
-  let header;
-  let description;
-  let primaryButtonText;
-  let secondaryButtonText;
-  let onPrimaryButtonPress;
-  let onSecondaryButtonPress;
+  const {
+    timeLeftForPendingStxInSec,
+    stxDeadlineSec,
+    isStxPastEstimatedDeadline,
+  } = useRemainingTime({
+    creationTime,
+    isStxPending,
+  });
 
   const viewActivity = () => {
     onConfirm();
@@ -208,98 +287,77 @@ const SmartTransactionStatus = ({
     navigation.navigate('SendFlowView');
   };
 
-  const returnTextDapp = strings('smart_transactions.return_to_dapp', {
-    dappName: origin,
+  const {
+    icon,
+    iconColor,
+    header,
+    description,
+    primaryButtonText,
+    secondaryButtonText,
+    handlePrimaryButtonPress,
+    handleSecondaryButtonPress,
+  } = getDisplayValuesAndHandlers({
+    status,
+    isStxPending,
+    isStxPastEstimatedDeadline,
+    timeLeftForPendingStxInSec,
+    isDapp,
+    isInSwapFlow,
+    origin,
+    viewActivity,
+    closeStatusPage,
+    createNewSwap,
+    createNewSend,
   });
-  const returnTextMM = strings('smart_transactions.try_again');
 
-  if (isStxPending && isStxPastEstimatedDeadline) {
-    icon = IconName.Clock;
-    iconColor = IconColor.Primary;
-    header = strings(
-      'smart_transactions.status_submitting_past_estimated_deadline_header',
-    );
-    description = strings(
-      'smart_transactions.status_submitting_past_estimated_deadline_description',
-      {
-        timeLeft: showRemainingTimeInMinAndSec(timeLeftForPendingStxInSec),
+  // Set block explorer link and show explorer on click
+  const txUrl = getPortfolioStxLink(providerConfig.chainId, uuid);
+
+  const onViewTransaction = () => {
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: txUrl,
       },
-    );
-  } else if (isStxPending) {
-    icon = IconName.Clock;
-    iconColor = IconColor.Primary;
-    header = strings('smart_transactions.status_submitting_header');
-    description = strings('smart_transactions.status_submitting_description', {
-      timeLeft: showRemainingTimeInMinAndSec(timeLeftForPendingStxInSec),
     });
-  } else if (status === SmartTransactionStatuses.SUCCESS) {
-    icon = IconName.Confirmation;
-    iconColor = IconColor.Success;
-    header = strings('smart_transactions.status_success_header');
-    description = undefined;
-
-    if (isDapp) {
-      primaryButtonText = strings('smart_transactions.view_activity');
-      onPrimaryButtonPress = viewActivity;
-      secondaryButtonText = returnTextDapp;
-      onSecondaryButtonPress = closeStatusPage;
-    } else {
-      if (isInSwapFlow) {
-        primaryButtonText = strings('smart_transactions.create_new', {
-          txType: strings('smart_transactions.swap'),
-        });
-        onPrimaryButtonPress = createNewSwap;
-      } else {
-        primaryButtonText = strings('smart_transactions.create_new', {
-          txType: strings('smart_transactions.send'),
-        });
-        onPrimaryButtonPress = createNewSend;
-      }
-
-      secondaryButtonText = strings('smart_transactions.view_activity');
-      onSecondaryButtonPress = viewActivity;
-    }
-  } else if (status?.startsWith(SmartTransactionStatuses.CANCELLED)) {
-    icon = IconName.Danger;
-    iconColor = IconColor.Error;
-    header = strings('smart_transactions.status_cancelled_header');
-    description = strings('smart_transactions.status_cancelled_description');
-
-    if (isDapp) {
-      secondaryButtonText = returnTextDapp;
-      onSecondaryButtonPress = closeStatusPage;
-    } else {
-      primaryButtonText = returnTextMM;
-
-      if (isInSwapFlow) {
-        onPrimaryButtonPress = createNewSwap;
-      } else {
-        onPrimaryButtonPress = createNewSend;
-      }
-
-      secondaryButtonText = strings('smart_transactions.view_activity');
-      onSecondaryButtonPress = viewActivity;
-    }
-  } else {
-    // Reverted or unknown statuses (tx failed)
-    icon = IconName.Danger;
-    iconColor = IconColor.Error;
-    header = strings('smart_transactions.status_failed_header');
-    description = strings('smart_transactions.status_failed_description');
-
-    if (isDapp) {
-      secondaryButtonText = returnTextDapp;
-      onSecondaryButtonPress = closeStatusPage;
-    } else {
-      primaryButtonText = returnTextMM;
-      onPrimaryButtonPress = closeStatusPage;
-      secondaryButtonText = strings('smart_transactions.view_activity');
-      onSecondaryButtonPress = viewActivity;
-    }
-  }
+    // Close SmartTransactionStatus
+    onConfirm();
+  };
 
   const percentComplete =
     (1 - timeLeftForPendingStxInSec / stxDeadlineSec) * 100;
+
+  const PrimaryButton = () =>
+    handlePrimaryButtonPress ? (
+      <Button
+        variant={ButtonVariants.Primary}
+        label={primaryButtonText}
+        onPress={handlePrimaryButtonPress}
+        style={styles.button}
+      >
+        {primaryButtonText}
+      </Button>
+    ) : null;
+
+  const SecondaryButton = () =>
+    handleSecondaryButtonPress ? (
+      <Button
+        variant={ButtonVariants.Secondary}
+        label={secondaryButtonText}
+        onPress={handleSecondaryButtonPress}
+        style={styles.button}
+      >
+        {secondaryButtonText}
+      </Button>
+    ) : null;
+
+  const ViewTransactionLink = () => (
+    <TouchableOpacity onPress={onViewTransaction}>
+      <Text style={styles.link}>
+        {strings('smart_transactions.view_transaction')}
+      </Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.wrapper}>
@@ -318,11 +376,7 @@ const SmartTransactionStatus = ({
         <View style={styles.textWrapper}>
           {description && <Text style={styles.desc}>{description}</Text>}
 
-          <TouchableOpacity onPress={onViewTransaction}>
-            <Text style={styles.link}>
-              {strings('smart_transactions.view_transaction')}
-            </Text>
-          </TouchableOpacity>
+          <ViewTransactionLink />
         </View>
       </View>
       <LoopingScrollAnimation width={800}>
@@ -330,26 +384,8 @@ const SmartTransactionStatus = ({
       </LoopingScrollAnimation>
 
       <View style={styles.buttonWrapper}>
-        {onPrimaryButtonPress && (
-          <Button
-            variant={ButtonVariants.Primary}
-            label={primaryButtonText}
-            onPress={onPrimaryButtonPress}
-            style={styles.button}
-          >
-            {primaryButtonText}
-          </Button>
-        )}
-        {onSecondaryButtonPress && (
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={secondaryButtonText}
-            onPress={onSecondaryButtonPress}
-            style={styles.button}
-          >
-            {secondaryButtonText}
-          </Button>
-        )}
+        <PrimaryButton />
+        <SecondaryButton />
       </View>
     </View>
   );

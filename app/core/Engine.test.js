@@ -72,7 +72,7 @@ describe('Engine', () => {
               approvalTxFees: undefined,
               tradeTxFees: undefined,
             },
-            '0x5': {
+            '0xaa36a7': {
               approvalTxFees: undefined,
               tradeTxFees: undefined,
             },
@@ -80,7 +80,7 @@ describe('Engine', () => {
           liveness: true,
           livenessByChainId: {
             '0x1': true,
-            '0x5': true,
+            '0xaa36a7': true,
           },
           smartTransactions: {
             '0x1': [],

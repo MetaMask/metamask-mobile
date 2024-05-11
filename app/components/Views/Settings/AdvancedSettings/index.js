@@ -36,7 +36,7 @@ import {
   selectSmartTransactionsOptInStatus,
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
-import { getSmartTransactionsEnabled } from '../../../../selectors/smartTransactionsController';
+import { selectSmartTransactionsEnabled } from '../../../../selectors/smartTransactionsController';
 import Routes from '../../../../constants/navigation/Routes';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -369,6 +369,7 @@ class AdvancedSettings extends PureComponent {
 
     this.props.metrics.trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
       stx_opt_in: smartTransactionsOptInStatus,
+      location: 'Advanced Settings',
     });
   };
 
@@ -620,7 +621,7 @@ const mapStateToProps = (state) => ({
   isTokenDetectionEnabled: selectUseTokenDetection(state),
   chainId: selectChainId(state),
   smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
-  smartTransactionsEnabled: getSmartTransactionsEnabled(state),
+  smartTransactionsEnabled: selectSmartTransactionsEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -11,15 +11,22 @@ export const getChainFeatureFlags = (
   return chainFeatureFlags;
 };
 
-export const getFeatureFlagDeviceKey = () => {
+type FeatureFlagDeviceKey =
+  | 'mobileActiveIOS'
+  | 'mobileActiveAndroid'
+  | 'mobileActive';
+export const getFeatureFlagDeviceKey: () => FeatureFlagDeviceKey = () => {
   const isIphone = Device.isIos();
   const isAndroid = Device.isAndroid();
 
-  const featureFlagDeviceKey = isIphone
-    ? 'mobileActiveIOS'
-    : isAndroid
-    ? 'mobileActiveAndroid'
-    : 'mobileActive';
+  let featureFlagDeviceKey: FeatureFlagDeviceKey;
+  if (isIphone) {
+    featureFlagDeviceKey = 'mobileActiveIOS';
+  } else if (isAndroid) {
+    featureFlagDeviceKey = 'mobileActiveAndroid';
+  } else {
+    featureFlagDeviceKey = 'mobileActive';
+  }
 
   return featureFlagDeviceKey;
 };

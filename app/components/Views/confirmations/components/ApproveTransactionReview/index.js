@@ -97,7 +97,7 @@ import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { regex } from '../../../../../util/regex';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { getIsSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -277,9 +277,9 @@ class ApproveTransactionReview extends PureComponent {
      */
     metrics: PropTypes.object,
     /**
-     * Boolean that indicates if the transaction is a smart transaction
+     * Boolean that indicates if smart transaction should be used
      */
-    isSmartTransaction: PropTypes.bool,
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -517,8 +517,12 @@ class ApproveTransactionReview extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { chainId, transaction, onSetAnalyticsParams, isSmartTransaction } =
-        this.props;
+      const {
+        chainId,
+        transaction,
+        onSetAnalyticsParams,
+        shouldUseSmartTransaction,
+      } = this.props;
       const {
         token: { tokenSymbol },
         originalApproveAmount,
@@ -544,7 +548,7 @@ class ApproveTransactionReview extends PureComponent {
           : this.originIsWalletConnect
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
-        is_smart_transaction: isSmartTransaction,
+        is_smart_transaction: shouldUseSmartTransaction,
       };
       // Send analytics params to parent component so it's available when cancelling and confirming
       onSetAnalyticsParams && onSetAnalyticsParams(params);
@@ -1281,7 +1285,7 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
-  isSmartTransaction: getIsSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

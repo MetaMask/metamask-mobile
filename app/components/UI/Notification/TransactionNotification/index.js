@@ -277,9 +277,7 @@ function TransactionNotification(props) {
   // Don't show submitted notification for STX b/c we only know when it's confirmed,
   // o/w a submitted notification will show up after it's confirmed, then a confirmed notification will show up immediately after
   if (tx.status === 'submitted') {
-    const smartTx = smartTransactions.find(
-      (stx) => stx.transactionHash === tx.transactionHash,
-    );
+    const smartTx = smartTransactions.find((stx) => stx.txHash === tx.hash);
     if (smartTx) {
       return null;
     }
@@ -435,15 +433,22 @@ TransactionNotification.propTypes = {
 
 const mapStateToProps = (state) => {
   const chainId = selectChainId(state);
+
+  const {
+    SmartTransactionsController,
+    TransactionController,
+    SwapsController,
+  } = state.engine.backgroundState;
+
   const smartTransactions =
-    state.engine.backgroundState.SmartTransactionsController
-      ?.smartTransactionsState?.smartTransactions?.[chainId] || [];
+    SmartTransactionsController?.smartTransactionsState?.smartTransactions?.[
+      chainId
+    ] || [];
 
   return {
     accounts: selectAccounts(state),
     selectedAddress: selectSelectedAddress(state),
-    transactions:
-      state.engine.backgroundState.TransactionController.transactions,
+    transactions: TransactionController.transactions,
     ticker: selectTicker(state),
     chainId,
     tokens: selectTokensByAddress(state),
@@ -452,10 +457,8 @@ const mapStateToProps = (state) => {
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
     primaryCurrency: state.settings.primaryCurrency,
-    swapsTransactions:
-      state.engine.backgroundState.TransactionController.swapsTransactions ||
-      {},
-    swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+    swapsTransactions: TransactionController.swapsTransactions || {},
+    swapsTokens: SwapsController.tokens,
     smartTransactions,
   };
 };

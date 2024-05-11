@@ -1,6 +1,6 @@
 import {
-  getIsSmartTransaction,
-  getSmartTransactionsEnabled,
+  selectShouldUseSmartTransaction,
+  selectSmartTransactionsEnabled,
 } from './smartTransactionsController';
 import initialBackgroundState from '../util/test/initial-background-state.json';
 import { isHardwareAccount } from '../util/address';
@@ -66,7 +66,7 @@ describe('SmartTransactionsController Selectors', () => {
         const state = getDefaultState();
         state.swaps['0x1'].smartTransactions = smartTransactions;
 
-        const enabled = getSmartTransactionsEnabled(state);
+        const enabled = selectSmartTransactionsEnabled(state);
         expect(enabled).toEqual(false);
       },
     );
@@ -74,20 +74,20 @@ describe('SmartTransactionsController Selectors', () => {
       const state = getDefaultState();
       state.engine.backgroundState.SmartTransactionsController.smartTransactionsState.liveness =
         false;
-      const enabled = getSmartTransactionsEnabled(state);
+      const enabled = selectSmartTransactionsEnabled(state);
       expect(enabled).toEqual(false);
     });
     it('should return false if address is hardware account', () => {
       (isHardwareAccount as jest.Mock).mockReturnValueOnce(true);
       const state = getDefaultState();
-      const enabled = getSmartTransactionsEnabled(state);
+      const enabled = selectSmartTransactionsEnabled(state);
       expect(enabled).toEqual(false);
     });
     it('should return false if is mainnet and not the default RPC', () => {
       const state = getDefaultState();
       state.engine.backgroundState.NetworkController.providerConfig.rpcUrl =
         'https://example.com';
-      const enabled = getSmartTransactionsEnabled(state);
+      const enabled = selectSmartTransactionsEnabled(state);
       expect(enabled).toEqual(false);
     });
     it('should return true if smart transactions are enabled', () => {
@@ -95,31 +95,31 @@ describe('SmartTransactionsController Selectors', () => {
       state.swaps.featureFlags.smart_transactions.mobile_active = true;
       state.swaps.featureFlags.smartTransactions.mobileActive = true;
 
-      const enabled = getSmartTransactionsEnabled(state);
+      const enabled = selectSmartTransactionsEnabled(state);
       expect(enabled).toEqual(true);
     });
   });
-  describe('getIsSmartTransaction', () => {
+  describe('getShouldUseSmartTransaction', () => {
     it('should return false if smart transactions are not opted into', () => {
       const state = getDefaultState();
       state.engine.backgroundState.PreferencesController.smartTransactionsOptInStatus =
         false;
-      const isSmartTransaction = getIsSmartTransaction(state);
-      expect(isSmartTransaction).toEqual(false);
+      const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
+      expect(shouldUseSmartTransaction).toEqual(false);
     });
     it('should return false if smart transactions are not enabled', () => {
       const state = getDefaultState();
       state.swaps['0x1'].smartTransactions = {};
-      const isSmartTransaction = getIsSmartTransaction(state);
-      expect(isSmartTransaction).toEqual(false);
+      const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
+      expect(shouldUseSmartTransaction).toEqual(false);
     });
     it('should return true if smart transactions are enabled and opted into', () => {
       const state = getDefaultState();
       state.swaps.featureFlags.smart_transactions.mobile_active = true;
       state.swaps.featureFlags.smartTransactions.mobileActive = true;
 
-      const isSmartTransaction = getIsSmartTransaction(state);
-      expect(isSmartTransaction).toEqual(true);
+      const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
+      expect(shouldUseSmartTransaction).toEqual(true);
     });
   });
 });

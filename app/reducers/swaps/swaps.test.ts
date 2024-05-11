@@ -10,7 +10,7 @@ import reducer, {
 
 const emptyAction = { type: null };
 
-const defaultFeatureFlags = {
+const DEFAULT_FEATURE_FLAGS = {
   ethereum: {
     mobile_active: true,
     extension_active: true,
@@ -65,7 +65,7 @@ describe('swaps reducer', () => {
       const liveState = reducer(initalState, {
         type: SWAPS_SET_LIVENESS,
         payload: {
-          featureFlags: defaultFeatureFlags,
+          featureFlags: DEFAULT_FEATURE_FLAGS,
           chainId: '0x1',
         },
       });
@@ -76,7 +76,7 @@ describe('swaps reducer', () => {
       Device.isAndroid = jest.fn().mockReturnValue(false);
 
       const initalState = reducer(undefined, emptyAction);
-      const featureFlags = cloneDeep(defaultFeatureFlags);
+      const featureFlags = cloneDeep(DEFAULT_FEATURE_FLAGS);
       featureFlags.ethereum = {
         mobile_active: false,
         extension_active: true,
@@ -108,7 +108,7 @@ describe('swaps reducer', () => {
       Device.isAndroid = jest.fn().mockReturnValue(true);
 
       const initalState = reducer(undefined, emptyAction);
-      const featureFlags = cloneDeep(defaultFeatureFlags);
+      const featureFlags = cloneDeep(DEFAULT_FEATURE_FLAGS);
       featureFlags.ethereum = {
         mobile_active: true,
         extension_active: true,
@@ -140,7 +140,7 @@ describe('swaps reducer', () => {
       Device.isAndroid = jest.fn().mockReturnValue(true);
 
       const initalState = reducer(undefined, emptyAction);
-      const featureFlags = cloneDeep(defaultFeatureFlags);
+      const featureFlags = cloneDeep(DEFAULT_FEATURE_FLAGS);
       featureFlags.ethereum = {
         mobile_active: false,
         extension_active: true,
