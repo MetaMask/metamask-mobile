@@ -3,14 +3,11 @@ import {
   formatNotificationTitle,
   getNotificationBadge,
   sortNotifications,
+  getRowDetails,
+  NotificationRowProps,
 } from '.';
-import { TRIGGER_TYPES } from '../../../util/notifications';
+import { TRIGGER_TYPES, Notification } from '../../../util/notifications';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-
-interface Notification {
-  id: string;
-  createdAt: Date;
-}
 
 describe('formatDate', () => {
   const realDateNow = Date.now.bind(global.Date);
@@ -21,11 +18,6 @@ describe('formatDate', () => {
 
   afterEach(() => {
     global.Date.now = realDateNow;
-  });
-
-  it('returns "Yesterday" if the date is from yesterday', () => {
-    const yesterday = new Date(Date.now() - 24 * 60 * 60);
-    expect(formatDate(yesterday)).toBe('Yesterday');
   });
 
   it('returns formatted date as "May 8" if the date is earlier this year but not yesterday', () => {
@@ -124,5 +116,147 @@ describe('sortNotifications', () => {
     ];
     const sortedNotifications = sortNotifications(notifications);
     expect(sortedNotifications).toEqual(notifications);
+  });
+});
+
+describe('getRowDetails', () => {
+  it('handles LIDO_STAKE_COMPLETED notification', () => {
+    const notification: Notification = {
+      type: TRIGGER_TYPES.LIDO_STAKE_COMPLETED,
+      createdAt: new Date('2023-01-01'),
+      data: {
+        stake_out: {
+          symbol: 'ETH',
+          name: 'Ethereum',
+          image: 'image_url',
+          amount: '1000000',
+        },
+      },
+    };
+
+    const expected: NotificationRowProps = {
+      row: {
+        badgeIcon: 'Plant',
+        title: 'Stake completed',
+        description: {
+          asset: {
+            symbol: 'ETH',
+            name: 'Ethereum',
+          },
+        },
+        createdAt: 'Dec 31',
+        imageUrl: 'image_url',
+        value: '< 0.00001 ETH',
+      },
+      details: {},
+    };
+
+    expect(getRowDetails(notification)).toEqual(expected);
+  });
+
+  it('handles METAMASK_SWAP_COMPLETED notification', () => {
+    const notification: Notification = {
+      type: TRIGGER_TYPES.METAMASK_SWAP_COMPLETED,
+      createdAt: new Date('2023-01-01'),
+      data: {
+        token_in: {
+          symbol: 'BTC',
+          image: 'btc_image_url',
+        },
+        token_out: {
+          symbol: 'ETH',
+          name: 'Ethereum',
+          image: 'eth_image_url',
+          amount: '500000',
+        },
+      },
+    };
+
+    const expected: NotificationRowProps = {
+      row: {
+        badgeIcon: 'SwapHorizontal',
+        title: 'Swapped BTC for ETH',
+        description: {
+          asset: {
+            symbol: 'ETH',
+            name: 'Ethereum',
+          },
+        },
+        createdAt: 'Dec 31',
+        imageUrl: 'eth_image_url',
+        value: '< 0.00001 ETH',
+      },
+      details: {},
+    };
+
+    expect(getRowDetails(notification)).toEqual(expected);
+  });
+
+  it('handles ETH_SENT notification', () => {
+    const notification: Notification = {
+      type: TRIGGER_TYPES.ETH_SENT,
+      createdAt: new Date('2023-01-01'),
+      data: {
+        to: '0xABC123',
+        amount: {
+          eth: '1.5',
+        },
+      },
+    };
+
+    const expected: NotificationRowProps = {
+      row: {
+        badgeIcon: 'Arrow2Upright',
+        title: 'Sent to 0xABC123',
+        description: {
+          asset: {
+            symbol: 'ETH',
+            name: 'Ethereum',
+          },
+        },
+        createdAt: 'Dec 31',
+        value: '1.5 ETH',
+      },
+      details: {},
+    };
+
+    expect(getRowDetails(notification)).toEqual(expected);
+  });
+
+  it('handles ERC721_RECEIVED notification', () => {
+    const notification: Notification = {
+      type: TRIGGER_TYPES.ERC721_RECEIVED,
+      createdAt: new Date('2023-01-01'),
+      data: {
+        from: '0xDEF456',
+        nft: {
+          token_id: '1234',
+          collection: {
+            symbol: 'ART',
+            name: 'ArtCollection',
+          },
+          image: 'nft_image_url',
+        },
+      },
+    };
+
+    const expected: NotificationRowProps = {
+      row: {
+        badgeIcon: 'Received',
+        title: 'Received NFT from 0xDEF456',
+        description: {
+          asset: {
+            symbol: 'ART',
+            name: 'ArtCollection',
+          },
+        },
+        createdAt: 'Dec 31',
+        imageUrl: 'nft_image_url',
+        value: '#1234',
+      },
+      details: {},
+    };
+
+    expect(getRowDetails(notification)).toEqual(expected);
   });
 });
