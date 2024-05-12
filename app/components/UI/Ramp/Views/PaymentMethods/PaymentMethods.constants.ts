@@ -1,6 +1,20 @@
 /* eslint-disable import/prefer-default-export */
 
 import { Payment } from '@consensys/on-ramp-sdk';
+import APP_CONSTANTS from '../../../../../core/AppConstants';
+const {
+  MASTERCARD_LIGHT,
+  MASTERCARD_DARK,
+  VISA_LIGHT,
+  VISA_DARK,
+  ACH_LIGHT,
+  ACH_DARK,
+} = APP_CONSTANTS.URLS.ICONS;
+
+const CREDIT_CARD_LOGOS = {
+  light: [VISA_LIGHT, MASTERCARD_LIGHT],
+  dark: [VISA_DARK, MASTERCARD_DARK],
+};
 
 export const mockPaymentMethods = [
   {
@@ -15,12 +29,8 @@ export const mockPaymentMethods = [
       },
     ],
     logo: {
-      light: [
-        'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png',
-      ],
-      dark: [
-        'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer@3x.png',
-      ],
+      light: [ACH_LIGHT],
+      dark: [ACH_DARK],
     },
     delay: [0, 0],
     amountTier: [3, 3],
@@ -38,16 +48,7 @@ export const mockPaymentMethods = [
         name: 'apple',
       },
     ],
-    logo: {
-      light: [
-        'https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png',
-        'https://on-ramp.metafi-dev.codefi.network/assets/Mastercard-regular@3x.png',
-      ],
-      dark: [
-        'https://on-ramp.metafi-dev.codefi.network/assets/Visa@3x.png',
-        'https://on-ramp.metafi-dev.codefi.network/assets/Mastercard@3x.png',
-      ],
-    },
+    logo: CREDIT_CARD_LOGOS,
     disclaimer: 'Apple Cash is not supported.',
     delay: [0, 0],
     amountTier: [1, 3],
@@ -65,16 +66,7 @@ export const mockPaymentMethods = [
         name: 'card',
       },
     ],
-    logo: {
-      light: [
-        'https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png',
-        'https://on-ramp.metafi-dev.codefi.network/assets/Mastercard-regular@3x.png',
-      ],
-      dark: [
-        'https://on-ramp.metafi-dev.codefi.network/assets/Visa@3x.png',
-        'https://on-ramp.metafi-dev.codefi.network/assets/Mastercard@3x.png',
-      ],
-    },
+    logo: CREDIT_CARD_LOGOS,
     disclaimer:
       "Credit card purchases may incur your bank's cash advance fees, subject to your bank's policies.",
     delay: [5, 10],

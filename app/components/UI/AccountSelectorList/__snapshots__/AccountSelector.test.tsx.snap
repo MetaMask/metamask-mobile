@@ -473,9 +473,21 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711651}
+                      fill={
+                        {
+                          "payload": 4294711651,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -497,7 +509,12 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4280576225}
+                      fill={
+                        {
+                          "payload": 4280576225,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -519,7 +536,12 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278407261}
+                      fill={
+                        {
+                          "payload": 4278407261,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -738,9 +760,21 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711643}
+                      fill={
+                        {
+                          "payload": 4294711643,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -762,7 +796,12 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278289804}
+                      fill={
+                        {
+                          "payload": 4278289804,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -784,7 +823,12 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4294394881}
+                      fill={
+                        {
+                          "payload": 4294394881,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -1033,9 +1077,21 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711651}
+                      fill={
+                        {
+                          "payload": 4294711651,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -1057,7 +1113,12 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4280576225}
+                      fill={
+                        {
+                          "payload": 4280576225,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -1079,7 +1140,12 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278407261}
+                      fill={
+                        {
+                          "payload": 4278407261,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -1251,9 +1317,21 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711643}
+                      fill={
+                        {
+                          "payload": 4294711643,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -1275,7 +1353,12 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278289804}
+                      fill={
+                        {
+                          "payload": 4278289804,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -1297,7 +1380,12 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4294394881}
+                      fill={
+                        {
+                          "payload": 4294394881,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
