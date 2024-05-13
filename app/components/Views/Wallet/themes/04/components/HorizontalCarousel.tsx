@@ -85,13 +85,16 @@ const HorizontalCarousel = () => {
   const styles = styleSheet(colors);
   const navigation = useNavigation();
   return (
-    <FlatList
-      data={ACTIONS}
-      renderItem={({ item }) => renderItem({ item, styles, navigation })}
-      keyExtractor={(item) => item.id}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-    />
+    <>
+      <Text variant={TextVariant.HeadingMD}>Welcome Tasks</Text>
+      <FlatList
+        data={ACTIONS}
+        renderItem={({ item }) => renderItem({ item, styles, navigation })}
+        keyExtractor={(item) => item.id}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      />
+    </>
   );
 };
 

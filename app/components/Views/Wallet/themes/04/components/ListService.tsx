@@ -20,6 +20,7 @@ const styleSheet = (colors: any) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginVertical: 12,
+      marginBottom: 24,
     },
     iconSquared: {
       padding: 10,

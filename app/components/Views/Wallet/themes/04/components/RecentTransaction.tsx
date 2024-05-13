@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../../../../util/theme';
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 const listTransations = [
   {
     type: 'Linea',
@@ -102,7 +105,7 @@ const RecentTransaction = () => {
   const styles = styleSheet(colors);
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Recent Transaction</Text>
+      <Text variant={TextVariant.HeadingMD}>Recent Transaction</Text>
       <View>
         {listTransations.map((item) => renderTransactionItem(item, styles))}
       </View>
