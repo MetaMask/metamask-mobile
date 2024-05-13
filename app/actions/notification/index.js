@@ -1,12 +1,14 @@
+import { ACTIONS } from '../../reducers/notification';
+
 export function hideCurrentNotification() {
   return {
-    type: 'HIDE_CURRENT_NOTIFICATION',
+    type: ACTIONS.HIDE_CURRENT_NOTIFICATION,
   };
 }
 
 export function hideNotificationById(id) {
   return {
-    type: 'HIDE_NOTIFICATION_BY_ID',
+    type: ACTIONS.HIDE_NOTIFICATION_BY_ID,
     id,
   };
 }
@@ -17,7 +19,7 @@ export function modifyOrShowTransactionNotificationById({
   status,
 }) {
   return {
-    type: 'MODIFY_OR_SHOW_TRANSACTION_NOTIFICATION',
+    type: ACTIONS.MODIFY_OR_SHOW_TRANSACTION_NOTIFICATION,
     autodismiss,
     transaction,
     status,
@@ -31,7 +33,7 @@ export function modifyOrShowSimpleNotificationById({
   status,
 }) {
   return {
-    type: 'MODIFY_OR_SHOW_SIMPLE_NOTIFICATION',
+    type: ACTIONS.MODIFY_OR_SHOW_SIMPLE_NOTIFICATION,
     autodismiss,
     title,
     description,
@@ -41,7 +43,7 @@ export function modifyOrShowSimpleNotificationById({
 
 export function replaceNotificationById(notification) {
   return {
-    type: 'REPLACE_NOTIFICATION_BY_ID',
+    type: ACTIONS.REPLACE_NOTIFICATION_BY_ID,
     notification,
     id: notification.id,
   };
@@ -49,14 +51,14 @@ export function replaceNotificationById(notification) {
 
 export function removeNotificationById(id) {
   return {
-    type: 'REMOVE_NOTIFICATION_BY_ID',
+    type: ACTIONS.REMOVE_NOTIFICATION_BY_ID,
     id,
   };
 }
 
 export function removeCurrentNotification() {
   return {
-    type: 'REMOVE_CURRENT_NOTIFICATION',
+    type: ACTIONS.REMOVE_CURRENT_NOTIFICATION,
   };
 }
 
@@ -69,7 +71,7 @@ export function showSimpleNotification({
 }) {
   return {
     id,
-    type: 'SHOW_SIMPLE_NOTIFICATION',
+    type: ACTIONS.SHOW_SIMPLE_NOTIFICATION,
     autodismiss,
     title,
     description,
@@ -83,7 +85,7 @@ export function showTransactionNotification({
   status,
 }) {
   return {
-    type: 'SHOW_TRANSACTION_NOTIFICATION',
+    type: ACTIONS.SHOW_TRANSACTION_NOTIFICATION,
     autodismiss,
     transaction,
     status,
@@ -92,13 +94,13 @@ export function showTransactionNotification({
 
 export function removeNotVisibleNotifications() {
   return {
-    type: 'REMOVE_NOT_VISIBLE_NOTIFICATIONS',
+    type: ACTIONS.REMOVE_NOT_VISIBLE_NOTIFICATIONS,
   };
 }
 
 export function updateNotificationStatus(notificationsSettings) {
   return {
-    type: 'UPDATE_NOTIFICATION_STATUS',
+    type: ACTIONS.UPDATE_NOTIFICATION_STATUS,
     notificationsSettings,
   };
 }
@@ -107,121 +109,122 @@ export function updateNotificationStatus(notificationsSettings) {
 
 export function performSignIn() {
   return {
-    type: 'PERFORM_SIGN_IN',
+    type: ACTIONS.PERFORM_SIGN_IN,
   };
 }
 
 export function performSignOut() {
   return {
-    type: 'PERFORM_SIGN_OUT',
+    type: ACTIONS.PERFORM_SIGN_OUT,
   };
 }
 
 export function enableProfileSyncing() {
   return {
-    type: 'ENABLE_PROFILE_SYNCING',
+    type: ACTIONS.ENABLE_PROFILE_SYNCING,
   };
 }
 
 export function disableProfileSyncing() {
   return {
-    type: 'DISABLE_PROFILE_SYNCING',
+    type: ACTIONS.DISABLE_PROFILE_SYNCING,
   };
 }
 
-export function setParticipateInMetaMetrics(isParticipating) {
+export function setParticipateInMetaMetrics(isParticipateInMetaMetrics) {
   return {
-    type: 'SET_PARTICIPATE_IN_METAMETRICS',
-    isParticipating,
+    type: ACTIONS.SET_PARTICIPATE_IN_METAMETRICS,
+    isParticipateInMetaMetrics,
   };
 }
 
-export function showLoadingIndication() {
+export function showLoadingIndication(message) {
   return {
-    type: 'SHOW_LOADING_INDICATION',
+    type: ACTIONS.SHOW_LOADING,
+    payload: message,
   };
 }
 
 export function hideLoadingIndication() {
   return {
-    type: 'HIDE_LOADING_INDICATION',
+    type: ACTIONS.HIDE_LOADING,
   };
 }
 
 export function createOnChainTriggers() {
   return {
-    type: 'CREATE_ON_CHAIN_TRIGGERS',
+    type: ACTIONS.CREATE_ON_CHAIN_TRIGGERS,
   };
 }
 
 export function fetchAndUpdateMetamaskNotifications() {
   return {
-    type: 'FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS',
+    type: ACTIONS.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS,
   };
 }
 
 export function markMetamaskNotificationsAsRead(notifications) {
   return {
-    type: 'MARK_METAMASK_NOTIFICATIONS_AS_READ',
+    type: ACTIONS.MARK_METAMASK_NOTIFICATIONS_AS_READ,
     notifications,
   };
 }
 
 export function setMetamaskNotificationsFeatureSeen() {
   return {
-    type: 'SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN',
+    type: ACTIONS.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN,
   };
 }
 
 export function enableMetamaskNotifications() {
   return {
-    type: 'ENABLE_METAMASK_NOTIFICATIONS',
+    type: ACTIONS.ENABLE_METAMASK_NOTIFICATIONS,
   };
 }
 export function disableMetamaskNotifications() {
   return {
-    type: 'DISABLE_METAMASK_NOTIFICATIONS',
+    type: ACTIONS.DISABLE_METAMASK_NOTIFICATIONS,
   };
 }
 
-export function setIsProfileSyncingEnabled(profileSyncStatus) {
+export function setIsProfileSyncingEnabled(profileSyncEnabled) {
   return {
-    type: 'SET_IS_PROFILE_SYNCING_ENABLED',
-    profileSyncStatus,
+    type: ACTIONS.SET_PROFILE_SYNCING_ENABLED,
+    profileSyncEnabled,
   };
 }
 
-export function setSnapNotificationsEnabled(snapNotificationsStatus) {
+export function setSnapNotificationsEnabled(snapNotificationsEnabled) {
   return {
-    type: 'SET_SNAP_NOTIFICATIONS_ENABLED',
-    snapNotificationsStatus,
+    type: ACTIONS.SET_SNAP_NOTIFICATIONS_ENABLED,
+    snapNotificationsEnabled,
   };
 }
 
-export function setFeatureAnnouncementsEnabled(featureAnnouncementsStatus) {
+export function setFeatureAnnouncementsEnabled(featureAnnouncementsEnabled) {
   return {
-    type: 'SET_FEATURE_ANNOUNCEMENTS_ENABLED',
-    featureAnnouncementsStatus,
+    type: ACTIONS.SET_FEATURE_ANNOUNCEMENTS_ENABLED,
+    featureAnnouncementsEnabled,
   };
 }
 
 export function checkAccountsPresence(accounts) {
   return {
-    type: 'CHECK_ACCOUNTS_PRESENCE',
+    type: ACTIONS.CHECK_ACCOUNTS_PRESENCE,
     accounts,
   };
 }
 
 export function deleteOnChainTriggersByAccount(addresses) {
   return {
-    type: 'DELETE_NOTIFICATION_STATUS',
+    type: ACTIONS.DELETE_NOTIFICATION_STATUS,
     addresses,
   };
 }
 
 export function updateOnChainTriggersByAccount(addresses) {
   return {
-    type: 'UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT',
+    type: ACTIONS.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT,
     addresses,
   };
 }
