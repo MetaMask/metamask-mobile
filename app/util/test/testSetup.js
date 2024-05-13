@@ -199,22 +199,14 @@ NativeModules.Aes = {
     const hashBase = '012345678987654';
     return Promise.resolve(hashBase + uniqueAddressChar);
   }),
-  pbkdf2: jest
-    .fn()
-    .mockImplementation((_password, _salt, _iterations, _keyLength) =>
-      Promise.resolve('mockedKey'),
-    ),
+  pbkdf2: jest.fn().mockResolvedValue('mockedKey'),
   randomKey: jest.fn().mockResolvedValue('mockedIV'),
   encrypt: jest.fn().mockResolvedValue('mockedCipher'),
   decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainText"}'),
 };
 
 NativeModules.AesForked = {
-  pbkdf2: jest
-    .fn()
-    .mockImplementation((_password, _salt) =>
-      Promise.resolve('mockedKeyForked'),
-    ),
+  pbkdf2: jest.fn().mockResolvedValue('mockedKeyForked'),
   decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainTextForked"}'),
 };
 
