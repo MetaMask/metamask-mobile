@@ -27,8 +27,8 @@ export const ACTIONS = {
   ENABLE_PROFILE_SYNCING: 'ENABLE_PROFILE_SYNCING',
   DISABLE_PROFILE_SYNCING: 'DISABLE_PROFILE_SYNCING',
   SET_PARTICIPATE_IN_METAMETRICS: 'SET_PARTICIPATE_IN_METAMETRICS',
-  SHOW_LOADING_INDICATION: 'SHOW_LOADING_INDICATION',
-  HIDE_LOADING_INDICATION: 'HIDE_LOADING_INDICATION',
+  SHOW_LOADING: 'SHOW_LOADING_INDICATION',
+  HIDE_LOADING: 'HIDE_LOADING_INDICATION',
   CREATE_ON_CHAIN_TRIGGERS: 'CREATE_ON_CHAIN_TRIGGERS',
   FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS:
     'FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS',
@@ -232,14 +232,12 @@ const notificationReducer = (state = initialState, action) => {
     case ACTIONS.SET_PARTICIPATE_IN_METAMETRICS: {
       return {
         ...state,
-        notifications: {
-          isParticipating: action.isParticipating,
-        },
+        participateInMetaMetrics: action.isParticipateInMetaMetrics,
       };
     }
-    case ACTIONS.SHOW_LOADING_INDICATION: {
+    case ACTIONS.SHOW_LOADING: {
     }
-    case ACTIONS.HIDE_LOADING_INDICATION: {
+    case ACTIONS.HIDE_LOADING: {
     }
     case ACTIONS.CREATE_ON_CHAIN_TRIGGERS: {
     }
@@ -259,11 +257,11 @@ const notificationReducer = (state = initialState, action) => {
     }
     case ACTIONS.ENABLE_METAMASK_NOTIFICATIONS: {
     }
-    case ACTIONS.SET_IS_PROFILE_SYNCING_ENABLED: {
+    case ACTIONS.SET_PROFILE_SYNCING_ENABLED: {
       return {
         ...state,
         notifications: {
-          profileSyncStatus: action.profileSyncStatus,
+          profileSyncStatus: action.profileSyncEnabled,
         },
       };
     }
@@ -271,7 +269,7 @@ const notificationReducer = (state = initialState, action) => {
       return {
         ...state,
         notifications: {
-          snapNotificationsStatus: action.snapNotificationsStatus,
+          snapNotificationsEnabled: action.snapNotificationsEnabled,
         },
       };
     }
@@ -279,7 +277,7 @@ const notificationReducer = (state = initialState, action) => {
       return {
         ...state,
         notifications: {
-          featureAnnouncementsStatus: action.featureAnnouncementsStatus,
+          featureAnnouncementsEnabled: action.featureAnnouncementsEnabled,
         },
       };
     }
