@@ -21,6 +21,28 @@ export const ACTIONS = {
   SHOW_SIMPLE_NOTIFICATION: 'SHOW_SIMPLE_NOTIFICATION',
   SHOW_TRANSACTION_NOTIFICATION: 'SHOW_TRANSACTION_NOTIFICATION',
   UPDATE_NOTIFICATION_STATUS: 'UPDATE_NOTIFICATION_STATUS',
+  /** THE ACTIONS BELLOW ARE FOR THE NEW METAMASK NOTIFICATIONS FEATURE */
+  PERFORM_SIGN_IN: 'PERFORM_SIGN_IN',
+  PERFORM_SIGN_OUT: 'PERFORM_SIGN_OUT',
+  ENABLE_PROFILE_SYNCING: 'ENABLE_PROFILE_SYNCING',
+  DISABLE_PROFILE_SYNCING: 'DISABLE_PROFILE_SYNCING',
+  SET_PARTICIPATE_IN_METAMETRICS: 'SET_PARTICIPATE_IN_METAMETRICS',
+  SHOW_LOADING_INDICATION: 'SHOW_LOADING_INDICATION',
+  HIDE_LOADING_INDICATION: 'HIDE_LOADING_INDICATION',
+  CREATE_ON_CHAIN_TRIGGERS: 'CREATE_ON_CHAIN_TRIGGERS',
+  FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS:
+    'FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS',
+  MARK_METAMASK_NOTIFICATIONS_AS_READ: 'MARK_METAMASK_NOTIFICATIONS_AS_READ',
+  SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN:
+    'SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN',
+  DISABLE_METAMASK_NOTIFICATIONS: 'DISABLE_METAMASK_NOTIFICATIONS',
+  ENABLE_METAMASK_NOTIFICATIONS: 'ENABLE_METAMASK_NOTIFICATIONS',
+  SET_IS_PROFILE_SYNCING_ENABLED: 'SET_IS_PROFILE_SYNCING_ENABLED',
+  SET_SNAP_NOTIFICATIONS_ENABLED: 'SET_SNAP_NOTIFICATIONS_ENABLED',
+  SET_FEATURE_ANNOUNCEMENTS_ENABLED: 'SET_FEATURE_ANNOUNCEMENTS_ENABLED',
+  CHECK_ACCOUNTS_PRESENCE: 'CHECK_ACCOUNTS_PRESENCE',
+  DELETE_NOTIFICATION_STATUS: 'DELETE_NOTIFICATION_STATUS',
+  UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT: 'UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT',
 };
 
 const enqueue = (notifications, notification) => [
@@ -197,6 +219,92 @@ const notificationReducer = (state = initialState, action) => {
       return {
         ...state,
         notificationsSettings: action.notificationsSettings,
+      };
+    }
+    case ACTIONS.PERFORM_SIGN_IN: {
+    }
+    case ACTIONS.PERFORM_SIGN_OUT: {
+    }
+    case ACTIONS.ENABLE_PROFILE_SYNCING: {
+    }
+    case ACTIONS.DISABLE_PROFILE_SYNCING: {
+    }
+    case ACTIONS.SET_PARTICIPATE_IN_METAMETRICS: {
+      return {
+        ...state,
+        notifications: {
+          isParticipating: action.isParticipating,
+        },
+      };
+    }
+    case ACTIONS.SHOW_LOADING_INDICATION: {
+    }
+    case ACTIONS.HIDE_LOADING_INDICATION: {
+    }
+    case ACTIONS.CREATE_ON_CHAIN_TRIGGERS: {
+    }
+    case ACTIONS.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS: {
+    }
+    case ACTIONS.MARK_METAMASK_NOTIFICATIONS_AS_READ: {
+      return {
+        ...state,
+        notifications: {
+          notifications: action.notifications,
+        },
+      };
+    }
+    case ACTIONS.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN: {
+    }
+    case ACTIONS.DISABLE_METAMASK_NOTIFICATIONS: {
+    }
+    case ACTIONS.ENABLE_METAMASK_NOTIFICATIONS: {
+    }
+    case ACTIONS.SET_IS_PROFILE_SYNCING_ENABLED: {
+      return {
+        ...state,
+        notifications: {
+          profileSyncStatus: action.profileSyncStatus,
+        },
+      };
+    }
+    case ACTIONS.SET_SNAP_NOTIFICATIONS_ENABLED: {
+      return {
+        ...state,
+        notifications: {
+          snapNotificationsStatus: action.snapNotificationsStatus,
+        },
+      };
+    }
+    case ACTIONS.SET_FEATURE_ANNOUNCEMENTS_ENABLED: {
+      return {
+        ...state,
+        notifications: {
+          featureAnnouncementsStatus: action.featureAnnouncementsStatus,
+        },
+      };
+    }
+    case ACTIONS.CHECK_ACCOUNTS_PRESENCE: {
+      return {
+        ...state,
+        notifications: {
+          accounts: action.accounts,
+        },
+      };
+    }
+    case ACTIONS.DELETE_NOTIFICATION_STATUS: {
+      return {
+        ...state,
+        notifications: {
+          addresses: action.addresses,
+        },
+      };
+    }
+    case ACTIONS.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT: {
+      return {
+        ...state,
+        notifications: {
+          addresses: action.addresses,
+        },
       };
     }
     default:
