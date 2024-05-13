@@ -1,6 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 /* eslint-disable import/prefer-default-export */
-import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+import RNFetchBlob, { FetchBlobResponse } from 'react-native-blob-util';
 import Logger from '../../../util/Logger';
 
 const SNAPS_FETCH_LOG_TAG = 'Snaps/ fetch';

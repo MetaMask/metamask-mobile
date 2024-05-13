@@ -23,7 +23,7 @@ import {
 
 import { DetectSnapLocationOptions } from './location';
 import { NativeModules } from 'react-native';
-import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+import RNFetchBlob, { FetchBlobResponse } from 'react-native-blob-util';
 import Logger from '../../../util/Logger';
 import { SnapLocation } from '@metamask/snaps-controllers';
 
