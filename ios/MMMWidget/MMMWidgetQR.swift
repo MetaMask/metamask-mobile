@@ -143,14 +143,14 @@ struct MMMWidgetQRMedium: View {
               .padding() // Adds padding around the QR code
           Rectangle()
               .foregroundColor(.white)
-              .frame(width: 34, height: 34)
+              .frame(width: 28, height: 28)
               .cornerRadius(4.91)
               .background(.white)
               .offset(x: 0.19, y: -0.94)
           Image("linea-mainnet-logo")
             .interpolation(.none) // Prevents blurring
             .resizable() // Allows the image to resize
-            .frame(width: 30, height:30)
+            .frame(width: 24, height:24)
             .cornerRadius(4.91)
             .background(.white)
             .offset(x: 0.19, y: -0.94)
