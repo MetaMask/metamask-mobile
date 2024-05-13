@@ -3,7 +3,7 @@ import { createSelector } from 'reselect';
 import { RootState } from '../../../reducers';
 
 const selectNotificationsControllerState = (state: RootState) =>
-  state.engine.backgroundState.NotificationsController;
+  state.engine.backgroundState.UserStorageController;
 
 export const selectIsProfileSyncingEnabled = createSelector(
   selectNotificationsControllerState,
