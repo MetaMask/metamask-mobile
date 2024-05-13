@@ -16,3 +16,14 @@ export const RestrictedMethods = Object.freeze({
   wallet_snap: 'wallet_snap',
   ///: END:ONLY_INCLUDE_IF
 });
+
+export const NETWORK_TYPES = {
+  GOERLI: 'goerli',
+  LOCALHOST: 'localhost',
+  MAINNET: 'mainnet',
+  RPC: 'rpc',
+  SEPOLIA: 'sepolia',
+  LINEA_GOERLI: 'linea-goerli',
+  LINEA_SEPOLIA: 'linea-sepolia',
+  LINEA_MAINNET: 'linea-mainnet',
+} as const;
