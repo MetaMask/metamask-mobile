@@ -174,6 +174,30 @@ import {
 import { hasProperty, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
+
+// Notification controllers and state
+import {
+  AuthenticationController,
+  AuthenticationControllerState,
+} from '@metamask/authentication-controller';
+import {
+  UserStorageController,
+  UserStorageControllerState,
+} from '@metamask/user-storage-controller';
+import {
+  PushPlatformNotificationsController,
+  PushPlatformNotificationsControllerState,
+} from '@metamask/push-platform-notifications';
+import {
+  MetamaskNotificationsController,
+  MetamaskNotificationsControllerState,
+} from '@metamask/metamask-notifications';
+
+import {
+  MetaMetricsController,
+  MetaMetricsControllerState,
+} from '@metamask/metamask-metametrics';
+
 import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
@@ -190,6 +214,7 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
+import { NETWORK_TYPES } from './Permissions/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -286,6 +311,12 @@ export interface EngineState {
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
+  // Notification Controllers
+  AuthenticationController: AuthenticationControllerState;
+  UserStorageController: UserStorageControllerState;
+  MetamaskNotificationsController: MetamaskNotificationsControllerState;
+  PushPlatformNotificationsController: PushPlatformNotificationsControllerState;
+  MetaMetricsController: MetaMetricsControllerState;
 }
 
 /**
@@ -321,6 +352,12 @@ interface Controllers {
   SubjectMetadataController: SubjectMetadataController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
+  // Notification Controllers
+  AuthenticationController: AuthenticationController;
+  UserStorageController: UserStorageController;
+  MetamaskNotificationsController: MetamaskNotificationsController;
+  PushPlatformNotificationsController: PushPlatformNotificationsController;
+  MetaMetricsController: MetaMetricsController;
 }
 
 /**
@@ -1000,6 +1037,95 @@ class Engine {
       ],
     });
 
+    // Notification Controllers
+    // TODO: Check if this will be ready to be used in the time of shipping notifications
+    const metaMetricsController = new MetaMetricsController({
+      segment,
+      preferencesStore: preferencesController.state,
+      onNetworkStateChange: (listener) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          listener,
+        ),
+      getNetworkIdentifier: () => {
+        const { type, rpcUrl } = networkController.state.providerConfig;
+        return type === NETWORK_TYPES.RPC ? rpcUrl : type;
+      },
+      getCurrentChainId: () => networkController.state.providerConfig.chainId,
+      environment: process.env.METAMASK_ENVIRONMENT,
+      initState: initialState.MetaMetricsController,
+      captureException,
+    });
+
+    const authenticationController = new AuthenticationController({
+      state: initialState.AuthenticationController,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'AuthenticationController',
+        allowedActions: [
+          'SnapController:handleRequest',
+          'UserStorageController:disableProfileSyncing',
+        ],
+      }),
+      metametrics: {
+        getMetaMetricsId: () => metaMetricsController.getClientMetaMetricsId(),
+        setMetaMetricsId: (newId: string | null) =>
+          metaMetricsController.setServerMetaMetricsId(newId),
+      },
+    });
+
+    const userStorageController = new UserStorageController({
+      getMetaMetricsState: () =>
+        metaMetricsController.state.participateInMetaMetrics,
+      state: initialState.UserStorageController,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'UserStorageController',
+        allowedActions: [
+          'SnapController:handleRequest',
+          'AuthenticationController:getBearerToken',
+          'AuthenticationController:getSessionProfile',
+          'AuthenticationController:isSignedIn',
+          'AuthenticationController:performSignOut',
+          'AuthenticationController:performSignIn',
+          'MetamaskNotificationsController:disableMetamaskNotifications',
+          'MetamaskNotificationsController:selectIsMetamaskNotificationsEnabled',
+        ],
+      }),
+    });
+
+    const pushPlatformNotificationsController =
+      new PushPlatformNotificationsController({
+        state: initialState.PushPlatformNotificationsController,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'PushPlatformNotificationsController',
+          allowedActions: [
+            'AuthenticationController:getBearerToken',
+            'MetamaskNotificationsController:updateMetamaskNotificationsList',
+          ],
+        }),
+      });
+
+    const metamaskNotificationsController = new MetamaskNotificationsController(
+      {
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'MetamaskNotificationsController',
+          allowedActions: [
+            'KeyringController:getAccounts',
+            'AuthenticationController:getBearerToken',
+            'AuthenticationController:isSignedIn',
+            'UserStorageController:enableProfileSyncing',
+            'UserStorageController:getStorageKey',
+            'UserStorageController:performGetStorage',
+            'UserStorageController:performSetStorage',
+            'PushPlatformNotificationsController:enablePushNotifications',
+            'PushPlatformNotificationsController:disablePushNotifications',
+            'PushPlatformNotificationsController:updateTriggerPushNotifications',
+          ],
+          allowedEvents: ['KeyringController:stateChange'],
+        }),
+        state: initialState.MetamaskNotificationsController,
+      },
+    );
+
     const snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
       featureFlags: {
@@ -1193,6 +1319,11 @@ class Engine {
       gasFeeController,
       approvalController,
       permissionController,
+      authenticationController,
+      userStorageController,
+      metamaskNotificationsController,
+      pushPlatformNotificationsController,
+      metaMetricsController,
       new SignatureController({
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted<
@@ -1226,6 +1357,7 @@ class Engine {
       subjectMetadataController,
       ///: END:ONLY_INCLUDE_IF
       accountsController,
+      // Notifications
     ];
 
     if (isBlockaidFeatureEnabled()) {
@@ -1723,6 +1855,11 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      // Notification Controllers
+      AuthenticationController,
+      UserStorageController,
+      MetamaskNotificationsController,
+      PushPlatformNotificationsController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -1763,6 +1900,11 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      // Notification Controllers
+      AuthenticationController,
+      UserStorageController,
+      MetamaskNotificationsController,
+      PushPlatformNotificationsController,
     };
   },
   get datamodel() {
