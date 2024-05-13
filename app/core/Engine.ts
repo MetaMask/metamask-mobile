@@ -209,6 +209,7 @@ interface TestOrigin {
   type: `${PhishingController['name']}:testOrigin`;
   handler: PhishingController['test'];
 }
+
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
 
 type SnapsGlobalActions =
@@ -366,6 +367,7 @@ class Engine {
    * Object that runs and manages the execution of Snaps
    */
   snapExecutionService: WebViewExecutionService;
+
   ///: END:ONLY_INCLUDE_IF
 
   /**
@@ -684,7 +686,12 @@ class Engine {
     });
     phishingController.maybeUpdateState();
 
-    const qrKeyringBuilder = () => new QRHardwareKeyring();
+    const qrKeyringBuilder = () => {
+      const keyring = new QRHardwareKeyring();
+      // to fix the bug in #9560, forgetDevice will reset all keyring properties to default.
+      keyring.forgetDevice();
+      return keyring;
+    };
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
     const ledgerKeyringBuilder = () => new LedgerKeyring();
