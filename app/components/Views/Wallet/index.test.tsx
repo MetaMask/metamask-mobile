@@ -120,10 +120,12 @@ describe('Wallet', () => {
     const scanButton = screen.getByTestId('wallet-scan-button');
     expect(scanButton).toBeDefined();
   });
+
   it('should render ScrollableTabView', () => {
     render(Wallet);
     expect(ScrollableTabView).toHaveBeenCalled();
   });
+
   it('should render fox icon', () => {
     render(Wallet);
     const foxIcon = screen.getByTestId('fox-icon');

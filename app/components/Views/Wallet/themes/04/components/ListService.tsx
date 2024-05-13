@@ -19,9 +19,9 @@ const styleSheet = (colors: any) =>
     list: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginTop: 12,
+      marginVertical: 12,
     },
-    icon: {
+    iconSquared: {
       padding: 10,
       backgroundColor: colors.background.default,
       width: 60,
@@ -34,29 +34,48 @@ const styleSheet = (colors: any) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
+    iconCircled: {
+      padding: 10,
+      backgroundColor: colors.background.alternative,
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     items: {
       justifyContent: 'center',
       alignItems: 'center',
     },
+
     itemText: {
       marginTop: 10,
     },
   });
 
-const renderServiceItem = (item: any, styles: any) => (
-  <TouchableOpacity
-    key={item.name}
-    style={styles.items}
-    onPress={item.onPressNavigation}
-  >
-    <View style={styles.icon}>
-      <Image source={item.icon} />
-    </View>
-    <Text variant={TextVariant.BodyMD}>{item.name}</Text>
-  </TouchableOpacity>
-);
+const renderServiceItem = (
+  item: any,
+  styles: any,
+  type: 'squared' | 'circled' = 'squared',
+) => {
+  const styleType =
+    type === 'squared' ? styles.iconSquared : styles.iconCircled;
 
-const ListService = () => {
+  return (
+    <TouchableOpacity
+      key={item.name}
+      style={styles.items}
+      onPress={item.onPressNavigation}
+    >
+      <View style={styleType}>
+        <Image source={item.icon} />
+      </View>
+      <Text variant={TextVariant.BodyMD}>{item.name}</Text>
+    </TouchableOpacity>
+  );
+};
+
+const ListService = ({ type }: { type: 'squared' | 'circled' }) => {
   const { colors } = useTheme();
   const styles = styleSheet(colors);
   const navigation = useNavigation();
@@ -85,9 +104,8 @@ const ListService = () => {
 
   return (
     <View>
-      <Text style={styles.title}>Service</Text>
       <View style={styles.list}>
-        {listService.map((item) => renderServiceItem(item, styles))}
+        {listService.map((item) => renderServiceItem(item, styles, type))}
       </View>
     </View>
   );

@@ -7,6 +7,8 @@ export default function withUITheme(theme: string) {
       return require('../themes/02').default;
     case 'custom02':
       return require('../themes/03').default;
+    case 'custom03':
+      return require('../themes/04').default;
     default:
       return require('../themes/01').default;
   }
