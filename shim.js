@@ -1,5 +1,4 @@
 /* eslint-disable import/no-nodejs-modules */
-import { decode, encode } from 'base-64';
 import {
   FIXTURE_SERVER_PORT,
   isTest,
@@ -13,14 +12,6 @@ if (isTest) {
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
     : FIXTURE_SERVER_PORT;
-}
-
-if (!global.btoa) {
-  global.btoa = encode;
-}
-
-if (!global.atob) {
-  global.atob = decode;
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667
