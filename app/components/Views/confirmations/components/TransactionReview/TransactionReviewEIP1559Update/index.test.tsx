@@ -30,6 +30,11 @@ const initialState = {
         contractExchangeRates: {
           '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': 1,
         },
+        marketData: {
+          '0x1': {
+            '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': { value: 1 },
+          },
+        },
       },
       TokenBalancesController: {
         contractBalances: {

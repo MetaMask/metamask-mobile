@@ -372,6 +372,11 @@ describe('Amount', () => {
             contractExchangeRates: {
               '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
             },
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { value: 0.005 },
+              },
+            },
           },
           CurrencyRateController: {
             currentCurrency: 'usd',
@@ -472,6 +477,11 @@ describe('Amount', () => {
             contractExchangeRates: {
               '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
             },
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { value: 0.005 },
+              },
+            },
           },
           CurrencyRateController: {
             currentCurrency: 'usd',
@@ -523,6 +533,9 @@ describe('Amount', () => {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
             contractExchangeRates: {},
+            marketData: {
+              '0x1': {},
+            },
           },
           CurrencyRateController: {},
         },
@@ -563,6 +576,11 @@ describe('Amount', () => {
           TokenRatesController: {
             contractExchangeRates: {
               '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
+            },
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { value: 0.005 },
+              },
             },
           },
           CurrencyRateController: {},
@@ -606,6 +624,9 @@ describe('Amount', () => {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
             contractExchangeRates: {},
+            marketData: {
+              '0x1': {},
+            },
           },
           CurrencyRateController: {},
         },

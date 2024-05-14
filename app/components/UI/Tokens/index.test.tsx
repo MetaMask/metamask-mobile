@@ -73,6 +73,13 @@ const initialState = {
           '0x01': 0.005,
           '0x02': 0.005,
         },
+        marketData: {
+          '0x1': {
+            '0x0': { value: 0.005, pricePercentChange1d: 0.2 },
+            '0x01': { value: 0.005, pricePercentChange1d: 0.2 },
+            '0x02': { value: 0.005, pricePercentChange1d: 0.2 },
+          },
+        },
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
@@ -87,6 +94,11 @@ const initialState = {
           '0x00': new BN(2),
           '0x01': new BN(2),
           '0x02': new BN(0),
+        },
+      },
+      NetworkController: {
+        providerConfig: {
+          chainId: '0x1',
         },
       },
     },
@@ -225,6 +237,11 @@ describe('Tokens', () => {
           TokenRatesController: {
             contractExchangeRates: {
               '0x02': undefined,
+            },
+            marketData: {
+              '0x1': {
+                '0x02': { value: undefined },
+              },
             },
           },
           CurrencyRateController: {

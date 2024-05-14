@@ -190,6 +190,7 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
+import { zeroAddress } from 'ethereumjs-util';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1426,6 +1427,8 @@ class Engine {
   getTotalFiatAccountBalance = (): {
     ethFiat: number;
     tokenFiat: number;
+    tokenFiat1dAgo: number;
+    ethFiat1dAgo: number;
   } => {
     const {
       CurrencyRateController,
@@ -1443,10 +1446,13 @@ class Engine {
       CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
         ?.conversionRate ?? 0;
     const { accountsByChainId } = AccountTrackerController.state;
+    const { marketData: tokenExchangeRates } = TokenRatesController.state;
 
     const { tokens } = TokensController.state;
     let ethFiat = 0;
+    let ethFiat1dAgo = 0;
     let tokenFiat = 0;
+    let tokenFiat1dAgo = 0;
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
     if (
       accountsByChainId?.[toHexadecimal(networkProvider.chainId)]?.[
@@ -1460,17 +1466,29 @@ class Engine {
         conversionRate,
         decimalsToShow,
       );
+
+      ethFiat1dAgo =
+        ethFiat +
+          (ethFiat *
+            tokenExchangeRates?.[networkProvider.chainId]?.[
+              zeroAddress() as `0x${string}`
+            ]?.pricePercentChange1d) /
+            100 || 0;
     }
     if (tokens.length > 0) {
       const { contractBalances: tokenBalances } = TokenBalancesController.state;
-      const { contractExchangeRates: tokenExchangeRates } =
-        TokenRatesController.state;
+
       tokens.forEach(
         (item: { address: string; balance?: string; decimals: number }) => {
+          const addressLowerCase = item.address?.toLowerCase() as `0x${string}`;
+          const chainIdRates =
+            tokenExchangeRates?.[networkProvider.chainId] || {};
+
           const exchangeRate =
-            item.address in tokenExchangeRates
-              ? tokenExchangeRates[item.address]
+            addressLowerCase && addressLowerCase in chainIdRates
+              ? chainIdRates[addressLowerCase]?.value
               : undefined;
+
           const tokenBalance =
             item.balance ||
             (item.address in tokenBalances
@@ -1487,14 +1505,26 @@ class Engine {
             exchangeRate,
             decimalsToShow,
           );
+
+          const tokenBalance1dAgo =
+            tokenBalanceFiat +
+              (tokenBalanceFiat *
+                tokenExchangeRates?.[networkProvider.chainId]?.[
+                  item.address?.toLowerCase() as `0x${string}`
+                ]?.pricePercentChange1d) /
+                100 || 0;
+
           tokenFiat += tokenBalanceFiat;
+          tokenFiat1dAgo += tokenBalance1dAgo;
         },
       );
     }
 
     return {
       ethFiat: ethFiat ?? 0,
+      ethFiat1dAgo: ethFiat1dAgo ?? 0,
       tokenFiat: tokenFiat ?? 0,
+      tokenFiat1dAgo: tokenFiat1dAgo ?? 0,
     };
   };
 

@@ -53,6 +53,13 @@ describe('Engine', () => {
           lib: 'original',
         },
       },
+      TokenRatesController: {
+        contractExchangeRates: {},
+        contractExchangeRatesByChainId: {},
+        marketData: {
+          '0x1': {},
+        },
+      },
     };
 
     expect(backgroundState).toStrictEqual(initialState);

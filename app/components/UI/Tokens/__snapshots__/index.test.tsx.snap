@@ -341,9 +341,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               >
                                 0 USD
                               </Text>
-                              <PercentageChange
-                                value={2}
-                              />
+                              <AggregatedPercentage />
                             </View>
                             <Button
                               endIconName="Export"
@@ -443,7 +441,28 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 >
                                   0 USD
                                 </Text>
-                                <View>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#1C8234",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "textTransform": "uppercase",
+                                      }
+                                    }
+                                  />
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -458,7 +477,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       }
                                     }
                                   >
-                                    +2.00%
+                                    (+0.00%)
                                   </Text>
                                 </View>
                               </View>
@@ -812,7 +831,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#D73847",
+                                        "color": "#1C8234",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -821,7 +840,9 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         "textTransform": "uppercase",
                                       }
                                     }
-                                  />
+                                  >
+                                    +0.20%
+                                  </Text>
                                 </View>
                               </View>
                               <Modal
@@ -1078,7 +1099,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#D73847",
+                                        "color": "#1C8234",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -1087,7 +1108,9 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         "textTransform": "uppercase",
                                       }
                                     }
-                                  />
+                                  >
+                                    +0.20%
+                                  </Text>
                                 </View>
                               </View>
                               <Modal
@@ -1158,7 +1181,35 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     }
                                   }
                                 >
-                                  &lt; $0.01
+                                  <View
+                                    style={
+                                      [
+                                        {
+                                          "backgroundColor": "#F2F4F6",
+                                          "borderRadius": 30,
+                                          "padding": 14,
+                                        },
+                                        {
+                                          "padding": 8,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        {
+                                          "width": 50,
+                                        },
+                                      ]
+                                    }
+                                  />
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -1594,9 +1645,7 @@ exports[`Tokens should render correctly 1`] = `
                               >
                                 0 USD
                               </Text>
-                              <PercentageChange
-                                value={2}
-                              />
+                              <AggregatedPercentage />
                             </View>
                             <Button
                               endIconName="Export"
@@ -1696,7 +1745,28 @@ exports[`Tokens should render correctly 1`] = `
                                 >
                                   0 USD
                                 </Text>
-                                <View>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#1C8234",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "textTransform": "uppercase",
+                                      }
+                                    }
+                                  />
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -1711,7 +1781,7 @@ exports[`Tokens should render correctly 1`] = `
                                       }
                                     }
                                   >
-                                    +2.00%
+                                    (+0.00%)
                                   </Text>
                                 </View>
                               </View>
@@ -2065,7 +2135,7 @@ exports[`Tokens should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#D73847",
+                                        "color": "#1C8234",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -2074,7 +2144,9 @@ exports[`Tokens should render correctly 1`] = `
                                         "textTransform": "uppercase",
                                       }
                                     }
-                                  />
+                                  >
+                                    +0.20%
+                                  </Text>
                                 </View>
                               </View>
                               <Modal
@@ -2331,7 +2403,7 @@ exports[`Tokens should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#D73847",
+                                        "color": "#1C8234",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -2340,7 +2412,9 @@ exports[`Tokens should render correctly 1`] = `
                                         "textTransform": "uppercase",
                                       }
                                     }
-                                  />
+                                  >
+                                    +0.20%
+                                  </Text>
                                 </View>
                               </View>
                               <Modal
@@ -2411,7 +2485,35 @@ exports[`Tokens should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  &lt; $0.01
+                                  <View
+                                    style={
+                                      [
+                                        {
+                                          "backgroundColor": "#F2F4F6",
+                                          "borderRadius": 30,
+                                          "padding": 14,
+                                        },
+                                        {
+                                          "padding": 8,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        {
+                                          "width": 50,
+                                        },
+                                      ]
+                                    }
+                                  />
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -2847,9 +2949,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               >
                                 0 USD
                               </Text>
-                              <PercentageChange
-                                value={2}
-                              />
+                              <AggregatedPercentage />
                             </View>
                             <Button
                               endIconName="Export"
@@ -2957,7 +3057,28 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 >
                                   0 USD
                                 </Text>
-                                <View>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#1C8234",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "textTransform": "uppercase",
+                                      }
+                                    }
+                                  />
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -2972,7 +3093,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       }
                                     }
                                   >
-                                    +2.00%
+                                    (+0.00%)
                                   </Text>
                                 </View>
                               </View>
@@ -3326,7 +3447,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#D73847",
+                                        "color": "#1C8234",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -3335,7 +3456,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "textTransform": "uppercase",
                                       }
                                     }
-                                  />
+                                  >
+                                    +0.20%
+                                  </Text>
                                 </View>
                               </View>
                               <Modal
@@ -3592,7 +3715,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#D73847",
+                                        "color": "#1C8234",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -3601,7 +3724,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "textTransform": "uppercase",
                                       }
                                     }
-                                  />
+                                  >
+                                    +0.20%
+                                  </Text>
                                 </View>
                               </View>
                               <Modal
@@ -3672,7 +3797,35 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     }
                                   }
                                 >
-                                  &lt; $0.01
+                                  <View
+                                    style={
+                                      [
+                                        {
+                                          "backgroundColor": "#F2F4F6",
+                                          "borderRadius": 30,
+                                          "padding": 14,
+                                        },
+                                        {
+                                          "padding": 8,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        {
+                                          "width": 50,
+                                        },
+                                      ]
+                                    }
+                                  />
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -3858,7 +4011,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#D73847",
+                                        "color": "#1C8234",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -3867,7 +4020,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "textTransform": "uppercase",
                                       }
                                     }
-                                  />
+                                  >
+                                    +0.20%
+                                  </Text>
                                 </View>
                               </View>
                               <Modal
@@ -3938,7 +4093,35 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     }
                                   }
                                 >
-                                  &lt; $0.01
+                                  <View
+                                    style={
+                                      [
+                                        {
+                                          "backgroundColor": "#F2F4F6",
+                                          "borderRadius": 30,
+                                          "padding": 14,
+                                        },
+                                        {
+                                          "padding": 8,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        {
+                                          "width": 50,
+                                        },
+                                      ]
+                                    }
+                                  />
                                 </Text>
                               </View>
                             </TouchableOpacity>

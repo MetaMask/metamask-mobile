@@ -69,7 +69,6 @@ import { useNavigation } from '@react-navigation/native';
 import { EngineState } from '../../../selectors/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
-import SkeletonText from '../Ramp/components/SkeletonText';
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
@@ -108,6 +107,7 @@ import Box from '../../UI/Ramp/components/Box';
 import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
 import { isPortfolioUrl } from '../../../../app/util/url';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
+import AggregatedPercentage from '../../../component-library/components-temp/Price/AggregatedPercentage';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -355,6 +355,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       asset.balanceFiat ||
         balanceToFiatNumber(balance, conversionRate, exchangeRate),
     );
+
+    // console.log('balanceFiatCalculation ----', balanceFiatCalculation);
 
     const balanceFiat =
       balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0
@@ -628,7 +630,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           >
             {fiatBalance}
           </Text>
-          <PercentageChange value={2} />
+
+          <AggregatedPercentage
+            ethFiat={balance?.ethFiat}
+            tokenFiat={balance?.tokenFiat}
+            tokenFiat1dAgo={balance?.tokenFiat1dAgo}
+            ethFiat1dAgo={balance?.ethFiat1dAgo}
+          />
         </View>
         <Button
           variant={ButtonVariants.Secondary}

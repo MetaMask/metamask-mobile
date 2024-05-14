@@ -25,6 +25,11 @@ const mockInitialState = {
           '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
         },
       },
+      TokenRatesController: {
+        marketData: {
+          '0x1': {},
+        },
+      },
       CurrencyRateController: {
         currentCurrency: 'USD',
         currencyRates: {
