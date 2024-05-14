@@ -443,7 +443,7 @@ PODS:
   - react-native-blob-jsi-helper (0.3.1):
     - React
     - React-Core
-  - react-native-blob-util (0.18.6):
+  - react-native-blob-util (0.19.9):
     - React-Core
   - react-native-blur (4.3.2):
     - React-Core
@@ -1084,7 +1084,7 @@ SPEC CHECKSUMS:
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
   react-native-ble-plx: 669899d2fd4d360d541b05ce19c6ee77d95853bf
   react-native-blob-jsi-helper: 13c10135af4614dbc0712afba5960784cd44f043
-  react-native-blob-util: c5430d091e011b7fc57f888c356da2a2ff8dc8ad
+  react-native-blob-util: 18b510205c080a453574a7d2344d64673d0ad9af
   react-native-blur: cfdad7b3c01d725ab62a8a729f42ea463998afa2
   react-native-branch: 4e42fda662d96893afbbd02839806931398e3d2e
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
