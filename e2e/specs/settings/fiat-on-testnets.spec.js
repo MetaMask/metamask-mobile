@@ -40,7 +40,7 @@ describe(SmokeCore('Fiat On Testnets Setting'), () => {
           Matchers.getElementByID(TOTAL_BALANCE_TEXT),
           '$0',
         );
-        
+
         // Wait for network switch toast to disapear
         await TestHelpers.delay(2500);
 
