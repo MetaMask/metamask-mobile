@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../util/theme/models';
-import sharedStyles from './shared.styles';
+import { Theme } from '../../../../util/theme/models';
+import sharedStyles from '../shared.styles';
 
 const styleSheet = (params: {
   theme: Theme;

@@ -15,7 +15,7 @@ import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import { useStyles } from '../../hooks/useStyles';
 import AnimatedSpinner, { SpinnerSize } from '../AnimatedSpinner';
 import useBalanceChanges from './useBalanceChanges';
-import BalanceChangeList from './BalanceChangeList';
+import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
 import { SimulationData, SimulationError, SimulationErrorCode } from './types';
 import styleSheet from './SimulationDetails.styles';
 

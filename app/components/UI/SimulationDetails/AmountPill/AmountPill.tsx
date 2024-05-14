@@ -1,16 +1,16 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { BigNumber } from 'bignumber.js';
-import { AssetIdentifier, AssetType } from './types';
-import { formatAmount, formatAmountMaxPrecision } from './formatAmount';
-import I18n from '../../../../locales/i18n';
+import { AssetIdentifier, AssetType } from '../types';
+import { formatAmount, formatAmountMaxPrecision } from '../formatAmount';
+import I18n from '../../../../../locales/i18n';
 import styleSheet from './AmountPill.styles';
 import { View, ViewProps } from 'react-native';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { useStyles } from '../../hooks/useStyles';
-import { hexToDecimal } from '../../../util/conversions';
+} from '../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../hooks/useStyles';
+import { hexToDecimal } from '../../../../util/conversions';
 
 interface AmountPillProperties extends ViewProps {
   asset: AssetIdentifier;

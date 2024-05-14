@@ -5,20 +5,20 @@ import AssetPill from './AssetPill';
 import {
   selectChainId,
   selectTicker,
-} from '../../../selectors/networkController';
-import { AssetType, AssetIdentifier } from './types';
+} from '../../../../selectors/networkController';
+import { AssetType, AssetIdentifier } from '../types';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn().mockImplementation((selector) => selector()),
 }));
-jest.mock('../../../selectors/networkController');
+jest.mock('../../../../selectors/networkController');
 jest.mock(
-  '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork',
+  '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork',
   () => 'AvatarNetwork',
 );
-jest.mock('../Name/Name', () => 'Name');
-jest.mock('../../hooks/useStyles', () => ({
+jest.mock('../../Name/Name', () => 'Name');
+jest.mock('../../../hooks/useStyles', () => ({
   useStyles: () => ({ styles: {} }),
 }));
 

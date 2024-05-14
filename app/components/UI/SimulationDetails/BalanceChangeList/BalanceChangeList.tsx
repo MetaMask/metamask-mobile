@@ -2,11 +2,11 @@
 import React, { useMemo } from 'react';
 import { View, ViewProps } from 'react-native';
 
-import { useStyles } from '../../hooks/useStyles';
+import { useStyles } from '../../../hooks/useStyles';
 import styleSheet from './BalanceChangeList.styles';
-import { sortBalanceChanges } from './sortBalanceChanges';
-import BalanceChangeRow from './BalanceChangeRow';
-import { BalanceChange } from './types';
+import { sortBalanceChanges } from '../sortBalanceChanges';
+import BalanceChangeRow from '../BalanceChangeRow/BalanceChangeRow';
+import { BalanceChange } from '../types';
 
 interface BalanceChangeListProperties extends ViewProps {
   heading: string;

@@ -6,18 +6,18 @@ import { Hex } from '@metamask/utils';
 
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+} from '../../../../component-library/components/Texts/Text';
+import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import {
   selectChainId,
   selectTicker,
-} from '../../../selectors/networkController';
-import { NetworkList } from '../../../util/networks';
-import { useStyles } from '../../hooks/useStyles';
-import Name from '../Name/Name';
-import { NameType } from '../Name/Name.types';
-import { AssetIdentifier, AssetType } from './types';
+} from '../../../../selectors/networkController';
+import { NetworkList } from '../../../../util/networks';
+import { useStyles } from '../../../hooks/useStyles';
+import Name from '../../Name/Name';
+import { NameType } from '../../Name/Name.types';
+import { AssetIdentifier, AssetType } from '../types';
 import styleSheet from './AssetPill.styles';
 
 interface AssetPillProperties extends ViewProps {

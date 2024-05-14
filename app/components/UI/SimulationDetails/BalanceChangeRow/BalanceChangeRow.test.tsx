@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import { BigNumber } from 'bignumber.js';
 
 import BalanceChangeRow from './BalanceChangeRow';
-import { BalanceChange } from './types';
+import { BalanceChange } from '../types';
 
 const balanceChangeMock = {
   asset: {
@@ -13,8 +13,8 @@ const balanceChangeMock = {
   amount: new BigNumber(100),
 } as BalanceChange;
 
-jest.mock('./AmountPill', () => 'AmountPill');
-jest.mock('./AssetPill', () => 'AssetPill');
+jest.mock('../AmountPill/AmountPill', () => 'AmountPill');
+jest.mock('../AssetPill/AssetPill', () => 'AssetPill');
 
 describe('BalanceChangeList', () => {
   it('renders a balance change row', () => {

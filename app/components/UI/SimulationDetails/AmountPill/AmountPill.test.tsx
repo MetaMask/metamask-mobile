@@ -7,7 +7,7 @@ import {
   AssetType,
   NATIVE_ASSET_IDENTIFIER,
   TokenAssetIdentifier,
-} from './types';
+} from '../types';
 
 const TOKEN_ID_MOCK = '0xabc';
 
