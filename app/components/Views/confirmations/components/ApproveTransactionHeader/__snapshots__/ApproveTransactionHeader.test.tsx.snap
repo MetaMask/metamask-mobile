@@ -163,9 +163,21 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711651}
+                      fill={
+                        {
+                          "payload": 4294711651,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -187,7 +199,12 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4280576225}
+                      fill={
+                        {
+                          "payload": 4280576225,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -209,7 +226,12 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278407261}
+                      fill={
+                        {
+                          "payload": 4278407261,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -501,9 +523,21 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711651}
+                      fill={
+                        {
+                          "payload": 4294711651,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -525,7 +559,12 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4280576225}
+                      fill={
+                        {
+                          "payload": 4280576225,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -547,7 +586,12 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278407261}
+                      fill={
+                        {
+                          "payload": 4278407261,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [

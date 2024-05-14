@@ -66,9 +66,21 @@ exports[`AccountInfoCard should match snapshot 1`] = `
           }
           width={40}
         >
-          <RNSVGGroup>
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
             <RNSVGRect
-              fill={4294711651}
+              fill={
+                {
+                  "payload": 4294711651,
+                  "type": 0,
+                }
+              }
               height={40}
               matrix={
                 [
@@ -90,7 +102,12 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4280576225}
+              fill={
+                {
+                  "payload": 4280576225,
+                  "type": 0,
+                }
+              }
               height={40}
               matrix={
                 [
@@ -112,7 +129,12 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4278407261}
+              fill={
+                {
+                  "payload": 4278407261,
+                  "type": 0,
+                }
+              }
               height={40}
               matrix={
                 [
