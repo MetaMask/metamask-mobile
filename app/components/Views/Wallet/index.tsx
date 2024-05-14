@@ -205,7 +205,7 @@ const Wallet = ({
           Linking.openURL(CONSENSYS_PRIVACY_POLICY);
         },
       },
-      disableTimeout: true,
+      hasNoTimeout: true,
     });
   }, [
     storePrivacyPolicyShownDate,

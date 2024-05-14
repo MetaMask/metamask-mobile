@@ -32,7 +32,6 @@ import Button, { ButtonVariants } from '../Buttons/Button';
 
 // Internal dependencies.
 import {
-  ToastCloseButtonOptions,
   ToastLabelOptions,
   ToastLinkButtonOptions,
   ToastOptions,
@@ -42,6 +41,7 @@ import {
 import styles from './Toast.styles';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { TOAST_ID } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+import { ButtonProps } from '../Buttons/Button/Button.types';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;
@@ -69,7 +69,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const showToast = (options: ToastOptions) => {
     let timeoutDuration = 0;
     if (toastOptions) {
-      if (!options.disableTimeout) {
+      if (!options.hasNoTimeout) {
         cancelAnimation(translateYProgress);
       }
       timeoutDuration = 100;
@@ -101,7 +101,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
       translateYProgress.value = height;
 
-      if (toastOptions.disableTimeout) {
+      if (toastOptions.hasNoTimeout) {
         translateYProgress.value = withTiming(translateYToValue, {
           duration: animationDuration,
         });
@@ -148,7 +148,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       />
     );
 
-  const renderCloseButton = (closeButtonOptions?: ToastCloseButtonOptions) => (
+  const renderCloseButton = (closeButtonOptions?: ButtonProps) => (
     <Button
       variant={ButtonVariants.Primary}
       onPress={() => closeButtonOptions?.onPress()}

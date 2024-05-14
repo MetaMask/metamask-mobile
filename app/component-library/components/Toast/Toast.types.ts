@@ -3,6 +3,7 @@ import { ImageSourcePropType } from 'react-native';
 
 // External Dependencies.
 import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
+import { ButtonProps } from '../Buttons/Button/Button.types';
 
 /**
  * Toast variants.
@@ -29,19 +30,14 @@ export interface ToastLinkButtonOptions {
   onPress: () => void;
 }
 
-export interface ToastCloseButtonOptions {
-  label: string;
-  onPress: () => void;
-}
-
 /**
  * Common toast option shared between all other options.
  */
 interface BaseToastVariants {
-  disableTimeout: boolean;
+  hasNoTimeout: boolean;
   labelOptions: ToastLabelOptions;
   linkButtonOptions?: ToastLinkButtonOptions;
-  closeButtonOptions?: ToastCloseButtonOptions;
+  closeButtonOptions?: ButtonProps;
 }
 
 /**
