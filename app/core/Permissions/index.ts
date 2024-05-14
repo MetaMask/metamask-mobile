@@ -176,7 +176,7 @@ export const getPermittedAccounts = async (
         hostname,
         RestrictedMethods.eth_accounts,
       );
-    return accounts;
+    return accounts.map((account: string) => account.toLowerCase());
   } catch (error: any) {
     if (error.code === rpcErrorCodes.provider.unauthorized) {
       return [];
