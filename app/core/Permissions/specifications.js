@@ -302,4 +302,5 @@ export const unrestrictedMethods = Object.freeze([
   'metamask_getProviderState',
   'metamask_logWeb3ShimUsage',
   'wallet_switchEthereumChain',
+  'wallet_addEthereumChain',
 ]);

@@ -1,19 +1,17 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import Step6 from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 
-const mockStore = configureMockStore();
-const store = mockStore({});
+const navigationMock = {
+  navigate: jest.fn(),
+};
 
+const closeOnboardingWizard = jest.fn();
 describe('Step6', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Step6 />
-      </Provider>,
+    const { toJSON } = renderWithProvider(
+      <Step6 navigation={navigationMock} onClose={closeOnboardingWizard} />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
