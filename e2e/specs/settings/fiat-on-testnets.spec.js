@@ -19,7 +19,10 @@ import TestHelpers from '../../helpers.js';
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
 describe(SmokeCore('Fiat On Testnets Setting'), () => {
-  beforeEach(() => jest.setTimeout(150000));
+  beforeEach(async () => {
+    jest.setTimeout(150000);
+    await TestHelpers.reverseServerPort();
+  });
 
   it('should show fiat values on testnets when enabled', async () => {
     await withFixtures(
