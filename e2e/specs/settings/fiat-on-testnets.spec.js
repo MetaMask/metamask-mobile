@@ -23,7 +23,7 @@ describe(SmokeCore('Fiat On Testnets Setting'), () => {
   it('should show fiat values on testnets when enabled', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withDefaultFixture().build(),
         restartDevice: true,
       },
       async () => {
