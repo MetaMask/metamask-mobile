@@ -11,7 +11,7 @@ index b0caa94..76b0442 100644
      ) => Promise<void>
  
 diff --git a/node_modules/redux-persist-filesystem-storage/index.js b/node_modules/redux-persist-filesystem-storage/index.js
-index d69afb6..05655cb 100644
+index d69afb6..0ca3a25 100644
 --- a/node_modules/redux-persist-filesystem-storage/index.js
 +++ b/node_modules/redux-persist-filesystem-storage/index.js
 @@ -41,11 +41,14 @@ const FilesystemStorage = {
@@ -25,7 +25,7 @@ index d69afb6..05655cb 100644
 -      .then(() => callback && callback())
 -      .catch(error => callback && callback(error)),
 +      .then(() => {
-+        if (isIOS) RNFetchBlob.ios.excludeFromBackupKey(pathForKey(key));
++        if (isIOS) ReactNativeBlobUtil.ios.excludeFromBackupKey(pathForKey(key));
 +        callback && callback();
 +      }).catch(error => callback && callback(error));
 +  },
