@@ -14,6 +14,7 @@ import { TOTAL_BALANCE_TEXT } from '../../../wdio/screen-objects/testIDs/Compone
 import FiatOnTestnetsModal from '../../pages/modals/FiatOnTestnetsModal.js';
 import Assertions from '../../utils/Assertions.js';
 import Matchers from '../../utils/Matchers.js';
+import TestHelpers from '../../helpers.js';
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
@@ -39,6 +40,9 @@ describe(SmokeCore('Fiat On Testnets Setting'), () => {
           Matchers.getElementByID(TOTAL_BALANCE_TEXT),
           '$0',
         );
+        
+        // Wait for network switch toast to disapear
+        await TestHelpers.delay(2500);
 
         // Enable fiat on testnets setting
         await TabBarComponent.tapSettings();
