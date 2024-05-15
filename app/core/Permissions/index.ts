@@ -21,7 +21,7 @@ function getAccountsPermissionFromSubject(subject: any = {}) {
 function getAccountsFromPermission(accountsPermission: any) {
   const accountsCaveat = getAccountsCaveatFromPermission(accountsPermission);
   return accountsCaveat && Array.isArray(accountsCaveat.value)
-    ? accountsCaveat.value
+    ? accountsCaveat.value.map((address: string) => address.toLowerCase())
     : [];
 }
 
@@ -176,7 +176,7 @@ export const getPermittedAccounts = async (
         hostname,
         RestrictedMethods.eth_accounts,
       );
-    return accounts.map((account: string) => account.toLowerCase());
+    return accounts;
   } catch (error: any) {
     if (error.code === rpcErrorCodes.provider.unauthorized) {
       return [];
