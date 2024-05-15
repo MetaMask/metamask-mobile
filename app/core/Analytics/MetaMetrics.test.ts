@@ -551,7 +551,7 @@ describe('MetaMetrics', () => {
         DefaultPreference.get = jest.fn().mockResolvedValue(undefined);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
-        expect(metaMetrics.getDeleteRegulationCreationDate()).toBeUndefined();
+        expect(metaMetrics.getDeleteRegulationCreationDate()).toBe('');
         expect(DefaultPreference.get).toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
         );
@@ -591,7 +591,7 @@ describe('MetaMetrics', () => {
         DefaultPreference.get = jest.fn().mockResolvedValue(undefined);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
-        expect(metaMetrics.getDeleteRegulationId()).toBeUndefined();
+        expect(metaMetrics.getDeleteRegulationId()).toBe('');
         expect(DefaultPreference.get).toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
         );
