@@ -20,7 +20,7 @@ exports[`NotificationsList should render correctly 1`] = `
     }
   >
     <ActivityIndicator
-      color="#24272A"
+      color="#0376C9"
       size="large"
     />
   </View>
