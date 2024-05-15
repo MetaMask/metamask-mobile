@@ -106,6 +106,7 @@ import {
   SnapControllerActions,
   PersistedSnapControllerState,
   WebViewExecutionService,
+  SnapsRegistryMessenger,
 } from '@metamask/snaps-controllers';
 import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
 import { getSnapsWebViewPromise } from '../lib/snaps';
@@ -182,6 +183,7 @@ import {
   AccountsController,
   AccountsControllerActions,
   AccountsControllerEvents,
+  AccountsControllerMessenger,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
@@ -417,12 +419,14 @@ class Engine {
     });
 
     const preferencesController = new PreferencesController({
+      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted<
         'PreferencesController',
         never,
         'KeyringController:stateChange'
       >({
         name: 'PreferencesController',
+        allowedActions: [],
         allowedEvents: ['KeyringController:stateChange'],
       }),
       state: {
@@ -500,6 +504,7 @@ class Engine {
             `${approvalController.name}:addRequest`,
             `${networkController.name}:getNetworkClientById`,
           ],
+          allowedEvents: [],
         }),
         chainId: networkController.state.providerConfig.chainId,
 
@@ -536,23 +541,27 @@ class Engine {
         never
       >({
         name: 'LoggingController',
+        allowedActions: [],
+        allowedEvents: [],
       }),
       state: initialState.LoggingController,
     });
 
-    const accountsControllerMessenger = this.controllerMessenger.getRestricted({
-      name: 'AccountsController',
-      allowedEvents: [
-        'SnapController:stateChange',
-        'KeyringController:accountRemoved',
-        'KeyringController:stateChange',
-      ],
-      allowedActions: [
-        'KeyringController:getAccounts',
-        'KeyringController:getKeyringsByType',
-        'KeyringController:getKeyringForAccount',
-      ],
-    });
+    //@ts-expect-error Misalign types because of Base Controller version
+    const accountsControllerMessenger: AccountsControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'AccountsController',
+        allowedEvents: [
+          'SnapController:stateChange',
+          'KeyringController:accountRemoved',
+          'KeyringController:stateChange',
+        ],
+        allowedActions: [
+          'KeyringController:getAccounts',
+          'KeyringController:getKeyringsByType',
+          'KeyringController:getKeyringForAccount',
+        ],
+      });
 
     const defaultAccountsControllerState: AccountsControllerState = {
       internalAccounts: {
@@ -596,6 +605,7 @@ class Engine {
       >({
         name: 'TokensController',
         allowedActions: [`${approvalController.name}:addRequest`],
+        allowedEvents: [],
       }),
       getERC20TokenName: assetsContractController.getERC20TokenName.bind(
         assetsContractController,
@@ -616,6 +626,7 @@ class Engine {
         'NetworkController:stateChange'
       >({
         name: 'TokenListController',
+        allowedActions: [],
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
@@ -628,6 +639,7 @@ class Engine {
       >({
         name: 'CurrencyRateController',
         allowedActions: [`${networkController.name}:getNetworkClientById`],
+        allowedEvents: [],
       }),
       state: initialState.CurrencyRateController,
     });
@@ -680,6 +692,7 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'PhishingController',
         allowedActions: [],
+        allowedEvents: [],
       }),
     });
     phishingController.maybeUpdateState();
@@ -695,12 +708,15 @@ class Engine {
         preferencesController,
       ),
       encryptor,
+      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted<
         'KeyringController',
         never,
         never
       >({
         name: 'KeyringController',
+        allowedActions: [],
+        allowedEvents: [],
       }),
       state: initialKeyringState || initialState.KeyringController,
       // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
@@ -816,8 +832,6 @@ class Engine {
     });
 
     const permissionController = new PermissionController({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
@@ -831,6 +845,7 @@ class Engine {
           `SubjectMetadataController:getSubjectMetadata`,
           ///: END:ONLY_INCLUDE_IF
         ],
+        allowedEvents: [],
       }),
       state: initialState.PermissionController,
       caveatSpecifications: getCaveatSpecifications({
@@ -889,6 +904,7 @@ class Engine {
       >({
         name: 'SubjectMetadataController',
         allowedActions: [`${permissionController.name}:hasPermissions`],
+        allowedEvents: [],
       }),
       state: initialState.SubjectMetadataController || {},
       subjectCacheLimit: 100,
@@ -933,12 +949,13 @@ class Engine {
 
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
-
-    const snapsRegistryMessenger = this.controllerMessenger.getRestricted({
-      name: 'SnapsRegistry',
-      allowedEvents: [],
-      allowedActions: [],
-    });
+    //@ts-expect-error Misalign types because of Base Controller version
+    const snapsRegistryMessenger: SnapsRegistryMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'SnapsRegistry',
+        allowedEvents: [],
+        allowedActions: [],
+      });
     const snapsRegistry = new JsonSnapsRegistry({
       state: initialState.SnapsRegistry,
       messenger: snapsRegistryMessenger,
@@ -953,8 +970,11 @@ class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
+      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
+        allowedActions: [],
+        allowedEvents: [],
       }),
       setupSnapProvider: setupSnapProvider.bind(this),
       getWebView: () => getSnapsWebViewPromise,
@@ -1154,6 +1174,7 @@ class Engine {
         >({
           name: 'TransactionController',
           allowedActions: [`${approvalController.name}:addRequest`],
+          allowedEvents: [],
         }),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -1212,6 +1233,7 @@ class Engine {
             `${keyringController.name}:signTypedMessage`,
             `${loggingController.name}:add`,
           ],
+          allowedEvents: [],
         }),
         isEthSignEnabled: () =>
           Boolean(
@@ -1240,6 +1262,7 @@ class Engine {
           'NetworkController:stateChange'
         >({
           name: 'PPOMController',
+          allowedActions: [],
           allowedEvents: [`${networkController.name}:stateChange`],
         }),
         onPreferencesChange: (listener) =>
@@ -1272,6 +1295,7 @@ class Engine {
     for (const controller of controllers) {
       if (
         hasProperty(initialState, controller.name) &&
+        //@ts-expect-error Misalign types because of Base Controller version
         controller.subscribe !== undefined
       ) {
         // The following type error can be addressed by passing initial state into controller constructors instead
