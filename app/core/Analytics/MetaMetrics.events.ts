@@ -22,13 +22,14 @@ const generateOpt = (
   return { category: name };
 };
 
-const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
+const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
   1: 'Welcome',
   2: 'Accounts',
   3: 'Account Name',
-  4: 'Main Navigation',
-  5: 'Browser',
-  6: 'Search',
+  4: 'Notifications',
+  5: 'Main Navigation',
+  6: 'Browser',
+  7: 'Search',
 };
 
 /**

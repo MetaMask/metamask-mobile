@@ -72,6 +72,7 @@ export interface CustomIdData {
 
 export interface ActivationKey {
   key: string;
+  label?: string;
   active: boolean;
 }
 export interface FiatOrdersState {

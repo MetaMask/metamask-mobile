@@ -11,7 +11,6 @@ const mockInitialState = {
       PreferencesController: {
         state: {
           securityAlertsEnabled: true,
-          selectedAddress: '0x43727620ca89a4fC2878De582A6AF7c5E4596b70',
         },
       },
     },

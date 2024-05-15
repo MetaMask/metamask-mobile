@@ -1,8 +1,8 @@
-import handleDeeplink from './handleDeeplink';
-import SDKConnect from '../SDKConnect';
-import AppConstants from '../../AppConstants';
-import { waitForCondition } from '../utils/wait.util';
 import Logger from '../../../util/Logger';
+import AppConstants from '../../AppConstants';
+import SDKConnect from '../SDKConnect';
+import { waitForCondition } from '../utils/wait.util';
+import handleDeeplink from './handleDeeplink';
 
 jest.mock('../SDKConnect');
 jest.mock('../../AppConstants');
@@ -23,6 +23,7 @@ describe('handleDeeplink', () => {
   const url = 'https://example.com';
   const otherPublicKey = 'publicKey';
   const context = 'testContext';
+  const protocolVersion = 2;
 
   const mockHasInitialized = jest.fn();
   const mockGetConnections = jest.fn();
@@ -58,7 +59,7 @@ describe('handleDeeplink', () => {
 
   it('should waits for SDKConnect to initialize if not already initialized', async () => {
     mockHasInitialized.mockReturnValueOnce(false).mockReturnValueOnce(true);
-    mockWaitForCondition.mockResolvedValue();
+    mockWaitForCondition.mockResolvedValue(true);
 
     await handleDeeplink({
       sdkConnect,
@@ -66,6 +67,7 @@ describe('handleDeeplink', () => {
       origin,
       url,
       otherPublicKey,
+      protocolVersion,
       context,
     });
 
@@ -82,6 +84,7 @@ describe('handleDeeplink', () => {
       channelId,
       origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
       url: modifiedUrl,
+      protocolVersion,
       otherPublicKey,
       context,
     });
@@ -89,6 +92,7 @@ describe('handleDeeplink', () => {
     expect(sdkConnect.connectToChannel).toHaveBeenCalledWith({
       id: channelId,
       origin: modifiedOrigin,
+      protocolVersion,
       trigger: 'deeplink',
       otherPublicKey,
     });
@@ -104,6 +108,7 @@ describe('handleDeeplink', () => {
       origin,
       url,
       otherPublicKey,
+      protocolVersion,
       context,
     });
 
@@ -111,6 +116,7 @@ describe('handleDeeplink', () => {
       channelId,
       otherPublicKey,
       context,
+      protocolVersion,
       initialConnection: false,
       trigger: 'deeplink',
       updateKey: true,
@@ -126,6 +132,7 @@ describe('handleDeeplink', () => {
       channelId,
       origin,
       url,
+      protocolVersion,
       otherPublicKey,
       context,
     });
@@ -133,6 +140,7 @@ describe('handleDeeplink', () => {
     expect(sdkConnect.connectToChannel).toHaveBeenCalledWith({
       id: channelId,
       origin,
+      protocolVersion,
       trigger: 'deeplink',
       otherPublicKey,
     });
@@ -147,6 +155,7 @@ describe('handleDeeplink', () => {
       sdkConnect,
       channelId,
       origin,
+      protocolVersion,
       url,
       otherPublicKey,
       context,

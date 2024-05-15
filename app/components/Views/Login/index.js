@@ -54,7 +54,6 @@ import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
@@ -212,11 +211,6 @@ class Login extends PureComponent {
      */
     route: PropTypes.object,
     /**
-     * Users current address
-     */
-    selectedAddress: PropTypes.string,
-
-    /**
      * Action to set if the user is using remember me
      */
     setAllowLoginWithRememberMe: PropTypes.func,
@@ -368,19 +362,7 @@ class Login extends PureComponent {
     );
 
     try {
-      // Log to provide insights into bug research.
-      // Check https://github.com/MetaMask/mobile-planning/issues/1507
-      const { selectedAddress } = this.props;
-      if (typeof selectedAddress !== 'string') {
-        const loginError = new Error('Login error');
-        Logger.error(loginError, 'selectedAddress is not a string');
-      }
-
-      await Authentication.userEntryAuth(
-        password,
-        authType,
-        this.props.selectedAddress,
-      );
+      await Authentication.userEntryAuth(password, authType);
 
       Keyboard.dismiss();
 
@@ -445,16 +427,7 @@ class Login extends PureComponent {
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
-      // Log to provide insights into bug research.
-      // Check https://github.com/MetaMask/mobile-planning/issues/1507
-      const { selectedAddress } = this.props;
-      if (typeof selectedAddress !== 'string') {
-        const unlockKeychainError = new Error('unlockKeychain error');
-        Logger.error(unlockKeychainError, 'selectedAddress is not a string');
-      }
-      await Authentication.appTriggeredAuth({
-        selectedAddress: this.props.selectedAddress,
-      });
+      await Authentication.appTriggeredAuth();
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
       if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
       this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
@@ -634,7 +607,6 @@ class Login extends PureComponent {
 Login.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
   userLoggedIn: state.user.userLoggedIn,
 });
 

@@ -20,7 +20,6 @@ import {
   ThemeContext,
 } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { CommonActions } from '@react-navigation/native';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
@@ -76,7 +75,6 @@ class LockScreen extends PureComponent {
      * The navigator object
      */
     navigation: PropTypes.object,
-    selectedAddress: PropTypes.string,
     appTheme: PropTypes.string,
     /**
      * ID associated with each biometric session.
@@ -136,15 +134,7 @@ class LockScreen extends PureComponent {
       // Retrieve the credentials
       Logger.log('Lockscreen::unlockKeychain - getting credentials');
 
-      // Log to provide insights into bug research.
-      // Check https://github.com/MetaMask/mobile-planning/issues/1507
-      const { selectedAddress } = this.props;
-      if (typeof selectedAddress !== 'string') {
-        const unlockKeychainError = new Error('unlockKeychain error');
-        Logger.error(unlockKeychainError, 'selectedAddress is not a string');
-      }
       await Authentication.appTriggeredAuth({
-        selectedAddress: this.props.selectedAddress,
         bioStateMachineId,
         disableAutoLogout: true,
       });
@@ -242,7 +232,6 @@ class LockScreen extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
   appTheme: state.user.appTheme,
 });
 

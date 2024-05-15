@@ -128,7 +128,7 @@ export class BackgroundBridge extends EventEmitter {
 
     try {
       const pc = Engine.context.PermissionController;
-      const controllerMessenger = Engine.context.controllerMessenger;
+      const controllerMessenger = Engine.controllerMessenger;
       controllerMessenger.subscribe(
         `${pc.name}:stateChange`,
         (subjectWithPermission) => {

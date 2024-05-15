@@ -26,3 +26,6 @@ export const ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID =
 
 export const ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID =
   'onboarding-wizard-step6-content';
+
+  export const ONBOARDING_WIZARD_SEVENTH_STEP_CONTENT_ID =
+  'onboarding-wizard-step7-content';

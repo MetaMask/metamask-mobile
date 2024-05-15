@@ -1,5 +1,5 @@
-import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
+import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
 
 export default function migrate(state: unknown) {
@@ -7,40 +7,41 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  const currencyRateState = state.engine.backgroundState.CurrencyRateController;
-
-  if (!isObject(currencyRateState)) {
+  if (!isObject(state.engine.backgroundState.TransactionController)) {
     captureException(
       new Error(
-        `Migration 39: Invalid CurrencyRateController state error: '${JSON.stringify(
-          currencyRateState,
-        )}'`,
+        `Migration 39: Invalid TransactionController state: '${state.engine.backgroundState.TransactionController}'`,
       ),
     );
     return state;
   }
 
-  const {
-    currentCurrency,
-    nativeCurrency,
-    conversionRate,
-    conversionDate,
-    usdConversionRate,
-  } = currencyRateState;
+  const transactionControllerState =
+    state.engine.backgroundState.TransactionController;
 
-  delete currencyRateState.pendingCurrentCurrency;
-  delete currencyRateState.pendingNativeCurrency;
-
-  state.engine.backgroundState.CurrencyRateController = {
-    currentCurrency,
-    currencyRates: {
-      [nativeCurrency as string]: {
-        conversionRate,
-        conversionDate,
-        usdConversionRate,
-      },
-    },
-  };
+  if (!Array.isArray(transactionControllerState.transactions)) {
+    captureException(
+      new Error(
+        `Migration 39: Missing transactions property from TransactionController: '${typeof state
+          .engine.backgroundState.TransactionController}'`,
+      ),
+    );
+    return state;
+  }
+  transactionControllerState.transactions.forEach((transaction: any) => {
+    if (transaction.rawTransaction) {
+      transaction.rawTx = transaction.rawTransaction;
+      delete transaction.rawTransaction;
+    }
+    if (transaction.transactionHash) {
+      transaction.hash = transaction.transactionHash;
+      delete transaction.transactionHash;
+    }
+    if (transaction.transaction) {
+      transaction.txParams = transaction.transaction;
+      delete transaction.transaction;
+    }
+  });
 
   return state;
 }

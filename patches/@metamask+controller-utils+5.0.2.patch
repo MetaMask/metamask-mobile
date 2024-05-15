@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/controller-utils/dist/constants.d.ts b/node_modules/@metamask/controller-utils/dist/constants.d.ts
-index dd71b0b..fb7c0bb 100644
+index dd71b0b..9bed3f5 100644
 --- a/node_modules/@metamask/controller-utils/dist/constants.d.ts
 +++ b/node_modules/@metamask/controller-utils/dist/constants.d.ts
 @@ -28,6 +28,7 @@ export declare const TESTNET_TICKER_SYMBOLS: {
@@ -24,7 +24,7 @@ index dd71b0b..fb7c0bb 100644
      readonly "linea-mainnet": {
          readonly chainId: "0xe708";
          readonly ticker: NetworksTicker.mainnet;
-@@ -74,9 +82,8 @@ export declare const BUILT_IN_NETWORKS: {
+@@ -74,9 +82,9 @@ export declare const BUILT_IN_NETWORKS: {
          readonly rpcPrefs: undefined;
      };
  };
@@ -33,11 +33,12 @@ index dd71b0b..fb7c0bb 100644
 -export declare const OPENSEA_TEST_API_URL = "https://testnets-api.opensea.io/api/v1";
 +
 +export declare const OPENSEA_PROXY_URL = "https://proxy.metafi.codefi.network/opensea/v1/api/v2";
++export declare const NFT_API_BASE_URL = "https://nft.api.cx.metamask.io";
  export declare const ORIGIN_METAMASK = "metamask";
  /**
   * Approval request types for various operations.
 diff --git a/node_modules/@metamask/controller-utils/dist/constants.js b/node_modules/@metamask/controller-utils/dist/constants.js
-index 706d989..2ea5be8 100644
+index 706d989..d711e88 100644
 --- a/node_modules/@metamask/controller-utils/dist/constants.js
 +++ b/node_modules/@metamask/controller-utils/dist/constants.js
 @@ -38,6 +38,7 @@ exports.TESTNET_TICKER_SYMBOLS = {
@@ -62,7 +63,7 @@ index 706d989..2ea5be8 100644
      [types_1.NetworkType['linea-mainnet']]: {
          chainId: types_1.ChainId['linea-mainnet'],
          ticker: types_1.NetworksTicker['linea-mainnet'],
-@@ -85,9 +93,7 @@ exports.BUILT_IN_NETWORKS = {
+@@ -85,9 +93,8 @@ exports.BUILT_IN_NETWORKS = {
      },
  };
  // APIs
@@ -70,10 +71,11 @@ index 706d989..2ea5be8 100644
 -exports.OPENSEA_API_URL = 'https://api.opensea.io/api/v1';
 -exports.OPENSEA_TEST_API_URL = 'https://testnets-api.opensea.io/api/v1';
 +exports.OPENSEA_PROXY_URL = 'https://proxy.metafi.codefi.network/opensea/v1/api/v2';
++exports.NFT_API_BASE_URL = 'https://nft.api.cx.metamask.io';
  // Default origin for controllers
  exports.ORIGIN_METAMASK = 'metamask';
  /**
-@@ -121,6 +127,7 @@ exports.CHAIN_ID_TO_ETHERS_NETWORK_NAME_MAP = {
+@@ -121,6 +128,7 @@ exports.CHAIN_ID_TO_ETHERS_NETWORK_NAME_MAP = {
      [types_1.ChainId.sepolia]: types_1.BuiltInNetworkName.Sepolia,
      [types_1.ChainId.mainnet]: types_1.BuiltInNetworkName.Mainnet,
      [types_1.ChainId['linea-goerli']]: types_1.BuiltInNetworkName.LineaGoerli,

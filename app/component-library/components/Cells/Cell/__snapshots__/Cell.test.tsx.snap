@@ -80,9 +80,21 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
           }
           width={32}
         >
-          <RNSVGGroup>
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
             <RNSVGRect
-              fill={4294034178}
+              fill={
+                {
+                  "payload": 4294034178,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
                 [
@@ -104,7 +116,12 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4294711613}
+              fill={
+                {
+                  "payload": 4294711613,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
                 [
@@ -126,7 +143,12 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4294745088}
+              fill={
+                {
+                  "payload": 4294745088,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
                 [
@@ -362,9 +384,21 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
             }
             width={32}
           >
-            <RNSVGGroup>
+            <RNSVGGroup
+              fill={
+                {
+                  "payload": 4278190080,
+                  "type": 0,
+                }
+              }
+            >
               <RNSVGRect
-                fill={4294034178}
+                fill={
+                  {
+                    "payload": 4294034178,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
@@ -386,7 +420,12 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294711613}
+                fill={
+                  {
+                    "payload": 4294711613,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
@@ -408,7 +447,12 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294745088}
+                fill={
+                  {
+                    "payload": 4294745088,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
@@ -607,9 +651,21 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
             }
             width={32}
           >
-            <RNSVGGroup>
+            <RNSVGGroup
+              fill={
+                {
+                  "payload": 4278190080,
+                  "type": 0,
+                }
+              }
+            >
               <RNSVGRect
-                fill={4294034178}
+                fill={
+                  {
+                    "payload": 4294034178,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
@@ -631,7 +687,12 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294711613}
+                fill={
+                  {
+                    "payload": 4294711613,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
@@ -653,7 +714,12 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294745088}
+                fill={
+                  {
+                    "payload": 4294745088,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [

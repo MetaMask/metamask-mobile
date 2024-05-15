@@ -59,6 +59,7 @@ describe('network-utils', () => {
     it('should get all networks', () => {
       expect(allNetworks.includes(MAINNET)).toEqual(true);
       expect(allNetworks.includes(SEPOLIA)).toEqual(true);
+      expect(allNetworks.includes(LINEA_GOERLI)).toEqual(true);
       expect(allNetworks.includes(LINEA_SEPOLIA)).toEqual(true);
       expect(allNetworks.includes(LINEA_MAINNET)).toEqual(true);
     });

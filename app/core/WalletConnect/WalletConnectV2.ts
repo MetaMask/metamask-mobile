@@ -297,10 +297,17 @@ class WalletConnect2Session {
     accounts,
   }: {
     chainId: number;
-    accounts: string[];
+    accounts?: string[];
   }) => {
     try {
-      if (accounts.length === 0) {
+      if (!accounts) {
+        DevLogger.log(
+          `Invalid accounts --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
+        );
+        return;
+      }
+
+      if (accounts?.length === 0) {
         console.warn(
           `WC2::updateSession invalid accounts --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
         );
@@ -530,9 +537,8 @@ export class WC2Manager {
           `WC2::init accountPermission`,
           JSON.stringify(accountPermission, null, 2),
         );
-        let approvedAccounts = await getPermittedAccounts(
-          accountPermission?.id ?? '',
-        );
+        let approvedAccounts =
+          (await getPermittedAccounts(accountPermission?.id ?? '')) ?? [];
         const fromOrigin = await getPermittedAccounts(
           session.peer.metadata.url,
         );
@@ -551,12 +557,11 @@ export class WC2Manager {
           DevLogger.log(
             `WC2::init fallback to metadata url ${session.peer.metadata.url}`,
           );
-          approvedAccounts = await getPermittedAccounts(
-            session.peer.metadata.url,
-          );
+          approvedAccounts =
+            (await getPermittedAccounts(session.peer.metadata.url)) ?? [];
         }
 
-        if (approvedAccounts.length === 0) {
+        if (approvedAccounts?.length === 0) {
           DevLogger.log(
             `WC2::init fallback to parsing accountPermission`,
             accountPermission,
@@ -599,10 +604,24 @@ export class WC2Manager {
     // Keep at the beginning to prevent double instance from react strict double rendering
     this._initialized = true;
 
+    await wait(1000); // add delay to let the keyringController to be initialized
+
+    // Wait for keychain to be unlocked before initializing WalletConnect
+    const keyringController = (
+      Engine.context as { KeyringController: KeyringController }
+    ).KeyringController;
+    await waitForKeychainUnlocked({
+      keyringController,
+      context: 'WalletConnectV2::init',
+    });
+    const currentRouteName = navigation.getCurrentRoute()?.name;
+
     let core;
     const chainId = parseInt(selectChainId(store.getState()), 16);
 
-    Logger.log(`WalletConnectV2::init() chainId=${chainId}`);
+    DevLogger.log(
+      `WalletConnectV2::init() chainId=${chainId} currentRouteName=${currentRouteName}`,
+    );
 
     try {
       if (typeof PROJECT_ID === 'string') {
@@ -664,7 +683,7 @@ export class WC2Manager {
       const interval = setInterval(() => {
         if (this.instance) {
           if (waitCount % 10 === 0) {
-            Logger.log(
+            DevLogger.log(
               `WalletConnectV2::getInstance() slow waitCount=${waitCount}`,
             );
           }
@@ -787,7 +806,7 @@ export class WC2Manager {
 
     try {
       await permissionsController.requestPermissions(
-        { origin: id + '' },
+        { origin: url },
         { eth_accounts: {} },
         // { id: undefined }, // Don't set id here, it will be set after session is created, identify via origin.
       );
@@ -803,11 +822,11 @@ export class WC2Manager {
 
     try {
       // use Permission controller
-      const approvedAccounts = await getPermittedAccounts(id + '');
+      const approvedAccounts = await getPermittedAccounts(url);
       // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
       const chainId = selectChainId(store.getState());
       DevLogger.log(
-        `WC2::session_proposal getPermittedAccounts for id=${id}, chainId=${chainId}`,
+        `WC2::session_proposal getPermittedAccounts for id=${id} hostname=${url}, chainId=${chainId}`,
         approvedAccounts,
       );
 
@@ -868,6 +887,11 @@ export class WC2Manager {
         err,
       );
     }
+  }
+
+  public isWalletConnect(origin: string) {
+    const sessions = this.getSessions();
+    return sessions.some((session) => session.peer.metadata.url === origin);
   }
 
   public async connect({

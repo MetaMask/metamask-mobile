@@ -10,7 +10,17 @@ import { addTransaction } from '../../../util/transaction-controller';
 jest.mock('../../../util/networks');
 jest.mock('../../../util/transactions');
 jest.mock('../../../util/address');
-jest.mock('../../Engine');
+jest.mock('../../Engine', () => ({
+  context: {
+    NetworkController: { setProviderType: jest.fn() },
+    PreferencesController: {
+      state: { selectedAddress: '0xMockSenderAddress' },
+    },
+    TransactionController: {
+      addTransaction: jest.fn(),
+    },
+  },
+}));
 jest.mock('../../NotificationManager');
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),
@@ -32,12 +42,6 @@ const mockDeeplinkManager = {
 };
 
 const mockOrigin = 'testOrigin';
-
-Engine.context.TransactionController = { addTransaction: jest.fn() };
-Engine.context.PreferencesController = {
-  state: { selectedAddress: '0xMockSenderAddress' },
-};
-Engine.context.NetworkController = { setProviderType: jest.fn() };
 
 describe('approveTransaction', () => {
   const spyGetNetworkTypeById = jest.spyOn(

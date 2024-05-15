@@ -406,42 +406,16 @@ exports[`AddActivationKey renders correctly 1`] = `
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
-                                [
-                                  {
-                                    "color": "#24272A",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 30,
-                                    "fontWeight": "400",
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "fontSize": 20,
-                                  },
-                                ]
+                                {
+                                  "color": "#24272A",
+                                  "fontFamily": "Euclid Circular B",
+                                  "fontSize": 16,
+                                  "fontWeight": "500",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
                               }
                             >
                               Add Activation Key
@@ -458,30 +432,161 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 ]
                               }
                             >
-                              <TextInput
-                                autoCapitalize="none"
-                                autoCorrect={false}
-                                keyboardAppearance="light"
-                                numberOfLines={1}
-                                onChangeText={[Function]}
-                                onSubmitEditing={[Function]}
-                                placeholder="Paste or type an Activation Key"
-                                placeholderTextColor="#BBC0C5"
-                                returnKeyType="done"
-                                spellCheck={false}
+                              <Text
+                                accessibilityRole="text"
                                 style={
                                   {
-                                    "borderColor": "#BBC0C5",
-                                    "borderRadius": 5,
-                                    "borderWidth": 2,
                                     "color": "#24272A",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 14,
                                     "fontWeight": "400",
-                                    "padding": 10,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
                                   }
                                 }
-                                value=""
-                              />
+                                testID="label"
+                              >
+                                Label
+                              </Text>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#FFFFFF",
+                                    "borderColor": "#0376C9",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 40,
+                                    "opacity": 1,
+                                    "paddingHorizontal": 16,
+                                  }
+                                }
+                                testID="textfield"
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flex": 1,
+                                    }
+                                  }
+                                >
+                                  <TextInput
+                                    autoCapitalize="none"
+                                    autoFocus={true}
+                                    editable={true}
+                                    numberOfLines={1}
+                                    onBlur={[Function]}
+                                    onChangeText={[Function]}
+                                    onFocus={[Function]}
+                                    onSubmitEditing={[Function]}
+                                    placeholder="Add a label to this key"
+                                    returnKeyType="done"
+                                    style={
+                                      {
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderColor": "transparent",
+                                        "borderWidth": 1,
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "height": 24,
+                                        "letterSpacing": 0,
+                                        "opacity": 1,
+                                        "paddingVertical": 0,
+                                      }
+                                    }
+                                    testID="input"
+                                    value=""
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "marginVertical": 8,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#24272A",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                                testID="label"
+                              >
+                                Key
+                              </Text>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#FFFFFF",
+                                    "borderColor": "#BBC0C5",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 40,
+                                    "opacity": 1,
+                                    "paddingHorizontal": 16,
+                                  }
+                                }
+                                testID="textfield"
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flex": 1,
+                                    }
+                                  }
+                                >
+                                  <TextInput
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                    autoFocus={true}
+                                    editable={true}
+                                    numberOfLines={1}
+                                    onBlur={[Function]}
+                                    onChangeText={[Function]}
+                                    onFocus={[Function]}
+                                    onSubmitEditing={[Function]}
+                                    placeholder="Paste or type an Activation Key"
+                                    returnKeyType="done"
+                                    spellCheck={false}
+                                    style={
+                                      {
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderColor": "transparent",
+                                        "borderWidth": 1,
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "height": 24,
+                                        "letterSpacing": 0,
+                                        "opacity": 1,
+                                        "paddingVertical": 0,
+                                      }
+                                    }
+                                    testID="input"
+                                    value=""
+                                  />
+                                </View>
+                              </View>
                             </View>
                             <View
                               style={
@@ -492,8 +597,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   undefined,
                                   undefined,
                                   {
+                                    "columnGap": 8,
                                     "flexDirection": "row",
-                                    "marginHorizontal": -5,
                                   },
                                 ]
                               }
@@ -502,117 +607,80 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 accessibilityRole="button"
                                 accessible={true}
                                 activeOpacity={1}
-                                disabled={true}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
-                                  [
-                                    [
-                                      {
-                                        "borderRadius": 100,
-                                        "justifyContent": "center",
-                                        "padding": 15,
-                                      },
-                                      {
-                                        "backgroundColor": "#0376C9",
-                                        "minHeight": 50,
-                                      },
-                                      {
-                                        "flex": 1,
-                                        "marginHorizontal": 5,
-                                      },
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "flex-start",
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#0376C9",
+                                    "borderRadius": 24,
+                                    "borderWidth": 1,
+                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "paddingHorizontal": 16,
+                                  }
                                 }
+                                variant="Secondary"
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#007aff",
-                                        "fontSize": 17,
-                                        "fontWeight": "500",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#dcdcdc",
-                                      },
-                                      [
-                                        {
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 14,
-                                          "fontWeight": "600",
-                                          "textAlign": "center",
-                                        },
-                                        {
-                                          "color": "#FFFFFF",
-                                        },
-                                        undefined,
-                                      ],
-                                      {
-                                        "opacity": 0.6,
-                                      },
-                                    ]
+                                    {
+                                      "color": "#0376C9",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
                                   }
                                 >
-                                  Add
+                                  Cancel
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
                                 accessibilityRole="button"
                                 accessible={true}
-                                activeOpacity={0.2}
+                                activeOpacity={1}
+                                disabled={true}
                                 onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
-                                  [
-                                    [
-                                      {
-                                        "borderRadius": 100,
-                                        "justifyContent": "center",
-                                        "padding": 15,
-                                      },
-                                      {
-                                        "backgroundColor": "#FFFFFF",
-                                        "borderColor": "#535A61",
-                                        "borderWidth": 1,
-                                      },
-                                      {
-                                        "flex": 1,
-                                        "marginHorizontal": 5,
-                                      },
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "flex-start",
+                                    "backgroundColor": "#0376C9",
+                                    "borderRadius": 24,
+                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "opacity": 0.5,
+                                    "paddingHorizontal": 16,
+                                  }
                                 }
+                                variant="Primary"
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#007aff",
-                                        "fontSize": 17,
-                                        "fontWeight": "500",
-                                        "textAlign": "center",
-                                      },
-                                      null,
-                                      [
-                                        {
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 14,
-                                          "fontWeight": "600",
-                                          "textAlign": "center",
-                                        },
-                                        {
-                                          "color": "#535A61",
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "color": "#FFFFFF",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
                                   }
                                 >
-                                  Cancel
+                                  Add
                                 </Text>
                               </TouchableOpacity>
                             </View>

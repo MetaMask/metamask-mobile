@@ -1,4 +1,4 @@
-import AddActivationKey from './AddActivationKey';
+import ActivationKeyForm from './ActivationKeyForm';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -8,7 +8,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.RAMP.ADD_ACTIVATION_KEY,
+      name: Routes.RAMP.ACTIVATION_KEY_FORM,
     },
     {
       state: {
@@ -45,37 +45,37 @@ describe('AddActivationKey', () => {
     jest.clearAllMocks();
   });
   it('renders correctly', () => {
-    render(AddActivationKey);
+    render(ActivationKeyForm);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('has button disabled when input is empty', () => {
-    render(AddActivationKey);
+    render(ActivationKeyForm);
     const addButton = screen.getByRole('button', { name: 'Add' });
     expect(addButton.props.disabled).toBe(true);
   });
 
   it('navigates back when pressing cancel', () => {
-    render(AddActivationKey);
+    render(ActivationKeyForm);
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('calls onSubmit with a valid test key', () => {
     const validKey = 'valid-key';
-    render(AddActivationKey);
+    render(ActivationKeyForm);
     const textInput = screen.getByPlaceholderText(
       'Paste or type an Activation Key',
     );
     fireEvent.changeText(textInput, validKey);
     const addButton = screen.getByRole('button', { name: 'Add' });
     fireEvent.press(addButton);
-    expect(mockOnSubmit).toHaveBeenCalledWith(validKey);
+    expect(mockOnSubmit).toHaveBeenCalledWith(validKey, '', undefined);
   });
 
   it('does not call onSubmit with an ivalid test key', () => {
     const invalidKey = 'invalid-key!!';
-    render(AddActivationKey);
+    render(ActivationKeyForm);
     const textInput = screen.getByPlaceholderText(
       'Paste or type an Activation Key',
     );

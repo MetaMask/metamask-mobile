@@ -4,7 +4,7 @@ import Device from '../../../util/device';
 
 const SMALL_DEVICE = Device.isSmallDevice();
 
-export default (colors) =>
+export default (colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,

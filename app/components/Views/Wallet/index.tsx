@@ -418,7 +418,7 @@ const Wallet = ({ navigation }: any) => {
    */
   const renderOnboardingWizard = useCallback(
     () =>
-      [1, 2, 3].includes(wizardStep) && (
+      [1, 2, 3, 4, 5, 6, 7].includes(wizardStep) && (
         <OnboardingWizard
           navigation={navigation}
           coachmarkRef={walletRef.current}

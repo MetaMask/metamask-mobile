@@ -1424,7 +1424,7 @@ export const BrowserTab = (props) => {
    */
   const renderOnboardingWizard = () => {
     const { wizardStep } = props;
-    if ([6].includes(wizardStep)) {
+    if ([7].includes(wizardStep)) {
       if (!wizardScrollAdjusted.current) {
         setTimeout(() => {
           reload();

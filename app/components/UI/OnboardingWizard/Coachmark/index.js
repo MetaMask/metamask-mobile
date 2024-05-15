@@ -105,7 +105,7 @@ const createStyles = (colors) =>
       marginBottom: 10,
       bottom: -2,
       alignItems: 'flex-end',
-      marginRight: 30,
+      marginRight: 38,
     },
     topLeftCorner: {
       marginBottom: 10,
@@ -322,7 +322,7 @@ export default class Coachmark extends PureComponent {
       <View style={styles.progress}>
         <View style={styles.progessContainer}>
           {currentStep !== 0 && (
-            <Text style={styles.stepCounter}>{currentStep}/5</Text>
+            <Text style={styles.stepCounter}>{currentStep}/6</Text>
           )}
         </View>
 

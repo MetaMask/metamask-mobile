@@ -18,6 +18,7 @@ function handleClientsDisconnected({
         instance.origin
       }`,
     );
+
     // Disapprove a given host everytime there is a disconnection to prevent hijacking.
     if (!instance.remote.isPaused()) {
       // don't disapprove on deeplink
@@ -45,13 +46,15 @@ function handleClientsDisconnected({
     }
 
     instance.receivedDisconnect = true;
-    // Reset connection state
-    instance.isReady = false;
-    instance.approvalPromise = undefined;
-    instance.receivedClientsReady = false;
-    DevLogger.log(
-      `Connection::CLIENTS_DISCONNECTED id=${instance.channelId} switch isReady ==> false`,
-    );
+    if (!instance.remote.hasRelayPersistence()) {
+      // Reset connection state
+      instance.isReady = false;
+      instance.approvalPromise = undefined;
+      instance.receivedClientsReady = false;
+      DevLogger.log(
+        `Connection::CLIENTS_DISCONNECTED id=${instance.channelId} switch isReady ==> false`,
+      );
+    }
   };
 }
 

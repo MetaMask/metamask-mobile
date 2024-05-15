@@ -434,42 +434,16 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "fontSize": 20,
-                                        },
-                                      ]
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Current Region
@@ -508,42 +482,16 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontSize": 18,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           🇪🇺
@@ -560,42 +508,16 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontSize": 16,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           Europe Union
@@ -606,51 +528,37 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    activeOpacity={0.2}
+                                    activeOpacity={1}
                                     onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
-                                      [
-                                        [
-                                          {
-                                            "borderRadius": 100,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          {
-                                            "backgroundColor": "#FFFFFF",
-                                            "borderColor": "#0376C9",
-                                            "borderWidth": 1,
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "stretch",
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "#0376C9",
+                                        "borderRadius": 24,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 16,
+                                      }
                                     }
+                                    variant="Secondary"
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          null,
-                                          [
-                                            {
-                                              "fontFamily": "EuclidCircularB-Bold",
-                                              "fontSize": 14,
-                                              "fontWeight": "600",
-                                              "textAlign": "center",
-                                            },
-                                            {
-                                              "color": "#0376C9",
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        {
+                                          "color": "#0376C9",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Reset Region
@@ -670,112 +578,44 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        false,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "fontSize": 20,
-                                          },
-                                        ]
+                                        {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "500",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
                                       }
                                     >
                                       SDK Activation Keys
                                     </Text>
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                         
@@ -797,365 +637,391 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "color": "#535A61",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        {
+                                          "color": "#535A61",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Activation Keys will enable specific features or providers.
                                     </Text>
                                   </View>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
-                                      <View
+                                      <RCTSwitch
+                                        accessibilityRole="switch"
+                                        disabled={true}
+                                        onChange={[Function]}
+                                        onResponderTerminationRequest={[Function]}
+                                        onStartShouldSetResponder={[Function]}
+                                        onTintColor="#0376C9"
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
+                                              "height": 31,
+                                              "width": 51,
                                             },
-                                            undefined,
+                                            {
+                                              "backgroundColor": "#D6D9DC",
+                                              "borderRadius": 16,
+                                            },
                                           ]
                                         }
-                                      >
-                                        <RCTSwitch
-                                          accessibilityRole="switch"
-                                          disabled={true}
-                                          onChange={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
-                                          onTintColor="#0376C9"
-                                          style={
-                                            [
-                                              {
-                                                "height": 31,
-                                                "width": 51,
-                                              },
-                                              {
-                                                "backgroundColor": "#D6D9DC",
-                                                "borderRadius": 16,
-                                              },
-                                            ]
+                                        thumbTintColor="#FFFFFF"
+                                        tintColor="#D6D9DC"
+                                        value={true}
+                                      />
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          {
+                                            "color": "#24272A",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
-                                          thumbTintColor="#FFFFFF"
-                                          tintColor="#D6D9DC"
-                                          value={true}
+                                        }
+                                      >
+                                        test key 1
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          {
+                                            "color": "#24272A",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        testKey1
+                                      </Text>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Edit Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={true}
+                                        hitSlop={
+                                          {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
+                                      >
+                                        <SvgMock
+                                          color="#0376C980"
+                                          height={24}
+                                          name="Edit"
+                                          style={
+                                            {
+                                              "height": 24,
+                                              "width": 24,
+                                            }
+                                          }
+                                          width={24}
                                         />
-                                      </View>
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                      </TouchableOpacity>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
                                         }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Delete Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={true}
+                                        hitSlop={
+                                          {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
                                       >
-                                        <Text
-                                          selectable={true}
+                                        <SvgMock
+                                          color="#D7384780"
+                                          height={24}
+                                          name="Trash"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "color": "#BBC0C5",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        >
-                                          testKey1
-                                        </Text>
-                                      </View>
-                                      <View
-                                        style={
-                                          [
                                             {
-                                              "alignItems": "flex-end",
-                                              "flex": 0.6,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        <TouchableOpacity
-                                          accessibilityLabel="Delete Activation Key"
-                                          accessibilityRole="button"
-                                          accessible={true}
-                                          disabled={true}
-                                          hitSlop={
-                                            {
-                                              "bottom": 20,
-                                              "left": 20,
-                                              "right": 20,
-                                              "top": 20,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
-                                          onPress={[Function]}
-                                        >
-                                          <Text
-                                            allowFontScaling={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": "#D7384780",
-                                                  "fontSize": 20,
-                                                },
-                                                undefined,
-                                                {
-                                                  "fontFamily": "Material Design Icons",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            罹
-                                          </Text>
-                                        </TouchableOpacity>
-                                      </View>
+                                          width={24}
+                                        />
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
-                                      <View
+                                      <RCTSwitch
+                                        accessibilityRole="switch"
+                                        disabled={true}
+                                        onChange={[Function]}
+                                        onResponderTerminationRequest={[Function]}
+                                        onStartShouldSetResponder={[Function]}
+                                        onTintColor="#0376C9"
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
+                                              "height": 31,
+                                              "width": 51,
                                             },
-                                            undefined,
+                                            {
+                                              "backgroundColor": "#D6D9DC",
+                                              "borderRadius": 16,
+                                            },
                                           ]
                                         }
-                                      >
-                                        <RCTSwitch
-                                          accessibilityRole="switch"
-                                          disabled={true}
-                                          onChange={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
-                                          onTintColor="#0376C9"
-                                          style={
-                                            [
-                                              {
-                                                "height": 31,
-                                                "width": 51,
-                                              },
-                                              {
-                                                "backgroundColor": "#D6D9DC",
-                                                "borderRadius": 16,
-                                              },
-                                            ]
+                                        thumbTintColor="#FFFFFF"
+                                        tintColor="#D6D9DC"
+                                        value={false}
+                                      />
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          {
+                                            "color": "#BBC0C5",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
-                                          thumbTintColor="#FFFFFF"
-                                          tintColor="#D6D9DC"
-                                          value={false}
+                                        }
+                                      >
+                                        test key 2
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          {
+                                            "color": "#BBC0C5",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        testKey2
+                                      </Text>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Edit Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={true}
+                                        hitSlop={
+                                          {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
+                                      >
+                                        <SvgMock
+                                          color="#0376C980"
+                                          height={24}
+                                          name="Edit"
+                                          style={
+                                            {
+                                              "height": 24,
+                                              "width": 24,
+                                            }
+                                          }
+                                          width={24}
                                         />
-                                      </View>
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                      </TouchableOpacity>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
                                         }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Delete Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={true}
+                                        hitSlop={
+                                          {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
                                       >
-                                        <Text
-                                          selectable={true}
+                                        <SvgMock
+                                          color="#D7384780"
+                                          height={24}
+                                          name="Trash"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "color": "#BBC0C5",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        >
-                                          testKey2
-                                        </Text>
-                                      </View>
-                                      <View
-                                        style={
-                                          [
                                             {
-                                              "alignItems": "flex-end",
-                                              "flex": 0.6,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        <TouchableOpacity
-                                          accessibilityLabel="Delete Activation Key"
-                                          accessibilityRole="button"
-                                          accessible={true}
-                                          disabled={true}
-                                          hitSlop={
-                                            {
-                                              "bottom": 20,
-                                              "left": 20,
-                                              "right": 20,
-                                              "top": 20,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
-                                          onPress={[Function]}
-                                        >
-                                          <Text
-                                            allowFontScaling={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": "#D7384780",
-                                                  "fontSize": 20,
-                                                },
-                                                undefined,
-                                                {
-                                                  "fontFamily": "Material Design Icons",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            罹
-                                          </Text>
-                                        </TouchableOpacity>
-                                      </View>
+                                          width={24}
+                                        />
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                   <View
@@ -1175,55 +1041,37 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       accessible={true}
                                       activeOpacity={1}
                                       disabled={true}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
                                       style={
-                                        [
-                                          [
-                                            {
-                                              "borderRadius": 100,
-                                              "justifyContent": "center",
-                                              "padding": 15,
-                                            },
-                                            {
-                                              "backgroundColor": "#FFFFFF",
-                                              "borderColor": "#0376C9",
-                                              "borderWidth": 1,
-                                            },
-                                            undefined,
-                                          ],
-                                          {
-                                            "opacity": 0.6,
-                                          },
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "alignSelf": "stretch",
+                                          "backgroundColor": "transparent",
+                                          "borderColor": "#0376C9",
+                                          "borderRadius": 24,
+                                          "borderWidth": 1,
+                                          "flexDirection": "row",
+                                          "height": 48,
+                                          "justifyContent": "center",
+                                          "opacity": 0.5,
+                                          "paddingHorizontal": 16,
+                                        }
                                       }
+                                      variant="Secondary"
                                     >
                                       <Text
+                                        accessibilityRole="text"
                                         style={
-                                          [
-                                            {
-                                              "color": "#007aff",
-                                              "fontSize": 17,
-                                              "fontWeight": "500",
-                                              "textAlign": "center",
-                                            },
-                                            {
-                                              "color": "#dcdcdc",
-                                            },
-                                            [
-                                              {
-                                                "fontFamily": "EuclidCircularB-Bold",
-                                                "fontSize": 14,
-                                                "fontWeight": "600",
-                                                "textAlign": "center",
-                                              },
-                                              {
-                                                "color": "#0376C9",
-                                              },
-                                              undefined,
-                                            ],
-                                            {
-                                              "opacity": 0.6,
-                                            },
-                                          ]
+                                          {
+                                            "color": "#0376C9",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
                                         }
                                       >
                                         Add Activation Key
@@ -1683,42 +1531,16 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "fontSize": 20,
-                                        },
-                                      ]
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Current Region
@@ -1757,42 +1579,16 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontSize": 18,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           🇪🇺
@@ -1809,42 +1605,16 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontSize": 16,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           Europe Union
@@ -1855,51 +1625,37 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    activeOpacity={0.2}
+                                    activeOpacity={1}
                                     onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
-                                      [
-                                        [
-                                          {
-                                            "borderRadius": 100,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          {
-                                            "backgroundColor": "#FFFFFF",
-                                            "borderColor": "#0376C9",
-                                            "borderWidth": 1,
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "stretch",
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "#0376C9",
+                                        "borderRadius": 24,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 16,
+                                      }
                                     }
+                                    variant="Secondary"
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          null,
-                                          [
-                                            {
-                                              "fontFamily": "EuclidCircularB-Bold",
-                                              "fontSize": 14,
-                                              "fontWeight": "600",
-                                              "textAlign": "center",
-                                            },
-                                            {
-                                              "color": "#0376C9",
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        {
+                                          "color": "#0376C9",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Reset Region
@@ -1919,112 +1675,44 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        false,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "fontSize": 20,
-                                          },
-                                        ]
+                                        {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "500",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
                                       }
                                     >
                                       SDK Activation Keys
                                     </Text>
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                         
@@ -2043,42 +1731,16 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "color": "#535A61",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        {
+                                          "color": "#535A61",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Activation Keys will enable specific features or providers.
@@ -2099,52 +1761,38 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     <TouchableOpacity
                                       accessibilityRole="button"
                                       accessible={true}
-                                      activeOpacity={0.2}
+                                      activeOpacity={1}
                                       disabled={false}
                                       onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
                                       style={
-                                        [
-                                          [
-                                            {
-                                              "borderRadius": 100,
-                                              "justifyContent": "center",
-                                              "padding": 15,
-                                            },
-                                            {
-                                              "backgroundColor": "#FFFFFF",
-                                              "borderColor": "#0376C9",
-                                              "borderWidth": 1,
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "alignSelf": "stretch",
+                                          "backgroundColor": "transparent",
+                                          "borderColor": "#0376C9",
+                                          "borderRadius": 24,
+                                          "borderWidth": 1,
+                                          "flexDirection": "row",
+                                          "height": 48,
+                                          "justifyContent": "center",
+                                          "paddingHorizontal": 16,
+                                        }
                                       }
+                                      variant="Secondary"
                                     >
                                       <Text
+                                        accessibilityRole="text"
                                         style={
-                                          [
-                                            {
-                                              "color": "#007aff",
-                                              "fontSize": 17,
-                                              "fontWeight": "500",
-                                              "textAlign": "center",
-                                            },
-                                            null,
-                                            [
-                                              {
-                                                "fontFamily": "EuclidCircularB-Bold",
-                                                "fontSize": 14,
-                                                "fontWeight": "600",
-                                                "textAlign": "center",
-                                              },
-                                              {
-                                                "color": "#0376C9",
-                                              },
-                                              undefined,
-                                            ],
-                                            null,
-                                          ]
+                                          {
+                                            "color": "#0376C9",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
                                         }
                                       >
                                         Add Activation Key
@@ -2604,42 +2252,16 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "fontSize": 20,
-                                        },
-                                      ]
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Current Region
@@ -2678,42 +2300,16 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontSize": 18,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           🏳️
@@ -2730,89 +2326,19 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              [
-                                                {
-                                                  "color": "#24272A",
-                                                  "fontSize": 15,
-                                                },
-                                                undefined,
-                                              ],
-                                            ]
+                                            {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
-                                          <Text
-                                            style={
-                                              [
-                                                {
-                                                  "color": "#24272A",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 30,
-                                                  "fontWeight": "400",
-                                                  "marginVertical": 2,
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                {
-                                                  "fontSize": 16,
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                              ]
-                                            }
-                                          >
-                                            No region selected
-                                          </Text>
+                                          No region selected
                                         </Text>
                                       </View>
                                     </View>
@@ -3270,42 +2796,16 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "fontSize": 20,
-                                        },
-                                      ]
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Current Region
@@ -3344,42 +2844,16 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontSize": 18,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           🇪🇺
@@ -3396,42 +2870,16 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontSize": 16,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           Europe Union
@@ -3442,51 +2890,37 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    activeOpacity={0.2}
+                                    activeOpacity={1}
                                     onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
-                                      [
-                                        [
-                                          {
-                                            "borderRadius": 100,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          {
-                                            "backgroundColor": "#FFFFFF",
-                                            "borderColor": "#0376C9",
-                                            "borderWidth": 1,
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "stretch",
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "#0376C9",
+                                        "borderRadius": 24,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 16,
+                                      }
                                     }
+                                    variant="Secondary"
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          null,
-                                          [
-                                            {
-                                              "fontFamily": "EuclidCircularB-Bold",
-                                              "fontSize": 14,
-                                              "fontWeight": "600",
-                                              "textAlign": "center",
-                                            },
-                                            {
-                                              "color": "#0376C9",
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        {
+                                          "color": "#0376C9",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Reset Region
@@ -3945,42 +3379,16 @@ exports[`Settings renders correctly 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "fontSize": 20,
-                                        },
-                                      ]
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Current Region
@@ -4019,42 +3427,16 @@ exports[`Settings renders correctly 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontSize": 18,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           🇪🇺
@@ -4071,42 +3453,16 @@ exports[`Settings renders correctly 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontSize": 16,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           Europe Union
@@ -4117,51 +3473,37 @@ exports[`Settings renders correctly 1`] = `
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    activeOpacity={0.2}
+                                    activeOpacity={1}
                                     onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
-                                      [
-                                        [
-                                          {
-                                            "borderRadius": 100,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          {
-                                            "backgroundColor": "#FFFFFF",
-                                            "borderColor": "#0376C9",
-                                            "borderWidth": 1,
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "stretch",
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "#0376C9",
+                                        "borderRadius": 24,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 16,
+                                      }
                                     }
+                                    variant="Secondary"
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          null,
-                                          [
-                                            {
-                                              "fontFamily": "EuclidCircularB-Bold",
-                                              "fontSize": 14,
-                                              "fontWeight": "600",
-                                              "textAlign": "center",
-                                            },
-                                            {
-                                              "color": "#0376C9",
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        {
+                                          "color": "#0376C9",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Reset Region
@@ -4620,42 +3962,16 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "fontSize": 20,
-                                        },
-                                      ]
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Current Region
@@ -4694,42 +4010,16 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontSize": 18,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           🇪🇺
@@ -4746,42 +4036,16 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontSize": 16,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           Europe Union
@@ -4792,51 +4056,37 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    activeOpacity={0.2}
+                                    activeOpacity={1}
                                     onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
-                                      [
-                                        [
-                                          {
-                                            "borderRadius": 100,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          {
-                                            "backgroundColor": "#FFFFFF",
-                                            "borderColor": "#0376C9",
-                                            "borderWidth": 1,
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "stretch",
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "#0376C9",
+                                        "borderRadius": 24,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 16,
+                                      }
                                     }
+                                    variant="Secondary"
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          null,
-                                          [
-                                            {
-                                              "fontFamily": "EuclidCircularB-Bold",
-                                              "fontSize": 14,
-                                              "fontWeight": "600",
-                                              "textAlign": "center",
-                                            },
-                                            {
-                                              "color": "#0376C9",
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        {
+                                          "color": "#0376C9",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Reset Region
@@ -4856,112 +4106,44 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        false,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "fontSize": 20,
-                                          },
-                                        ]
+                                        {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "500",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
                                       }
                                     >
                                       SDK Activation Keys
                                     </Text>
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                         
@@ -4980,361 +4162,391 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "color": "#535A61",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        {
+                                          "color": "#535A61",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Activation Keys will enable specific features or providers.
                                     </Text>
                                   </View>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
-                                      <View
+                                      <RCTSwitch
+                                        accessibilityRole="switch"
+                                        disabled={false}
+                                        onChange={[Function]}
+                                        onResponderTerminationRequest={[Function]}
+                                        onStartShouldSetResponder={[Function]}
+                                        onTintColor="#0376C9"
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
+                                              "height": 31,
+                                              "width": 51,
                                             },
-                                            undefined,
+                                            {
+                                              "backgroundColor": "#D6D9DC",
+                                              "borderRadius": 16,
+                                            },
                                           ]
                                         }
-                                      >
-                                        <RCTSwitch
-                                          accessibilityRole="switch"
-                                          disabled={false}
-                                          onChange={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
-                                          onTintColor="#0376C9"
-                                          style={
-                                            [
-                                              {
-                                                "height": 31,
-                                                "width": 51,
-                                              },
-                                              {
-                                                "backgroundColor": "#D6D9DC",
-                                                "borderRadius": 16,
-                                              },
-                                            ]
+                                        thumbTintColor="#FFFFFF"
+                                        tintColor="#D6D9DC"
+                                        value={true}
+                                      />
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          {
+                                            "color": "#24272A",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
-                                          thumbTintColor="#FFFFFF"
-                                          tintColor="#D6D9DC"
-                                          value={true}
+                                        }
+                                      >
+                                        test key 1
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          {
+                                            "color": "#24272A",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        testKey1
+                                      </Text>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Edit Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={false}
+                                        hitSlop={
+                                          {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
+                                      >
+                                        <SvgMock
+                                          color="#0376C9"
+                                          height={24}
+                                          name="Edit"
+                                          style={
+                                            {
+                                              "height": 24,
+                                              "width": 24,
+                                            }
+                                          }
+                                          width={24}
                                         />
-                                      </View>
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                      </TouchableOpacity>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
                                         }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Delete Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={false}
+                                        hitSlop={
+                                          {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
                                       >
-                                        <Text
-                                          selectable={true}
+                                        <SvgMock
+                                          color="#D73847"
+                                          height={24}
+                                          name="Trash"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              false,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        >
-                                          testKey1
-                                        </Text>
-                                      </View>
-                                      <View
-                                        style={
-                                          [
                                             {
-                                              "alignItems": "flex-end",
-                                              "flex": 0.6,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        <TouchableOpacity
-                                          accessibilityLabel="Delete Activation Key"
-                                          accessibilityRole="button"
-                                          accessible={true}
-                                          disabled={false}
-                                          hitSlop={
-                                            {
-                                              "bottom": 20,
-                                              "left": 20,
-                                              "right": 20,
-                                              "top": 20,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
-                                          onPress={[Function]}
-                                        >
-                                          <Text
-                                            allowFontScaling={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": "#D73847",
-                                                  "fontSize": 20,
-                                                },
-                                                undefined,
-                                                {
-                                                  "fontFamily": "Material Design Icons",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            罹
-                                          </Text>
-                                        </TouchableOpacity>
-                                      </View>
+                                          width={24}
+                                        />
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
-                                      <View
+                                      <RCTSwitch
+                                        accessibilityRole="switch"
+                                        disabled={false}
+                                        onChange={[Function]}
+                                        onResponderTerminationRequest={[Function]}
+                                        onStartShouldSetResponder={[Function]}
+                                        onTintColor="#0376C9"
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
+                                              "height": 31,
+                                              "width": 51,
                                             },
-                                            undefined,
+                                            {
+                                              "backgroundColor": "#D6D9DC",
+                                              "borderRadius": 16,
+                                            },
                                           ]
                                         }
-                                      >
-                                        <RCTSwitch
-                                          accessibilityRole="switch"
-                                          disabled={false}
-                                          onChange={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
-                                          onTintColor="#0376C9"
-                                          style={
-                                            [
-                                              {
-                                                "height": 31,
-                                                "width": 51,
-                                              },
-                                              {
-                                                "backgroundColor": "#D6D9DC",
-                                                "borderRadius": 16,
-                                              },
-                                            ]
+                                        thumbTintColor="#FFFFFF"
+                                        tintColor="#D6D9DC"
+                                        value={false}
+                                      />
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          {
+                                            "color": "#BBC0C5",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
-                                          thumbTintColor="#FFFFFF"
-                                          tintColor="#D6D9DC"
-                                          value={false}
+                                        }
+                                      >
+                                        test key 2
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          {
+                                            "color": "#BBC0C5",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        testKey2
+                                      </Text>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Edit Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={false}
+                                        hitSlop={
+                                          {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
+                                      >
+                                        <SvgMock
+                                          color="#0376C9"
+                                          height={24}
+                                          name="Edit"
+                                          style={
+                                            {
+                                              "height": 24,
+                                              "width": 24,
+                                            }
+                                          }
+                                          width={24}
                                         />
-                                      </View>
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                      </TouchableOpacity>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
                                         }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Delete Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={false}
+                                        hitSlop={
+                                          {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
                                       >
-                                        <Text
-                                          selectable={true}
+                                        <SvgMock
+                                          color="#D73847"
+                                          height={24}
+                                          name="Trash"
                                           style={
-                                            [
-                                              {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              false,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        >
-                                          testKey2
-                                        </Text>
-                                      </View>
-                                      <View
-                                        style={
-                                          [
                                             {
-                                              "alignItems": "flex-end",
-                                              "flex": 0.6,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        <TouchableOpacity
-                                          accessibilityLabel="Delete Activation Key"
-                                          accessibilityRole="button"
-                                          accessible={true}
-                                          disabled={false}
-                                          hitSlop={
-                                            {
-                                              "bottom": 20,
-                                              "left": 20,
-                                              "right": 20,
-                                              "top": 20,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
-                                          onPress={[Function]}
-                                        >
-                                          <Text
-                                            allowFontScaling={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": "#D73847",
-                                                  "fontSize": 20,
-                                                },
-                                                undefined,
-                                                {
-                                                  "fontFamily": "Material Design Icons",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            罹
-                                          </Text>
-                                        </TouchableOpacity>
-                                      </View>
+                                          width={24}
+                                        />
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                   <View
@@ -5352,52 +4564,38 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     <TouchableOpacity
                                       accessibilityRole="button"
                                       accessible={true}
-                                      activeOpacity={0.2}
+                                      activeOpacity={1}
                                       disabled={false}
                                       onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
                                       style={
-                                        [
-                                          [
-                                            {
-                                              "borderRadius": 100,
-                                              "justifyContent": "center",
-                                              "padding": 15,
-                                            },
-                                            {
-                                              "backgroundColor": "#FFFFFF",
-                                              "borderColor": "#0376C9",
-                                              "borderWidth": 1,
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "alignSelf": "stretch",
+                                          "backgroundColor": "transparent",
+                                          "borderColor": "#0376C9",
+                                          "borderRadius": 24,
+                                          "borderWidth": 1,
+                                          "flexDirection": "row",
+                                          "height": 48,
+                                          "justifyContent": "center",
+                                          "paddingHorizontal": 16,
+                                        }
                                       }
+                                      variant="Secondary"
                                     >
                                       <Text
+                                        accessibilityRole="text"
                                         style={
-                                          [
-                                            {
-                                              "color": "#007aff",
-                                              "fontSize": 17,
-                                              "fontWeight": "500",
-                                              "textAlign": "center",
-                                            },
-                                            null,
-                                            [
-                                              {
-                                                "fontFamily": "EuclidCircularB-Bold",
-                                                "fontSize": 14,
-                                                "fontWeight": "600",
-                                                "textAlign": "center",
-                                              },
-                                              {
-                                                "color": "#0376C9",
-                                              },
-                                              undefined,
-                                            ],
-                                            null,
-                                          ]
+                                          {
+                                            "color": "#0376C9",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
                                         }
                                       >
                                         Add Activation Key

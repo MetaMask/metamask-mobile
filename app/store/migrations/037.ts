@@ -40,12 +40,8 @@ export default async function migrate(stateAsync: unknown) {
     return state;
   }
 
+  // If there is no networkId we do not need to do anything, inpageProvider will start with is default state
   if (!networkControllerState.networkId) {
-    captureException(
-      new Error(
-        `Migration 37: Invalid NetworkController networkId not found: '${networkControllerState.networkId}'`,
-      ),
-    );
     return state;
   }
 

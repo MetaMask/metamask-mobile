@@ -16,6 +16,7 @@ async function reconnect({
   otherPublicKey: string;
   context?: string;
   updateKey?: boolean;
+  protocolVersion?: ConnectionProps['protocolVersion'];
   trigger?: ConnectionProps['trigger'];
   initialConnection: boolean;
   instance: SDKConnect;
@@ -110,15 +111,12 @@ async function reconnect({
   if (existingConnection) {
     const connected = existingConnection?.remote.isConnected();
     const ready = existingConnection?.isReady;
-    if (connected) {
-      if (trigger) {
-        instance.state.connected[channelId].setTrigger(trigger);
-      }
+    if (trigger) {
+      instance.state.connected[channelId].setTrigger(trigger);
       DevLogger.log(
-        `SDKConnect::reconnect - already connected [connected] -- trigger updated to '${trigger}'`,
+        `SDKConnect::reconnect - connected=${connected} -- trigger updated to '${trigger}'`,
       );
       instance.updateSDKLoadingState({ channelId, loading: false });
-      return;
     }
 
     if (ready) {
@@ -127,6 +125,12 @@ async function reconnect({
       );
       instance.updateSDKLoadingState({ channelId, loading: false });
       return;
+    } else if (connected) {
+      // disconnect socket before reconnecting to avoid room being full
+      DevLogger.log(
+        `SDKConnect::reconnect - disconnecting socket before reconnecting`,
+      );
+      existingConnection.remote.disconnect();
     }
   }
 

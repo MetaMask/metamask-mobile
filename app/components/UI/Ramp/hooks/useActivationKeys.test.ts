@@ -30,14 +30,17 @@ function renderHookWithActivationKeys(
 const mockStoredKeys = [
   {
     key: 'key1',
+    label: 'key1-label',
     active: true,
   },
   {
     key: 'key2',
+    label: 'key2-label',
     active: false,
   },
   {
     key: 'key3',
+    label: 'key3-label',
     active: true,
   },
 ];
@@ -51,10 +54,10 @@ describe('useActivationKeys', () => {
     const storedKeys = [...mockStoredKeys];
 
     const activeStoredKeys = storedKeys.filter(({ active }) => active);
-    const activeStoredKeysNames = activeStoredKeys.map(({ key }) => key);
+    const activeStoredKeysValues = activeStoredKeys.map(({ key }) => key);
     (
       SDK.getActivationKeys as jest.MockedFunction<typeof SDK.getActivationKeys>
-    ).mockReturnValueOnce(activeStoredKeysNames);
+    ).mockReturnValueOnce(activeStoredKeysValues);
 
     const { result } = renderHookWithActivationKeys(
       () =>
@@ -66,7 +69,7 @@ describe('useActivationKeys', () => {
 
     waitFor(() => expect(result.current.isLoadingKeys).toBe(false));
 
-    expect(SDK.setActivationKeys).toHaveBeenCalledWith(activeStoredKeysNames);
+    expect(SDK.setActivationKeys).toHaveBeenCalledWith(activeStoredKeysValues);
     expect(result.current.activationKeys).toEqual(storedKeys);
   });
 
@@ -107,7 +110,7 @@ describe('useActivationKeys', () => {
     ).toBe(true);
   });
 
-  it('should add and set activation key when calling removeActivationKey', async () => {
+  it('should add and set activation key when calling addActivationKey', async () => {
     const storedKeys = [...mockStoredKeys];
     const activeStoredKeysNames = storedKeys
       .filter(({ active }) => active)
@@ -122,7 +125,7 @@ describe('useActivationKeys', () => {
     waitFor(() => expect(result.current.isLoadingKeys).toBe(false));
 
     act(() => {
-      result.current.addActivationKey('key4');
+      result.current.addActivationKey('key4', 'key4-label');
     });
 
     waitFor(() => expect(result.current.isLoadingKeys).toBe(false));
@@ -139,12 +142,13 @@ describe('useActivationKeys', () => {
       ...storedKeys.map((key) => ({ ...key, active: false })),
       {
         key: 'key4',
+        label: 'key4-label',
         active: false,
       },
     ]);
   });
 
-  it('should remove activation key when calling addActivationKey', async () => {
+  it('should remove activation key when calling removeActivationKey', async () => {
     const storedKeys = [...mockStoredKeys];
     const activeStoredKeysNames = storedKeys
       .filter(({ active }) => active)
@@ -193,7 +197,7 @@ describe('useActivationKeys', () => {
     waitFor(() => expect(result.current.isLoadingKeys).toBe(false));
 
     act(() => {
-      result.current.updateActivationKey('key3', false);
+      result.current.updateActivationKey('key3', 'key3-label', false);
     });
 
     waitFor(() => expect(result.current.isLoadingKeys).toBe(false));

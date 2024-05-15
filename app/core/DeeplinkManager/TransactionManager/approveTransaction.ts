@@ -23,6 +23,7 @@ async function approveTransaction({
 
   if (chain_id) {
     const newNetworkType = getNetworkTypeById(chain_id);
+    // @ts-expect-error TODO: Consolidate the network types used here with the controller-utils types
     NetworkController.setProviderType(newNetworkType);
   }
 
