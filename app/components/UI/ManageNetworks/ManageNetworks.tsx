@@ -11,8 +11,8 @@ import { ProviderConfig } from '@metamask/network-controller';
 import {
   selectProviderConfig,
   selectNetworkName,
+  selectNetworkImageSource,
 } from '../../../selectors/networkController';
-import { getNetworkImageSource } from '../../../util/networks';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
@@ -27,11 +27,7 @@ export default function ManageNetworksComponent() {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
 
-  const networkImageSource = () => {
-    const { type, chainId } = providerConfig;
-    return getNetworkImageSource({ networkType: type, chainId });
-  };
-
+  const networkImageSource = useSelector(selectNetworkImageSource);
   const networkName = useSelector(selectNetworkName);
 
   const switchNetwork = useCallback(() => {
@@ -68,7 +64,7 @@ export default function ManageNetworksComponent() {
       </Text>
       <PickerNetwork
         label={networkName}
-        imageSource={networkImageSource()}
+        imageSource={networkImageSource}
         onPress={switchNetwork}
         style={styles.networkPicker}
         testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
