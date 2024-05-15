@@ -156,7 +156,7 @@ const Notifications = ({
     <View style={styles.container}>
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator color={colors.icon.default} size="large" />
+          <ActivityIndicator color={colors.primary.default} size="large" />
         </View>
       ) : (
         <ScrollableTabView
