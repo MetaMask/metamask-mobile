@@ -52,6 +52,7 @@ jest.mock('../Engine', () => {
           TokenBalancesController: { subscribe: jest.fn() },
           TokenRatesController: { subscribe: jest.fn() },
           TransactionController: { subscribe: jest.fn() },
+          SmartTransactionsController: { subscribe: jest.fn() },
           SwapsController: { subscribe: jest.fn() },
           TokenListController: { subscribe: jest.fn() },
           CurrencyRateController: { subscribe: jest.fn() },

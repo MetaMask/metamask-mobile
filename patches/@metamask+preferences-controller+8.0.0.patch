@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
-index bfbfe66..c19399e 100644
+index bfbfe66..e9c8232 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
 @@ -71,7 +71,8 @@ export declare type PreferencesState = {
@@ -12,7 +12,18 @@ index bfbfe66..c19399e 100644
      /**
       * Controls whether "security alerts" are enabled
       */
-@@ -216,11 +217,16 @@ export declare class PreferencesController extends BaseController<typeof name, P
+@@ -98,6 +99,10 @@ export declare type PreferencesState = {
+      * Controls whether token detection is enabled
+      */
+     useTokenDetection: boolean;
++    /**
++     * Controls whether smart transactions are opted into
++     */
++    smartTransactionsOptInStatus: boolean;
+ };
+ declare const name = "PreferencesController";
+ export declare type PreferencesControllerGetStateAction = ControllerGetStateAction<typeof name, PreferencesState>;
+@@ -216,11 +221,16 @@ export declare class PreferencesController extends BaseController<typeof name, P
       */
      setUseNftDetection(useNftDetection: boolean): void;
      /**
@@ -32,11 +43,25 @@ index bfbfe66..c19399e 100644
      /**
       * Toggle the security alert enabled setting.
       *
+@@ -259,6 +269,12 @@ export declare class PreferencesController extends BaseController<typeof name, P
+      * @param isIncomingTransactionNetworkEnable - true to enable incoming transactions
+      */
+     setEnableNetworkIncomingTransactions(chainId: EtherscanSupportedHexChainId, isIncomingTransactionNetworkEnable: boolean): void;
++    /**
++     * A setter for the user to opt into smart transactions
++     *
++     * @param smartTransactionsOptInStatus - true to opt into smart transactions
++     */
++    setSmartTransactionsOptInStatus(smartTransactionsOptInStatus: boolean): void;
+ }
+ export default PreferencesController;
+ //# sourceMappingURL=PreferencesController.d.ts.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index 228cd90..dac2587 100644
+index 228cd90..ac62b59 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-@@ -18,7 +18,8 @@ const metadata = {
+@@ -18,13 +18,15 @@ const metadata = {
      isIpfsGatewayEnabled: { persist: true, anonymous: true },
      isMultiAccountBalancesEnabled: { persist: true, anonymous: true },
      lostIdentities: { persist: true, anonymous: false },
@@ -46,7 +71,14 @@ index 228cd90..dac2587 100644
      securityAlertsEnabled: { persist: true, anonymous: true },
      selectedAddress: { persist: true, anonymous: false },
      showTestNetworks: { persist: true, anonymous: true },
-@@ -43,7 +44,7 @@ function getDefaultPreferencesState() {
+     showIncomingTransactions: { persist: true, anonymous: true },
+     useNftDetection: { persist: true, anonymous: true },
+     useTokenDetection: { persist: true, anonymous: true },
++    smartTransactionsOptInStatus: { persist: true, anonymous: true },
+ };
+ const name = 'PreferencesController';
+ /**
+@@ -43,7 +45,7 @@ function getDefaultPreferencesState() {
          isIpfsGatewayEnabled: true,
          isMultiAccountBalancesEnabled: true,
          lostIdentities: {},
@@ -55,7 +87,7 @@ index 228cd90..dac2587 100644
          securityAlertsEnabled: false,
          selectedAddress: '',
          showIncomingTransactions: {
-@@ -61,6 +62,7 @@ function getDefaultPreferencesState() {
+@@ -61,6 +63,7 @@ function getDefaultPreferencesState() {
              [constants_1.ETHERSCAN_SUPPORTED_CHAIN_IDS.FANTOM_TESTNET]: true,
              [constants_1.ETHERSCAN_SUPPORTED_CHAIN_IDS.SEPOLIA]: true,
              [constants_1.ETHERSCAN_SUPPORTED_CHAIN_IDS.LINEA_GOERLI]: true,
@@ -63,15 +95,16 @@ index 228cd90..dac2587 100644
              [constants_1.ETHERSCAN_SUPPORTED_CHAIN_IDS.LINEA_MAINNET]: true,
              [constants_1.ETHERSCAN_SUPPORTED_CHAIN_IDS.MOONBEAM]: true,
              [constants_1.ETHERSCAN_SUPPORTED_CHAIN_IDS.MOONBEAM_TESTNET]: true,
-@@ -70,6 +72,7 @@ function getDefaultPreferencesState() {
+@@ -70,6 +73,8 @@ function getDefaultPreferencesState() {
          showTestNetworks: false,
          useNftDetection: false,
          useTokenDetection: true,
 +        useSafeChainsListValidation: true,
++        smartTransactionsOptInStatus: false,
      };
  }
  exports.getDefaultPreferencesState = getDefaultPreferencesState;
-@@ -205,26 +208,41 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -205,26 +210,41 @@ class PreferencesController extends base_controller_1.BaseController {
       * @param useNftDetection - Boolean indicating user preference on NFT detection.
       */
      setUseNftDetection(useNftDetection) {
@@ -120,6 +153,23 @@ index 228cd90..dac2587 100644
      /**
       * Toggle the security alert enabled setting.
       *
+@@ -291,6 +311,16 @@ class PreferencesController extends base_controller_1.BaseController {
+             });
+         }
+     }
++    /**
++     * A setter for the user to opt into smart transactions
++     *
++     * @param smartTransactionsOptInStatus - true to opt into smart transactions
++     */
++    setSmartTransactionsOptInStatus(smartTransactionsOptInStatus) {
++        this.update((state) => {
++            state.smartTransactionsOptInStatus = smartTransactionsOptInStatus;
++        });
++    }
+ }
+ exports.PreferencesController = PreferencesController;
+ _PreferencesController_instances = new WeakSet(), _PreferencesController_syncIdentities = function _PreferencesController_syncIdentities(addresses) {
 diff --git a/node_modules/@metamask/preferences-controller/dist/constants.d.ts b/node_modules/@metamask/preferences-controller/dist/constants.d.ts
 index cb9a3d4..5662d1c 100644
 --- a/node_modules/@metamask/preferences-controller/dist/constants.d.ts

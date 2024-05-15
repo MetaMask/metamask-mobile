@@ -485,6 +485,9 @@ class Asset extends PureComponent {
     };
 
     const goToSwaps = () => {
+      // Pop asset screen first as it's very slow when trying to load the STX status modal if we don't
+      navigation.pop();
+
       navigation.navigate(Routes.SWAPS, {
         screen: 'SwapsAmountView',
         params: {

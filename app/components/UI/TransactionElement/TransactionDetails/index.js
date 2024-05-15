@@ -40,6 +40,7 @@ import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { regex } from '../../../../../app/util/regex';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -123,6 +124,11 @@ class TransactionDetails extends PureComponent {
     swapsTransactions: PropTypes.object,
     swapsTokens: PropTypes.array,
     primaryCurrency: PropTypes.string,
+
+    /**
+     * Boolean that indicates if smart transaction should be used
+     */
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -300,11 +306,14 @@ class TransactionDetails extends PureComponent {
     const {
       chainId,
       transactionObject: { status, time, txParams },
+      shouldUseSmartTransaction,
     } = this.props;
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
 
-    const renderTxActions = status === 'submitted' || status === 'approved';
+    const renderTxActions =
+      (status === 'submitted' || status === 'approved') &&
+      !shouldUseSmartTransaction;
     const { rpcBlockExplorer } = this.state;
 
     return updatedTransactionDetails ? (
@@ -425,6 +434,7 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 TransactionDetails.contextType = ThemeContext;

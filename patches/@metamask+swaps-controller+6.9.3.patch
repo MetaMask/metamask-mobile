@@ -113,19 +113,79 @@ index 9d8a521..601fd18 100644
  exports.CHAIN_ID_TO_NAME_MAP = {
      [exports.ETH_CHAIN_ID]: 'ethereum',
      [exports.BSC_CHAIN_ID]: 'bsc',
+diff --git a/node_modules/@metamask/swaps-controller/dist/swapsInterfaces.d.ts b/node_modules/@metamask/swaps-controller/dist/swapsInterfaces.d.ts
+index 43f7356..5416244 100644
+--- a/node_modules/@metamask/swaps-controller/dist/swapsInterfaces.d.ts
++++ b/node_modules/@metamask/swaps-controller/dist/swapsInterfaces.d.ts
+@@ -19,14 +19,51 @@ export interface SwapsToken extends SwapsAsset {
+     occurrences?: number;
+     iconUrl?: string;
+ }
+-export interface NetworkFeatureFlags {
++
++export type NetworkFeatureFlags = {
+     mobile_active: boolean;
+     extension_active: boolean;
+     fallback_to_v1?: boolean;
+-}
++  };
+ export interface NetworksFeatureStatus {
+     [network: string]: NetworkFeatureFlags;
+ }
++
++export type NetworkFeatureFlagsAll = {
++    mobile_active: boolean;
++    extension_active: boolean;
++    fallback_to_v1?: boolean;
++    fallbackToV1: boolean;
++    mobileActive: boolean;
++    extensionActive: boolean;
++    mobileActiveIOS: boolean;
++    mobileActiveAndroid: boolean;
++  
++    smartTransactions: {
++      expectedDeadline: number;
++      maxDeadline: number;
++      returnTxHashAsap: boolean;
++    };
++};
++
++export type NetworksFeatureStatusAll = {
++    [network: string]: NetworkFeatureFlagsAll;
++  };
++
++export interface GlobalFeatureFlags {
++    smart_transactions: {
++        mobile_active: boolean;
++        extension_active: boolean;
++    };
++    smartTransactions: {
++        mobileActive: boolean;
++        extensionActive: boolean;
++        mobileActiveIOS: boolean;
++        mobileActiveAndroid: boolean;
++    };
++}
++export type FeatureFlags = NetworksFeatureStatusAll & GlobalFeatureFlags;
++
+ /**
+  * Metadata needed to fetch quotes
+  *
 diff --git a/node_modules/@metamask/swaps-controller/dist/swapsUtil.d.ts b/node_modules/@metamask/swaps-controller/dist/swapsUtil.d.ts
-index 0204cab..b2f7c19 100644
+index 0204cab..30b3979 100644
 --- a/node_modules/@metamask/swaps-controller/dist/swapsUtil.d.ts
 +++ b/node_modules/@metamask/swaps-controller/dist/swapsUtil.d.ts
-@@ -1,6 +1,7 @@
+@@ -1,7 +1,8 @@
  import { Transaction } from '@metamask/controllers';
  import { AbortSignal } from 'abort-controller';
  import { BigNumber } from 'bignumber.js';
+-import { APIAggregatorMetadata, SwapsAsset, SwapsToken, APIType, Quote, APIFetchQuotesParams, QuoteValues, TransactionReceipt, NetworkFeatureFlags } from './swapsInterfaces';
 +import { Hex } from '@metamask/utils';
- import { APIAggregatorMetadata, SwapsAsset, SwapsToken, APIType, Quote, APIFetchQuotesParams, QuoteValues, TransactionReceipt, NetworkFeatureFlags } from './swapsInterfaces';
++import { APIAggregatorMetadata, SwapsAsset, SwapsToken, APIType, Quote, APIFetchQuotesParams, QuoteValues, TransactionReceipt, NetworkFeatureFlags, FeatureFlags } from './swapsInterfaces';
  export * from './constants';
  export declare enum SwapsError {
-@@ -14,27 +15,27 @@ export declare enum SwapsError {
+     QUOTES_EXPIRED_ERROR = "quotes-expired",
+@@ -14,27 +15,28 @@ export declare enum SwapsError {
      SWAPS_ALLOWANCE_TIMEOUT = "swaps-allowance-timeout",
      SWAPS_ALLOWANCE_ERROR = "swaps-allowance-error"
  }
@@ -155,6 +215,7 @@ index 0204cab..b2f7c19 100644
 -export declare function fetchSwapsFeatureLiveness(chainId: string, clientId?: string): Promise<NetworkFeatureFlags | undefined>;
 +export declare function fetchTopAssets(chainId: Hex, clientId?: string): Promise<SwapsAsset[]>;
 +export declare function fetchSwapsFeatureLiveness(chainId: Hex, clientId?: string): Promise<NetworkFeatureFlags | undefined>;
++export declare function fetchSwapsFeatureFlags(chainId: string, clientId?: string): Promise<FeatureFlags | undefined>;
  /**
   * Fetches gas prices from API URL
   * @param chainId Current chainId
@@ -166,7 +227,7 @@ index 0204cab..b2f7c19 100644
      proposedGasPrice: string;
      fastGasPrice: string;
 diff --git a/node_modules/@metamask/swaps-controller/dist/swapsUtil.js b/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
-index 54a32d5..3fa4343 100644
+index 54a32d5..566b299 100644
 --- a/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
 +++ b/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
 @@ -14,6 +14,7 @@ exports.constructTxParams = exports.estimateGas = exports.calcTokenAmount = expo
@@ -206,3 +267,15 @@ index 54a32d5..3fa4343 100644
          default:
              throw new Error('getBaseApiURL requires an api call type');
      }
+@@ -172,6 +174,11 @@ async function fetchSwapsFeatureLiveness(chainId, clientId) {
+     return status[networkName];
+ }
+ exports.fetchSwapsFeatureLiveness = fetchSwapsFeatureLiveness;
++async function fetchSwapsFeatureFlags(chainId, clientId) {
++    const status = await handleFetch(exports.getBaseApiURL(swapsInterfaces_1.APIType.FEATURE_FLAG, chainId), { method: 'GET', headers: getClientIdHeader(clientId) });
++    return status;
++}
++exports.fetchSwapsFeatureFlags = fetchSwapsFeatureFlags;
+ /**
+  * Fetches gas prices from API URL
+  * @param chainId Current chainId

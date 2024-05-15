@@ -1,5 +1,11 @@
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import { ActivityIndicator, StyleSheet, View, TextStyle } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  View,
+  TextStyle,
+  InteractionManager,
+} from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -21,11 +27,15 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
-import { shouldShowWhatsNewModal } from '../../../util/onboarding';
+import {
+  shouldShowSmartTransactionsOptInModal,
+  shouldShowWhatsNewModal,
+} from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
+  getIsNetworkOnboarded,
   getNetworkImageSource,
   getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
@@ -51,6 +61,7 @@ import Text, {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useAccounts } from '../../hooks/useAccounts';
 import { RootState } from 'app/reducers';
+import usePrevious from '../../hooks/usePrevious';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -135,7 +146,7 @@ const Wallet = ({ navigation }: any) => {
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
-
+  const prevChainId = usePrevious(providerConfig.chainId);
   /**
    * Is basic functionality enabled
    */
@@ -147,6 +158,13 @@ const Wallet = ({ navigation }: any) => {
    * A list of all the user accounts and a mapping of ENS name to account address if they exist
    */
   const { accounts, ensByAccountAddress } = useAccounts();
+
+  /**
+   * Network onboarding state
+   */
+  const networkOnboardingState = useSelector(
+    (state: any) => state.networkOnboarded.networkOnboardedState,
+  );
 
   /**
    * An object representing the currently selected account.
@@ -201,13 +219,22 @@ const Wallet = ({ navigation }: any) => {
   const { colors: themeColors } = useTheme();
 
   /**
-   * Check to see if we need to show What's New modal
+   * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
    */
   useEffect(() => {
-    if (wizardStep > 0) {
-      // Do not check since it will conflict with the onboarding wizard
+    const networkOnboarded = getIsNetworkOnboarded(
+      providerConfig.chainId,
+      networkOnboardingState,
+    );
+
+    if (
+      wizardStep > 0 ||
+      (!networkOnboarded && prevChainId !== providerConfig.chainId)
+    ) {
+      // Do not check since it will conflict with the onboarding wizard and/or network onboarding
       return;
     }
+
     const checkWhatsNewModal = async () => {
       try {
         const shouldShowWhatsNew = await shouldShowWhatsNewModal();
@@ -220,8 +247,42 @@ const Wallet = ({ navigation }: any) => {
         Logger.log(error, "Error while checking What's New modal!");
       }
     };
-    checkWhatsNewModal();
-  }, [wizardStep, navigation]);
+
+    // Show STX opt in modal before What's New modal
+    // Fired on the first load of the wallet and also on network switch
+    const checkSmartTransactionsOptInModal = async () => {
+      try {
+        const showShowStxOptInModal =
+          await shouldShowSmartTransactionsOptInModal(
+            providerConfig.chainId,
+            providerConfig.rpcUrl,
+          );
+        if (showShowStxOptInModal) {
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
+          });
+        } else {
+          await checkWhatsNewModal();
+        }
+      } catch (error) {
+        Logger.log(
+          error,
+          'Error while checking Smart Tranasctions Opt In modal!',
+        );
+      }
+    };
+
+    InteractionManager.runAfterInteractions(() => {
+      checkSmartTransactionsOptInModal();
+    });
+  }, [
+    wizardStep,
+    navigation,
+    providerConfig.chainId,
+    providerConfig.rpcUrl,
+    networkOnboardingState,
+    prevChainId,
+  ]);
 
   useEffect(
     () => {

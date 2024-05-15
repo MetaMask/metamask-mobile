@@ -121,7 +121,8 @@ export default {
     PRIVACY_POLICY_2024: 'https://consensys.io/privacy-policy',
     PRIVACY_BEST_PRACTICES:
       'https://support.metamask.io/privacy-and-security/privacy-best-practices',
-    SMART_TXS: 'https://support.metamask.io/hc/en-us/articles/9184393821211',
+    SMART_TXS:
+      'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
