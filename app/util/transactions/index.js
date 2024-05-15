@@ -1487,7 +1487,7 @@ export const getIsSwapApproveTransaction = (data, origin, to, chainId) => {
  * For a MM Swap tx: Determines if the transaction is the actual swap tx where tokens are transferred
  */
 export const getIsSwapTransaction = (data, origin, to, chainId) => {
-  const isSwapApproveOrSwapTransction = getIsSwapApproveOrSwapTransaction(
+  const isSwapApproveOrSwapTransaction = getIsSwapApproveOrSwapTransaction(
     data,
     origin,
     to,
