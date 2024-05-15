@@ -1071,9 +1071,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     style={
                                                       {
                                                         "alignItems": "center",
-                                                        "backgroundColor": "#F2F4F6",
+                                                        "backgroundColor": "#FFFFFF",
                                                         "borderRadius": 8,
-                                                        "borderWidth": 1,
                                                         "height": 16,
                                                         "justifyContent": "center",
                                                         "overflow": "hidden",
@@ -1081,21 +1080,24 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       }
                                                     }
                                                   >
-                                                    <Text
-                                                      accessibilityRole="text"
-                                                      style={
+                                                    <Image
+                                                      onError={[Function]}
+                                                      resizeMode="contain"
+                                                      source={
                                                         {
-                                                          "color": "#24272A",
-                                                          "fontFamily": "Euclid Circular B",
-                                                          "fontSize": 10,
-                                                          "fontWeight": "400",
-                                                          "letterSpacing": 0,
-                                                          "lineHeight": undefined,
+                                                          "default": {
+                                                            "uri": "MockImage",
+                                                          },
                                                         }
                                                       }
-                                                    >
-                                                      C
-                                                    </Text>
+                                                      style={
+                                                        {
+                                                          "height": 16,
+                                                          "width": 16,
+                                                        }
+                                                      }
+                                                      testID="network-avatar-image"
+                                                    />
                                                   </View>
                                                   <Text
                                                     accessibilityRole="text"
