@@ -27,11 +27,11 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
   getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
+  selectNetworkName,
   selectTicker,
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
@@ -173,10 +173,7 @@ const Wallet = ({ navigation }: any) => {
     return undefined;
   }, [ensByAccountAddress, selectedAccount]);
 
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
+  const networkName = useSelector(selectNetworkName);
 
   const networkImageSource = useMemo(
     () =>
