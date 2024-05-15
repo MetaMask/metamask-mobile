@@ -51,10 +51,7 @@ import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import { colors as importedColors } from '../../../styles/common';
-import {
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
-} from '../../../util/networks';
+import { getNetworkImageSource } from '../../../util/networks';
 import {
   ToastContext,
   ToastVariants,
@@ -66,6 +63,7 @@ import {
   selectChainId,
   selectProviderConfig,
   selectProviderType,
+  selectNetworkName,
 } from '../../../selectors/networkController';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
 import {
@@ -235,6 +233,7 @@ const Main = (props) => {
    * Current network
    */
   const providerConfig = useSelector(selectProviderConfig);
+  const networkName = useSelector(selectNetworkName);
   const previousProviderConfig = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
 
@@ -250,7 +249,6 @@ const Main = (props) => {
         networkType: type,
         chainId,
       });
-      const networkName = getNetworkNameFromProviderConfig(providerConfig);
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
         labelOptions: [
@@ -260,12 +258,11 @@ const Main = (props) => {
           },
           { label: strings('toast.now_active') },
         ],
-        networkName,
         networkImageSource: networkImage,
       });
     }
     previousProviderConfig.current = providerConfig;
-  }, [providerConfig, toastRef]);
+  }, [providerConfig, networkName, toastRef]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
