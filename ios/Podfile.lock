@@ -507,7 +507,7 @@ PODS:
     - React-Core
   - react-native-camera/RN (3.44.3):
     - React-Core
-  - react-native-compat (2.11.3):
+  - react-native-compat (2.13.0):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
   - react-native-cookies (6.2.1):
@@ -715,8 +715,8 @@ PODS:
     - Sentry/HybridSDK (= 8.21.0)
   - RNShare (7.3.7):
     - React-Core
-  - RNSVG (12.1.1):
-    - React
+  - RNSVG (15.2.0):
+    - React-Core
   - RNVectorIcons (6.4.2):
     - React
   - segment-analytics-react-native (2.17.0):
@@ -1151,7 +1151,7 @@ SPEC CHECKSUMS:
   react-native-blur: 507cf3dd4434eb9d5ca5f183e49d8bcccdd66826
   react-native-branch: 4e42fda662d96893afbbd02839806931398e3d2e
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
-  react-native-compat: d3934ce877ee9107c282b31705edd268468fe969
+  react-native-compat: e40ba72806755b12697fcfc0f826a0e245ac81a6
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-gzip: c5e87ee9e359f02350e3a2ee52eb35eddc398868
@@ -1208,7 +1208,7 @@ SPEC CHECKSUMS:
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
   RNSentry: 98e170b6eedc5c54e3ac88b6140fffb8b496deb4
   RNShare: f116bbb04f310c665ca483d0bd1e88cf59b3b334
-  RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
+  RNSVG: 43b64ed39c14ce830d840903774154ca0c1f27ec
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
   segment-analytics-react-native: dbdd08d96fec78132e96bda092562e41c2ce0ce0
   Sentry: ebc12276bd17613a114ab359074096b6b3725203
