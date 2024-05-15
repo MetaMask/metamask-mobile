@@ -3,7 +3,6 @@
 exports[`TemplateConfirmation renders content and actions 1`] = `
 <View
   collapsable={false}
-  forwardedRef={[Function]}
   style={
     {
       "backgroundColor": "#FFFFFF",
@@ -32,7 +31,6 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
   </Text>
   <View
     collapsable={false}
-    forwardedRef={[Function]}
     style={
       {
         "flex": 0,
@@ -142,7 +140,6 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
 exports[`TemplateConfirmation renders content without actions 1`] = `
 <View
   collapsable={false}
-  forwardedRef={[Function]}
   style={
     {
       "backgroundColor": "#FFFFFF",

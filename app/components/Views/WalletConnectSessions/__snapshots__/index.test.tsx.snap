@@ -206,7 +206,6 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -299,7 +298,6 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -585,7 +583,6 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -678,7 +675,6 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1013,7 +1009,6 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1106,7 +1101,6 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
