@@ -9,10 +9,7 @@ import {
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import AsyncStorage from '../../../store/async-storage-wrapper';
-import {
-  CURRENT_APP_VERSION,
-  SMART_TRANSACTIONS_OPT_IN_MODAL_APP_VERSION_SEEN,
-} from '../../../constants/storage';
+import { CURRENT_APP_VERSION } from '../../../constants/storage';
 import { useTheme } from '../../../util/theme';
 import Text, {
   TextColor,
@@ -32,6 +29,8 @@ import Button, {
 import AppConstants from '../../../core/AppConstants';
 import backgroundImage from '../../../images/smart-transactions-opt-in-bg.png';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { useDispatch } from 'react-redux';
+import { updateOptInModalAppVersionSeen } from '../../../core/redux/slices/smartTransactions';
 
 const MODAL_MARGIN = 24;
 const MODAL_PADDING = 24;
@@ -137,6 +136,7 @@ const SmartTransactionsOptInModal = () => {
   const modalRef = useRef<ReusableModalRef>(null);
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
+  const dispatch = useDispatch();
 
   const styles = createStyles(colors);
 
@@ -176,10 +176,7 @@ const SmartTransactionsOptInModal = () => {
 
     // Save the current app version as the last app version seen
     const version = await AsyncStorage.getItem(CURRENT_APP_VERSION);
-    await AsyncStorage.setItem(
-      SMART_TRANSACTIONS_OPT_IN_MODAL_APP_VERSION_SEEN,
-      version as string,
-    );
+    dispatch(updateOptInModalAppVersionSeen(version));
   };
 
   const Header = () => (

@@ -6,9 +6,8 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
-import AsyncStorage from '../../../store/async-storage-wrapper';
-import { SMART_TRANSACTIONS_OPT_IN_MODAL_APP_VERSION_SEEN } from '../../../constants/storage';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
+import { updateOptInModalAppVersionSeen } from '../../../core/redux/slices/smartTransactions';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -39,6 +38,10 @@ jest.mock('../../../store/async-storage-wrapper', () => ({
 
 jest.mock('../../../util/onboarding', () => ({
   shouldShowWhatsNewModal: jest.fn(),
+}));
+
+jest.mock('../../../core/redux/slices/smartTransactions', () => ({
+  updateOptInModalAppVersionSeen: jest.fn(() => ({ type: 'hello' })),
 }));
 
 const initialState = {
@@ -106,7 +109,7 @@ describe('SmartTransactionsOptInModal', () => {
       Engine.context.PreferencesController.setSmartTransactionsOptInStatus,
     ).toHaveBeenCalledWith(false);
   });
-  it('should save last app version seen on primary button press', () => {
+  it('should update last app version seen on primary button press', () => {
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
       state: initialState,
     });
@@ -114,12 +117,9 @@ describe('SmartTransactionsOptInModal', () => {
     const primaryButton = getByText(strings('whats_new.stx.primary_button'));
     fireEvent.press(primaryButton);
 
-    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-      SMART_TRANSACTIONS_OPT_IN_MODAL_APP_VERSION_SEEN,
-      VERSION,
-    );
+    expect(updateOptInModalAppVersionSeen).toHaveBeenCalledWith(VERSION);
   });
-  it('should save last app version seen on secondary button press', () => {
+  it('should update last app version seen on secondary button press', () => {
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
       state: initialState,
     });
@@ -129,10 +129,7 @@ describe('SmartTransactionsOptInModal', () => {
     );
     fireEvent.press(secondaryButton);
 
-    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-      SMART_TRANSACTIONS_OPT_IN_MODAL_APP_VERSION_SEEN,
-      VERSION,
-    );
+    expect(updateOptInModalAppVersionSeen).toHaveBeenCalledWith(VERSION);
   });
 
   it("should not navigate to What's New modal", async () => {
