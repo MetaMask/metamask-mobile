@@ -9,7 +9,10 @@ import AccountBalance from '../../../../../component-library/components-temp/Acc
 import { BadgeVariant } from '../../../../../component-library/components/Badges/Badge';
 import TagUrl from '../../../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectProviderConfig } from '../../../../../selectors/networkController';
+import {
+  selectProviderConfig,
+  selectNetworkName,
+} from '../../../../../selectors/networkController';
 import { selectIdentities } from '../../../../../selectors/preferencesController';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import {
@@ -17,10 +20,7 @@ import {
   renderAccountName,
 } from '../../../../../util/address';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../../../util/browser';
-import {
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
-} from '../../../../../util/networks';
+import { getNetworkImageSource } from '../../../../../util/networks';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import useAddressBalance from '../../../../hooks/useAddressBalance/useAddressBalance';
 import useFavicon from '../../../../hooks/useFavicon/useFavicon';
@@ -55,7 +55,7 @@ const ApproveTransactionHeader = ({
   const activeAddress = toChecksumAddress(from);
 
   const providerConfig = useSelector(selectProviderConfig);
-  const networkName = getNetworkNameFromProviderConfig(providerConfig);
+  const networkName = useSelector(selectNetworkName);
 
   const useBlockieIcon = useSelector(
     (state: any) => state.settings.useBlockieIcon,

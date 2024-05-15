@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -15,6 +15,7 @@ import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controller
 import {
   selectChainId,
   selectProviderConfig,
+  selectNetworkName,
 } from '../../../selectors/networkController';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
@@ -33,7 +34,7 @@ import { AddAssetParams } from './AddAsset.types';
 import Routes from '../../../constants/navigation/Routes';
 import { NFT_TITLE, TOKEN, TOKEN_TITLE } from './AddAsset.constants';
 import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/AddAssetView.selectors';
-import { getNetworkNameFromProviderConfig } from '../../../util/networks';
+
 const AddAsset = () => {
   const navigation = useNavigation();
   const { assetType, collectibleContract } = useParams<AddAssetParams>();
@@ -50,10 +51,7 @@ const AddAsset = () => {
   const isTokenDetectionSupported =
     isTokenDetectionSupportedForNetwork(chainId);
 
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
+  const networkName = useSelector(selectNetworkName);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
