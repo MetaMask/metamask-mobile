@@ -155,7 +155,7 @@ const AccountSelectorList = ({
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
         const lowercasedSelectedAddresses = selectedAddresses.map(
-          (address: string) => address.toLowerCase(),
+          (selectedAddress: string) => selectedAddress.toLowerCase(),
         );
         isSelectedAccount = lowercasedSelectedAddresses.includes(
           address.toLowerCase(),
