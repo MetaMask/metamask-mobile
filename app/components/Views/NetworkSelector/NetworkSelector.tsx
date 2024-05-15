@@ -20,13 +20,13 @@ import { useSelector } from 'react-redux';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
+  selectNetworkImageSource,
 } from '../../../selectors/networkController';
 import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
   compareRpcUrls,
   getAllNetworks,
   getDecimalChainId,
-  getNetworkImageSource,
   isTestNet,
 } from '../../../util/networks';
 import {
@@ -68,6 +68,7 @@ const NetworkSelector = () => {
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const image = useSelector(selectNetworkImageSource);
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: string) => {
@@ -171,8 +172,6 @@ const NetworkSelector = () => {
       ({ nickname, rpcUrl, chainId }) => {
         if (!chainId) return null;
         const { name } = { name: nickname || rpcUrl };
-        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-        const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
         return (
           <Cell

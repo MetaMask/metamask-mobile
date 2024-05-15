@@ -10,8 +10,8 @@ import { BadgeVariant } from '../../../../../component-library/components/Badges
 import TagUrl from '../../../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
-  selectProviderConfig,
   selectNetworkName,
+  selectNetworkImageSource,
 } from '../../../../../selectors/networkController';
 import { selectIdentities } from '../../../../../selectors/preferencesController';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
@@ -20,7 +20,6 @@ import {
   renderAccountName,
 } from '../../../../../util/address';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../../../util/browser';
-import { getNetworkImageSource } from '../../../../../util/networks';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import useAddressBalance from '../../../../hooks/useAddressBalance/useAddressBalance';
 import useFavicon from '../../../../hooks/useFavicon/useFavicon';
@@ -54,7 +53,6 @@ const ApproveTransactionHeader = ({
   const identities = useSelector(selectIdentities);
   const activeAddress = toChecksumAddress(from);
 
-  const providerConfig = useSelector(selectProviderConfig);
   const networkName = useSelector(selectNetworkName);
 
   const useBlockieIcon = useSelector(
@@ -85,10 +83,7 @@ const ApproveTransactionHeader = ({
     );
   }, [accountsByChainId, identities, activeAddress, origin]);
 
-  const networkImage = getNetworkImageSource({
-    networkType: providerConfig.type,
-    chainId: providerConfig.chainId,
-  });
+  const networkImage = useSelector(selectNetworkImageSource);
 
   const domainTitle = useMemo(() => {
     let title = '';
