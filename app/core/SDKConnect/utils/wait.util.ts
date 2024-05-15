@@ -8,15 +8,14 @@ import { isTest } from '../../../util/test/utils';
 import { store } from '../../../../app/store/index';
 
 export const MAX_QUEUE_LOOP = Infinity;
-export const wait = (ms: number) =>
-  new Promise((resolve) => {
-    if (isTest) {
-      resolve(true);
-      return true;
-    }
-
+export const wait = (ms: number) => {
+  if (isTest) {
+    return true;
+  }
+  return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+};
 
 export const waitForReadyClient = async (
   id: string,
