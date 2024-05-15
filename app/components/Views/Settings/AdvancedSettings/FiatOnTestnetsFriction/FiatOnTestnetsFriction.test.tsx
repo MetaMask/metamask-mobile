@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
+import AppConstants from '../../../../../../app/core/AppConstants';
 
 const store = configureMockStore()({});
 jest.mock('@react-navigation/native');
@@ -13,12 +14,16 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaFrame: jest.fn().mockImplementation(() => ({})),
 }));
 
+const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
-    useNavigation: () => ({ goBack: mockGoBack }),
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+    }),
   };
 });
 
@@ -39,5 +44,22 @@ describe('Show fiat on testnets friction bottom sheet', () => {
     });
     fireEvent.press(cancelButton);
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('should open a website to learn more', () => {
+    const { getByRole } = renderWithProvider(<FiatOnTestnetsFriction />);
+
+    const learMoreLink = getByRole('link', {
+      name: strings('app_settings.show_fiat_on_testnets_modal_learn_more'),
+    });
+    fireEvent.press(learMoreLink);
+    expect(mockGoBack).toHaveBeenCalled();
+
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: AppConstants.URLS.TESTNET_ETH_SCAMS,
+      },
+    });
   });
 });
