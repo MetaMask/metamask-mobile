@@ -1,7 +1,10 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { ProviderConfig, NetworkState } from '@metamask/network-controller';
-import { getNetworkNameFromProviderConfig } from '../util/networks';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProviderConfig,
+} from '../util/networks';
 
 const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
@@ -38,6 +41,15 @@ export const selectNetworkName = createSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) =>
     getNetworkNameFromProviderConfig(providerConfig),
+);
+
+export const selectNetworkImageSource = createSelector(
+  selectProviderConfig,
+  (providerConfig: ProviderConfig) =>
+    getNetworkImageSource({
+      networkType: providerConfig.type,
+      chainId: providerConfig.chainId,
+    }),
 );
 
 export const selectNetworkStatus = createSelector(

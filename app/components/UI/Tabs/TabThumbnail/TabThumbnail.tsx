@@ -20,14 +20,16 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import AppConstants from '../../../../core/AppConstants';
 import METAMASK_FOX from '../../../../images/fox.png';
-import { selectNetworkName } from '../../../../selectors/networkController';
+import {
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../../selectors/networkController';
 import { getHost } from '../../../../util/browser';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import WebsiteIcon from '../../WebsiteIcon';
 import createStyles from './TabThumbnail.styles';
 import { TabThumbnailProps } from './TabThumbnail.types';
-import useNetworkInfo from './useNetworkInfo';
 import useSelectedAccount from './useSelectedAccount';
 
 const { HOMEPAGE_URL } = AppConstants;
@@ -49,8 +51,8 @@ const TabThumbnail = ({
   const hostname = getHost(tab.url);
   const isHomepage = hostname === getHost(HOMEPAGE_URL);
   const selectedAccount = useSelectedAccount();
-  const networkImageSource = useNetworkInfo();
   const networkName = useSelector(selectNetworkName);
+  const networkImageSource = useSelector(selectNetworkImageSource);
 
   return (
     <Container style={styles.checkWrapper} elevation={8}>

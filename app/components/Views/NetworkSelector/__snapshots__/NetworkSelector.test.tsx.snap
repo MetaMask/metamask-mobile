@@ -1012,9 +1012,8 @@ exports[`Network Selector renders correctly 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#F2F4F6",
+                                          "backgroundColor": "#FFFFFF",
                                           "borderRadius": 16,
-                                          "borderWidth": 1,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "marginRight": 16,
@@ -1024,21 +1023,24 @@ exports[`Network Selector renders correctly 1`] = `
                                       }
                                       testID="cellbase-avatar"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
                                           {
-                                            "color": "#24272A",
-                                            "fontFamily": "Euclid Circular B",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "default": {
+                                              "uri": "MockImage",
+                                            },
                                           }
                                         }
-                                      >
-                                        G
-                                      </Text>
+                                        style={
+                                          {
+                                            "height": 32,
+                                            "width": 32,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
                                     </View>
                                     <View
                                       style={

@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   TouchableOpacity,
@@ -24,10 +18,7 @@ import Avatar, {
   AvatarVariant,
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
-import {
-  getDecimalChainId,
-  getNetworkImageSource,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
@@ -35,6 +26,7 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import {
   selectProviderConfig,
   selectNetworkName,
+  selectNetworkImageSource,
 } from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -143,15 +135,7 @@ const AccountRightButton = ({
   ]);
 
   const networkName = useSelector(selectNetworkName);
-
-  const networkImageSource = useMemo(
-    () =>
-      getNetworkImageSource({
-        networkType: providerConfig.type,
-        chainId: providerConfig.chainId,
-      }),
-    [providerConfig],
-  );
+  const networkImageSource = useSelector(selectNetworkImageSource);
 
   const renderAvatarAccount = () => (
     <AvatarAccount type={accountAvatarType} accountAddress={selectedAddress} />

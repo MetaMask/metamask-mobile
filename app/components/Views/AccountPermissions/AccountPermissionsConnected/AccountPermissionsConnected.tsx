@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useContext } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -11,10 +11,7 @@ import SheetHeader from '../../../../component-library/components/Sheet/SheetHea
 import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
-import {
-  getNetworkImageSource,
-  getDecimalChainId,
-} from '../../../../util/networks';
+import { getDecimalChainId } from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { switchActiveAccounts } from '../../../../core/Permissions';
@@ -28,6 +25,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectProviderConfig,
   selectNetworkName,
+  selectNetworkImageSource,
 } from '../../../../selectors/networkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
@@ -55,10 +53,7 @@ const AccountPermissionsConnected = ({
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkName = useSelector(selectNetworkName);
-  const networkImageSource = useMemo(() => {
-    const { type, chainId } = providerConfig;
-    return getNetworkImageSource({ networkType: type, chainId });
-  }, [providerConfig]);
+  const networkImageSource = useSelector(selectNetworkImageSource);
 
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
