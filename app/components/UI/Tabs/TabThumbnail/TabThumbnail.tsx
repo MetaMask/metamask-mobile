@@ -49,7 +49,7 @@ const TabThumbnail = ({
   const hostname = getHost(tab.url);
   const isHomepage = hostname === getHost(HOMEPAGE_URL);
   const selectedAccount = useSelectedAccount();
-  const { networkImageSource } = useNetworkInfo();
+  const networkImageSource = useNetworkInfo();
   const networkName = useSelector(selectNetworkName);
 
   return (
