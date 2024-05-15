@@ -261,6 +261,7 @@ const SmartTransactionsOptInModal = () => {
       ref={modalRef}
       style={styles.screen}
       onDismiss={handleDismiss}
+      isInteractable={false}
     >
       <View
         style={styles.modal}
