@@ -6,6 +6,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import NotificationActions from './Actions';
 import { ACTIONS, PREFIXES } from '../../../../constants/deeplinks';
+import { NOTIFICATION_TEST_ID_TYPES } from './constants';
 
 Linking.openURL = jest.fn(() => Promise.resolve('opened https://metamask.io!'));
 
@@ -51,7 +52,9 @@ describe('NotificationActions', () => {
       <NotificationActions link={link} styles={styles} />,
     );
 
-    fireEvent.press(getByTestId('notification-actions-button'));
+    fireEvent.press(
+      getByTestId(NOTIFICATION_TEST_ID_TYPES.NOTIFICATION_ACTION_BUTTON),
+    );
     expect(Linking.openURL).toHaveBeenCalledTimes(1);
   });
 });

@@ -4,6 +4,7 @@ import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { NOTIFICATION_TEST_ID_TYPES } from './constants';
 
 interface NotificationActionsProps {
   link?: {
@@ -32,7 +33,7 @@ function NotificationActions({
 
   return (
     <Button
-      testID="notification-actions-button"
+      testID={NOTIFICATION_TEST_ID_TYPES.NOTIFICATION_ACTION_BUTTON}
       variant={ButtonVariants.Secondary}
       label={link?.linkText || action?.actionText}
       onPress={handleCTAPress}
