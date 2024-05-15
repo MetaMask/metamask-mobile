@@ -154,7 +154,12 @@ const AccountSelectorList = ({
         : CellVariant.Select;
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
-        isSelectedAccount = selectedAddresses.includes(address);
+        const lowercasedSelectedAddresses = selectedAddresses.map(
+          (address: string) => address.toLowerCase(),
+        );
+        isSelectedAccount = lowercasedSelectedAddresses.includes(
+          address.toLowerCase(),
+        );
       }
 
       const cellStyle = {
