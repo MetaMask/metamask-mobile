@@ -12,7 +12,6 @@ import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
 import {
-  getNetworkNameFromProviderConfig,
   getNetworkImageSource,
   getDecimalChainId,
 } from '../../../../util/networks';
@@ -26,7 +25,10 @@ import {
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectProviderConfig } from '../../../../selectors/networkController';
+import {
+  selectProviderConfig,
+  selectNetworkName,
+} from '../../../../selectors/networkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
 // Internal dependencies.
@@ -52,11 +54,7 @@ const AccountPermissionsConnected = ({
   const { trackEvent } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
-
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
+  const networkName = useSelector(selectNetworkName);
   const networkImageSource = useMemo(() => {
     const { type, chainId } = providerConfig;
     return getNetworkImageSource({ networkType: type, chainId });
