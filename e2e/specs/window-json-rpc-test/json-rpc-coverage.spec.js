@@ -1,13 +1,13 @@
 'use strict';
-import { waitFor, web } from 'detox';
+import { web } from 'detox';
 import rpcCoverageTool from '@open-rpc/test-coverage';
 import { parseOpenRPCDocument } from '@open-rpc/schema-utils-js';
 import JsonSchemaFakerRule from '@open-rpc/test-coverage/build/rules/json-schema-faker-rule';
-import HtmlReporter from '@open-rpc/test-coverage/build/reporters/html-reporter';
 import paramsToObj from '@open-rpc/test-coverage/build/utils/params-to-obj';
 import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
-import Browser from '../../pages/Browser';
+import Browser from '../../pages/Browser/BrowserView';
+// eslint-disable-next-line import/no-commonjs
 const mockServer = require('@open-rpc/mock-server/build/index').default;
 import TabBarComponent from '../../pages/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -19,10 +19,6 @@ import { loginToApp } from '../../viewHelper';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import ConnectModal from '../../pages/modals/ConnectModal';
-import NetworkView from '../../pages/Settings/NetworksView';
-
-import { NetworkApprovalModalSelectorsIDs } from '../../selectors/Modals/NetworkApprovalModal.selectors';
-import { NetworkAddedModalSelectorsIDs } from '../../selectors/Modals/NetworkAddedModal.selectors';
 
 import Assertions from '../../utils/Assertions';
 
@@ -48,7 +44,7 @@ describe(SmokeCore(''), () => {
     signTypedData4.examples[0].params[0].value =
       '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 
-    signTypedData4.examples[0].params[1].value.domain.chainId = 1337;
+    signTypedData4.examples[0].params[1].value.domain.chainId = chainId;
 
     const transaction =
       openrpcDocument.components?.schemas?.TransactionInfo?.allOf?.[0];
@@ -83,6 +79,7 @@ describe(SmokeCore(''), () => {
 
       async beforeRequest(_, call) {
         if (this.requiresEthAccountsPermission.includes(call.methodName)) {
+          pollBool = false;
           const requestPermissionsRequest = JSON.stringify({
             jsonrpc: '2.0',
             method: 'wallet_requestPermissions',
@@ -103,6 +100,7 @@ describe(SmokeCore(''), () => {
           await Assertions.checkIfVisible(ConnectModal.container);
           await ConnectModal.tapConnectButton();
           await Assertions.checkIfNotVisible(ConnectModal.container);
+          await TestHelpers.delay(3000);
         }
 
         if (call.methodName === 'eth_signTypedData_v4') {
@@ -154,30 +152,15 @@ describe(SmokeCore(''), () => {
       }
 
       async afterRequest(_, call) {
-        // console.log(call.methodName);
         if (call.methodName === 'wallet_addEthereumChain') {
           pollBool = false;
           await TestHelpers.delay(3000);
           const confirmButton = await Matchers.getElementByText('Confirm');
           await Gestures.tap(confirmButton);
 
-          // const switchNetworkButton = await Matchers.getElementByText(
-          //   'Switch Network',
-          // );
-          // const switchNetworkButton = await web.element(
-          //   by.web.id(NetworkAddedModalSelectorsIDs.SWITCH_NETWORK_BUTTON),
-          // );
           await TestHelpers.delay(3000);
           const cancelButton = await Matchers.getElementByText('Cancel');
           await Gestures.tap(cancelButton);
-          // Enable if confirming switch ethereum chain
-          // console.log('4');
-
-          // const gotItButton = await Matchers.getElementByText(
-          //   'Got it',
-          // );
-          // await TestHelpers.delay(3000);
-          // await Gestures.tap(gotItButton);
         }
 
         if (call.methodName === 'wallet_switchEthereumChain') {
@@ -247,7 +230,6 @@ describe(SmokeCore(''), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Browser.isVisible();
         await Browser.navigateToTestDApp();
 
         const webElement = await web.element(by.web.id('json-rpc-response'));
@@ -263,10 +245,6 @@ describe(SmokeCore(''), () => {
               result = await webElement.getText();
             }
           }
-
-          console.log(result);
-
-          // await web.element(by.web.id('json-rpc-response')).replaceText('');
 
           if (result.result === '') {
             return result;
@@ -325,6 +303,8 @@ describe(SmokeCore(''), () => {
               m.name.startsWith('wallet_scanQRCode') ||
               m.name.includes('filter') ||
               m.name.includes('Filter') ||
+              m.name.includes('getBlockReceipts') || // eth_getBlockReceipts not support
+              m.name.includes('maxPriorityFeePerGas') || // eth_maxPriorityFeePerGas not supported
               methodsWithConfirmations.includes(m.name),
           )
           .map((m) => m.name);
