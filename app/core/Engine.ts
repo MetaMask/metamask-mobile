@@ -1117,7 +1117,6 @@ class Engine {
           category,
           properties: {
             name: event,
-            // action?: string;
           },
         },
         restParams,
