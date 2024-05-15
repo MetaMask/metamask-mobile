@@ -8,7 +8,7 @@ import styleSheet from './Balance.styles';
 
 interface BalanceProps {
   balance: string;
-  fiatBalance: string;
+  fiatBalance: string | undefined;
 }
 
 const Balance = ({ balance, fiatBalance }: BalanceProps) => {
