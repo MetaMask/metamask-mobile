@@ -1,7 +1,19 @@
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import { ActivityIndicator, StyleSheet, View, TextStyle } from 'react-native';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  useContext,
+} from 'react';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  View,
+  TextStyle,
+  Linking,
+} from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
-import { useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
@@ -14,6 +26,16 @@ import {
   hexToBN,
   toHexadecimal,
 } from '../../../util/number';
+import {
+  shouldShowNewPrivacyToastSelector,
+  storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
+  storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
+} from '../../../reducers/legalNotices';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -94,10 +116,16 @@ const createStyles = ({ colors, typography }: Theme) =>
 /**
  * Main view for the wallet
  */
-const Wallet = ({ navigation }: any) => {
+const Wallet = ({
+  navigation,
+  storePrivacyPolicyShownDate,
+  shouldShowNewPrivacyToast,
+  storePrivacyPolicyClickedOrClosed,
+}: any) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
+  const { toastRef } = useContext(ToastContext);
   const { trackEvent } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
@@ -147,6 +175,44 @@ const Wallet = ({ navigation }: any) => {
    * A list of all the user accounts and a mapping of ENS name to account address if they exist
    */
   const { accounts, ensByAccountAddress } = useAccounts();
+
+  const currentToast = toastRef?.current;
+
+  useEffect(() => {
+    if (!shouldShowNewPrivacyToast) return;
+
+    storePrivacyPolicyShownDate();
+    currentToast?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: strings(`privacy_policy.toast_message`),
+          isBold: false,
+        },
+      ],
+      closeButtonOptions: {
+        label: strings(`privacy_policy.toast_action_button`),
+        onPress: () => {
+          storePrivacyPolicyClickedOrClosed();
+          currentToast?.closeToast();
+        },
+      },
+      linkButtonOptions: {
+        label: strings(`privacy_policy.toast_read_more`),
+        onPress: () => {
+          storePrivacyPolicyClickedOrClosed();
+          currentToast?.closeToast();
+          Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+        },
+      },
+      hasNoTimeout: true,
+    });
+  }, [
+    storePrivacyPolicyShownDate,
+    shouldShowNewPrivacyToast,
+    storePrivacyPolicyClickedOrClosed,
+    currentToast,
+  ]);
 
   /**
    * An object representing the currently selected account.
@@ -438,4 +504,15 @@ const Wallet = ({ navigation }: any) => {
   );
 };
 
-export default Wallet;
+const mapStateToProps = (state: any) => ({
+  shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
+});
+
+const mapDispatchToProps = (dispatch: any) => ({
+  storePrivacyPolicyShownDate: () =>
+    dispatch(storePrivacyPolicyShownDateAction(Date.now())),
+  storePrivacyPolicyClickedOrClosed: () =>
+    dispatch(storePrivacyPolicyClickedOrClosedAction()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Wallet);
