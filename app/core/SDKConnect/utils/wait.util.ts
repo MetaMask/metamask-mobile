@@ -11,6 +11,7 @@ export const MAX_QUEUE_LOOP = Infinity;
 export const wait = (ms: number) =>
   new Promise((resolve) => {
     if (isTest) {
+      resolve(true);
       return true;
     }
 
