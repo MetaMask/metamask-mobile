@@ -129,6 +129,10 @@ class NetworksSettings extends PureComponent {
      * Current network provider configuration
      */
     providerConfig: PropTypes.object,
+    /**
+     * Current network provider configuration
+     */
+    networkImageSource: PropTypes.object,
   };
 
   actionSheet = null;
