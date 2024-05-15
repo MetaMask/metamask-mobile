@@ -27,13 +27,15 @@ import Avatar, {
 import {
   getDecimalChainId,
   getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectProviderConfig,
+  selectNetworkName,
+} from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
@@ -140,10 +142,7 @@ const AccountRightButton = ({
     trackEvent,
   ]);
 
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
+  const networkName = useSelector(selectNetworkName);
 
   const networkImageSource = useMemo(
     () =>
