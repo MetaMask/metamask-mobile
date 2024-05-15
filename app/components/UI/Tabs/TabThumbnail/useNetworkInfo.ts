@@ -1,21 +1,20 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../../selectors/networkController';
+import {
+  selectProviderConfig,
+  selectNetworkName,
+} from '../../../../selectors/networkController';
 import {
   getNetworkImageSource,
   getNetworkNameFromProviderConfig,
 } from '../../../../util/networks';
 
 import { ProviderConfig } from '@metamask/network-controller';
-import { FooterNetworkInfo } from './TabThumbnail.types';
 
-const useNetworkInfo = (): FooterNetworkInfo => {
+const useNetworkInfo = (): object => {
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
 
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
+  const networkName = useSelector(selectNetworkName);
 
   const networkImageSource = useMemo(
     () =>
@@ -26,7 +25,7 @@ const useNetworkInfo = (): FooterNetworkInfo => {
     [providerConfig],
   );
 
-  return { networkName, networkImageSource };
+  return networkImageSource;
 };
 
 export default useNetworkInfo;
