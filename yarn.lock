@@ -4431,6 +4431,11 @@
   resolved "https://registry.yarnpkg.com/@metamask/react-native-actionsheet/-/react-native-actionsheet-2.4.2.tgz#9f956fe9e784d92c8e33656877fcfaabe4a482f1"
   integrity sha512-oibRXUzF+7DB0Nyzp2cMGN7ztB9Sl21W1NFq1IMa00mB4/X43JY+u+LCkx625WvQUeq0GO2ZQ6hG1L5XjMumSA==
 
+"@metamask/react-native-aes-crypto@1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-aes-crypto/-/react-native-aes-crypto-1.2.1.tgz#9257bce2317573b51bdd9b584232ff1d423aa80a"
+  integrity sha512-sRgQafvzO/c8PoJ45A5ELDnYxzJuzC6FaIS7WXgghooI6+tG93Xo0SD2nolFCU/Ro0tGbi7qwojsSMejHsrl+A==
+
 "@metamask/react-native-animated-fox@^2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/react-native-animated-fox/-/react-native-animated-fox-2.1.0.tgz#504e1f68e13ad273fb193c6f6a3832f3a5242518"
@@ -4463,6 +4468,18 @@
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/react-native-splash-screen/-/react-native-splash-screen-3.2.0.tgz#06a6547c143b088e47af40eacea9ac6657ac937f"
   integrity sha512-V8Cn0MXe9jdaUli/DK3PoJ71tx7k3IW2v2slqflvNstvHiO3MpCtdylsYIyu+tiPwI2JiyLRzLK8s02/3jxk6g==
+
+"@metamask/react-native-tcp@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-tcp/-/react-native-tcp-4.0.0.tgz#5afd79eca397397e8927c3091bcbefcd637f1915"
+  integrity sha512-FkiL03Trc54IEYKiFSWZr+0x78BrFCOx51ridUfBV5Qj5+sGUrVIc+uBEu9eS0XsQxLcE/6jT9Xkrneo92tz0Q==
+  dependencies:
+    base64-js "1.3.1"
+    buffer "^5.4.3"
+    events "^3.0.0"
+    ip-regex "^4.1.0"
+    process "^0.11.9"
+    util "^0.12.1"
 
 "@metamask/rpc-errors@^6.0.0", "@metamask/rpc-errors@^6.1.0", "@metamask/rpc-errors@^6.2.1":
   version "6.2.1"
@@ -11526,7 +11543,7 @@ assert-plus@1.0.0, assert-plus@^1.0.0:
   resolved "https://registry.yarnpkg.com/assert-plus/-/assert-plus-1.0.0.tgz#f12e0f3c5d77b0b1cdd9146942e4e96c1e4dd525"
   integrity sha1-8S4PPF13sLHN2RRpQuTpbB5N1SU=
 
-assert@^1.4.1, assert@^1.5.0:
+assert@^1.4.1, assert@^1.5.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/assert/-/assert-1.5.1.tgz#038ab248e4ff078e7bc2485ba6e6388466c78f76"
   integrity sha512-zzw1uCAgLbsKwBfFc8CX78DDg+xZeBksSO3vwVIDDN5i94eOrPsSSyiVhmsSABFDM/OcpE2aagCat9dnWQLG1A==
@@ -24002,10 +24019,6 @@ react-mixin@^3.0.5:
     object-assign "^4.0.1"
     smart-mixin "^2.0.0"
 
-"react-native-aes-crypto-forked@git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25":
-  version "1.2.1"
-  resolved "git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
-
 react-native-aes-crypto@1.3.9:
   version "1.3.9"
   resolved "https://registry.yarnpkg.com/react-native-aes-crypto/-/react-native-aes-crypto-1.3.9.tgz#6f068535462c1b7d7d70a4152d519ae9911c3e69"
@@ -24480,9 +24493,10 @@ react-native-swipe-gestures@^1.0.5:
   resolved "https://registry.yarnpkg.com/react-native-swipe-gestures/-/react-native-swipe-gestures-1.0.5.tgz#a172cb0f3e7478ccd681fd36b8bfbcdd098bde7c"
   integrity sha512-Ns7Bn9H/Tyw278+5SQx9oAblDZ7JixyzeOczcBK8dipQk2pD7Djkcfnf1nB/8RErAmMLL9iXgW0QHqiII8AhKw==
 
-react-native-tcp@aprock/react-native-tcp#11/head:
+"react-native-tcp@npm:@metamask/react-native-tcp@4.0.0":
   version "4.0.0"
-  resolved "https://codeload.github.com/aprock/react-native-tcp/tar.gz/98fbc801f0586297f16730b2f4c75eef15dfabcd"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-tcp/-/react-native-tcp-4.0.0.tgz#5afd79eca397397e8927c3091bcbefcd637f1915"
+  integrity sha512-FkiL03Trc54IEYKiFSWZr+0x78BrFCOx51ridUfBV5Qj5+sGUrVIc+uBEu9eS0XsQxLcE/6jT9Xkrneo92tz0Q==
   dependencies:
     base64-js "1.3.1"
     buffer "^5.4.3"
