@@ -130,6 +130,7 @@ const Notifications = ({
   const renderList = useCallback(
     (list, idx) => (
       <FlatList
+        // This has been ts ignored due the need of extend this component to support injected tabLabel prop.
         // eslint-disable-next-line
         // @ts-ignore
         tabLabel={strings(`notifications.list.${idx.toString()}`)}
