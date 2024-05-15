@@ -475,7 +475,7 @@ RootRPCMethodsUI.propTypes = {
    */
   chainId: PropTypes.string,
   /**
-   * If smart tranactions should be used
+   * If smart transactions should be used
    */
   shouldUseSmartTransaction: PropTypes.bool,
 };
