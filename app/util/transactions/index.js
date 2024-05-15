@@ -1495,7 +1495,7 @@ export const getIsSwapTransaction = (data, origin, to, chainId) => {
   );
   const isSwapApprove = getIsSwapApproveTransaction(data, origin, to, chainId);
 
-  return isSwapApproveOrSwapTransction && !isSwapApprove;
+  return isSwapApproveOrSwapTransaction && !isSwapApprove;
 };
 
 /**
