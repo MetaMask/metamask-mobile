@@ -56,10 +56,14 @@ interface NotificationRowProps {
 
 export const sortNotifications = (
   notifications: Notification[],
-): Notification[] =>
-  notifications?.sort((a, b) =>
-    a.createdAt > b.createdAt ? -1 : b.createdAt > a.createdAt ? 1 : 0,
+): Notification[] => {
+  if (!notifications) {
+    return [];
+  }
+  return notifications.sort(
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
   );
+};
 
 export const getNotificationBadge = (trigger_type: string) => {
   switch (trigger_type) {
