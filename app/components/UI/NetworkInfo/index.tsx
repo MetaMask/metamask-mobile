@@ -13,9 +13,9 @@ import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-ob
 import {
   selectProviderConfig,
   selectNetworkName,
+  selectNetworkImageSource,
 } from '../../../selectors/networkController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
-import { getNetworkImageSource } from '../../../util/networks';
 import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
@@ -126,14 +126,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     return false;
   }, [isTokenDetectionEnabled, isTokenDetectionSupported]);
 
-  const networkImageSource = useMemo(
-    () =>
-      getNetworkImageSource({
-        networkType: providerConfig.type,
-        chainId: providerConfig.chainId,
-      }),
-    [providerConfig],
-  );
+  const networkImageSource = useSelector(selectNetworkImageSource);
 
   const networkName = useSelector(selectNetworkName);
 
