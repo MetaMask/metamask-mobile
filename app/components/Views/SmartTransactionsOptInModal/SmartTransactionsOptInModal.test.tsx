@@ -133,8 +133,9 @@ describe('SmartTransactionsOptInModal', () => {
   });
 
   it("should not navigate to What's New modal", async () => {
-    // @ts-ignore
-    shouldShowWhatsNewModal.mockImplementation(async () => false);
+    (shouldShowWhatsNewModal as jest.Mock).mockImplementation(
+      async () => false,
+    );
 
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
       state: initialState,
