@@ -36,7 +36,7 @@ const NotificationsView = ({
   notifications: Notification[];
 }) => {
   const styles = createStyles();
-  const [allNotifications, setAllTransactions] =
+  const [allNotifications, setAllNotifications] =
     useState<Notification[]>(notifications);
   const [walletNotifications, setWalletNotifications] = useState<
     HalRawNotification[]
@@ -58,36 +58,24 @@ const NotificationsView = ({
 
       const wallet: HalRawNotification[] = [];
       const annoucements: FeatureAnnouncementRawNotification[] = [];
+      const uniqueNotifications: Notification[] = [];
 
-      /**
-       * Sort notifications by time and remove duplicates
-       */
-      const allNotificationsSorted = sortNotifications(
-        allNotifications,
-      )?.filter(
-        (notification, index, self) =>
-          self.findIndex(
-            (_notification) => _notification.id === notification.id,
-          ) === index,
-      );
+      const allNotificationsSorted = sortNotifications(allNotifications);
+      const seenIds = new Set();
 
-      setAllTransactions(allNotificationsSorted);
-
-      /**
-       * Based on a sorted and deduplicated list of notifications, filter notifications by type to populate different tabs
-       */
-
-      allNotificationsSorted?.filter((notification) => {
-        switch (notification.type) {
-          case TRIGGER_TYPES.FEATURES_ANNOUNCEMENT:
+      for (const notification of allNotificationsSorted) {
+        if (!seenIds.has(notification.id)) {
+          seenIds.add(notification.id);
+          uniqueNotifications.push(notification);
+          if (notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
             annoucements.push(notification);
-            break;
-          default:
+          } else {
             wallet.push(notification);
+          }
         }
-        return notification;
-      });
+      }
 
+      setAllNotifications(uniqueNotifications);
       setWalletNotifications(wallet);
       setAnnoucementsNotifications(annoucements);
 
