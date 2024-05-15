@@ -8,11 +8,11 @@ import PickerNetwork from '../../../component-library/components/Pickers/PickerN
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { ProviderConfig } from '@metamask/network-controller';
-import { selectProviderConfig } from '../../../selectors/networkController';
 import {
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
-} from '../../../util/networks';
+  selectProviderConfig,
+  selectNetworkName,
+} from '../../../selectors/networkController';
+import { getNetworkImageSource } from '../../../util/networks';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
@@ -32,7 +32,7 @@ export default function ManageNetworksComponent() {
     return getNetworkImageSource({ networkType: type, chainId });
   };
 
-  const networkName = getNetworkNameFromProviderConfig(providerConfig);
+  const networkName = useSelector(selectNetworkName);
 
   const switchNetwork = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
