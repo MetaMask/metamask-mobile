@@ -81,6 +81,9 @@ describe('handleConnectionMessage', () => {
       rpcQueueManager: {
         add: mockRpcQueueManagerAdd,
       },
+      remote: {
+        hasRelayPersistence: () => false,
+      },
       backgroundBridge: {
         onMessage: mockBackgroundBridgeOnMessage,
       },

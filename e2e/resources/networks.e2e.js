@@ -76,7 +76,9 @@ const CustomNetworks = {
     providerConfig: {
       type: 'rpc',
       chainId: '0x1',
+      rpcUrlInvalid: 'https//rpc.mevblocker.io',
       rpcUrl: 'https://eth.llamarpc.com',
+      rpcUrlAlt: 'https://rpc.mevblocker.io',
       nickname: 'Ethereum Main Custom',
       ticker: 'ETH',
     },

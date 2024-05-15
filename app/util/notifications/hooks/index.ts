@@ -16,6 +16,8 @@ const useNotificationHandler = (
     setTimeout(() => {
       notifee.onForegroundEvent(
         ({ type, detail }: { type: any; detail: any }) => {
+          // Reset badge count https://notifee.app/react-native/docs/ios/badges#removing-the-badge-count
+          notifee.setBadgeCount(0);
           if (type !== EventType.DISMISSED) {
             let data = null;
             if (Device.isAndroid()) {

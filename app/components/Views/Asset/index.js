@@ -278,7 +278,7 @@ class Asset extends PureComponent {
     const { networkId } = store.getState().inpageProvider;
     const { selectedAddress, chainId } = this.props;
     const {
-      transaction: { from, to },
+      txParams: { from, to },
       isTransfer,
       transferInformation,
     } = tx;
@@ -303,7 +303,7 @@ class Asset extends PureComponent {
 
     const { chainId, swapsTransactions, selectedAddress } = this.props;
     const {
-      transaction: { to, from },
+      txParams: { to, from },
       isTransfer,
       transferInformation,
     } = tx;
@@ -377,7 +377,7 @@ class Asset extends PureComponent {
         return filterResult;
       });
 
-      submittedTxs = submittedTxs.filter(({ transaction: { from, nonce } }) => {
+      submittedTxs = submittedTxs.filter(({ txParams: { from, nonce } }) => {
         if (!toLowerCaseEquals(from, selectedAddress)) {
           return false;
         }
@@ -385,9 +385,9 @@ class Asset extends PureComponent {
         const alreadyConfirmed = confirmedTxs.find(
           (confirmedTransaction) =>
             toLowerCaseEquals(
-              safeToChecksumAddress(confirmedTransaction.transaction.from),
+              safeToChecksumAddress(confirmedTransaction.txParams.from),
               selectedAddress,
-            ) && confirmedTransaction.transaction.nonce === nonce,
+            ) && confirmedTransaction.txParams.nonce === nonce,
         );
         if (alreadyConfirmed) {
           return false;

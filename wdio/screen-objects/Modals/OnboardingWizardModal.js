@@ -9,6 +9,7 @@ import {
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
   ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID,
   ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID,
+  ONBOARDING_WIZARD_SEVENTH_STEP_CONTENT_ID,
 } from '../testIDs/Components/OnboardingWizard.testIds';
 
 import Selectors from '../../helpers/Selectors';
@@ -67,6 +68,12 @@ class OnboardingWizardModal {
     );
   }
 
+  get step7Description() {
+    return Selectors.getElementByPlatform(
+      ONBOARDING_WIZARD_SEVENTH_STEP_CONTENT_ID,
+    );
+  }
+
   get onBoardingWizardGotItButton() {
     return Selectors.getElementByPlatform(ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON);
   }
@@ -105,6 +112,10 @@ class OnboardingWizardModal {
 
   async isStep6ContentDisplayed() {
     await expect(await this.step6Description).toBeDisplayed();
+  }
+
+  async isStep7ContentDisplayed() {
+    await expect(await this.step7Description).toBeDisplayed();
   }
 
   async tapGotItButton() {
