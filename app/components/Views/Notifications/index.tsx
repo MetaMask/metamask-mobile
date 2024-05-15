@@ -159,7 +159,7 @@ NotificationsView.navigationOptions = ({
     </TouchableOpacity>
   ),
   headerLeft: () => (
-    <TouchableOpacity onPress={() => navigation.goBack()}>
+    <TouchableOpacity onPress={() => navigation.navigate(Routes.WALLET.HOME)}>
       <Icon
         name={IconName.Close}
         size={IconSize.Md}
