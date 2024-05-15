@@ -7,6 +7,7 @@ import {
   TokenListState,
   TokenRatesState,
   TokensState,
+  TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
 import SwapsController from '@metamask/swaps-controller';
 import { NetworkState } from '@metamask/network-controller';
@@ -21,7 +22,6 @@ import { PPOMState } from '@metamask/ppom-validator';
 import { ApprovalControllerState } from '@metamask/approval-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapController } from '@metamask/snaps-controllers';
-import { TokenBalancesControllerState } from '@metamask/assets-controllers/dist/TokenBalancesController';
 ///: END:ONLY_INCLUDE_IF
 export interface EngineState {
   engine: {
