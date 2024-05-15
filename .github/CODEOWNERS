@@ -22,3 +22,5 @@ app/core/SDKConnect   @MetaMask/sdk-devs @MetaMask/mobile-platform
 app/core/WalletConnect   @MetaMask/sdk-devs @MetaMask/mobile-platform
 app/reducers/sdk   @MetaMask/sdk-devs @MetaMask/mobile-platform
 app/util/walletconnect.js   @MetaMask/sdk-devs @MetaMask/mobile-platform
+# Accounts Team
+app/core/Encryptor/                  @MetaMask/accounts-engineers
