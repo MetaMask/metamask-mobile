@@ -25,6 +25,7 @@ import TransactionBackgroundBottom from '../../../images/transaction-background-
 import LoopingScrollAnimation from './LoopingScrollAnimation';
 import { hexToDecimal } from '../../../util/conversions';
 import useRemainingTime from './useRemainingTime';
+import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
 const getPortfolioStxLink = (chainId: Hex, uuid: string) => {
   const chainIdDec = hexToDecimal(chainId);
@@ -195,19 +196,8 @@ const getDisplayValuesAndHandlers = ({
   };
 };
 
-const SmartTransactionStatus = ({
-  requestState: { smartTransaction, isDapp, isInSwapFlow },
-  origin,
-  onConfirm,
-}: Props) => {
-  const { status, creationTime, uuid } = smartTransaction;
-  const providerConfig = useSelector(selectProviderConfig);
-
-  const navigation = useNavigation();
-  const { colors } = useTheme();
-
-  // Setup styles
-  const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
     wrapper: {
       height: '82%',
       display: 'flex',
@@ -256,6 +246,18 @@ const SmartTransactionStatus = ({
       width: '100%',
     },
   });
+
+const SmartTransactionStatus = ({
+  requestState: { smartTransaction, isDapp, isInSwapFlow },
+  origin,
+  onConfirm,
+}: Props) => {
+  const { status, creationTime, uuid } = smartTransaction;
+  const providerConfig = useSelector(selectProviderConfig);
+
+  const navigation = useNavigation();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const isStxPending = status === SmartTransactionStatuses.PENDING;
 
