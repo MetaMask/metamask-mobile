@@ -63,6 +63,7 @@ import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import DAPPDisconnectModal from '../../../components/Views/confirmations/components/DAPPDisconnectModal';
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
@@ -390,6 +391,7 @@ const RootRPCMethodsUI = (props) => {
 
   return (
     <React.Fragment>
+      <DAPPDisconnectModal />
       <SignatureApproval />
       <WalletConnectApproval />
       <TransactionApproval

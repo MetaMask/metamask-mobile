@@ -1,13 +1,16 @@
 import Engine from '../../../../core/Engine';
 import { useCallback } from 'react';
 import { providerErrors } from '@metamask/rpc-errors';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectPendingApprovals } from '../../../../selectors/approvalController';
 import { cloneDeep, isEqual } from 'lodash';
 import { ApprovalRequest } from '@metamask/approval-controller';
 
+import { recordRejectionToRequestFromOrigin } from '../../../../actions/requests';
+
 const useApprovalRequest = () => {
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
+  const dispatch = useDispatch();
 
   const approvalRequest = Object.values(pendingApprovals ?? {})[0] as
     | ApprovalRequest<any>
@@ -38,7 +41,15 @@ const useApprovalRequest = () => {
       approvalRequest.id,
       providerErrors.userRejectedRequest(),
     );
-  }, [approvalRequest]);
+
+    if (approvalRequest?.requestData?.origin) {
+      dispatch(
+        recordRejectionToRequestFromOrigin(
+          approvalRequest?.requestData?.origin,
+        ),
+      );
+    }
+  }, [approvalRequest, dispatch]);
 
   return {
     approvalRequest: cloneDeep(approvalRequest),

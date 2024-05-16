@@ -21,6 +21,7 @@ import {
   parseTransactionEIP1559,
   parseTransactionLegacy,
 } from '../../../../../../util/transactions';
+import { recordRejectionToRequestFromOrigin } from '../../../../../../actions/requests';
 import { setTransactionObject } from '../../../../../../actions/transaction';
 import Engine from '../../../../../../core/Engine';
 import collectiblesTransferInformation from '../../../../../../util/collectibles-transfer';
@@ -131,6 +132,7 @@ class TransactionEditor extends PureComponent {
      * A string representing the network chainId
      */
     chainId: PropTypes.string,
+    recordRejection: PropTypes.func,
   };
 
   state = {
@@ -421,8 +423,13 @@ class TransactionEditor extends PureComponent {
    * Call callback when transaction is cancelled
    */
   onCancel = () => {
-    const { onCancel } = this.props;
+    const {
+      onCancel,
+      recordRejection,
+      transaction: { origin },
+    } = this.props;
     onCancel && onCancel();
+    recordRejection(origin);
   };
 
   /**
@@ -982,6 +989,8 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>
     dispatch(setTransactionObject(transaction)),
+  recordRejection: (origin) =>
+    dispatch(recordRejectionToRequestFromOrigin(origin)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(TransactionEditor);

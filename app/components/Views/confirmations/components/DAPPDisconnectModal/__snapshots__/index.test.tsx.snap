@@ -1,0 +1,346 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DAPPDisconnectModal should render correctly 1`] = `
+<Modal
+  animationType="none"
+  deviceHeight={null}
+  deviceWidth={null}
+  hardwareAccelerated={false}
+  hideModalContentWhileAnimating={false}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
+  onRequestClose={[Function]}
+  onSwipeComplete={[Function]}
+  panResponderThreshold={4}
+  scrollHorizontal={false}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  statusBarTranslucent={false}
+  supportedOrientations={
+    [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeDirection="down"
+  swipeThreshold={100}
+  transparent={true}
+  visible={true}
+>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    forwardedRef={[Function]}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "backgroundColor": "#00000099",
+        "bottom": 0,
+        "height": 1334,
+        "left": 0,
+        "opacity": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "width": 750,
+      }
+    }
+  />
+  <View
+    collapsable={false}
+    deviceHeight={null}
+    deviceWidth={null}
+    forwardedRef={[Function]}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    onSwipeComplete={[Function]}
+    panResponderThreshold={4}
+    pointerEvents="box-none"
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    style={
+      {
+        "flex": 1,
+        "justifyContent": "flex-end",
+        "left": 0,
+        "margin": 0,
+        "top": 0,
+        "transform": [
+          {
+            "translateY": 1334,
+          },
+        ],
+      }
+    }
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#FFFFFF",
+          "borderTopLeftRadius": 20,
+          "borderTopRightRadius": 20,
+          "justifyContent": "space-between",
+          "minHeight": "60%",
+          "paddingBottom": 20,
+          "paddingTop": 24,
+        }
+      }
+    >
+      <SvgMock
+        color="#BF5208"
+        height={32}
+        name="Danger"
+        style={
+          {
+            "height": 32,
+            "width": 32,
+          }
+        }
+        width={32}
+      />
+      <Text
+        style={
+          {
+            "color": "#24272A",
+            "fontSize": 16,
+            "fontWeight": "700",
+          }
+        }
+      >
+        Potential scam detected
+      </Text>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "center",
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#BBC0C5",
+            "borderRadius": 99,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "marginBottom": 8,
+            "marginTop": 8,
+            "paddingLeft": 8,
+            "paddingRight": 16,
+            "paddingVertical": 8,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderRadius": 16,
+              "height": 24,
+              "marginRight": 8,
+              "overflow": "hidden",
+              "width": 24,
+            }
+          }
+        >
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={{}}
+            style={
+              {
+                "flex": 1,
+                "height": undefined,
+                "width": undefined,
+              }
+            }
+            testID="favicon-avatar-image"
+          />
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#535A61",
+              "flexShrink": 1,
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          www.test.com
+        </Text>
+      </View>
+      <Text
+        style={
+          {
+            "color": "#24272A",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "textAlign": "center",
+            "width": "90%",
+          }
+        }
+      >
+        The site has sent you multiple requests. It might be a scam site trying to steal your assets by sending multiple requests.
+      </Text>
+      <Text
+        style={
+          {
+            "color": "#24272A",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "textAlign": "center",
+            "width": "90%",
+          }
+        }
+      >
+        We recommend disconnecting from this site.
+      </Text>
+      <View
+        style={
+          {
+            "display": "flex",
+            "flexDirection": "row",
+            "paddingHorizontal": 24,
+            "paddingVertical": 24,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "transparent",
+              "borderColor": "#0376C9",
+              "borderRadius": 24,
+              "borderWidth": 1,
+              "flex": 1,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "marginHorizontal": 8,
+              "paddingHorizontal": 16,
+            }
+          }
+          variant="Secondary"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#0376C9",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Cancel
+          </Text>
+        </TouchableOpacity>
+        <View
+          style={
+            {
+              "width": 8,
+            }
+          }
+        />
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#0376C9",
+              "borderRadius": 24,
+              "flex": 1,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "marginHorizontal": 8,
+              "paddingHorizontal": 16,
+            }
+          }
+          variant="Primary"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#FFFFFF",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Disconnect
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</Modal>
+`;

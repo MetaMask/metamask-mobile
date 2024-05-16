@@ -75,6 +75,7 @@ import { updateTransaction } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { recordRejectionToRequestFromOrigin } from '../../../../../actions/requests';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -171,6 +172,7 @@ class Approve extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    recordRejection: PropTypes.func,
   };
 
   state = {
@@ -598,7 +600,12 @@ class Approve extends PureComponent {
   };
 
   onCancel = () => {
-    const { metrics, hideModal } = this.props;
+    const {
+      metrics,
+      hideModal,
+      recordRejection,
+      transaction: { origin },
+    } = this.props;
     Engine.rejectPendingApproval(
       this.props.transaction.id,
       providerErrors.userRejectedRequest(),
@@ -619,6 +626,7 @@ class Approve extends PureComponent {
       title: strings('notifications.approved_tx_rejected_title'),
       description: strings('notifications.wc_description'),
     });
+    recordRejection(origin);
   };
 
   review = () => {
@@ -918,6 +926,8 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setTransactionObject(transaction)),
   setNonce: (nonce) => dispatch(setNonce(nonce)),
   setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
+  recordRejection: (origin) =>
+    dispatch(recordRejectionToRequestFromOrigin(origin)),
 });
 
 Approve.contextType = ThemeContext;
