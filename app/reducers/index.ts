@@ -6,6 +6,7 @@ import modalsReducer from './modals';
 import settingsReducer from './settings';
 import alertReducer from './alert';
 import transactionReducer from './transaction';
+import legalNoticesReducer from './legalNotices';
 import userReducer from './user';
 import wizardReducer from './wizard';
 import onboardingReducer from './onboarding';
@@ -41,6 +42,7 @@ export type StateFromReducer<reducer> = reducer extends Reducer<
 // to this type. Once that is complete, we can automatically generate this type
 // using the `StateFromReducersMapObject` type from redux.
 export interface RootState {
+  legalNotices: any;
   collectibles: any;
   engine: { backgroundState: EngineState | Record<string, never> };
   privacy: any;
@@ -74,6 +76,7 @@ export interface RootState {
 // TODO: Fix the Action type. It's set to `any` now because some of the
 // TypeScript reducers have invalid actions
 const rootReducer = combineReducers<RootState, any>({
+  legalNotices: legalNoticesReducer,
   collectibles: collectiblesReducer,
   engine: engineReducer as any,
   privacy: privacyReducer,
