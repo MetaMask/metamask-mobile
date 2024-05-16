@@ -20,7 +20,6 @@ import { useSelector } from 'react-redux';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectNetworkImageSource,
 } from '../../../selectors/networkController';
 import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
@@ -60,7 +59,6 @@ import styles from './NetworkSelector.styles';
 import { TESTNET_TICKER_SYMBOLS } from '@metamask/controller-utils';
 
 const NetworkSelector = () => {
-  console.log('>>> inside NetworkSelector');
   const { navigate } = useNavigation();
   const theme = useTheme();
   const { trackEvent } = useMetrics();
@@ -71,7 +69,6 @@ const NetworkSelector = () => {
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  console.log('>>>networkConfigurations', networkConfigurations);
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: string) => {
     const {
