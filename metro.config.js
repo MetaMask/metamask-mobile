@@ -3,24 +3,23 @@
  * Metro configuration for React Native
  * https://github.com/facebook/react-native
  *
- * @format
+ * @type {import('metro-config').MetroConfig}
  */
 
-const { getDefaultConfig } = require('@react-native/metro-config');
+const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 
-module.exports = (async () => {
+module.exports = function (baseConfig) {
+  const defaultConfig = mergeConfig(baseConfig, getDefaultConfig(__dirname));
   const {
-    resolver: { sourceExts, assetExts },
-  } = await getDefaultConfig();
-  return {
+    resolver: { assetExts, sourceExts },
+  } = defaultConfig;
+
+  return mergeConfig(defaultConfig, {
+    resolver: {
+      assetExts: assetExts.filter((ext) => ext !== 'svg'),
+      sourceExts: [...sourceExts, 'svg', 'cjs'],
+    },
     transformer: {
-      getTransformOptions: async () => ({
-        transform: {
-          experimentalImportSupport: true,
-          inlineRequires: true,
-        },
-      }),
-      resetCache: true,
       babelTransformerPath: require.resolve('./metro.transform.js'),
       assetPlugins: ['react-native-svg-asset-plugin'],
       svgAssetPlugin: {
@@ -30,12 +29,13 @@ module.exports = (async () => {
           compressionLevel: 6,
         },
       },
+      getTransformOptions: async () => ({
+        transform: {
+          experimentalImportSupport: true,
+          inlineRequires: true,
+        },
+      }),
     },
-    resolver: {
-      assetExts: assetExts.filter((ext) => ext !== 'svg'),
-      sourceExts: [...sourceExts, 'svg', 'cjs'],
-      resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
-    },
-    maxWorkers: 2,
-  };
-})();
+    resetCache: true,
+  });
+};
