@@ -120,6 +120,11 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, []);
 
   useEffect(() => {
+    // This ensures that a QR keyring gets created if it doesn't already exist.
+    // This is intentionally not awaited (the subscription still gets setup correctly if called
+    // before the keyring is created).
+    // TODO: Stop automatically creating keyrings
+    Engine.context.KeyringController.getOrAddQRKeyring();
     Engine.controllerMessenger.subscribe(
       'KeyringController:qrKeyringStateChange',
       subscribeKeyringState,
