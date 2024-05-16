@@ -94,6 +94,24 @@
     "your_wallet": "El monedero se borró correctamente",
     "delete_current": "Borrando monedero actual"
   },
+  "onboarding_success": {
+    "title": "¡Felicitaciones!",
+    "description": "Su monedero está protegido y listo para usar. Puede encontrar su frase secreta de recuperación en ",
+    "description_bold": "Configuración > Seguridad y privacidad.",
+    "description_continued": "Guarde un recordatorio de su frase secreta de recuperación en algún lugar seguro. Si la pierde, nadie podrá ayudarlo a recuperarla. Y lo que es peor, no podrá volver a acceder a su monedero.",
+    "learn_more": "Más información",
+    "learn_how": "Aprenda cómo",
+    "leave_hint": "¿Quiere dejarse una pista?",
+    "default_settings": "Configuración por defecto",
+    "manage_default_settings": "Gestionar la configuración por defecto",
+    "default_settings_footer": "La configuración está optimizada para facilitar su uso y garantizar la seguridad.\nCámbiela en cualquier momento.",
+    "no_srp_title": "¡Recordatorio creado!",
+    "no_srp_description": "Si se le bloquea el acceso a la aplicación o adquiere un nuevo dispositivo, perderá sus fondos. Asegúrese de hacer una copia de seguridad de su frase secreta de recuperación en",
+    "import_title": "Su monedero está listo",
+    "import_description": "Recuerde que si pierde su frase secreta de recuperación, perderá el acceso a su monedero. ",
+    "import_description2": "para mantener seguro este conjunto de palabras y poder acceder siempre a sus fondos.",
+    "done": "Hecho"
+  },
   "onboarding_carousel": {
     "title1": "Bienvenido a MetaMask",
     "title2": "Administrar sus activos digitales",
@@ -160,16 +178,20 @@
       "content1": "Edite el nombre de su cuenta, vea transacciones en Etherscan, comparta su clave pública y vea su clave privada tocando este ícono"
     },
     "step4": {
-      "title": "Utilizar su monedero",
-      "content1": "Compre, envíe, intercambie y reciba activos tocando este ícono"
+      "title": "Notificaciones",
+      "content1": "Manténgase informado sobre lo que sucede en su monedero"
     },
     "step5": {
+      "title": "Utilizando su monedero",
+      "content1": "Compre, envíe, canjee y reciba activos tocando este ícono"
+    },
+    "step6": {
       "title": "Explorando la Web3",
       "content1": "Abra el navegador tocando este ícono"
     },
-    "step6": {
-      "title": "Utilizar el navegador",
-      "content1": "Busque sitios por palabra clave o ingrese una URL. ¡Diviértase! "
+    "step7": {
+      "title": "Usando el navegador",
+      "content1": "Busque sitios por palabra clave o ingrese una URL. ¡Diviértase por ahí! "
     }
   },
   "create_wallet": {
@@ -351,17 +373,17 @@
     "no_collectibles": "¿No ve su NFT?",
     "no_available_tokens": "¿No ve su token?",
     "add_tokens": "Importar tokens",
-    "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
-    "import_token": "Would you like to import this token?",
+    "are_you_sure_exit": "¿Está seguro de que desea salir?",
+    "search_information_not_saved": "Su información de búsqueda no se guardará.",
+    "import_token": "¿Le gustaría importar este token?",
     "tokens_detected_in_account": "{{tokenCount}} nuevos {{tokensLabel}} se han encontrado en esta cuenta",
     "token_toast": {
       "tokens_imported_title": "Tokens agregados",
       "tokens_imported_desc": "{{tokenSymbols}} exitosamente agregados",
       "token_imported_title": "Token agregado",
       "token_imported_desc": "{{tokenSymbol}} exitosamente agregado",
-      "token_imported_desc_1": "You’ve imported a token.",
-      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
+      "token_imported_desc_1": "Ha importado un token.",
+      "tokens_import_success_multiple": "Ha importado {{tokensNumber}} tokenes.",
       "tokens_hidden_title": "Ocultando tokens",
       "tokens_hidden_desc": "Ocultando tokens detectados de su monedero",
       "token_hidden_title": "Ocultando token",
@@ -422,7 +444,11 @@
     "nfts_autodetect_cta": "Activar la detección automática de NFT en Configuración",
     "turn_on_network_check_cta": "Activar la verificación de detalles de la red",
     "display_nft_media_cta_new_1": "Para ver un NFT, active Mostrar medios NFT en",
-    "display_nft_media_cta_new_2": "Configuración > Seguridad y privacidad."
+    "display_nft_media_cta_new_2": "Configuración > Seguridad y privacidad.",
+    "banner": {
+      "title": "La funcionalidad básica está desactivada",
+      "link": "Activar la funcionalidad básica"
+    }
   },
   "asset_details": {
     "token": "Token",
@@ -446,8 +472,8 @@
   "add_asset": {
     "title": "Agregar activo",
     "title_nft": "Agregar NFT",
-    "search_token": "Search",
-    "custom_token": "Custom token",
+    "search_token": "Buscar",
+    "custom_token": "Token personalizado",
     "tokens": {
       "cancel_add_token": "CANCELAR",
       "add_token": "AGREGAR TOKEN"
@@ -473,24 +499,38 @@
   },
   "privacy_policy": {
     "title": "Política de privacidad",
-    "fine_print_1": "Estos datos se agrupan y, por lo tanto, son anónimos a los efectos del Reglamento general de protección de datos (UE) 2016/679.",
-    "fine_print_2a": "*Cuando usa Infura como su proveedor de RPC predeterminado en MetaMask, Infura recopilará su dirección IP y la dirección de su monedero de Ethereum cuando envíe una transacción. No almacenamos esta información de una manera que permita a nuestros sistemas asociar esos dos datos. Puede configurar su proveedor RPC",
-    "fine_print_2b": "antes de continuar.\nPara obtener más información sobre cómo interactúan MetaMask e Infura desde la perspectiva de la recopilación de datos, consulte nuestra actualización",
-    "fine_print_2c": ". Para obtener más información sobre nuestras prácticas de privacidad en general, consulte nuestra Política de privacidad",
-    "here": "aquí",
+    "fine_print_1": "We’ll let you know if we decide to use this data for other purposes. You can review our",
+    "fine_print_2": "for more information. Remember, you can go to settings and opt out at any time.",
+    "privacy_policy_button": "Privacy Policy",
     "agree": "Acepto",
     "decline": "No, gracias",
     "description_title": "Ayúdenos a mejorar MetaMask",
-    "description_content_1": "A MetaMask le gustaría recopilar datos de uso básicos para entender mejor cómo los usuarios interactúan con la aplicación móvil. Estos datos se usarán para mejorar de manera continua la usabilidad y la experiencia de usuario de nuestro producto.",
-    "description_content_2": "MetaMask…",
-    "action_description_1": "Permitirle siempre optar por no participar a través de Configuración",
-    "action_description_2": "Enviar eventos de vistas de página y clics anónimos",
-    "action_description_3": "Envía datos de país, región, ciudad (sin ubicación específica)",
-    "action_description_4": "Nunca recopilará claves, direcciones, transacciones, saldos, hashes o cualquier otra información personal",
-    "action_description_5": "Nunca recopilará su dirección IP",
-    "action_description_never": "Nunca",
+    "description_content_1": "We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.",
+    "description_content_2": "When we gather metrics, it will always be...",
+    "action_description_1_prefix": "Private:",
+    "action_description_2_prefix": "General:",
+    "action_description_3_prefix": "Optional:",
+    "action_description_1_description": "clicks and views on the app are stored, but other details (like your public address) are not.",
+    "action_description_2_description": "we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
+    "action_description_3_description": "you decide if you want to share or delete your usage data via settings any time.",
     "cta_no_thanks": "No, gracias",
-    "cta_i_agree": "Acepto"
+    "cta_i_agree": "Acepto",
+    "fine_print_1_legacy": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679.",
+    "fine_print_2a_legacy": "*When you use Infura as your default RPC provider in MetaMask, Infura will collect your IP address and your Ethereum wallet address when you send a transaction. We don’t store this information in a way that allows our systems to associate those two pieces of data. You can configure your RPC provider",
+    "fine_print_2b_legacy": "before proceeding.\nFor more information on how MetaMask and Infura interact from a data collection perspective, see our update",
+    "fine_print_2c_legacy": ". For more information on our privacy practices in general, see our Privacy Policy",
+    "here_legacy": "here",
+    "description_content_1_legacy": "MetaMask would like to gather usage data to better understand how our users interact with MetaMask. This data will be used to provide the service, which includes improving the service based on your use.",
+    "description_content_2_legacy": "MetaMask will...",
+    "action_description_1_legacy": "Always allow you to opt-out via Settings",
+    "action_description_2_legacy": "Send anonymized click & pageview events",
+    "action_description_3_legacy": "collect information we don’t need to provide the service (such as keys, addresses, transaction hashes, or balances)",
+    "action_description_4_legacy": "collect your full IP address*",
+    "action_description_5_legacy": "sell data. Ever!",
+    "action_description_never_legacy": "Never",
+    "toast_message": "We’ve updated our privacy policy",
+    "toast_action_button": "Close",
+    "toast_read_more": "Read more"
   },
   "template_confirmation": {
     "ok": "OK",
@@ -504,16 +544,16 @@
     "resultPageErrorDefaultMessage": "La operación falló."
   },
   "token": {
-    "token_symbol": "Token symbol",
+    "token_symbol": "Símbolo del token",
     "token_address": "Dirección del token",
-    "token_decimal": "Token decimal",
+    "token_decimal": "Decimales del token",
     "search_tokens_placeholder": "Buscar tokens",
     "address_cant_be_empty": "La dirección del token no puede estar vacía.",
     "address_must_be_valid": "La dirección del token debe ser una dirección válida.",
     "symbol_cant_be_empty": "El símbolo del token no puede estar vacío.",
-    "symbol_length": "Symbol must be 11 characters or fewer",
+    "symbol_length": "El símbolo debe tener 11 caracteres o menos",
     "decimals_cant_be_empty": "Los decimales del token no pueden estar vacíos.",
-    "decimals_is_required": "Decimal is required. Find it on:",
+    "decimals_is_required": "Se requiere decimal. Encuéntrelo en:",
     "no_tokens_found": "No se encontró ningún token con ese nombre.",
     "select_token": "Seleccionar token",
     "address_must_be_smart_contract": "Se detectó una dirección personal. Escriba la dirección de contrato del token."
@@ -541,7 +581,8 @@
     "collectible_asset_contract": "Contrato de activos",
     "share_check_out_nft": "¡Conoce mi NTF!",
     "share_via": "Compartido mediante",
-    "untitled_collection": "Colección sin nombre"
+    "untitled_collection": "Colección sin nombre",
+    "collection": "Colección"
   },
   "transfer": {
     "title": "Transferir",
@@ -682,6 +723,12 @@
     "nft_opensea_desc": "La visualización de medios y datos de NFT puede exponer su dirección IP a servidores centralizados. Utilice la API de OpenSea para obtener datos NFT. La detección automática de NFT se basa en la API de OpenSea y no estará disponible cuando esté desactivada. Habilitar la detección automática de NFT puede exponerlo a que cualquier persona envíe NFT falsos a su monedero, y puede permitir que un atacante obtenga su dirección IP de su dirección Ethereum.",
     "nft_autodetect_mode": "Detectar NFTs automáticamente",
     "nft_autodetect_desc": "La exposición de medios y datos NFT puede mostrar su dirección IP a servidores centralizados. Las API de terceros (como OpenSea) se utilizan para detectar NFTs en su monedero. Esto expone la dirección de su cuenta con esos servicios. Deje esto deshabilitado si no desea que la aplicación extraiga datos de esos servicios.",
+    "show_fiat_on_testnets": "Mostrar conversión en redes de prueba",
+    "show_fiat_on_testnets_desc": "Seleccione esta opción para mostrar la conversión de moneda fiduciaria en las redes de prueba",
+    "show_fiat_on_testnets_modal_title": "Tenga cuidado",
+    "show_fiat_on_testnets_modal_description": "Si le pidieron que active esta función, es posible que lo estén estafando. Estos tokens no tienen valor monetario y son solo para fines de prueba. Esta función ayuda a los desarrolladores a asegurarse de que sus aplicaciones funcionen.",
+    "show_fiat_on_testnets_modal_learn_more": "Más información.",
+    "show_fiat_on_testnets_modal_button": "Continuar",
     "show_hex_data": "Mostrar datos hexadecimales",
     "show_hex_data_desc": "Seleccione esta opción para mostrar el campo de datos hexadecimales en la pantalla de envío.",
     "toggleEthSignBannerDescription": "Está en riesgo de sufrir ataques de phishing. Protéjase desactivando eth_sign.",
@@ -712,6 +759,26 @@
     "general_desc": "Conversión de moneda, moneda principal, idioma y motor de búsqueda",
     "advanced_title": "Avanzado",
     "advanced_desc": "Acceder a recursos para desarrolladores, restablecer cuenta, configurar redes de prueba, registros de estado, puerta de enlace de IPFS y RPC personalizada",
+    "notifications_title": "Notificaciones",
+    "notifications_desc": "Administre sus notificaciones",
+    "allow_notifications": "Permitir notificaciones",
+    "allow_notifications_desc": "Manténgase informado sobre lo que sucede en su monedero con notificaciones. Para usar notificaciones, utilizamos un perfil para sincronizar algunas configuraciones en sus dispositivos. Aprenda más sobre cómo protegemos su privacidad mientras usa esta función.",
+    "notifications_opts": {
+      "customize_session_title": "Personalice sus notificaciones",
+      "customize_session_desc": "Active los tipos de notificaciones que desea recibir:",
+      "account_session_title": "Actividad de la cuenta",
+      "account_session_desc": "Seleccione las cuentas sobre las que desea recibir notificaciones:",
+      "assets_sent_title": "Activos enviados",
+      "assets_sent_desc": "Fondos y NFT",
+      "assets_received_title": "Activos recibidos",
+      "assets_received_desc": "Fondos y NFT",
+      "defi_title": "DeFi",
+      "defi_desc": "Staking, canjeando y puenteando",
+      "snaps_title": "Snaps",
+      "snaps_desc": "Nuevas características y actualizaciones",
+      "products_announcements_title": "Anuncios de producto",
+      "products_announcements_desc": "Nuevos productos y características"
+    },
     "contacts_title": "Contactos",
     "contacts_desc": "Agregar, editar, quitar y administrar sus cuentas",
     "security_title": "Seguridad y privacidad",
@@ -774,6 +841,7 @@
     "ses_heading": "Bloqueo de código",
     "ses_description": "Esta es una función de prueba que bloquea cualquier cambio en el código JavaScript de la aplicación sin permiso.",
     "ses_link": "Conozca más",
+    "general_heading": "General",
     "privacy_heading": "Privacidad",
     "failed_to_fetch_chain_id": "No se pudo capturar el id. de cadena. ¿La dirección URL de RPC es correcta?",
     "endpoint_returned_different_chain_id": "El punto de conexión devolvió un id. de cadena diferente: %{chainIdReturned}",
@@ -832,8 +900,13 @@
       "sdk_activation_keys": "Claves de activación SDK",
       "activation_keys_description": "Las claves de activación habilitarán funciones o proveedores específicos.",
       "add_activation_key": "Agregar clave de activación",
+      "edit_activation_key": "Editar clave de activación",
       "paste_or_type_activation_key": "Pegue o escriba una clave de activación",
+      "add_label": "Añadir una etiqueta a esta clave",
+      "label": "Etiqueta",
+      "key": "Clave",
       "add": "Agregar",
+      "update": "Actualizar",
       "cancel": "Cancelar"
     },
     "request_feature": "Solicitar una función",
@@ -899,10 +972,12 @@
     "token_nft_ens_subheading": "Detección automática de tokens, NFT y ENS",
     "security_check_subheading": "Verificaciones de seguridad",
     "symbol_required": "Se requiere símbolo.",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Protección de la privacidad: no se comparten datos con terceros. Disponible en Arbitrum, Avalanche, BNB Chain, la red principal de Ethereum, Optimism, Polygon y Sepolia.",
+    "blockaid_desc": "Preservación de la privacidad: no se comparten datos con terceros. Disponible en Arbitrum, Avalanche, BNB Chain, la red principal de Ethereum, Optimism, Polygon, Sepolia y Base.",
     "security_alerts": "Alertas de seguridad",
-    "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al habilitar esta función, acepta los términos de uso del proveedor."
+    "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al habilitar esta función, acepta los términos de uso del proveedor.",
+    "smart_transactions_opt_in_heading": "Transacciones inteligentes",
+    "smart_transactions_opt_in_desc": "Active las transacciones inteligentes para realizar transacciones más confiables y seguras, y tarifas ajustables en la red principal de ETH.",
+    "smart_transactions_learn_more": "Más información."
   },
   "sdk": {
     "disconnect_title": "¿Desconectar de todos los sitios?",
@@ -1129,6 +1204,7 @@
     "confirm": "Confirmar"
   },
   "transaction": {
+    "transaction_id": "ID de transacción",
     "alert": "ALERTA",
     "amount": "Importe",
     "next": "Siguiente",
@@ -1301,7 +1377,7 @@
     "contract": "Contrato ({{address}})",
     "contract_name": "Nombre del contrato:",
     "contract_address": "Dirección de contrato:",
-    "invalid_contract_address": " Contract address is invalid. Enter a new one",
+    "invalid_contract_address": " La dirección del contrato no es válida. Ingrese uno nuevo",
     "contract_allowance": "Asignación:",
     "data": "Datos",
     "function_approve": "Función: Aprobar",
@@ -1345,6 +1421,9 @@
     "remove_bookmark_title": "Quitar favorito",
     "remove_bookmark_msg": "¿Está seguro de que quiere quitar este sitio de sus favoritos?",
     "yes": "Sí",
+    "undefined_account": "Cuenta no definida",
+    "close_tab": "Cerrar pestaña",
+    "switch_tab": "Cambiar pestaña",
     "protocol_alert_options": {
       "ignore": "Ignorar",
       "allow": "Permitir"
@@ -1410,8 +1489,12 @@
     "to": "Para",
     "details": "Detalles",
     "amount": "Importe",
+    "gas_used": "Gas usado (unidades)",
     "gas_limit": "Límite de gas (unidades)",
     "gas_price": "Precio de gas (GWEI)",
+    "base_fee": "Tarifa base (GWEI)",
+    "priority_fee": "Tarifa de prioridad (GWEI)",
+    "max_fee": "Tarifa máxima por gas",
     "total": "Total",
     "view_on": "VER EN",
     "view_on_etherscan": "Ver en Etherscan",
@@ -1433,7 +1516,26 @@
     "sign_title_device": "con su monedero Keystone",
     "sign_description_1": "Después de haber firmado con su monedero Keystone,",
     "sign_description_2": "pulse en Obtener firma",
-    "sign_get_signature": "Obtener firma"
+    "sign_get_signature": "Obtener firma",
+    "network_fee": "Tarifa de red"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "Enviando su transacción",
+    "status_submitting_description": "Finalización estimada {{timeLeft}}",
+    "status_success_header": "Su transacción está completa",
+    "status_submitting_past_estimated_deadline_header": "Disculpe la espera",
+    "status_submitting_past_estimated_deadline_description": "Si su transacción no finaliza en {{timeLeft}}, se cancelará y no se le cobrará el gas.",
+    "status_cancelled_header": "Su transacción se canceló",
+    "status_cancelled_description": "Su transacción no se pudo completar, por lo que se canceló para evitarle pagar tarifas de gas innecesarias.",
+    "status_failed_header": "Su transacción falló",
+    "status_failed_description": "Los cambios repentinos en el mercado pueden provocar fallos. Si el problema continúa, comuníquese con el soporte al cliente de MetaMask.",
+    "view_transaction": "Ver transacción",
+    "view_activity": "Ver actividad",
+    "return_to_dapp": "Volver a {{dappName}}",
+    "try_again": "Intente de nuevo",
+    "create_new": "Crear nueva {{txType}}",
+    "swap": "canjear",
+    "send": "enviar"
   },
   "address_book": {
     "recents": "Recientes",
@@ -1782,6 +1884,16 @@
     "back_to_safety": "Volver a Seguridad"
   },
   "notifications": {
+    "stake_completed": "Staking finalizado",
+    "withdrawal_completed": "Retiro finalizado",
+    "unstake_completed": "Unstaking finalizado",
+    "withdrawal_requested": "Retiro solicitado",
+    "stake_ready_to_be_withdrawn": "Staking listo para ser retirado",
+    "swap_completed": "Canjeado {{from}} por {{to}}",
+    "sent": "Enviado a {{address}}",
+    "received": "Recibido desde {{address}}",
+    "sent_nft": "Enviando NFT a {{address}}",
+    "received_nft": "NFT recibido desde {{address}}",
     "pending_title": "Transacción enviada",
     "pending_deposit_title": "¡Depósito en curso!",
     "pending_withdrawal_title": "El retiro está en curso",
@@ -1797,9 +1909,9 @@
     "pending_deposit_message": "En espera de que el depósito se complete",
     "pending_withdrawal_message": "En espera de que el retiro se complete",
     "error_message": "Presionar para ver esta transacción",
-    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
-    "error_fcm_not_found": "getFCMToken: No FCM token found",
-    "error_checking_permission": "Error checking if a user has push notifications permission",
+    "error_retrieving_fcm_token": "Error al obtener y guardar el token FCM",
+    "error_fcm_not_found": "getFCMToken: no se encontró ningún token FCM",
+    "error_checking_permission": "Error al comprobar si un usuario tiene permiso para notificaciones push",
     "success_message": "Presionar para ver esta transacción",
     "speedup_message": "Intentando acelerar la transacción",
     "success_deposit_message": "Sus fondos están listos para usarlos",
@@ -1819,7 +1931,30 @@
     "wc_signed_failed_title": "Error en esta solicitud de firma",
     "wc_sent_tx_rejected_title": "Rechazó la solicitud de transacción",
     "approved_tx_rejected_title": "Ha rechazado la concesión de permiso",
-    "wc_description": "Revise su aplicación"
+    "wc_description": "Revise su aplicación",
+    "wallet": "Monedero",
+    "web3": "Web3",
+    "empty": {
+      "title": "Nada que ver aquí",
+      "message": "Aquí es donde puede encontrar notificaciones una vez que haya actividad en su monedero. "
+    },
+    "list": {
+      "0": "Todo",
+      "1": "Monedero",
+      "2": "Anuncios"
+    },
+    "address_copied_to_clipboard": "Dirección copiada al portapapeles",
+    "transaction_id_copied_to_clipboard": "ID de transacción copiado al portapapeles",
+    "activation_card": {
+      "title": "Activar las notificaciones",
+      "description_1": "Manténgase informado sobre lo que sucede en su monedero con notificaciones. ",
+      "description_2": "Para utilizar esta función, generaremos un ID anónimo para su cuenta. Se utiliza únicamente para sincronizar sus datos en MetaMask y no se vincula a sus actividades ni a otros identificadores, lo que garantiza su privacidad.",
+      "learn_more": "Obtenga más información sobre cómo protegemos su privacidad mientras utiliza esta función. ",
+      "manage_preferences_1": "Puede desactivar las notificaciones en cualquier momento ",
+      "manage_preferences_2": "Configuración > Notificaciones.",
+      "cancel": "Cancelar",
+      "cta": "Activar"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "Proteger su monedero",
@@ -2420,13 +2555,27 @@
       "title": "Manténgase seguro con alertas de seguridad",
       "description_1": "Manténgase a salvo de estafas conocidas y al mismo tiempo proteja su privacidad con alertas de seguridad impulsadas por Blockaid. Esta función ahora está activada de forma predeterminada para todos los usuarios de MetaMask.",
       "description_2": "Siempre asegúrese de hacer su propia diligencia debida antes de aprobar cualquier solicitud.",
-      "description_3": "Disponible en Arbitrum, Avalanche, BNB Chain, la red principal de Ethereum, Linea, Optimism, Polygon y Sepolia.",
+      "description_3": "Disponible en Arbitrum, Avalanche, BNB Chain, la red principal de Ethereum, Linea, Optimism, Polygon, Sepolia y Base.",
       "got_it": "Entendido"
     },
     "sell": {
       "title": "Cobrar es fácil",
       "description": "¡Venda su cripto directamente en MetaMask! Lo ayudaremos a encontrar cotizaciones de proveedores confiables, para que pueda vender su cripto de manera accesible, rápida y segura, en todo momento.",
       "action_text": "Inténtelo"
+    },
+    "stx": {
+      "header": "Transactions just got smarter",
+      "description_1": "Unlock higher success rates, frontrunning protection, and better visibility with Smart Transactions.",
+      "description_2": "Only available on Ethereum. Enable or disable any time in settings.",
+      "secondary_button": "No thanks",
+      "primary_button": "Enable",
+      "learn_more": "Más información.",
+      "benefit_1_1": "99.5% success",
+      "benefit_1_2": "rate",
+      "benefit_2_1": "Transacción",
+      "benefit_2_2": "protección",
+      "benefit_3_1": "Tiempo real",
+      "benefit_3_2": "actualizaciones"
     }
   },
   "invalid_network": {
@@ -2845,6 +2994,31 @@
     "error_description": "Instalación fallida de {{snap}}."
   },
   "stake": {
-    "stake": "Stake"
+    "stake": "Staking"
+  },
+  "default_settings": {
+    "title": "Su monedero está listo",
+    "description": "MetaMask utiliza la configuración por defecto para equilibrar mejor la seguridad y la facilidad de uso. Cambie esta configuración para aumentar aún más su privacidad.",
+    "learn_more_about_privacy": "Obtenga más información sobre las mejores prácticas de privacidad.",
+    "privacy_policy": "Política de privacidad",
+    "default_settings": "Configuración por defecto",
+    "done": "Hecho",
+    "basic_functionality": "Funcionalidad básica",
+    "manage_networks": "Gestionar redes",
+    "manage_networks_body": "Usamos Infura como nuestro proveedor de llamadas a procedimientos remotos (RPC) para ofrecer el acceso más confiable y privado posible a los datos de Ethereum. Puede elegir su propio RPC, pero recuerde que cualquier RPC recibirá su dirección IP y su monedero de Ethereum para realizar transacciones. Lea nuestra ",
+    "manage_networks_body2": " para saber más sobre cómo Infura maneja los datos.",
+    "functionality_body": "Incluye datos y valor de los tokens, configuración óptima de gas, actualizaciones de seguridad y mucho más. Al usar estos servicios comparte su dirección IP con MetaMask, al igual que cuando visita un sitio web.",
+    "sheet": {
+      "title_off": "Desactivar la funcionalidad básica",
+      "description_off": "Esto significa que no optimizará completamente su tiempo en MetaMask. Las funciones básicas (como los detalles de los tokens, la configuración óptima de gas y otras) no estarán disponibles para usted.",
+      "title_on": "Activar la funcionalidad básica",
+      "description_on": "Para optimizar su tiempo en MetaMask, tendrá que activar esta función. Las funciones básicas (como los detalles de los tokens, la configuración óptima de gas y otras) son importantes para la experiencia Web3.",
+      "checkbox_label": "Entiendo y deseo continuar",
+      "buttons": {
+        "cancel": "Cancelar",
+        "turn_on": "Activar",
+        "turn_off": "Desactivar"
+      }
+    }
   }
 }

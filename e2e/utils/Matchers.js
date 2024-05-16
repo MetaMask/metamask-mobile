@@ -26,6 +26,22 @@ class Matchers {
   }
 
   /**
+   * Get element that match by id and label.
+   * This strategy matches elements by combining 2 matchers together.
+   * Elements returned match the provided ID and Label at the same time.
+   * At this moment, this strategy is only used when trying to select a custom network.
+   * TODO: remove the dependency of by.id and by.label. This only reduce further possible acceptable matchers.
+   *
+   * @param {string} id - Match elements with the specified text
+   * @param {string | RegExp} label - Match elements with the specified text
+   * @param {number} index - Index of the element (default: 0)
+   * @return {Promise<Detox.NativeElement>} - Resolves to the located element
+   */
+  static async getElementByIDAndLabel(id, label, index = 0) {
+    return element(by.id(id).and(by.label(label))).atIndex(index);
+  }
+
+  /**
    * Get element by label.
    *
    * @param {string} label - Match elements with the specified accessibility label (iOS) or content description (Android)
@@ -60,31 +76,46 @@ class Matchers {
   /**
    * Get element by web ID.
    *
-   * @param {string} webID - The web ID of the element to locate
+   * * @param {string} webviewID - The web ID of the inner element to locate within the webview
+   *  @param {string} innerID - The web ID of the browser webview
    * @return {Promise<Detox.IndexableWebElement>} Resolves to the located element
    */
-  static async getElementByWebID(webID) {
-    return web.element(by.web.id(webID));
+  static async getElementByWebID(webviewID, innerID) {
+    const myWebView = web(by.id(webviewID));
+    return myWebView.element(by.web.id(innerID));
   }
 
   /**
    * Get element by CSS selector.
-   *
+   * @param {string} webviewID - The web ID of the browser webview
    * @param {string} selector - CSS selector to locate the element
    * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
    */
-  static async getElementByCSSSelector(selector) {
-    return web.element(by.web.cssSelector(selector));
+
+  static async getElementByCSS(webviewID, selector) {
+    const myWebView = web(by.id(webviewID));
+    return myWebView.element(by.web.cssSelector(selector)).atIndex(0);
   }
 
   /**
    * Get element by XPath.
-   *
+   * @param {string} webviewID - The web ID of the browser webview
    * @param {string} xpath - XPath expression to locate the element
    * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
    */
-  static async getElementByXPath(xpath) {
-    return web.element(by.web.xpath(xpath));
+  static async getElementByXPath(webviewID, xpath) {
+    const myWebView = web(by.id(webviewID));
+    return myWebView.element(by.web.xpath(xpath)).atIndex(0);
+  }
+  /**
+   * Get element by href.
+   * @param {string} webviewID - The web ID of the browser webview
+   * @param {string} xpath - XPath expression to locate the element
+   * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
+   */
+  static async getElementByHref(webviewID, url) {
+    const myWebView = web(by.id(webviewID));
+    return myWebView.element(by.web.href(url)).atIndex(0);
   }
 
   /**

@@ -169,7 +169,10 @@ class WalletConnect2Session {
             );
           }
         } catch (error) {
-          Logger.error(`WC2::constructor error while handling request`, error);
+          Logger.error(
+            error as Error,
+            `WC2::constructor error while handling request`,
+          );
         }
       });
     }
@@ -294,10 +297,17 @@ class WalletConnect2Session {
     accounts,
   }: {
     chainId: number;
-    accounts: string[];
+    accounts?: string[];
   }) => {
     try {
-      if (accounts.length === 0) {
+      if (!accounts) {
+        DevLogger.log(
+          `Invalid accounts --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
+        );
+        return;
+      }
+
+      if (accounts?.length === 0) {
         console.warn(
           `WC2::updateSession invalid accounts --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
         );
@@ -527,9 +537,8 @@ export class WC2Manager {
           `WC2::init accountPermission`,
           JSON.stringify(accountPermission, null, 2),
         );
-        let approvedAccounts = await getPermittedAccounts(
-          accountPermission?.id ?? '',
-        );
+        let approvedAccounts =
+          (await getPermittedAccounts(accountPermission?.id ?? '')) ?? [];
         const fromOrigin = await getPermittedAccounts(
           session.peer.metadata.url,
         );
@@ -548,12 +557,11 @@ export class WC2Manager {
           DevLogger.log(
             `WC2::init fallback to metadata url ${session.peer.metadata.url}`,
           );
-          approvedAccounts = await getPermittedAccounts(
-            session.peer.metadata.url,
-          );
+          approvedAccounts =
+            (await getPermittedAccounts(session.peer.metadata.url)) ?? [];
         }
 
-        if (approvedAccounts.length === 0) {
+        if (approvedAccounts?.length === 0) {
           DevLogger.log(
             `WC2::init fallback to parsing accountPermission`,
             accountPermission,
@@ -596,10 +604,24 @@ export class WC2Manager {
     // Keep at the beginning to prevent double instance from react strict double rendering
     this._initialized = true;
 
+    await wait(1000); // add delay to let the keyringController to be initialized
+
+    // Wait for keychain to be unlocked before initializing WalletConnect
+    const keyringController = (
+      Engine.context as { KeyringController: KeyringController }
+    ).KeyringController;
+    await waitForKeychainUnlocked({
+      keyringController,
+      context: 'WalletConnectV2::init',
+    });
+    const currentRouteName = navigation.getCurrentRoute()?.name;
+
     let core;
     const chainId = parseInt(selectChainId(store.getState()), 16);
 
-    Logger.log(`WalletConnectV2::init() chainId=${chainId}`);
+    DevLogger.log(
+      `WalletConnectV2::init() chainId=${chainId} currentRouteName=${currentRouteName}`,
+    );
 
     try {
       if (typeof PROJECT_ID === 'string') {
@@ -649,7 +671,7 @@ export class WC2Manager {
       await wait(1000);
       this.instance = new WC2Manager(web3Wallet, deeplinkSessions, navigation);
     } catch (error) {
-      Logger.error(`WC2@init() failed to create instance`, error);
+      Logger.error(error as Error, `WC2@init() failed to create instance`);
     }
 
     return this.instance;
@@ -661,7 +683,7 @@ export class WC2Manager {
       const interval = setInterval(() => {
         if (this.instance) {
           if (waitCount % 10 === 0) {
-            Logger.log(
+            DevLogger.log(
               `WalletConnectV2::getInstance() slow waitCount=${waitCount}`,
             );
           }
@@ -804,7 +826,7 @@ export class WC2Manager {
       // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
       const chainId = selectChainId(store.getState());
       DevLogger.log(
-        `WC2::session_proposal getPermittedAccounts for id=${id}, chainId=${chainId}`,
+        `WC2::session_proposal getPermittedAccounts for id=${id} hostname=${url}, chainId=${chainId}`,
         approvedAccounts,
       );
 
@@ -813,31 +835,6 @@ export class WC2Manager {
         chainId: parseInt(chainId),
         accounts: approvedAccounts,
       });
-
-      // // Create updated Permissions now that session is created
-      // permissionsController.requestPermissions(
-      //   { origin: activeSession.topic },
-      //   { eth_accounts: {} },
-      //   { id: activeSession.topic },
-      // );
-      // const request: PermissionsRequest = {
-      //   permissions: {
-      //     eth_accounts: {},
-      //   },
-      //   metadata: {
-      //     id: activeSession.topic,
-      //     origin: activeSession.topic,
-      //   },
-      //   approvedAccounts,
-      // };
-      // await permissionsController.acceptPermissionsRequest(request);
-      // Remove old permissions
-      // permissionsController.revokeAllPermissions(`${id}`);
-      DevLogger.log(
-        `WC2::session_proposal after permissions cleanup`,
-        permissionsController.state,
-      );
-
       const deeplink =
         typeof this.deeplinkSessions[activeSession.pairingTopic] !==
         'undefined';
@@ -890,6 +887,11 @@ export class WC2Manager {
         err,
       );
     }
+  }
+
+  public isWalletConnect(origin: string) {
+    const sessions = this.getSessions();
+    return sessions.some((session) => session.peer.metadata.url === origin);
   }
 
   public async connect({

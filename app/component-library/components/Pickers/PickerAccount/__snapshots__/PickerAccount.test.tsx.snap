@@ -4,7 +4,7 @@ exports[`PickerAccount should render correctly 1`] = `
 <TouchableOpacity
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "borderColor": "#BBC0C5",
@@ -17,7 +17,7 @@ exports[`PickerAccount should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "flex": 1,
         "flexDirection": "row",
       }
@@ -25,7 +25,7 @@ exports[`PickerAccount should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "backgroundColor": "#FFFFFF",
           "borderRadius": 16,
           "height": 32,
@@ -37,11 +37,11 @@ exports[`PickerAccount should render correctly 1`] = `
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "overflow": "hidden",
             },
-            Object {
+            {
               "backgroundColor": "#03415D",
               "borderRadius": 16,
               "height": 32,
@@ -57,12 +57,12 @@ exports[`PickerAccount should render correctly 1`] = `
           focusable={false}
           height={32}
           style={
-            Array [
-              Object {
+            [
+              {
                 "backgroundColor": "transparent",
                 "borderWidth": 0,
               },
-              Object {
+              {
                 "flex": 0,
                 "height": 32,
                 "width": 32,
@@ -71,12 +71,24 @@ exports[`PickerAccount should render correctly 1`] = `
           }
           width={32}
         >
-          <RNSVGGroup>
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
             <RNSVGRect
-              fill={4294034178}
+              fill={
+                {
+                  "payload": 4294034178,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
-                Array [
+                [
                   0.969445349895139,
                   0.24530738587880202,
                   -0.24530738587880202,
@@ -86,7 +98,7 @@ exports[`PickerAccount should render correctly 1`] = `
                 ]
               }
               propList={
-                Array [
+                [
                   "fill",
                 ]
               }
@@ -95,10 +107,15 @@ exports[`PickerAccount should render correctly 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4294711613}
+              fill={
+                {
+                  "payload": 4294711613,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
-                Array [
+                [
                   0.6320293026648508,
                   -0.7749444887041796,
                   0.7749444887041796,
@@ -108,7 +125,7 @@ exports[`PickerAccount should render correctly 1`] = `
                 ]
               }
               propList={
-                Array [
+                [
                   "fill",
                 ]
               }
@@ -117,10 +134,15 @@ exports[`PickerAccount should render correctly 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4294745088}
+              fill={
+                {
+                  "payload": 4294745088,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
-                Array [
+                [
                   0.33873792024529126,
                   0.9408807689542256,
                   -0.9408807689542256,
@@ -130,7 +152,7 @@ exports[`PickerAccount should render correctly 1`] = `
                 ]
               }
               propList={
-                Array [
+                [
                   "fill",
                 ]
               }
@@ -144,7 +166,7 @@ exports[`PickerAccount should render correctly 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
           "justifyContent": "flex-start",
@@ -154,7 +176,7 @@ exports[`PickerAccount should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
@@ -170,7 +192,7 @@ exports[`PickerAccount should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -189,7 +211,7 @@ exports[`PickerAccount should render correctly 1`] = `
     height={20}
     name="ArrowDown"
     style={
-      Object {
+      {
         "height": 20,
         "marginLeft": 16,
         "width": 20,

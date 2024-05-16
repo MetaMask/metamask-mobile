@@ -4,19 +4,19 @@
     "blur_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो कोई Blur पर लिस्टेड आपके सारे एसेट चुरा सकता है।",
     "deceptive_request_title": "इस अनुरोध को धोखेबाजी के उद्देश्य से भेजा गया है",
     "failed_title": "हो सकता है कि अनुरोध सुरक्षित न हो",
-    "failed_description": "कोई समस्या होने के कारण, इस अनुरोध को सिक्यूरिटी प्रोवाइडर द्वारा सत्यापित नहीं किया गया। सावधानी से आगे बढ़ें।",
-    "loading_title": "सुरक्षा अलर्ट की जाँच की जा रही है...",
+    "failed_description": "किसी गड़बड़ी के कारण, इस अनुरोध को सिक्यूरिटी प्रोवाइडर द्वारा सत्यापित नहीं किया गया। सावधानी से आगे बढ़ें।",
+    "loading_title": "सुरक्षा एलर्ट की जाँच की जा रही है...",
     "loading_complete_title": "कोई एलर्ट प्राप्त नहीं हुआ। किसी भी अनुरोध को एप्रूव करने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें।",
-    "malicious_domain_description": "आप एक बुरी नीयत वाले डोमेन से इंटरैक्ट कर रहे हैं। यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
-    "other_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
-    "raw_signature_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
-    "seaport_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो कोई OpenSea पर लिस्टेड आपके सारे एसेट चुरा सकता है।",
+    "malicious_domain_description": "आप एक बुरी नीयत वाले डोमेन से इंटरैक्ट कर रहे हैं। यदि आप इस रिक्वेस्ट को एप्रूव करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
+    "other_description": "यदि आप इस अनुरोध को एप्रूव करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
+    "raw_signature_farming_description": "यदि आप इस अनुरोध को एप्रूव करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
+    "seaport_farming_description": "यदि आप इस अनुरोध को एप्रूव करते हैं, तो कोई OpenSea पर लिस्टेड आपके सारे एसेट चुरा सकता है।",
     "see_details": "विवरण देखें",
     "does_not_look_right": "कुछ तो गड़बड़ है?",
     "report_an_issue": "समस्या रिपोर्ट करें",
     "suspicious_request_title": "इस अनुरोध पर एकदम से भरोसा नहीं किया जा सकता",
-    "trade_order_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
-    "transfer_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो स्कैम के लिए मशहूर कोई तृतीय पक्ष आपके सारे एसेट चुरा सकती है।",
+    "trade_order_farming_description": "यदि आप इस अनुरोध को एप्रूव करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
+    "transfer_farming_description": "यदि आप इस रिक्वेस्ट को एप्रूव करते हैं, तो स्कैम के लिए मशहूर कोई थर्ड पार्टी आपके सारे एसेट चुरा लेगी।",
     "before_you_proceed": "इससे पहले कि आप आगे बढ़ें",
     "enable_blockaid_alerts": "इस सुविधा को चालू करने के लिए हमें कुछ सुरक्षा एलर्ट सेट करने की आवश्यकता है। सेटअप के दौरान इस पेज को खुला रहना होगा। इसे पूरा होने में एक मिनट से भी कम समय लगेगा।",
     "enable_blockaid_alerts_description": "सुरक्षा एलर्ट सेट किए जाने के दौरान इस पेज को खुला रहना होगा। इस प्रक्रिया को पूरा होने में एक मिनट से भी कम समय लगेगा।",
@@ -50,12 +50,12 @@
     "connector": "पर"
   },
   "autocomplete": {
-    "placeholder": "खोजें या URL टाइप करें "
+    "placeholder": "ढूंढें या URL टाइप करें"
   },
   "navigation": {
     "back": "वापस",
     "close": "बंद करें",
-    "cancel": "रद्द करें",
+    "cancel": "कैंसिल करें",
     "info": "जानकारी",
     "ok": "ठीक है"
   },
@@ -93,6 +93,24 @@
     "success": "सफलता",
     "your_wallet": "आपके वॉलेट को सफलतापूर्वक हटा दिया गया है",
     "delete_current": "वर्तमान वॉलेट को डिलीट कर रहे हैं"
+  },
+  "onboarding_success": {
+    "title": "बधाई!",
+    "description": "आपका वॉलेट सुरक्षित है और उपयोग के लिए तैयार है। आप अपना सीक्रेट रिकवरी फ्रेज़ यहां पा सकते हैं ",
+    "description_bold": "सेटिंग्स > सुरक्षा और गोपनीयता।",
+    "description_continued": "अपने सीक्रेट रिकवरी फ्रेज़ का रिमाइंडर कहीं सुरक्षित रखें। यदि आप इसे खो देते हैं, तो इसे वापस पाने में कोई आपकी मदद नहीं कर सकता। इससे भी बुरी बात यह है कि आप कभी भी अपने वॉलेट तक पहुंच नहीं पाएंगे।",
+    "learn_more": "अधिक जानें",
+    "learn_how": "अधिक जानें",
+    "leave_hint": "अपने लिए एक संकेत छोड़ें?",
+    "default_settings": "डिफॉल्ट सेटिंग्स",
+    "manage_default_settings": "डिफॉल्ट सेटिंग्स मैनेज करें",
+    "default_settings_footer": "उपयोग में आसानी और सुरक्षा के लिए सेटिंग्स को अनुकूलित किया गया है।\nइन्हें किसी भी समय बदलें।",
+    "no_srp_title": "रिमाइंडर सेट किया गया!",
+    "no_srp_description": "यदि आप ऐप से बाहर हो जाते हैं या कोई नया डिवाइस प्राप्त करते हैं, तो आप अपना फंड खो देंगे। इसमें अपना सीक्रेट रिकवरी फ्रेज़ का बैकअप लेना सुनिश्चित करें",
+    "import_title": "आपका वॉलेट तैयार है",
+    "import_description": "याद रखें, यदि आप अपना सीक्रेट रिकवरी फ्रेज़ खो देते हैं, तो आप अपने वॉलेट तक पहुंच खो देते हैं। ",
+    "import_description2": "ताकि शब्दों के इस सेट को सुरक्षित रखा जा सके ताकि आप हमेशा अपने फंड तक पहुंच सकें।",
+    "done": "हो गया"
   },
   "onboarding_carousel": {
     "title1": "MetaMask में आपका स्वागत है",
@@ -160,16 +178,20 @@
       "content1": "अपना खाता नाम संपादित करें, इथरस्कैन पर लेन-देन देखें, अपनी सार्वजनिक कुंजी साझा करें, और इस आइकन पर टैप करके अपनी निजी कुंजी देखें"
     },
     "step4": {
-      "title": "अपने वॉलेट का उपयोग करना",
-      "content1": "इस आइकन को टैप करके संपत्ति खरीदें, भेजें, स्वैप करें और प्राप्त करें"
+      "title": "नोटिफिकेशंस",
+      "content1": "आपके वॉलेट में क्या हो रहा है, इसकी जानकारी रखें।"
     },
     "step5": {
-      "title": "Web3 की खोज",
-      "content1": "इस आइकन पर टैप करके ब्राउज़र खोलें"
+      "title": "अपने वॉलेट का उपयोग करना",
+      "content1": "इस आइकन को टैप करके एसेट खरीदें, भेजें, स्वैप करें और प्राप्त करें"
     },
     "step6": {
+      "title": "Web3 की खोज करना",
+      "content1": "इस आइकन पर टैप करके ब्राउज़र खोलें"
+    },
+    "step7": {
       "title": "ब्राउज़र का उपयोग करना",
-      "content1": "खोजशब्दों द्वारा साइटों को खोजें या एक URL दर्ज करें। वहाँ मज़े करो! "
+      "content1": "कीवर्ड द्वारा साइटों को खोजें या एक URL दर्ज करें। वहाँ मज़े करें! "
     }
   },
   "create_wallet": {
@@ -351,17 +373,17 @@
     "no_collectibles": "अपना NFT नहीं देखा?",
     "no_available_tokens": "अपना टोकन नहीं देखें?",
     "add_tokens": "टोकन इम्पोर्ट करें",
-    "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
-    "import_token": "Would you like to import this token?",
+    "are_you_sure_exit": "क्या आप वाकई बाहर जाना चाहते हैं?",
+    "search_information_not_saved": "आपकी खोज जानकारी सेव नहीं की जाएगी।",
+    "import_token": "क्या आप इस टोकन को इंपोर्ट करना चाहेंगे?",
     "tokens_detected_in_account": "इस खाते में {{tokenCount}} नया {{tokensLabel}} मिला",
     "token_toast": {
       "tokens_imported_title": "इंम्पोर्ट किए गए टोकन",
       "tokens_imported_desc": "{{tokenSymbols}} सफलतापूर्वक इम्पोर्ट किया गया",
       "token_imported_title": "इंम्पोर्ट किए गए टोकन",
       "token_imported_desc": "{{tokenSymbol}} सफलतापूर्वक इंपोर्ट किया गया",
-      "token_imported_desc_1": "You’ve imported a token.",
-      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
+      "token_imported_desc_1": "आपने एक टोकन इंपोर्ट कर लिया है।",
+      "tokens_import_success_multiple": "आपने {{tokensNumber}} टोकन इंपोर्ट कर लिया है।",
       "tokens_hidden_title": "टोकन  छुपाना",
       "tokens_hidden_desc": "अपने वॉलेट से पता लगाए गए टोकन छिपाना",
       "token_hidden_title": "टोकन छुपाना",
@@ -422,7 +444,11 @@
     "nfts_autodetect_cta": "सेटिंग्स में जाकर 'NFTs को ऑटोडिटेक्ट करें' को चालू करें",
     "turn_on_network_check_cta": "नेटवर्क डिटेल्स की जांच को चालू करें",
     "display_nft_media_cta_new_1": "NFT देखने के लिए, इसमें 'NFT मीडिया दिखाएं' को चालू करें",
-    "display_nft_media_cta_new_2": "सेटिंग्स > सुरक्षा और गोपनीयता।"
+    "display_nft_media_cta_new_2": "सेटिंग्स > सुरक्षा और गोपनीयता।",
+    "banner": {
+      "title": "बेसिक फंक्शनलिटी बंद है",
+      "link": "बेसिक फंक्शनलिटी को चालू करें"
+    }
   },
   "asset_details": {
     "token": "टोकन",
@@ -446,8 +472,8 @@
   "add_asset": {
     "title": "इम्पोर्ट टोकन",
     "title_nft": "NFT इम्पोर्ट करें",
-    "search_token": "Search",
-    "custom_token": "Custom token",
+    "search_token": "ढूंढें",
+    "custom_token": "कस्टम टोकन",
     "tokens": {
       "cancel_add_token": "रद्द करें",
       "add_token": "इम्पोर्ट"
@@ -473,24 +499,38 @@
   },
   "privacy_policy": {
     "title": "गोपनीयता नीति",
-    "fine_print_1": "यह डेटा एकत्र किया गया है और इसलिए सामान्य डेटा संरक्षण विनियम (EU) 2016/679 के हित में यह अज्ञात है।",
-    "fine_print_2a": "*जब आप MetaMask में अपने डिफ़ॉल्ट RPC प्रोवाइडर के रूप में इन्फ्यूरा का उपयोग करते हैं, और जब आप लेनदेन भेजते हैं तो इन्फ्यूरा आपका IP पता और आपके एथेरियम वॉलेट का पता एकत्र कर लेगा। हम इस जानकारी को इस तरह से स्टोर नहीं करते हैं जिससे हमारे सिस्टम को डेटा के उन दो हिस्सों को जोड़ने की अनुमति मिलती हो। प्रारंभ करने से पहले",
-    "fine_print_2b": "आप अपने RPC प्रोवाइडर को कॉन्फ़िगर कर सकते हैं। \nडेटा संग्रह के दृष्टिकोण से MetaMask और इन्फ्यूरा कैसे इंटरैक्ट करते हैं, इस बारे में अधिक जानकारी के लिए, हमारा अपडेट देखें।",
-    "fine_print_2c": "हमारी सामान्य गोपनीयता प्रथाओं के बारे में अधिक जानकारी के लिए, हमारी गोपनीयता नीति देखें",
-    "here": "यहां",
+    "fine_print_1": "We’ll let you know if we decide to use this data for other purposes. You can review our",
+    "fine_print_2": "for more information. Remember, you can go to settings and opt out at any time.",
+    "privacy_policy_button": "Privacy Policy",
     "agree": "मैं सहमत हूं",
     "decline": "नहीं धन्यवाद",
     "description_title": "MetaMask को बेहतर बनाने में हमारी मदद करें",
-    "description_content_1": "MetaMask बेसिक उपयोग के डेटा को इकट्ठा करना चाहेगा ताकि अच्छी तरह समझ सके कि यूजर मोबाइल ऐप के साथ कैसे परस्पर संपर्क करते हैं। यह डेटा हमारे उत्पाद की उपयोगिता और यूजर के अनुभव को लगातार बेहतर बनाने में इस्तेमाल किया जाएगा।  ",
-    "description_content_2": "MetaMask...",
-    "action_description_1": "हमेशा आपको सेटिंग के माध्यम से ऑप्ट-आउट करने की अनुमति देगा",
-    "action_description_2": "अनामीकृत क्लिक और पेजव्यू इवेंट भेजें",
-    "action_description_3": "देश, क्षेत्र, शहर के डेटा (कोई विशिष्ट स्थान नहीं) भेजें",
-    "action_description_4": "की, पता, लेन-देन, बैलेंस, हैश,या किसी भी व्यक्तिगत जानकारी को कभी एकत्रित ना करें",
-    "action_description_5": "अपने IP एड्रेस को कभी एकत्रित ना करें",
-    "action_description_never": "कभी नहीँ",
+    "description_content_1": "We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.",
+    "description_content_2": "When we gather metrics, it will always be...",
+    "action_description_1_prefix": "Private:",
+    "action_description_2_prefix": "General:",
+    "action_description_3_prefix": "Optional:",
+    "action_description_1_description": "clicks and views on the app are stored, but other details (like your public address) are not.",
+    "action_description_2_description": "we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
+    "action_description_3_description": "you decide if you want to share or delete your usage data via settings any time.",
     "cta_no_thanks": "जी नहीं, धन्यवाद",
-    "cta_i_agree": "मैं सहमत हूं"
+    "cta_i_agree": "मैं सहमत हूं",
+    "fine_print_1_legacy": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679.",
+    "fine_print_2a_legacy": "*When you use Infura as your default RPC provider in MetaMask, Infura will collect your IP address and your Ethereum wallet address when you send a transaction. We don’t store this information in a way that allows our systems to associate those two pieces of data. You can configure your RPC provider",
+    "fine_print_2b_legacy": "before proceeding.\nFor more information on how MetaMask and Infura interact from a data collection perspective, see our update",
+    "fine_print_2c_legacy": ". For more information on our privacy practices in general, see our Privacy Policy",
+    "here_legacy": "here",
+    "description_content_1_legacy": "MetaMask would like to gather usage data to better understand how our users interact with MetaMask. This data will be used to provide the service, which includes improving the service based on your use.",
+    "description_content_2_legacy": "MetaMask will...",
+    "action_description_1_legacy": "Always allow you to opt-out via Settings",
+    "action_description_2_legacy": "Send anonymized click & pageview events",
+    "action_description_3_legacy": "collect information we don’t need to provide the service (such as keys, addresses, transaction hashes, or balances)",
+    "action_description_4_legacy": "collect your full IP address*",
+    "action_description_5_legacy": "sell data. Ever!",
+    "action_description_never_legacy": "Never",
+    "toast_message": "We’ve updated our privacy policy",
+    "toast_action_button": "Close",
+    "toast_read_more": "Read more"
   },
   "template_confirmation": {
     "ok": "ठीक है",
@@ -504,16 +544,16 @@
     "resultPageErrorDefaultMessage": "परिचालन विफल रहा।"
   },
   "token": {
-    "token_symbol": "Token symbol",
+    "token_symbol": "टोकन सिंबल",
     "token_address": "टोकन का पता",
-    "token_decimal": "Token decimal",
+    "token_decimal": "टोकन डेसिमल",
     "search_tokens_placeholder": "टोकन खोजें",
     "address_cant_be_empty": "टोकन का पता कभी खाली नहीं रह सकता।",
     "address_must_be_valid": "टोकन का पता एक मान्य पता होना चाहिए।",
     "symbol_cant_be_empty": "टोकन का प्रतीक खाली नहीं रह सकता।",
-    "symbol_length": "Symbol must be 11 characters or fewer",
+    "symbol_length": "सिंबल 11 करैक्टर या उससे कम का होना चाहिए",
     "decimals_cant_be_empty": "टोकन का दशमलव खाली नहीं रह सकता।",
-    "decimals_is_required": "Decimal is required. Find it on:",
+    "decimals_is_required": "डेसिमल आवश्यक है। इसे यहां खोजें:",
     "no_tokens_found": "हम उस नाम के साथ कोई टोकन नहीं ढ़ूंढ़ सके।",
     "select_token": "टोकन चुनें",
     "address_must_be_smart_contract": "व्यक्तिगत पता का पहचान हुई। टोकन अनुबंध पता दर्ज करें।"
@@ -541,7 +581,8 @@
     "collectible_asset_contract": "संपत्ति का अनुबंध",
     "share_check_out_nft": "मेरे NFT को देखें!",
     "share_via": "के जरिए साझा किया गया",
-    "untitled_collection": "शीर्षकहीन संग्रह"
+    "untitled_collection": "शीर्षकहीन संग्रह",
+    "collection": "संग्रह"
   },
   "transfer": {
     "title": "स्थानांतरण",
@@ -682,6 +723,12 @@
     "nft_opensea_desc": " NFT मीडिया और डेटा के प्रदर्शन से आपका IP एड्रेस केन्द्रीकृत सर्वरों के सामने आ सकता है।  NFT डेटा लाने के लिए OpenSea के API का उपयोग करें। NFT का ऑटो-डिटेक्शन OpenSea के API पर भरोसा करता है, और जब यह बंद होता है तो यह उपलब्ध नहीं होगा। NFT को ऑटो-डिटेक्शन समर्थ बनाना आपके वॉलेट में किसी के द्वारा भेजे गए नकली NFT को आपके सामने लाता है, और एक हमलावर को आपके Ethereum पते से आपका IP एड्रेस जानने की अनुमति दे सकता है।",
     "nft_autodetect_mode": "ऑटोडिटेक्ट NFT",
     "nft_autodetect_desc": " NFT मीडिया और डेटा के प्रदर्शन से आपका IP एड्रेस केन्द्रीकृत सर्वरों के सामने आ सकता है।  तीसरे-पक्ष API (जैसे OpenSea) का उपयोग आपके वॉलेट में NFT का पता लगाने में किया जाता है। यह आपके अकाउंट के पते को उन सेवाओं के सामने उजागर करता है। इसे अक्षम ही छोड़ दें यदि आप नहीं चाहते कि ऐप उन सेवाओं में से डेटा बाहर निकालें।",
+    "show_fiat_on_testnets": "टेस्ट नेटवर्क पर कन्वर्शन दिखाएं",
+    "show_fiat_on_testnets_desc": "टेस्ट नेटवर्क पर फिएट कन्वर्शन दिखाने के लिए इसको चुनें",
+    "show_fiat_on_testnets_modal_title": "सावधान रहें",
+    "show_fiat_on_testnets_modal_description": "यदि आपसे इस सुविधा को चालू करने के लिए कहा गया है, तो हो सकता है कि आपके साथ धोखाधड़ी हो रही हो। इन टोकन का कोई मौद्रिक मूल्य नहीं है और ये केवल परीक्षण उद्देश्यों के लिए हैं। यह सुविधा डेवलपर्स को यह सुनिश्चित करने में मदद करती है कि उनके ऐप्स काम करें।",
+    "show_fiat_on_testnets_modal_learn_more": "अधिक जानें।",
+    "show_fiat_on_testnets_modal_button": "जारी रखें",
     "show_hex_data": "हेक्स डेटा दिखाएं",
     "show_hex_data_desc": "भेजे गए स्क्रीन पर हेक्स डेटा फील्ड को दिखाने के लिए इसको चुनें।",
     "toggleEthSignBannerDescription": "आपको फिशिंग हमलों का जोखिम है। Eth_sign को बंद करके अपनी सुरक्षा करें।",
@@ -712,6 +759,26 @@
     "general_desc": "करेंसी का रुपांतरण, प्राथमिक करेंसी, भाषा और सर्च इंजन",
     "advanced_title": "एडवांस",
     "advanced_desc": "डेवलपर फीचर, अकाउंट रिसेट, टेस्टनेट सेटअप, स्टेट लॉग, IPFS गेटवे और कस्टम RPC तक पहुंच बनाएं",
+    "notifications_title": "नोटिफिकेशंस",
+    "notifications_desc": "अपने नोटिफिकेशंस मैनेज करें",
+    "allow_notifications": "नोटिफिकेशंस की अनुमति दें",
+    "allow_notifications_desc": "नोटिफिकेशंस के साथ आपके वॉलेट में क्या हो रहा है, इसकी जानकारी रखें। नोटिफिकेशंस का उपयोग करने के लिए, हम आपके डिवाइस में कुछ सेटिंग्स को सिंक करने के लिए एक प्रोफ़ाइल का उपयोग करते हैं। जानें कि इस सुविधा का उपयोग करते समय हम आपकी गोपनीयता की सुरक्षा कैसे करते हैं।",
+    "notifications_opts": {
+      "customize_session_title": "अपने नोटिफिकेशंस कस्टमाइज़ करें",
+      "customize_session_desc": "आप जिस प्रकार के नोटिफिकेशंस प्राप्त करना चाहते हैं, उन्हें चालू करें:",
+      "account_session_title": "अकाउंट एक्टिविटी",
+      "account_session_desc": "वे अकाउंट चुनें जिनके बारे में आप सूचित होना चाहते हैं:",
+      "assets_sent_title": "एसेट भेजे गए",
+      "assets_sent_desc": "फंड और NFT",
+      "assets_received_title": "एसेट प्राप्त किए गए",
+      "assets_received_desc": "फंड और NFT",
+      "defi_title": "DeFi",
+      "defi_desc": "स्टेक करना, स्वैप करना और ब्रिज करना",
+      "snaps_title": "Snaps",
+      "snaps_desc": "नए फीचर्स और अपडेट",
+      "products_announcements_title": "प्रॉडक्ट घोषणाएं",
+      "products_announcements_desc": "नए प्रॉडक्ट और फीचर्स"
+    },
     "contacts_title": "संपर्क",
     "contacts_desc": "अपने अकाउंट को जोड़ें, संपादित करें, और प्रबंधित करें",
     "security_title": "सुरक्षा और गोपनीयता",
@@ -774,6 +841,7 @@
     "ses_heading": "कोड लॉकडाउन",
     "ses_description": "यह एक परीक्षण सुविधा है जो बिना अनुमति के ऐप के जावास्क्रिप्ट कोड में किसी भी बदलाव को रोकती है।",
     "ses_link": "ज़्यादा जानें",
+    "general_heading": "सामान्य",
     "privacy_heading": "गोपनीयता",
     "failed_to_fetch_chain_id": "चेन ID नहीं लाई जा सकी। क्या आपका RPC URL सही है?",
     "endpoint_returned_different_chain_id": "अंतिम पॉइंट ने एक अलग चेन ID: %{chainIdReturned} लौटाई",
@@ -832,8 +900,13 @@
       "sdk_activation_keys": "SDK सक्रियण कुंजियाँ",
       "activation_keys_description": "सक्रियकरण कुंजियाँ विशिष्ट विशेषताओं या प्रदाताओं को सक्षम करेंगी।",
       "add_activation_key": "सक्रियकरण कुंजी जोड़ें",
+      "edit_activation_key": "एक्टिवेशन की (key) एडिट करें",
       "paste_or_type_activation_key": "एक सक्रियकरण कुंजी चिपकाएँ या टाइप करें",
+      "add_label": "इस की (key) के लिए एक लेबल जोड़ें",
+      "label": "लेबल",
+      "key": "की (key)",
       "add": "जोड़ें",
+      "update": "अपडेट करें",
       "cancel": "रद्द करें"
     },
     "request_feature": "एक सुविधा का रिक्वेस्ट करें",
@@ -899,10 +972,12 @@
     "token_nft_ens_subheading": "टोकन, NFT और ENS ऑटो-डिटेक्शन",
     "security_check_subheading": "सुरक्षा जाँचें",
     "symbol_required": "सिंबल की ज़रूरत है।",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "गोपनीयता को सुरक्षित रखना - कोई भी डेटा थर्ड पार्टी के साथ साझा नहीं किया जाता है। Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon और Sepolia पर उपलब्ध है।",
+    "blockaid_desc": "गोपनीयता को सुरक्षित रखना - कोई भी डेटा थर्ड पार्टी के साथ साझा नहीं किया जाता है। Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon, Sepolia और Base पर उपलब्ध है।",
     "security_alerts": "सुरक्षा एलर्ट",
-    "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।"
+    "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।",
+    "smart_transactions_opt_in_heading": "स्मार्ट ट्रांसेक्शन",
+    "smart_transactions_opt_in_desc": "अधिक विश्वसनीय और सुरक्षित ट्रांसेक्शन के लिए स्मार्ट ट्रांसेक्शन और ETH मेननेट (mainnet) पर एडजस्टेबल फ़ीस चालू करें।",
+    "smart_transactions_learn_more": "अधिक जानें।"
   },
   "sdk": {
     "disconnect_title": "सभी साइटों को डिसकनेक्ट करें?",
@@ -1129,6 +1204,7 @@
     "confirm": "पुष्टि करें"
   },
   "transaction": {
+    "transaction_id": "ट्रांसेक्शन आईडी",
     "alert": "सावधान",
     "amount": "रकम",
     "next": "अगला",
@@ -1301,7 +1377,7 @@
     "contract": "अनुबंध ({{address}})",
     "contract_name": "अनुबंध का नाम:",
     "contract_address": "अनुबंध का पता:",
-    "invalid_contract_address": " Contract address is invalid. Enter a new one",
+    "invalid_contract_address": " कॉन्ट्रैक्ट एड्रेस अमान्य है। कोई नया दर्ज करें",
     "contract_allowance": "भत्ता:",
     "data": "डेटा",
     "function_approve": "फंक्शन: स्वीकृति",
@@ -1345,6 +1421,9 @@
     "remove_bookmark_title": "पसंदीदा हटाएं",
     "remove_bookmark_msg": "क्या आप वास्तव में इस साइट को अपने पसंदीदा से हटाना चाहते हैं?",
     "yes": "हां",
+    "undefined_account": "अपरिभाषित अकाउंट",
+    "close_tab": "टैब बंद करें",
+    "switch_tab": "टैब स्विच करें",
     "protocol_alert_options": {
       "ignore": "नजरअंदाज करें",
       "allow": "अनुमति दें"
@@ -1410,8 +1489,12 @@
     "to": "को",
     "details": "विवरण",
     "amount": "रकम",
+    "gas_used": "इस्तेमाल की गई गैस (यूनिट्स)",
     "gas_limit": "गैस की सीमा (इकाई)",
     "gas_price": "गैस की कीमत (GWEI)",
+    "base_fee": "बेस फी (GWEI)",
+    "priority_fee": "प्रायोरिटी फी (GWEI)",
+    "max_fee": "प्रति गैस अधिकतम फीस",
     "total": "कुल",
     "view_on": "देखें",
     "view_on_etherscan": "Etherscan पर देखें",
@@ -1433,7 +1516,26 @@
     "sign_title_device": "अपने कीस्टोन के साथ",
     "sign_description_1": "कीस्टोन के साथ आपके द्वारा साइन किए जाने के बाद",
     "sign_description_2": "गेट सिग्नेचर पर टैप करें",
-    "sign_get_signature": "हस्ताक्षर प्राप्त करें"
+    "sign_get_signature": "हस्ताक्षर प्राप्त करें",
+    "network_fee": "नेटवर्क फीस"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "आपका ट्रांसेक्शन सबमिट कर रहे हैं",
+    "status_submitting_description": "अनुमानित पूरा होने का समय {{timeLeft}}",
+    "status_success_header": "आपका ट्रांसेक्शन पूरा हो गया है",
+    "status_submitting_past_estimated_deadline_header": "माफ़ी चाहते हैं कि आपको इंतज़ार करना पड़ा",
+    "status_submitting_past_estimated_deadline_description": "यदि आपका ट्रांसेक्शन {{timeLeft}} के भीतर फाइनलाइज़ नहीं होता है, तो इसे कैंसिल कर दिया जाएगा और आपसे गैस फ़ीस नहीं ली जाएगी।",
+    "status_cancelled_header": "आपका ट्रांसेक्शन कैंसिल कर दिया गया था",
+    "status_cancelled_description": "आपका ट्रांसेक्शन पूरा नहीं हो सका, इसलिए आपको अनावश्यक गैस फीस भरने से बचाने के लिए इसे कैंसिल कर दिया गया।",
+    "status_failed_header": "आपका ट्रांसेक्शन नहीं हो पाया",
+    "status_failed_description": "बाज़ार में अचानक हुए परिवर्तन विफलताओं का कारण बन सकते हैं। यदि समस्या बनी रहती है, तो MetaMask कस्टमर सपोर्ट से संपर्क करें।",
+    "view_transaction": "ट्रांसेक्शन देखें",
+    "view_activity": "एक्टिविटी देखें",
+    "return_to_dapp": "{{dappName}} पर वापस जाएं",
+    "try_again": "फिर से कोशिश करें",
+    "create_new": "नया {{txType}} बनाएं",
+    "swap": "स्वैप करें",
+    "send": "भेजें"
   },
   "address_book": {
     "recents": "हाल ही",
@@ -1782,6 +1884,16 @@
     "back_to_safety": "सुरक्षा पर वापस जाएं"
   },
   "notifications": {
+    "stake_completed": "स्टेक पूरा हुआ",
+    "withdrawal_completed": "विदड्रॉवल पूरा हुआ",
+    "unstake_completed": "अनस्टेक पूरा हुआ",
+    "withdrawal_requested": "विदड्रॉवल का अनुरोध किया गया",
+    "stake_ready_to_be_withdrawn": "स्टेक विदड्रॉ करने के लिए तैयार है",
+    "swap_completed": "{{from}} को {{to}} के लिए स्वैप किया गया",
+    "sent": "{{address}} पर भेजा गया",
+    "received": "{{address}} से प्राप्त हुआ",
+    "sent_nft": "NFT को {{address}} पर भेजा गया",
+    "received_nft": "NFT को {{address}} से प्राप्त किया गया",
     "pending_title": "लेन-देन सबमिट किया गया",
     "pending_deposit_title": "प्रगति में जमा करें!",
     "pending_withdrawal_title": "प्रगति में निकालें!",
@@ -1797,9 +1909,9 @@
     "pending_deposit_message": "जमा पूरा होने का इंतजार करना",
     "pending_withdrawal_message": "निकासी पूरा होने का इंतजार करना",
     "error_message": "इस लेन-देन को देखने के लिए टैप करें",
-    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
-    "error_fcm_not_found": "getFCMToken: No FCM token found",
-    "error_checking_permission": "Error checking if a user has push notifications permission",
+    "error_retrieving_fcm_token": "एफसीएम टोकन प्राप्त करने और सेव करने में गड़बड़ी",
+    "error_fcm_not_found": "getFCMToken: कोई एफसीएम टोकन नहीं मिला",
+    "error_checking_permission": "यह जाँचने में गड़बड़ी कि क्या किसी उपयोगकर्ता के पास पुश सूचना अनुमति है",
     "success_message": "इस लेन-देन को देखने के लिए टैप करें",
     "speedup_message": "लेन-देन की गति बढ़ाने की कोशिश करना",
     "success_deposit_message": "आपके फंड उपयोग के लिए तैयार हैं",
@@ -1819,7 +1931,30 @@
     "wc_signed_failed_title": "यह साइन रिक्वेस्ट विफल हो गया",
     "wc_sent_tx_rejected_title": "आपने लेन-देन का रिक्वेस्ट अएप्रूव कर दिया है",
     "approved_tx_rejected_title": "आपने अनुमति देने से इनकार किया है",
-    "wc_description": "कृपया एप्लिकेशन को जांचें"
+    "wc_description": "कृपया एप्लिकेशन को जांचें",
+    "wallet": "वॉलेट",
+    "web3": "Web3",
+    "empty": {
+      "title": "यहाँ देखने के लिए कुछ नहीं है।",
+      "message": "यहाँ पर आप अपने वॉलेट में गतिविधि होने पर नोटिफिकेशंस पा सकते हैं। "
+    },
+    "list": {
+      "0": "सभी",
+      "1": "वॉलेट",
+      "2": "घोषणाएं"
+    },
+    "address_copied_to_clipboard": "एड्रेस क्लिपबोर्ड पर कॉपी किया गया",
+    "transaction_id_copied_to_clipboard": "ट्रांसेक्शन आईडी क्लिपबोर्ड पर कॉपी किया गया",
+    "activation_card": {
+      "title": "नोटिफिकेशंस चालू करें",
+      "description_1": "नोटिफिकेशंस के साथ आपके वॉलेट में क्या हो रहा है, इसकी जानकारी रखें। ",
+      "description_2": "इस सुविधा का उपयोग करने के लिए, हम आपके अकाउंट के लिए एक अनाम आईडी तैयार करेंगे। इसका उपयोग केवल MetaMask में आपके डेटा को सिंक करने के लिए किया जाता है और यह आपकी गोपनीयता सुनिश्चित करते हुए आपकी गतिविधियों या अन्य पहचानकर्ताओं से लिंक नहीं होता है।",
+      "learn_more": "जानें कि इस फीचर का उपयोग करते समय हम आपकी गोपनीयता की सुरक्षा कैसे करते हैं। ",
+      "manage_preferences_1": "आप किसी भी समय नोटिफिकेशंस बंद कर सकते हैं ",
+      "manage_preferences_2": "सेटिंग्स > नोटीफिकेशंस में।",
+      "cancel": "कैंसिल करें",
+      "cta": "चालू करें"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "अपने वॉलेट की सुरक्षा करें",
@@ -2420,13 +2555,27 @@
       "title": "सुरक्षा चेतावनियों के माध्यम से सुरक्षित रहें",
       "description_1": "ब्लॉकएड द्वारा संचालित सिक्योरिटी अलर्ट के साथ अपनी गोपनीयता की रक्षा करते हुए पहचाने गए स्कैम से सुरक्षित रहें। यह सुविधा अब सभी MetaMask उपयोगकर्ताओं के लिए डिफ़ॉल्ट रूप से चालू है।",
       "description_2": "किसी भी रिक्वेस्ट को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें।",
-      "description_3": "Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon और Sepolia पर उपलब्ध है।",
+      "description_3": "Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon, Sepolia और Base पर उपलब्ध है।",
       "got_it": "समझ गए"
     },
     "sell": {
       "title": "पैसे निकालना आसान कर दिया गया",
       "description": "अपना क्रिप्टो सीधे MetaMask में बेचें! हम आपको भरोसेमंद प्रोवाइडर्स से कोटेशन पाने में मदद करेंगे, ताकि आप हर बार अपने क्रिप्टो को एक्सेस किए जा सकने वाले, तेज़ और सुरक्षित तरीके से बेच सकें।",
       "action_text": "इसे आज़माकर देखें"
+    },
+    "stx": {
+      "header": "Transactions just got smarter",
+      "description_1": "Unlock higher success rates, frontrunning protection, and better visibility with Smart Transactions.",
+      "description_2": "Only available on Ethereum. Enable or disable any time in settings.",
+      "secondary_button": "No thanks",
+      "primary_button": "Enable",
+      "learn_more": "अधिक जानें।",
+      "benefit_1_1": "99.5% success",
+      "benefit_1_2": "rate",
+      "benefit_2_1": "ट्रांसेक्शन",
+      "benefit_2_2": "सुरक्षा",
+      "benefit_3_1": "रियल टाइम",
+      "benefit_3_2": "अपडेट"
     }
   },
   "invalid_network": {
@@ -2845,6 +2994,31 @@
     "error_description": "{{snap}} का इंस्टॉलेशन नहीं हो पाया।"
   },
   "stake": {
-    "stake": "Stake"
+    "stake": "हिस्सेदारी"
+  },
+  "default_settings": {
+    "title": "आपका वॉलेट तैयार है",
+    "description": "MetaMask सुरक्षा और उपयोग में आसानी को संतुलित करने के लिए डिफॉल्ट सेटिंग्स का उपयोग करता है। अपनी गोपनीयता को और बढ़ाने के लिए इन सेटिंग्स को बदलें।",
+    "learn_more_about_privacy": "गोपनीयता की सर्वोत्तम प्रथाओं के बारे में और जानें।",
+    "privacy_policy": "गोपनीयता नीति",
+    "default_settings": "डिफॉल्ट सेटिंग्स",
+    "done": "हो गया",
+    "basic_functionality": "बेसिक फंक्शनलिटी",
+    "manage_networks": "नेटवर्क मैनेज करें",
+    "manage_networks_body": "हम अपने रिमोट प्रोसीजर कॉल (RPC) प्रोवाइडर के रूप में Infura का इस्तेमाल करते हैं ताकि हम Ethereum डेटा तक सबसे विश्वसनीय और निजी ऐक्सेस प्रदान कर सकें। आप अपना स्वयं का RPC चुन सकते हैं, लेकिन याद रखें कि ट्रांसेक्शन करने के लिए कोई भी RPC आपका IP एड्रेस और Ethereum वॉलेट प्राप्त करेगा। ",
+    "manage_networks_body2": " Infura डेटा को कैसे मैनेज करता है, इस बारे में अधिक जानने के लिए हमारी पढ़ें।",
+    "functionality_body": "इसमें टोकन डेटा और मूल्य, ऑप्टीमल गैस सेटिंग्स, सिक्योरिटी अपडेट और बहुत कुछ शामिल है। इन सेवाओं का उपयोग करने से आपका आईपी ​​एड्रेस MetaMask के साथ शेयर हो जाता है, ठीक उसी तरह जब आप किसी वेबसाइट पर जाते हैं।",
+    "sheet": {
+      "title_off": "बेसिक फंक्शनलिटी को बंद करें",
+      "description_off": "इसका मतलब यह है कि आप MetaMask पर अपना समय सबसे अच्छे तरीके से इस्तेमाल नहीं कर पाएंगे। बेसिक फीचर्स (जैसे, टोकन विवरण, ऑप्टीमल गैस सेटिंग्स और अन्य) आपके लिए उपलब्ध नहीं होंगे।",
+      "title_on": "बेसिक फंक्शनलिटी को चालू करें",
+      "description_on": "MetaMask पर अपना समय अच्छे तरीके से इस्तेमाल करने के लिए, आपको इस फीचर को चालू करना होगा। बुनियादी कार्य (जैसे, टोकन विवरण, ऑप्टीमल गैस सेटिंग्स और अन्य) Web3 अनुभव के लिए महत्वपूर्ण हैं।",
+      "checkbox_label": "मैं समझता/समझती हूं और जारी रखना चाहता/चाहती हूं",
+      "buttons": {
+        "cancel": "कैंसिल करें",
+        "turn_on": "चालू करें",
+        "turn_off": "बंद करें"
+      }
+    }
   }
 }

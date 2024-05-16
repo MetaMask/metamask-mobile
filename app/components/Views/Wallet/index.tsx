@@ -1,7 +1,19 @@
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import { ActivityIndicator, StyleSheet, View, TextStyle } from 'react-native';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  useContext,
+} from 'react';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  View,
+  TextStyle,
+  Linking,
+} from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
-import { useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
@@ -14,6 +26,16 @@ import {
   hexToBN,
   toHexadecimal,
 } from '../../../util/number';
+import {
+  shouldShowNewPrivacyToastSelector,
+  storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
+  storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
+} from '../../../reducers/legalNotices';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -43,8 +65,14 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import Text, {
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useAccounts } from '../../hooks/useAccounts';
+import { RootState } from 'app/reducers';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -78,15 +106,26 @@ const createStyles = ({ colors, typography }: Theme) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
+    banner: {
+      widht: '80%',
+      marginTop: 20,
+      paddingHorizontal: 16,
+    },
   });
 
 /**
  * Main view for the wallet
  */
-const Wallet = ({ navigation }: any) => {
+const Wallet = ({
+  navigation,
+  storePrivacyPolicyShownDate,
+  shouldShowNewPrivacyToast,
+  storePrivacyPolicyClickedOrClosed,
+}: any) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
+  const { toastRef } = useContext(ToastContext);
   const { trackEvent } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
@@ -126,9 +165,54 @@ const Wallet = ({ navigation }: any) => {
   const providerConfig = useSelector(selectProviderConfig);
 
   /**
+   * Is basic functionality enabled
+   */
+  const basicFunctionalityEnabled = useSelector(
+    (state: RootState) => state.settings.basicFunctionalityEnabled,
+  );
+
+  /**
    * A list of all the user accounts and a mapping of ENS name to account address if they exist
    */
   const { accounts, ensByAccountAddress } = useAccounts();
+
+  const currentToast = toastRef?.current;
+
+  useEffect(() => {
+    if (!shouldShowNewPrivacyToast) return;
+
+    storePrivacyPolicyShownDate();
+    currentToast?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: strings(`privacy_policy.toast_message`),
+          isBold: false,
+        },
+      ],
+      closeButtonOptions: {
+        label: strings(`privacy_policy.toast_action_button`),
+        onPress: () => {
+          storePrivacyPolicyClickedOrClosed();
+          currentToast?.closeToast();
+        },
+      },
+      linkButtonOptions: {
+        label: strings(`privacy_policy.toast_read_more`),
+        onPress: () => {
+          storePrivacyPolicyClickedOrClosed();
+          currentToast?.closeToast();
+          Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+        },
+      },
+      hasNoTimeout: true,
+    });
+  }, [
+    storePrivacyPolicyShownDate,
+    shouldShowNewPrivacyToast,
+    storePrivacyPolicyClickedOrClosed,
+    currentToast,
+  ]);
 
   /**
    * An object representing the currently selected account.
@@ -139,6 +223,10 @@ const Wallet = ({ navigation }: any) => {
     }
     return undefined;
   }, [accounts]);
+
+  const isNotificationEnabled = useSelector(
+    (state: any) => state.notification?.notificationsSettings?.isEnabled,
+  );
 
   /**
    * ENS name for the currently selected account.
@@ -226,10 +314,18 @@ const Wallet = ({ navigation }: any) => {
         onTitlePress,
         navigation,
         themeColors,
+        isNotificationEnabled,
       ),
     );
     /* eslint-disable-next-line */
-  }, [navigation, themeColors, networkName, networkImageSource, onTitlePress]);
+  }, [
+    navigation,
+    themeColors,
+    networkName,
+    networkImageSource,
+    onTitlePress,
+    isNotificationEnabled,
+  ]);
 
   const renderTabBar = useCallback(
     (props) => (
@@ -260,6 +356,12 @@ const Wallet = ({ navigation }: any) => {
     },
     [trackEvent],
   );
+
+  const turnOnBasicFunctionality = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+    });
+  }, [navigation]);
 
   const renderContent = useCallback(() => {
     let balance: any = 0;
@@ -301,6 +403,19 @@ const Wallet = ({ navigation }: any) => {
     }
     return (
       <View style={styles.wrapper}>
+        {!basicFunctionalityEnabled ? (
+          <View style={styles.banner}>
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              title={strings('wallet.banner.title')}
+              description={
+                <Text color={TextColor.Info} onPress={turnOnBasicFunctionality}>
+                  {strings('wallet.banner.link')}
+                </Text>
+              }
+            />
+          </View>
+        ) : null}
         {selectedAccount ? (
           <WalletAccount
             account={selectedAccount}
@@ -342,7 +457,10 @@ const Wallet = ({ navigation }: any) => {
     providerConfig.chainId,
     selectedAddress,
     styles.wrapper,
+    styles.banner,
     styles.walletAccount,
+    basicFunctionalityEnabled,
+    turnOnBasicFunctionality,
     selectedAccount,
     ensForSelectedAccount,
     renderTabBar,
@@ -366,7 +484,7 @@ const Wallet = ({ navigation }: any) => {
    */
   const renderOnboardingWizard = useCallback(
     () =>
-      [1, 2, 3].includes(wizardStep) && (
+      [1, 2, 3, 4, 5, 6, 7].includes(wizardStep) && (
         <OnboardingWizard
           navigation={navigation}
           coachmarkRef={walletRef.current}
@@ -386,4 +504,15 @@ const Wallet = ({ navigation }: any) => {
   );
 };
 
-export default Wallet;
+const mapStateToProps = (state: any) => ({
+  shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
+});
+
+const mapDispatchToProps = (dispatch: any) => ({
+  storePrivacyPolicyShownDate: () =>
+    dispatch(storePrivacyPolicyShownDateAction(Date.now())),
+  storePrivacyPolicyClickedOrClosed: () =>
+    dispatch(storePrivacyPolicyClickedOrClosedAction()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Wallet);

@@ -23,7 +23,6 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
-import { SelectedAccount } from '../../../components/UI/AccountSelectorList/AccountSelectorList.types';
 import { USER_INTENT } from '../../../constants/permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import UntypedEngine from '../../../core/Engine';
@@ -46,8 +45,6 @@ import { Account, useAccounts } from '../../hooks/useAccounts';
 // Internal dependencies.
 import { StyleSheet } from 'react-native';
 import URLParse from 'url-parse';
-import AppConstants from '../../../../app/core/AppConstants';
-import { RootState } from '../../../../app/reducers';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
@@ -57,6 +54,7 @@ import {
   MM_PHISH_DETECT_URL,
 } from '../../../constants/urls';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import { useTheme } from '../../../util/theme';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
@@ -109,7 +107,10 @@ const AccountConnect = (props: AccountConnectProps) => {
       : AvatarAccountType.JazzIcon,
   );
 
-  const { id: channelId, origin: metadataOrigin } = hostInfo.metadata as {
+  // on inappBrowser: hostname
+  // on walletConnect: hostname
+  // on sdk or walletconnect
+  const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
   };
@@ -117,12 +118,15 @@ const AccountConnect = (props: AccountConnectProps) => {
   const origin: string = useSelector(getActiveTabUrl, isEqual);
   const accountsLength = useSelector(selectAccountsLength);
 
-  const [hostname, setHostname] = useState<string>(origin);
+  const sdkConnection = SDKConnect.getInstance().getConnection({
+    channelId: channelIdOrHostname,
+  });
+  const hostname =
+    origin ?? channelIdOrHostname.indexOf('.') !== -1
+      ? channelIdOrHostname
+      : sdkConnection?.originatorInfo?.url ?? '';
 
   const urlWithProtocol = prefixUrlWithProtocol(hostname);
-  const sdkConnection = SDKConnect.getInstance().getConnection({ channelId });
-  // Last wallet connect session metadata
-  const wc2Metadata = useSelector((state: RootState) => state.sdk.wc2Metadata);
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
@@ -144,7 +148,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   useEffect(() => {
-    const url = dappUrl || wc2Metadata?.url || '';
+    const url = dappUrl || channelIdOrHostname || '';
 
     const cleanUrl = url.replace(/^https?:\/\//, '');
 
@@ -154,7 +158,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       setBlockedUrl(dappUrl);
       setShowPhishingModal(true);
     }
-  }, [isAllowedUrl, dappUrl, wc2Metadata?.url]);
+  }, [isAllowedUrl, dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(origin);
 
@@ -171,21 +175,17 @@ const AccountConnect = (props: AccountConnectProps) => {
     [hostname],
   );
 
-  const loadHostname = useCallback(async () => {
+  const eventSource = useMemo(() => {
+    // walletconnect channelId format: app.name.org
+    // sdk channelId format: uuid
+    // inappbrowser channelId format: app.name.org but origin is set
     if (sdkConnection) {
-      const _hostname = (
-        sdkConnection?.originatorInfo?.url ?? metadataOrigin
-      ).replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
-      return _hostname;
+      return 'sdk';
+    } else if (origin) {
+      return 'in-app browser';
     }
-
-    return wc2Metadata?.url ?? channelId;
-  }, [channelId, metadataOrigin, sdkConnection, wc2Metadata]);
-
-  // Retrieve hostname info based on channelId
-  useEffect(() => {
-    loadHostname().then(setHostname);
-  }, [hostname, setHostname, loadHostname]);
+    return 'walletconnect';
+  }, [sdkConnection, origin]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -202,11 +202,14 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const cancelPermissionRequest = useCallback(
     (requestId) => {
+      DevLogger.log(
+        `AccountConnect::cancelPermissionRequest requestId=${requestId} channelIdOrHostname=${channelIdOrHostname} accountsLength=${accountsLength}`,
+      );
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
-      if (channelId && accountsLength === 0) {
+      if (channelIdOrHostname && accountsLength === 0) {
         // Remove Potential SDK connection
         SDKConnect.getInstance().removeChannel({
-          channelId,
+          channelId: channelIdOrHostname,
           sendTerminate: true,
         });
       }
@@ -219,7 +222,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     [
       Engine.context.PermissionController,
       accountsLength,
-      channelId,
+      channelIdOrHostname,
       trackEvent,
     ],
   );
@@ -272,20 +275,17 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleConnect = useCallback(async () => {
-    const selectedAccounts: SelectedAccount[] = selectedAddresses.map(
-      (address, index) => ({ address, lastUsed: Date.now() - index }),
-    );
     const request = {
       ...hostInfo,
       metadata: {
         ...hostInfo.metadata,
-        origin: metadataOrigin,
+        origin: channelIdOrHostname,
       },
-      approvedAccounts: selectedAccounts,
+      approvedAccounts: selectedAddresses,
     };
 
-    const connectedAccountLength = selectedAccounts.length;
-    const activeAddress = selectedAccounts[0].address;
+    const connectedAccountLength = selectedAddresses.length;
+    const activeAddress = selectedAddresses[0];
     const activeAccountName = getAccountNameWithENS({
       accountAddress: activeAddress,
       accounts,
@@ -304,7 +304,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         number_of_accounts: accountsLength,
         number_of_accounts_connected: connectedAccountLength,
         account_type: getAddressAccountType(activeAddress),
-        source: 'in-app browser',
+        source: eventSource,
       });
       let labelOptions: ToastOptions['labelOptions'] = [];
       if (connectedAccountLength > 1) {
@@ -334,6 +334,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       setIsLoading(false);
     }
   }, [
+    eventSource,
     selectedAddresses,
     hostInfo,
     accounts,
@@ -342,7 +343,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     Engine.context.PermissionController,
     toastRef,
     accountsLength,
-    metadataOrigin,
+    channelIdOrHostname,
     triggerDappViewedEvent,
     trackEvent,
   ]);

@@ -2,7 +2,7 @@
 // Ex. This makes it so that when you import CloseIcon from './close-icon.svg, CloseIcon, will be detected as a React.FC component.
 declare module '*.mp4';
 
-declare module '@exodus/react-native-payments/lib/js/__mocks__';
+declare module '@metamask/react-native-payments/lib/js/__mocks__';
 
 declare module 'react-native-fade-in-image';
 
@@ -30,8 +30,6 @@ declare module '*.png' {
   export default content;
 }
 
-// TODO: eth-json-rpc-errors does not contain types. May want to create our own types.
-declare module 'eth-json-rpc-errors';
 declare module '@react-native-community/checkbox' {
   import CheckBoxOriginal from '@react-native-community/checkbox';
 

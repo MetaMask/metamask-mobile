@@ -3,6 +3,7 @@ import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { store as importedStore } from '../../store';
+import Logger from '../../util/Logger';
 import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
@@ -34,12 +35,16 @@ class EngineService {
 
   private updateControllers = (store: any, engine: any) => {
     const controllers = [
-      { name: 'AccountTrackerController' },
       { name: 'AddressBookController' },
       { name: 'AssetsContractController' },
       { name: 'NftController' },
-      { name: 'TokensController' },
-      { name: 'TokenDetectionController' },
+      {
+        name: 'TokensController',
+      },
+      {
+        name: 'TokenDetectionController',
+        key: `${engine.context.TokenDetectionController.name}:stateChange`,
+      },
       { name: 'NftDetectionController' },
       {
         name: 'KeyringController',
@@ -50,9 +55,18 @@ class EngineService {
         name: 'NetworkController',
         key: AppConstants.NETWORK_STATE_CHANGE_EVENT,
       },
-      { name: 'PhishingController' },
-      { name: 'PreferencesController' },
-      { name: 'TokenBalancesController' },
+      {
+        name: 'PhishingController',
+        key: `${engine.context.PhishingController.name}:maybeUpdateState`,
+      },
+      {
+        name: 'PreferencesController',
+        key: `${engine.context.PreferencesController.name}:stateChange`,
+      },
+      {
+        name: 'TokenBalancesController',
+        key: `${engine.context.TokenBalancesController.name}:stateChange`,
+      },
       { name: 'TokenRatesController' },
       { name: 'TransactionController' },
       { name: 'SwapsController' },
@@ -104,6 +118,9 @@ class EngineService {
     }
 
     engine?.datamodel?.subscribe?.(() => {
+      if (!engine.context.KeyringController.vault) {
+        Logger.message('keyringController vault missing for INIT_BG_STATE_KEY');
+      }
       if (!this.engineInitialized) {
         store.dispatch({ type: INIT_BG_STATE_KEY });
         this.engineInitialized = true;
@@ -113,6 +130,11 @@ class EngineService {
     controllers.forEach((controller) => {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () => {
+        if (!engine.context.KeyringController.vault) {
+          Logger.message(
+            'keyringController vault missing for UPDATE_BG_STATE_KEY',
+          );
+        }
         store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
       };
       if (key) {

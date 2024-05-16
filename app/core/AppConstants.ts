@@ -24,6 +24,9 @@ export default {
     ACTIVE: true,
     URL: `${PORTFOLIO_URL}/bridge`,
   },
+  STAKE: {
+    URL: `${PORTFOLIO_URL}/stake`,
+  },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
@@ -85,8 +88,21 @@ export default {
   },
   MAX_SAFE_CHAIN_ID: 4503599627370476,
   URLS: {
+    ICONS: {
+      MASTERCARD_LIGHT:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png',
+      MASTERCARD_DARK:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard@3x.png',
+      VISA_LIGHT:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png',
+      VISA_DARK: 'https://on-ramp.dev-api.cx.metamask.io/assets/Visa@3x.png',
+      ACH_LIGHT:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
+      ACH_DARK:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
+    },
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
-    PRIVACY_POLICY: 'https://legal.consensys.io/metamask/privacy-policy/',
+    PRIVACY_POLICY: 'https://consensys.io/privacy-policy',
     DATA_RETENTION_UPDATE:
       'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:
@@ -100,6 +116,12 @@ export default {
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
     WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:
       'https://support.metamask.io/hc/articles/14764161421467',
+    WHAT_IS_SRP:
+      'https://community.metamask.io/t/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/3440',
+    PRIVACY_POLICY_2024: 'https://consensys.io/privacy-policy',
+    PRIVACY_BEST_PRACTICES:
+      'https://support.metamask.io/privacy-and-security/privacy-best-practices',
+    SMART_TXS: 'https://support.metamask.io/hc/en-us/articles/9184393821211',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -159,6 +181,7 @@ export default {
   CANCEL_RATE: 'Transactions (Cancel)',
   SPEED_UP_RATE: 'Transactions (Speed Up)',
   NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
+  NETWORK_DID_CHANGE_EVENT: 'NetworkController:networkDidChange',
   KEYRING_STATE_CHANGE_EVENT: 'KeyringController:stateChange',
   TOKEN_LIST_STATE_CHANGE_EVENT: 'TokenListController:stateChange',
   ETH_SIGN_ERROR: 'eth_sign requires 32 byte message hash',
@@ -171,4 +194,17 @@ export default {
   FAVICON_CACHE_MAX_SIZE: 100,
   PPOM_INITIALISATION_STATE_CHANGE_EVENT:
     'PPOMController:initialisationStateChangeEvent',
+  BASIC_FUNCTIONALITY_BLOCK_LIST: [
+    'token-api',
+    'token.api',
+    'gas-api',
+    'gas.api',
+    'price-api',
+    'price.api',
+    'phishing-detection',
+    'infura.io',
+    'static.metafi',
+    'static.cx',
+    'config-api.metamask.io/featureFlags',
+  ],
 } as const;

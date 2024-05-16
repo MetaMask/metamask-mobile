@@ -992,9 +992,9 @@ function SwapsQuotesView({
         };
         if (isHardwareAddress) {
           TransactionController.hub.once(
-            `${transactionMeta.id}:finished`,
+            `${transactionMeta.id}:confirmed`,
             (transactionMeta) => {
-              if (transactionMeta.status === TransactionStatus.submitted) {
+              if (transactionMeta.status === TransactionStatus.confirmed) {
                 handleSwapTransaction(
                   TransactionController,
                   newSwapsTransactions,

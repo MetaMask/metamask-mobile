@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
-import ActionSheet from 'react-native-actionsheet';
+import ActionSheet from '@metamask/react-native-actionsheet';
 import { fontStyles } from '../../../../styles/common';
 import CustomText from '../../../../components/Base/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -41,6 +41,7 @@ import AvatarNetwork from '../../../../component-library/components/Avatars/Avat
 import Routes from '../../../../constants/navigation/Routes';
 import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { updateIncomingTransactions } from '../../../../util/transaction-controller';
+import { NetworksTicker } from '@metamask/controller-utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -169,7 +170,6 @@ class NetworksSettings extends PureComponent {
     const { navigation } = this.props;
     navigation.navigate(Routes.ADD_NETWORK, {
       network: networkTypeOrRpcUrl,
-      isEdit: true,
     });
   };
 
@@ -186,7 +186,7 @@ class NetworksSettings extends PureComponent {
   switchToMainnet = () => {
     const { NetworkController, CurrencyRateController } = Engine.context;
 
-    CurrencyRateController.setNativeCurrency('ETH');
+    CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {
@@ -470,6 +470,7 @@ class NetworksSettings extends PureComponent {
             placeholderTextColor={colors.text.default}
             value={this.state.searchString}
             onChangeText={this.handleSearchTextChange}
+            testID={NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID}
           />
           {this.state.searchString.length > 0 && (
             <Icon
@@ -477,6 +478,7 @@ class NetworksSettings extends PureComponent {
               size={20}
               color={colors.icon.default}
               onPress={this.clearSearchInput}
+              testID={NetworksViewSelectorsIDs.CLOSE_ICON}
             />
           )}
         </View>

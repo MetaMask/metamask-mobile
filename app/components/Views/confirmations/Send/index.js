@@ -48,6 +48,7 @@ import {
 
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { getBlockaidTransactionMetricsParams } from '../../../../util/blockaid';
 import {
   selectChainId,
   selectProviderType,
@@ -60,7 +61,7 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../../selectors/preferencesController';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 
 const REVIEW = 'review';
@@ -520,7 +521,7 @@ class Send extends PureComponent {
   onCancel = (id) => {
     Engine.context.ApprovalController.reject(
       id,
-      ethErrors.provider.userRejectedRequest(),
+      providerErrors.userRejectedRequest(),
     );
     this.props.navigation.pop();
     this.unmountHandled = true;
@@ -686,6 +687,7 @@ class Send extends PureComponent {
   getTrackingParams = () => {
     const {
       networkType,
+      transaction,
       transaction: { selectedAsset, assetType },
     } = this.props;
 
@@ -697,6 +699,7 @@ class Send extends PureComponent {
           (selectedAsset.symbol || selectedAsset.contractName)) ||
         'ETH',
       assetType,
+      ...getBlockaidTransactionMetricsParams(transaction),
     };
   };
 

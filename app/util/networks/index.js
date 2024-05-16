@@ -24,7 +24,7 @@ import { isStrictHexString } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
-import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
+import buildUnserializedTransaction from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
 import { regex } from '../../../app/util/regex';
 
@@ -113,22 +113,26 @@ const NetworkListKeys = Object.keys(NetworkList);
 export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.MAINNET,
   NETWORKS_CHAIN_ID.BSC,
+  NETWORKS_CHAIN_ID.BASE,
   NETWORKS_CHAIN_ID.POLYGON,
   NETWORKS_CHAIN_ID.ARBITRUM,
   NETWORKS_CHAIN_ID.OPTIMISM,
   NETWORKS_CHAIN_ID.AVAXCCHAIN,
   NETWORKS_CHAIN_ID.LINEA_MAINNET,
   NETWORKS_CHAIN_ID.SEPOLIA,
+  NETWORKS_CHAIN_ID.OPBNB,
 ];
 
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
   [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
+  [NETWORKS_CHAIN_ID.BASE]: 'Base Mainnet',
   [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
   [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
   [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
   [NETWORKS_CHAIN_ID.LINEA_MAINNET]: 'Linea',
   [NETWORKS_CHAIN_ID.SEPOLIA]: 'Sepolia',
+  [NETWORKS_CHAIN_ID.OPBNB]: 'opBNB',
 };
 
 export default NetworkList;

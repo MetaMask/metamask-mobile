@@ -3,11 +3,11 @@ import {
   CurrencyRateState,
   NftDetectionController,
   NftState,
-  TokenBalancesState,
   TokenDetectionController,
   TokenListState,
   TokenRatesState,
   TokensState,
+  TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
 import SwapsController from '@metamask/swaps-controller';
 import { NetworkState } from '@metamask/network-controller';
@@ -15,7 +15,7 @@ import { AddressBookState } from '@metamask/address-book-controller';
 import { BaseState } from '@metamask/base-controller';
 import { KeyringControllerMemState } from '@metamask/keyring-controller';
 import { PreferencesState } from '@metamask/preferences-controller';
-import { PhishingState } from '@metamask/phishing-controller';
+import { PhishingControllerState } from '@metamask/phishing-controller';
 import { TransactionState } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { PPOMState } from '@metamask/ppom-validator';
@@ -35,9 +35,9 @@ export interface EngineState {
       KeyringController: KeyringControllerMemState;
       NetworkController: NetworkState;
       PreferencesController: PreferencesState;
-      PhishingController: PhishingState;
+      PhishingController: PhishingControllerState;
       PPOMController: PPOMState;
-      TokenBalancesController: TokenBalancesState;
+      TokenBalancesController: TokenBalancesControllerState;
       TokenRatesController: TokenRatesState;
       TransactionController: TransactionState;
       SwapsController: SwapsController;

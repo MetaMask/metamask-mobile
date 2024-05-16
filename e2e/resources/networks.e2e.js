@@ -24,22 +24,22 @@ const PopularNetworksList = {
       ticker: 'BNB',
     },
   },
-  Fantom: {
+  zkSync: {
     providerConfig: {
       type: 'rpc',
-      chainId: toHex('250'),
-      rpcUrl: 'https://rpc.ftm.tools/',
-      nickname: 'Fantom Opera',
+      chainId: toHex('324'),
+      rpcUrl: `https://mainnet.era.zksync.io`,
+      nickname: 'zkSync Era Mainnet',
       ticker: 'FTM',
     },
   },
-  Harmony: {
+  Base: {
     providerConfig: {
       type: 'rpc',
-      chainId: toHex('1666600000'),
-      rpcUrl: 'https://api.harmony.one/',
-      nickname: 'Harmony Mainnet Shard 0',
-      ticker: 'ONE',
+      chainId: toHex('8453'),
+      rpcUrl: `https://mainnet.base.org`,
+      nickname: 'Base Mainnet',
+      ticker: 'ETH',
     },
   },
   Optimism: {
@@ -76,7 +76,9 @@ const CustomNetworks = {
     providerConfig: {
       type: 'rpc',
       chainId: '0x1',
+      rpcUrlInvalid: 'https//rpc.mevblocker.io',
       rpcUrl: 'https://eth.llamarpc.com',
+      rpcUrlAlt: 'https://rpc.mevblocker.io',
       nickname: 'Ethereum Main Custom',
       ticker: 'ETH',
     },

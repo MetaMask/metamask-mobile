@@ -11,6 +11,7 @@ const handleDeeplink = async ({
   channelId,
   origin,
   url,
+  protocolVersion,
   otherPublicKey,
   context,
 }: {
@@ -18,6 +19,7 @@ const handleDeeplink = async ({
   channelId: string;
   origin: string;
   url: string;
+  protocolVersion: number;
   otherPublicKey: string;
   context: string;
 }) => {
@@ -78,6 +80,7 @@ const handleDeeplink = async ({
         channelId,
         otherPublicKey,
         context,
+        protocolVersion,
         initialConnection: false,
         trigger: 'deeplink',
         updateKey: true,
@@ -86,12 +89,13 @@ const handleDeeplink = async ({
       await sdkConnect.connectToChannel({
         id: channelId,
         origin,
+        protocolVersion,
         trigger: 'deeplink',
         otherPublicKey,
       });
     }
   } catch (error) {
-    Logger.error(error, 'Failed to connect to channel');
+    Logger.error(error as Error, 'Failed to connect to channel');
   }
 };
 
