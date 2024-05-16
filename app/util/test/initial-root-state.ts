@@ -9,6 +9,7 @@ import initialBackgroundState from './initial-background-state.json';
 const backgroundState: EngineState = initialBackgroundState as any;
 
 const initialRootState: RootState = {
+  legalNotices: undefined,
   collectibles: undefined,
   engine: { backgroundState },
   privacy: undefined,

@@ -32,6 +32,6 @@ exports[`Wallet should render correctly 1`] = `
     }
   }
 >
-  <Wallet />
+  <Component />
 </ContextProvider>
 `;

@@ -62,6 +62,7 @@ export enum ApprovalTypes {
   TRANSACTION = 'transaction',
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
+  SMART_TRANSACTION_STATUS = 'smart_transaction_status',
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
