@@ -1012,8 +1012,9 @@ exports[`Network Selector renders correctly 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#FFFFFF",
+                                          "backgroundColor": "#F2F4F6",
                                           "borderRadius": 16,
+                                          "borderWidth": 1,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "marginRight": 16,
@@ -1023,24 +1024,21 @@ exports[`Network Selector renders correctly 1`] = `
                                       }
                                       testID="cellbase-avatar"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          {
-                                            "default": {
-                                              "uri": "MockImage",
-                                            },
-                                          }
-                                        }
+                                      <Text
+                                        accessibilityRole="text"
                                         style={
                                           {
-                                            "height": 32,
-                                            "width": 32,
+                                            "color": "#24272A",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
                                           }
                                         }
-                                        testID="network-avatar-image"
-                                      />
+                                      >
+                                        G
+                                      </Text>
                                     </View>
                                     <View
                                       style={

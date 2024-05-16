@@ -28,6 +28,7 @@ import Networks, {
   getAllNetworks,
   getDecimalChainId,
   isTestNet,
+  getNetworkImageSource,
 } from '../../../util/networks';
 import {
   LINEA_MAINNET,
@@ -59,6 +60,7 @@ import styles from './NetworkSelector.styles';
 import { TESTNET_TICKER_SYMBOLS } from '@metamask/controller-utils';
 
 const NetworkSelector = () => {
+  console.log('>>> inside NetworkSelector');
   const { navigate } = useNavigation();
   const theme = useTheme();
   const { trackEvent } = useMetrics();
@@ -68,8 +70,8 @@ const NetworkSelector = () => {
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const image = useSelector(selectNetworkImageSource);
 
+  console.log('>>>networkConfigurations', networkConfigurations);
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: string) => {
     const {
@@ -172,6 +174,8 @@ const NetworkSelector = () => {
       ({ nickname, rpcUrl, chainId }) => {
         if (!chainId) return null;
         const { name } = { name: nickname || rpcUrl };
+        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+        const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
         return (
           <Cell
