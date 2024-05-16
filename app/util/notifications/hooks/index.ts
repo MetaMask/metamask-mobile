@@ -7,6 +7,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import Routes from '../../../constants/navigation/Routes';
 import { setupAndroidChannel } from '../setupAndroidChannels';
 import { SimpleNotification } from '../types';
+import Device from '../../../util/device';
 
 const useNotificationHandler = (
   bootstrapAndroidInitialNotification: () => Promise<void>,
@@ -53,9 +54,10 @@ const useNotificationHandler = (
 
     bootstrapAndroidInitialNotification();
     setTimeout(() => {
+      if (Device.isAndroid()) {
+        setupAndroidChannel();
+      }
       notifee.onForegroundEvent(handleNotificationPressed);
-
-      setupAndroidChannel();
     }, 1000);
   }, [
     bootstrapAndroidInitialNotification,
