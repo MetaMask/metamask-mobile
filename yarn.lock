@@ -24879,13 +24879,6 @@ react-native-url-polyfill@^1.3.0:
   dependencies:
     whatwg-url-without-unicode "8.0.0-3"
 
-react-native-v8@^0.62.2-patch.1:
-  version "0.62.2-patch.2"
-  resolved "https://registry.yarnpkg.com/react-native-v8/-/react-native-v8-0.62.2-patch.2.tgz#d7ccf143861c05bc3c12c549ed977a2ca3a6b084"
-  integrity sha512-nLDOu/9y1wE7KwTPhHVif6F2Ts1IVqxLj4MC38TWEsjPpIHL6Lh+1lZuhUA2SaNmX7JcYNNjMc5w8cjtk+ycDg==
-  dependencies:
-    v8-android "~8.84.0"
-
 react-native-vector-icons@6.4.2:
   version "6.4.2"
   resolved "https://registry.yarnpkg.com/react-native-vector-icons/-/react-native-vector-icons-6.4.2.tgz#ee0b097e783387544ed160a3192a437c097e551d"
@@ -28240,11 +28233,6 @@ uuid@^9.0.0, uuid@^9.0.1:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
   integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
-
-v8-android@~8.84.0:
-  version "8.84.0"
-  resolved "https://registry.yarnpkg.com/v8-android/-/v8-android-8.84.0.tgz#b9a5b2284d31f530598d7dd5c0124e300999bc6a"
-  integrity sha512-A03L2HfwdobdMSXpGe9fBFqM3tOXh6NWmhkB2cWyav5eQnmF+ajl6Ryyw+Dhwh/GbQXbqgkvZJmBb6dRk+1wYA==
 
 v8-compile-cache-lib@^3.0.1:
   version "3.0.1"
