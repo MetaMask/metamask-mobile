@@ -344,7 +344,7 @@ class ApproveTransactionReview extends PureComponent {
       tokenList,
       tokenAllowanceState,
     } = this.props;
-    const { TokenBalancesController } = Engine.context;
+    const { AssetsContractController } = Engine.context;
 
     let host;
 
@@ -367,7 +367,7 @@ class ApproveTransactionReview extends PureComponent {
       decodeApproveData(data);
     const encodedDecimalAmount = hexToBN(encodedHexAmount).toString();
 
-    const erc20TokenBalance = await TokenBalancesController.getERC20BalanceOf(
+    const erc20TokenBalance = await AssetsContractController.getERC20BalanceOf(
       to,
       from,
     );
