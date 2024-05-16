@@ -3653,7 +3653,7 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/approval-controller@^4.0.1", "@metamask/approval-controller@^4.1.0":
+"@metamask/approval-controller@^4.1.0":
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-4.1.0.tgz#99bf137597d0392c5eebb784c0d43f2f40584e9d"
   integrity sha512-UdSf8787NMADvmGqC88y8GbzwljdWw4cDCs4NWfc1HIhG4mvvaAFZwjZpPvU59DuFG6WycNfNLyJ7lcJsiYCYg==
@@ -3664,7 +3664,7 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/approval-controller@^5.1.2":
+"@metamask/approval-controller@^5.1.2", "@metamask/approval-controller@^5.1.3":
   version "5.1.3"
   resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-5.1.3.tgz#19e04b559df12cb078dcafabdb2f0aa8a5e73a45"
   integrity sha512-RebVeTCrNePzXKTe+YcLlqWeKP5ADpWdIINOoP+IP8+AAWwzBJiHXXJ/4AxSBrIC4la+a0Xnohd+ou27bzfDDg==
@@ -4249,16 +4249,7 @@
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
 
-"@metamask/logging-controller@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@metamask/logging-controller/-/logging-controller-1.0.4.tgz#78046f9ec70840fc6d8b96ab18a66b69a42f635f"
-  integrity sha512-L5Ruq3fD5PnDEQmg2+3B2zrzpZr0zrdNvTqA95i4/cQi8KP+zL9Xf2bFd0fBam8tda5lrkpVK7l/tEV2tF3GkA==
-  dependencies:
-    "@metamask/base-controller" "^3.2.3"
-    "@metamask/controller-utils" "^5.0.2"
-    uuid "^8.3.2"
-
-"@metamask/logging-controller@^2.0.0":
+"@metamask/logging-controller@^2.0.0", "@metamask/logging-controller@^2.0.3":
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/@metamask/logging-controller/-/logging-controller-2.0.3.tgz#bedd17902fc6ffc1c9c703e3156827866753710b"
   integrity sha512-3wA65IaE/jPLnqxoFtoQhllNIH31AtU8K3IlcsUqfDRPG6faVUj7I+pEKPVjdYGN90rWnzO6Axx/90FGQtUi6Q==
@@ -4267,7 +4258,7 @@
     "@metamask/controller-utils" "^8.0.4"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^7.3.5", "@metamask/message-manager@^7.3.9":
+"@metamask/message-manager@^7.3.9":
   version "7.3.9"
   resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-7.3.9.tgz#4d416998bbdda30d80ebbb50b5efc7475b816ec9"
   integrity sha512-B0+Qa1bPGMuVdBDaq8zcAKkRXWAt1CYAXW2NXzfO85a2ePFCUIrIhF9W8LflatXDXqesE5Y8Dij0sHGmsUfF8w==
@@ -4675,20 +4666,19 @@
     utf-8-validate "^6.0.3"
     uuid "^8.3.2"
 
-"@metamask/signature-controller@6.1.3":
-  version "6.1.3"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-6.1.3.tgz#e24914d0589873f01e6d0ba198e98aa222aa6ae1"
-  integrity sha512-0mOTD/Ba/bxCSnrMR5SifklgB+Rz4TfTTQtU+0KYOel5Q2dDkZEB1A96iXC5gH+PZ7bK7wJWq/zjUmsIuRtHmQ==
+"@metamask/signature-controller@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-13.0.0.tgz#17aff5e8bcf707aed33d3ba6ffd616be1b77b100"
+  integrity sha512-p7dr3wTtoTmQsOtPVNXC0cAUuco9TfCOtsMINvW7nppmeC0c1qRygh3dkPvfUsK4LPzLkZnFIaw6bUrHqGL9Qw==
   dependencies:
-    "@metamask/approval-controller" "^4.0.1"
-    "@metamask/base-controller" "^3.2.3"
-    "@metamask/controller-utils" "^5.0.2"
-    "@metamask/logging-controller" "^1.0.4"
-    "@metamask/message-manager" "^7.3.5"
-    "@metamask/rpc-errors" "^6.1.0"
-    "@metamask/utils" "^8.1.0"
-    ethereumjs-util "^7.0.10"
-    immer "^9.0.6"
+    "@metamask/approval-controller" "^5.1.3"
+    "@metamask/base-controller" "^4.1.1"
+    "@metamask/controller-utils" "^8.0.4"
+    "@metamask/keyring-controller" "^13.0.0"
+    "@metamask/logging-controller" "^2.0.3"
+    "@metamask/message-manager" "^7.3.9"
+    "@metamask/rpc-errors" "^6.2.1"
+    "@metamask/utils" "^8.3.0"
     lodash "^4.17.21"
 
 "@metamask/slip44@3.1.0", "@metamask/slip44@^3.1.0":
