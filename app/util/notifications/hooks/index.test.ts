@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import useNotificationHandler from './index';
 import notifee, { EventType } from '@notifee/react-native';
+
+import useNotificationHandler from './index';
 import NotificationManager from '../../../core/NotificationManager';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -155,4 +156,29 @@ describe('useNotificationHandler', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
+
+  it('should navigate to the transaction view when the notification action is "tx"', async () => {
+    const { waitFor } = renderHook(() =>
+      useNotificationHandler(
+        bootstrapAndroidInitialNotification,
+        mockNavigation,
+      ),
+    );
+
+    await act(async () => {
+      notifee.onForegroundEvent({
+        type: EventType.DELIVERED,
+        notification: {
+          body: 'test',
+          data: {
+            action: 'tx',
+            id: '123',
+          },
+        },
+      });
+      await waitFor(() => {
+        expect(notifee.onForegroundEvent).toHaveBeenCalled();
+      });
+    });
+  }, 10000);
 });
