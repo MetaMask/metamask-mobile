@@ -120,15 +120,15 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, []);
 
   useEffect(() => {
-    let memStore: any;
-    KeyringController.getQRKeyringState().then((_memStore: any) => {
-      memStore = _memStore;
-      memStore.subscribe(subscribeKeyringState);
-    });
+    Engine.controllerMessenger.subscribe(
+      'KeyringController:qrKeyringStateChange',
+      subscribeKeyringState,
+    );
     return () => {
-      if (memStore) {
-        memStore.unsubscribe(subscribeKeyringState);
-      }
+      Engine.controllerMessenger.unsubscribe(
+        'KeyringController:qrKeyringStateChange',
+        subscribeKeyringState,
+      );
     };
   }, [KeyringController, subscribeKeyringState]);
 
