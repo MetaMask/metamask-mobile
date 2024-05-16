@@ -4,6 +4,8 @@ process.env.MM_BLOCKAID_UI_ENABLED = 'true';
 process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
 process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
 
+process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
+
 const config = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
