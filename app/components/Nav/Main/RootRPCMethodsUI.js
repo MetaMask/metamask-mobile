@@ -205,7 +205,7 @@ const RootRPCMethodsUI = (props) => {
   const autoSign = useCallback(
     async (transactionMeta) => {
       const { TransactionController, KeyringController } = Engine.context;
-      const swapsTransactions = TransactionController.state.swapsTransactions;
+      const swapsTransactions = props.swapsTransactions;
       try {
         TransactionController.hub.once(
           `${transactionMeta.id}:finished`,
@@ -281,7 +281,7 @@ const RootRPCMethodsUI = (props) => {
         }
       }
     },
-    [props.navigation, trackSwaps, trackEvent],
+    [props.navigation, props.swapsTransactions, trackSwaps, trackEvent],
   );
 
   const onUnapprovedTransaction = useCallback(
@@ -450,6 +450,7 @@ const RootRPCMethodsUI = (props) => {
 };
 
 RootRPCMethodsUI.propTypes = {
+  swapsTransactions: PropTypes.object,
   /**
    * Object that represents the navigator
    */
@@ -484,6 +485,8 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedAddress(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
+  swapsTransactions:
+    state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
