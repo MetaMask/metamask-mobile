@@ -130,7 +130,7 @@ const Card = (balance: any) => {
             />
             <Text
               style={styles.cardBalanceText}
-            >{`Balance: $${balance.balance}`}</Text>
+            >{`Balance: ${balance.balance}`}</Text>
           </View>
           <View style={styles.cardNumber}>
             <Text style={styles.cardNumberText}>{`1234 5678 1234 5678`}</Text>

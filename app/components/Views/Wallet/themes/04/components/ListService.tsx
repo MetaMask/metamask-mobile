@@ -21,6 +21,7 @@ const styleSheet = (colors: any) =>
       justifyContent: 'space-between',
       marginVertical: 12,
       marginBottom: 24,
+      marginBottom: 24,
     },
     iconSquared: {
       padding: 10,

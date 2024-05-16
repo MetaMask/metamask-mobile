@@ -2,15 +2,21 @@
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
+
 import Card from './components/Card';
 import ListService from './components/ListService';
 import RecentTransaction from './components/RecentTransaction';
 import { formatAddress } from '../../../../../util/address';
 import { useTheme } from '../../../../../util/theme';
 import { AccountInformation } from '@metamask/assets-controllers';
-import { renderFromWei, toHexadecimal } from '../../../../../util/number';
+import { hexToBN, toHexadecimal, weiToFiat } from '../../../../../util/number';
 import { ProviderConfig } from '@metamask/network-controller';
 import WidgetList from './components/SortableList/WidgetList';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../../selectors/currencyRateController';
 
 const styleSheet = (colors: any) =>
   StyleSheet.create({
@@ -35,13 +41,11 @@ const styleSheet = (colors: any) =>
 
 const Custom02 = ({
   selectedAddress,
-  ensForSelectedAccount,
   providerConfig,
   accountsByChainId,
   renderLoader,
 }: {
   selectedAddress: string;
-  ensForSelectedAccount: string | undefined;
   providerConfig: ProviderConfig;
   accountsByChainId: Record<
     string,
@@ -55,10 +59,16 @@ const Custom02 = ({
 }) => {
   const { colors } = useTheme();
   const styles = styleSheet(colors);
-  const balance = renderFromWei(
+  const conversionRate = useSelector(selectConversionRate);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+
+  const balanceWeiHex =
     accountsByChainId[toHexadecimal(providerConfig.chainId)][selectedAddress]
-      .balance,
-  );
+      .balance || '0x0';
+
+  const balanceFiat =
+    weiToFiat(hexToBN(balanceWeiHex) as any, conversionRate, currentCurrency) ||
+    '';
   return (
     <SafeAreaView style={styles.safeArea}>
       {selectedAddress ? (
@@ -72,7 +82,7 @@ const Custom02 = ({
             </View>
           </View>
           <View style={styles.card}>
-            <Card balance={balance} />
+            <Card balance={balanceFiat} />
           </View>
           <ListService />
           <RecentTransaction />

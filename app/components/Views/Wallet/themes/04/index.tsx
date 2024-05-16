@@ -1,19 +1,27 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
+
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { AccountInformation } from '@metamask/assets-controllers';
+
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { SafeAreaView } from 'react-native-safe-area-context';
+
 import ListService from './components/ListService';
 import RecentTransaction from './components/RecentTransaction';
 import { formatAddress } from '../../../../../util/address';
 import { useTheme } from '../../../../../util/theme';
-import { AccountInformation } from '@metamask/assets-controllers';
-import { renderFromWei, toHexadecimal } from '../../../../../util/number';
+import { hexToBN, toHexadecimal, weiToFiat } from '../../../../../util/number';
 import { ProviderConfig } from '@metamask/network-controller';
 
 import HorizontalCarousel from './components/HorizontalCarousel';
+import { useSelector } from 'react-redux';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../../selectors/currencyRateController';
 
 const styleSheet = (colors: any) =>
   StyleSheet.create({
@@ -56,10 +64,16 @@ const Custom03 = ({
 }) => {
   const { colors } = useTheme();
   const styles = styleSheet(colors);
-  const balance = renderFromWei(
+  const conversionRate = useSelector(selectConversionRate);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+
+  const balanceWeiHex =
     accountsByChainId[toHexadecimal(providerConfig.chainId)][selectedAddress]
-      .balance,
-  );
+      .balance || '0x0';
+
+  const balanceFiat =
+    weiToFiat(hexToBN(balanceWeiHex) as any, conversionRate, currentCurrency) ||
+    '';
   return (
     <SafeAreaView style={styles.safeArea}>
       {selectedAddress ? (
@@ -69,7 +83,7 @@ const Custom03 = ({
               <Text variant={TextVariant.BodyMD}>
                 {formatAddress(selectedAddress, 'short')}
               </Text>
-              <Text variant={TextVariant.HeadingLG}>${balance}.00</Text>
+              <Text variant={TextVariant.HeadingLG}>{balanceFiat}</Text>
             </View>
           </View>
           <ListService type={'circled'} />

@@ -5,7 +5,7 @@ const VIEWS: Record<string, any> = {
   'MetaMask Default': 'default',
   'MetaMask NFTLover': 'custom01',
   'MetaMask web3Banking': 'custom02',
-  'GenZ MetaMask': 'custom03',
+  'Minimalist MetaMask': 'custom03',
 };
 
 export default VIEWS;
