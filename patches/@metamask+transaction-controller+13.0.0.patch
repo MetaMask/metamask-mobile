@@ -1,6 +1,6 @@
 diff --git a/node_modules/@metamask/transaction-controller/dist/.patch.txt b/node_modules/@metamask/transaction-controller/dist/.patch.txt
 new file mode 100644
-index 0000000..a8a4302
+index 0000000..550de56
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/.patch.txt
 @@ -0,0 +1,7 @@
