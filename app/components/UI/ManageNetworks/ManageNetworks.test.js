@@ -6,7 +6,7 @@ import ManageNetworks from './ManageNetworks';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectNetworkName } from '../../../selectors/networkController';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -23,15 +23,12 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-const mockProviderConfig = {
-  type: 'mainnet',
-  chainId: '1',
-};
+const mockProviderConfig = 'Ethereum Main Network';
 
 describe('ManageNetworks', () => {
   it('should render correctly', () => {
     useSelector.mockImplementation((selector) => {
-      if (selector === selectProviderConfig) return mockProviderConfig;
+      if (selector === selectNetworkName) return mockProviderConfig;
     });
     const { toJSON } = renderWithProvider(
       <ManageNetworks navigation={useNavigation()} />,
