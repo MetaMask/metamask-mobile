@@ -21,6 +21,7 @@ import Text from '../../../../Base/Text';
 import { useDispatch } from 'react-redux';
 import { setShowFiatOnTestnets } from '../../../../../../app/actions/settings';
 import { FiatOnTestnetsModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/FiatOnTestnetsModal.selectors';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const FiatOnTestnetsFriction = () => {
   const dispatch = useDispatch();
@@ -51,8 +52,8 @@ const FiatOnTestnetsFriction = () => {
             accessibilityRole={'link'}
             accessible
             onPress={() =>
-              navigation.navigate('Webview', {
-                screen: 'SimpleWebview',
+              navigation.navigate(Routes.WEBVIEW.MAIN, {
+                screen: Routes.WEBVIEW.SIMPLE,
                 params: { url: AppConstants.URLS.TESTNET_ETH_SCAMS },
               })
             }

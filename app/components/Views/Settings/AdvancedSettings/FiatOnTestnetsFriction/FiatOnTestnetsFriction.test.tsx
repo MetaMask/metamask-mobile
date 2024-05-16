@@ -1,13 +1,10 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import FiatOnTestnetsFriction from './FiatOnTestnetsFriction';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../../app/core/AppConstants';
 
-const store = configureMockStore()({});
 jest.mock('@react-navigation/native');
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn().mockImplementation(() => ({})),
@@ -29,12 +26,8 @@ jest.mock('@react-navigation/native', () => {
 
 describe('Show fiat on testnets friction bottom sheet', () => {
   it('should render', () => {
-    const wrapper = render(
-      <Provider store={store}>
-        <FiatOnTestnetsFriction />
-      </Provider>,
-    );
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<FiatOnTestnetsFriction />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should close on cancel', () => {
