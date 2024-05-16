@@ -6,12 +6,8 @@ import { Provider } from 'react-redux';
 import initialRootState from '../../../util/test/initial-root-state';
 
 const mockStore = configureMockStore();
-const initialState = {
-  engine: {
-    backgroundState: initialRootState,
-  },
-};
-const store = mockStore(initialState);
+
+const store = mockStore(initialRootState);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

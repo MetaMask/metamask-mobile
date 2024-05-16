@@ -44,7 +44,7 @@ export type StateFromReducer<reducer> = reducer extends Reducer<
 export interface RootState {
   legalNotices: any;
   collectibles: any;
-  engine: { backgroundState: EngineState | Record<string, never> };
+  engine: { backgroundState: EngineState };
   privacy: any;
   bookmarks: any;
   browser: any;

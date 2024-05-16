@@ -6,11 +6,7 @@ import {
   createStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
-import {
-  render,
-  renderHook,
-  RenderHookResult,
-} from '@testing-library/react-native';
+import { render, renderHook } from '@testing-library/react-native';
 
 import { mockTheme, ThemeContext } from '../theme';
 import { Theme } from '../theme/models';
@@ -76,7 +72,7 @@ export function renderScreen(
 export function renderHookWithProvider(
   hook: () => void,
   providerValues?: ProviderValues,
-): RenderHookResult<any, any> {
+) {
   const { state = {} } = providerValues ?? {};
   const store = configureStore(state);
 
