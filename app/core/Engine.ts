@@ -1215,6 +1215,7 @@ class Engine {
       approvalController,
       permissionController,
       new SignatureController({
+        //@ts-expect-error Misalign types because of Base Controller version
         messenger: this.controllerMessenger.getRestricted<
           'SignatureController',
           | 'ApprovalController:addRequest'
