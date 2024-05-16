@@ -1194,7 +1194,6 @@ class Engine {
       approvalController,
       permissionController,
       new SignatureController({
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted<
           'SignatureController',
           | 'ApprovalController:addRequest'
