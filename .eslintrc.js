@@ -175,6 +175,7 @@ module.exports = {
     'react/no-string-refs': 2,
     'react/no-unused-prop-types': 2,
     'react/prefer-es6-class': 2,
+    '@metamask/design-tokens/color-no-hex': 'warn',
     radix: 0,
   },
 
