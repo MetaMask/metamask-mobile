@@ -107,124 +107,140 @@ export function updateNotificationStatus(notificationsSettings) {
 
 /** THE ACTIONS BELLOW ARE FOR THE NEW METAMASK NOTIFICATIONS FEATURE */
 
-export function performSignIn() {
+export function performSignInRequest() {
   return {
-    type: ACTIONS.PERFORM_SIGN_IN,
+    type: ACTIONS.PERFORM_SIGN_IN_REQUEST,
   };
 }
 
-export function performSignOut() {
+export function performSignInSuccess(data) {
   return {
-    type: ACTIONS.PERFORM_SIGN_OUT,
+    type: ACTIONS.PERFORM_SIGN_IN_SUCCESS,
+    data,
   };
 }
 
-export function enableProfileSyncing() {
+export function performSignInFailure(error) {
   return {
-    type: ACTIONS.ENABLE_PROFILE_SYNCING,
+    type: ACTIONS.PERFORM_SIGN_IN_FAILURE,
+    error,
   };
 }
 
-export function disableProfileSyncing() {
+export function performSignOutRequest() {
   return {
-    type: ACTIONS.DISABLE_PROFILE_SYNCING,
+    type: ACTIONS.PERFORM_SIGN_OUT_REQUEST,
   };
 }
 
-export function setParticipateInMetaMetrics(isParticipateInMetaMetrics) {
+export function enableProfileSyncingRequest() {
   return {
-    type: ACTIONS.SET_PARTICIPATE_IN_METAMETRICS,
+    type: ACTIONS.ENABLE_PROFILE_SYNCING_REQUEST,
+  };
+}
+
+export function disableProfileSyncingRequest() {
+  return {
+    type: ACTIONS.DISABLE_PROFILE_SYNCING_REQUEST,
+  };
+}
+
+export function setParticipateInMetaMetricsRequest(isParticipateInMetaMetrics) {
+  return {
+    type: ACTIONS.SET_PARTICIPATE_IN_METAMETRICS_REQUEST,
     isParticipateInMetaMetrics,
   };
 }
 
-export function showLoadingIndication(message) {
+export function showLoadingIndicationRequest(message) {
   return {
     type: ACTIONS.SHOW_LOADING,
-    payload: message,
+    message,
   };
 }
 
-export function hideLoadingIndication() {
+export function hideLoadingIndicationRequest() {
   return {
     type: ACTIONS.HIDE_LOADING,
   };
 }
 
-export function createOnChainTriggers() {
+export function createOnChainTriggersRequest() {
   return {
-    type: ACTIONS.CREATE_ON_CHAIN_TRIGGERS,
+    type: ACTIONS.CREATE_ON_CHAIN_TRIGGERS_REQUEST,
   };
 }
 
-export function fetchAndUpdateMetamaskNotifications() {
+export function fetchAndUpdateMetamaskNotificationsRequest() {
   return {
-    type: ACTIONS.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS,
+    type: ACTIONS.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS_REQUEST,
   };
 }
 
-export function markMetamaskNotificationsAsRead(notifications) {
+export function markMetamaskNotificationsAsReadRequest(notifications) {
   return {
-    type: ACTIONS.MARK_METAMASK_NOTIFICATIONS_AS_READ,
+    type: ACTIONS.MARK_METAMASK_NOTIFICATIONS_AS_READ_REQUEST,
     notifications,
   };
 }
 
-export function setMetamaskNotificationsFeatureSeen() {
+export function setMetamaskNotificationsFeatureSeenRequest() {
   return {
-    type: ACTIONS.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN,
+    type: ACTIONS.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN_REQUEST,
   };
 }
 
-export function enableMetamaskNotifications() {
+export function enableMetamaskNotificationsRequest() {
   return {
-    type: ACTIONS.ENABLE_METAMASK_NOTIFICATIONS,
+    type: ACTIONS.ENABLE_METAMASK_NOTIFICATIONS_REQUEST,
   };
 }
-export function disableMetamaskNotifications() {
+export function disableMetamaskNotificationsRequest() {
   return {
-    type: ACTIONS.DISABLE_METAMASK_NOTIFICATIONS,
+    type: ACTIONS.DISABLE_METAMASK_NOTIFICATIONS_REQUEST,
   };
 }
 
-export function setIsProfileSyncingEnabled(profileSyncEnabled) {
+export function setIsProfileSyncingEnabledRequest(profileSyncEnabled) {
   return {
-    type: ACTIONS.SET_PROFILE_SYNCING_ENABLED,
+    type: ACTIONS.SET_PROFILE_SYNCING_ENABLED_REQUEST,
     profileSyncEnabled,
   };
 }
 
-export function setSnapNotificationsEnabled(snapNotificationsEnabled) {
+export function setSnapNotificationsEnabledRequest(snapNotificationsEnabled) {
   return {
-    type: ACTIONS.SET_SNAP_NOTIFICATIONS_ENABLED,
+    type: ACTIONS.SET_SNAP_NOTIFICATIONS_ENABLED_REQUEST,
     snapNotificationsEnabled,
   };
 }
 
-export function setFeatureAnnouncementsEnabled(featureAnnouncementsEnabled) {
+export function setFeatureAnnouncementsEnabledRequest(
+  featureAnnouncementsEnabled,
+) {
   return {
-    type: ACTIONS.SET_FEATURE_ANNOUNCEMENTS_ENABLED,
+    type: ACTIONS.SET_FEATURE_ANNOUNCEMENTS_ENABLED_REQUEST,
     featureAnnouncementsEnabled,
   };
 }
 
-export function checkAccountsPresence(accounts) {
+export function checkAccountsPresenceRequest(accounts) {
   return {
-    type: ACTIONS.CHECK_ACCOUNTS_PRESENCE,
+    type: ACTIONS.CHECK_ACCOUNTS_PRESENCE_REQUEST,
     accounts,
   };
 }
 
-export function deleteOnChainTriggersByAccount(addresses) {
+export function deleteOnChainTriggersByAccountRequest(addresses) {
   return {
-    type: ACTIONS.DELETE_NOTIFICATION_STATUS,
+    type: ACTIONS.DELETE_NOTIFICATION_STATUS_REQUEST,
     addresses,
   };
 }
 
-export function updateOnChainTriggersByAccount(addresses) {
+export function updateOnChainTriggersByAccountRequest(accounts) {
   return {
-    type: ACTIONS.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT,
-    addresses,
+    type: ACTIONS.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_REQUEST,
+    accounts,
   };
 }

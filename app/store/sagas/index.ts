@@ -15,6 +15,10 @@ import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
 import AppConstants from '../../../app/core/AppConstants';
+import {
+  performSignInFailure,
+  performSignInSuccess,
+} from '../../actions/notification';
 
 const originalSend = XMLHttpRequest.prototype.send;
 const originalOpen = XMLHttpRequest.prototype.open;
@@ -161,8 +165,18 @@ export function* basicFunctionalityToggle() {
   }
 }
 
+export function* performNotificationsSignIn() {
+  try {
+    const response = yield call(/** call Notifications SDK/Controller */);
+    yield put(performSignInSuccess(response));
+  } catch (error: any) {
+    yield put(performSignInFailure(error));
+  }
+}
+
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
+  yield fork(performNotificationsSignIn);
 }
