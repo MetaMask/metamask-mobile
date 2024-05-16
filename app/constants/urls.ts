@@ -83,3 +83,6 @@ export const GOERLI_DEPRECATED_ARTICLE =
 
 export const ETHEREUM_LOGO =
   'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg';
+
+export const SIMULATION_DETALS_ARTICLE_URL =
+  'https://support.metamask.io/transactions-and-gas/transactions/simulations/';
