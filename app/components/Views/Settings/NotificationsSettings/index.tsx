@@ -1,3 +1,5 @@
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react/display-name */
 import React, { FC, useEffect } from 'react';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
@@ -29,6 +31,11 @@ import {
 } from '../../../../util/notifications';
 import { updateNotificationStatus } from '../../../../actions/notification';
 import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
+import Routes from '../../../../constants/navigation/Routes';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
 
 /**
  * TODO: Discuss the granularity of the notifications settings.
@@ -61,6 +68,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     (state: any) => state.notification.notificationsSettings,
   );
 
+  const isNotificationEnabled = notificationsSettingsState?.isEnabled;
+
   const dispatch = useDispatch();
   const { accounts } = useAccounts();
 
@@ -71,7 +80,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   );
 
   const toggleNotificationsEnabled = () => {
-    !notificationsSettingsState?.isEnabled
+    !isNotificationEnabled
       ? requestPushNotificationsPermission()
       : dispatch(
           updateNotificationStatus({
@@ -133,8 +142,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           {strings('app_settings.allow_notifications')}
         </Text>
         <Switch
-          disabled={!notificationsSettingsState?.isEnabled}
-          value={notificationsSettingsState?.isEnabled}
+          disabled={!isNotificationEnabled}
+          value={isNotificationEnabled}
           onChange={toggleNotificationsEnabled}
           trackColor={{
             true: colors.primary.default,
@@ -233,3 +242,24 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 };
 
 export default NotificationsSettings;
+
+NotificationsSettings.navigationOptions = ({
+  navigation,
+  isNotificationEnabled,
+}: {
+  navigation: any;
+  isNotificationEnabled: boolean;
+}) => ({
+  headerLeft: () => (
+    <ButtonIcon
+      size={ButtonIconSizes.Lg}
+      iconName={IconName.ArrowLeft}
+      onPress={() =>
+        !isNotificationEnabled
+          ? navigation.navigate(Routes.WALLET.HOME)
+          : navigation.goBack()
+      }
+      style={{ marginHorizontal: 16 }}
+    />
+  ),
+});

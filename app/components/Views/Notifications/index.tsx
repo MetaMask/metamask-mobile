@@ -2,7 +2,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { InteractionManager, View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useFocusEffect } from '@react-navigation/native';
 
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
 import { createStyles } from './styles';
@@ -91,12 +90,6 @@ const NotificationsView = ({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAddress]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      if (!isNotificationEnabled) navigation.navigate('WalletView');
-    }, [navigation, isNotificationEnabled]),
-  );
 
   const notificationToShow =
     allNotifications || walletNotifications || annoucementsNotifications;
