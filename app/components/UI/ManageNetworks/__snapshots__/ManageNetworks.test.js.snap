@@ -110,7 +110,7 @@ exports[`ManageNetworks should render correctly 1`] = `
           }
         }
       >
-        ?
+        E
       </Text>
     </View>
     <Text
@@ -129,7 +129,9 @@ exports[`ManageNetworks should render correctly 1`] = `
         }
       }
       testID="open-networks-text"
-    />
+    >
+      Ethereum Main Network
+    </Text>
     <SvgMock
       color="#24272A"
       height={12}
