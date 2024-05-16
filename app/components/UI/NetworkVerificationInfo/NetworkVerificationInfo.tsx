@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Linking } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
@@ -28,11 +28,13 @@ import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { toggleUseSafeChainsListValidation } from '../../../util/networks';
+import {
+  getNetworkImageSource,
+  toggleUseSafeChainsListValidation,
+} from '../../../util/networks';
 import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import { convertHexToDecimal } from '@metamask/controller-utils';
-import { selectNetworkImageSource } from '../../../selectors/networkController';
 
 interface Alert {
   alertError: string;
@@ -70,7 +72,14 @@ const NetworkVerificationInfo = ({
 
   useEffect(() => setAlerts(alertsFromProps), [alertsFromProps]);
 
-  const networkImageSource = useSelector(selectNetworkImageSource);
+  const networkImageSource = useMemo(
+    () =>
+      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+      getNetworkImageSource({
+        chainId: customNetworkInformation.chainId,
+      }),
+    [customNetworkInformation],
+  );
 
   const renderNetworkInfo = () => (
     <ScrollView

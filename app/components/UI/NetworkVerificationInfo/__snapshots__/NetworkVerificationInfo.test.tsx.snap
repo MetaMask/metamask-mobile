@@ -106,7 +106,13 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           <Image
             onError={[Function]}
             resizeMode="contain"
-            source={true}
+            source={
+              {
+                "default": {
+                  "uri": "MockImage",
+                },
+              }
+            }
             style={
               {
                 "height": 16,
