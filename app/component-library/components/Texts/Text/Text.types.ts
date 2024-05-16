@@ -13,10 +13,13 @@ export enum TextVariant {
   HeadingSM = 'sHeadingSM',
   BodyLGMedium = 'sBodyLGMedium',
   BodyMD = 'sBodyMD',
+  BodyMDMedium = 'sBodyMDMedium',
   BodyMDBold = 'sBodyMDBold',
   BodySM = 'sBodySM',
+  BodySMMedium = 'sBodySMMedium',
   BodySMBold = 'sBodySMBold',
   BodyXS = 'sBodyXS',
+  BodyXSMedium = 'sBodyXSMedium',
 }
 
 /**

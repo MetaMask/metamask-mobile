@@ -312,10 +312,10 @@ describe('PaymentMethods View', () => {
     );
 
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "ONRAMP_PAYMENT_METHOD_SELECTED",
-        Object {
-          "available_payment_method_ids": Array [
+        {
+          "available_payment_method_ids": [
             "/payments/instant-bank-transfer",
             "/payments/apple-pay",
             "/payments/debit-credit-card",
@@ -337,10 +337,10 @@ describe('PaymentMethods View', () => {
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Debit or Credit' }));
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "OFFRAMP_PAYMENT_METHOD_SELECTED",
-        Object {
-          "available_payment_method_ids": Array [
+        {
+          "available_payment_method_ids": [
             "/payments/instant-bank-transfer",
             "/payments/apple-pay",
             "/payments/debit-credit-card",
@@ -358,10 +358,10 @@ describe('PaymentMethods View', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Continue to amount' }));
     expect(mockNavigate).toHaveBeenCalledWith(...createBuildQuoteNavDetails());
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "ONRAMP_CONTINUE_TO_AMOUNT_CLICKED",
-        Object {
-          "available_payment_method_ids": Array [
+        {
+          "available_payment_method_ids": [
             "/payments/instant-bank-transfer",
             "/payments/apple-pay",
             "/payments/debit-credit-card",
@@ -383,10 +383,10 @@ describe('PaymentMethods View', () => {
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Continue to amount' }));
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "OFFRAMP_CONTINUE_TO_AMOUNT_CLICKED",
-        Object {
-          "available_payment_method_ids": Array [
+        {
+          "available_payment_method_ids": [
             "/payments/instant-bank-transfer",
             "/payments/apple-pay",
             "/payments/debit-credit-card",

@@ -3,10 +3,9 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { BadgeVariant } from '../../Badge.types';
 import {
-  TEST_NETWORK_NAME,
-  TEST_REMOTE_IMAGE_SOURCE,
+  SAMPLE_AVATARNETWORK_NAME,
+  SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL,
 } from '../../../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
 
 // Internal dependencies.
@@ -17,9 +16,8 @@ describe('BadgeNetwork - snapshots', () => {
   it('should render badge network correctly', () => {
     const wrapper = shallow(
       <BadgeNetwork
-        variant={BadgeVariant.Network}
-        name={TEST_NETWORK_NAME}
-        imageSource={TEST_REMOTE_IMAGE_SOURCE}
+        name={SAMPLE_AVATARNETWORK_NAME}
+        imageSource={SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -30,9 +28,8 @@ describe('BadgeNetwork', () => {
   it('should render badge network with the given content', () => {
     const wrapper = shallow(
       <BadgeNetwork
-        variant={BadgeVariant.Network}
-        name={TEST_NETWORK_NAME}
-        imageSource={TEST_REMOTE_IMAGE_SOURCE}
+        name={SAMPLE_AVATARNETWORK_NAME}
+        imageSource={SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL}
       />,
     );
 

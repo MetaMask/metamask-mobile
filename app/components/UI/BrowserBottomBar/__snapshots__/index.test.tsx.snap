@@ -3,15 +3,15 @@
 exports[`BrowserBottomBar should render correctly 1`] = `
 <View
   style={
-    Array [
-      Object {
-        "shadowOffset": Object {
+    [
+      {
+        "shadowOffset": {
           "height": 6.6,
         },
         "shadowOpacity": 0.1965,
         "shadowRadius": 5.94,
       },
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "borderColor": "#D6D9DC",
         "borderTopWidth": 0.5,
@@ -26,7 +26,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     disabled={false}
     onPress={[Function]}
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "height": 24,
@@ -42,26 +42,26 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     <Text
       allowFontScaling={false}
       style={
-        Array [
-          Object {
+        [
+          {
             "color": undefined,
             "fontSize": 24,
           },
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "height": 24,
               "textAlign": "center",
               "width": 24,
             },
-            Object {},
+            {},
           ],
-          Object {
+          {
             "fontFamily": "FontAwesome",
             "fontStyle": "normal",
             "fontWeight": "normal",
           },
-          Object {},
+          {},
         ]
       }
     >
@@ -72,7 +72,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     disabled={true}
     onPress={[Function]}
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "height": 24,
@@ -88,28 +88,28 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     <Text
       allowFontScaling={false}
       style={
-        Array [
-          Object {
+        [
+          {
             "color": undefined,
             "fontSize": 24,
           },
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "height": 24,
               "textAlign": "center",
               "width": 24,
             },
-            Object {
+            {
               "color": "#BBC0C5",
             },
           ],
-          Object {
+          {
             "fontFamily": "FontAwesome",
             "fontStyle": "normal",
             "fontWeight": "normal",
           },
-          Object {},
+          {},
         ]
       }
     >
@@ -119,7 +119,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   <TouchableOpacity
     onPress={[Function]}
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "height": 24,
@@ -135,23 +135,23 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     <Text
       allowFontScaling={false}
       style={
-        Array [
-          Object {
+        [
+          {
             "color": undefined,
             "fontSize": 24,
           },
-          Object {
+          {
             "color": "#24272A",
             "height": 24,
             "textAlign": "center",
             "width": 24,
           },
-          Object {
+          {
             "fontFamily": "Feather",
             "fontStyle": "normal",
             "fontWeight": "normal",
           },
-          Object {},
+          {},
         ]
       }
     >
@@ -161,7 +161,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   <TouchableOpacity
     onPress={[Function]}
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "height": 24,
@@ -176,15 +176,15 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   >
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "center",
             "borderColor": "#535A61",
             "borderRadius": 6,
             "borderWidth": 2,
             "justifyContent": "center",
           },
-          Object {
+          {
             "height": 24,
             "marginTop": 0,
             "width": 24,
@@ -194,7 +194,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     >
       <Text
         style={
-          Object {
+          {
             "alignSelf": "center",
             "color": "#535A61",
             "flex": 0,
@@ -213,7 +213,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   <TouchableOpacity
     onPress={[Function]}
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "height": 24,
@@ -229,23 +229,23 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     <Text
       allowFontScaling={false}
       style={
-        Array [
-          Object {
+        [
+          {
             "color": undefined,
             "fontSize": 22,
           },
-          Object {
+          {
             "color": "#24272A",
             "height": 24,
             "textAlign": "center",
             "width": 24,
           },
-          Object {
+          {
             "fontFamily": "simple-line-icons",
             "fontStyle": "normal",
             "fontWeight": "normal",
           },
-          Object {},
+          {},
         ]
       }
     >
@@ -255,7 +255,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   <TouchableOpacity
     onPress={[Function]}
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "height": 24,
@@ -271,23 +271,23 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     <Text
       allowFontScaling={false}
       style={
-        Array [
-          Object {
+        [
+          {
             "color": undefined,
             "fontSize": 22,
           },
-          Object {
+          {
             "color": "#24272A",
             "height": 24,
             "textAlign": "center",
             "width": 24,
           },
-          Object {
+          {
             "fontFamily": "Material Icons",
             "fontStyle": "normal",
             "fontWeight": "normal",
           },
-          Object {},
+          {},
         ]
       }
     >

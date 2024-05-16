@@ -61,7 +61,7 @@ const mockedNetworksDetails = [
     rpcPrefs: {
       blockExplorerUrl: 'https://cronoscan.com',
       imageUrl:
-        'https://static.metafi.codefi.network/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png',
+        'https://static.cx.metamask.io/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png',
     },
   },
 ];
@@ -274,8 +274,8 @@ describe('NetworkSwitcher View', () => {
     fireEvent.press(lineaNetworkText);
     expect(Engine.context.NetworkController.setProviderType.mock.calls)
       .toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           "linea-mainnet",
         ],
       ]
@@ -286,16 +286,16 @@ describe('NetworkSwitcher View', () => {
     fireEvent.press(polygonNetworkTest);
     expect(Engine.context.NetworkController.setActiveNetwork.mock.calls)
       .toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           "networkId1",
         ],
       ]
     `);
     expect(Engine.context.CurrencyRateController.updateExchangeRate.mock.calls)
       .toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           "MATIC",
         ],
       ]
@@ -366,8 +366,8 @@ describe('NetworkSwitcher View', () => {
   it('navigates on supported network', async () => {
     render(NetworkSwitcher, '1');
     expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           "GetStarted",
         ],
       ]

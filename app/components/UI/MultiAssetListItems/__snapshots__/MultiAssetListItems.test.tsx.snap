@@ -3,7 +3,7 @@
 exports[`MultiAssetListItems render matches previous snapshot 1`] = `
 <View
   style={
-    Object {
+    {
       "padding": 0,
     }
   }
@@ -11,7 +11,7 @@ exports[`MultiAssetListItems render matches previous snapshot 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      Object {
+      {
         "color": "#24272A",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,

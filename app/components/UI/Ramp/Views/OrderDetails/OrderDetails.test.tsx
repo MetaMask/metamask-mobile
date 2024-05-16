@@ -238,9 +238,9 @@ describe('OrderDetails', () => {
   it('sends analytics events when an order is loaded', () => {
     render(OrderDetails);
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "ONRAMP_PURCHASE_DETAILS_VIEWED",
-        Object {
+        {
           "chain_id_destination": "1",
           "currency_destination": "ETH",
           "currency_source": "USD",
@@ -260,9 +260,9 @@ describe('OrderDetails', () => {
 
     render(OrderDetails, [testOrder]);
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "OFFRAMP_PURCHASE_DETAILS_VIEWED",
-        Object {
+        {
           "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
