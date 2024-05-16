@@ -91,13 +91,15 @@ const styles = StyleSheet.create({
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
   infoButton: {
+    paddingRight: Device.isAndroid() ? 0 : 18,
+
     marginTop: 5,
   },
   disabled: {
     opacity: 0.3,
   },
   leftButtonContainer: {
-    marginRight: Device.isAndroid() ? 22 : 12,
+    marginRight: 12,
     flexDirection: 'row',
     alignItems: 'flex-end',
   },
