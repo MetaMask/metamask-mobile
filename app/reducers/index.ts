@@ -25,7 +25,7 @@ import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
-import pushNotificationsReducer from '../store/ducks/notifications';
+import { pushNotificationsReducer } from '../store/ducks/notifications';
 /**
  * Infer state from a reducer
  *

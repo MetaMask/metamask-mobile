@@ -4,6 +4,7 @@
 import { createActions, createReducer } from 'reduxsauce';
 
 import { Notification } from '../../util/notifications';
+import { any } from 'prop-types';
 
 export const { Types, Creators } = createActions({
   // handle loading for any action
@@ -65,9 +66,9 @@ export const { Types, Creators } = createActions({
   markMetamaskNotificationsAsReadRequest: [],
   markMetamaskNotificationsAsReadSuccess: [],
   markMetamaskNotificationsAsReadFailure: ['error'],
-  deleteNotificationStatusRequest: [],
-  deleteNotificationStatusSuccess: [],
-  deleteNotificationStatusFailure: ['error'],
+  DeleteNotificationsStatusRequest: [],
+  DeleteNotificationsStatusSuccess: [],
+  DeleteNotificationsStatusFailure: ['error'],
 });
 
 export const NotificationsTypes = Types;
@@ -105,7 +106,7 @@ interface PushNotificationsState {
     isUpdatingMetamaskNotificationsAccounts: IsEnabled;
     metamaskNotificationsList: Notification[];
     metamaskNotificationsReadList: Notification[];
-    sessionData: SessionData;
+    sessionData?: SessionData;
     internalAccounts: any[];
     uniqueAccounts: any[];
     isUpdatingMetamaskNotificationsAccount: any[];
@@ -184,7 +185,7 @@ const initialState = {
     uniqueAccounts: [],
     isUpdatingMetamaskNotificationsAccount: [],
   },
-} as PushNotificationsState;
+};
 
 const requestPerformSignIn = (state: PushNotificationsState) => ({
   pushNotifications: {
@@ -360,6 +361,11 @@ const requestEnableMetamaskNotifications = (state: PushNotificationsState) => ({
       error: null,
       status: false,
     },
+    isUpdatingMetamaskNotifications: {
+      loading: true,
+      error: null,
+      status: true,
+    },
   },
 });
 const successEnableMetamaskNotifications = (state: PushNotificationsState) => ({
@@ -404,6 +410,21 @@ const successDisableMetamaskNotifications = (
   pushNotifications: {
     ...state.pushNotifications,
     isMetamaskNotificationsEnabled: {
+      loading: false,
+      error: null,
+      status: false,
+    },
+    isSnapNotificationsEnabled: {
+      loading: false,
+      error: null,
+      status: false,
+    },
+    isFeatureAnnouncementsEnabled: {
+      loading: false,
+      error: null,
+      status: false,
+    },
+    isUpdatingMetamaskNotifications: {
       loading: false,
       error: null,
       status: false,
@@ -496,7 +517,10 @@ const failureSetSnapNotificationsEnabled = (
   },
 });
 
-const requestCheckAccountsPresence = (state: PushNotificationsState) => ({
+const requestCheckAccountsPresence = (
+  state: PushNotificationsState,
+  { accounts }: { accounts: string[] },
+) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isCheckingAccountsPresence: {
@@ -506,7 +530,10 @@ const requestCheckAccountsPresence = (state: PushNotificationsState) => ({
     },
   },
 });
-const successCheckAccountsPresence = (state: PushNotificationsState) => ({
+const successCheckAccountsPresence = (
+  state: PushNotificationsState,
+  { presence }: { presence: Record<string, boolean> },
+) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isCheckingAccountsPresence: {
@@ -693,7 +720,7 @@ const failureMarkMetamaskNotificationsAsRead = (
   },
 });
 
-const requestDeleteNotificationStatus = (
+const requestDeleteNotificationsStatus = (
   state: PushNotificationsState,
   { notifications }: { notifications: Notification[] },
 ) => ({
@@ -701,7 +728,7 @@ const requestDeleteNotificationStatus = (
     ...state.pushNotifications,
   },
 });
-const successDeleteNotificationStatus = (
+const successDeleteNotificationsStatus = (
   state: PushNotificationsState,
   {
     metamaskNotificationsList,
@@ -714,7 +741,7 @@ const successDeleteNotificationStatus = (
     metamaskNotificationsList,
   },
 });
-const failureDeleteNotificationStatus = (state: PushNotificationsState) => ({
+const failureDeleteNotificationsStatus = (state: PushNotificationsState) => ({
   pushNotifications: {
     ...state.pushNotifications,
   },
@@ -835,7 +862,7 @@ export const pushNotificationsReducer = createReducer(initialState, {
     successMarkMetamaskNotificationsAsRead,
   [Types.MARK_METAMASK_NOTIFICATIONS_AS_READ_FAILURE]:
     failureMarkMetamaskNotificationsAsRead,
-  [Types.DELETE_NOTIFICATION_STATUS_REQUEST]: requestDeleteNotificationStatus,
-  [Types.DELETE_NOTIFICATION_STATUS_SUCCESS]: successDeleteNotificationStatus,
-  [Types.DELETE_NOTIFICATION_STATUS_FAILURE]: failureDeleteNotificationStatus,
-});
+  [Types.DELETE_NOTIFICATION_STATUS_REQUEST]: requestDeleteNotificationsStatus,
+  [Types.DELETE_NOTIFICATION_STATUS_SUCCESS]: successDeleteNotificationsStatus,
+  [Types.DELETE_NOTIFICATION_STATUS_FAILURE]: failureDeleteNotificationsStatus,
+} as any);
