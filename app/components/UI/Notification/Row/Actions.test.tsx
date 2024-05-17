@@ -25,7 +25,7 @@ describe('NotificationActions', () => {
     isExternal: true,
   };
 
-  it('renders correctly', () => {
+  it('matches snapshot', () => {
     const { toJSON } = renderWithProvider(
       <NotificationActions action={action} link={link} styles={styles} />,
     );
