@@ -53,8 +53,6 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
