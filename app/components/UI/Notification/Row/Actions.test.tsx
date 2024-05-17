@@ -39,7 +39,7 @@ describe('NotificationActions', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders link title correctly', () => {
+  it('renders link title', () => {
     const { getByText } = renderWithProvider(
       <NotificationActions link={link} styles={styles} />,
     );
@@ -47,7 +47,7 @@ describe('NotificationActions', () => {
     expect(getByText('Learn more')).toBeTruthy();
   });
 
-  it('Calls Linking.openURL when link CTA is clicked', async () => {
+  it('calls Linking.openURL when link CTA is clicked', async () => {
     const { getByTestId } = renderWithProvider(
       <NotificationActions link={link} styles={styles} />,
     );
