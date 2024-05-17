@@ -100,7 +100,6 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
-import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -389,7 +388,6 @@ function SwapsQuotesView({
   usedCustomGas,
   setRecipient,
   resetTransaction,
-  shouldUseSmartTransaction,
 }) {
   const navigation = useNavigation();
   /* Get params from navigation */
@@ -928,13 +926,11 @@ function SwapsQuotesView({
             origin: process.env.MM_FOX_CODE,
           },
         );
-
         updateSwapsTransactions(
           transactionMeta,
           approvalTransactionMetaId,
           newSwapsTransactions,
         );
-
         setRecipient(selectedAddress);
         await addTokenToAssetsController(destinationToken);
         await addTokenToAssetsController(sourceToken);
@@ -994,7 +990,7 @@ function SwapsQuotesView({
             16,
           ).toString(10),
         };
-        if (isHardwareAddress || shouldUseSmartTransaction) {
+        if (isHardwareAddress) {
           TransactionController.hub.once(
             `${transactionMeta.id}:confirmed`,
             (transactionMeta) => {
@@ -1023,7 +1019,6 @@ function SwapsQuotesView({
       selectedAddress,
       setRecipient,
       resetTransaction,
-      shouldUseSmartTransaction,
     ],
   );
 
@@ -1037,7 +1032,6 @@ function SwapsQuotesView({
     startSwapAnalytics(selectedQuote, selectedAddress);
 
     const { TransactionController } = Engine.context;
-
     const newSwapsTransactions =
       TransactionController.state.swapsTransactions || {};
     let approvalTransactionMetaId;
@@ -1056,17 +1050,12 @@ function SwapsQuotesView({
       }
     }
 
-    if (
-      !shouldUseSmartTransaction ||
-      (shouldUseSmartTransaction && !approvalTransaction)
-    ) {
-      handleSwapTransaction(
-        TransactionController,
-        newSwapsTransactions,
-        approvalTransactionMetaId,
-        isHardwareAddress,
-      );
-    }
+    handleSwapTransaction(
+      TransactionController,
+      newSwapsTransactions,
+      approvalTransactionMetaId,
+      isHardwareAddress,
+    );
 
     navigation.dangerouslyGetParent()?.pop();
   }, [
@@ -1077,7 +1066,6 @@ function SwapsQuotesView({
     handleApprovaltransaction,
     handleSwapTransaction,
     navigation,
-    shouldUseSmartTransaction,
   ]);
 
   const onEditQuoteTransactionsGas = useCallback(() => {
@@ -2311,7 +2299,6 @@ SwapsQuotesView.propTypes = {
   usedCustomGas: PropTypes.object,
   setRecipient: PropTypes.func,
   resetTransaction: PropTypes.func,
-  shouldUseSmartTransaction: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -2344,7 +2331,6 @@ const mapStateToProps = (state) => ({
   usedCustomGas: state.engine.backgroundState.SwapsController.usedCustomGas,
   primaryCurrency: state.settings.primaryCurrency,
   swapsTokens: swapsTokensSelector(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

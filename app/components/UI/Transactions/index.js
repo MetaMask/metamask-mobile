@@ -742,12 +742,9 @@ class Transactions extends PureComponent {
     const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
-
     const transactions =
       submittedTransactions && submittedTransactions.length
-        ? submittedTransactions
-            .sort((a, b) => b.time - a.time)
-            .concat(confirmedTransactions)
+        ? submittedTransactions.concat(confirmedTransactions)
         : this.props.transactions;
 
     const renderSpeedUpGas = () => {

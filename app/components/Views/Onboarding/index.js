@@ -34,7 +34,6 @@ import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
-import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -130,7 +129,6 @@ const createStyles = (colors) =>
  */
 class Onboarding extends PureComponent {
   static propTypes = {
-    disableNewPrivacyPolicyToast: PropTypes.func,
     /**
      * The navigator object
      */
@@ -224,7 +222,6 @@ class Onboarding extends PureComponent {
     this.updateNavBar();
     this.mounted = true;
     this.checkIfExistingUser();
-    this.props.disableNewPrivacyPolicyToast();
 
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
@@ -488,8 +485,6 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   setLoading: (msg) => dispatch(loadingSet(msg)),
   unsetLoading: () => dispatch(loadingUnset()),
-  disableNewPrivacyPolicyToast: () =>
-    dispatch(storePrivacyPolicyClickedOrClosedAction()),
 });
 
 export default connect(

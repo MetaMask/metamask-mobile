@@ -3,14 +3,12 @@ import type { EngineState } from '../../core/Engine';
 import { initialState as initialFiatOrdersState } from '../../reducers/fiatOrders';
 import { initialState as initialSecurityState } from '../../reducers/security';
 import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
-import { initialState as initialSmartTransactions } from '../../core/redux/slices/smartTransactions';
 import initialBackgroundState from './initial-background-state.json';
 
 // Cast because TypeScript is incorrectly inferring the type of this JSON object
 const backgroundState: EngineState = initialBackgroundState as any;
 
 const initialRootState: RootState = {
-  legalNotices: undefined,
   collectibles: undefined,
   engine: { backgroundState },
   privacy: undefined,
@@ -20,7 +18,6 @@ const initialRootState: RootState = {
   settings: undefined,
   alert: undefined,
   transaction: undefined,
-  smartTransactions: initialSmartTransactions,
   user: {},
   wizard: undefined,
   onboarding: undefined,

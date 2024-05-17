@@ -75,6 +75,7 @@ ignores:
   - 'react-native-redash'
   - 'react-native-swipe-gestures'
   - 'react-native-tcp'
+  - 'react-native-v8'
   - 'socket.io-client'
   - 'stream-browserify'
   - 'url'

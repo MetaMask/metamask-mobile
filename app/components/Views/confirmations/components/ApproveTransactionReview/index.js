@@ -97,7 +97,6 @@ import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { regex } from '../../../../../util/regex';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -276,10 +275,6 @@ class ApproveTransactionReview extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
-    /**
-     * Boolean that indicates if smart transaction should be used
-     */
-    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -344,7 +339,7 @@ class ApproveTransactionReview extends PureComponent {
       tokenList,
       tokenAllowanceState,
     } = this.props;
-    const { AssetsContractController } = Engine.context;
+    const { TokenBalancesController } = Engine.context;
 
     let host;
 
@@ -367,7 +362,7 @@ class ApproveTransactionReview extends PureComponent {
       decodeApproveData(data);
     const encodedDecimalAmount = hexToBN(encodedHexAmount).toString();
 
-    const erc20TokenBalance = await AssetsContractController.getERC20BalanceOf(
+    const erc20TokenBalance = await TokenBalancesController.getERC20BalanceOf(
       to,
       from,
     );
@@ -517,12 +512,7 @@ class ApproveTransactionReview extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const {
-        chainId,
-        transaction,
-        onSetAnalyticsParams,
-        shouldUseSmartTransaction,
-      } = this.props;
+      const { chainId, transaction, onSetAnalyticsParams } = this.props;
       const {
         token: { tokenSymbol },
         originalApproveAmount,
@@ -548,7 +538,6 @@ class ApproveTransactionReview extends PureComponent {
           : this.originIsWalletConnect
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
-        is_smart_transaction: shouldUseSmartTransaction,
       };
       // Send analytics params to parent component so it's available when cancelling and confirming
       onSetAnalyticsParams && onSetAnalyticsParams(params);
@@ -1285,7 +1274,6 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

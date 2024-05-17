@@ -10,13 +10,8 @@ const selectTransactionsStrict = createSelector(
   (transactionControllerState) => transactionControllerState.transactions,
 );
 
+// eslint-disable-next-line import/prefer-default-export
 export const selectTransactions = createDeepEqualSelector(
   selectTransactionsStrict,
   (transactions) => transactions,
-);
-
-export const selectNonReplacedTransactions = createDeepEqualSelector(
-  selectTransactionsStrict,
-  (transactions) =>
-    transactions.filter((tx) => !(tx.replacedBy && tx.replacedById && tx.hash)),
 );

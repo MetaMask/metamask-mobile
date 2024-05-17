@@ -389,9 +389,7 @@ export class BackgroundBridge extends EventEmitter {
     // Add PermissionController middleware
     engine.push(
       Engine.context.PermissionController.createPermissionMiddleware({
-        // FIXME: This condition migrates `eth_accounts` from RPCMethodMiddleware so that both WC and SDK are compatible with the permission middleware.
-        // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
-        origin: this.isMMSDK ? this.channelId : origin,
+        origin,
       }),
     );
 

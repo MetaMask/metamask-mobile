@@ -22,13 +22,13 @@ const useTokenBalance = (
     useState<boolean>(true);
   const [error, setError]: [boolean, Dispatch<SetStateAction<boolean>>] =
     useState<boolean>(false);
-  const { AssetsContractController }: any = Engine.context;
+  const { TokenBalancesController }: any = Engine.context;
 
   const fetchBalance = async (
     tokenAddress: string,
     userAddress: string,
   ): Promise<void> => {
-    AssetsContractController.getERC20BalanceOf(tokenAddress, userAddress)
+    TokenBalancesController.getERC20BalanceOf(tokenAddress, userAddress)
       .then((balance: BN) => setTokenBalance(balance))
       .catch(() => setError(true))
       .finally(() => setLoading(false));

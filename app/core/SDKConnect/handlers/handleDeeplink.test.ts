@@ -59,7 +59,7 @@ describe('handleDeeplink', () => {
 
   it('should waits for SDKConnect to initialize if not already initialized', async () => {
     mockHasInitialized.mockReturnValueOnce(false).mockReturnValueOnce(true);
-    mockWaitForCondition.mockResolvedValue();
+    mockWaitForCondition.mockResolvedValue(true);
 
     await handleDeeplink({
       sdkConnect,

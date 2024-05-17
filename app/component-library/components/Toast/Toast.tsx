@@ -41,7 +41,6 @@ import {
 import styles from './Toast.styles';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { TOAST_ID } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
-import { ButtonProps } from '../Buttons/Button/Button.types';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;
@@ -64,14 +63,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       [],
     );
 
-  const resetState = () => setToastOptions(undefined);
-
   const showToast = (options: ToastOptions) => {
     let timeoutDuration = 0;
     if (toastOptions) {
-      if (!options.hasNoTimeout) {
-        cancelAnimation(translateYProgress);
-      }
+      // Reset animation.
+      cancelAnimation(translateYProgress);
       timeoutDuration = 100;
     }
     setTimeout(() => {
@@ -79,20 +75,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     }, timeoutDuration);
   };
 
-  const closeToast = () => {
-    translateYProgress.value = withTiming(
-      screenHeight,
-      { duration: animationDuration },
-      () => {
-        runOnJS(resetState)();
-      },
-    );
-  };
-
   useImperativeHandle(ref, () => ({
     showToast,
-    closeToast,
   }));
+
+  const resetState = () => setToastOptions(undefined);
 
   const onAnimatedViewLayout = (e: LayoutChangeEvent) => {
     if (toastOptions) {
@@ -100,27 +87,20 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       const translateYToValue = -(bottomPadding + bottomNotchSpacing);
 
       translateYProgress.value = height;
-
-      if (toastOptions.hasNoTimeout) {
-        translateYProgress.value = withTiming(translateYToValue, {
-          duration: animationDuration,
-        });
-      } else {
-        translateYProgress.value = withTiming(
-          translateYToValue,
-          { duration: animationDuration },
-          () => {
-            translateYProgress.value = withDelay(
-              visibilityDuration,
-              withTiming(
-                height,
-                { duration: animationDuration },
-                runOnJS(resetState),
-              ),
-            );
-          },
-        );
-      }
+      translateYProgress.value = withTiming(
+        translateYToValue,
+        { duration: animationDuration },
+        () => {
+          translateYProgress.value = withDelay(
+            visibilityDuration,
+            withTiming(
+              height,
+              { duration: animationDuration },
+              runOnJS(resetState),
+            ),
+          );
+        },
+      );
     }
   };
 
@@ -147,14 +127,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         label={linkButtonOptions.label}
       />
     );
-
-  const renderCloseButton = (closeButtonOptions?: ButtonProps) => (
-    <Button
-      variant={ButtonVariants.Primary}
-      onPress={() => closeButtonOptions?.onPress()}
-      label={closeButtonOptions?.label}
-    />
-  );
 
   const renderAvatar = () => {
     switch (toastOptions?.variant) {
@@ -191,7 +163,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderToastContent = (options: ToastOptions) => {
-    const { labelOptions, linkButtonOptions, closeButtonOptions } = options;
+    const { labelOptions, linkButtonOptions } = options;
 
     return (
       <>
@@ -203,7 +175,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           {renderLabel(labelOptions)}
           {renderButtonLink(linkButtonOptions)}
         </View>
-        {closeButtonOptions ? renderCloseButton(closeButtonOptions) : null}
       </>
     );
   };

@@ -8,41 +8,45 @@ import {
   setSwapsLiveness,
   swapsLivenessSelector,
 } from '../../../reducers/swaps';
+import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import useInterval from '../../hooks/useInterval';
 import { isSwapsAllowed } from './utils';
 import { EngineState } from '../../../selectors/types';
 
 const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;
-
 function SwapLiveness() {
   const isLive = useSelector(swapsLivenessSelector);
   const chainId = useSelector((state: EngineState) => selectChainId(state));
   const dispatch = useDispatch();
   const setLiveness = useCallback(
-    (_chainId, featureFlags) => {
-      dispatch(setSwapsLiveness(_chainId, featureFlags));
+    (liveness, currentChainId) => {
+      dispatch(setSwapsLiveness(liveness, currentChainId));
     },
     [dispatch],
   );
   const checkLiveness = useCallback(async () => {
     try {
-      const featureFlags = await swapsUtils.fetchSwapsFeatureFlags(
+      const data = await swapsUtils.fetchSwapsFeatureLiveness(
         chainId,
         AppConstants.SWAPS.CLIENT_ID,
       );
-
-      setLiveness(chainId, featureFlags);
+      const isIphone = Device.isIos();
+      const isAndroid = Device.isAndroid();
+      const featureFlagKey = isIphone
+        ? 'mobileActiveIOS'
+        : isAndroid
+        ? 'mobileActiveAndroid'
+        : 'mobileActive';
+      const liveness =
+        // @ts-expect-error interface mismatch
+        typeof data === 'boolean' ? data : data?.[featureFlagKey] ?? false;
+      setLiveness(liveness, chainId);
     } catch (error) {
       Logger.error(error as any, 'Swaps: error while fetching swaps liveness');
-      setLiveness(chainId, null);
+      setLiveness(false, chainId);
     }
   }, [setLiveness, chainId]);
-
-  // Need to check swap feature flags once on load, so we can use it for STX
-  useEffect(() => {
-    checkLiveness();
-  }, [checkLiveness]);
 
   useEffect(() => {
     if (isSwapsAllowed(chainId) && !isLive) {

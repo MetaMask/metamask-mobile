@@ -1,20 +1,7 @@
-import React, {
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-  useContext,
-} from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  View,
-  TextStyle,
-  InteractionManager,
-  Linking,
-} from 'react-native';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import { ActivityIndicator, StyleSheet, View, TextStyle } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
-import { connect, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
@@ -27,16 +14,6 @@ import {
   hexToBN,
   toHexadecimal,
 } from '../../../util/number';
-import {
-  shouldShowNewPrivacyToastSelector,
-  storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
-  storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
-} from '../../../reducers/legalNotices';
-import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -44,18 +21,10 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
-import {
-  shouldShowSmartTransactionsOptInModal,
-  shouldShowWhatsNewModal,
-} from '../../../util/onboarding';
+import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  getDecimalChainId,
-  getIsNetworkOnboarded,
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
@@ -80,7 +49,6 @@ import Text, {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useAccounts } from '../../hooks/useAccounts';
 import { RootState } from 'app/reducers';
-import usePrevious from '../../hooks/usePrevious';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -124,16 +92,10 @@ const createStyles = ({ colors, typography }: Theme) =>
 /**
  * Main view for the wallet
  */
-const Wallet = ({
-  navigation,
-  storePrivacyPolicyShownDate,
-  shouldShowNewPrivacyToast,
-  storePrivacyPolicyClickedOrClosed,
-}: any) => {
+const Wallet = ({ navigation }: any) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
-  const { toastRef } = useContext(ToastContext);
   const { trackEvent } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
@@ -171,7 +133,7 @@ const Wallet = ({
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
-  const prevChainId = usePrevious(providerConfig.chainId);
+
   /**
    * Is basic functionality enabled
    */
@@ -183,51 +145,6 @@ const Wallet = ({
    * A list of all the user accounts and a mapping of ENS name to account address if they exist
    */
   const { accounts, ensByAccountAddress } = useAccounts();
-
-  const currentToast = toastRef?.current;
-
-  useEffect(() => {
-    if (!shouldShowNewPrivacyToast) return;
-
-    storePrivacyPolicyShownDate();
-    currentToast?.showToast({
-      variant: ToastVariants.Plain,
-      labelOptions: [
-        {
-          label: strings(`privacy_policy.toast_message`),
-          isBold: false,
-        },
-      ],
-      closeButtonOptions: {
-        label: strings(`privacy_policy.toast_action_button`),
-        onPress: () => {
-          storePrivacyPolicyClickedOrClosed();
-          currentToast?.closeToast();
-        },
-      },
-      linkButtonOptions: {
-        label: strings(`privacy_policy.toast_read_more`),
-        onPress: () => {
-          storePrivacyPolicyClickedOrClosed();
-          currentToast?.closeToast();
-          Linking.openURL(CONSENSYS_PRIVACY_POLICY);
-        },
-      },
-      hasNoTimeout: true,
-    });
-  }, [
-    storePrivacyPolicyShownDate,
-    shouldShowNewPrivacyToast,
-    storePrivacyPolicyClickedOrClosed,
-    currentToast,
-  ]);
-
-  /**
-   * Network onboarding state
-   */
-  const networkOnboardingState = useSelector(
-    (state: any) => state.networkOnboarded.networkOnboardedState,
-  );
 
   /**
    * An object representing the currently selected account.
@@ -272,22 +189,13 @@ const Wallet = ({
   const { colors: themeColors } = useTheme();
 
   /**
-   * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
+   * Check to see if we need to show What's New modal
    */
   useEffect(() => {
-    const networkOnboarded = getIsNetworkOnboarded(
-      providerConfig.chainId,
-      networkOnboardingState,
-    );
-
-    if (
-      wizardStep > 0 ||
-      (!networkOnboarded && prevChainId !== providerConfig.chainId)
-    ) {
-      // Do not check since it will conflict with the onboarding wizard and/or network onboarding
+    if (wizardStep > 0) {
+      // Do not check since it will conflict with the onboarding wizard
       return;
     }
-
     const checkWhatsNewModal = async () => {
       try {
         const shouldShowWhatsNew = await shouldShowWhatsNewModal();
@@ -300,42 +208,8 @@ const Wallet = ({
         Logger.log(error, "Error while checking What's New modal!");
       }
     };
-
-    // Show STX opt in modal before What's New modal
-    // Fired on the first load of the wallet and also on network switch
-    const checkSmartTransactionsOptInModal = async () => {
-      try {
-        const showShowStxOptInModal =
-          await shouldShowSmartTransactionsOptInModal(
-            providerConfig.chainId,
-            providerConfig.rpcUrl,
-          );
-        if (showShowStxOptInModal) {
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
-          });
-        } else {
-          await checkWhatsNewModal();
-        }
-      } catch (error) {
-        Logger.log(
-          error,
-          'Error while checking Smart Tranasctions Opt In modal!',
-        );
-      }
-    };
-
-    InteractionManager.runAfterInteractions(() => {
-      checkSmartTransactionsOptInModal();
-    });
-  }, [
-    wizardStep,
-    navigation,
-    providerConfig.chainId,
-    providerConfig.rpcUrl,
-    networkOnboardingState,
-    prevChainId,
-  ]);
+    checkWhatsNewModal();
+  }, [wizardStep, navigation]);
 
   useEffect(
     () => {
@@ -552,15 +426,4 @@ const Wallet = ({
   );
 };
 
-const mapStateToProps = (state: any) => ({
-  shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
-});
-
-const mapDispatchToProps = (dispatch: any) => ({
-  storePrivacyPolicyShownDate: () =>
-    dispatch(storePrivacyPolicyShownDateAction(Date.now())),
-  storePrivacyPolicyClickedOrClosed: () =>
-    dispatch(storePrivacyPolicyClickedOrClosedAction()),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(Wallet);
+export default Wallet;

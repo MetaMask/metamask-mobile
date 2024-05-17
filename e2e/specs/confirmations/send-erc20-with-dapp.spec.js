@@ -7,10 +7,7 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import {
-  SMART_CONTRACTS,
-  contractConfiguration,
-} from '../../../app/util/test/smart-contracts';
+import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
 
 import TabBarComponent from '../../pages/TabBarComponent';
@@ -62,9 +59,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
 
         // Assert "Sent Tokens" transaction is displayed
         await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(
-            contractConfiguration[HST_CONTRACT].tokenName,
-          ),
+          ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT,
         );
       },
     );

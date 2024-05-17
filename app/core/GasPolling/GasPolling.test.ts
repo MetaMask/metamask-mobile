@@ -7,7 +7,6 @@ import {
 import { parseTransactionEIP1559 } from '../../util/transactions';
 import { GasFeeOptions, GetEIP1559TransactionDataProps } from './types';
 import AppConstants from '../AppConstants';
-import { Hex } from '@metamask/utils';
 jest.mock('../../util/transactions');
 const mockedParseTransactionEIP1559 =
   parseTransactionEIP1559 as jest.MockedFunction<
@@ -151,7 +150,7 @@ describe('GetEIP1559TransactionData', () => {
       gasFeeMaxNative: '0.00005',
       gasFeeMinConversion: '0.09',
       gasFeeMinNative: '0.00005',
-      gasLimitHex: '0x8163' as Hex,
+      gasLimitHex: '0x8163',
       maxPriorityFeeConversion: '0.09',
       maxPriorityFeeNative: '0.00005',
       renderableGasFeeMaxConversion: '$0.09',

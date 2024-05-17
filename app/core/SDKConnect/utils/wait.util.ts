@@ -4,12 +4,16 @@ import RPCQueueManager from '../RPCQueueManager';
 import { SDKConnect } from '../SDKConnect';
 import DevLogger from './DevLogger';
 import { Connection } from '../Connection';
-import { isE2E } from '../../../util/test/utils';
+import { isTest } from '../../../util/test/utils';
 import { store } from '../../../../app/store/index';
 
 export const MAX_QUEUE_LOOP = Infinity;
 export const wait = (ms: number) =>
   new Promise((resolve) => {
+    if (isTest) {
+      return true;
+    }
+
     setTimeout(resolve, ms);
   });
 
@@ -19,6 +23,11 @@ export const waitForReadyClient = async (
     [clientId: string]: DappClient;
   },
 ) => {
+  // Disable during e2e tests otherwise Detox fails
+  if (isTest) {
+    return true;
+  }
+
   let i = 0;
   while (!connectedClients[id]) {
     i += 1;
@@ -53,6 +62,11 @@ export const waitForCondition = async ({
   waitTime?: number;
   context?: string;
 }) => {
+  // Disable during e2e tests otherwise Detox fails
+  if (isTest) {
+    return true;
+  }
+
   let i = 0;
   while (!fn()) {
     i += 1;
@@ -86,7 +100,7 @@ export const waitForKeychainUnlocked = async ({
   context?: string;
 }) => {
   // Disable during e2e tests otherwise Detox fails
-  if (isE2E) {
+  if (isTest) {
     return true;
   }
 
@@ -121,7 +135,7 @@ export const waitForUserLoggedIn = async ({
   let i = 1;
 
   // Disable during e2e tests otherwise Detox fails
-  if (isE2E) {
+  if (isTest) {
     return true;
   }
 

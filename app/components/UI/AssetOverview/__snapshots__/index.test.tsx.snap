@@ -4,9 +4,6 @@ exports[`AssetOverview should render correctly 1`] = `
 <ContextProvider
   value={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
       "store": {
         "clearActions": [Function],
         "dispatch": [Function],
@@ -15,14 +12,22 @@ exports[`AssetOverview should render correctly 1`] = `
         "replaceReducer": [Function],
         "subscribe": [Function],
       },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
+      "subscription": Subscription {
         "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
+        "listeners": {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
       },
     }
   }

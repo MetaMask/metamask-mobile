@@ -59,16 +59,13 @@ export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
     type: CaveatTypes.restrictReturnedAccounts,
 
     decorator: (method, caveat) => async (args) => {
-      const permittedAccounts = [];
       const allAccounts = await method(args);
-      caveat.value.forEach((address) => {
+      const res = caveat.value.filter((address) => {
         const addressToCompare = address.toLowerCase();
-        const isPermittedAccount = allAccounts.includes(addressToCompare);
-        if (isPermittedAccount) {
-          permittedAccounts.push(addressToCompare);
-        }
+        return allAccounts.includes(addressToCompare);
       });
-      return permittedAccounts;
+
+      return res;
     },
 
     validator: (caveat, _origin, _target) =>

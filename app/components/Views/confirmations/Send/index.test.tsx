@@ -132,11 +132,6 @@ const initialState = {
         internalTransactions: [],
         swapsTransactions: {},
       },
-      SmartTransactionsController: {
-        smartTransactionsState: {
-          liveness: true,
-        },
-      },
       GasFeeController: {
         gasFeeEstimates: {},
         estimatedGasFeeTimeBounds: {},

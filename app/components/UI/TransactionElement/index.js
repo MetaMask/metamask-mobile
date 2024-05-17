@@ -317,15 +317,14 @@ class TransactionElement extends PureComponent {
       selectedAddress,
       isQRHardwareAccount,
       isLedgerAccount,
-      tx: { time, status, isSmartTransaction },
+      tx: { time, status },
     } = this.props;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
     const renderNormalActions =
-      (status === 'submitted' ||
-        (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
-      !isSmartTransaction;
+      status === 'submitted' ||
+      (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount);
     const renderUnsignedQRActions =
       status === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;

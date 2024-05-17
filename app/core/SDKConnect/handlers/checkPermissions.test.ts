@@ -6,7 +6,6 @@ import { Connection } from '../Connection';
 import checkPermissions from './checkPermissions';
 import { PermissionController } from '@metamask/permission-controller';
 import { getPermittedAccounts } from '../../../core/Permissions';
-import { KeyringController } from '@metamask/keyring-controller';
 
 jest.mock('../Connection', () => ({
   RPC_METHODS: jest.requireActual('../Connection').RPC_METHODS,
@@ -35,7 +34,6 @@ describe('checkPermissions', () => {
   const requestPermissions = jest.fn();
   let preferencesController = {} as unknown as PreferencesController;
   let approvalController = {} as unknown as ApprovalController;
-  let keyringController = {} as unknown as KeyringController;
   let permissionController = {
     executeProviderRequest: jest.fn(),
     executeRestrictedMethod: jest.fn().mockResolvedValue({}),
@@ -68,7 +66,6 @@ describe('checkPermissions', () => {
     engine = {
       context: {},
     } as unknown as typeof Engine;
-
     preferencesController = {
       state: {
         selectedAddress: '',
@@ -77,9 +74,6 @@ describe('checkPermissions', () => {
     approvalController = {
       add: mockAdd,
     } as unknown as ApprovalController;
-    keyringController = {
-      isUnlocked: jest.fn(() => true),
-    } as unknown as KeyringController;
     permissionController = {
       executeProviderRequest: jest.fn(),
       executeRestrictedMethod: jest.fn().mockResolvedValue({}),
@@ -93,7 +87,6 @@ describe('checkPermissions', () => {
       context: {
         PreferencesController: preferencesController,
         ApprovalController: approvalController,
-        KeyringController: keyringController,
         PermissionController: permissionController,
       },
     } as unknown as typeof Engine;

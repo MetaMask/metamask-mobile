@@ -67,8 +67,8 @@ function networkOnboardReducer(
           networkUrl: '',
         },
         networkOnboardedState: {
-          ...state.networkOnboardedState,
           [action.payload]: true,
+          ...state.networkOnboardedState,
         },
       };
     default:
