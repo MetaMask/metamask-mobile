@@ -25,6 +25,7 @@ import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
+import pushNotificationsReducer from '../store/ducks/notifications';
 /**
  * Infer state from a reducer
  *
@@ -54,6 +55,7 @@ export interface RootState {
   wizard: any;
   onboarding: any;
   notification: any;
+  pushNotifications: StateFromReducer<typeof pushNotificationsReducer>;
   swaps: any;
   fiatOrders: StateFromReducer<typeof fiatOrders>;
   infuraAvailability: any;
@@ -87,6 +89,7 @@ const rootReducer = combineReducers<RootState, any>({
   wizard: wizardReducer,
   onboarding: onboardingReducer,
   notification: notificationReducer,
+  pushNotifications: pushNotificationsReducer,
   signatureRequest: signatureRequestReducer,
   swaps: swapsReducer,
   fiatOrders,

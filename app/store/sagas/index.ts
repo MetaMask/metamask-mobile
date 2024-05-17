@@ -15,10 +15,8 @@ import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
 import AppConstants from '../../../app/core/AppConstants';
-import {
-  performSignInFailure,
-  performSignInSuccess,
-} from '../../actions/notification';
+
+import { NOTIFICATIONS_ERRORS } from './constants';
 
 const originalSend = XMLHttpRequest.prototype.send;
 const originalOpen = XMLHttpRequest.prototype.open;
@@ -165,12 +163,18 @@ export function* basicFunctionalityToggle() {
   }
 }
 
-export function* performNotificationsSignIn() {
+export function* signIn(controlller: any, action: any) {
   try {
-    const response = yield call(/** call Notifications SDK/Controller */);
-    yield put(performSignInSuccess(response));
-  } catch (error: any) {
-    yield put(performSignInFailure(error));
+    const { accessToken } = yield call(controlller.performSignIn());
+    if (!accessToken) {
+      yield put(
+        action.failurePerformSignIn(NOTIFICATIONS_ERRORS.NO_ACCESS_TOKEN),
+      );
+      return;
+    }
+    yield put(action.successPerformSignIn(accessToken));
+  } catch (error) {
+    yield put(action.failurePerformSignIn(error));
   }
 }
 
@@ -178,5 +182,4 @@ export function* performNotificationsSignIn() {
 export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
-  yield fork(performNotificationsSignIn);
 }
