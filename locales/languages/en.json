@@ -508,6 +508,7 @@
     "description_title": "Help us improve MetaMask",
     "description_content_1": "We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.",
     "description_content_2": "When we gather metrics, it will always be...",
+    "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relavent news (like product features).",
     "action_description_1_prefix": "Private:",
     "action_description_2_prefix": "General:",
     "action_description_3_prefix": "Optional:",
