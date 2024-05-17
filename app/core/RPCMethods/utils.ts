@@ -1,5 +1,5 @@
 import { query } from '@metamask/controller-utils';
-import { ethErrors } from 'eth-json-rpc-errors';
+import { rpcErrors } from '@metamask/rpc-errors';
 import Engine from '../Engine';
 
 export const polyfillGasPrice = async (method: string, params: any[] = []) => {
@@ -22,11 +22,11 @@ export const validateParams = (
   name: string,
 ): void => {
   if (!obj) {
-    throw ethErrors.rpc.invalidParams(`"${name}" is not defined`);
+    throw rpcErrors.invalidParams(`"${name}" is not defined`);
   }
   properties.forEach((property) => {
     if (!obj[property]) {
-      throw ethErrors.rpc.invalidParams(
+      throw rpcErrors.invalidParams(
         `${property} property of ${name} is not defined`,
       );
     }

@@ -383,17 +383,17 @@ export const getRpcMethodMiddleware = ({
         );
 
         if (!dappConnectedAccount) {
-          throw ethErrors.rpc.invalidParams('This address does not exist');
+          throw rpcErrors.invalidParams('This address does not exist');
         }
 
         // This condition is only needed until we support multiple source tokens swap
         if (from.length > 1) {
-          throw ethErrors.rpc.invalidParams(
+          throw rpcErrors.methodNotSupported(
             'Currently we de not support multiple tokens swap',
           );
         }
 
-        validateParams(from[0], ['amount', 'token_address'], 'from');
+        validateParams(from[0], ['token_address'], 'from');
         validateParams(to, ['token_address'], 'to');
 
         const chainId = selectChainId(store.getState());
@@ -419,8 +419,8 @@ export const getRpcMethodMiddleware = ({
           Alert.alert('Swap is not active or not possible on this chain');
           return;
         }
-
-        const decimalWei = parseInt(from[0].amount, 16);
+        //If value is not defined by the dapp it defaults to 0
+        const decimalWei = parseInt(from[0].value ?? 0, 16);
         const tokenAmount = fromWei(decimalWei);
 
         navigation.navigate('Swaps', {
