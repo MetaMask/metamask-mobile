@@ -24,7 +24,10 @@ import { useTheme } from '../../../util/theme';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
-import { getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  getIsNetworkOnboarded,
+} from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
