@@ -194,6 +194,13 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
+import { selectShouldUseSmartTransaction } from '../selectors/smartTransactionsController';
+import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
+import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -280,6 +287,7 @@ export interface EngineState {
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesState;
   TransactionController: TransactionState;
+  SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsState;
   GasFeeController: GasFeeState;
   TokensController: TokensState;
@@ -324,6 +332,7 @@ interface Controllers {
   TokenRatesController: TokenRatesController;
   TokensController: TokensController;
   TransactionController: TransactionController;
+  SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SnapController: SnapController;
@@ -377,6 +386,9 @@ class Engine {
   snapExecutionService: WebViewExecutionService;
 
   ///: END:ONLY_INCLUDE_IF
+
+  transactionController: TransactionController;
+  smartTransactionsController: SmartTransactionsController;
 
   /**
    * Creates a CoreController instance
@@ -960,7 +972,130 @@ class Engine {
       preinstalledSnaps: PREINSTALLED_SNAPS,
     });
     ///: END:ONLY_INCLUDE_IF
+
+    this.transactionController = new TransactionController({
+      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
+      blockTracker: networkController.getProviderAndBlockTracker().blockTracker,
+      disableSendFlowHistory: true,
+      disableHistory: true,
+      getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+      getCurrentNetworkEIP1559Compatibility:
+        networkController.getEIP1559Compatibility.bind(networkController),
+      //@ts-expect-error Expected due to Transaction Controller do not have controller utils containing linea-sepolia data
+      // This can be removed when controller-utils be updated to v^9
+      getNetworkState: () => networkController.state,
+      getSelectedAddress: () => accountsController.getSelectedAccount().address,
+      incomingTransactions: {
+        isEnabled: () => {
+          const currentHexChainId =
+            networkController.state.providerConfig.chainId;
+
+          const showIncomingTransactions =
+            preferencesController?.state?.showIncomingTransactions;
+
+          return Boolean(
+            hasProperty(showIncomingTransactions, currentChainId) &&
+              showIncomingTransactions?.[currentHexChainId],
+          );
+        },
+        updateTransactions: true,
+      },
+      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'TransactionController',
+        allowedActions: [`${approvalController.name}:addRequest`],
+      }),
+      onNetworkStateChange: (listener) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          //@ts-expect-error This is because the network type is still missing linea-sepolia
+          // When transaction controller be updated to v^25
+          listener,
+        ),
+      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
+      provider: networkController.getProviderAndBlockTracker().provider,
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      getExternalPendingTransactions: (address: string) =>
+        this.smartTransactionsController.getTransactions({
+          addressFrom: address,
+          status: SmartTransactionStatuses.PENDING,
+        }),
+
+      hooks: {
+        publish: (transactionMeta) => {
+          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+            store.getState(),
+          );
+
+          return submitSmartTransactionHook({
+            transactionMeta,
+            transactionController: this.transactionController,
+            smartTransactionsController: this.smartTransactionsController,
+            shouldUseSmartTransaction,
+            approvalController,
+            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
+          });
+        },
+      },
+    });
+
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
+
+    const smartTransactionsControllerTrackMetaMetricsEvent = (params: {
+      event: string;
+      category: string;
+      sensitiveProperties: any;
+    }) => {
+      const { event, category, ...restParams } = params;
+
+      MetaMetrics.getInstance().trackEvent(
+        {
+          category,
+          properties: {
+            name: event,
+          },
+        },
+        restParams,
+      );
+    };
+    this.smartTransactionsController = new SmartTransactionsController(
+      {
+        confirmExternalTransaction:
+          this.transactionController.confirmExternalTransaction.bind(
+            this.transactionController,
+          ),
+        // @ts-expect-error this fine, STX controller has been downgraded to network controller v15
+        getNetworkClientById:
+          networkController.getNetworkClientById.bind(networkController),
+        getNonceLock: this.transactionController.getNonceLock.bind(
+          this.transactionController,
+        ),
+        // @ts-expect-error txController.getTransactions only uses txMeta.status and txMeta.hash, which v13 TxController has
+        getTransactions: this.transactionController.getTransactions.bind(
+          this.transactionController,
+        ),
+        onNetworkStateChange: (listener) =>
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
+
+        provider: networkController.getProviderAndBlockTracker()
+          .provider as any,
+
+        trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
+      },
+      {
+        supportedChainIds: [
+          NETWORKS_CHAIN_ID.MAINNET,
+          NETWORKS_CHAIN_ID.GOERLI,
+          NETWORKS_CHAIN_ID.SEPOLIA,
+        ],
+      },
+      initialState.SmartTransactionsController,
+    );
 
     const controllers: Controllers[keyof Controllers][] = [
       keyringController,
@@ -1062,50 +1197,8 @@ class Engine {
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
       }),
-      new TransactionController({
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-        blockTracker:
-          networkController.getProviderAndBlockTracker().blockTracker,
-        disableSendFlowHistory: true,
-        disableHistory: true,
-        getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-        getCurrentNetworkEIP1559Compatibility:
-          networkController.getEIP1559Compatibility.bind(networkController),
-        //@ts-expect-error Expected due to Transaction Controller do not have controller utils containing linea-sepolia data
-        // This can be removed when controller-utils be updated to v^9
-        getNetworkState: () => networkController.state,
-        getSelectedAddress: () =>
-          accountsController.getSelectedAccount().address,
-        incomingTransactions: {
-          isEnabled: () => {
-            const currentHexChainId =
-              networkController.state.providerConfig.chainId;
-
-            const showIncomingTransactions =
-              preferencesController?.state?.showIncomingTransactions;
-
-            return Boolean(
-              hasProperty(showIncomingTransactions, currentChainId) &&
-                showIncomingTransactions?.[currentHexChainId],
-            );
-          },
-          updateTransactions: true,
-        },
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TransactionController',
-          allowedActions: [`${approvalController.name}:addRequest`],
-        }),
-        onNetworkStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            //@ts-expect-error This is because the network type is still missing linea-sepolia
-            // When transaction controller be updated to v^25
-            listener,
-          ),
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-        provider: networkController.getProviderAndBlockTracker().provider,
-      }),
+      this.transactionController,
+      this.smartTransactionsController,
       new SwapsController(
         {
           // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
@@ -1633,6 +1726,7 @@ export default {
       TokenBalancesController,
       TokenRatesController,
       TransactionController,
+      SmartTransactionsController,
       SwapsController,
       GasFeeController,
       TokensController,
@@ -1674,6 +1768,7 @@ export default {
       TokenRatesController,
       TokensController,
       TransactionController,
+      SmartTransactionsController,
       SwapsController,
       GasFeeController,
       TokenDetectionController,
