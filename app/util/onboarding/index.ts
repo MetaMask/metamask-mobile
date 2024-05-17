@@ -2,20 +2,20 @@
 import compareVersions from 'compare-versions';
 import {
   WHATS_NEW_APP_VERSION_SEEN,
-  SMART_TRANSACTIONS_OPT_IN_MODAL_APP_VERSION_SEEN,
   CURRENT_APP_VERSION,
   LAST_APP_VERSION,
 } from '../../constants/storage';
 import { whatsNewList } from '../../components/UI/WhatsNewModal';
 import AsyncStorage from '../../store/async-storage-wrapper';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
+import { store } from '../../store';
 
 const isVersionSeenAndGreaterThanMinAppVersion = (
-  versionSeen: string,
+  versionSeen: string | null,
   minAppVersion: string,
 ) => !!versionSeen && compareVersions.compare(versionSeen, minAppVersion, '>=');
 
-const STX_OPT_IN_MIN_APP_VERSION = '7.16.0';
+const STX_OPT_IN_MIN_APP_VERSION = '7.24.0';
 
 /**
  *
@@ -38,12 +38,12 @@ export const shouldShowSmartTransactionsOptInModal = async (
     return false;
   }
 
-  // Check if user has seen
-  const versionSeen = await AsyncStorage.getItem(
-    SMART_TRANSACTIONS_OPT_IN_MODAL_APP_VERSION_SEEN,
-  );
+  const versionSeen =
+    store.getState().smartTransactions.optInModalAppVersionSeen;
+
   const currentAppVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
 
+  // Check if user has seen
   const seen = isVersionSeenAndGreaterThanMinAppVersion(
     versionSeen,
     STX_OPT_IN_MIN_APP_VERSION,

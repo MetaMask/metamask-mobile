@@ -22,20 +22,20 @@ DIST_DIR_MOBILE="$PACKAGE_DIR_MOBILE/dist"
 PATCH_FILE="patches/@metamask+assets-controllers+*.patch"
 
 
-COMMENT='+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-assets-controllers-v-18-0-0\
+COMMENT='+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-assets-controllers-26\
 +This patch backports various assets controllers features from the main branch of MetaMask/core\
 +Steps to update patch:\
-+* Create a new core branch from: patch/mobile-assets-controllers-v-18-0-0\
++* Create a new core branch from: patch/mobile-assets-controllers-26\
 +* Run "yarn build" in the core monorepo\
 +* Run "yarn patch:assets <core-directory>" in the mobile repo\
-+* If you have changes also add them to the branch: patch/mobile-assets-controllers-v-18-0-0\
++* If you have changes also add them to the branch: patch/mobile-assets-controllers-26\
 +* Steps to update the assets-controllers version\
 +* Create a new core branch from the next assets-controllers version\
-+* Merge the branch patch/mobile-assets-controllers-v-18-0-0\
++* Merge the branch patch/mobile-assets-controllers-26\
 +* Solve the conflicts and review changes accordingly the changelog\
 +* Run "yarn build" in the core monorepo\
 +* Run "yarn patch:assets <core-directory>" in the mobile repo\
-+* If you have changes also add them to the branch: patch/mobile-assets-controllers-v-18-0-0'
++* If you have changes also add them to the branch: patch/mobile-assets-controllers-26'
 
 # The number of lines of the `COMMENT` variable
 COMMENT_LINE_COUNT=14

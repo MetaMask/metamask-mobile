@@ -6,6 +6,9 @@ exports[`Root should render correctly 1`] = `
 <ContextProvider
   value={
     {
+      "getServerState": undefined,
+      "noopCheck": "once",
+      "stabilityCheck": "once",
       "store": {
         "clearActions": [Function],
         "dispatch": [Function],
@@ -14,22 +17,14 @@ exports[`Root should render correctly 1`] = `
         "replaceReducer": [Function],
         "subscribe": [Function],
       },
-      "subscription": Subscription {
+      "subscription": {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
         "handleChangeWrapper": [Function],
-        "listeners": {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
       },
     }
   }

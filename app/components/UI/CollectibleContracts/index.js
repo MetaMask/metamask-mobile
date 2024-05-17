@@ -34,6 +34,7 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import {
+  selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
   selectSelectedAddress,
   selectUseNftDetection,
@@ -102,6 +103,7 @@ const CollectibleContracts = ({
   removeFavoriteCollectible,
   useNftDetection,
   isIpfsGatewayEnabled,
+  displayNftMedia,
 }) => {
   const collectibles = allCollectibles.filter(
     (singleCollectible) => singleCollectible.isCurrentlyOwned === true,
@@ -188,6 +190,9 @@ const CollectibleContracts = ({
   );
 
   useEffect(() => {
+    if (!isIpfsGatewayEnabled && !displayNftMedia) {
+      return;
+    }
     // TO DO: Move this fix to the controllers layer
     const updatableCollectibles = collectibles.filter((single) =>
       shouldUpdateCollectibleMetadata(single),
@@ -195,7 +200,12 @@ const CollectibleContracts = ({
     if (updatableCollectibles.length !== 0) {
       updateAllCollectibleMetadata(updatableCollectibles);
     }
-  }, [collectibles, updateAllCollectibleMetadata]);
+  }, [
+    collectibles,
+    updateAllCollectibleMetadata,
+    isIpfsGatewayEnabled,
+    displayNftMedia,
+  ]);
 
   /*   const updateCollectibleMetadata = useCallback(
     async (collectible) => {
@@ -424,9 +434,13 @@ CollectibleContracts.propTypes = {
    */
   useNftDetection: PropTypes.bool,
   /**
-   * Boolean to show if NFT detection is enabled
+   * Boolean to show content stored on IPFS
    */
   isIpfsGatewayEnabled: PropTypes.bool,
+  /**
+   * Boolean to show Nfts media stored on third parties
+   */
+  displayNftMedia: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -438,6 +452,7 @@ const mapStateToProps = (state) => ({
   collectibles: collectiblesSelector(state),
   favoriteCollectibles: favoritesCollectiblesSelector(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
+  displayNftMedia: selectDisplayNftMedia(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

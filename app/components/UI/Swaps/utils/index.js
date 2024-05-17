@@ -3,6 +3,7 @@ import BigNumber from 'bignumber.js';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 
 const {
   ETH_CHAIN_ID,
@@ -27,6 +28,16 @@ const allowedChainIds = [
   LINEA_CHAIN_ID,
   SWAPS_TESTNET_CHAIN_ID,
 ];
+
+export const allowedTestnetChainIds = [
+  NETWORKS_CHAIN_ID.GOERLI,
+  NETWORKS_CHAIN_ID.SEPOLIA,
+];
+
+// TODO uncomment this when we are done QA. This is to let ppl test on sepolia
+// if (__DEV__) {
+allowedChainIds.push(...allowedTestnetChainIds);
+// }
 
 export function isSwapsAllowed(chainId) {
   if (!AppConstants.SWAPS.ACTIVE) {

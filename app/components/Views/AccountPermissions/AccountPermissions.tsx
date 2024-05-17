@@ -155,7 +155,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     };
 
     accounts.forEach((account) => {
-      if (permittedAccountsByHostname.includes(account.address)) {
+      const lowercasedAccount = account.address.toLowerCase();
+      if (permittedAccountsByHostname.includes(lowercasedAccount)) {
         accountsByPermittedStatus.permitted.push(account);
       } else {
         accountsByPermittedStatus.unpermitted.push(account);

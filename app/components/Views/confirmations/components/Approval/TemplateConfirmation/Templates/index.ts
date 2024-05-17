@@ -1,5 +1,6 @@
 import { omit, pick } from 'lodash';
 import approvalResult from './ApprovalResult';
+import smartTransactionStatus from './SmartTransactionStatus';
 import { ApprovalTypes } from '../../../../../../../core/RPCMethods/RPCMethodMiddleware';
 import { Actions } from '../TemplateConfirmation';
 import { Colors } from '../../../../../../../util/theme/models';
@@ -29,6 +30,7 @@ export interface ConfirmationTemplate {
 const APPROVAL_TEMPLATES: { [key: string]: ConfirmationTemplate } = {
   [ApprovalTypes.RESULT_SUCCESS]: approvalResult,
   [ApprovalTypes.RESULT_ERROR]: approvalResult,
+  [ApprovalTypes.SMART_TRANSACTION_STATUS]: smartTransactionStatus,
 };
 
 export const TEMPLATED_CONFIRMATION_APPROVAL_TYPES =

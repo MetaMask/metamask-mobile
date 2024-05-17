@@ -51,6 +51,11 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const mockInitialState = {
+  networkOnboarded: {
+    networkOnboardedState: {
+      '0x1': true,
+    },
+  },
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   wizard: {
     step: 0,

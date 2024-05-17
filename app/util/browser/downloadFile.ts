@@ -1,7 +1,7 @@
 import { Linking } from 'react-native';
 import Share, { ShareOptions } from 'react-native-share';
 import { ShareOpenResult } from 'react-native-share/lib/typescript/types';
-import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import { strings } from '../../../locales/i18n';
 import Device from '../device';
 
@@ -54,7 +54,7 @@ const checkAppleWalletPass = async (
 };
 
 const downloadFile = async (downloadUrl: string): Promise<DownloadResult> => {
-  const { config } = RNFetchBlob;
+  const { config } = ReactNativeBlobUtil;
   const response: FetchBlobResponse = await config({ fileCache: true }).fetch(
     'GET',
     downloadUrl,

@@ -119,7 +119,8 @@
       "0x505": true,
       "0x64": true
     },
-    "isIpfsGatewayEnabled": true
+    "isIpfsGatewayEnabled": true,
+    "smartTransactionsOptInStatus": false 
   },
   "TokenBalancesController": {
     "contractBalances": {}
@@ -133,6 +134,11 @@
     "methodData": {},
     "submitHistory": [],
     "transactions": []
+  },
+  "SmartTransactionsController": {
+    "smartTransactionsState": {
+      "liveness": true
+    }
   },
   "SnapController": {
     "snapStates": {},
