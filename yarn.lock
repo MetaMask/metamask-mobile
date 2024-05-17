@@ -4322,7 +4322,7 @@
     json-rpc-engine "^6.1.0"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^17.0.0", "@metamask/network-controller@^17.2.0", "@metamask/network-controller@^17.2.1":
+"@metamask/network-controller@^17.0.0", "@metamask/network-controller@^17.2.1":
   version "17.2.1"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-17.2.1.tgz#55d846e9e6000f3264e9ac1cc9c5b1493bac335a"
   integrity sha512-+cWbnqJyuLO+a3c9Rmdr10onNXv03J2Knl+IAR8QztAczqegtXB0pwTYlclU+j73Rsi9XWrUxS6fMGK1Vb3r9g==

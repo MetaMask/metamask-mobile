@@ -453,7 +453,6 @@ class Engine {
         // noop
       },
     };
-    //@ts-expect-error Misalign types because of Base Controller version
     const networkController = new NetworkController(networkControllerOpts);
 
     networkController.initializeProvider();
@@ -466,6 +465,7 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
+      //@ts-expect-error - Network Controller mismatch version
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -477,6 +477,7 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        //@ts-expect-error - Network Controller mismatch version
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         //@ts-expect-error Misalign types because of Base Controller version
@@ -559,6 +560,7 @@ class Engine {
     const tokensController = new TokensController({
       chainId: networkController.state.providerConfig.chainId,
       config: {
+        //@ts-expect-error - Network Controller mismatch version
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
         selectedAddress: preferencesController.state.selectedAddress,
@@ -775,6 +777,7 @@ class Engine {
         preferencesController.state.isMultiAccountBalancesEnabled,
       getCurrentChainId: () =>
         toHexadecimal(networkController.state.providerConfig.chainId),
+      //@ts-expect-error - Network Controller mismatch version
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -1051,6 +1054,7 @@ class Engine {
         addNft: nftController.addNft.bind(nftController),
         getNftApi: nftController.getNftApi.bind(nftController),
         getNftState: () => nftController.state,
+        //@ts-expect-error - Network Controller mismatch version
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
       }),
@@ -1086,6 +1090,7 @@ class Engine {
         selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
+        //@ts-expect-error - Network Controller mismatch version
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
       }),
@@ -1371,6 +1376,9 @@ class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
     AccountTrackerController.configure({ provider });
+    //@ts-expect-error This seems to be incosistency on the core repo between the provider type
+    // AssetsContractController provider type = Provider | undefined
+    // NetworkController provider type = SafeEventEmitterProvider
     AssetsContractController.configure({ provider });
 
     SwapsController.configure({
