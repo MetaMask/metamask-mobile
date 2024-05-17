@@ -23,12 +23,12 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-const mockProviderConfig = 'Ethereum Main Network';
+const mockNetworkName = 'Ethereum Main Network';
 
 describe('ManageNetworks', () => {
   it('should render correctly', () => {
     useSelector.mockImplementation((selector) => {
-      if (selector === selectNetworkName) return mockProviderConfig;
+      if (selector === selectNetworkName) return mockNetworkName;
     });
     const { toJSON } = renderWithProvider(
       <ManageNetworks navigation={useNavigation()} />,
