@@ -501,7 +501,44 @@ const Settings: React.FC = () => {
         color={TextColor.Alternative}
         style={styles.desc}
       >
-        {strings('app_settings.metametrics_description')}
+        {strings('app_settings.metametrics_description')}{' '}
+        <Button
+          variant={ButtonVariants.Link}
+          size={ButtonSize.Auto}
+          onPress={() => {}}
+          label={strings('app_settings.learn_more')}
+        />
+      </Text>
+    </View>
+  );
+
+  const renderDataCollectionSection = () => (
+    <View style={styles.halfSetting} testID={META_METRICS_SECTION}>
+      <View style={styles.titleContainer}>
+        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+          {strings('app_settings.data_collection_title')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={analyticsEnabled}
+            onValueChange={toggleMetricsOptIn}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={theme.brandColors.white['000']}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+            testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
+          />
+        </View>
+      </View>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
+        {strings('app_settings.data_collection_description')}
       </Text>
     </View>
   );
@@ -1062,6 +1099,7 @@ const Settings: React.FC = () => {
           {strings('app_settings.analytics_subheading')}
         </Text>
         {renderMetaMetricsSection()}
+        {renderDataCollectionSection()}
         <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
         <DeleteWalletData />
         {renderHint()}
