@@ -2,6 +2,14 @@
 
 exports[`Badge should render badge network given the badge network variant 1`] = `
 <BadgeNetwork
+  imageSource={
+    {
+      "default": {
+        "uri": "MockImage",
+      },
+    }
+  }
+  name="Ethereum"
   testID="badge-badgenetwork"
 />
 `;

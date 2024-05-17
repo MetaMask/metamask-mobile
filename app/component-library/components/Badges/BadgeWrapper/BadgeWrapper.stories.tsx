@@ -93,11 +93,11 @@ export const BadgeWrapper = {
           <View
             // eslint-disable-next-line react-native/no-inline-styles
             style={{
-              height: 24,
-              width: 24,
+              height: 32,
+              width: 32,
               borderRadius:
                 anchorElementShape === BadgeAnchorElementShape.Circular
-                  ? 12
+                  ? 999
                   : 2,
               backgroundColor: mockTheme.colors.primary.default,
               alignItems: 'center',

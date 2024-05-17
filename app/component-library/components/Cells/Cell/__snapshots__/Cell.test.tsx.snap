@@ -3,7 +3,7 @@
 exports[`Cell should render CellDisplay given the type Display 1`] = `
 <TouchableOpacity
   avatarProps={
-    Object {
+    {
       "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
       "type": "JazzIcon",
       "variant": "Account",
@@ -11,7 +11,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
   }
   secondaryText="0x2990079bcdEe240329a520d2444386FC119da21a"
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderColor": "#BBC0C5",
       "borderRadius": 4,
@@ -26,14 +26,14 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "flexDirection": "row",
       }
     }
   >
     <View
       style={
-        Object {
+        {
           "backgroundColor": "#FFFFFF",
           "borderRadius": 16,
           "height": 32,
@@ -46,11 +46,11 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "overflow": "hidden",
             },
-            Object {
+            {
               "backgroundColor": "#03415D",
               "borderRadius": 16,
               "height": 32,
@@ -66,12 +66,12 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
           focusable={false}
           height={32}
           style={
-            Array [
-              Object {
+            [
+              {
                 "backgroundColor": "transparent",
                 "borderWidth": 0,
               },
-              Object {
+              {
                 "flex": 0,
                 "height": 32,
                 "width": 32,
@@ -80,12 +80,24 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
           }
           width={32}
         >
-          <RNSVGGroup>
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
             <RNSVGRect
-              fill={4294034178}
+              fill={
+                {
+                  "payload": 4294034178,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
-                Array [
+                [
                   0.969445349895139,
                   0.24530738587880202,
                   -0.24530738587880202,
@@ -95,7 +107,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
                 ]
               }
               propList={
-                Array [
+                [
                   "fill",
                 ]
               }
@@ -104,10 +116,15 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4294711613}
+              fill={
+                {
+                  "payload": 4294711613,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
-                Array [
+                [
                   0.6320293026648508,
                   -0.7749444887041796,
                   0.7749444887041796,
@@ -117,7 +134,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
                 ]
               }
               propList={
-                Array [
+                [
                   "fill",
                 ]
               }
@@ -126,10 +143,15 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4294745088}
+              fill={
+                {
+                  "payload": 4294745088,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
-                Array [
+                [
                   0.33873792024529126,
                   0.9408807689542256,
                   -0.9408807689542256,
@@ -139,7 +161,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
                 ]
               }
               propList={
-                Array [
+                [
                   "fill",
                 ]
               }
@@ -153,7 +175,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "alignItems": "flex-start",
           "flex": 1,
         }
@@ -163,7 +185,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         accessibilityRole="text"
         numberOfLines={1}
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
@@ -180,7 +202,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         accessibilityRole="text"
         numberOfLines={1}
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -196,7 +218,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         accessibilityRole="text"
         numberOfLines={1}
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -210,7 +232,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "backgroundColor": "#FFFFFF",
             "borderColor": "#BBC0C5",
             "borderRadius": 10,
@@ -225,7 +247,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -247,7 +269,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
 <TouchableOpacity
   disabled={false}
   style={
-    Object {
+    {
       "alignItems": "flex-start",
       "backgroundColor": "#FFFFFF",
       "borderRadius": 4,
@@ -261,7 +283,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
     accessibilityRole="none"
     accessible={true}
     style={
-      Object {
+      {
         "alignItems": "center",
         "flexDirection": "row",
         "padding": 0,
@@ -271,7 +293,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
     <TouchableOpacity
       disabled={false}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
           "height": 24,
@@ -283,7 +305,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
       <View
         accessibilityRole="checkbox"
         style={
-          Object {
+          {
             "alignItems": "center",
             "backgroundColor": "#FFFFFF",
             "borderColor": "#24272A",
@@ -299,7 +321,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
     <View
       accessible={false}
       style={
-        Object {
+        {
           "width": 16,
         }
       }
@@ -307,7 +329,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
     />
     <View
       style={
-        Object {
+        {
           "flex": 1,
           "flexDirection": "row",
         }
@@ -315,7 +337,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "backgroundColor": "#FFFFFF",
             "borderRadius": 16,
             "height": 32,
@@ -328,11 +350,11 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": "hidden",
               },
-              Object {
+              {
                 "backgroundColor": "#03415D",
                 "borderRadius": 16,
                 "height": 32,
@@ -348,12 +370,12 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
             focusable={false}
             height={32}
             style={
-              Array [
-                Object {
+              [
+                {
                   "backgroundColor": "transparent",
                   "borderWidth": 0,
                 },
-                Object {
+                {
                   "flex": 0,
                   "height": 32,
                   "width": 32,
@@ -362,12 +384,24 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
             }
             width={32}
           >
-            <RNSVGGroup>
+            <RNSVGGroup
+              fill={
+                {
+                  "payload": 4278190080,
+                  "type": 0,
+                }
+              }
+            >
               <RNSVGRect
-                fill={4294034178}
+                fill={
+                  {
+                    "payload": 4294034178,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
-                  Array [
+                  [
                     0.969445349895139,
                     0.24530738587880202,
                     -0.24530738587880202,
@@ -377,7 +411,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                   ]
                 }
                 propList={
-                  Array [
+                  [
                     "fill",
                   ]
                 }
@@ -386,10 +420,15 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294711613}
+                fill={
+                  {
+                    "payload": 4294711613,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
-                  Array [
+                  [
                     0.6320293026648508,
                     -0.7749444887041796,
                     0.7749444887041796,
@@ -399,7 +438,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                   ]
                 }
                 propList={
-                  Array [
+                  [
                     "fill",
                   ]
                 }
@@ -408,10 +447,15 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294745088}
+                fill={
+                  {
+                    "payload": 4294745088,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
-                  Array [
+                  [
                     0.33873792024529126,
                     0.9408807689542256,
                     -0.9408807689542256,
@@ -421,7 +465,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                   ]
                 }
                 propList={
-                  Array [
+                  [
                     "fill",
                   ]
                 }
@@ -435,7 +479,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "alignItems": "flex-start",
             "flex": 1,
           }
@@ -445,7 +489,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           accessibilityRole="text"
           numberOfLines={1}
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -462,7 +506,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           accessibilityRole="text"
           numberOfLines={1}
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -478,7 +522,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           accessibilityRole="text"
           numberOfLines={1}
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -492,7 +536,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "backgroundColor": "#FFFFFF",
               "borderColor": "#BBC0C5",
               "borderRadius": 10,
@@ -507,7 +551,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -530,7 +574,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
 <TouchableOpacity
   disabled={false}
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderRadius": 4,
       "opacity": 1,
@@ -544,7 +588,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
     accessibilityRole="none"
     accessible={true}
     style={
-      Object {
+      {
         "alignItems": "center",
         "flexDirection": "row",
         "padding": 0,
@@ -553,14 +597,14 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "flexDirection": "row",
         }
       }
     >
       <View
         style={
-          Object {
+          {
             "backgroundColor": "#FFFFFF",
             "borderRadius": 16,
             "height": 32,
@@ -573,11 +617,11 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": "hidden",
               },
-              Object {
+              {
                 "backgroundColor": "#03415D",
                 "borderRadius": 16,
                 "height": 32,
@@ -593,12 +637,12 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
             focusable={false}
             height={32}
             style={
-              Array [
-                Object {
+              [
+                {
                   "backgroundColor": "transparent",
                   "borderWidth": 0,
                 },
-                Object {
+                {
                   "flex": 0,
                   "height": 32,
                   "width": 32,
@@ -607,12 +651,24 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
             }
             width={32}
           >
-            <RNSVGGroup>
+            <RNSVGGroup
+              fill={
+                {
+                  "payload": 4278190080,
+                  "type": 0,
+                }
+              }
+            >
               <RNSVGRect
-                fill={4294034178}
+                fill={
+                  {
+                    "payload": 4294034178,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
-                  Array [
+                  [
                     0.969445349895139,
                     0.24530738587880202,
                     -0.24530738587880202,
@@ -622,7 +678,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                   ]
                 }
                 propList={
-                  Array [
+                  [
                     "fill",
                   ]
                 }
@@ -631,10 +687,15 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294711613}
+                fill={
+                  {
+                    "payload": 4294711613,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
-                  Array [
+                  [
                     0.6320293026648508,
                     -0.7749444887041796,
                     0.7749444887041796,
@@ -644,7 +705,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                   ]
                 }
                 propList={
-                  Array [
+                  [
                     "fill",
                   ]
                 }
@@ -653,10 +714,15 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294745088}
+                fill={
+                  {
+                    "payload": 4294745088,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
-                  Array [
+                  [
                     0.33873792024529126,
                     0.9408807689542256,
                     -0.9408807689542256,
@@ -666,7 +732,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                   ]
                 }
                 propList={
-                  Array [
+                  [
                     "fill",
                   ]
                 }
@@ -680,7 +746,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "alignItems": "flex-start",
             "flex": 1,
           }
@@ -690,7 +756,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           accessibilityRole="text"
           numberOfLines={1}
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
@@ -707,7 +773,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           accessibilityRole="text"
           numberOfLines={1}
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -723,7 +789,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           accessibilityRole="text"
           numberOfLines={1}
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -737,7 +803,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "backgroundColor": "#FFFFFF",
               "borderColor": "#BBC0C5",
               "borderRadius": 10,
@@ -752,7 +818,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,

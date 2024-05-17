@@ -94,6 +94,24 @@
     "your_wallet": "Το πορτοφόλι σας διαγράφηκε με επιτυχία",
     "delete_current": "Διαγραφή τρέχοντος πορτοφολιού"
   },
+  "onboarding_success": {
+    "title": "Συγχαρητήρια!",
+    "description": "Το πορτοφόλι σας είναι προστατευμένο και έτοιμο προς χρήση. Μπορείτε να βρείτε τη Μυστική σας Φράση Ανάκτησής στις ",
+    "description_bold": "Ρυθμίσεις > Ασφάλεια και Απόρρητο.",
+    "description_continued": "Κρατήστε μια υπενθύμιση της Μυστικής σας Φράσης Ανάκτησης σε ασφαλές μέρος. Αν την χάσετε, κανείς δεν μπορεί να σας βοηθήσει να την επαναφέρετε. Ακόμα χειρότερα, δεν θα έχετε ποτέ ξανά πρόσβαση στο πορτοφόλι σας.",
+    "learn_more": "Μάθετε περισσότερα",
+    "learn_how": "Μάθετε πώς",
+    "leave_hint": "Θέλετε να κρατήσετε μια υπόδειξη;",
+    "default_settings": "Προεπιλεγμένες ρυθμίσεις",
+    "manage_default_settings": "Διαχείριση προεπιλεγμένων ρυθμίσεων",
+    "default_settings_footer": "Οι ρυθμίσεις έχουν βελτιστοποιηθεί για ευκολία χρήσης και ασφάλεια.\nΜπορείτε να τις αλλάξετε ανά πάσα στιγμή.",
+    "no_srp_title": "Ορισμός υπενθύμισης!",
+    "no_srp_description": "Εάν δεν μπορείτε να χρησιμοποιήσετε την εφαρμογή ή αποκτήσατε μια νέα συσκευή, θα χάσετε τα κεφάλαια σας. Φροντίστε να δημιουργήσετε αντίγραφα ασφαλείας της Μυστικής σας Φράσης Ανάκτησης στις",
+    "import_title": "Το πορτοφόλι σας είναι έτοιμο",
+    "import_description": "Να θυμάστε, αν χάσετε τη Μυστική σας Φράση Ανάκτησης, δεν θα έχετε πρόσβαση στο πορτοφόλι σας. ",
+    "import_description2": "να διατηρείτε αυτό το σύνολο λέξεων ασφαλές, ώστε να έχετε πάντα πρόσβαση στα κεφάλαιά σας.",
+    "done": "Τέλος"
+  },
   "onboarding_carousel": {
     "title1": "Καλώς ορίσατε στο MetaMask",
     "title2": "Διαχειριστείτε τα ψηφιακά περιουσιακά σας στοιχεία ",
@@ -160,16 +178,20 @@
       "content1": "Επεξεργαστείτε το όνομα του λογαριασμού σας, δείτε τις συναλλαγές στο Etherscan, κοινοποιήστε το δημόσιο κλειδί σας και δείτε το ιδιωτικό σας κλειδί πατώντας αυτό το εικονίδιο"
     },
     "step4": {
-      "title": "Χρησιμοποιώντας το πορτοφόλι σας",
-      "content1": "Αγοράστε, στείλτε, ανταλλάξτε και λάβετε περιουσιακά στοιχεία πατώντας αυτό το εικονίδιο"
+      "title": "Ειδοποιήσεις",
+      "content1": "Μείνετε ενήμεροι για ό,τι συμβαίνει στο πορτοφόλι σας"
     },
     "step5": {
+      "title": "Χρησιμοποιώντας το πορτοφόλι σας",
+      "content1": "Αγοράστε, στείλτε, ανταλλάξτε και λάβετε περιουσιακά στοιχεία πατώντας αυτό το εικονίδιο."
+    },
+    "step6": {
       "title": "Εξερευνώντας το web3",
       "content1": "Ανοίξτε το πρόγραμμα περιήγησης πατώντας αυτό το εικονίδιο"
     },
-    "step6": {
+    "step7": {
       "title": "Χρησιμοποιώντας το πρόγραμμα περιήγησης",
-      "content1": "Αναζητήστε ιστότοπους με λέξεις-κλειδιά ή εισαγάγετε μια διεύθυνση URL. Καλή διασκέδαση! "
+      "content1": "Αναζητήστε ιστότοπους με λέξεις-κλειδιά ή πληκτρολογήστε μια διεύθυνση URL. Καλή διασκέδαση! "
     }
   },
   "create_wallet": {
@@ -351,17 +373,17 @@
     "no_collectibles": "Δεν βλέπετε τα NFT σας;",
     "no_available_tokens": "Δεν βλέπετε το token σας;",
     "add_tokens": "Εισαγωγή tokens",
-    "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
-    "import_token": "Would you like to import this token?",
+    "are_you_sure_exit": "Είστε σίγουροι ότι θέλετε να αποχωρήσετε;",
+    "search_information_not_saved": "Οι πληροφορίες αναζήτησής σας δεν θα αποθηκευτούν.",
+    "import_token": "Θέλετε να εισαγάγετε αυτό το token;",
     "tokens_detected_in_account": "{{tokenCount}} νέο {{tokensLabel}} βρέθηκε σε αυτόν τον λογαριασμό",
     "token_toast": {
       "tokens_imported_title": "Tokens που έχουν εισαχθεί",
       "tokens_imported_desc": "Εισάχθηκαν επιτυχώς {{tokenSymbols}}",
       "token_imported_title": "Token που έχει εισαχθεί",
       "token_imported_desc": "Εισάχθηκαν επιτυχώς {{tokenSymbol}}",
-      "token_imported_desc_1": "You’ve imported a token.",
-      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
+      "token_imported_desc_1": "Έχετε εισάγει ένα token.",
+      "tokens_import_success_multiple": "Έχετε εισάγει {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Απόκρυψη των Tokens",
       "tokens_hidden_desc": "Απόκρυψη εντοπισμένων tokens από το πορτοφόλι σας",
       "token_hidden_title": "Απόκρυψη Token",
@@ -422,7 +444,11 @@
     "nfts_autodetect_cta": "Ενεργοποιήστε τον «Αυτόματο εντοπισμό των NFT» στις Ρυθμίσεις",
     "turn_on_network_check_cta": "Ενεργοποίηση του ελέγχου λεπτομερειών δικτύου",
     "display_nft_media_cta_new_1": "Για να δείτε ένα NFT, ενεργοποιήστε την επιλογή «Προβολή μέσων NFT» στο",
-    "display_nft_media_cta_new_2": "Ρυθμίσεις > Ασφάλεια και απόρρητο."
+    "display_nft_media_cta_new_2": "Ρυθμίσεις > Ασφάλεια και απόρρητο.",
+    "banner": {
+      "title": "Οι βασικές λειτουργίες είναι απενεργοποιημένες",
+      "link": "Ενεργοποίηση βασικών λειτουργιών"
+    }
   },
   "asset_details": {
     "token": "Token",
@@ -446,8 +472,8 @@
   "add_asset": {
     "title": "Εισαγωγή tokens",
     "title_nft": "Εισαγωγή NFT",
-    "search_token": "Search",
-    "custom_token": "Custom token",
+    "search_token": "Αναζήτηση",
+    "custom_token": "Προσαρμοσμένο token",
     "tokens": {
       "cancel_add_token": "AΚΥΡΟ",
       "add_token": "ΕΙΣΑΓΩΓΉ"
@@ -473,24 +499,38 @@
   },
   "privacy_policy": {
     "title": "Πολιτική Απορρήτου",
-    "fine_print_1": "Τα δεδομένα αυτά είναι συγκεντρωτικά και συνεπώς ανώνυμα για τους σκοπούς του Γενικού Κανονισμού για την Προστασία Δεδομένων (ΕΕ) 2016/679.",
-    "fine_print_2a": "*Όταν χρησιμοποιείτε την Infura ως τον προεπιλεγμένο πάροχο RPC στο MetaMask, η Infura θα συλλέγει τη διεύθυνση IP σας και τη διεύθυνση του πορτοφολιού σας στο Ethereum όταν αποστέλλετε μια συναλλαγή. Δεν αποθηκεύουμε αυτές τις πληροφορίες με τρόπο που να επιτρέπει στα συστήματά μας να συσχετίζουν αυτά τα δύο δεδομένα. Μπορείτε να ρυθμίσετε τον πάροχο RPC σας",
-    "fine_print_2b": "πριν προχωρήσετε.\nΓια περισσότερες πληροφορίες σχετικά με τον τρόπο με τον οποίο αλληλεπιδρούν το MetaMask και η Infura από την άποψη της συλλογής δεδομένων, ανατρέξτε στην ενημέρωσή μας",
-    "fine_print_2c": ". Για περισσότερες πληροφορίες σχετικά με τις πρακτικές απορρήτου μας γενικά, ανατρέξτε στην Πολιτική Απορρήτου μας",
-    "here": "εδώ",
+    "fine_print_1": "We’ll let you know if we decide to use this data for other purposes. You can review our",
+    "fine_print_2": "for more information. Remember, you can go to settings and opt out at any time.",
+    "privacy_policy_button": "Privacy Policy",
     "agree": "Συμφωνώ",
     "decline": "Όχι, ευχαριστώ",
     "description_title": "Βοηθήστε μας να βελτιώσουμε το MetaMask",
-    "description_content_1": "Το MetaMask θα ήθελε να συγκεντρώσει δεδομένα χρήσης για να κατανοήσουμε καλύτερα πώς αλληλεπιδρούν οι χρήστες μας με την εφαρμογή για κινητά. Αυτά τα δεδομένα θα χρησιμοποιηθούν για την παροχή της υπηρεσίας, η οποία περιλαμβάνει τη βελτίωση της υπηρεσίας με βάση τη χρήση σας.",
-    "description_content_2": "Το MetaMask θα...",
-    "action_description_1": "Σας επιτρέπει πάντα να εξαιρεθείτε μέσω των Ρυθμίσεων",
-    "action_description_2": "Στέλνει ανώνυμα συμβάντα κλικ και προβολής σελίδας",
-    "action_description_3": "συλλέγει πληροφορίες που δεν χρειαζόμαστε για την παροχή της υπηρεσίας (όπως κλειδιά, διευθύνσεις, κρυπτογραφημένες συναλλαγές ή υπόλοιπα)",
-    "action_description_4": "συλλέγει την πλήρη διεύθυνση IP σας*",
-    "action_description_5": "πώληση δεδομένων. Ποτέ!",
-    "action_description_never": "Ποτέ",
+    "description_content_1": "We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.",
+    "description_content_2": "When we gather metrics, it will always be...",
+    "action_description_1_prefix": "Private:",
+    "action_description_2_prefix": "General:",
+    "action_description_3_prefix": "Optional:",
+    "action_description_1_description": "clicks and views on the app are stored, but other details (like your public address) are not.",
+    "action_description_2_description": "we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
+    "action_description_3_description": "you decide if you want to share or delete your usage data via settings any time.",
     "cta_no_thanks": "Όχι, ευχαριστώ",
-    "cta_i_agree": "Συμφωνώ"
+    "cta_i_agree": "Συμφωνώ",
+    "fine_print_1_legacy": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679.",
+    "fine_print_2a_legacy": "*When you use Infura as your default RPC provider in MetaMask, Infura will collect your IP address and your Ethereum wallet address when you send a transaction. We don’t store this information in a way that allows our systems to associate those two pieces of data. You can configure your RPC provider",
+    "fine_print_2b_legacy": "before proceeding.\nFor more information on how MetaMask and Infura interact from a data collection perspective, see our update",
+    "fine_print_2c_legacy": ". For more information on our privacy practices in general, see our Privacy Policy",
+    "here_legacy": "here",
+    "description_content_1_legacy": "MetaMask would like to gather usage data to better understand how our users interact with MetaMask. This data will be used to provide the service, which includes improving the service based on your use.",
+    "description_content_2_legacy": "MetaMask will...",
+    "action_description_1_legacy": "Always allow you to opt-out via Settings",
+    "action_description_2_legacy": "Send anonymized click & pageview events",
+    "action_description_3_legacy": "collect information we don’t need to provide the service (such as keys, addresses, transaction hashes, or balances)",
+    "action_description_4_legacy": "collect your full IP address*",
+    "action_description_5_legacy": "sell data. Ever!",
+    "action_description_never_legacy": "Never",
+    "toast_message": "We’ve updated our privacy policy",
+    "toast_action_button": "Close",
+    "toast_read_more": "Read more"
   },
   "template_confirmation": {
     "ok": "Εντάξει",
@@ -504,16 +544,16 @@
     "resultPageErrorDefaultMessage": "Η λειτουργία απέτυχε."
   },
   "token": {
-    "token_symbol": "Token symbol",
+    "token_symbol": "Σύμβολο token",
     "token_address": "Διεύθυνση Token",
-    "token_decimal": "Token decimal",
+    "token_decimal": "Δεκαδικά ψηφία του token",
     "search_tokens_placeholder": "Αναζήτηση Token",
     "address_cant_be_empty": "Η διεύθυνση του token δεν μπορεί να είναι κενή.",
     "address_must_be_valid": "Η διεύθυνση του token πρέπει να είναι μια έγκυρη διεύθυνση.",
     "symbol_cant_be_empty": "Το σύμβολο του token δεν μπορεί να είναι κενό.",
-    "symbol_length": "Symbol must be 11 characters or fewer",
+    "symbol_length": "Το σύμβολο πρέπει να αποτελείται από 11 ή λιγότερους χαρακτήρες",
     "decimals_cant_be_empty": "Τα δεκαδικά ψηφία του token δεν μπορεί να είναι κενά.",
-    "decimals_is_required": "Decimal is required. Find it on:",
+    "decimals_is_required": "Απαιτείται δεκαδικός αριθμός. Βρείτε τον στο:",
     "no_tokens_found": "Δεν μπορέσαμε να βρούμε κανένα token με αυτό το όνομα.",
     "select_token": "Επιλέξτε Token",
     "address_must_be_smart_contract": "Εντοπίστηκε προσωπική διεύθυνση. Εισαγάγετε τη διεύθυνση συμβολαίου του token."
@@ -541,7 +581,8 @@
     "collectible_asset_contract": "Συμβόλαιο περιουσιακού στοιχείου",
     "share_check_out_nft": "Ελέγξτε το NFT μου!",
     "share_via": "Κοινή χρήση μέσω",
-    "untitled_collection": "Συλλογή χωρίς τίτλο"
+    "untitled_collection": "Συλλογή χωρίς τίτλο",
+    "collection": "Συλλογή"
   },
   "transfer": {
     "title": "Μεταφορά",
@@ -682,6 +723,12 @@
     "nft_opensea_desc": "Η προβολή των μέσων και δεδομένων NFT μπορεί να εκθέσει την διεύθυνση IP σας σε κεντρικούς διακομιστές. Χρησιμοποιήστε το API του OpenSea για λήψη δεδομένων NFT. Ο αυτόματος εντοπισμός NFT βασίζεται στο API του OpenSea και δεν θα είναι διαθέσιμος όταν αυτό είναι απενεργοποιημένο. Η ενεργοποίηση της αυτόματης ανίχνευσης NFT μπορεί να σας εκθέσει σε ψεύτικα NFT που στέλνονται στο πορτοφόλι σας από οποιονδήποτε και μπορεί να επιτρέψει σε κάποιον εισβολέα να μάθει τη διεύθυνση IP σας από τη διεύθυνση Ethereum.",
     "nft_autodetect_mode": "Αυτόματος εντοπισμός NFT",
     "nft_autodetect_desc": "Η προβολή των μέσων και δεδομένων NFT ίσως εκθέσει την διεύθυνση IP σας σε κεντρικούς διακομιστές. Τα API τρίτων (όπως το OpenSea) χρησιμοποιούνται για να εντοπίζουν NFT στο πορτοφόλι σας. Αυτό εκθέτει τον λογαριασμό σας σε αυτές τις υπηρεσίες. Αφήστε το αυτό απενεργοποιημένο εάν δεν θέλετε η εφαρμογή να αντλεί δεδομένα από αυτές τις υπηρεσίες.",
+    "show_fiat_on_testnets": "Εμφάνιση μετατροπής σε δίκτυα δοκιμών",
+    "show_fiat_on_testnets_desc": "Επιλέξτε αυτό για να εμφανίσετε τη μετατροπή παραστατικών χρημάτων σε δίκτυα δοκιμών",
+    "show_fiat_on_testnets_modal_title": "Να είστε προσεκτικοί",
+    "show_fiat_on_testnets_modal_description": "Εαν σας ζητήθηκε να ενεργοποιήσετε αυτή τη λειτουργία, μπορεί να έχετε πέσει θύμα απάτης. Αυτά τα tokens δεν έχουν χρηματική αξία και προορίζονται μόνο για δοκιμαστικούς σκοπούς. Αυτή η λειτουργία βοηθά τους προγραμματιστές να βεβαιωθούν ότι οι εφαρμογές τους λειτουργούν.",
+    "show_fiat_on_testnets_modal_learn_more": "Μάθετε περισσότερα.",
+    "show_fiat_on_testnets_modal_button": "Συνέχεια",
     "show_hex_data": "Προβολή Δεκαεξαδικών Δεδομένων",
     "show_hex_data_desc": "Επιλέξτε αυτό για να προβάλλετε το πεδίο δεκαεξαδικών δεδομένων στην οθόνη αποστολής.",
     "toggleEthSignBannerDescription": "Κινδυνεύετε από επιθέσεις phishing. Προστατευτείτε απενεργοποιώντας το eth_sign.",
@@ -712,6 +759,26 @@
     "general_desc": "Μετατροπή νομίσματος, πρωτεύον νόμισμα, γλώσσα και μηχανή αναζήτησης",
     "advanced_title": "Για Προχωρημένους",
     "advanced_desc": "Αποκτήστε πρόσβαση σε λειτουργίες προγραμματιστών, επαναφορά λογαριασμού, ρύθμιση δοκιμαστικών δικτύων, αρχεία καταγραφής κατάστασης, πύλες IPFS και προσαρμοσμένα RPC",
+    "notifications_title": "Ειδοποιήσεις",
+    "notifications_desc": "Διαχειριστείτε τις ειδοποιήσεις σας",
+    "allow_notifications": "Επιτρέψτε τις ειδοποιήσεις",
+    "allow_notifications_desc": "Μείνετε ενήμεροι για ό,τι συμβαίνει στο πορτοφόλι σας με τις ειδοποιήσεις. Για να χρησιμοποιήσετε τις ειδοποιήσεις, χρησιμοποιούμε ένα προφίλ για να συγχρονίσουμε ορισμένες ρυθμίσεις στις συσκευές σας. Μάθετε πώς προστατεύουμε το απόρρητό σας κατά τη χρήση αυτής της λειτουργίας.",
+    "notifications_opts": {
+      "customize_session_title": "Προσαρμόστε τις ειδοποιήσεις σας",
+      "customize_session_desc": "Ενεργοποιήστε τους τύπους ειδοποιήσεων που θέλετε να λαμβάνετε:",
+      "account_session_title": "Δραστηριότητα λογαριασμού",
+      "account_session_desc": "Επιλέξτε τους λογαριασμούς για τους οποίους θέλετε να λαμβάνετε ειδοποιήσεις:",
+      "assets_sent_title": "Περιουσιακά στοιχεία που έχουν αποσταλεί",
+      "assets_sent_desc": "Κεφάλαια και NFT",
+      "assets_received_title": "Περιουσιακά στοιχεία που έχουν παραληφθεί",
+      "assets_received_desc": "Κεφάλαια και NFT",
+      "defi_title": "DeFi",
+      "defi_desc": "Ποντάρισμα (staking), ανταλλαγή και διασύνδεση",
+      "snaps_title": "Snaps",
+      "snaps_desc": "Νέες λειτουργίες και ενημερώσεις",
+      "products_announcements_title": "Ανακοινώσεις προϊόντων",
+      "products_announcements_desc": "Νέα προϊόντα και λειτουργίες"
+    },
     "contacts_title": "Επαφές",
     "contacts_desc": "Προσθέστε, επεξεργαστείτε, αφαιρέστε και διαχειριστείτε τους λογαριασμούς σας",
     "security_title": "Ασφάλεια και Απόρρητο",
@@ -774,6 +841,7 @@
     "ses_heading": "Κλείδωμα κωδικού",
     "ses_description": "Πρόκειται για μια δοκιμαστική λειτουργία που εμποδίζει οποιαδήποτε αλλαγή στον κώδικα JavaScript της εφαρμογής χωρίς άδεια.",
     "ses_link": "Μάθετε περισσότερα",
+    "general_heading": "Γενικά",
     "privacy_heading": "Απόρρητο",
     "failed_to_fetch_chain_id": "Δεν ήταν δυνατή η λήψη του αναγνωριστικού αλυσίδας. Είναι σωστή η διευθύνση URL του RPC;",
     "endpoint_returned_different_chain_id": "Το τελικό σημείο επέστρεψε ένα διαφορετικό αναγνωριστικό αλυσίδας: %{chainIdReturned}",
@@ -832,8 +900,13 @@
       "sdk_activation_keys": "Κλειδιά Ενεργοποίησης SDK",
       "activation_keys_description": "Τα Κλειδιά Ενεργοποίησης θα ενεργοποιήσουν συγκεκριμένες λειτουργίες ή παρόχους.",
       "add_activation_key": "Προσθήκη Κλειδιού Ενεργοποίησης",
+      "edit_activation_key": "Επεξεργασία του κλειδιού ενεργοποίησης",
       "paste_or_type_activation_key": "Επικολλήστε ή πληκτρολογήστε ένα Κλειδί Ενεργοποίησης",
+      "add_label": "Προσθέστε μια ετικέτα σε αυτό το κλειδί",
+      "label": "Ετικέτα",
+      "key": "Κλειδί",
       "add": "Προσθήκη",
+      "update": "Ενημέρωση",
       "cancel": "Ακύρωση"
     },
     "request_feature": "Ζητήστε μια λειτουργία",
@@ -899,9 +972,12 @@
     "token_nft_ens_subheading": "Αυτόματος εντοπισμός Tokens, NFS και ENS",
     "security_check_subheading": "Έλεγχοι ασφαλείας",
     "symbol_required": "Απαιτείται το σύμβολο.",
-    "blockaid": "Blockaid",
+    "blockaid_desc": "Διαφύλαξη της ιδιωτικής ζωής - δεν κοινοποιούνται δεδομένα σε τρίτους. Διατίθεται στα Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon, Sepolia και Base.",
     "security_alerts": "Ειδοποιήσεις ασφαλείας",
-    "security_alerts_desc": "Αυτή η λειτουργία σας προειδοποιεί για κακόβουλη δραστηριότητα, καθώς ελέγχει τοπικά τα αιτήματα συναλλαγών και υπογραφών σας. Πάντα να κάνετε τη δική σας επιμελή έρευνα προτού εγκρίνετε οποιαδήποτε αιτήματα. Δεν υπάρχει καμία εγγύηση ότι αυτή η λειτουργία θα εντοπίσει όλες τις κακόβουλες δραστηριότητες. Ενεργοποιώντας αυτή τη λειτουργία, συμφωνείτε με τους όρους χρήσης του παρόχου."
+    "security_alerts_desc": "Αυτή η λειτουργία σας προειδοποιεί για κακόβουλη δραστηριότητα, καθώς ελέγχει τοπικά τα αιτήματα συναλλαγών και υπογραφών σας. Πάντα να κάνετε τη δική σας επιμελή έρευνα προτού εγκρίνετε οποιαδήποτε αιτήματα. Δεν υπάρχει καμία εγγύηση ότι αυτή η λειτουργία θα εντοπίσει όλες τις κακόβουλες δραστηριότητες. Ενεργοποιώντας αυτή τη λειτουργία, συμφωνείτε με τους όρους χρήσης του παρόχου.",
+    "smart_transactions_opt_in_heading": "Έξυπνες Συναλλαγές",
+    "smart_transactions_opt_in_desc": "Ενεργοποιήστε τις έξυπνες συναλλαγές για πιο αξιόπιστες και ασφαλείς συναλλαγές και ρυθμιζόμενες χρεώσεις στο ETH Mainnet.",
+    "smart_transactions_learn_more": "Μάθετε περισσότερα."
   },
   "sdk": {
     "disconnect_title": "Αποσύνδεση όλων των ιστότοπων;",
@@ -1128,6 +1204,7 @@
     "confirm": "Επιβεβαιωση"
   },
   "transaction": {
+    "transaction_id": "Αναγνωριστικό συναλλαγής",
     "alert": "ΕΙΔΟΠΟΙΗΣΗ",
     "amount": "Ποσό",
     "next": "Επόμενο",
@@ -1300,7 +1377,7 @@
     "contract": "Συμβόλαιο ({{address}})",
     "contract_name": "Όνομα συμβολαίου:",
     "contract_address": "Διεύθυνση συμβολαίου:",
-    "invalid_contract_address": " Contract address is invalid. Enter a new one",
+    "invalid_contract_address": " Η διεύθυνση του συμβολαίου δεν είναι έγκυρη. Εισάγετε μια νέα",
     "contract_allowance": "Περιθώριο:",
     "data": "Δεδομένα",
     "function_approve": "Λειτουργία: Έγκριση",
@@ -1344,6 +1421,9 @@
     "remove_bookmark_title": "Αφαίρεση αγαπημένου",
     "remove_bookmark_msg": "Θέλετε πραγματικά να αφαιρέσετε αυτή την ιστοσελίδα από τα αγαπημένα σας;",
     "yes": "Ναι",
+    "undefined_account": "Μη καθορισμένος λογαριασμός",
+    "close_tab": "Κλείσιμο καρτέλας",
+    "switch_tab": "Εναλλαγή καρτέλας",
     "protocol_alert_options": {
       "ignore": "Παράβλεψη",
       "allow": "Αποδοχή"
@@ -1409,8 +1489,12 @@
     "to": "Προς",
     "details": "Λεπτομέρειες",
     "amount": "Ποσό",
+    "gas_used": "Τέλη συναλλαγών που χρησιμοποιήθηκαν (μονάδες)",
     "gas_limit": "Όριο τελών συναλλαγής (Μονάδες)",
     "gas_price": "Τιμή τελών συναλλαγής (GWEI)",
+    "base_fee": "Βασικό Τέλος (GWEI)",
+    "priority_fee": "Τέλος Προτεραιότητας (GWEI)",
+    "max_fee": "Μέγιστη Χρέωση Ανά Τέλος Συναλλαγής",
     "total": "Σύνολο",
     "view_on": "ΠΡΟΒΟΛΗ ΣΤΟ",
     "view_on_etherscan": "Προβολή στο Etherscan",
@@ -1432,7 +1516,26 @@
     "sign_title_device": "με το Keystone σας",
     "sign_description_1": "Αφού υπογράψετε με το Keystone,",
     "sign_description_2": "πατήστε στην επιλογή «Λήψη υπογραφής»",
-    "sign_get_signature": "Λήψη Υπογραφής"
+    "sign_get_signature": "Λήψη Υπογραφής",
+    "network_fee": "Τέλη Δικτύου"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "Υποβολή των συναλλαγών σας",
+    "status_submitting_description": "Εκτιμώμενη ολοκλήρωση {{timeLeft}}",
+    "status_success_header": "Η συναλλαγή σας ολοκληρώθηκε",
+    "status_submitting_past_estimated_deadline_header": "Συγγνώμη για την αναμονή",
+    "status_submitting_past_estimated_deadline_description": "Εάν η συναλλαγή σας δεν ολοκληρωθεί εντός {{timeLeft}}, θα ακυρωθεί και δεν θα χρεωθείτε με τέλη συναλλαγών.",
+    "status_cancelled_header": "Η συναλλαγή σας ακυρώθηκε",
+    "status_cancelled_description": "Η συναλλαγή σας δεν ήταν δυνατόν να ολοκληρωθεί, οπότε ακυρώθηκε για να μην πληρώσετε περιττά τέλη συναλλαγών.",
+    "status_failed_header": "Η συναλλαγή σας απέτυχε",
+    "status_failed_description": "Οι ξαφνικές αλλαγές στην αγορά μπορεί να προκαλέσουν αποτυχίες. Εάν το πρόβλημα συνεχίζεται, επικοινωνήστε με την υποστήριξη πελατών του MetaMask.",
+    "view_transaction": "Προβολή συναλλαγών",
+    "view_activity": "Προβολή δραστηριότητας",
+    "return_to_dapp": "Επιστροφή στο {{dappName}}",
+    "try_again": "Προσπαθήστε ξανά",
+    "create_new": "Δημιουργία νέου {{txType}}",
+    "swap": "ανταλλαγή",
+    "send": "αποστολή"
   },
   "address_book": {
     "recents": "Πρόσφατα",
@@ -1781,6 +1884,16 @@
     "back_to_safety": "Πίσω στην ασφάλεια"
   },
   "notifications": {
+    "stake_completed": "Ολοκλήρωση του πονταρίσματος",
+    "withdrawal_completed": "Η ανάληψη ολοκληρώθηκε",
+    "unstake_completed": "Μη ολοκλήρωση του πονταρίσματος",
+    "withdrawal_requested": "Αίτημα ανάληψης",
+    "stake_ready_to_be_withdrawn": "Το ποντάρισμα είναι έτοιμο για ανάληψη",
+    "swap_completed": "Ανταλλαγή {{from}} για {{to}}",
+    "sent": "Στάλθηκε σε {{address}}",
+    "received": "Ελήφθη από {{address}}",
+    "sent_nft": "Αποστολή NFT σε {{address}}",
+    "received_nft": "Ελήφθη NFT από {{address}}",
     "pending_title": "Η συναλλαγή υποβλήθηκε",
     "pending_deposit_title": "Κατάθεση σε εξέλιξη!",
     "pending_withdrawal_title": "Ανάληψη σε εξέλιξη!",
@@ -1796,9 +1909,9 @@
     "pending_deposit_message": "Αναμονή για την ολοκλήρωση της κατάθεσης",
     "pending_withdrawal_message": "Αναμονή για την ολοκλήρωση της ανάληψης",
     "error_message": "Πατήστε για να δείτε τη συναλλαγή",
-    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
-    "error_fcm_not_found": "getFCMToken: No FCM token found",
-    "error_checking_permission": "Error checking if a user has push notifications permission",
+    "error_retrieving_fcm_token": "Σφάλμα κατά τη λήψη και αποθήκευση του token FCM",
+    "error_fcm_not_found": "getFCMToken: Δεν βρέθηκε token FCM",
+    "error_checking_permission": "Σφάλμα ελέγχου εάν ένας χρήστης έχει άδεια για ειδοποιήσεις ώθησης",
     "success_message": "Πατήστε για να δείτε τη συναλλαγή",
     "speedup_message": "Προσπάθεια για επιτάχυνση της συναλλαγής",
     "success_deposit_message": "Τα χρήματά σας είναι έτοιμα για χρήση",
@@ -1818,7 +1931,30 @@
     "wc_signed_failed_title": "Αυτό το αίτημα υπογραφής απέτυχε",
     "wc_sent_tx_rejected_title": "Έχετε απορρίψει το αίτημα συναλλαγής",
     "approved_tx_rejected_title": "Έχετε απορρίψει τη χορήγηση άδειας",
-    "wc_description": "Παρακαλούμε ελέγξτε την εφαρμογή"
+    "wc_description": "Παρακαλούμε ελέγξτε την εφαρμογή",
+    "wallet": "Πορτοφόλι",
+    "web3": "Web3",
+    "empty": {
+      "title": "Τίποτα το ιδιαίτερο εδώ",
+      "message": "Εδώ μπορείτε να βρείτε ειδοποιήσεις μόλις παρατηρηθεί δραστηριότητα στο πορτοφόλι σας. "
+    },
+    "list": {
+      "0": "Όλα",
+      "1": "Πορτοφόλι",
+      "2": "Ανακοινώσεις"
+    },
+    "address_copied_to_clipboard": "Αντιγραφή διεύθυνσης στο πρόχειρο",
+    "transaction_id_copied_to_clipboard": "Αντιγραφή του αναγνωριστικού συναλλαγής στο πρόχειρο",
+    "activation_card": {
+      "title": "Ενεργοποίηση των ειδοποιήσεων",
+      "description_1": "Μείνετε ενήμεροι για ό,τι συμβαίνει στο πορτοφόλι σας με τις ειδοποιήσεις. ",
+      "description_2": "Για να χρησιμοποιήσετε αυτή τη λειτουργία, θα δημιουργήσουμε ένα ανώνυμο αναγνωριστικό για τον λογαριασμό σας. Χρησιμοποιείται μόνο για τον συγχρονισμό των δεδομένων σας στο MetaMask και δεν συνδέεται με τις δραστηριότητές σας ή άλλα αναγνωριστικά στοιχεία, διασφαλίζοντας την ιδιωτικότητά σας.",
+      "learn_more": "Μάθετε πώς προστατεύουμε το απόρρητό σας κατά τη χρήση αυτής της λειτουργίας. ",
+      "manage_preferences_1": "Μπορείτε να απενεργοποιήσετε τις ειδοποιήσεις ανά πάσα στιγμή στις ",
+      "manage_preferences_2": "Ρυθμίσεις > Ειδοποιήσεις.",
+      "cancel": "Άκυρο",
+      "cta": "Ενεργοποίηση"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "Προστατέψτε το πορτοφόλι σας",
@@ -2419,12 +2555,27 @@
       "title": "Μείνετε ασφαλείς με ειδοποιήσεις ασφαλείας",
       "description_1": "Αποφύγετε τις γνωστές απάτες, προστατεύοντας παράλληλα το απόρρητό σας με τις ειδοποιήσεις ασφαλείας που παρέχονται από το Blockaid. Αυτή η λειτουργία είναι πλέον ενεργοποιημένη από προεπιλογή για όλους τους χρήστες του MetaMask.",
       "description_2": "Πάντα να προβαίνετε σε δικό σας επιμελή έλεγχο προτού εγκρίνετε τα αιτήματα.",
+      "description_3": "Διατίθεται στα Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon, Sepolia και Base.",
       "got_it": "Κατανοητό"
     },
     "sell": {
       "title": "Εύκολη ανάληψη μετρητών",
       "description": "Πουλήστε τα κρυπτονομίσματά σας απευθείας στο MetaMask! Θα σας βοηθήσουμε να βρείτε προσφορές από αξιόπιστους παρόχους, ώστε να μπορείτε να πουλήσετε τα κρυπτονομίσματά σας με προσιτό, γρήγορο και ασφαλή τρόπο, κάθε φορά.",
       "action_text": "Δοκιμάστε το"
+    },
+    "stx": {
+      "header": "Transactions just got smarter",
+      "description_1": "Unlock higher success rates, frontrunning protection, and better visibility with Smart Transactions.",
+      "description_2": "Only available on Ethereum. Enable or disable any time in settings.",
+      "secondary_button": "No thanks",
+      "primary_button": "Enable",
+      "learn_more": "Μάθετε περισσότερα.",
+      "benefit_1_1": "99.5% success",
+      "benefit_1_2": "rate",
+      "benefit_2_1": "Προστασία",
+      "benefit_2_2": "συναλλαγών",
+      "benefit_3_1": "Ενημερώσεις",
+      "benefit_3_2": "σε πραγματικό χρόνο"
     }
   },
   "invalid_network": {
@@ -2844,5 +2995,30 @@
   },
   "stake": {
     "stake": "Stake"
+  },
+  "default_settings": {
+    "title": "Το πορτοφόλι σας είναι έτοιμο",
+    "description": "Το MetaMask χρησιμοποιεί προεπιλεγμένες ρυθμίσεις για την καλύτερη δυνατή ισορροπία μεταξύ ασφάλειας και ευκολίας χρήσης. Αλλάξτε αυτές τις ρυθμίσεις για να ενισχύσετε περαιτέρω το απόρρητό σας.",
+    "learn_more_about_privacy": "Μάθετε περισσότερα για τις βέλτιστες πρακτικές απορρήτου.",
+    "privacy_policy": "Πολιτική απορρήτου",
+    "default_settings": "Προεπιλεγμένες Ρυθμίσεις",
+    "done": "Τέλος",
+    "basic_functionality": "Βασικές λειτουργίες",
+    "manage_networks": "Διαχείριση δικτύων",
+    "manage_networks_body": "Χρησιμοποιούμε το Infura ως πάροχο κλήσεων απομακρυσμένης διαδικασίας (RPC) για να προσφέρουμε την πιο αξιόπιστη και ιδιωτική πρόσβαση στα δεδομένα του Ethereum που διαθέτουμε. Μπορείτε να επιλέξετε το δικό σας RPC, αλλά να θυμάστε ότι οποιοδήποτε RPC θα λαμβάνει τη διεύθυνση IP και το πορτοφόλι σας στο Ethereum για να πραγματοποιεί συναλλαγές. Διαβάστε το ",
+    "manage_networks_body2": " για να μάθετε περισσότερα σχετικά με τον τρόπο με τον οποίο η Infura χειρίζεται τα δεδομένα.",
+    "functionality_body": "Περιλαμβάνει δεδομένα και αξίες των tokens, βέλτιστες ρυθμίσεις τελών συναλλαγών, ενημερώσεις ασφαλείας και πολλά άλλα. Χρησιμοποιώντας αυτές τις υπηρεσίες, κοινοποιείτε τη διεύθυνση IP σας στο MetaMask, όπως ακριβώς όταν επισκέπτεστε έναν ιστότοπο.",
+    "sheet": {
+      "title_off": "Απενεργοποίηση βασικών λειτουργιών",
+      "description_off": "Αυτό σημαίνει ότι δεν θα βελτιστοποιήσετε πλήρως το χρόνο σας στο MetaMask. Βασικές λειτουργίες (όπως λεπτομέρειες των tokens, βέλτιστες ρυθμίσεις τελών συναλλαγών και άλλα) δεν θα είναι διαθέσιμες σε εσάς.",
+      "title_on": "Ενεργοποίηση βασικών λειτουργιών",
+      "description_on": "Για να βελτιστοποιήσετε το χρόνο σας στο MetaMask, θα πρέπει να ενεργοποιήσετε αυτή τη λειτουργία. Οι βασικές λειτουργίες (όπως οι λεπτομέρειες των tokens, οι βέλτιστες ρυθμίσεις τελών συναλλαγών και άλλα) είναι σημαντικές για την εμπειρία στο web3.",
+      "checkbox_label": "Το κατανοώ και θέλω να συνεχίσω",
+      "buttons": {
+        "cancel": "Άκυρο",
+        "turn_on": "Ενεργοποίηση",
+        "turn_off": "Απενεργοποίηση"
+      }
+    }
   }
 }

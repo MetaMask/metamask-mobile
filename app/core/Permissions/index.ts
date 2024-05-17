@@ -1,9 +1,8 @@
 import { errorCodes as rpcErrorCodes } from '@metamask/rpc-errors';
-import { orderBy } from 'lodash';
 import { RestrictedMethods, CaveatTypes } from './constants';
 import ImportedEngine from '../Engine';
-import { SelectedAccount } from '../../components/UI/AccountSelectorList/AccountSelectorList.types';
 import Logger from '../../util/Logger';
+import { getUniqueList } from '../../util/general';
 const Engine = ImportedEngine as any;
 
 function getAccountsCaveatFromPermission(accountsPermission: any = {}) {
@@ -22,7 +21,7 @@ function getAccountsPermissionFromSubject(subject: any = {}) {
 function getAccountsFromPermission(accountsPermission: any) {
   const accountsCaveat = getAccountsCaveatFromPermission(accountsPermission);
   return accountsCaveat && Array.isArray(accountsCaveat.value)
-    ? accountsCaveat.value
+    ? accountsCaveat.value.map((address: string) => address.toLowerCase())
     : [];
 }
 
@@ -39,9 +38,7 @@ export const getPermittedAccountsByHostname = (
     (acc: any, subjectKey) => {
       const accounts = getAccountsFromSubject(subjects[subjectKey]);
       if (accounts.length > 0) {
-        acc[subjectKey] = accounts.map(
-          ({ address }: { address: string }) => address,
-        );
+        acc[subjectKey] = accounts;
       }
       return acc;
     },
@@ -53,28 +50,32 @@ export const getPermittedAccountsByHostname = (
 
 export const switchActiveAccounts = (hostname: string, accAddress: string) => {
   const { PermissionController } = Engine.context;
-  const existingAccounts: SelectedAccount[] = PermissionController.getCaveat(
-    hostname,
-    RestrictedMethods.eth_accounts,
-    CaveatTypes.restrictReturnedAccounts,
-  ).value;
-  const accountIndex = existingAccounts.findIndex(
-    ({ address }) => address === accAddress,
+  const existingPermittedAccountAddresses: string[] =
+    PermissionController.getCaveat(
+      hostname,
+      RestrictedMethods.eth_accounts,
+      CaveatTypes.restrictReturnedAccounts,
+    ).value;
+  const accountIndex = existingPermittedAccountAddresses.findIndex(
+    (address) => address === accAddress,
   );
   if (accountIndex === -1) {
     throw new Error(
       `eth_accounts permission for hostname "${hostname}" does not permit "${accAddress} account".`,
     );
   }
-  let newAccounts = [...existingAccounts];
-  newAccounts.splice(accountIndex, 1);
-  newAccounts = [{ address: accAddress, lastUsed: Date.now() }, ...newAccounts];
+  let newPermittedAccountAddresses = [...existingPermittedAccountAddresses];
+  newPermittedAccountAddresses.splice(accountIndex, 1);
+  newPermittedAccountAddresses = getUniqueList([
+    accAddress,
+    ...newPermittedAccountAddresses,
+  ]);
 
   PermissionController.updateCaveat(
     hostname,
     RestrictedMethods.eth_accounts,
     CaveatTypes.restrictReturnedAccounts,
-    newAccounts,
+    newPermittedAccountAddresses,
   );
 };
 
@@ -88,36 +89,32 @@ export const addPermittedAccounts = (
     RestrictedMethods.eth_accounts,
     CaveatTypes.restrictReturnedAccounts,
   );
-  const existingPermittedAccountAddresses = existing.value.map(
-    ({ address }: { address: string }) => address,
+  const existingPermittedAccountAddresses: string[] = existing.value;
+
+  const newPermittedAccountsAddresses = getUniqueList(
+    addresses,
+    existingPermittedAccountAddresses,
   );
 
-  for (const address in addresses) {
-    if (existingPermittedAccountAddresses.includes(address)) {
-      throw new Error(
-        `eth_accounts permission for hostname "${hostname}" already permits account "${address}".`,
-      );
-    }
+  // No change in permitted account addresses
+  if (
+    newPermittedAccountsAddresses.length ===
+    existingPermittedAccountAddresses.length
+  ) {
+    console.error(
+      `eth_accounts permission for hostname: (${hostname}) already exists for account addresses: (${existingPermittedAccountAddresses}).`,
+    );
+    return existingPermittedAccountAddresses[0];
   }
-
-  const selectedAccounts: SelectedAccount[] = addresses.map(
-    (address, index) => ({ address, lastUsed: Date.now() - index }),
-  );
-
-  const newSortedAccounts = orderBy<SelectedAccount>(
-    [...existing.value, ...selectedAccounts],
-    'lastUsed',
-    'desc',
-  );
 
   PermissionController.updateCaveat(
     hostname,
     RestrictedMethods.eth_accounts,
     CaveatTypes.restrictReturnedAccounts,
-    newSortedAccounts,
+    newPermittedAccountsAddresses,
   );
 
-  return newSortedAccounts[0].address;
+  return newPermittedAccountsAddresses[0];
 };
 
 export const removePermittedAccounts = (
@@ -131,7 +128,7 @@ export const removePermittedAccounts = (
     CaveatTypes.restrictReturnedAccounts,
   );
   const remainingAccounts = existing.value.filter(
-    ({ address }: { address: string }) => !accounts.includes(address),
+    (address: string) => !accounts.includes(address),
   );
 
   if (remainingAccounts.length === 0) {
@@ -174,14 +171,12 @@ export const getPermittedAccounts = async (
   hostname: string,
 ): Promise<string[]> => {
   try {
-    const accountsWithLastUsed =
+    const accounts =
       await Engine.context.PermissionController.executeRestrictedMethod(
         hostname,
         RestrictedMethods.eth_accounts,
       );
-    return accountsWithLastUsed.map(({ address }: { address: string }) =>
-      address.toLowerCase(),
-    );
+    return accounts;
   } catch (error: any) {
     if (error.code === rpcErrorCodes.provider.unauthorized) {
       return [];

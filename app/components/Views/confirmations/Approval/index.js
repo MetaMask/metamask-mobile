@@ -42,6 +42,7 @@ import {
 } from '../../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { providerErrors } from '@metamask/rpc-errors';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
@@ -49,6 +50,8 @@ import { getDecimalChainId } from '../../../../util/networks';
 
 import { updateTransaction } from '../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
+import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -114,6 +117,11 @@ class Approval extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+
+    /**
+     * Boolean that indicates if smart transaction should be used
+     */
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -273,12 +281,14 @@ class Approval extends PureComponent {
     const {
       networkType,
       transaction: { selectedAsset, assetType },
+      shouldUseSmartTransaction,
     } = this.props;
     return {
       view: APPROVAL,
       network: networkType,
       activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
       assetType,
+      is_smart_transaction: shouldUseSmartTransaction,
     };
   };
 
@@ -300,8 +310,25 @@ class Approval extends PureComponent {
 
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
     try {
-      const { chainId, transaction, selectedAddress } = this.props;
+      const {
+        chainId,
+        transaction,
+        selectedAddress,
+        shouldUseSmartTransaction,
+      } = this.props;
       const { selectedAsset } = transaction;
+      const { TransactionController, SmartTransactionsController } =
+        Engine.context;
+
+      const transactionMeta = TransactionController.getTransaction(
+        transaction.id,
+      );
+
+      const smartTransactionMetricsProperties =
+        getSmartTransactionMetricsProperties(
+          SmartTransactionsController,
+          transactionMeta,
+        );
 
       return {
         account_type: getAddressAccountType(selectedAddress),
@@ -317,6 +344,8 @@ class Approval extends PureComponent {
           : this.originIsWalletConnect
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        is_smart_transaction: shouldUseSmartTransaction,
+        ...smartTransactionMetricsProperties,
       };
     } catch (error) {
       return {};
@@ -399,6 +428,8 @@ class Approval extends PureComponent {
       transactions,
       transaction: { assetType, selectedAsset },
       showCustomNonce,
+      chainId,
+      shouldUseSmartTransaction,
     } = this.props;
     let { transaction } = this.props;
     const { nonce } = transaction;
@@ -434,6 +465,12 @@ class Approval extends PureComponent {
         });
       }
 
+      // For STX, don't wait for TxController to get finished event, since it will take some time to get hash for STX
+      if (shouldUseSmartTransaction) {
+        this.setState({ transactionHandled: true });
+        this.props.hideModal();
+      }
+
       TransactionController.hub.once(
         `${transaction.id}:finished`,
         (transactionMeta) => {
@@ -453,7 +490,16 @@ class Approval extends PureComponent {
       );
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
-      const updatedTx = { ...fullTx, transaction };
+
+      const updatedTx = {
+        ...fullTx,
+        txParams: {
+          ...fullTx.txParams,
+          ...transaction,
+          chainId,
+        },
+      };
+
       await updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
 
@@ -479,12 +525,17 @@ class Approval extends PureComponent {
         this.props.hideModal();
         return;
       }
+
       await ApprovalController.accept(transaction.id, undefined, {
         waitForResult: true,
       });
+
       this.showWalletConnectNotification(true);
     } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      if (
+        !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+        !error?.message.startsWith(STX_NO_HASH_ERROR)
+      ) {
         Alert.alert(
           strings('transactions.transaction_error'),
           error && error.message,
@@ -503,6 +554,7 @@ class Approval extends PureComponent {
       }
       this.setState({ transactionHandled: false });
     }
+
     this.props.metrics.trackEvent(
       MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
       {
@@ -641,6 +693,7 @@ const mapStateToProps = (state) => ({
   showCustomNonce: state.settings.showCustomNonce,
   chainId: selectChainId(state),
   activeTabUrl: getActiveTabUrl(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

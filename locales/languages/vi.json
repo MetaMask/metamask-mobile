@@ -94,6 +94,24 @@
     "your_wallet": "Đã xóa ví của bạn thành công",
     "delete_current": "Đang xóa ví hiện tại"
   },
+  "onboarding_success": {
+    "title": "Chúc mừng!",
+    "description": "Ví của bạn đã được bảo vệ và sẵn sàng để sử dụng. Bạn có thể xem Cụm từ khôi phục bí mật trong ",
+    "description_bold": "Cài đặt > Bảo mật & Quyền riêng tư.",
+    "description_continued": "Cất giữ lời nhắc về Cụm từ khôi phục bí mật ở một nơi an toàn. Nếu bạn làm mất, không ai có thể giúp bạn lấy lại. Tệ hơn nữa, bạn sẽ không bao giờ truy cập được vào ví của mình nữa.",
+    "learn_more": "Tìm hiểu thêm",
+    "learn_how": "Tìm hiểu cách thức",
+    "leave_hint": "Để lại gợi ý cho chính bạn?",
+    "default_settings": "Cài đặt mặc định",
+    "manage_default_settings": "Quản lý cài đặt mặc định",
+    "default_settings_footer": "Cài đặt được tối ưu hóa để đảm bảo an toàn và dễ sử dụng.\nThay đổi các cài đặt này bất cứ lúc nào.",
+    "no_srp_title": "Đã thiết lập lời nhắc!",
+    "no_srp_description": "Nếu bạn bị khóa ứng dụng hoặc sử dụng thiết bị mới, bạn sẽ mất tiền. Nhớ sao lưu Cụm từ khôi phục bí mật của bạn trong",
+    "import_title": "Ví của bạn đã sẵn sàng",
+    "import_description": "Hãy nhớ rằng, nếu để mất Cụm từ khôi phục bí mật, bạn sẽ mất quyền truy cập vào ví của mình. ",
+    "import_description2": "để đảm bảo an toàn cho nhóm từ này và đảm bảo bạn luôn có quyền truy cập vào tiền của mình.",
+    "done": "Hoàn tất"
+  },
   "onboarding_carousel": {
     "title1": "Chào mừng bạn đến với MetaMask",
     "title2": "Quản lý các tài sản kỹ thuật số của bạn",
@@ -160,16 +178,20 @@
       "content1": "Chỉnh sửa tên tài khoản, xem các giao dịch trên Etherscan, chia sẻ khóa công khai và xem khóa riêng tư của bạn bằng cách nhấn vào biểu tượng này"
     },
     "step4": {
+      "title": "Thông báo",
+      "content1": "Cập nhật tình hình trong ví của bạn"
+    },
+    "step5": {
       "title": "Sử dụng ví của bạn",
       "content1": "Mua, gửi, hoán đổi và nhận tài sản bằng cách nhấn vào biểu tượng này"
     },
-    "step5": {
+    "step6": {
       "title": "Khám phá web3",
       "content1": "Mở trình duyệt bằng cách nhấn vào biểu tượng này"
     },
-    "step6": {
+    "step7": {
       "title": "Sử dụng trình duyệt",
-      "content1": "Tìm kiếm trang web theo từ khóa hoặc nhập URL. Chúc bạn vui vẻ! "
+      "content1": "Tìm kiếm trang web theo từ khóa hoặc nhập URL. Chúc bạn vui vẻ!  "
     }
   },
   "create_wallet": {
@@ -351,17 +373,17 @@
     "no_collectibles": "Không thấy NFT của bạn?",
     "no_available_tokens": "Không thấy token của bạn?",
     "add_tokens": "Nhập token",
-    "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
-    "import_token": "Would you like to import this token?",
+    "are_you_sure_exit": "Bạn có chắc chắn muốn thoát không?",
+    "search_information_not_saved": "Thông tin tìm kiếm của bạn sẽ không được lưu.",
+    "import_token": "Bạn có muốn nhập token này không?",
     "tokens_detected_in_account": "Đã tìm thấy {{tokenCount}} {{tokensLabel}} mới trong tài khoản này",
     "token_toast": {
       "tokens_imported_title": "Token đã nhập",
       "tokens_imported_desc": "Đã nhập thành công {{tokenSymbols}}",
       "token_imported_title": "Token đã nhập",
       "token_imported_desc": "Đã nhập thành công {{tokenSymbol}}",
-      "token_imported_desc_1": "You’ve imported a token.",
-      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
+      "token_imported_desc_1": "Bạn đã nhập một token.",
+      "tokens_import_success_multiple": "Bạn đã nhập {{tokensNumber}} token.",
       "tokens_hidden_title": "Đang ẩn token",
       "tokens_hidden_desc": "Đang ẩn token đã phát hiện khỏi ví của bạn",
       "token_hidden_title": "Đang ẩn token",
@@ -422,7 +444,11 @@
     "nfts_autodetect_cta": "Bật Tự động phát hiện NFT trong phần Cài đặt",
     "turn_on_network_check_cta": "Bật kiểm tra thông tin mạng",
     "display_nft_media_cta_new_1": "Để xem một NFT, hãy bật Hiển thị phương tiện NFT trong",
-    "display_nft_media_cta_new_2": "Cài đặt > Bảo mật và quyền riêng tư."
+    "display_nft_media_cta_new_2": "Cài đặt > Bảo mật và quyền riêng tư.",
+    "banner": {
+      "title": "Chức năng cơ bản đã tắt",
+      "link": "Bật chức năng cơ bản"
+    }
   },
   "asset_details": {
     "token": "Token",
@@ -446,8 +472,8 @@
   "add_asset": {
     "title": "Nhập token",
     "title_nft": "Nhập NFT",
-    "search_token": "Search",
-    "custom_token": "Custom token",
+    "search_token": "Tìm kiếm",
+    "custom_token": "Token tùy chỉnh",
     "tokens": {
       "cancel_add_token": "HỦY",
       "add_token": "NHẬP"
@@ -473,24 +499,38 @@
   },
   "privacy_policy": {
     "title": "Chính sách Quyền riêng tư",
-    "fine_print_1": "Do đó, dữ liệu này được tổng hợp và ẩn danh theo các mục đích của Quy định bảo vệ dữ liệu chung (EU) 2016/679.",
-    "fine_print_2a": "*Khi bạn sử dụng Infura làm nhà cung cấp RPC mặc định trong MetaMask, Infura sẽ thu thập địa chỉ IP và địa chỉ ví Ethereum của bạn khi bạn gửi giao dịch. Chúng tôi không lưu trữ thông tin này để cho phép hệ thống của chúng tôi liên kết hai loại dữ liệu đó. Bạn có thể cấu hình nhà cung cấp RPC",
-    "fine_print_2b": "trước khi tiếp tục.\nĐể biết thêm thông tin về cách MetaMask và Infura tương tác trong việc thu thập dữ liệu, hãy xem bản cập nhật",
-    "fine_print_2c": ". Để biết thêm thông tin về các phương pháp bảo vệ quyền riêng tư của chúng tôi nói chung, hãy xem Chính sách quyền riêng tư",
-    "here": "tại đây",
+    "fine_print_1": "We’ll let you know if we decide to use this data for other purposes. You can review our",
+    "fine_print_2": "for more information. Remember, you can go to settings and opt out at any time.",
+    "privacy_policy_button": "Privacy Policy",
     "agree": "Tôi đồng ý",
     "decline": "Không, cảm ơn",
     "description_title": "Giúp chúng tôi cải thiện MetaMask",
-    "description_content_1": "MetaMask muốn thu thập dữ liệu sử dụng để hiểu rõ hơn cách người dùng tương tác với MetaMask. Dữ liệu này sẽ được sử dụng để cung cấp dịch vụ, bao gồm cả cải thiện dịch vụ dựa trên quá trình sử dụng của bạn.",
-    "description_content_2": "MetaMask sẽ...",
-    "action_description_1": "Luôn cho phép bạn chọn không tham gia thông qua phần Cài đặt",
-    "action_description_2": "Gửi các sự kiện nhấp chuột & lượt xem trang ẩn danh",
-    "action_description_3": "thu thập các thông tin mà chúng tôi không cần để cung cấp dịch vụ (chẳng hạn như khóa, địa chỉ, mã băm giao dịch hoặc số dư)",
-    "action_description_4": "thu thập địa chỉ IP đầy đủ của bạn*",
-    "action_description_5": "không bao giờ bán dữ liệu!",
-    "action_description_never": "Không bao giờ",
+    "description_content_1": "We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.",
+    "description_content_2": "When we gather metrics, it will always be...",
+    "action_description_1_prefix": "Private:",
+    "action_description_2_prefix": "General:",
+    "action_description_3_prefix": "Optional:",
+    "action_description_1_description": "clicks and views on the app are stored, but other details (like your public address) are not.",
+    "action_description_2_description": "we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
+    "action_description_3_description": "you decide if you want to share or delete your usage data via settings any time.",
     "cta_no_thanks": "Không, cảm ơn",
-    "cta_i_agree": "Tôi đồng ý"
+    "cta_i_agree": "Tôi đồng ý",
+    "fine_print_1_legacy": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679.",
+    "fine_print_2a_legacy": "*When you use Infura as your default RPC provider in MetaMask, Infura will collect your IP address and your Ethereum wallet address when you send a transaction. We don’t store this information in a way that allows our systems to associate those two pieces of data. You can configure your RPC provider",
+    "fine_print_2b_legacy": "before proceeding.\nFor more information on how MetaMask and Infura interact from a data collection perspective, see our update",
+    "fine_print_2c_legacy": ". For more information on our privacy practices in general, see our Privacy Policy",
+    "here_legacy": "here",
+    "description_content_1_legacy": "MetaMask would like to gather usage data to better understand how our users interact with MetaMask. This data will be used to provide the service, which includes improving the service based on your use.",
+    "description_content_2_legacy": "MetaMask will...",
+    "action_description_1_legacy": "Always allow you to opt-out via Settings",
+    "action_description_2_legacy": "Send anonymized click & pageview events",
+    "action_description_3_legacy": "collect information we don’t need to provide the service (such as keys, addresses, transaction hashes, or balances)",
+    "action_description_4_legacy": "collect your full IP address*",
+    "action_description_5_legacy": "sell data. Ever!",
+    "action_description_never_legacy": "Never",
+    "toast_message": "We’ve updated our privacy policy",
+    "toast_action_button": "Close",
+    "toast_read_more": "Read more"
   },
   "template_confirmation": {
     "ok": "OK",
@@ -504,16 +544,16 @@
     "resultPageErrorDefaultMessage": "Thao tác thất bại."
   },
   "token": {
-    "token_symbol": "Token symbol",
+    "token_symbol": "Ký hiệu token",
     "token_address": "Địa chỉ token",
-    "token_decimal": "Token decimal",
+    "token_decimal": "Số thập phân của token",
     "search_tokens_placeholder": "Tìm token",
     "address_cant_be_empty": "Không thể để trống địa chỉ token.",
     "address_must_be_valid": "Địa chỉ token phải là địa chỉ hợp lệ.",
     "symbol_cant_be_empty": "Không thể để trống biểu tượng token.",
-    "symbol_length": "Symbol must be 11 characters or fewer",
+    "symbol_length": "Ký hiệu không được dài quá 11 ký tự",
     "decimals_cant_be_empty": "Không thể để trống số thập phân của token.",
-    "decimals_is_required": "Decimal is required. Find it on:",
+    "decimals_is_required": "Số thập phân là bắt buộc. Hãy tìm trên:",
     "no_tokens_found": "Chúng tôi không thể tìm ra token nào có tên đó.",
     "select_token": "Chọn token",
     "address_must_be_smart_contract": "Đã phát hiện địa chỉ cá nhân. Hãy nhập địa chỉ hợp đồng của token."
@@ -541,7 +581,8 @@
     "collectible_asset_contract": "Hợp đồng tài sản",
     "share_check_out_nft": "Kiểm tra NFT của tôi!",
     "share_via": "Đã chia sẻ qua",
-    "untitled_collection": "Bộ sưu tập không có tiêu đề"
+    "untitled_collection": "Bộ sưu tập không có tiêu đề",
+    "collection": "Bộ sưu tập"
   },
   "transfer": {
     "title": "Chuyển",
@@ -682,6 +723,12 @@
     "nft_opensea_desc": "Việc hiển thị phương tiện và dữ liệu NFT có thể làm lộ địa chỉ IP của bạn cho các máy chủ tập trung. Sử dụng API của OpenSea để tìm nạp dữ liệu NFT. Tính năng tự động phát hiện NFT phụ thuộc vào API của OpenSea và sẽ không thể hoạt động khi tính năng này bị tắt. Việc bật tính năng tự động phát hiện NFT có thể khiến bạn bị một người bất kỳ gửi các NFT giả đến ví của bạn và có thể cho phép kẻ tấn công tìm địa chỉ IP từ địa chỉ Ethereum của bạn.",
     "nft_autodetect_mode": "Tự động phát hiện NFT",
     "nft_autodetect_desc": "Việc hiển thị phương tiện và dữ liệu NFT có thể làm lộ địa chỉ IP của bạn cho các máy chủ tập trung. API của bên thứ ba (như OpenSea) được sử dụng để phát hiện NFT trong ví của bạn. Điều này làm lộ địa chỉ tài khoản của bạn cho các dịch vụ đó. Hãy tắt tính năng này nếu bạn không muốn ứng dụng lấy dữ liệu từ các dịch vụ đó.",
+    "show_fiat_on_testnets": "Hiển thị tỷ lệ quy đổi trên các mạng thử nghiệm",
+    "show_fiat_on_testnets_desc": "Chọn tùy chọn này để hiển thị tỷ lệ quy đổi tiền pháp định trên mạng thử nghiệm",
+    "show_fiat_on_testnets_modal_title": "Hãy cẩn thận",
+    "show_fiat_on_testnets_modal_description": "Nếu bạn được yêu cầu bật tính năng này, bạn có thể đang bị lừa đảo. Các token này không có giá trị tài chính và chỉ dành cho mục đích thử nghiệm. Tính năng này giúp các nhà phát triển đảm bảo ứng dụng của họ hoạt động bình thường.",
+    "show_fiat_on_testnets_modal_learn_more": "Tìm hiểu thêm.",
+    "show_fiat_on_testnets_modal_button": "Tiếp tục",
     "show_hex_data": "Hiển thị dữ liệu với mã Hex",
     "show_hex_data_desc": "Chọn mục này để hiển thị trường dữ liệu với mã hex trên màn hình gửi.",
     "toggleEthSignBannerDescription": "Bạn có nguy cơ bị tấn công lừa đảo. Tự bảo vệ mình bằng cách tắt eth_sign.",
@@ -712,6 +759,26 @@
     "general_desc": "Chuyển đổi tiền tệ, đơn vị tiền tệ chính, ngôn ngữ và công cụ tìm kiếm",
     "advanced_title": "Nâng cao",
     "advanced_desc": "Truy cập các tính năng của lập trình viên, đặt lại tài khoản, thiết lập mạng thử nghiệm, nhật ký trạng thái, giao thức IPFS và RPC tùy chỉnh",
+    "notifications_title": "Thông báo",
+    "notifications_desc": "Quản lý thông báo",
+    "allow_notifications": "Cho phép thông báo",
+    "allow_notifications_desc": "Nhận thông báo để cập nhật tình hình trong ví của bạn. Để sử dụng thông báo, chúng tôi dùng hồ sơ để đồng bộ một số cài đặt trên các thiết bị của bạn. Tìm hiểu cách chúng tôi bảo vệ quyền riêng tư của bạn khi sử dụng tính năng này.",
+    "notifications_opts": {
+      "customize_session_title": "Tùy chỉnh thông báo",
+      "customize_session_desc": "Bật các loại thông báo mà bạn muốn nhận:",
+      "account_session_title": "Hoạt động của tài khoản",
+      "account_session_desc": "Chọn tài khoản mà bạn muốn nhận thông báo:",
+      "assets_sent_title": "Đã gửi tài sản",
+      "assets_sent_desc": "Tiền và NFT",
+      "assets_received_title": "Đã nhận tài sản",
+      "assets_received_desc": "Tiền và NFT",
+      "defi_title": "DeFi",
+      "defi_desc": "Ký gửi, hoán đổi và cầu nối",
+      "snaps_title": "Snap",
+      "snaps_desc": "Tính năng và cập nhật mới",
+      "products_announcements_title": "Thông báo sản phẩm",
+      "products_announcements_desc": "Sản phẩm và tính năng mới"
+    },
     "contacts_title": "Danh bạ",
     "contacts_desc": "Thêm, sửa, xóa và quản lý các tài khoản của bạn",
     "security_title": "Bảo mật & Quyền riêng tư",
@@ -774,6 +841,7 @@
     "ses_heading": "Khóa mã",
     "ses_description": "Đây là một tính năng thử nghiệm giúp ngăn chặn mọi thay đổi đối với mã JavaScript của ứng dụng mà không được phép.",
     "ses_link": "Tìm hiểu thêm",
+    "general_heading": "Chung",
     "privacy_heading": "Quyền riêng tư",
     "failed_to_fetch_chain_id": "Không thể tìm nạp ID chuỗi. URL của RPC của bạn có chính xác không?",
     "endpoint_returned_different_chain_id": "Điểm cuối trả về một ID chuỗi khác: %{chainIdReturned}",
@@ -832,8 +900,13 @@
       "sdk_activation_keys": "Khóa kích hoạt SDK",
       "activation_keys_description": "Khóa kích hoạt sẽ kích hoạt các tính năng hoặc nhà cung cấp cụ thể.",
       "add_activation_key": "Thêm Khóa kích hoạt",
+      "edit_activation_key": "Chỉnh sửa khóa kích hoạt",
       "paste_or_type_activation_key": "Dán hoặc nhập Khóa kích hoạt",
+      "add_label": "Thêm nhãn vào khóa này",
+      "label": "Nhãn",
+      "key": "Khóa",
       "add": "Thêm",
+      "update": "Cập nhật",
       "cancel": "Hủy"
     },
     "request_feature": "Yêu cầu tính năng",
@@ -899,9 +972,12 @@
     "token_nft_ens_subheading": "Tự động phát hiện Token, NFT và ENS",
     "security_check_subheading": "Kiểm tra bảo mật",
     "symbol_required": "Ký hiệu là bắt buộc.",
-    "blockaid": "Blockaid",
+    "blockaid_desc": "Bảo vệ quyền riêng tư - không có dữ liệu nào được chia sẻ với các bên thứ ba. Có sẵn trên Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon, Sepolia và Base.",
     "security_alerts": "Cảnh báo bảo mật",
-    "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp."
+    "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp.",
+    "smart_transactions_opt_in_heading": "Giao dịch thông minh",
+    "smart_transactions_opt_in_desc": "Bật Giao dịch thông minh để có các giao dịch đáng tin cậy và an toàn hơn, cùng phí có thể điều chỉnh trên Mạng chính của ETH.",
+    "smart_transactions_learn_more": "Tìm hiểu thêm."
   },
   "sdk": {
     "disconnect_title": "Ngắt kết nối tất cả các trang web?",
@@ -1128,6 +1204,7 @@
     "confirm": "Xác nhận"
   },
   "transaction": {
+    "transaction_id": "ID giao dịch",
     "alert": "CẢNH BÁO",
     "amount": "Số tiền",
     "next": "Tiếp",
@@ -1300,7 +1377,7 @@
     "contract": "Hợp đồng ({{address}})",
     "contract_name": "Tên hợp đồng:",
     "contract_address": "Địa chỉ hợp đồng:",
-    "invalid_contract_address": " Contract address is invalid. Enter a new one",
+    "invalid_contract_address": " Địa chỉ hợp đồng không hợp lệ. Hãy nhập một cái mới",
     "contract_allowance": "Hạn mức cho phép:",
     "data": "Dữ liệu",
     "function_approve": "Chức năng: Chấp thuận",
@@ -1344,6 +1421,9 @@
     "remove_bookmark_title": "Gỡ bỏ mục ưa thích",
     "remove_bookmark_msg": "Bạn có thực sự muốn gỡ bỏ trang web này ra khỏi mục ưa thích?",
     "yes": "Có",
+    "undefined_account": "Tài khoản không xác định",
+    "close_tab": "Đóng tab",
+    "switch_tab": "Chuyển tab",
     "protocol_alert_options": {
       "ignore": "Bỏ qua",
       "allow": "Cho phép"
@@ -1409,8 +1489,12 @@
     "to": "Đến",
     "details": "Chi tiết",
     "amount": "Số tiền",
+    "gas_used": "Gas đã sử dụng (Đơn vị)",
     "gas_limit": "Giới hạn gas (Đơn vị)",
     "gas_price": "Giá gas (GWEI)",
+    "base_fee": "Phí cơ bản (GWEI)",
+    "priority_fee": "Phí ưu tiên (GWEI)",
+    "max_fee": "Phí tối đa mỗi Gas",
     "total": "Tổng",
     "view_on": "XEM TRÊN",
     "view_on_etherscan": "Xem trên Etherscan",
@@ -1432,7 +1516,26 @@
     "sign_title_device": "bằng Keystone của bạn",
     "sign_description_1": "Sau khi bạn đã ký bằng Keystone,",
     "sign_description_2": "nhấn vào Lấy Chữ Ký",
-    "sign_get_signature": "Lấy Chữ Ký"
+    "sign_get_signature": "Lấy Chữ Ký",
+    "network_fee": "Phí mạng"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "Gửi giao dịch của bạn",
+    "status_submitting_description": "Thời gian hoàn tất dự kiến {{timeLeft}}",
+    "status_success_header": "Giao dịch của bạn đã hoàn tất",
+    "status_submitting_past_estimated_deadline_header": "Xin lỗi đã để bạn đợi lâu",
+    "status_submitting_past_estimated_deadline_description": "Nếu giao dịch của bạn không được hoàn thành trong vòng {{timeLeft}}, thì giao dịch sẽ bị hủy và bạn sẽ không bị tính phí gas.",
+    "status_cancelled_header": "Giao dịch của bạn đã bị hủy",
+    "status_cancelled_description": "Giao dịch của bạn không thể hoàn tất nên nó đã bị hủy để giúp bạn không phải trả phí gas không cần thiết.",
+    "status_failed_header": "Giao dịch của bạn đã thất bại",
+    "status_failed_description": "Biến động đột ngột của thị trường có thể gây ra lỗi. Nếu sự cố tiếp diễn, hãy liên hệ với bộ phận hỗ trợ khách hàng của MetaMask.",
+    "view_transaction": "Xem giao dịch",
+    "view_activity": "Xem hoạt động",
+    "return_to_dapp": "Quay lại {{dappName}}",
+    "try_again": "Thử lại",
+    "create_new": "Tạo {{txType}} mới",
+    "swap": "hoán đổi",
+    "send": "gửi"
   },
   "address_book": {
     "recents": "Gần đây",
@@ -1781,6 +1884,16 @@
     "back_to_safety": "Quay lại mục an toàn"
   },
   "notifications": {
+    "stake_completed": "Ký gửi đã hoàn tất",
+    "withdrawal_completed": "Rút tiền đã hoàn tất",
+    "unstake_completed": "Hủy ký gửi đã hoàn tất",
+    "withdrawal_requested": "Đã yêu cầu rút tiền",
+    "stake_ready_to_be_withdrawn": "Tài sản ký gửi đã sẵn sàng để rút",
+    "swap_completed": "Đã hoán đổi {{from}} thành {{to}}",
+    "sent": "Đã gửi đến {{address}}",
+    "received": "Đã nhận được từ {{address}}",
+    "sent_nft": "Đã gửi NFT đến {{address}}",
+    "received_nft": "Đã nhận được NFT từ {{address}}",
     "pending_title": "Đã gửi giao dịch",
     "pending_deposit_title": "Đang nạp tiền!",
     "pending_withdrawal_title": "Đang rút tiền!",
@@ -1796,9 +1909,9 @@
     "pending_deposit_message": "Đang đợi hoàn tất quá trình nạp tiền",
     "pending_withdrawal_message": "Đang đợi hoàn tất quá trình rút tiền",
     "error_message": "Chạm để xem giao dịch này",
-    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
-    "error_fcm_not_found": "getFCMToken: No FCM token found",
-    "error_checking_permission": "Error checking if a user has push notifications permission",
+    "error_retrieving_fcm_token": "Lỗi khi lấy và lưu token FCM",
+    "error_fcm_not_found": "getFCMToken: Không tìm thấy token FCM",
+    "error_checking_permission": "Lỗi khi kiểm tra xem liệu người dùng có cấp quyền thông báo đẩy hay không",
     "success_message": "Chạm để xem giao dịch này",
     "speedup_message": "Đang cố tăng tốc giao dịch",
     "success_deposit_message": "Tiền của bạn đã sẵn sàng để sử dụng",
@@ -1818,7 +1931,30 @@
     "wc_signed_failed_title": "Yêu cầu ký này đã không thành công",
     "wc_sent_tx_rejected_title": "Bạn đã từ chối yêu cầu giao dịch",
     "approved_tx_rejected_title": "Bạn đã từ chối cấp quyền",
-    "wc_description": "Vui lòng kiểm tra ứng dụng"
+    "wc_description": "Vui lòng kiểm tra ứng dụng",
+    "wallet": "Ví",
+    "web3": "Web3",
+    "empty": {
+      "title": "Không có gì ở đây",
+      "message": "Đây là nơi bạn có thể tìm thấy thông báo khi có hoạt động trong ví của bạn. "
+    },
+    "list": {
+      "0": "Tất cả",
+      "1": "Ví",
+      "2": "Thông báo"
+    },
+    "address_copied_to_clipboard": "Đã sao chép địa chỉ vào bộ nhớ đệm",
+    "transaction_id_copied_to_clipboard": "Đã sao chép ID giao dịch vào bộ nhớ đệm",
+    "activation_card": {
+      "title": "Bật thông báo",
+      "description_1": "Nhận thông báo để cập nhật tình hình trong ví của bạn. ",
+      "description_2": "Để sử dụng tính năng này, chúng tôi sẽ tạo một ID ẩn danh cho tài khoản của bạn. ID này chỉ được dùng để đồng bộ dữ liệu của bạn trong MetaMask và không được liên kết với các hoạt động hoặc mã định danh khác của bạn, qua đó đảm bảo quyền riêng tư của bạn.",
+      "learn_more": "Tìm hiểu cách chúng tôi bảo vệ quyền riêng tư của bạn khi sử dụng tính năng này. ",
+      "manage_preferences_1": "Bạn có thể tắt thông báo bất kỳ lúc nào trong phần ",
+      "manage_preferences_2": "Cài đặt > Thông báo.",
+      "cancel": "Hủy",
+      "cta": "Bật"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "Bảo vệ ví của bạn",
@@ -2419,12 +2555,27 @@
       "title": "Đảm bảo an toàn với cảnh báo bảo mật",
       "description_1": "Đảm bảo an toàn trước các hành vi lừa đảo đã biết, đồng thời vẫn bảo vệ quyền riêng tư của bạn với các cảnh báo bảo mật do Blockaid cung cấp. Tính năng này hiện được bật theo mặc định dành cho tất cả người dùng MetaMask.",
       "description_2": "Luôn tự thẩm định trước khi chấp thuận các yêu cầu.",
+      "description_3": "Có sẵn trên Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon, Sepolia và Base.",
       "got_it": "Đã hiểu"
     },
     "sell": {
       "title": "Rút tiền dễ dàng",
       "description": "Bán tiền mã hóa trực tiếp trong MetaMask! Chúng tôi sẽ giúp bạn tìm báo giá từ các nhà cung cấp đáng tin cậy, qua đó bạn có thể bán tiền mã hóa mọi lúc một cách dễ dàng, nhanh chóng và an toàn.",
       "action_text": "Thử ngay"
+    },
+    "stx": {
+      "header": "Transactions just got smarter",
+      "description_1": "Unlock higher success rates, frontrunning protection, and better visibility with Smart Transactions.",
+      "description_2": "Only available on Ethereum. Enable or disable any time in settings.",
+      "secondary_button": "No thanks",
+      "primary_button": "Enable",
+      "learn_more": "Tìm hiểu thêm.",
+      "benefit_1_1": "99.5% success",
+      "benefit_1_2": "rate",
+      "benefit_2_1": "Bảo vệ",
+      "benefit_2_2": "giao dịch",
+      "benefit_3_1": "Cập nhật",
+      "benefit_3_2": "theo thời gian thực"
     }
   },
   "invalid_network": {
@@ -2843,6 +2994,31 @@
     "error_description": "Cài đặt {{snap}} thất bại."
   },
   "stake": {
-    "stake": "Stake"
+    "stake": "Ký gửi"
+  },
+  "default_settings": {
+    "title": "Ví của bạn đã sẵn sàng",
+    "description": "MetaMask sử dụng cài đặt mặc định để cân bằng tốt nhất giữa tính an toàn và dễ sử dụng. Thay đổi các cài đặt này để nâng cao quyền riêng tư của bạn hơn nữa.",
+    "learn_more_about_privacy": "Tìm hiểu thêm về các cách thức bảo mật tốt nhất.",
+    "privacy_policy": "Chính sách quyền riêng tư",
+    "default_settings": "Cài đặt mặc định",
+    "done": "Hoàn tất",
+    "basic_functionality": "Chức năng cơ bản",
+    "manage_networks": "Quản lý mạng",
+    "manage_networks_body": "Chúng tôi sử dụng Infura làm nhà cung cấp dịch vụ gọi hàm từ xa (RPC) để cung cấp quyền truy cập riêng tư và đáng tin cậy nhất có thể vào dữ liệu Ethereum. Bạn có thể chọn RPC của riêng mình, nhưng hãy nhớ rằng bất kỳ RPC nào cũng sẽ thu thập địa chỉ IP và ví Ethereum của bạn để thực hiện giao dịch. Đọc ",
+    "manage_networks_body2": " để tìm hiểu thêm về cách Infura xử lý dữ liệu.",
+    "functionality_body": "Bao gồm dữ liệu và giá trị của token, cài đặt gas tối ưu, cập nhật bảo mật, v.v. Sử dụng các dịch vụ này sẽ chia sẻ địa chỉ IP của bạn với MetaMask, giống như khi bạn truy cập một trang web.",
+    "sheet": {
+      "title_off": "Tắt chức năng cơ bản",
+      "description_off": "Điều này có nghĩa là bạn sẽ không thể tối ưu hoàn toàn thời gian sử dụng MetaMask. Các tính năng cơ bản (chẳng hạn như chi tiết token, cài đặt gas tối ưu và các tính năng khác) sẽ không khả dụng.",
+      "title_on": "Bật chức năng cơ bản",
+      "description_on": "Để tối ưu thời gian sử dụng MetaMask, bạn cần bật tính năng này. Các chức năng cơ bản (chẳng hạn như chi tiết token, cài đặt gas tối ưu và các chức năng khác) rất quan trọng đối với trải nghiệm web3.",
+      "checkbox_label": "Tôi hiểu rõ và muốn tiếp tục",
+      "buttons": {
+        "cancel": "Hủy",
+        "turn_on": "Bật",
+        "turn_off": "Tắt"
+      }
+    }
   }
 }

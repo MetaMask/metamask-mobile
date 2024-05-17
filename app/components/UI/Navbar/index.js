@@ -22,6 +22,7 @@ import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import BrowserUrlBar from '../BrowserUrlBar';
@@ -90,13 +91,15 @@ const styles = StyleSheet.create({
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
   infoButton: {
+    paddingRight: Device.isAndroid() ? 0 : 18,
+
     marginTop: 5,
   },
   disabled: {
     opacity: 0.3,
   },
   leftButtonContainer: {
-    marginRight: Device.isAndroid() ? 22 : 12,
+    marginRight: 12,
     flexDirection: 'row',
     alignItems: 'flex-end',
   },
@@ -592,6 +595,7 @@ export function getBrowserViewNavbarOptions(
   route,
   themeColors,
   rightButtonAnalyticsEvent,
+  headerShown = true,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -631,6 +635,7 @@ export function getBrowserViewNavbarOptions(
       />
     ),
     headerStyle: innerStyles.headerStyle,
+    headerShown,
   };
 }
 
@@ -967,7 +972,7 @@ export function getWalletNavbarOptions(
   }
 
   function handleNotificationOnPress() {
-    if (isNotificationEnabled) {
+    if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
       // [ATTENTION]: will navigate to Notifications screen. Notifications screen will be implemented on a diff PR.
     } else {
       navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
@@ -995,14 +1000,17 @@ export function getWalletNavbarOptions(
     ),
     headerRight: () => (
       <View style={styles.leftButtonContainer}>
-        <ButtonIcon
-          variant={ButtonIconVariants.Primary}
-          onPress={handleNotificationOnPress}
-          iconName={IconName.Notification}
-          style={styles.infoButton}
-          size={IconSize.Xl}
-          testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-        />
+        {isNotificationsFeatureEnabled() && (
+          <ButtonIcon
+            variant={ButtonIconVariants.Primary}
+            onPress={handleNotificationOnPress}
+            iconName={IconName.Notification}
+            style={styles.infoButton}
+            size={IconSize.Xl}
+            testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+          />
+        )}
+
         <ButtonIcon
           variant={ButtonIconVariants.Primary}
           onPress={openQRScanner}

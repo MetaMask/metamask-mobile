@@ -3,7 +3,9 @@ const { TRANSACTION, SIMPLE } = NotificationTypes;
 
 export const initialState = {
   notifications: [],
-  notification: {},
+  notification: {
+    notificationsSettings: {},
+  },
 };
 
 export const ACTIONS = {

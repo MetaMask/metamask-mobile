@@ -94,6 +94,24 @@
     "your_wallet": "ウォレットが消去されました",
     "delete_current": "現在のウォレットを削除しています"
   },
+  "onboarding_success": {
+    "title": "おめでとうございます！",
+    "description": "ウォレットが保護され、使用する準備ができました。シークレットリカバリーフレーズは、",
+    "description_bold": "「設定」>「セキュリティとプライバシー」で確認できます。",
+    "description_continued": "シークレットリカバリーフレーズは忘れないように安全な場所に保管してください。なくしてしまうと、誰にも取り戻すことはできません。さらに、ウォレットに二度とアクセスできなくなります。",
+    "learn_more": "詳細",
+    "learn_how": "方法",
+    "leave_hint": "ヒントを残しますか？",
+    "default_settings": "デフォルト設定",
+    "manage_default_settings": "デフォルト設定の管理",
+    "default_settings_footer": "設定は使いやすさとセキュリティを確保するために最適化されています。\nこれらはいつでも変更できます。",
+    "no_srp_title": "リマインダーが設定されました！",
+    "no_srp_description": "アプリからロックアウトされてしまったり、新しいデバイスを入手した場合、資金が失われます。シークレットリカバリーフレーズを次の場所にバックアップしてください:",
+    "import_title": "ウォレットの準備ができました",
+    "import_description": "シークレットリカバリーフレーズをなくしてしまうと、ウォレットにアクセスできなくなります。",
+    "import_description2": "いつでも資金にアクセスできるようこの単語のセットを安全に保管してください。",
+    "done": "完了"
+  },
   "onboarding_carousel": {
     "title1": "MetaMaskへようこそ",
     "title2": "デジタル資産の管理",
@@ -160,14 +178,18 @@
       "content1": "このアイコンをタップすると、アカウント名の編集、Etherscanでのトランザクションの表示、公開鍵の共有、秘密鍵の表示が行えます。"
     },
     "step4": {
-      "title": "ウォレットの使用",
-      "content1": "このアイコンをタップすると、資産の購入、送金、スワップ、受取が行えます。"
+      "title": "通知",
+      "content1": "ウォレットで何が起きているか、常に把握しましょう"
     },
     "step5": {
+      "title": "ウォレットの使用",
+      "content1": "このアイコンをタップすると、資産の購入、送金、スワップ、受取が行えます"
+    },
+    "step6": {
       "title": "Web3の閲覧",
       "content1": "このアイコンをタップしてブラウザを開きます"
     },
-    "step6": {
+    "step7": {
       "title": "ブラウザの使用",
       "content1": "キーワードでサイトを検索するか、URLを入力します。楽しく閲覧しましょう！"
     }
@@ -351,17 +373,17 @@
     "no_collectibles": "NFTが見当たりませんか？",
     "no_available_tokens": "トークンが見当たりませんか？",
     "add_tokens": "トークンをインポート",
-    "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
-    "import_token": "Would you like to import this token?",
+    "are_you_sure_exit": "終了してよろしいですか？",
+    "search_information_not_saved": "検索情報は保存されません。",
+    "import_token": "このトークンをインポートしますか？",
     "tokens_detected_in_account": "このアカウントに{{tokenCount}}件の新しい{{tokensLabel}}が見つかりました",
     "token_toast": {
       "tokens_imported_title": "トークンをインポートしました",
       "tokens_imported_desc": "{{tokenSymbols}}がインポートされました",
       "token_imported_title": "トークンをインポートしました",
       "token_imported_desc": "{{tokenSymbol}}がインポートされました",
-      "token_imported_desc_1": "You’ve imported a token.",
-      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
+      "token_imported_desc_1": "トークンをインポートしました。",
+      "tokens_import_success_multiple": "{{tokensNumber}}種類のトークンをインポートしました。",
       "tokens_hidden_title": "トークンの非表示",
       "tokens_hidden_desc": "検出されたトークンをウォレットから非表示にしています",
       "token_hidden_title": "トークンの非表示",
@@ -422,7 +444,11 @@
     "nfts_autodetect_cta": "設定でNFTの検出をオンにする",
     "turn_on_network_check_cta": "ネットワーク情報の確認をオンにする",
     "display_nft_media_cta_new_1": "NFTを表示するには、次の場所で「NFTメディアを表示」を有効にしてください",
-    "display_nft_media_cta_new_2": "「設定」>「セキュリティとプライバシー」。"
+    "display_nft_media_cta_new_2": "「設定」>「セキュリティとプライバシー」。",
+    "banner": {
+      "title": "基本機能はオフになっています",
+      "link": "基本機能をオンにする"
+    }
   },
   "asset_details": {
     "token": "トークン",
@@ -446,8 +472,8 @@
   "add_asset": {
     "title": "トークンをインポート",
     "title_nft": "NFTをインポート",
-    "search_token": "Search",
-    "custom_token": "Custom token",
+    "search_token": "検索",
+    "custom_token": "カスタムトークン",
     "tokens": {
       "cancel_add_token": "キャンセル",
       "add_token": "インポート"
@@ -473,24 +499,38 @@
   },
   "privacy_policy": {
     "title": "プライバシーポリシー",
-    "fine_print_1": "一般データ保護規則 (EU) 2016/679の目的に従い、このデータは集約され匿名化されます。",
-    "fine_print_2a": "*MetaMaskでInfuraをデフォルトのRPCプロバイダーとして使用する場合、Infuraはトランザクションの送信時にユーザーのIPアドレスおよびイーサリアムウォレットアドレスを収集します。当社がこれらの情報を、システムによりこれら2つのデータが関連付けられる形で保管することはありません。続行する前に、RPCプロバイダーを構成できます。",
-    "fine_print_2b": "データ収集の観点におけるMetaMaskとInfuraのやり取りに関する詳細は、最新情報をご覧ください。",
-    "fine_print_2c": "当社のプライバシー慣行全般に関する詳細は、プライバシーポリシーをご覧ください。",
-    "here": "こちらのプライバシーポリシーをご覧ください",
+    "fine_print_1": "We’ll let you know if we decide to use this data for other purposes. You can review our",
+    "fine_print_2": "for more information. Remember, you can go to settings and opt out at any time.",
+    "privacy_policy_button": "Privacy Policy",
     "agree": "同意する",
     "decline": "同意しない",
     "description_title": "MetaMaskの改善にご協力ください",
-    "description_content_1": "MetaMaskは、ユーザーがモバイルアプリをどのように利用しているのかをより詳しく把握するため、基本的な使用状況データを収集したいと考えています。このデータは、製品の使いやすさとユーザーエクスペリエンスを引き続き改善するために使用されます。",
-    "description_content_2": "MetaMaskは...",
-    "action_description_1": "ユーザーが設定でいつでもオプトアウトできるようにしています",
-    "action_description_2": "匿名のクリック・ページ閲覧情報を送信します",
-    "action_description_3": "国、地域、市区町村データ (具体的な場所を除く) のデータを送信します",
-    "action_description_4": "キー、アドレス、トランザクション、残高、ハッシュ、個人情報を一切収集しません",
-    "action_description_5": "ユーザーのIPアドレスを一切収集しません",
-    "action_description_never": "一切しない",
+    "description_content_1": "We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.",
+    "description_content_2": "When we gather metrics, it will always be...",
+    "action_description_1_prefix": "Private:",
+    "action_description_2_prefix": "General:",
+    "action_description_3_prefix": "Optional:",
+    "action_description_1_description": "clicks and views on the app are stored, but other details (like your public address) are not.",
+    "action_description_2_description": "we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
+    "action_description_3_description": "you decide if you want to share or delete your usage data via settings any time.",
     "cta_no_thanks": "いいえ、結構です",
-    "cta_i_agree": "同意します"
+    "cta_i_agree": "同意します",
+    "fine_print_1_legacy": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679.",
+    "fine_print_2a_legacy": "*When you use Infura as your default RPC provider in MetaMask, Infura will collect your IP address and your Ethereum wallet address when you send a transaction. We don’t store this information in a way that allows our systems to associate those two pieces of data. You can configure your RPC provider",
+    "fine_print_2b_legacy": "before proceeding.\nFor more information on how MetaMask and Infura interact from a data collection perspective, see our update",
+    "fine_print_2c_legacy": ". For more information on our privacy practices in general, see our Privacy Policy",
+    "here_legacy": "here",
+    "description_content_1_legacy": "MetaMask would like to gather usage data to better understand how our users interact with MetaMask. This data will be used to provide the service, which includes improving the service based on your use.",
+    "description_content_2_legacy": "MetaMask will...",
+    "action_description_1_legacy": "Always allow you to opt-out via Settings",
+    "action_description_2_legacy": "Send anonymized click & pageview events",
+    "action_description_3_legacy": "collect information we don’t need to provide the service (such as keys, addresses, transaction hashes, or balances)",
+    "action_description_4_legacy": "collect your full IP address*",
+    "action_description_5_legacy": "sell data. Ever!",
+    "action_description_never_legacy": "Never",
+    "toast_message": "We’ve updated our privacy policy",
+    "toast_action_button": "Close",
+    "toast_read_more": "Read more"
   },
   "template_confirmation": {
     "ok": "OK",
@@ -504,16 +544,16 @@
     "resultPageErrorDefaultMessage": "操作に失敗しました。"
   },
   "token": {
-    "token_symbol": "Token symbol",
+    "token_symbol": "トークンシンボル",
     "token_address": "トークンアドレス",
-    "token_decimal": "Token decimal",
+    "token_decimal": "トークンの小数桁数",
     "search_tokens_placeholder": "トークンを検索",
     "address_cant_be_empty": "トークンアドレスは必須入力項目です。",
     "address_must_be_valid": "トークンアドレスは有効なアドレスである必要があります。",
     "symbol_cant_be_empty": "トークンシンボルは必須入力項目です。",
-    "symbol_length": "Symbol must be 11 characters or fewer",
+    "symbol_length": "シンボルは11文字以下でなければなりません",
     "decimals_cant_be_empty": "トークンの小数点以下は必須入力項目です。",
-    "decimals_is_required": "Decimal is required. Find it on:",
+    "decimals_is_required": "小数点以下の桁数が必要です。確認はこちら:",
     "no_tokens_found": "その名前のトークンは見つかりませんでした。",
     "select_token": "トークンを選択",
     "address_must_be_smart_contract": "パーソナルアドレスが検出されました。トークンのコントラクトアドレスを入力してください。"
@@ -541,7 +581,8 @@
     "collectible_asset_contract": "アセットコントラクト",
     "share_check_out_nft": "私のNFTにご注目ください！",
     "share_via": "共有方法:",
-    "untitled_collection": "無題のコレクション"
+    "untitled_collection": "無題のコレクション",
+    "collection": "コレクション"
   },
   "transfer": {
     "title": "送金",
@@ -682,6 +723,12 @@
     "nft_opensea_desc": "NFTのメディアとデータを表示すると、IPアドレスが中央サーバーに公開される可能性があります。OpenSeaのAPIを使用してNFTデータを取得してください。NFTの自動検出機能はOpenSeaのAPIを使用するため、この機能がオフの場合利用できません。NFTの自動検出を有効にすると、他のユーザーからウォレットに偽のNFTが送られる可能性があり、攻撃者にイーサリアムアドレスからIPアドレスをつきとめられる場合があります。",
     "nft_autodetect_mode": "NFTを自動検出",
     "nft_autodetect_desc": "NFTのメディアとデータを表示すると、IPアドレスが中央サーバーに公開される可能性があります。ウォレットのNFTを検出するには、サードパーティー API (OpenSea など) が使用されます。これによりこれらのサービスにアカウントのアドレスが公開されます。アプリがこれらのサービスからデータを取得しないようにするには、この機能を無効のままにしてください。",
+    "show_fiat_on_testnets": "テストネット上に換算レートを表示",
+    "show_fiat_on_testnets_desc": "これを選択すると、テストネット上に法定通貨の換算レートが表示されます",
+    "show_fiat_on_testnets_modal_title": "ご注意ください",
+    "show_fiat_on_testnets_modal_description": "この機能をオンにするよう求められた場合、詐欺の可能性があります。これらのトークンはテスト専用で、金銭的価値を一切持ちません。この機能は開発者がアプリの動作を確認するのに役立ちます。",
+    "show_fiat_on_testnets_modal_learn_more": "詳細。",
+    "show_fiat_on_testnets_modal_button": "続行",
     "show_hex_data": "16進データを表示",
     "show_hex_data_desc": "送信画面に16進データフィールドを表示するにはこれを選択します。",
     "toggleEthSignBannerDescription": "フィッシング攻撃のリスクがあります。eth_signを無効にして自分の身を守ってください。",
@@ -712,6 +759,26 @@
     "general_desc": "通貨換算、主要通貨、言語、検索エンジン",
     "advanced_title": "高度な設定",
     "advanced_desc": "開発者機能、アカウントのリセット、テストネットのセットアップ、ステータスログ、IPFSゲートウェイ、カスタムRPC",
+    "notifications_title": "通知",
+    "notifications_desc": "通知の管理",
+    "allow_notifications": "通知を許可する",
+    "allow_notifications_desc": "通知を使えば、ウォレットで何が起きているか常に把握できます。通知を使用するには、プロファイルを使用してデバイス間で一部の設定を同期します。この機能を使用する際に当社がユーザーのプライバシーをどのように保護するのか、詳細をご覧ください。",
+    "notifications_opts": {
+      "customize_session_title": "通知のカスタマイズ",
+      "customize_session_desc": "受け取る通知の種類をオンにします",
+      "account_session_title": "アカウントのアクティビティ",
+      "account_session_desc": "通知を受けたいアカウントを選択してください:",
+      "assets_sent_title": "資産が送金されました",
+      "assets_sent_desc": "資金とNFT",
+      "assets_received_title": "資産を受け取りました",
+      "assets_received_desc": "資金とNFT",
+      "defi_title": "DeFi",
+      "defi_desc": "ステーキング、スワップ、ブリッジ",
+      "snaps_title": "Snap",
+      "snaps_desc": "新機能や最新情報",
+      "products_announcements_title": "製品に関するお知らせ",
+      "products_announcements_desc": "新しい製品や機能"
+    },
     "contacts_title": "連絡先",
     "contacts_desc": "アカウントを追加、編集、削除、管理します",
     "security_title": "セキュリティとプライバシー",
@@ -774,6 +841,7 @@
     "ses_heading": "コードロックダウン",
     "ses_description": "これは、アプリのJavaScriptコードを許可なく変更できないようにするテスト機能です。",
     "ses_link": "詳細",
+    "general_heading": "一般",
     "privacy_heading": "プライバシー",
     "failed_to_fetch_chain_id": "チェーンIDを取得できませんでした。正しいRPC URLか確認してください。",
     "endpoint_returned_different_chain_id": "エンドポイントが異なるIDを返しました: %{chainIdReturned}",
@@ -832,8 +900,13 @@
       "sdk_activation_keys": "SDKのアクティベーションキー",
       "activation_keys_description": "アクティベーションキーを使うと、特定の機能やプロバイダーが使用できるようになります。",
       "add_activation_key": "アクティベーションキーを追加",
+      "edit_activation_key": "アクティベーションキーを編集",
       "paste_or_type_activation_key": "アクティベーションキーを貼り付けるか、入力してください",
+      "add_label": "このキーにラベルを追加",
+      "label": "ラベル",
+      "key": "キー",
       "add": "追加",
+      "update": "更新",
       "cancel": "キャンセル"
     },
     "request_feature": "機能のリクエスト",
@@ -899,9 +972,12 @@
     "token_nft_ens_subheading": "トークン、NFT、ENSの自動検出",
     "security_check_subheading": "セキュリティチェック",
     "symbol_required": "シンボルが必要です",
-    "blockaid": "Blockaid",
+    "blockaid_desc": "プライバシーを保護 - サードパーティとデータが一切共有されません。Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Optimism、Polygon、Sepolia、Baseで利用可能。",
     "security_alerts": "セキュリティアラート",
-    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。"
+    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
+    "smart_transactions_opt_in_heading": "スマートトランザクション",
+    "smart_transactions_opt_in_desc": "スマートトランザクションをオンにして、ETHメインネットでより信頼性が高く安全なトランザクションと、調整可能な手数料をご利用ください。",
+    "smart_transactions_learn_more": "詳細。"
   },
   "sdk": {
     "disconnect_title": "すべてのサイトとの接続を解除しますか？",
@@ -1128,6 +1204,7 @@
     "confirm": "確定"
   },
   "transaction": {
+    "transaction_id": "トランザクションID",
     "alert": "アラート",
     "amount": "金額",
     "next": "次へ",
@@ -1300,7 +1377,7 @@
     "contract": "コントラクト ({{address}})",
     "contract_name": "コントラクト名:",
     "contract_address": "コントラクトアドレス:",
-    "invalid_contract_address": " Contract address is invalid. Enter a new one",
+    "invalid_contract_address": "コントラクトアドレスが無効です。新しいアドレスを入力してください",
     "contract_allowance": "許容額:",
     "data": "データ",
     "function_approve": "関数: 承認",
@@ -1344,6 +1421,9 @@
     "remove_bookmark_title": "お気に入りを削除",
     "remove_bookmark_msg": "このサイトをお気に入りから削除してよろしいですか？",
     "yes": "はい",
+    "undefined_account": "未定義のアカウント",
+    "close_tab": "タブを閉じる",
+    "switch_tab": "タブを切り替える",
     "protocol_alert_options": {
       "ignore": "無視",
       "allow": "許可する"
@@ -1409,8 +1489,12 @@
     "to": "送信先",
     "details": "詳細",
     "amount": "金額",
+    "gas_used": "使用ガス (単位)",
     "gas_limit": "ガスリミット (単位)",
     "gas_price": "ガス価格 (gwei)",
+    "base_fee": "基本料金 (gwei)",
+    "priority_fee": "優先手数料 (gwei)",
+    "max_fee": "ガス1単位あたりの最大手数料",
     "total": "合計",
     "view_on": "表示方法:",
     "view_on_etherscan": "Etherscanで表示",
@@ -1432,7 +1516,26 @@
     "sign_title_device": "Keystoneで",
     "sign_description_1": "Keystoneで署名した後、",
     "sign_description_2": "「署名を取得」をタップします",
-    "sign_get_signature": "署名を取得"
+    "sign_get_signature": "署名を取得",
+    "network_fee": "ネットワーク手数料"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "トランザクションを送信中",
+    "status_submitting_description": "完了までの推定時間: {{timeLeft}}",
+    "status_success_header": "トランザクションが完了しました",
+    "status_submitting_past_estimated_deadline_header": "お待たせして申し訳ございません",
+    "status_submitting_past_estimated_deadline_description": "{{timeLeft}}以内にトランザクションが完了しない場合はキャンセルされ、ガス代は請求されません。",
+    "status_cancelled_header": "トランザクションがキャンセルされました",
+    "status_cancelled_description": "トランザクションを完了できなかったため、不要なガス代の支払いを避けるためにキャンセルされました。",
+    "status_failed_header": "トランザクションに失敗しました",
+    "status_failed_description": "突然の市場の変化により失敗する場合があります。問題が解決されない場合は、MetaMaskカスタマーサポートにお問い合わせください。",
+    "view_transaction": "トランザクションを表示",
+    "view_activity": "アクティビティを表示",
+    "return_to_dapp": "{{dappName}}に戻る",
+    "try_again": "再試行",
+    "create_new": "新しい{{txType}}を作成",
+    "swap": "スワップ",
+    "send": "送金"
   },
   "address_book": {
     "recents": "最近",
@@ -1781,6 +1884,16 @@
     "back_to_safety": "安全な場所に戻る"
   },
   "notifications": {
+    "stake_completed": "ステーキングが完了しました",
+    "withdrawal_completed": "出金が完了しました",
+    "unstake_completed": "ステーキングの解除が完了しました",
+    "withdrawal_requested": "出金がリクエストされました",
+    "stake_ready_to_be_withdrawn": "ステークの出金準備が完了しました",
+    "swap_completed": "{{from}}を{{to}}にスワップしました",
+    "sent": "{{address}}に送りました",
+    "received": "{{address}}から受け取りました",
+    "sent_nft": "{{address}}にNFTを送りました",
+    "received_nft": "{{address}}からNFTを受け取りました",
     "pending_title": "トランザクションが送信されました",
     "pending_deposit_title": "入金が進行中です。",
     "pending_withdrawal_title": "出金が進行中です。",
@@ -1796,9 +1909,9 @@
     "pending_deposit_message": "入金の完了待ち",
     "pending_withdrawal_message": "出金の完了待ち",
     "error_message": "このトランザクションを表示するにはタップしてください",
-    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
-    "error_fcm_not_found": "getFCMToken: No FCM token found",
-    "error_checking_permission": "Error checking if a user has push notifications permission",
+    "error_retrieving_fcm_token": "FCMトークンの取得および保存中にエラーが発生しました",
+    "error_fcm_not_found": "getFCMToken: FCMトークンが見つかりませんでした",
+    "error_checking_permission": "ユーザーにプッシュ通知のアクセス許可があるか確認中にエラーが発生しました",
     "success_message": "このトランザクションを表示するにはタップしてください",
     "speedup_message": "トランザクションの高速化を試みています",
     "success_deposit_message": "資金の使用準備ができました",
@@ -1818,7 +1931,30 @@
     "wc_signed_failed_title": "この署名リクエストは失敗しました",
     "wc_sent_tx_rejected_title": "トランザクションリクエストを拒否しました",
     "approved_tx_rejected_title": "アクセス許可の付与を拒否しました",
-    "wc_description": "アプリケーションを確認してください"
+    "wc_description": "アプリケーションを確認してください",
+    "wallet": "ウォレット",
+    "web3": "Web3",
+    "empty": {
+      "title": "ここに表示する内容はありません",
+      "message": "ウォレットにアクティビティがあると、ここに通知が表示されます。"
+    },
+    "list": {
+      "0": "すべて",
+      "1": "ウォレット",
+      "2": "お知らせ"
+    },
+    "address_copied_to_clipboard": "アドレスがクリップボードにコピーされました",
+    "transaction_id_copied_to_clipboard": "トランザクションIDがクリップボードにコピーされました",
+    "activation_card": {
+      "title": "通知をオンにする",
+      "description_1": "通知を使えば、ウォレットで何が起きているか常に把握できます。",
+      "description_2": "この機能を使うために、アカウントの匿名のIDが生成されます。このIDはMetaMask内のユーザーのデータの同期にのみ使用され、アクティビティや他の識別要素にはリンクされず、プライバシーは確保されます。",
+      "learn_more": "この機能を使用する際に当社がどのようにユーザーのプライバシーを保護するのか、詳細をご覧ください。",
+      "manage_preferences_1": "通知は",
+      "manage_preferences_2": "「設定」>「通知」でいつでもオフにできます。",
+      "cancel": "キャンセル",
+      "cta": "オンにする"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "ウォレットを保護",
@@ -2419,12 +2555,27 @@
       "title": "セキュリティアラートで安全を確保",
       "description_1": "Blockaidのセキュリティアラートで、プライバシーを確保しつつ既知の詐欺から身を守ります。この機能は、MetaMaskユーザー全員を対象にデフォルトでオンになります。",
       "description_2": "要求を承認する前に、必ず独自のデューデリジェンスを行ってください。",
+      "description_3": "Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Linea、Optimism、Polygon、Sepolia、Baseで利用できます。",
       "got_it": "了解"
     },
     "sell": {
       "title": "キャッシュアウトが簡単になりました",
       "description": "MetaMaskで直接仮想通貨を売却！信頼できるプロバイダーからのクォートを取得して、毎回簡単・迅速・安全に仮想通貨を売却できます。",
       "action_text": "お試しください"
+    },
+    "stx": {
+      "header": "Transactions just got smarter",
+      "description_1": "Unlock higher success rates, frontrunning protection, and better visibility with Smart Transactions.",
+      "description_2": "Only available on Ethereum. Enable or disable any time in settings.",
+      "secondary_button": "No thanks",
+      "primary_button": "Enable",
+      "learn_more": "詳細。",
+      "benefit_1_1": "99.5% success",
+      "benefit_1_2": "rate",
+      "benefit_2_1": "トランザクション",
+      "benefit_2_2": "保護",
+      "benefit_3_1": "リアルタイム",
+      "benefit_3_2": "最新情報"
     }
   },
   "invalid_network": {
@@ -2843,6 +2994,31 @@
     "error_description": "{{snap}}のインストールに失敗しました。"
   },
   "stake": {
-    "stake": "Stake"
+    "stake": "ステーク"
+  },
+  "default_settings": {
+    "title": "ウォレットの準備ができました",
+    "description": "MetaMaskは、デフォルト設定を使用して安全と使いやすさのバランスを最適化しています。プライバシーをさらに強化したい場合は、これらの設定を変更してください。",
+    "learn_more_about_privacy": "プライバシーのベストプラクティスに関する詳細をご覧ください。",
+    "privacy_policy": "プライバシーポリシー",
+    "default_settings": "デフォルト設定",
+    "done": "完了",
+    "basic_functionality": "基本機能",
+    "manage_networks": "ネットワークの管理",
+    "manage_networks_body": "当社では、遠隔手続き呼び出し (RPC) プロバイダーにInfuraを使用して、イーサリアムデータにできるだけ信頼性の高いプライベートな形でアクセスできるようにしています。独自のRPCをお選びいただくこともできますが、どのRPCもトランザクションを実行するために、ユーザーのIPアドレスとイーサリアムウォレットを取得する点にご注意ください。",
+    "manage_networks_body2": "で、Infuraによるデータの取扱いに関する詳細をご覧ください。",
+    "functionality_body": "トークンのデータと値、最適なガス設定、セキュリティアップデートなどを含みます。これらのサービスを使用すると、Webサイトにアクセスした場合と同様に、MetaMaskにIPアドレスが共有されます。",
+    "sheet": {
+      "title_off": "基本機能をオフにする",
+      "description_off": "これは、MetaMaskでの時間が完全に最適化されないことを意味します。基本機能 (トークンの詳細、最適なガス設定など) は利用できません。",
+      "title_on": "基本機能をオンにする",
+      "description_on": "MetaMaskでの時間を最適化するには、この機能をオンにする必要があります。基本機能 (トークンの詳細、最適なガス設定など) は、Web3エクスペリエンスに重要です。",
+      "checkbox_label": "理解したうえで続行します",
+      "buttons": {
+        "cancel": "キャンセル",
+        "turn_on": "オンにする",
+        "turn_off": "オフにする"
+      }
+    }
   }
 }
