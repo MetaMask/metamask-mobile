@@ -17,6 +17,7 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import Networks, {
   getAllNetworks,
+  getNetworkImageSource,
   isDefaultMainnet,
   isLineaMainnet,
 } from '../../../../util/networks';
@@ -31,7 +32,6 @@ import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectNetworkImageSource,
 } from '../../../../selectors/networkController';
 import {
   AvatarSize,
@@ -129,10 +129,6 @@ class NetworksSettings extends PureComponent {
      * Current network provider configuration
      */
     providerConfig: PropTypes.object,
-    /**
-     * Current network provider configuration
-     */
-    networkImageSource: PropTypes.object,
   };
 
   actionSheet = null;
@@ -303,11 +299,11 @@ class NetworksSettings extends PureComponent {
   }
 
   renderRpcNetworks = () => {
-    const { networkConfigurations, networkImageSource } = this.props;
+    const { networkConfigurations } = this.props;
     return Object.values(networkConfigurations).map(
       ({ rpcUrl, nickname, chainId }, i) => {
         const name = nickname || rpcUrl;
-        const image = networkImageSource;
+        const image = getNetworkImageSource({ chainId });
         return this.networkElement(name, image, i, rpcUrl, true);
       },
     );
@@ -430,13 +426,12 @@ class NetworksSettings extends PureComponent {
     this.setState({ searchString: '', filteredNetworks: [] });
 
   filteredResult = () => {
-    const { networkImageSource } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     if (this.state.filteredNetworks.length > 0) {
       return this.state.filteredNetworks.map((data, i) => {
-        const { networkTypeOrRpcUrl, name, color, isCustomRPC } = data;
-        const image = networkImageSource;
+        const { networkTypeOrRpcUrl, chainId, name, color, isCustomRPC } = data;
+        const image = getNetworkImageSource({ chainId });
         return (
           // TODO: remove this check when linea mainnet is ready
           networkTypeOrRpcUrl !== LINEA_MAINNET &&
@@ -535,7 +530,6 @@ NetworksSettings.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
-  networkImageSource: selectNetworkImageSource(state),
 });
 
 export default connect(mapStateToProps)(NetworksSettings);
