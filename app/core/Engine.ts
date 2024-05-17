@@ -202,6 +202,7 @@ import { SmartTransactionStatuses } from '@metamask/smart-transactions-controlle
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { syncAccountName, syncSelectedAddress } from './Accounts/accountsSync';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1376,35 +1377,12 @@ class Engine {
     this.controllerMessenger.subscribe(
       'PreferencesController:stateChange',
       (preferencesState: PreferencesState) => {
-        const selectedAddressFromPreferences = preferencesState.selectedAddress;
-        const {
-          selectedAccount: currentAccountId,
-          accounts: internalAccounts,
-        } = accountsController.state.internalAccounts;
-        const currentSelectedAccount = internalAccounts[currentAccountId];
-
-        if (
-          toChecksumHexAddress(currentSelectedAccount.address) !==
-          toChecksumHexAddress(selectedAddressFromPreferences)
-        ) {
-          const checksumAddress = toChecksumHexAddress(
-            selectedAddressFromPreferences,
-          );
-          const account = accountsController.getAccountByAddress(
-            selectedAddressFromPreferences,
-          );
-
-          if (account) {
-            accountsController.setSelectedAccount(account.id);
-            preferencesController.setSelectedAddress(
-              selectedAddressFromPreferences,
-            );
-          } else {
-            throw new Error(
-              `Account not found for address: ${checksumAddress}`,
-            );
-          }
-        }
+        syncSelectedAddress(
+          preferencesState,
+          () => accountsController,
+          () => preferencesController,
+        );
+        syncAccountName(preferencesState, () => accountsController);
       },
     );
 
