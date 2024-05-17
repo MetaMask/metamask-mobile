@@ -51,7 +51,6 @@ import {
 import {
   selectProviderType,
   selectNetworkConfigurations,
-  selectNetworkImageSource,
 } from '../../../../selectors/networkController';
 import {
   selectIpfsGateway,
@@ -101,6 +100,7 @@ import { CellVariant } from '../../../../component-library/components/Cells/Cell
 import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import Networks, {
   getAllNetworks,
+  getNetworkImageSource,
   toggleUseSafeChainsListValidation,
 } from '../../../../util/networks';
 import images from 'images/image-icons';
@@ -163,7 +163,6 @@ const Settings: React.FC = () => {
     selectShowIncomingTransactionNetworks,
   );
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const image = useSelector(selectNetworkImageSource);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
   const useSafeChainsListValidation = useSelector(
     selectUseSafeChainsListValidation,
@@ -858,6 +857,8 @@ const Settings: React.FC = () => {
           if (!Object.keys(myNetworks).includes(chainId)) return null;
 
           const { name } = { name: nickname || rpcUrl };
+          //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+          const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
           return (
             <Cell
