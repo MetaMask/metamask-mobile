@@ -1,8 +1,10 @@
 import { createSelector } from 'reselect';
 import { ProviderConfig } from '@metamask/network-controller';
-import { getNetworkNameFromProviderConfig } from '../util/networks';
+import {
+  getNetworkNameFromProviderConfig,
+  getNetworkImageSource,
+} from '../util/networks';
 import { selectProviderConfig } from './networkController';
-import { getNetworkImageSource } from '../util/networks';
 
 export const selectNetworkName = createSelector(
   selectProviderConfig,
