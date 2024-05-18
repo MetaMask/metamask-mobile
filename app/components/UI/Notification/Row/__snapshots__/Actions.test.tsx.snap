@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NotificationActions renders correctly 1`] = `
+exports[`NotificationActions matches snapshot 1`] = `
 <TouchableOpacity
   accessibilityRole="button"
   accessible={true}
@@ -56,7 +56,7 @@ exports[`NotificationActions renders correctly 1`] = `
 </TouchableOpacity>
 `;
 
-exports[`NotificationActions renders correctly with LINK only 1`] = `
+exports[`NotificationActions matches snapshot with LINK only 1`] = `
 <TouchableOpacity
   accessibilityRole="button"
   accessible={true}
