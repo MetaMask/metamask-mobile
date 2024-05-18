@@ -12,7 +12,7 @@ import Badge, {
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import AssetIcon from '../AssetIcon';
 import { useSelector } from 'react-redux';
-import { selectNetworkImageSource } from '../../../selectors/networkController';
+import { selectNetworkImageSource } from '../../../selectors/networkInfos';
 import { strings } from '../../../../locales/i18n';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/ImportTokenView.selectors';
 

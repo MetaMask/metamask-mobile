@@ -6,7 +6,7 @@ import DefaultSettings from '.';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { selectNetworkName } from '../../../../selectors/networkController';
+import { selectNetworkName } from '../../../../selectors/networkInfos';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');

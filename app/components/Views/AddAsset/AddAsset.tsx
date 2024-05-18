@@ -15,8 +15,8 @@ import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controller
 import {
   selectChainId,
   selectProviderConfig,
-  selectNetworkName,
 } from '../../../selectors/networkController';
+import { selectNetworkName } from '../../../selectors/networkInfos';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import {

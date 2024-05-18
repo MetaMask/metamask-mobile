@@ -62,9 +62,11 @@ import {
   selectChainId,
   selectProviderConfig,
   selectProviderType,
+} from '../../../selectors/networkController';
+import {
   selectNetworkName,
   selectNetworkImageSource,
-} from '../../../selectors/networkController';
+} from '../../../selectors/networkInfos';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
 import {
   DEPRECATED_NETWORKS,

@@ -8,11 +8,11 @@ import PickerNetwork from '../../../component-library/components/Pickers/PickerN
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { ProviderConfig } from '@metamask/network-controller';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import {
-  selectProviderConfig,
   selectNetworkName,
   selectNetworkImageSource,
-} from '../../../selectors/networkController';
+} from '../../../selectors/networkInfos';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';

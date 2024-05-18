@@ -44,8 +44,8 @@ import {
   selectNetworkClientId,
   selectProviderConfig,
   selectTicker,
-  selectNetworkName,
 } from '../../../selectors/networkController';
+import { selectNetworkName } from '../../../selectors/networkInfos';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import { BadgeVariant } from '../../../component-library/components/Badges/Badge/Badge.types';

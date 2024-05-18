@@ -23,11 +23,11 @@ import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import {
-  selectProviderConfig,
   selectNetworkName,
   selectNetworkImageSource,
-} from '../../../selectors/networkController';
+} from '../../../selectors/networkInfos';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';

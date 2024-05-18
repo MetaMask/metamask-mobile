@@ -10,11 +10,11 @@ import { useTheme } from '../../../util/theme';
 import { fontStyles } from '../../../styles/common';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import {
-  selectProviderConfig,
   selectNetworkName,
   selectNetworkImageSource,
-} from '../../../selectors/networkController';
+} from '../../../selectors/networkInfos';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import Avatar, {
   AvatarVariant,

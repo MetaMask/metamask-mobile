@@ -57,10 +57,12 @@ import {
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
-  selectNetworkName,
   selectTicker,
-  selectNetworkImageSource,
 } from '../../../selectors/networkController';
+import {
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../selectors/networkInfos';
 import { selectTokens } from '../../../selectors/tokensController';
 import { useNavigation } from '@react-navigation/native';
 import { WalletAccount } from '../../../components/UI/WalletAccount';

@@ -12,7 +12,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import {
   selectNetworkName,
   selectNetworkImageSource,
-} from '../../../../../selectors/networkController';
+} from '../../../../../selectors/networkInfos';
 import { selectIdentities } from '../../../../../selectors/preferencesController';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import {

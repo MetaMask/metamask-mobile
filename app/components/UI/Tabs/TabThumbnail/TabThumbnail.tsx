@@ -23,7 +23,7 @@ import METAMASK_FOX from '../../../../images/fox.png';
 import {
   selectNetworkName,
   selectNetworkImageSource,
-} from '../../../../selectors/networkController';
+} from '../../../../selectors/networkInfos';
 import { getHost } from '../../../../util/browser';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
