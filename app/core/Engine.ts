@@ -644,10 +644,7 @@ class Engine {
         );
       },
       clientId: AppConstants.SWAPS.CLIENT_ID,
-      legacyAPIEndpoint:
-        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
-      EIP1559APIEndpoint:
-        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
+      legacyAPIEndpoint: process.env.MM_INFURA_PROJECT_ID,
     });
 
     const phishingController = new PhishingController({
