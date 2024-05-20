@@ -4,13 +4,13 @@ index 0000000..550de56
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/.patch.txt
 @@ -0,0 +1,7 @@
-+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-transaction-controller-13-0-0
++PATCH GENERATED FROM MetaMask/core branch: patch/mobile-transaction-controller-13-0-0-smart-transactions
 +This patch backports various transaction controller features from the main branch of MetaMask/core
 +Steps to update patch:
-+* Create a new core branch from: patch/mobile-transaction-controller-13-0-0
++* Create a new core branch from: patch/mobile-transaction-controller-13-0-0-smart-transactions
 +* Run "yarn build" in the core monorepo
 +* Run "yarn patch:tx <core-directory>" in the mobile repo
-+* Once the new patch is merged, add your changes to: patch/mobile-transaction-controller-13-0-0
++* Once the new patch is merged, add your changes to: patch/mobile-transaction-controller-13-0-0-smart-transactions
 diff --git a/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts.map b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts.map
 deleted file mode 100644
 index 9a28bf5..0000000

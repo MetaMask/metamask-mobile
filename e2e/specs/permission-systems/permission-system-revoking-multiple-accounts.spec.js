@@ -39,7 +39,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
-        // await TestHelpers.delay(1000);
+        await TestHelpers.delay(2000);
 
         await Assertions.checkIfNotVisible(CommonView.toast);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
