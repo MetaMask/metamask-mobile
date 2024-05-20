@@ -170,6 +170,10 @@ const Wallet = ({
    */
   const providerConfig = useSelector(selectProviderConfig);
   const prevChainId = usePrevious(providerConfig.chainId);
+
+  const isDataCollectionForMarketingEnabled = useSelector(
+    (state: any) => state.security.dataCollectionForMarketing,
+  );
   /**
    * Is basic functionality enabled
    */
@@ -185,10 +189,12 @@ const Wallet = ({
   const currentToast = toastRef?.current;
 
   useEffect(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.EXPERIENCE_ENHANCER,
-    });
-  }, [navigate]);
+    if (isDataCollectionForMarketingEnabled === null) {
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.EXPERIENCE_ENHANCER,
+      });
+    }
+  }, [isDataCollectionForMarketingEnabled, navigate]);
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;

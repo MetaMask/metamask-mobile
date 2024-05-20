@@ -3,4 +3,5 @@ export interface SecuritySettingsState {
   automaticSecurityChecksEnabled: boolean;
   hasUserSelectedAutomaticSecurityCheckOption: boolean;
   isAutomaticSecurityChecksModalOpen: boolean;
+  dataCollectionForMarketing: boolean | null;
 }

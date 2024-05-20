@@ -18,6 +18,7 @@ import { clearHistory } from '../../../../actions/browser';
 import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
+import { setDataCollectionForMarketing } from '../../../../actions/security';
 import { strings } from '../../../../../locales/i18n';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
@@ -180,6 +181,10 @@ const Settings: React.FC = () => {
   const ipfsGateway = useSelector(selectIpfsGateway);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS as EtherscanNetworksType;
+
+  const isDataCollectionForMarketingEnabled = useSelector(
+    (state: any) => state.security.dataCollectionForMarketing,
+  );
 
   const isMainnet = type === MAINNET;
 
@@ -449,6 +454,10 @@ const Settings: React.FC = () => {
     </View>
   );
 
+  const toggleDataCollectionForMarketing = async (value: boolean) => {
+    dispatch(setDataCollectionForMarketing(value));
+  };
+
   const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
     if (metricsEnabled) {
       const consolidatedTraits = {
@@ -520,8 +529,8 @@ const Settings: React.FC = () => {
         </Text>
         <View style={styles.switchElement}>
           <Switch
-            value={analyticsEnabled}
-            onValueChange={toggleMetricsOptIn}
+            value={isDataCollectionForMarketingEnabled}
+            onValueChange={toggleDataCollectionForMarketing}
             trackColor={{
               true: colors.primary.default,
               false: colors.border.muted,
@@ -529,7 +538,7 @@ const Settings: React.FC = () => {
             thumbColor={theme.brandColors.white['000']}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
-            testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
+            testID={SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH}
           />
         </View>
       </View>

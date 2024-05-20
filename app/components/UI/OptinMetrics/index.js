@@ -17,6 +17,7 @@ import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
+import { setDataCollectionForMarketing } from '../../../actions/security';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
@@ -126,6 +127,8 @@ const createStyles = ({ colors }) =>
  */
 class OptinMetrics extends PureComponent {
   static propTypes = {
+    isDataCollectionForMarketingEnabled: PropTypes.bool,
+    setDataCollectionForMarketing: PropTypes.func,
     /**
     /* navigation object required to push and pop other views
     */
@@ -532,6 +535,11 @@ class OptinMetrics extends PureComponent {
   };
 
   render() {
+    const {
+      isDataCollectionForMarketingEnabled,
+      setDataCollectionForMarketing,
+    } = this.props;
+
     const styles = this.getStyles();
 
     return (
@@ -580,10 +588,14 @@ class OptinMetrics extends PureComponent {
             {isPastPrivacyPolicyDate ? (
               <View style={styles.checkbox}>
                 <Checkbox
-                  isChecked={false}
+                  isChecked={isDataCollectionForMarketingEnabled}
                   accessibilityRole={'checkbox'}
                   accessible
-                  onPress={() => {}}
+                  onPress={() =>
+                    setDataCollectionForMarketing(
+                      !isDataCollectionForMarketingEnabled,
+                    )
+                  }
                 />
                 <Text style={styles.content}>
                   {strings('privacy_policy.checkbox')}
@@ -603,11 +615,15 @@ OptinMetrics.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   events: state.onboarding.events,
+  isDataCollectionForMarketingEnabled:
+    state.security.dataCollectionForMarketing,
 });
 
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
+  setDataCollectionForMarketing: (value) =>
+    dispatch(setDataCollectionForMarketing(value)),
 });
 
 export default connect(

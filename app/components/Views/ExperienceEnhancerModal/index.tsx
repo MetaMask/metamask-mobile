@@ -15,6 +15,7 @@ import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
+import { setDataCollectionForMarketing } from '../../../actions/security';
 
 const ExperienceEnhancerModal = () => {
   const styles = createStyles();
@@ -23,14 +24,18 @@ const ExperienceEnhancerModal = () => {
     variant: ButtonVariants.Secondary,
     label: strings('experience_enhancer_modal.cancel'),
     size: ButtonSize.Lg,
-    onPress: () => {},
+    onPress: () => {
+      setDataCollectionForMarketing(false);
+    },
   };
 
   const acceptButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
     label: strings('experience_enhancer_modal.accept'),
     size: ButtonSize.Lg,
-    onPress: () => {},
+    onPress: () => {
+      setDataCollectionForMarketing(true);
+    },
   };
 
   return (
@@ -44,6 +49,7 @@ const ExperienceEnhancerModal = () => {
           <Button
             variant={ButtonVariants.Link}
             label={strings('experience_enhancer_modal.link')}
+            // TODO: add link
             onPress={() => {}}
           />
           {strings('experience_enhancer_modal.paragraph1b')}
