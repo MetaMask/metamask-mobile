@@ -1,8 +1,8 @@
 'use strict';
 import { SmokeConfirmations } from '../../tags';
 import WalletView from '../../pages/WalletView';
-import SendView from '../../pages/SendView';
-import AmountView from '../../pages/AmountView';
+import AmountView from '../../pages/Send/AmountView';
+import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
