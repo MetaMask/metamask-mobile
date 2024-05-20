@@ -119,6 +119,9 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { selectTransactionGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { updateTransaction } from '../../../../../util/transaction-controller';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
+import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -240,6 +243,10 @@ class Confirm extends PureComponent {
      * Set transaction ID
      */
     setTransactionId: PropTypes.func,
+    /**
+     * Boolean that indicates if smart transaction should be used
+     */
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -279,10 +286,22 @@ class Confirm extends PureComponent {
     setProposedNonce(proposedNonce);
   };
 
-  getAnalyticsParams = () => {
+  getAnalyticsParams = (transactionMeta) => {
     try {
-      const { selectedAsset, gasEstimateType, chainId } = this.props;
+      const {
+        selectedAsset,
+        gasEstimateType,
+        chainId,
+        shouldUseSmartTransaction,
+      } = this.props;
       const { gasSelected, fromSelectedAddress } = this.state;
+      const { SmartTransactionsController } = Engine.context;
+
+      const smartTransactionMetricsProperties =
+        getSmartTransactionMetricsProperties(
+          SmartTransactionsController,
+          transactionMeta,
+        );
 
       return {
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
@@ -296,6 +315,9 @@ class Confirm extends PureComponent {
           : this.originIsWalletConnect
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+
+        is_smart_transaction: shouldUseSmartTransaction,
+        ...smartTransactionMetricsProperties,
       };
     } catch (error) {
       return {};
@@ -337,11 +359,15 @@ class Confirm extends PureComponent {
      * Remove token that was added to the account temporarily
      * Ref.: https://github.com/MetaMask/metamask-mobile/pull/3989#issuecomment-1367558394
      */
-    if (selectedAsset.isETH || selectedAsset.tokenId) {
+    if (
+      selectedAsset.isETH ||
+      selectedAsset.tokenId ||
+      !selectedAsset.address
+    ) {
       return;
     }
 
-    const weiBalance = contractBalances[selectedAsset.address];
+    const weiBalance = hexToBN(contractBalances[selectedAsset.address]);
     if (weiBalance?.isZero()) {
       await TokensController.ignoreTokens([selectedAsset.address]);
     }
@@ -730,7 +756,9 @@ class Confirm extends PureComponent {
         }
       } else {
         const [, , amount] = decodeTransferData('transfer', transaction.data);
-        weiBalance = contractBalances[selectedAsset.address];
+
+        weiBalance = hexToBN(contractBalances[selectedAsset.address]);
+
         weiInput = hexToBN(amount);
         error =
           weiBalance && weiBalance.gte(weiInput)
@@ -804,6 +832,7 @@ class Confirm extends PureComponent {
       navigation,
       resetTransaction,
       gasEstimateType,
+      shouldUseSmartTransaction,
     } = this.props;
 
     const {
@@ -868,9 +897,18 @@ class Confirm extends PureComponent {
       }
 
       await KeyringController.resetQRKeyringState();
-      await ApprovalController.accept(transactionMeta.id, undefined, {
-        waitForResult: true,
-      });
+
+      if (shouldUseSmartTransaction) {
+        await ApprovalController.accept(transactionMeta.id, undefined, {
+          waitForResult: false,
+        });
+        navigation && navigation.dangerouslyGetParent()?.pop();
+      } else {
+        await ApprovalController.accept(transactionMeta.id, undefined, {
+          waitForResult: true,
+        });
+      }
+
       await new Promise((resolve) => resolve(result));
 
       if (transactionMeta.error) {
@@ -886,16 +924,23 @@ class Confirm extends PureComponent {
         this.props.metrics.trackEvent(
           MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           {
-            ...this.getAnalyticsParams(),
+            ...this.getAnalyticsParams(transactionMeta),
             ...getBlockaidTransactionMetricsParams(transaction),
           },
         );
         stopGasPolling();
         resetTransaction();
-        navigation && navigation.dangerouslyGetParent()?.pop();
+
+        if (!shouldUseSmartTransaction) {
+          // We popped it already earlier
+          navigation && navigation.dangerouslyGetParent()?.pop();
+        }
       });
     } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      if (
+        !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+        !error?.message.startsWith(STX_NO_HASH_ERROR)
+      ) {
         Alert.alert(
           strings('transactions.transaction_error'),
           error && error.message,
@@ -1167,6 +1212,7 @@ class Confirm extends PureComponent {
       chainId,
       gasEstimateType,
       isNativeTokenBuySupported,
+      shouldUseSmartTransaction,
     } = this.props;
     const { nonce } = this.props.transaction;
     const {
@@ -1297,7 +1343,7 @@ class Confirm extends PureComponent {
               updateGasState={this.updateGasState}
             />
           )}
-          {showCustomNonce && (
+          {showCustomNonce && !shouldUseSmartTransaction && (
             <CustomNonce
               nonce={nonce}
               onNonceEdit={() => this.toggleConfirmationModal(EDIT_NONCE)}
@@ -1401,6 +1447,7 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
