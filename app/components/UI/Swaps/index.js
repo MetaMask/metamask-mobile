@@ -238,6 +238,7 @@ function SwapsAmountView({
       toLowerCaseEquals(token.address, initialDestination),
     ),
   );
+  const [initialDestinationSearch, setInitialDestinationSearch] = useState('');
   const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
   const [contractBalance, setContractBalance] = useState(null);
   const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(
@@ -371,13 +372,22 @@ function SwapsAmountView({
   useEffect(() => {
     if (canSetAnInitialTokenDestination) {
       setIsDestinationSet(true);
-      setDestinationToken(
-        swapsTokens.find((token) =>
-          toLowerCaseEquals(token.address, initialDestination),
-        ),
+      const destinationTokenOnList = swapsTokens.find((token) =>
+        toLowerCaseEquals(token.address, initialDestination),
       );
+      if (destinationTokenOnList) {
+        setDestinationToken(destinationTokenOnList);
+      } else {
+        toggleDestinationModal();
+        setInitialDestinationSearch(initialDestination);
+      }
     }
-  }, [canSetAnInitialTokenDestination, initialDestination, swapsTokens]);
+  }, [
+    canSetAnInitialTokenDestination,
+    initialDestination,
+    swapsTokens,
+    toggleDestinationModal,
+  ]);
 
   const canSetInitialAmount =
     destinationToken && sourceToken && initialAmount && swapsControllerTokens;
@@ -791,6 +801,7 @@ function SwapsAmountView({
             ]}
             onItemPress={handleDestinationTokenPress}
             excludeAddresses={[sourceToken?.address]}
+            initialSearchString={initialDestinationSearch}
           />
         </View>
         <View>

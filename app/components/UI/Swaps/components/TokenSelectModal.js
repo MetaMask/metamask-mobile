@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import {
   StyleSheet,
@@ -155,6 +161,7 @@ function TokenSelectModal({
   providerConfig,
   networkConfigurations,
   balances,
+  initialSearchString = '',
 }) {
   const navigation = useNavigation();
   const { trackAnonymousEvent } = useMetrics();
@@ -301,6 +308,14 @@ function TokenSelectModal({
     showTokenImportModal();
   }, [showTokenImportModal]);
 
+  useEffect(() => {
+    !!initialSearchString && setSearchString(initialSearchString);
+
+    if (tokenMetadata.valid) {
+      handleShowImportToken();
+    }
+  }, [initialSearchString, handleShowImportToken, tokenMetadata.valid]);
+
   const handlePressImportToken = useCallback(
     (item) => {
       const { address, symbol } = item;
@@ -384,7 +399,6 @@ function TokenSelectModal({
     setSearchString('');
     searchInput?.current?.focus();
   }, [setSearchString]);
-
   return (
     <Modal
       isVisible={isVisible}
@@ -564,6 +578,10 @@ TokenSelectModal.propTypes = {
    * Network configurations
    */
   networkConfigurations: PropTypes.object,
+  /**
+   * Initial search string with token address
+   * */
+  initialSearchString: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({

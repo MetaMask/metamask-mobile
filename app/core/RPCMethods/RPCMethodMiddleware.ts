@@ -21,6 +21,7 @@ import {
 import Networks, {
   blockTagParamIndex,
   getAllNetworks,
+  getNetworkNameFromProviderConfig,
 } from '../../util/networks';
 import { polyfillGasPrice, validateParams } from './utils';
 import ImportedEngine from '../Engine';
@@ -416,7 +417,11 @@ export const getRpcMethodMiddleware = ({
         const isSwappable = isSwapsAllowed(chainId) && swapsIsLive;
 
         if (!isSwappable) {
-          Alert.alert('Swap is not active or not possible on this chain');
+          const providerConfig = selectProviderConfig(store.getState());
+
+          const networkName = getNetworkNameFromProviderConfig(providerConfig);
+
+          Alert.alert(`Swap is not available on this chain ${networkName}`);
           return;
         }
         //If value is not defined by the dapp it defaults to 0
