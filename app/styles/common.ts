@@ -15,10 +15,8 @@ export const colors = {
   transparent: 'transparent',
   // Do not change the values of applePay tokens unless noted by
   // https://developer.apple.com/design/human-interface-guidelines/apple-pay
-  /* eslint-disable @metamask/design-tokens/color-no-hex */
   applePayBlack: '#000000',
   applePayWhite: '#FFFFFF',
-  /* eslint-enable @metamask/design-tokens/color-no-hex */
 };
 
 /**
