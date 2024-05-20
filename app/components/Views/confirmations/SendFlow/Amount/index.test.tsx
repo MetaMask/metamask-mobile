@@ -6,12 +6,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
 import TransactionTypes from '../../../../../core/TransactionTypes';
-import {
-  FIAT_CONVERSION_WARNING_TEXT,
-  NEXT_BUTTON,
-  TRANSACTION_AMOUNT_CONVERSION_VALUE,
-  TRANSACTION_AMOUNT_INPUT,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 
@@ -240,7 +234,9 @@ describe('Amount', () => {
     const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
     await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
 
-    const textInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
@@ -302,7 +298,9 @@ describe('Amount', () => {
     const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
     await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
 
-    const textInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
@@ -354,7 +352,9 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
 
     fireEvent.changeText(textInput, '1');
 
@@ -404,7 +404,9 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
 
     fireEvent.changeText(textInput, '1');
 
@@ -454,7 +456,9 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
 
     fireEvent.changeText(textInput, '10');
 
@@ -507,7 +511,9 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
 
     fireEvent.changeText(textInput, '10');
 
@@ -550,7 +556,9 @@ describe('Amount', () => {
       },
     });
 
-    const fiatConversionWarningText = getByTestId(AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT);
+    const fiatConversionWarningText = getByTestId(
+      AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT,
+    );
     expect(fiatConversionWarningText.props.children).toBe(
       'Fiat conversions are not available at this moment',
     );
@@ -594,7 +602,7 @@ describe('Amount', () => {
     try {
       await getByTestId(AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT);
     } catch (error: any) {
-      const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
+      const expectedErrorMessage = `Unable to find an element with testID: ${AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT}`;
       const hasErrorMessage = error.message.includes(expectedErrorMessage);
       expect(hasErrorMessage).toBeTruthy();
     }
@@ -634,7 +642,7 @@ describe('Amount', () => {
     try {
       getByTestId(AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT);
     } catch (error: any) {
-      const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
+      const expectedErrorMessage = `Unable to find an element with testID: ${AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT}`;
       const hasErrorMessage = error.message.includes(expectedErrorMessage);
       expect(hasErrorMessage).toBeTruthy();
     }

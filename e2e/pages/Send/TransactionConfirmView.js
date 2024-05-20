@@ -3,23 +3,27 @@ import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import {
   COMFIRM_TXN_AMOUNT,
-  CONFIRM_TRANSACTION_BUTTON_ID,
   NAVBAR_TITLE_NETWORKS_TEXT,
-  TRANSACTION_VIEW_CONTAINER_ID,
 } from '../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds.js';
-import { ESTIMATED_FEE_TEST_ID } from '../../../wdio/screen-objects/testIDs/Screens/TransactionSummaryScreen.testIds.js';
+
 import {
-  EDIT_PRIORITY_SCREEN_TEST_ID,
-  MAX_PRIORITY_FEE_INPUT_TEST_ID,
-} from '../../../wdio/screen-objects/testIDs/Screens/EditGasFeeScreen.testids.js';
-import { EditGasViewSelectorsText } from '../../selectors/EditGasView.selectors.js';
-import { TransactionConfirmViewSelectorsText } from '../../selectors/TransactionConfirmView.selectors.js';
+  EditGasViewSelectorsText,
+  EditGasViewSelectorsIDs,
+} from '../../selectors/EditGasView.selectors.js';
+import {
+  TransactionConfirmViewSelectorsText,
+  TransactionConfirmViewSelectorsIDs,
+} from '../../selectors/TransactionConfirmView.selectors.js';
 
 class TransactionConfirmationView {
   get confirmButton() {
     return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(CONFIRM_TRANSACTION_BUTTON_ID)
-      : Matchers.getElementByLabel(CONFIRM_TRANSACTION_BUTTON_ID);
+      ? Matchers.getElementByID(
+          TransactionConfirmViewSelectorsIDs.CONFIRM_TRANSACTION_BUTTON_ID,
+        )
+      : Matchers.getElementByLabel(
+          TransactionConfirmViewSelectorsIDs.CONFIRM_TRANSACTION_BUTTON_ID,
+        );
   }
 
   get cancelButton() {
@@ -28,12 +32,37 @@ class TransactionConfirmationView {
     );
   }
 
+  get transactionAmount() {
+    return Matchers.getElementByText(
+      TransactionConfirmViewSelectorsIDs.COMFIRM_TXN_AMOUNT,
+    );
+  }
+
   get estimatedGasLink() {
-    return Matchers.getElementByID(ESTIMATED_FEE_TEST_ID);
+    return Matchers.getElementByID(
+      EditGasViewSelectorsIDs.ESTIMATED_FEE_TEST_ID,
+    );
   }
 
   get transactionViewContainer() {
-    return Matchers.getElementByID(TRANSACTION_VIEW_CONTAINER_ID);
+    return Matchers.getElementByID(
+      TransactionConfirmViewSelectorsIDs.TRANSACTION_VIEW_CONTAINER_ID,
+    );
+  }
+  get LowPriorityText() {
+    return Matchers.getElementByText(EditGasViewSelectorsText.LOW);
+  }
+  get MarketPriorityText() {
+    return Matchers.getElementByText(EditGasViewSelectorsText.MARKET);
+  }
+  get AggressivePriorityText() {
+    return Matchers.getElementByText(EditGasViewSelectorsText.AGGRESSIVE);
+  }
+  get EditPrioritySaveButtonText() {
+    return Matchers.getElementByText(EditGasViewSelectorsText.SAVE_BUTTON);
+  }
+  get EditPriorityAdvancedOptionsText() {
+    return Matchers.getElementByText(EditGasViewSelectorsText.ADVANCE_OPTIONS);
   }
 
   async tapConfirmButton() {
@@ -48,18 +77,27 @@ class TransactionConfirmationView {
     await Gestures.waitAndTap(this.estimatedGasLink);
   }
 
-  async tapPriorityGasOption(priority) {
-    await Gestures.waitAndTapByText(
-      EditGasViewSelectorsText[priority.toUpperCase()],
-    );
+  async tapLowPriorityGasOption() {
+    await Gestures.waitAndTap(this.LowPriorityText);
+  }
+  async tapMarketPriorityGasOption() {
+    await Gestures.waitAndTap(this.MarketPriorityText);
+  }
+  async tapAggressivePriorityGasOption() {
+    await Gestures.waitAndTap(this.AggressivePriorityText);
   }
 
   async tapMaxPriorityFeeSaveButton() {
-    await Gestures.waitAndTapByText(EditGasViewSelectorsText.SAVE_BUTTON);
+    await Gestures.waitAndTap(this.EditPrioritySaveButtonText);
+  }
+  async tapAdvancedOptionsPriorityGasOption() {
+    await Gestures.waitAndTap(this.EditPriorityAdvancedOptionsText);
   }
 
   async isVisible() {
-    await TestHelpers.checkIfVisible(this.transactionViewContainer);
+    await TestHelpers.checkIfVisible(
+      TransactionConfirmViewSelectorsIDs.TRANSACTION_VIEW_CONTAINER_ID,
+    );
   }
 
   async isNetworkNameVisible(text) {
@@ -71,12 +109,14 @@ class TransactionConfirmationView {
   }
 
   async isPriorityEditScreenVisible() {
-    await TestHelpers.checkIfVisible(EDIT_PRIORITY_SCREEN_TEST_ID);
+    await TestHelpers.checkIfVisible(
+      EditGasViewSelectorsIDs.EDIT_PRIORITY_SCREEN_TEST_ID,
+    );
   }
 
   async isMaxPriorityFeeCorrect(amount) {
     await TestHelpers.checkIfElementHasString(
-      MAX_PRIORITY_FEE_INPUT_TEST_ID,
+      EditGasViewSelectorsIDs.MAX_PRIORITY_FEE_INPUT_TEST_ID,
       amount,
     );
   }

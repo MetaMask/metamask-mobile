@@ -1,5 +1,5 @@
 import React, { Fragment, PureComponent } from 'react';
-import { View, ScrollView, Alert, Platform, BackHandler } from 'react-native';
+import { View, ScrollView, Alert, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -42,11 +42,6 @@ import {
   SYMBOL_ERROR,
 } from '../../../../../constants/error';
 import createStyles from './styles';
-import {
-  ADD_ADDRESS_BUTTON,
-  SEND_SCREEN_ID,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
   selectChainId,
   selectProviderType,
@@ -498,7 +493,7 @@ class SendFlow extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        {...generateTestId(Platform, SEND_SCREEN_ID)}
+        testID={SendViewSelectorsIDs.CONTAINER_ID}
       >
         <View style={styles.imputWrapper}>
           <SendFlowAddressFrom
