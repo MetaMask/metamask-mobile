@@ -454,10 +454,6 @@ const Settings: React.FC = () => {
     </View>
   );
 
-  const toggleDataCollectionForMarketing = async (value: boolean) => {
-    dispatch(setDataCollectionForMarketing(value));
-  };
-
   const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
     if (metricsEnabled) {
       const consolidatedTraits = {
@@ -477,11 +473,28 @@ const Settings: React.FC = () => {
     } else {
       await enable(false);
       setAnalyticsEnabled(false);
+      if (isDataCollectionForMarketingEnabled) {
+        dispatch(setDataCollectionForMarketing(false));
+      }
       Alert.alert(
         strings('app_settings.metametrics_opt_out'),
         strings('app_settings.metametrics_restart_required'),
       );
     }
+  };
+
+  const toggleDataCollectionForMarketing = async (value: boolean) => {
+    if (value) {
+      if (!analyticsEnabled) {
+        toggleMetricsOptIn(true);
+      }
+    } else {
+      Alert.alert(
+        strings('app_settings.data_collection_opt_out'),
+        strings('app_settings.data_collection_opt_out_description'),
+      );
+    }
+    dispatch(setDataCollectionForMarketing(value));
   };
 
   const renderMetaMetricsSection = () => (
