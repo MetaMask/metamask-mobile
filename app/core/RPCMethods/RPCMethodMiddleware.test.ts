@@ -1117,7 +1117,6 @@ describe('getRpcMethodMiddleware', () => {
 
       const response = await callMiddleware({ middleware, request });
 
-      console.error((response as JsonRpcFailure).error);
       expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
       expect((response as JsonRpcFailure).error.message).toBe(
         expectedError.message,
