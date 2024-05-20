@@ -1001,12 +1001,17 @@ describe('getRpcMethodMiddleware', () => {
         params: [mockTransactionParameters],
       };
       const expectedError = rpcErrors.internal('Internal JSON-RPC error.');
+      const expectedErrorCauseMessage = 'Failed to add transaction';
 
       const response = await callMiddleware({ middleware, request });
 
       expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
       expect((response as JsonRpcFailure).error.message).toBe(
         expectedError.message,
+      );
+      // @ts-expect-error - TODO: This should type
+      expect((response as JsonRpcFailure).error.data.cause.message).toBe(
+        expectedErrorCauseMessage,
       );
     });
 
@@ -1031,12 +1036,17 @@ describe('getRpcMethodMiddleware', () => {
         params: [mockTransactionParameters],
       };
       const expectedError = rpcErrors.internal('Internal JSON-RPC error.');
+      const expectedErrorCauseMessage = 'Failed to add transaction';
 
       const response = await callMiddleware({ middleware, request });
 
       expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
       expect((response as JsonRpcFailure).error.message).toBe(
         expectedError.message,
+      );
+      // @ts-expect-error - TODO: This should type
+      expect((response as JsonRpcFailure).error.data.cause.message).toBe(
+        expectedErrorCauseMessage,
       );
     });
   });
