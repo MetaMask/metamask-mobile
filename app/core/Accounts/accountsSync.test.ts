@@ -92,7 +92,6 @@ describe('syncSelectedAddress', () => {
         },
       },
       selectedAddress: MOCK_ADDRESS,
-      // other properties...
     } as any;
 
     const mockAccountsController = {
@@ -124,7 +123,6 @@ describe('syncSelectedAddress', () => {
         },
       },
       selectedAddress: MOCK_ADDRESS_1,
-      // other properties...
     } as any;
 
     const mockAccountsController = {

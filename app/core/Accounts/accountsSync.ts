@@ -42,20 +42,16 @@ export function syncAccountName(
   getAccountsController: () => AccountsController,
 ) {
   const accountsController = getAccountsController();
-
-  // Iterate over all accounts in the AccountsController
   for (const accountId in accountsController.state.internalAccounts.accounts) {
     const account =
       accountsController.state.internalAccounts.accounts[accountId];
     const checksummedAddress = account.address;
     const lowercaseAddress = checksummedAddress.toLowerCase();
 
-    // Find the corresponding preference entry using the lowercase address
     const preferenceEntry = Object.values(preferencesState.identities).find(
       (identity) => identity.address.toLowerCase() === lowercaseAddress,
     );
 
-    // If a matching preference entry is found and names are different, update the account name using setAccountLabel method
     if (preferenceEntry && account.metadata.name !== preferenceEntry.name) {
       accountsController.setAccountName(account.id, preferenceEntry.name);
     }

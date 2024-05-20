@@ -201,7 +201,6 @@ import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { syncAccountName, syncSelectedAddress } from './Accounts/accountsSync';
 
 const NON_EMPTY = 'NON_EMPTY';
