@@ -1328,9 +1328,9 @@ describe('getRpcMethodMiddleware', () => {
     });
   });
   describe('wallet_swapAsset', () => {
-    it('should throw error if chainId is not consistent between from and to', async () => {
+    it('should throw error if the account sent by the dapp is not the one connected', async () => {
       const mockState = {
-        swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
+        swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
         fiatOrders: {
           networks: [
             {
@@ -1345,10 +1345,10 @@ describe('getRpcMethodMiddleware', () => {
           backgroundState: {
             ...initialBackgroundState,
             PreferencesController: {
-              selectedAddress: '0x0',
+              selectedAddress: '0x1',
               identities: {
-                '0x0': {
-                  address: '0x0',
+                '0x1': {
+                  address: '0x1',
                   name: 'Account 1',
                 },
               },
@@ -1356,7 +1356,7 @@ describe('getRpcMethodMiddleware', () => {
             NetworkController: {
               providerConfig: {
                 type: 'mainnet',
-                chainId: '1',
+                chainId: '0x1',
                 ticker: 'eth',
               },
             },
@@ -1378,10 +1378,9 @@ describe('getRpcMethodMiddleware', () => {
           {
             from: [
               {
-                chainId: '0x2',
                 // DAI address
                 token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-                amount: '0xDE0B6B3A7640000',
+                value: '0xDE0B6B3A7640000',
               },
             ],
             to: {
@@ -1393,16 +1392,17 @@ describe('getRpcMethodMiddleware', () => {
           },
         ],
       };
+
       const response = await callMiddleware({ middleware, request });
       //@ts-expect-error now the response can have an error property
       await expect(response?.error?.message).toStrictEqual(
-        'ChainId value is not consistent between from and to',
+        'This address does not exist',
       );
     });
 
-    it('should throw error if chainId, from property does not have chainId property', async () => {
+    it('should throw error if it was sent more than one token to swap from', async () => {
       const mockState = {
-        swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
+        swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
         fiatOrders: {
           networks: [
             {
@@ -1428,7 +1428,7 @@ describe('getRpcMethodMiddleware', () => {
             NetworkController: {
               providerConfig: {
                 type: 'mainnet',
-                chainId: '1',
+                chainId: '0x1',
                 ticker: 'eth',
               },
             },
@@ -1452,7 +1452,12 @@ describe('getRpcMethodMiddleware', () => {
               {
                 // DAI address
                 token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-                amount: '0xDE0B6B3A7640000',
+                value: '0xDE0B6B3A7640000',
+              },
+              {
+                // ETH address
+                token_address: '0x0000000000000000000000000000000000000000',
+                value: '0xDE0B6B3A7640000',
               },
             ],
             to: {
@@ -1468,13 +1473,156 @@ describe('getRpcMethodMiddleware', () => {
       const response = await callMiddleware({ middleware, request });
       //@ts-expect-error now the response can have an error property
       await expect(response?.error?.message).toStrictEqual(
-        'chainId property of from is not defined',
+        'Currently we de not support multiple tokens swap',
+      );
+    });
+
+    it('should throw error if token_address required param is not defined', async () => {
+      const mockState = {
+        swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
+        fiatOrders: {
+          networks: [
+            {
+              active: true,
+              chainId: 1,
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: true,
+            },
+          ],
+        },
+        engine: {
+          backgroundState: {
+            ...initialBackgroundState,
+            PreferencesController: {
+              selectedAddress: '0x0',
+              identities: {
+                '0x0': {
+                  address: '0x0',
+                  name: 'Account 1',
+                },
+              },
+            },
+            NetworkController: {
+              providerConfig: {
+                type: 'mainnet',
+                chainId: '0x1',
+                ticker: 'eth',
+              },
+            },
+          },
+        },
+      };
+      jest
+        .spyOn(store as Store<Partial<any>, any>, 'getState')
+        .mockImplementation(() => mockState);
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_swapAsset',
+        params: [
+          {
+            from: [
+              {
+                // DAI address
+                value: '0xDE0B6B3A7640000',
+              },
+            ],
+            to: {
+              chainId: '0x1',
+              // ETH address
+              token_address: '0x0000000000000000000000000000000000000000',
+            },
+            user_address: '0x0',
+          },
+        ],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+      //@ts-expect-error now the response can have an error property
+      await expect(response?.error?.message).toStrictEqual(
+        'token_address property of from is not defined',
+      );
+    });
+
+    it('should throw error if swap is not live', async () => {
+      const mockState = {
+        swaps: { '0x1': { isLive: false }, hasOnboarded: false, isLive: false },
+        fiatOrders: {
+          networks: [
+            {
+              active: true,
+              chainId: 1,
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: true,
+            },
+          ],
+        },
+        engine: {
+          backgroundState: {
+            ...initialBackgroundState,
+            PreferencesController: {
+              selectedAddress: '0x0',
+              identities: {
+                '0x0': {
+                  address: '0x0',
+                  name: 'Account 1',
+                },
+              },
+            },
+            NetworkController: {
+              providerConfig: {
+                type: 'mainnet',
+                chainId: '0x1',
+                ticker: 'eth',
+              },
+            },
+          },
+        },
+      };
+      jest
+        .spyOn(store as Store<Partial<any>, any>, 'getState')
+        .mockImplementation(() => mockState);
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_swapAsset',
+        params: [
+          {
+            from: [
+              {
+                // DAI address
+                token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+                value: '0xDE0B6B3A7640000',
+              },
+            ],
+            to: {
+              chainId: '0x1',
+              // ETH address
+              token_address: '0x0000000000000000000000000000000000000000',
+            },
+            user_address: '0x0',
+          },
+        ],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+      //@ts-expect-error now the response can have an error property
+      await expect(response?.error?.message).toStrictEqual(
+        'Swap is not available on this chain Ethereum Main Network',
       );
     });
 
     it('should navigate to SwapsAmountView if all conditions are met', async () => {
       const mockState = {
-        swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
+        swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
         fiatOrders: {
           networks: [
             {
@@ -1500,7 +1648,7 @@ describe('getRpcMethodMiddleware', () => {
             NetworkController: {
               providerConfig: {
                 type: 'mainnet',
-                chainId: '1',
+                chainId: '0x1',
                 ticker: 'eth',
               },
             },
@@ -1525,7 +1673,7 @@ describe('getRpcMethodMiddleware', () => {
                 chainId: '0x1',
                 // DAI address
                 token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-                amount: '0xDE0B6B3A7640000',
+                value: '0xDE0B6B3A7640000',
               },
             ],
             to: {

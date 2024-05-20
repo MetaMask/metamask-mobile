@@ -422,7 +422,9 @@ export const getRpcMethodMiddleware = ({
           const networkName = getNetworkNameFromProviderConfig(providerConfig);
 
           Alert.alert(`Swap is not available on this chain ${networkName}`);
-          return;
+          throw rpcErrors.methodNotSupported(
+            `Swap is not available on this chain ${networkName}`,
+          );
         }
         //If value is not defined by the dapp it defaults to 0
         const decimalWei = parseInt(from[0].value ?? 0, 16);
