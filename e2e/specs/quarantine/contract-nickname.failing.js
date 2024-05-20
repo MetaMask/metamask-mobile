@@ -186,11 +186,11 @@ describe('Adding Contract Nickname', () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
-    await SendView.isMyAccountsVisible();
+    await Assertions.checkIfVisible(await SendView.CurrentAccountElement);
   });
 
   it('should verify the contract nickname does not appear in send flow', async () => {
-    await SendView.isSavedAliasIsNotVisible('Ace');
+    await Assertions.checkIfTextIsNotDisplayed('Ace');
   });
 
   it('should deep link to the approval modal and approve transaction', async () => {
@@ -210,6 +210,6 @@ describe('Adding Contract Nickname', () => {
   });
 
   it('should verify the contract nickname does not appear in recents', async () => {
-    await SendView.isSavedAliasIsNotVisible('Ace');
+    await Assertions.checkIfTextIsNotDisplayed('Ace');
   });
 });

@@ -7,4 +7,6 @@ export const SendViewSelectorsIDs = {
   ADDRESS_BOOK_ACCOUNT: 'address-book-account',
   ADDRESS_BOOK_NEXT_BUTTON: 'address-book-next-button',
   ADDRESS_INPUT: 'txn-to-address-input',
+  SEND_CANCEL_BUTTON: 'send-cancel-button',
+  ADD_ADDRESS_BUTTON: 'add-address-button-a',
 };

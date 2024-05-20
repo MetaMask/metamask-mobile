@@ -34,7 +34,9 @@ class SecurityAndPrivacy {
   }
 
   get rememberMeToggle() {
-    return Matchers.getElementByID(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.REMEMBER_ME_TOGGLE,
+    );
   }
 
   get changePasswordSection() {
@@ -47,6 +49,10 @@ class SecurityAndPrivacy {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
     );
+  }
+
+  get showPrivateKey() {
+    return Matchers.getElementByText('Show private key');
   }
 
   get backUpNow() {

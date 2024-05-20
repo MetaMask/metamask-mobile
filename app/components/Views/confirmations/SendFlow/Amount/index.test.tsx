@@ -12,6 +12,9 @@ import {
   TRANSACTION_AMOUNT_CONVERSION_VALUE,
   TRANSACTION_AMOUNT_INPUT,
 } from '../../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
+
+import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
+
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 
 const mockEngine = Engine;
@@ -234,14 +237,14 @@ describe('Amount', () => {
     const balanceText = getByText(/Balance:/);
     expect(balanceText.props.children).toBe('Balance: 5 ETH');
 
-    const nextButton = getByTestId(NEXT_BUTTON);
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
     await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('$1.00');
 
@@ -296,14 +299,14 @@ describe('Amount', () => {
     const balanceText = getByText(/Balance:/);
     expect(balanceText.props.children).toBe('Balance: 0 ETH');
 
-    const nextButton = getByTestId(NEXT_BUTTON);
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
     await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('$1.00');
 
@@ -351,12 +354,12 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
 
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('$3000.00');
     expect(toJSON()).toMatchSnapshot();
@@ -401,12 +404,12 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
 
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('$15.00');
     expect(toJSON()).toMatchSnapshot();
@@ -451,12 +454,12 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
 
     fireEvent.changeText(textInput, '10');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('0.00333 ETH');
     expect(toJSON()).toMatchSnapshot();
@@ -504,12 +507,12 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
 
     fireEvent.changeText(textInput, '10');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('0.66667 LINK');
     expect(toJSON()).toMatchSnapshot();
@@ -547,7 +550,7 @@ describe('Amount', () => {
       },
     });
 
-    const fiatConversionWarningText = getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+    const fiatConversionWarningText = getByTestId(AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT);
     expect(fiatConversionWarningText.props.children).toBe(
       'Fiat conversions are not available at this moment',
     );
@@ -589,7 +592,7 @@ describe('Amount', () => {
     });
 
     try {
-      await getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+      await getByTestId(AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT);
     } catch (error: any) {
       const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
       const hasErrorMessage = error.message.includes(expectedErrorMessage);
@@ -629,7 +632,7 @@ describe('Amount', () => {
     });
 
     try {
-      getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+      getByTestId(AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT);
     } catch (error: any) {
       const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
       const hasErrorMessage = error.message.includes(expectedErrorMessage);
