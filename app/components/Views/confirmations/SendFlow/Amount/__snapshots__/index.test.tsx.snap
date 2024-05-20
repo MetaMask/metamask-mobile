@@ -6150,7 +6150,7 @@ exports[`Amount should render correctly 1`] = `
                                     "lineHeight": 20,
                                   }
                                 }
-                                testID="amount-screen-fiat-conversion-warning-text"
+                                testID="txn-amount-conversion-value"
                               >
                                 Fiat conversions are not available at this moment
                               </Text>
