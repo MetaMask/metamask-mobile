@@ -4575,6 +4575,14 @@
   resolved "https://registry.yarnpkg.com/@metamask/react-native-splash-screen/-/react-native-splash-screen-3.2.0.tgz#06a6547c143b088e47af40eacea9ac6657ac937f"
   integrity sha512-V8Cn0MXe9jdaUli/DK3PoJ71tx7k3IW2v2slqflvNstvHiO3MpCtdylsYIyu+tiPwI2JiyLRzLK8s02/3jxk6g==
 
+"@metamask/react-native-webview@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-webview/-/react-native-webview-14.0.0.tgz#bf920b30bf8dfa4f13ac17d2e49fcf655c37d6fa"
+  integrity sha512-gmudbGO5K9+Ewo+ScA+H6vFlnSp7xrp/VRCO2cI9kNQU0tHuXWK/gJ9atZojuL92vbc6Zf295dMdiNQEtaD3mw==
+  dependencies:
+    escape-string-regexp "2.0.0"
+    invariant "2.2.4"
+
 "@metamask/rpc-errors@^6.0.0", "@metamask/rpc-errors@^6.1.0", "@metamask/rpc-errors@^6.2.1":
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/@metamask/rpc-errors/-/rpc-errors-6.2.1.tgz#f5daf429ededa7cb83069dc621bd5738fe2a1d80"
@@ -24712,13 +24720,6 @@ react-native-webview-invoke@^0.6.2:
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/react-native-webview-invoke/-/react-native-webview-invoke-0.6.2.tgz#75cc27ef98ea1cbc9386269347d3aafe90d33aa3"
   integrity sha512-PCzP7Zl3XwHU10JYS8nR0gwuR8XiOO0MhC8y9ZuPPI+HeISn95GvNYhOXxeLgfbdbUcpNWh1HqxPDySlfCIqxg==
-
-react-native-webview@metamask/react-native-webview-mm:
-  version "13.6.3"
-  resolved "https://codeload.github.com/metamask/react-native-webview-mm/tar.gz/a1144d9e000ac48e45046ec4ed594a48ddd643b9"
-  dependencies:
-    escape-string-regexp "2.0.0"
-    invariant "2.2.4"
 
 react-native@0.71.15:
   version "0.71.15"

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { withNavigation } from '@react-navigation/compat';
-import { WebView } from 'react-native-webview';
+import { WebView } from '@metamask/react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';

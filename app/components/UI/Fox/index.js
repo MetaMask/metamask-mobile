@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView } from '@metamask/react-native-webview';
 import { useTheme } from '../../../util/theme';
 import Animated, {
   useAnimatedStyle,
