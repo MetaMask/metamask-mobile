@@ -855,8 +855,6 @@
     "third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
     "metametrics_opt_out": "MetaMetrics Opt-out",
     "metametrics_restart_required": "You need to restart the app for the changes to take effect.",
-    "data_collection_opt_out": "Data Collection Opt-out",
-    "data_collection_opt_out_description": "You turned off data collection for our marketing purposes. This only applies to this device. If you use MetaMask on other devices, make sure to opt out there as well.",
     "create_password": "Create Password",
     "invalid_password": "Invalid password",
     "invalid_password_message": "The password was not correct. Please try again.",

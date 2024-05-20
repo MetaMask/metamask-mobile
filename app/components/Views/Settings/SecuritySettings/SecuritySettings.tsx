@@ -489,10 +489,9 @@ const Settings: React.FC = () => {
         toggleMetricsOptIn(true);
       }
     } else {
-      Alert.alert(
-        strings('app_settings.data_collection_opt_out'),
-        strings('app_settings.data_collection_opt_out_description'),
-      );
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.DATA_COLLECTION,
+      });
     }
     dispatch(setDataCollectionForMarketing(value));
   };

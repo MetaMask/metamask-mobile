@@ -87,6 +87,7 @@ const Routes = {
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
+    DATA_COLLECTION: 'DataCollection',
     EXPERIENCE_ENHANCER: 'ExperienceEnhancer',
     SDK_MANAGE_CONNECTIONS: 'SDKManageConnections',
     SDK_DISCONNECT: 'SDKDisconnect',
