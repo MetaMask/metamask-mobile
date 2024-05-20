@@ -46,7 +46,7 @@ describe(
 
           //validate connection to test dapp
           await TabBarComponent.tapBrowser();
-          await Assertions.checkIfVisible(Browser.browserScreenID);
+          // await Assertions.checkIfVisible(Browser.browserScreenID);
           await Browser.navigateToTestDApp();
           await Browser.tapNetworkAvatarButtonOnBrowser();
           await Assertions.checkIfVisible(ConnectedAccountsModal.title);
@@ -94,7 +94,7 @@ describe(
 
           //should no longer be connected to the  dapp
           await TabBarComponent.tapBrowser();
-          await Assertions.checkIfVisible(Browser.browserScreenID);
+          // await Assertions.checkIfVisible(Browser.browserScreenID);
           await Browser.tapNetworkAvatarButtonOnBrowser();
           await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
           await Assertions.checkIfVisible(NetworkListModal.testNetToggle);

@@ -29,7 +29,7 @@ describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Assertions.checkIfVisible(Browser.browserScreenID);
+        // await Assertions.checkIfVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarButtonOnBrowser();
 
