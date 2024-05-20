@@ -185,6 +185,12 @@ const Wallet = ({
   const currentToast = toastRef?.current;
 
   useEffect(() => {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.EXPERIENCE_ENHANCER,
+    });
+  }, [navigate]);
+
+  useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
 
     storePrivacyPolicyShownDate();

@@ -364,6 +364,19 @@
   "receive": {
     "title": "Receive"
   },
+  "experience_enhancer_modal": {
+    "title": "Help us enhance your experience",
+    "paragraph1a": "In addition to ",
+    "paragraph1b": ", we'd like to use data (like information from cookies) to learn how you interact with our marketing communications.",
+    "link": "MetaMetrics",
+    "paragraph2": "This helps us personalize what we share with you, like:",
+    "bullet1": "Latest developments",
+    "bullet2": "Product features",
+    "bullet3": "Other relevant promotional materials",
+    "footer": "Remember, we never sell the data you provide and you can opt out any time.",
+    "accept": "I agree",
+    "cancel": "No thanks"
+  },
   "wallet": {
     "title": "Wallet",
     "tokens": "Tokens",
