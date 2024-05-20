@@ -61,7 +61,7 @@ function constructSendTransactionRequest(params: Json[]): JsonRpcRequest<
     jsonrpc: '2.0',
     id: 1,
     method: 'eth_sendTransaction',
-    params,
+    params: params as any,
   };
 }
 
@@ -161,7 +161,7 @@ describe('eth_sendTransaction', () => {
       hostname: 'example.metamask.io',
       req: constructSendTransactionRequest([
         mockTransactionParameters as unknown as JsonRpcParams,
-      ]),
+      ]) as any,
       res: pendingResult,
       sendTransaction: getMockAddTransaction({
         expectedTransaction: mockTransactionParameters,
@@ -183,7 +183,9 @@ describe('eth_sendTransaction', () => {
         async () =>
           await eth_sendTransaction({
             hostname: 'example.metamask.io',
-            req: constructSendTransactionRequest(invalidParameter),
+            req: constructSendTransactionRequest(
+              invalidParameter as unknown as Json[],
+            ),
             res: constructPendingJsonRpcResponse(),
             sendTransaction: getMockAddTransaction({
               returnValue: 'fake-hash',
@@ -205,7 +207,9 @@ describe('eth_sendTransaction', () => {
         async () =>
           await eth_sendTransaction({
             hostname: 'example.metamask.io',
-            req: constructSendTransactionRequest(invalidParameter),
+            req: constructSendTransactionRequest(
+              invalidParameter as unknown as Json[],
+            ),
             res: constructPendingJsonRpcResponse(),
             sendTransaction: getMockAddTransaction({
               returnValue: 'fake-hash',
