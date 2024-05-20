@@ -26,6 +26,7 @@ import {
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext } from '../../../util/theme';
 import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
+import Checkbox from '../../../component-library/components/Checkbox';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -51,6 +52,13 @@ const createStyles = ({ colors }) =>
     },
     crossIcon: {
       color: colors.error.default,
+    },
+    checkbox: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 15,
+      marginRight: 25,
     },
     icon: {
       marginRight: 5,
@@ -569,6 +577,19 @@ class OptinMetrics extends PureComponent {
                 ? this.renderAction(action, i)
                 : this.renderLegacyAction(action, i),
             )}
+            {isPastPrivacyPolicyDate ? (
+              <View style={styles.checkbox}>
+                <Checkbox
+                  isChecked={false}
+                  accessibilityRole={'checkbox'}
+                  accessible
+                  onPress={() => {}}
+                />
+                <Text style={styles.content}>
+                  {strings('privacy_policy.checkbox')}
+                </Text>
+              </View>
+            ) : null}
             {this.renderPrivacyPolicy()}
           </View>
         </ScrollView>
