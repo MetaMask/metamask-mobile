@@ -1,4 +1,6 @@
 import TestHelpers from '../../helpers.js';
+import Gestures from '../../utils/Gestures';
+import Matchers from '../../utils/Matchers';
 import {
   COMFIRM_TXN_AMOUNT,
   CONFIRM_TRANSACTION_BUTTON_ID,
@@ -13,74 +15,75 @@ import {
 import { EditGasViewSelectorsText } from '../../selectors/EditGasView.selectors.js';
 import { TransactionConfirmViewSelectorsText } from '../../selectors/TransactionConfirmView.selectors.js';
 
-export default class TransactionConfirmationView {
-  static async tapConfirmButton() {
-    if (device.getPlatform() === 'ios') {
-      await TestHelpers.waitAndTap(CONFIRM_TRANSACTION_BUTTON_ID);
-    } else {
-      await TestHelpers.delay(5000);
-      await TestHelpers.waitAndTapByLabel(CONFIRM_TRANSACTION_BUTTON_ID);
-    }
+class TransactionConfirmationView {
+  get confirmButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(CONFIRM_TRANSACTION_BUTTON_ID)
+      : Matchers.getElementByLabel(CONFIRM_TRANSACTION_BUTTON_ID);
   }
 
-  static async tapCancelButton() {
-    await TestHelpers.tapByText(
+  get cancelButton() {
+    return Matchers.getElementByText(
       TransactionConfirmViewSelectorsText.CANCEL_BUTTON,
     );
   }
 
-  static async tapEstimatedGasLink() {
-    await TestHelpers.tap(ESTIMATED_FEE_TEST_ID);
+  get estimatedGasLink() {
+    return Matchers.getElementByID(ESTIMATED_FEE_TEST_ID);
   }
 
-  static async tapLowPriorityGasOption() {
-    await TestHelpers.tapByText(EditGasViewSelectorsText.LOW);
+  get transactionViewContainer() {
+    return Matchers.getElementByID(TRANSACTION_VIEW_CONTAINER_ID);
   }
 
-  static async tapMarketPriorityGasOption() {
-    await TestHelpers.tapByText(EditGasViewSelectorsText.MARKET);
+  async tapConfirmButton() {
+    await Gestures.waitAndTap(await this.confirmButton);
   }
 
-  static async tapAggressivePriorityGasOption() {
-    await TestHelpers.tapByText(EditGasViewSelectorsText.AGGRESSIVE);
+  async tapCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
   }
 
-  static async tapAdvancedOptionsPriorityGasOption() {
-    await TestHelpers.tapByText(EditGasViewSelectorsText.ADVANCE_OPTIONS);
+  async tapEstimatedGasLink() {
+    await Gestures.waitAndTap(this.estimatedGasLink);
   }
 
-  static async isTransactionTotalCorrect(amount) {
-    if (device.getPlatform() === 'ios') {
-      await TestHelpers.checkIfElementHasString(COMFIRM_TXN_AMOUNT, amount);
-    } else {
-      await TestHelpers.checkIfElementWithTextIsVisible(amount);
-    }
+  async tapPriorityGasOption(priority) {
+    await Gestures.waitAndTapByText(
+      EditGasViewSelectorsText[priority.toUpperCase()],
+    );
   }
 
-  static async isPriorityEditScreenVisible() {
+  async tapMaxPriorityFeeSaveButton() {
+    await Gestures.waitAndTapByText(EditGasViewSelectorsText.SAVE_BUTTON);
+  }
+
+  async isVisible() {
+    await TestHelpers.checkIfVisible(this.transactionViewContainer);
+  }
+
+  async isNetworkNameVisible(text) {
+    await TestHelpers.checkIfElementHasString(NAVBAR_TITLE_NETWORKS_TEXT, text);
+  }
+
+  async isTransactionTotalCorrect(amount) {
+    await TestHelpers.checkIfElementHasString(COMFIRM_TXN_AMOUNT, amount);
+  }
+
+  async isPriorityEditScreenVisible() {
     await TestHelpers.checkIfVisible(EDIT_PRIORITY_SCREEN_TEST_ID);
   }
 
-  static async isMaxPriorityFeeCorrect(amount) {
+  async isMaxPriorityFeeCorrect(amount) {
     await TestHelpers.checkIfElementHasString(
       MAX_PRIORITY_FEE_INPUT_TEST_ID,
       amount,
     );
   }
 
-  static async isAmountVisible(amount) {
+  async isAmountVisible(amount) {
     await TestHelpers.checkIfElementWithTextIsVisible(amount);
   }
-
-  static async tapMaxPriorityFeeSaveButton() {
-    await TestHelpers.tapByText(EditGasViewSelectorsText.SAVE_BUTTON);
-  }
-
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(TRANSACTION_VIEW_CONTAINER_ID);
-  }
-
-  static async isNetworkNameVisible(text) {
-    await TestHelpers.checkIfElementHasString(NAVBAR_TITLE_NETWORKS_TEXT, text);
-  }
 }
+
+export default new TransactionConfirmationView();
