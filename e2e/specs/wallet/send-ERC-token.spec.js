@@ -7,7 +7,7 @@ import AddCustomTokenView from '../../pages/AddCustomTokenView';
 import SendView from '../../pages/Send/SendView';
 import AmountView from '../../pages/Send/AmountView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
-import TransactionConfirmationView from '../../pages/TransactionConfirmView';
+import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import TokenOverview from '../../pages/TokenOverview';
 import Assertions from '../../utils/Assertions';

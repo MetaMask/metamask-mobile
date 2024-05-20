@@ -1,17 +1,17 @@
-import TestHelpers from '../helpers';
+import TestHelpers from '../../helpers.js';
 import {
   COMFIRM_TXN_AMOUNT,
   CONFIRM_TRANSACTION_BUTTON_ID,
   NAVBAR_TITLE_NETWORKS_TEXT,
   TRANSACTION_VIEW_CONTAINER_ID,
-} from '../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
-import { ESTIMATED_FEE_TEST_ID } from '../../wdio/screen-objects/testIDs/Screens/TransactionSummaryScreen.testIds.js';
+} from '../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds.js';
+import { ESTIMATED_FEE_TEST_ID } from '../../../wdio/screen-objects/testIDs/Screens/TransactionSummaryScreen.testIds.js';
 import {
   EDIT_PRIORITY_SCREEN_TEST_ID,
   MAX_PRIORITY_FEE_INPUT_TEST_ID,
-} from '../../wdio/screen-objects/testIDs/Screens/EditGasFeeScreen.testids.js';
-import { EditGasViewSelectorsText } from '../selectors/EditGasView.selectors';
-import { TransactionConfirmViewSelectorsText } from '../selectors/TransactionConfirmView.selectors';
+} from '../../../wdio/screen-objects/testIDs/Screens/EditGasFeeScreen.testids.js';
+import { EditGasViewSelectorsText } from '../../selectors/EditGasView.selectors.js';
+import { TransactionConfirmViewSelectorsText } from '../../selectors/TransactionConfirmView.selectors.js';
 
 export default class TransactionConfirmationView {
   static async tapConfirmButton() {

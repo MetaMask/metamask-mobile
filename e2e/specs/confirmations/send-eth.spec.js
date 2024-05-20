@@ -5,7 +5,7 @@ import TestHelpers from '../../helpers';
 
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
-import TransactionConfirmationView from '../../pages/TransactionConfirmView';
+import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
