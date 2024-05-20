@@ -1,49 +1,64 @@
-import migrate from './040';
+import migration from './040';
 import { merge } from 'lodash';
-import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
+import { captureException } from '@sentry/react-native';
 
-const expectedState = {
+const oldState = {
   engine: {
     backgroundState: {
-      TransactionController: {
-        transactions: [
-          {
-            chainId: '0x5',
-            id: '1',
-            origin: 'test.com',
-            status: 'confirmed',
-            time: 1631714312,
-            txParams: {
-              from: '0x1',
+      PermissionController: {
+        subjects: {
+          'app.uniswap.org': {
+            origin: 'app.uniswap.org',
+            permissions: {
+              eth_accounts: {
+                id: 'ukrFhz7_z1gbog3mWNIoA',
+                parentCapability: 'eth_accounts',
+                invoker: 'app.uniswap.org',
+                caveats: [
+                  {
+                    type: 'restrictReturnedAccounts',
+                    value: [
+                      {
+                        address: '0x04B09A749Bc6a1C111de308694Ba1Cd74A698523',
+                        lastUsed: 1714709418122,
+                      },
+                    ],
+                  },
+                ],
+                date: 1714709418138,
+              },
             },
-            hash: '0x2',
-            rawTx: '0x3',
           },
-          {
-            chainId: '0x5',
-            id: '2',
-            origin: 'test.com',
-            status: 'confirmed',
-            time: 1631714312,
-            txParams: {
-              from: '0x1',
+        },
+      },
+    },
+  },
+};
+
+const expectedNewState = {
+  engine: {
+    backgroundState: {
+      PermissionController: {
+        subjects: {
+          'app.uniswap.org': {
+            origin: 'app.uniswap.org',
+            permissions: {
+              eth_accounts: {
+                id: 'ukrFhz7_z1gbog3mWNIoA',
+                parentCapability: 'eth_accounts',
+                invoker: 'app.uniswap.org',
+                caveats: [
+                  {
+                    type: 'restrictReturnedAccounts',
+                    value: ['0x04B09A749Bc6a1C111de308694Ba1Cd74A698523'],
+                  },
+                ],
+                date: 1714709418138,
+              },
             },
-            hash: '0x2',
           },
-          {
-            chainId: '0x1',
-            id: '3',
-            origin: 'test2.com',
-            status: 'submitted',
-            time: 1631714313,
-            txParams: {
-              from: '0x6',
-            },
-            hash: '0x4',
-            rawTx: '0x5',
-          },
-        ],
+        },
       },
     },
   },
@@ -62,15 +77,11 @@ describe('Migration #40', () => {
 
   const invalidStates = [
     {
-      state: null,
-      errorMessage: "Migration 40: Invalid state error: 'object'",
-      scenario: 'state is invalid',
-    },
-    {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 40: Invalid engine state error: 'object'",
+      errorMessage:
+        "FATAL ERROR: Migration 40: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -80,81 +91,37 @@ describe('Migration #40', () => {
         },
       }),
       errorMessage:
-        "Migration 40: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 40: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
       state: merge({}, initialRootState, {
         engine: {
-          backgroundState: { TransactionController: null },
+          backgroundState: {
+            PermissionController: null,
+          },
         },
       }),
-      errorMessage: "Migration 40: Invalid TransactionController state: 'null'",
-      scenario: 'transactionController is invalid',
+      errorMessage:
+        "Migration 40: Invalid PermissionController state error: 'null'",
+      scenario: 'PermissionController state is invalid',
     },
   ];
-  it.each(invalidStates)(
-    'should capture exception if $scenario',
-    ({ errorMessage, state }) => {
-      const newState = migrate(state);
+
+  for (const { errorMessage, scenario, state } of invalidStates) {
+    it(`should capture exception if ${scenario}`, async () => {
+      const newState = await migration(state);
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         errorMessage,
       );
-    },
-  );
+    });
+  }
 
-  it('apply migration, change property transaction, transactionHash and rawTransaction', () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          TransactionController: {
-            transactions: [
-              {
-                chainId: '0x5',
-                id: '1',
-                origin: 'test.com',
-                status: 'confirmed',
-                time: 1631714312,
-                transaction: {
-                  from: '0x1',
-                },
-                transactionHash: '0x2',
-                rawTransaction: '0x3',
-              },
-              {
-                chainId: '0x5',
-                id: '2',
-                origin: 'test.com',
-                status: 'confirmed',
-                time: 1631714312,
-                transaction: {
-                  from: '0x1',
-                },
-                transactionHash: '0x2',
-              },
-              {
-                chainId: '0x1',
-                id: '3',
-                origin: 'test2.com',
-                status: 'submitted',
-                time: 1631714313,
-                transaction: {
-                  from: '0x6',
-                },
-                transactionHash: '0x4',
-                rawTransaction: '0x5',
-              },
-            ],
-          },
-        },
-      },
-    };
-
-    const newState = migrate(oldState);
-
-    expect(newState).toStrictEqual(expectedState);
+  it('should update caveat values to resemble an array of addresses', async () => {
+    const newState = await migration(oldState);
+    expect(newState).toStrictEqual(expectedNewState);
   });
 });

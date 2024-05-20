@@ -3,11 +3,11 @@ import {
   CurrencyRateState,
   NftDetectionController,
   NftState,
-  TokenBalancesState,
   TokenDetectionController,
   TokenListState,
   TokenRatesState,
   TokensState,
+  TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
 import SwapsController from '@metamask/swaps-controller';
 import { NetworkState } from '@metamask/network-controller';
@@ -37,7 +37,7 @@ export interface EngineState {
       PreferencesController: PreferencesState;
       PhishingController: PhishingControllerState;
       PPOMController: PPOMState;
-      TokenBalancesController: TokenBalancesState;
+      TokenBalancesController: TokenBalancesControllerState;
       TokenRatesController: TokenRatesState;
       TransactionController: TransactionState;
       SwapsController: SwapsController;

@@ -59,13 +59,16 @@ export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
     type: CaveatTypes.restrictReturnedAccounts,
 
     decorator: (method, caveat) => async (args) => {
+      const permittedAccounts = [];
       const allAccounts = await method(args);
-      const res = caveat.value.filter((address) => {
+      caveat.value.forEach((address) => {
         const addressToCompare = address.toLowerCase();
-        return allAccounts.includes(addressToCompare);
+        const isPermittedAccount = allAccounts.includes(addressToCompare);
+        if (isPermittedAccount) {
+          permittedAccounts.push(addressToCompare);
+        }
       });
-
-      return res;
+      return permittedAccounts;
     },
 
     validator: (caveat, _origin, _target) =>
@@ -302,4 +305,5 @@ export const unrestrictedMethods = Object.freeze([
   'metamask_getProviderState',
   'metamask_logWeb3ShimUsage',
   'wallet_switchEthereumChain',
+  'wallet_addEthereumChain',
 ]);

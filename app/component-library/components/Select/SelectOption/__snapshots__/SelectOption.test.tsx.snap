@@ -91,9 +91,21 @@ exports[`SelectOption should render snapshot correctly 1`] = `
               }
               width={32}
             >
-              <RNSVGGroup>
+              <RNSVGGroup
+                fill={
+                  {
+                    "payload": 4278190080,
+                    "type": 0,
+                  }
+                }
+              >
                 <RNSVGRect
-                  fill={4278401629}
+                  fill={
+                    {
+                      "payload": 4278401629,
+                      "type": 0,
+                    }
+                  }
                   height={32}
                   matrix={
                     [
@@ -115,7 +127,12 @@ exports[`SelectOption should render snapshot correctly 1`] = `
                   y={0}
                 />
                 <RNSVGRect
-                  fill={4293653248}
+                  fill={
+                    {
+                      "payload": 4293653248,
+                      "type": 0,
+                    }
+                  }
                   height={32}
                   matrix={
                     [
@@ -137,7 +154,12 @@ exports[`SelectOption should render snapshot correctly 1`] = `
                   y={0}
                 />
                 <RNSVGRect
-                  fill={4291236897}
+                  fill={
+                    {
+                      "payload": 4291236897,
+                      "type": 0,
+                    }
+                  }
                   height={32}
                   matrix={
                     [
