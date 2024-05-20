@@ -2570,16 +2570,16 @@
       "action_text": "Try it out"
     },
     "stx": {
-      "header": "Transactions just got smarter",
+      "header": "Enhanced Transaction Protection",
       "description_1": "Unlock higher success rates, frontrunning protection, and better visibility with Smart Transactions.",
       "description_2": "Only available on Ethereum. Enable or disable any time in settings.",
-      "secondary_button": "No thanks",
+      "secondary_button": "Don't enable enhanced protection",
       "primary_button": "Enable",
       "learn_more": "Learn more.",
       "benefit_1_1": "99.5% success",
       "benefit_1_2": "rate",
-      "benefit_2_1": "Transaction",
-      "benefit_2_2": "protection",
+      "benefit_2_1": "Saves you",
+      "benefit_2_2": "money",
       "benefit_3_1": "Real-time",
       "benefit_3_2": "updates"
     }
