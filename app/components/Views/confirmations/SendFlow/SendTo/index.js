@@ -595,7 +595,7 @@ class SendFlow extends PureComponent {
               >
                 <Text
                   style={styles.myAccountsText}
-                  {...generateTestId(Platform, ADD_ADDRESS_BUTTON)}
+                  testID={SendViewSelectorsIDs.ADD_ADDRESS_BUTTON}
                 >
                   {strings('address_book.add_this_address')}
                 </Text>

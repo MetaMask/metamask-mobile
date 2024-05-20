@@ -13,6 +13,8 @@ import {
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import TestHelpers from '../../helpers';
+import Assertions from '../../utils/Assertions';
+import { AmountViewSelectorsText } from '../../selectors/SendFlow/AmountView.selectors';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -41,7 +43,9 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await SendView.inputAddress(VALID_ADDRESS);
         await SendView.tapNextButton();
         // Check that we are on the amount view
-        await AmountView.isVisible();
+        await Assertions.checkIfTextIsDisplayed(
+          AmountViewSelectorsText.SCREEN_TITLE,
+        );
 
         // Input acceptable value
         await AmountView.typeInTransactionAmount('0.00004');

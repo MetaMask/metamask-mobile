@@ -1,60 +1,73 @@
 import TestHelpers from '../helpers';
-import {
-  ADD_ADDRESS_BUTTON,
-  SEND_ADDRESS_INPUT_FIELD,
-  SEND_CANCEL_BUTTON,
-} from '../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+import Gestures from '../utils/Gestures';
+import Matchers from '../utils/Matchers';
 import { SendViewSelectorsIDs } from '../selectors/SendView.selectors';
+import Assertions from '../utils/Assertions';
 
-export default class SendView {
-  static async tapCancelButton() {
-    await TestHelpers.tap(SEND_CANCEL_BUTTON);
+class SendView {
+  get cancelButton() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.SEND_CANCEL_BUTTON);
   }
 
-  static async tapNextButton() {
-    if (device.getPlatform() === 'ios') {
-      await TestHelpers.waitAndTap(
-        SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON,
-      );
-    } else {
-      await TestHelpers.waitAndTapByLabel(
-        SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON,
-      );
-    }
-  }
-  static async inputAddress(address) {
-    await TestHelpers.replaceTextInField(SEND_ADDRESS_INPUT_FIELD, address);
+  get addressInputField() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_INPUT);
   }
 
-  static async tapAddAddressToAddressBook() {
-    await TestHelpers.waitAndTap(ADD_ADDRESS_BUTTON);
+  get nextButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON)
+      : Matchers.getElementByLabel(
+          SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON,
+        );
   }
 
-  static async removeAddress() {
-    // Tap x to remove address
-    await TestHelpers.tap(SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON);
+  get addAddressButton() {
+    return Matchers.getElementByID(ADD_ADDRESS_BUTTON);
+  }
+
+  get contractWarning() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_ERROR);
+  }
+
+  get CurrentAccountElement() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.MY_ACCOUNT_ELEMENT);
+  }
+
+  get zeroBalanceWarning() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.NO_ETH_MESSAGE);
+  }
+
+  async tapCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
+  }
+
+  async scrollToSavedAccount() {
+    await Gestures.swipe(this.CurrentAccountElement, 'up');
+  }
+
+  async tapAddressInputField() {
+    await Gestures.waitAndTap(this.addressInputField);
+  }
+
+  async tapNextButton() {
+    await Gestures.waitAndTap(await this.nextButton);
+  }
+
+  async inputAddress(address) {
+    await Gestures.replaceTextInField(await this.addressInputField, address);
+  }
+
+  async tapAddAddressToAddressBook() {
+    await Gestures.waitAndTap(this.addAddressButton);
+  }
+
+  async removeAddress() {
+    await Gestures.waitAndTap(SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON);
     await TestHelpers.delay(1000);
   }
 
-  // Assertions
-
-  static async isMyAccountsVisible() {
-    await TestHelpers.checkIfExists(SendViewSelectorsIDs.MY_ACCOUNT_ELEMENT);
-  }
-
-  static async incorrectAddressErrorMessageIsVisible() {
-    await TestHelpers.checkIfVisible(SendViewSelectorsIDs.ADDRESS_ERROR);
-  }
-
-  static async noEthWarningMessageIsVisible() {
-    //Check that the warning appears at the bottom of the screen
-    await TestHelpers.checkIfVisible(SendViewSelectorsIDs.NO_ETH_MESSAGE);
-  }
-
-  static async isSavedAliasVisible(name) {
-    await TestHelpers.checkIfElementWithTextIsVisible(name);
-  }
-  static async isSavedAliasIsNotVisible(name) {
-    await TestHelpers.checkIfElementWithTextIsNotVisible(name);
+  async tapBackSpaceKey() {
+    await Gestures.tapReturnKeyOnKeyboard(this.addressInputField);
   }
 }
+export default new SendView();
