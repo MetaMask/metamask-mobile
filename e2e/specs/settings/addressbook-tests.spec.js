@@ -1,6 +1,6 @@
 'use strict';
 import { SmokeCore } from '../../tags';
-import SendView from '../../pages/SendView';
+import SendView from '../../pages/Send/SendView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../pages/Settings/Contacts/AddContactView';

@@ -4,8 +4,7 @@ import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 
 import ContractNickNameView from '../../pages/ContractNickNameView';
-import SendView from '../../pages/SendView';
-
+import SendView from '../../pages/Send/SendView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../../pages/WalletView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';

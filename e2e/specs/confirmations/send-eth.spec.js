@@ -3,8 +3,8 @@
 import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 
-import AmountView from '../../pages/AmountView';
-import SendView from '../../pages/SendView';
+import AmountView from '../../pages/Send/AmountView';
+import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';

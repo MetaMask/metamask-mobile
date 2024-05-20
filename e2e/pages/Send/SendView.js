@@ -1,8 +1,8 @@
-import TestHelpers from '../helpers';
-import Gestures from '../utils/Gestures';
-import Matchers from '../utils/Matchers';
-import { SendViewSelectorsIDs } from '../selectors/SendView.selectors';
-import Assertions from '../utils/Assertions';
+import TestHelpers from '../../helpers';
+import Gestures from '../../utils/Gestures';
+import Matchers from '../../utils/Matchers';
+import { SendViewSelectorsIDs } from '../../selectors/SendView.selectors';
+import Assertions from '../../utils/Assertions';
 
 class SendView {
   get cancelButton() {
