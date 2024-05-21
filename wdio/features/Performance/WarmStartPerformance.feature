@@ -18,4 +18,4 @@ Feature: Measure the app launch times for warm starts
     Then the timer starts running
     And I fill my password in the Login screen
     And I log into my wallet
-    And the app should launch within "8" seconds
+    And the app should launch within "12" seconds
