@@ -111,3 +111,8 @@ export interface MarketingNotificationData {
   route?: string;
   routeProps?: string;
 }
+
+export enum NotificationsKindTypes {
+  transaction = 'transaction',
+  announcements = 'announcements',
+}
