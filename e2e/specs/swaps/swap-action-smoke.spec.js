@@ -89,9 +89,9 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         destTokenSymbol,
       );
       await Assertions.checkIfTextIsDisplayed(
-        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+        `Swap ${sourceTokenSymbol} to ${destTokenSymbol}`,
       );
-      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
+      await Assertions.checkIfTextIsDisplayed(`Confirmed`);
       await DetailsModal.tapOnCloseIcon();
     },
   );
