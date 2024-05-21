@@ -78,7 +78,7 @@
 				<data android:host="metamask-alternate.test-app.link" />
 			</intent-filter>
 			<!-- Branch URI Scheme -->
-			<intent-filter>
+			<intent-filter android:autoVerify="true">
 				<data android:scheme="metamask" />
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -98,19 +98,7 @@
 			</intent-filter>
 			<intent-filter>
 				<data android:scheme="wc" />
-				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.DEFAULT" />
-				<category android:name="android.intent.category.BROWSABLE" />
-			</intent-filter>
-			<intent-filter>
-				<data android:scheme="http" />
-				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.DEFAULT" />
-				<category android:name="android.intent.category.BROWSABLE" />
-			</intent-filter>
-			<intent-filter>
-				<data android:scheme="https" />
-				<action android:name="android.intent.action.VIEW" />
+				<action android:name="android.intent.action.VIE	W" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
