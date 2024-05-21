@@ -480,6 +480,12 @@ const Settings: React.FC = () => {
         strings('app_settings.metametrics_opt_out'),
         strings('app_settings.metametrics_restart_required'),
       );
+
+      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        is_metrics_opted_in: false,
+        has_marketing_consent: false,
+        location: 'settings',
+      });
     }
   };
 
@@ -491,6 +497,12 @@ const Settings: React.FC = () => {
     } else {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.DATA_COLLECTION,
+      });
+
+      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        is_metrics_opted_in: true,
+        has_marketing_consent: false,
+        location: 'settings',
       });
     }
     dispatch(setDataCollectionForMarketing(value));

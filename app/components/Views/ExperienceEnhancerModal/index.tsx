@@ -18,9 +18,14 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import { setDataCollectionForMarketing } from '../../../actions/security';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../components/hooks/useMetrics';
 
 const ExperienceEnhancerModal = () => {
   const styles = createStyles();
+  const { trackEvent } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const cancelButtonProps: ButtonProps = {
@@ -30,6 +35,10 @@ const ExperienceEnhancerModal = () => {
     onPress: () => {
       setDataCollectionForMarketing(false);
       bottomSheetRef.current?.onCloseBottomSheet();
+      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        has_marketing_consent: false,
+        location: 'marketing_consent_modal',
+      });
     },
   };
 
@@ -40,6 +49,10 @@ const ExperienceEnhancerModal = () => {
     onPress: () => {
       setDataCollectionForMarketing(true);
       bottomSheetRef.current?.onCloseBottomSheet();
+      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        has_marketing_consent: true,
+        location: 'marketing_consent_modal',
+      });
     },
   };
 
