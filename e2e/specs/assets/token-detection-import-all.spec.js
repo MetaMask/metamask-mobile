@@ -13,6 +13,7 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeCore } from '../../tags';
 import WalletView from '../../pages/WalletView';
 import DetectedTokensView from '../../pages/assets/DetectedTokensView';
+import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
@@ -37,10 +38,12 @@ describe(SmokeCore('Import all tokens detected'), () => {
   it('should import all tokens detected', async () => {
     await WalletView.tapNewTokensFound();
     await DetectedTokensView.tapImport();
-    await TestHelpers.delay(5000);
   });
 
-  it('should land on wallet view after tokens detected', async () => {});
+  it('should land on wallet view after tokens detected', async () => {
+    // just an assertion to check the tokens have been imported
+    await Assertions.checkIfTextIsDisplayed('Chainlink');
+  });
 
   it('should show toast alert for tokens imported', async () => {});
 });

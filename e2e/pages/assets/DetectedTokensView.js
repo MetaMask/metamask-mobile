@@ -8,7 +8,8 @@ class DetectedTokensView {
   }
 
   async tapImport() {
-    await Gestures.waitAndTap(this.importButton);
+    // await Gestures.waitAndTap(this.importButton);
+    await Gestures.tapTextBeginingWith('Import');
   }
 }
 
