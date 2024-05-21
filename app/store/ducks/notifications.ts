@@ -4,12 +4,11 @@
 import { createActions, createReducer } from 'reduxsauce';
 
 import { Notification } from '../../util/notifications';
-import { any } from 'prop-types';
 
 export const { Types, Creators } = createActions({
   // handle loading for any action
-  showLoadingIndication: [],
-  hideLoadingIndication: [],
+  // showLoadingIndication: [],
+  // hideLoadingIndication: [],
   // handle sign in/out
   performSignInRequest: [],
   performSignInSuccess: ['accessToken'],
@@ -36,9 +35,9 @@ export const { Types, Creators } = createActions({
   checkAccountsPresenceSuccess: [],
   checkAccountsPresenceFailure: ['error'],
   // handle on chain triggers
-  createOnChainTriggersRequest: [],
-  createOnChainTriggersSuccess: [],
-  createOnChainTriggersFailure: ['error'],
+  createOnChainTriggersByAccountRequest: [],
+  createOnChainTriggersByAccountSuccess: [],
+  createOnChainTriggersByAccountFailure: ['error'],
   updateOnChainTriggersByAccountRequest: [],
   updateOnChainTriggersByAccountSuccess: [],
   updateOnChainTriggersByAccountFailure: ['error'],
@@ -66,9 +65,9 @@ export const { Types, Creators } = createActions({
   markMetamaskNotificationsAsReadRequest: [],
   markMetamaskNotificationsAsReadSuccess: [],
   markMetamaskNotificationsAsReadFailure: ['error'],
-  DeleteNotificationsStatusRequest: [],
-  DeleteNotificationsStatusSuccess: [],
-  DeleteNotificationsStatusFailure: ['error'],
+  deleteNotificationStatusRequest: [],
+  deleteNotificationStatusSuccess: [],
+  deleteNotificationStatusFailure: ['error'],
 });
 
 export const NotificationsTypes = Types;
@@ -76,7 +75,7 @@ export default Creators;
 
 interface IsEnabled {
   loading: boolean;
-  error: any;
+  error?: any;
   status: boolean;
 }
 
@@ -91,7 +90,7 @@ interface SessionData {
   accessToken: string;
   expiresIn: string;
 }
-interface PushNotificationsState {
+interface IPushNotificationsState {
   pushNotifications: {
     isSignedIn: IsEnabled;
     isProfileSyncingEnabled: IsEnabled;
@@ -113,61 +112,50 @@ interface PushNotificationsState {
   };
 }
 
-const initialState = {
+export const INITIAL_STATE: IPushNotificationsState = {
   pushNotifications: {
     isSignedIn: {
       loading: false,
-      error: null,
       status: false,
     },
     isProfileSyncingEnabled: {
       loading: false,
-      error: null,
       status: true,
     },
     isParticipatingInMetaMetrics: {
       loading: false,
-      error: null,
       status: false,
     },
     isMetamaskNotificationsEnabled: {
       loading: false,
-      error: null,
       status: false,
     },
     isSnapNotificationsEnabled: {
       loading: false,
-      error: null,
       status: false,
     },
     isFeatureAnnouncementsEnabled: {
       loading: false,
-      error: null,
       status: false,
     },
     isCheckingAccountsPresence: {
       loading: false,
-      error: null,
       status: false,
     },
     isUpdatingMetamaskNotifications: {
       loading: false,
-      error: null,
       status: false,
     },
     hasSeenNotificationsFeature: {
       loading: false,
-      error: null,
       status: false,
     },
     isFetchingMetamaskNotification: {
       loading: false,
-      error: null,
       status: false,
     },
     isUpdatingMetamaskNotificationsAccounts: {
       loading: false,
-      error: null,
       status: false,
     },
     metamaskNotificationsList: [],
@@ -187,7 +175,7 @@ const initialState = {
   },
 };
 
-const requestPerformSignIn = (state: PushNotificationsState) => ({
+const performSignInRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isSignedIn: {
@@ -197,45 +185,38 @@ const requestPerformSignIn = (state: PushNotificationsState) => ({
     },
   },
 });
-const successPerformSignIn = (
-  state: PushNotificationsState,
-  {
-    accessToken,
-    expiresIn,
-  }: {
-    accessToken: string;
-    expiresIn: string;
-  },
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isSignedIn: {
-      loading: false,
-      error: null,
-      status: true,
+const performSignInSuccess = (action: any, state = INITIAL_STATE) => {
+  const { accessToken, expiresIn } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isSignedIn: {
+        loading: false,
+        error: null,
+        status: true,
+      },
+      sessionData: {
+        ...state.pushNotifications.sessionData,
+        accessToken,
+        expiresIn,
+      },
     },
-    sessionData: {
-      ...state.pushNotifications.sessionData,
-      accessToken,
-      expiresIn,
+  };
+};
+const performSignInFailure = (action: any, state = INITIAL_STATE) => {
+  const { error } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isSignedIn: {
+        loading: false,
+        error,
+        status: false,
+      },
     },
-  },
-});
-const failurePerformSignIn = (
-  state: PushNotificationsState,
-  { error }: any,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isSignedIn: {
-      loading: false,
-      error,
-      status: false,
-    },
-  },
-});
-
-const requestPerformSignOut = (state: PushNotificationsState) => ({
+  };
+};
+const performSignOutRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isSignedIn: {
@@ -245,7 +226,7 @@ const requestPerformSignOut = (state: PushNotificationsState) => ({
     },
   },
 });
-const successPerformSignOut = (state: PushNotificationsState) => ({
+const performSignOutSuccess = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isSignedIn: {
@@ -260,66 +241,67 @@ const successPerformSignOut = (state: PushNotificationsState) => ({
     },
   },
 });
-const failurePerformSignOut = (
-  state: PushNotificationsState,
-  { error }: any,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isSignedIn: {
-      loading: false,
-      error,
-      status: true,
-    },
-  },
-});
-
-const requestEnableProfileSyncing = (state: PushNotificationsState) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isProfileSyncingEnabled: {
-      loading: true,
-      error: null,
-      status: false,
-    },
-  },
-});
-const successEnableProfileSyncing = (
-  state: PushNotificationsState,
-  { identifierId, profileId, metametricsId }: Profile,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isProfileSyncingEnabled: {
-      loading: false,
-      error: null,
-      status: true,
-    },
-    sessionData: {
-      ...state.pushNotifications.sessionData,
-      profile: {
-        identifierId,
-        profileId,
-        metametricsId,
+const performSignOutFailure = (action: any, state = INITIAL_STATE) => {
+  const { error } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isSignedIn: {
+        loading: false,
+        error,
+        status: true,
       },
     },
-  },
-});
-const failureEnableProfileSyncing = (
-  state: PushNotificationsState,
-  { error }: any,
-) => ({
+  };
+};
+const enableProfileSyncingRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isProfileSyncingEnabled: {
-      loading: false,
-      error,
+      loading: true,
+      error: null,
       status: false,
     },
   },
 });
-
-const requestDisableProfileSyncing = (state: PushNotificationsState) => ({
+const enableProfileSyncingSuccess = (
+  action: Profile,
+  state = INITIAL_STATE,
+) => {
+  const { identifierId, profileId, metametricsId } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isProfileSyncingEnabled: {
+        loading: false,
+        error: null,
+        status: true,
+      },
+      sessionData: {
+        ...state.pushNotifications.sessionData,
+        profile: {
+          identifierId,
+          profileId,
+          metametricsId,
+        },
+      },
+    },
+  };
+};
+const enableProfileSyncingFailure = (action: any, state = INITIAL_STATE) => {
+  const { error } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isProfileSyncingEnabled: {
+        loading: false,
+        error,
+        status: false,
+      },
+    },
+  };
+};
+const disableProfileSyncingRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isProfileSyncingEnabled: {
@@ -329,7 +311,7 @@ const requestDisableProfileSyncing = (state: PushNotificationsState) => ({
     },
   },
 });
-const successDisableProfileSyncing = (state: PushNotificationsState) => ({
+const disableProfileSyncingSuccess = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isProfileSyncingEnabled: {
@@ -339,21 +321,20 @@ const successDisableProfileSyncing = (state: PushNotificationsState) => ({
     },
   },
 });
-const failureDisableProfileSyncing = (
-  state: PushNotificationsState,
-  { error }: any,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isProfileSyncingEnabled: {
-      loading: false,
-      error,
-      status: true,
+const disableProfileSyncingFailure = (action: any, state = INITIAL_STATE) => {
+  const { error } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isProfileSyncingEnabled: {
+        loading: false,
+        error,
+        status: true,
+      },
     },
-  },
-});
-
-const requestEnableMetamaskNotifications = (state: PushNotificationsState) => ({
+  };
+};
+const enableMetamaskNotificationsRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isMetamaskNotificationsEnabled: {
@@ -368,7 +349,7 @@ const requestEnableMetamaskNotifications = (state: PushNotificationsState) => ({
     },
   },
 });
-const successEnableMetamaskNotifications = (state: PushNotificationsState) => ({
+const enableMetamaskNotificationsSuccess = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isMetamaskNotificationsEnabled: {
@@ -378,23 +359,23 @@ const successEnableMetamaskNotifications = (state: PushNotificationsState) => ({
     },
   },
 });
-const failureEnableMetamaskNotifications = (
-  state: PushNotificationsState,
-  { error }: any,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isMetamaskNotificationsEnabled: {
-      loading: false,
-      error,
-      status: false,
+const enableMetamaskNotificationsFailure = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { error } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isMetamaskNotificationsEnabled: {
+        loading: false,
+        error,
+        status: false,
+      },
     },
-  },
-});
-
-const requestDisableMetamaskNotifications = (
-  state: PushNotificationsState,
-) => ({
+  };
+};
+const disableMetamaskNotificationsRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isMetamaskNotificationsEnabled: {
@@ -404,9 +385,7 @@ const requestDisableMetamaskNotifications = (
     },
   },
 });
-const successDisableMetamaskNotifications = (
-  state: PushNotificationsState,
-) => ({
+const disableMetamaskNotificationsSuccess = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isMetamaskNotificationsEnabled: {
@@ -431,23 +410,23 @@ const successDisableMetamaskNotifications = (
     },
   },
 });
-const failureDisableMetamaskNotifications = (
-  state: PushNotificationsState,
-  { error }: any,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isMetamaskNotificationsEnabled: {
-      loading: false,
-      error,
-      status: true,
+const disableMetamaskNotificationsFailure = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { error } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isMetamaskNotificationsEnabled: {
+        loading: false,
+        error,
+        status: true,
+      },
     },
-  },
-});
-
-const requestSetFeatureAnnouncementsEnabled = (
-  state: PushNotificationsState,
-) => ({
+  };
+};
+const setFeatureAnnouncementsEnabledRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isFeatureAnnouncementsEnabled: {
@@ -457,9 +436,7 @@ const requestSetFeatureAnnouncementsEnabled = (
     },
   },
 });
-const successSetFeatureAnnouncementsEnabled = (
-  state: PushNotificationsState,
-) => ({
+const setFeatureAnnouncementsEnabledSuccess = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isFeatureAnnouncementsEnabled: {
@@ -469,21 +446,23 @@ const successSetFeatureAnnouncementsEnabled = (
     },
   },
 });
-const failureSetFeatureAnnouncementsEnabled = (
-  state: PushNotificationsState,
-  { error }: any,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isFeatureAnnouncementsEnabled: {
-      loading: false,
-      error,
-      status: false,
+const setFeatureAnnouncementsEnabledFailure = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { error } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isFeatureAnnouncementsEnabled: {
+        loading: false,
+        error,
+        status: false,
+      },
     },
-  },
-});
-
-const requestSetSnapNotificationsEnabled = (state: PushNotificationsState) => ({
+  };
+};
+const setSnapNotificationsEnabledRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isSnapNotificationsEnabled: {
@@ -493,7 +472,7 @@ const requestSetSnapNotificationsEnabled = (state: PushNotificationsState) => ({
     },
   },
 });
-const successSetSnapNotificationsEnabled = (state: PushNotificationsState) => ({
+const setSnapNotificationsEnabledSuccess = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isSnapNotificationsEnabled: {
@@ -503,61 +482,62 @@ const successSetSnapNotificationsEnabled = (state: PushNotificationsState) => ({
     },
   },
 });
-const failureSetSnapNotificationsEnabled = (
-  state: PushNotificationsState,
-  { error }: any,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isSnapNotificationsEnabled: {
-      loading: false,
-      error,
-      status: false,
+const setSnapNotificationsEnabledFailure = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { error } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isSnapNotificationsEnabled: {
+        loading: false,
+        error,
+        status: false,
+      },
     },
-  },
-});
-
-const requestCheckAccountsPresence = (
-  state: PushNotificationsState,
-  { accounts }: { accounts: string[] },
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isCheckingAccountsPresence: {
-      loading: true,
-      error: null,
-      status: false,
+  };
+};
+const checkAccountsPresenceRequest = (action: any, state = INITIAL_STATE) => {
+  const { accounts } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isCheckingAccountsPresence: {
+        loading: true,
+        error: null,
+        status: false,
+      },
     },
-  },
-});
-const successCheckAccountsPresence = (
-  state: PushNotificationsState,
-  { presence }: { presence: Record<string, boolean> },
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isCheckingAccountsPresence: {
-      loading: false,
-      error: null,
-      status: true,
+  };
+};
+const checkAccountsPresenceSuccess = (action: any, state = INITIAL_STATE) => {
+  const { presence } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isCheckingAccountsPresence: {
+        loading: false,
+        error: null,
+        status: true,
+      },
     },
-  },
-});
-const failureCheckAccountsPresence = (
-  state: PushNotificationsState,
-  { error }: any,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isCheckingAccountsPresence: {
-      loading: false,
-      error,
-      status: false,
+  };
+};
+const checkAccountsPresenceFailure = (action: any, state = INITIAL_STATE) => {
+  const { error } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isCheckingAccountsPresence: {
+        loading: false,
+        error,
+        status: false,
+      },
     },
-  },
-});
-
-const requestSetParticipateInMetaMetrics = (state: PushNotificationsState) => ({
+  };
+};
+const setParticipateInMetaMetricsRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isParticipatingInMetaMetrics: {
@@ -567,7 +547,7 @@ const requestSetParticipateInMetaMetrics = (state: PushNotificationsState) => ({
     },
   },
 });
-const successSetParticipateInMetaMetrics = (state: PushNotificationsState) => ({
+const setParticipateInMetaMetricsSuccess = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     isParticipatingInMetaMetrics: {
@@ -577,23 +557,23 @@ const successSetParticipateInMetaMetrics = (state: PushNotificationsState) => ({
     },
   },
 });
-const failureSetParticipateInMetaMetrics = (
-  state: PushNotificationsState,
-  { error }: any,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isParticipatingInMetaMetrics: {
-      loading: false,
-      error,
-      status: false,
+const setParticipateInMetaMetricsFailure = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { error } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isParticipatingInMetaMetrics: {
+        loading: false,
+        error,
+        status: false,
+      },
     },
-  },
-});
-
-const requestSetMetamaskNotificationsFeatureSeen = (
-  state: PushNotificationsState,
-) => ({
+  };
+};
+const setMetamaskNotificationsFeatureSeenRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     hasSeenNotificationsFeature: {
@@ -603,9 +583,7 @@ const requestSetMetamaskNotificationsFeatureSeen = (
     },
   },
 });
-const successSetMetamaskNotificationsFeatureSeen = (
-  state: PushNotificationsState,
-) => ({
+const setMetamaskNotificationsFeatureSeenSuccess = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
     hasSeenNotificationsFeature: {
@@ -615,254 +593,267 @@ const successSetMetamaskNotificationsFeatureSeen = (
     },
   },
 });
-const failureSetMetamaskNotificationsFeatureSeen = (
-  state: PushNotificationsState,
-  { error }: any,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    hasSeenNotificationsFeature: {
-      loading: false,
-      error,
-      status: false,
+const setMetamaskNotificationsFeatureSeenFailure = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { error } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      hasSeenNotificationsFeature: {
+        loading: false,
+        error,
+        status: false,
+      },
     },
-  },
-});
+  };
+};
+const updateOnChainTriggersByAccountRequest = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { accounts } = action;
 
-const requestUpdateOnChainTriggersByAccount = (
-  state: PushNotificationsState,
-  { accounts }: any,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-  },
-});
-const successUpdateOnChainTriggersByAccount = (
-  state: PushNotificationsState,
-  { accounts }: any,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    uniqueAccounts: new Set([
-      ...state.pushNotifications.isUpdatingMetamaskNotificationsAccount,
-      ...accounts,
-    ]),
-  },
-});
-const failureUpdateOnChainTriggersByAccount = (
-  state: PushNotificationsState,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-  },
-});
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+    },
+  };
+};
+const updateOnChainTriggersByAccountSuccess = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { accounts } = action;
 
-const requestFetchAndUpdateMetamaskNotifications = (
-  state: PushNotificationsState,
-) => ({
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      uniqueAccounts: new Set([
+        ...state.pushNotifications.isUpdatingMetamaskNotificationsAccount,
+        ...accounts,
+      ]),
+    },
+  };
+};
+const updateOnChainTriggersByAccountFailure = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
   },
 });
-const successFetchAndUpdateMetamaskNotifications = (
-  state: PushNotificationsState,
-  {
-    metamaskNotificationsList,
-    metamaskNotificationsReadList,
-  }: {
-    metamaskNotificationsList: Notification[];
-    metamaskNotificationsReadList: Notification[];
-  },
-) => ({
+const fetchAndUpdateMetamaskNotificationsRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
-    metamaskNotificationsList,
-    metamaskNotificationsReadList,
   },
 });
-const failureFetchAndUpdateMetamaskNotifications = (
-  state: PushNotificationsState,
-) => ({
+const fetchAndUpdateMetamaskNotificationsSuccess = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { metamaskNotificationsList, metamaskNotificationsReadList } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      metamaskNotificationsList,
+      metamaskNotificationsReadList,
+    },
+  };
+};
+const fetchAndUpdateMetamaskNotificationsFailure = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
   },
 });
 
-const requestMarkMetamaskNotificationsAsRead = (
-  state: PushNotificationsState,
-  { notifications }: { notifications: Notification[] },
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-  },
-});
-const successMarkMetamaskNotificationsAsRead = (
-  state: PushNotificationsState,
-  {
-    metamaskNotificationsList,
-    metamaskNotificationsReadList,
-  }: {
-    metamaskNotificationsList: Notification[];
-    metamaskNotificationsReadList: Notification[];
-  },
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    metamaskNotificationsList,
-    metamaskNotificationsReadList,
-  },
-});
-const failureMarkMetamaskNotificationsAsRead = (
-  state: PushNotificationsState,
-) => ({
+const markMetamaskNotificationsAsReadRequest = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { notifications } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+    },
+  };
+};
+const markMetamaskNotificationsAsReadSuccess = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { metamaskNotificationsList, metamaskNotificationsReadList } = action;
+
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      metamaskNotificationsList,
+      metamaskNotificationsReadList,
+    },
+  };
+};
+const markMetamaskNotificationsAsReadFailure = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
   },
 });
 
-const requestDeleteNotificationsStatus = (
-  state: PushNotificationsState,
-  { notifications }: { notifications: Notification[] },
-) => ({
+const deleteNotificationStatusRequest = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { notifications } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+    },
+  };
+};
+const deleteNotificationStatusSuccess = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { metamaskNotificationsList } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      metamaskNotificationsList,
+    },
+  };
+};
+const deleteNotificationStatusFailure = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
   },
 });
-const successDeleteNotificationsStatus = (
-  state: PushNotificationsState,
-  {
-    metamaskNotificationsList,
-  }: {
-    metamaskNotificationsList: Notification[];
-  },
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    metamaskNotificationsList,
-  },
-});
-const failureDeleteNotificationsStatus = (state: PushNotificationsState) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-  },
-});
-
 // TODO: Work on these below
-const requestCreateOnChainTriggers = (state: PushNotificationsState) => ({
+const createOnChainTriggersByAccountRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
   },
 });
-const successCreateOnChainTriggers = (state: PushNotificationsState) => ({
+const createOnChainTriggersByAccountSuccess = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
   },
 });
-const failureCreateOnChainTriggers = (
-  state: PushNotificationsState,
-  { error }: any,
-) => ({
+const createOnChainTriggersByAccountFailure = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { error } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+    },
+  };
+};
+const deleteOnChainTriggersByAccountRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
   },
 });
+const deleteOnChainTriggersByAccountSuccess = (state = INITIAL_STATE) => ({
+  pushNotifications: {
+    ...state.pushNotifications,
+  },
+});
+const deleteOnChainTriggersByAccountFailure = (
+  action: any,
+  state = INITIAL_STATE,
+) => {
+  const { error } = action;
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+    },
+  };
+};
 
-const requestDeleteOnChainTriggers = (state: PushNotificationsState) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-  },
-});
-const successDeleteOnChainTriggers = (state: PushNotificationsState) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-  },
-});
-const failureDeleteOnChainTriggers = (
-  state: PushNotificationsState,
-  { error }: any,
-) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-  },
-});
-
-export const pushNotificationsReducer = createReducer(initialState, {
-  [Types.PERFORM_SIGN_IN_REQUEST]: requestPerformSignIn,
-  [Types.PERFORM_SIGN_IN_SUCCESS]: successPerformSignIn,
-  [Types.PERFORM_SIGN_IN_FAILURE]: failurePerformSignIn,
-  [Types.PERFORM_SIGN_OUT_REQUEST]: requestPerformSignOut,
-  [Types.PERFORM_SIGN_OUT_SUCCESS]: successPerformSignOut,
-  [Types.PERFORM_SIGN_OUT_FAILURE]: failurePerformSignOut,
-  [Types.ENABLE_PROFILE_SYNCING_REQUEST]: requestEnableProfileSyncing,
-  [Types.ENABLE_PROFILE_SYNCING_SUCCESS]: successEnableProfileSyncing,
-  [Types.ENABLE_PROFILE_SYNCING_FAILURE]: failureEnableProfileSyncing,
-  [Types.DISABLE_PROFILE_SYNCING_REQUEST]: requestDisableProfileSyncing,
-  [Types.DISABLE_PROFILE_SYNCING_SUCCESS]: successDisableProfileSyncing,
-  [Types.DISABLE_PROFILE_SYNCING_FAILURE]: failureDisableProfileSyncing,
+export const HANDLERS = {
+  [Types.PERFORM_SIGN_IN_REQUEST]: performSignInRequest,
+  [Types.PERFORM_SIGN_IN_SUCCESS]: performSignInSuccess,
+  [Types.PERFORM_SIGN_IN_FAILURE]: performSignInFailure,
+  [Types.PERFORM_SIGN_OUT_REQUEST]: performSignOutRequest,
+  [Types.PERFORM_SIGN_OUT_SUCCESS]: performSignOutSuccess,
+  [Types.PERFORM_SIGN_OUT_FAILURE]: performSignOutFailure,
+  [Types.ENABLE_PROFILE_SYNCING_REQUEST]: enableProfileSyncingRequest,
+  [Types.ENABLE_PROFILE_SYNCING_SUCCESS]: enableProfileSyncingSuccess,
+  [Types.ENABLE_PROFILE_SYNCING_FAILURE]: enableProfileSyncingFailure,
+  [Types.DISABLE_PROFILE_SYNCING_REQUEST]: disableProfileSyncingRequest,
+  [Types.DISABLE_PROFILE_SYNCING_SUCCESS]: disableProfileSyncingSuccess,
+  [Types.DISABLE_PROFILE_SYNCING_FAILURE]: disableProfileSyncingFailure,
   [Types.ENABLE_METAMASK_NOTIFICATIONS_REQUEST]:
-    requestEnableMetamaskNotifications,
+    enableMetamaskNotificationsRequest,
   [Types.ENABLE_METAMASK_NOTIFICATIONS_SUCCESS]:
-    successEnableMetamaskNotifications,
+    enableMetamaskNotificationsSuccess,
   [Types.ENABLE_METAMASK_NOTIFICATIONS_FAILURE]:
-    failureEnableMetamaskNotifications,
+    enableMetamaskNotificationsFailure,
   [Types.DISABLE_METAMASK_NOTIFICATIONS_REQUEST]:
-    requestDisableMetamaskNotifications,
+    disableMetamaskNotificationsRequest,
   [Types.DISABLE_METAMASK_NOTIFICATIONS_SUCCESS]:
-    successDisableMetamaskNotifications,
+    disableMetamaskNotificationsSuccess,
   [Types.DISABLE_METAMASK_NOTIFICATIONS_FAILURE]:
-    failureDisableMetamaskNotifications,
-  [Types.CHECK_ACCOUNTS_PRESENCE_REQUEST]: requestCheckAccountsPresence,
-  [Types.CHECK_ACCOUNTS_PRESENCE_SUCCESS]: successCheckAccountsPresence,
-  [Types.CHECK_ACCOUNTS_PRESENCE_FAILURE]: failureCheckAccountsPresence,
-  [Types.CREATE_ON_CHAIN_TRIGGERS_REQUEST]: requestCreateOnChainTriggers,
-  [Types.CREATE_ON_CHAIN_TRIGGERS_SUCCESS]: successCreateOnChainTriggers,
-  [Types.CREATE_ON_CHAIN_TRIGGERS_FAILURE]: failureCreateOnChainTriggers,
-  [Types.DELETE_ON_CHAIN_TRIGGERS_REQUEST]: requestDeleteOnChainTriggers,
-  [Types.DELETE_ON_CHAIN_TRIGGERS_SUCCESS]: successDeleteOnChainTriggers,
-  [Types.DELETE_ON_CHAIN_TRIGGERS_FAILURE]: failureDeleteOnChainTriggers,
+    disableMetamaskNotificationsFailure,
+  [Types.CHECK_ACCOUNTS_PRESENCE_REQUEST]: checkAccountsPresenceRequest,
+  [Types.CHECK_ACCOUNTS_PRESENCE_SUCCESS]: checkAccountsPresenceSuccess,
+  [Types.CHECK_ACCOUNTS_PRESENCE_FAILURE]: checkAccountsPresenceFailure,
+  [Types.CREATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_REQUEST]:
+    createOnChainTriggersByAccountRequest,
+  [Types.CREATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_SUCCESS]:
+    createOnChainTriggersByAccountSuccess,
+  [Types.CREATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_FAILURE]:
+    createOnChainTriggersByAccountFailure,
+  [Types.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_REQUEST]:
+    deleteOnChainTriggersByAccountRequest,
+  [Types.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_SUCCESS]:
+    deleteOnChainTriggersByAccountSuccess,
+  [Types.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_FAILURE]:
+    deleteOnChainTriggersByAccountFailure,
   [Types.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_REQUEST]:
-    requestUpdateOnChainTriggersByAccount,
+    updateOnChainTriggersByAccountRequest,
   [Types.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_SUCCESS]:
-    successUpdateOnChainTriggersByAccount,
+    updateOnChainTriggersByAccountSuccess,
   [Types.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_FAILURE]:
-    failureUpdateOnChainTriggersByAccount,
+    updateOnChainTriggersByAccountFailure,
   [Types.SET_FEATURE_ANNOUNCEMENTS_ENABLED_REQUEST]:
-    requestSetFeatureAnnouncementsEnabled,
+    setFeatureAnnouncementsEnabledRequest,
   [Types.SET_FEATURE_ANNOUNCEMENTS_ENABLED_SUCCESS]:
-    successSetFeatureAnnouncementsEnabled,
+    setFeatureAnnouncementsEnabledSuccess,
   [Types.SET_FEATURE_ANNOUNCEMENTS_ENABLED_FAILURE]:
-    failureSetFeatureAnnouncementsEnabled,
+    setFeatureAnnouncementsEnabledFailure,
   [Types.SET_SNAP_NOTIFICATIONS_ENABLED_REQUEST]:
-    requestSetSnapNotificationsEnabled,
+    setSnapNotificationsEnabledRequest,
   [Types.SET_SNAP_NOTIFICATIONS_ENABLED_SUCCESS]:
-    successSetSnapNotificationsEnabled,
+    setSnapNotificationsEnabledSuccess,
   [Types.SET_SNAP_NOTIFICATIONS_ENABLED_FAILURE]:
-    failureSetSnapNotificationsEnabled,
+    setSnapNotificationsEnabledFailure,
   [Types.SET_PARTICIPATE_IN_META_METRICS_REQUEST]:
-    requestSetParticipateInMetaMetrics,
+    setParticipateInMetaMetricsRequest,
   [Types.SET_PARTICIPATE_IN_META_METRICS_SUCCESS]:
-    successSetParticipateInMetaMetrics,
+    setParticipateInMetaMetricsSuccess,
   [Types.SET_PARTICIPATE_IN_META_METRICS_FAILURE]:
-    failureSetParticipateInMetaMetrics,
+    setParticipateInMetaMetricsFailure,
   [Types.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN_REQUEST]:
-    requestSetMetamaskNotificationsFeatureSeen,
+    setMetamaskNotificationsFeatureSeenRequest,
   [Types.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN_SUCCESS]:
-    successSetMetamaskNotificationsFeatureSeen,
+    setMetamaskNotificationsFeatureSeenSuccess,
   [Types.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN_FAILURE]:
-    failureSetMetamaskNotificationsFeatureSeen,
+    setMetamaskNotificationsFeatureSeenFailure,
   [Types.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS_REQUEST]:
-    requestFetchAndUpdateMetamaskNotifications,
+    fetchAndUpdateMetamaskNotificationsRequest,
   [Types.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS_SUCCESS]:
-    successFetchAndUpdateMetamaskNotifications,
+    fetchAndUpdateMetamaskNotificationsSuccess,
   [Types.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS_FAILURE]:
-    failureFetchAndUpdateMetamaskNotifications,
+    fetchAndUpdateMetamaskNotificationsFailure,
   [Types.MARK_METAMASK_NOTIFICATIONS_AS_READ_REQUEST]:
-    requestMarkMetamaskNotificationsAsRead,
+    markMetamaskNotificationsAsReadRequest,
   [Types.MARK_METAMASK_NOTIFICATIONS_AS_READ_SUCCESS]:
-    successMarkMetamaskNotificationsAsRead,
+    markMetamaskNotificationsAsReadSuccess,
   [Types.MARK_METAMASK_NOTIFICATIONS_AS_READ_FAILURE]:
-    failureMarkMetamaskNotificationsAsRead,
-  [Types.DELETE_NOTIFICATION_STATUS_REQUEST]: requestDeleteNotificationsStatus,
-  [Types.DELETE_NOTIFICATION_STATUS_SUCCESS]: successDeleteNotificationsStatus,
-  [Types.DELETE_NOTIFICATION_STATUS_FAILURE]: failureDeleteNotificationsStatus,
-} as any);
+    markMetamaskNotificationsAsReadFailure,
+  [Types.DELETE_NOTIFICATION_STATUS_REQUEST]: deleteNotificationStatusRequest,
+  [Types.DELETE_NOTIFICATION_STATUS_SUCCESS]: deleteNotificationStatusSuccess,
+  [Types.DELETE_NOTIFICATION_STATUS_FAILURE]: deleteNotificationStatusFailure,
+};
+
+export const pushNotificationsReducer = createReducer(INITIAL_STATE, HANDLERS);
