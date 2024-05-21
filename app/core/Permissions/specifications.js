@@ -283,10 +283,6 @@ export const unrestrictedMethods = Object.freeze([
   'eth_mining',
   'net_listening',
   'net_version',
-  // TODO: This is a temporary workaround to prevent OpenSea from redirecting to the app stores when attempting to connect an account. This should be removed in favor of OpenSea patching their UI
-  // Since we're using the permission middleware, the middleware will throw if eth_accounts is not yet permitted, in which case OpenSea changes the connect behavior to redirect
-  // Issue - https://github.com/MetaMask/metamask-mobile/issues/9443
-  'eth_accounts',
   'eth_requestAccounts',
   'eth_coinbase',
   'parity_defaultAccount',
