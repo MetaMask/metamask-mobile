@@ -1,4 +1,3 @@
-import { NotificationTransactionTypes } from '../util/notifications';
 import NotificationManager from './NotificationManager';
 
 interface NavigationMock {
