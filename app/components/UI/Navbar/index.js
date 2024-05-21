@@ -973,7 +973,7 @@ export function getWalletNavbarOptions(
 
   function handleNotificationOnPress() {
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
-      // [ATTENTION]: will navigate to Notifications screen. Notifications screen will be implemented on a diff PR.
+      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
     } else {
       navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
     }
