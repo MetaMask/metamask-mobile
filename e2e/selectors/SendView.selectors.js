@@ -10,4 +10,5 @@ export const SendViewSelectorsIDs = {
   SEND_CANCEL_BUTTON: 'send-cancel-button',
   ADD_ADDRESS_BUTTON: 'add-address-button-a',
   CONTAINER_ID: 'send-screen',
+  I_UNDERSTAND_RISK_ID: 'understand-risk-id',
 };

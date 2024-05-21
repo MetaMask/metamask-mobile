@@ -5,6 +5,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Alert, { AlertType } from '../../../../Base/Alert';
 import Text from '../../../../Base/Text';
 import { CommonSelectorsIDs } from '../../../../../../e2e/selectors/Common.selectors';
+import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendView.selectors';
 
 const styles = StyleSheet.create({
   button: {
@@ -30,7 +31,11 @@ export default function ErrorMessage(props) {
             {errorMessage}
           </Text>
           {errorContinue && (
-            <TouchableOpacity onPress={onContinue} style={styles.button}>
+            <TouchableOpacity
+              onPress={onContinue}
+              style={styles.button}
+              testID={SendViewSelectorsIDs.I_UNDERSTAND_RISK_ID}
+            >
               <Text small link centered>
                 {strings('transaction.continueError')}
               </Text>
