@@ -4,7 +4,6 @@ import notifee, {
   Event as NotifeeEvent,
 } from '@notifee/react-native';
 
-import Device from '../../device';
 import useNotificationHandler from './index';
 
 jest.mock('../../../util/device');
