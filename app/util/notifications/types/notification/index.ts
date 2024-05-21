@@ -112,16 +112,15 @@ export interface MarketingNotificationData {
   routeProps?: string;
 }
 
-
 export interface SimpleNotification {
   title?: string;
   body?: string;
   data?: {
     [key: string]: string | object | number;
   };
+}
 
 export enum NotificationsKindTypes {
   transaction = 'transaction',
   announcements = 'announcements',
-
 }
