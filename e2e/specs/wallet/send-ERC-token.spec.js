@@ -71,10 +71,8 @@ describe(SmokeCore('Send ERC Token'), () => {
     await AmountView.typeInTransactionAmount('0.000001');
     await TestHelpers.delay(5000);
     await AmountView.tapNextButton();
-    await TransactionConfirmationView.isAmountVisible('< 0.00001 LINK');
+    await Assertions.checkIfTextIsDisplayed('< 0.00001 LINK');
     await TransactionConfirmationView.tapConfirmButton();
-    await TestHelpers.checkIfElementWithTextIsNotVisible(
-      'Transaction submitted',
-    );
+    await Assertions.checkIfTextIsDisplayed('Transaction submitted');
   });
 });

@@ -52,21 +52,27 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await AmountView.tapNextButton();
 
         // Check that we are on the confirm view
-        await TransactionConfirmationView.isVisible();
+        await Assertions.checkIfVisible(
+          await TransactionConfirmationView.transactionViewContainer,
+        );
 
         // Check different gas options
         await TransactionConfirmationView.tapEstimatedGasLink();
-        await TransactionConfirmationView.isPriorityEditScreenVisible();
+        await Assertions.checkIfVisible(
+          await TransactionConfirmationView.editPriorityFeeSheetContainer,
+        );
         await TransactionConfirmationView.tapLowPriorityGasOption();
         await TransactionConfirmationView.tapAdvancedOptionsPriorityGasOption();
         await TransactionConfirmationView.tapMarketPriorityGasOption();
-        await TransactionConfirmationView.isMaxPriorityFeeCorrect('1.5');
+        await Assertions.checkIfTextIsDisplayed('1.5');
         await TransactionConfirmationView.tapAggressivePriorityGasOption();
-        await TransactionConfirmationView.isMaxPriorityFeeCorrect('2');
+        await Assertions.checkIfTextIsDisplayed('2');
+
         await TransactionConfirmationView.tapAdvancedOptionsPriorityGasOption();
         await TransactionConfirmationView.tapMaxPriorityFeeSaveButton();
-        await TransactionConfirmationView.isVisible();
-
+        await Assertions.checkIfVisible(
+          await TransactionConfirmationView.transactionViewContainer,
+        );
         // Tap on the send button
         await TransactionConfirmationView.tapConfirmButton();
 
