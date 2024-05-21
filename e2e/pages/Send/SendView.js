@@ -23,7 +23,9 @@ class SendView {
   get addAddressButton() {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADD_ADDRESS_BUTTON);
   }
-
+  get removeAddressButton() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON);
+  }
   get contractWarning() {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_ERROR);
   }
@@ -70,7 +72,7 @@ class SendView {
   }
 
   async removeAddress() {
-    await Gestures.waitAndTap(SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON);
+    await Gestures.waitAndTap(this.removeAddressButton);
     await TestHelpers.delay(1000);
   }
 
