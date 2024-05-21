@@ -103,6 +103,18 @@ class Gestures {
   }
 
   /**
+   * Tap the backspace key on the keyboard
+   *
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - Promise resolving to the element to type into
+   * @returns {Promise<void>} Promise that resolves after tapping the return key
+   */
+  static async tapReturnKeyOnKeyboard(elementID) {
+    const element = await elementID;
+
+    await element.tapBackspaceKey();
+  }
+
+  /**
    * Replace the text in the field of an element identified by ID.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to replace the text in
