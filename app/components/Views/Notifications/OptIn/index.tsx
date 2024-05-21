@@ -86,7 +86,7 @@ const OptIn = () => {
         color={TextColor.Alternative}
         style={styles.textSpace}
       >
-        {strings('notifications.activation_card.description_2')}
+        {strings('notifications.activation_card.description_2')}{' '}
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Info}
