@@ -2,16 +2,16 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
+import {
+  SimulationData,
+  SimulationErrorCode,
+  SimulationTokenStandard,
+} from '@metamask/transaction-controller';
 
 import AnimatedSpinner from '../AnimatedSpinner';
 import SimulationDetails from './SimulationDetails';
 import useBalanceChanges from './useBalanceChanges';
-import {
-  AssetType,
-  SimulationTokenStandard,
-  SimulationData,
-  SimulationErrorCode,
-} from './types';
+import { AssetType } from './types';
 
 const FIRST_PARTY_CONTRACT_ADDRESS_1_MOCK =
   '0x0439e60F02a8900a951603950d8D4527f400C3f1';

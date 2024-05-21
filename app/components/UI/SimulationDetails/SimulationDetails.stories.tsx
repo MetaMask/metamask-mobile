@@ -4,16 +4,16 @@ import { Provider } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { Meta, StoryObj } from '@storybook/react-native';
 import { configureStore } from '@reduxjs/toolkit';
+import {
+  SimulationData,
+  SimulationErrorCode,
+  SimulationTokenStandard,
+} from '@metamask/transaction-controller';
 
 import {
   default as SimulationDetails,
   type SimulationDetailsProps,
 } from './SimulationDetails';
-import {
-  SimulationTokenStandard,
-  SimulationErrorCode,
-  SimulationData,
-} from './types';
 
 const backdropStyle = { backgroundColor: 'white', padding: 16 };
 type Story = StoryObj<SimulationDetailsProps>;

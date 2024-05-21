@@ -1,6 +1,11 @@
 /* eslint-disable react/prop-types */
 import React, { useState } from 'react';
 import { View, Pressable } from 'react-native';
+import {
+  SimulationData,
+  SimulationErrorCode,
+  SimulationError,
+} from '@metamask/transaction-controller';
 
 import { strings } from '../../../../locales/i18n';
 import Text, {
@@ -16,7 +21,6 @@ import { useStyles } from '../../hooks/useStyles';
 import AnimatedSpinner, { SpinnerSize } from '../AnimatedSpinner';
 import useBalanceChanges from './useBalanceChanges';
 import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
-import { SimulationData, SimulationError, SimulationErrorCode } from './types';
 import styleSheet from './SimulationDetails.styles';
 
 export interface SimulationDetailsProps {

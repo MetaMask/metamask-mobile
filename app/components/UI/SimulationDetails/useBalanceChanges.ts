@@ -1,5 +1,11 @@
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
+import {
+  SimulationBalanceChange,
+  SimulationData,
+  SimulationTokenBalanceChange,
+  SimulationTokenStandard,
+} from '@metamask/transaction-controller';
 
 import { getTokenDetails } from '../../../util/address';
 import { useAsyncResultOrThrow } from '../../hooks/useAsyncResult';
@@ -7,10 +13,6 @@ import {
   AssetType,
   BalanceChange,
   NATIVE_ASSET_IDENTIFIER,
-  SimulationBalanceChange,
-  SimulationData,
-  SimulationTokenBalanceChange,
-  SimulationTokenStandard,
   TokenAssetIdentifier,
 } from './types';
 
