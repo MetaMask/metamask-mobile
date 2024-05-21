@@ -1,9 +1,11 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import notifee, { EventType } from '@notifee/react-native';
+import notifee, {
+  EventType,
+  Event as NotifeeEvent,
+} from '@notifee/react-native';
 
+import Device from '../../device';
 import useNotificationHandler from './index';
-import NotificationManager from '../../../core/NotificationManager';
-import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../../util/device');
 jest.mock('../../../core/NotificationManager', () => ({
@@ -36,20 +38,18 @@ const bootstrapAndroidInitialNotification = jest
   .fn()
   .mockResolvedValue(Promise.resolve((resolve: any) => setTimeout(resolve, 1)));
 
-const mockNotificationEvent = ({ type }: { type: any }) => {
-  if (type === EventType.PRESS) {
-    let data = null;
-    data = { action: 'tx', id: '123' };
-    if (data && data.action === 'tx') {
-      if (data.id) {
-        NotificationManager.setTransactionToView(data.id);
-      }
-      if (mockNavigation) {
-        mockNavigation.navigate(Routes.TRANSACTIONS_VIEW);
-      }
-    }
-  }
-};
+const mockNotificationEvent = (event: NotifeeEvent) => ({
+  type: event.type,
+  detail: {
+    notification: {
+      body: 'notificationTest',
+      data: {
+        action: 'tx',
+        id: '123',
+      },
+    },
+  },
+});
 
 describe('useNotificationHandler', () => {
   beforeEach(() => {
@@ -79,7 +79,20 @@ describe('useNotificationHandler', () => {
     );
 
     await act(async () => {
-      notifee.onForegroundEvent(mockNotificationEvent);
+      notifee.onForegroundEvent(() =>
+        mockNotificationEvent({
+          type: EventType.PRESS,
+          detail: {
+            notification: {
+              body: 'notificationTest',
+              data: {
+                action: 'tx',
+                id: '123',
+              },
+            },
+          },
+        }),
+      );
       await waitFor(() => {
         expect(notifee.onForegroundEvent).toHaveBeenCalled();
       });
@@ -95,15 +108,21 @@ describe('useNotificationHandler', () => {
     );
 
     await act(async () => {
-      notifee.onForegroundEvent({
-        type: EventType.DISMISSED,
-        notification: {
-          data: {
-            action: 'tx',
-            id: '123',
+      notifee.onForegroundEvent(() =>
+        mockNotificationEvent({
+          type: EventType.DISMISSED,
+          detail: {
+            notification: {
+              body: 'notificationTest',
+              data: {
+                action: 'tx',
+                id: '123',
+              },
+            },
           },
-        },
-      });
+        }),
+      );
+
       await waitFor(() => {
         expect(notifee.onForegroundEvent).toHaveBeenCalled();
       });
@@ -119,15 +138,21 @@ describe('useNotificationHandler', () => {
     );
 
     await act(async () => {
-      notifee.onForegroundEvent({
-        type: EventType.DELIVERED,
-        notification: {
-          data: {
-            action: 'no-tx',
-            id: '123',
+      notifee.onForegroundEvent(() =>
+        mockNotificationEvent({
+          type: EventType.DELIVERED,
+          detail: {
+            notification: {
+              body: 'notificationTest',
+              data: {
+                action: 'no-tx',
+                id: '123',
+              },
+            },
           },
-        },
-      });
+        }),
+      );
+
       await waitFor(() => {
         expect(notifee.onForegroundEvent).toHaveBeenCalled();
       });
@@ -145,10 +170,14 @@ describe('useNotificationHandler', () => {
     );
 
     await act(async () => {
-      notifee.onForegroundEvent({
-        type: EventType.DELIVERED,
-        notification: null,
-      });
+      notifee.onForegroundEvent(() =>
+        mockNotificationEvent({
+          type: EventType.DELIVERED,
+          detail: {
+            notification: undefined,
+          },
+        }),
+      );
       await waitFor(() => {
         expect(notifee.onForegroundEvent).toHaveBeenCalled();
       });
@@ -166,19 +195,56 @@ describe('useNotificationHandler', () => {
     );
 
     await act(async () => {
-      notifee.onForegroundEvent({
-        type: EventType.DELIVERED,
-        notification: {
-          body: 'test',
-          data: {
-            action: 'tx',
-            id: '123',
+      notifee.onForegroundEvent(() =>
+        mockNotificationEvent({
+          type: EventType.DELIVERED,
+          detail: {
+            notification: {
+              body: 'notificationTest',
+              data: {
+                action: 'tx',
+                id: '123',
+              },
+            },
           },
-        },
-      });
+        }),
+      );
       await waitFor(() => {
         expect(notifee.onForegroundEvent).toHaveBeenCalled();
       });
     });
   }, 10000);
+
+  it('should process notification on Android', async () => {
+    jest.doMock('react-native/Libraries/Utilities/Platform', () => ({
+      OS: 'android',
+    }));
+
+    const { waitFor } = renderHook(() =>
+      useNotificationHandler(
+        bootstrapAndroidInitialNotification,
+        mockNavigation,
+      ),
+    );
+
+    await act(async () => {
+      notifee.onForegroundEvent(() =>
+        mockNotificationEvent({
+          type: EventType.PRESS,
+          detail: {
+            notification: {
+              body: 'notificationTest',
+              data: {
+                action: 'tx',
+                id: '123',
+              },
+            },
+          },
+        }),
+      );
+      await waitFor(() => {
+        expect(notifee.onForegroundEvent).toHaveBeenCalled();
+      });
+    });
+  });
 });
