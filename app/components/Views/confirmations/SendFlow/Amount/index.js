@@ -1427,9 +1427,7 @@ class Amount extends PureComponent {
                   <Text
                     red
                     style={styles.warningText}
-                    testID={
-                      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE
-                    }
+                    testID={AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT}
                   >
                     {strings('transaction.fiat_conversion_not_available')}
                   </Text>
