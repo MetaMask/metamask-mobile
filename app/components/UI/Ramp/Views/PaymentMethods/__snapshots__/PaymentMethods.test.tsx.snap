@@ -275,7 +275,6 @@ exports[`PaymentMethods View renders correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -368,7 +367,6 @@ exports[`PaymentMethods View renders correctly 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2339,7 +2337,6 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -2432,7 +2429,6 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4403,7 +4399,6 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -4496,7 +4491,6 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -5838,7 +5832,6 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -5931,7 +5924,6 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6549,7 +6541,6 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -6642,7 +6633,6 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -7260,7 +7250,6 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -7353,7 +7342,6 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -7969,7 +7957,6 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -8062,7 +8049,6 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -9404,7 +9390,6 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -9497,7 +9482,6 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -11526,7 +11510,6 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -11619,7 +11602,6 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -12212,7 +12194,6 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -12305,7 +12286,6 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
