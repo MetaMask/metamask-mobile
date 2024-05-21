@@ -1,3 +1,4 @@
+import { NotificationTransactionTypes } from '../util/notifications';
 import NotificationManager from './NotificationManager';
 
 interface NavigationMock {
@@ -31,6 +32,16 @@ describe('NotificationManager', () => {
 
   it('calling NotificationManager.init returns an instance of NotificationManager', () => {
     expect(notificationManager).toStrictEqual(notificationManager);
+  });
+
+  it('calling NotificationManager in background mode should be truthy', () => {
+    notificationManager._handleAppStateChange('background');
+    expect(notificationManager._backgroundMode).toBe(true);
+  });
+
+  it('calling NotificationManager in background mode OFF should be falsy', () => {
+    notificationManager._handleAppStateChange('active');
+    expect(notificationManager._backgroundMode).toBe(false);
   });
 
   it('calling NotificationManager.showSimpleNotification with dada should be truthy', () => {
