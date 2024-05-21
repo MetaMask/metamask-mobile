@@ -401,14 +401,17 @@ describe('getRpcMethodMiddleware', () => {
         method: ethAccountsMethodName,
       });
 
-      const expectedError = providerErrors.unauthorized(
-        'Unauthorized to perform action. Try requesting the required permission(s) first. For more information, see: https://docs.metamask.io/guide/rpc-api.html#permissions',
-      );
+      expect((response as JsonRpcFailure).error).toBeUndefined();
+      expect((response as JsonRpcSuccess<undefined>).result).toBeUndefined();
 
-      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
-      expect((response as JsonRpcFailure).error.message).toBe(
-        expectedError.message,
-      );
+      // TODO: Use assertions below once `eth_accounts` is removed from unrestricted methods list in permission specifications
+      // const expectedError = providerErrors.unauthorized(
+      //   'Unauthorized to perform action. Try requesting the required permission(s) first. For more information, see: https://docs.metamask.io/guide/rpc-api.html#permissions',
+      // );
+      // expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      // expect((response as JsonRpcFailure).error.message).toBe(
+      //   expectedError.message,
+      // );
     });
 
     it('handles restricted method with permission', async () => {
@@ -429,9 +432,13 @@ describe('getRpcMethodMiddleware', () => {
       });
 
       expect((response as JsonRpcFailure).error).toBeUndefined();
-      expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
-        '0x1',
-      ]);
+      expect((response as JsonRpcSuccess<undefined>).result).toBeUndefined();
+
+      // TODO: Use assertions below once `eth_accounts` is removed from unrestricted methods list in permission specifications
+      // expect((response as JsonRpcFailure).error).toBeUndefined();
+      // expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
+      //   '0x1',
+      // ]);
     });
   });
 
