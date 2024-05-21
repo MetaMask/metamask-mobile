@@ -51,6 +51,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
     await SendView.inputAddress(DAI);
     await Assertions.checkIfVisible(await SendView.iUnderstandWarningButton);
     await SendView.tapIUnderstandButton();
+    await SendView.tapIUnderstandButton();
 
     await AmountView.typeInTransactionAmount(AMOUNT);
     await AmountView.tapNextButton();
