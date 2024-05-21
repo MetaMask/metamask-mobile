@@ -15,7 +15,8 @@ const isVersionSeenAndGreaterThanMinAppVersion = (
   minAppVersion: string,
 ) => !!versionSeen && compareVersions.compare(versionSeen, minAppVersion, '>=');
 
-const STX_OPT_IN_MIN_APP_VERSION = '7.24.0';
+// const STX_OPT_IN_MIN_APP_VERSION = '7.24.0'; // Restore this line after QA is done
+const STX_OPT_IN_MIN_APP_VERSION = '7.22.0';
 
 /**
  *
