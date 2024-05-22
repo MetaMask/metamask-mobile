@@ -4,7 +4,6 @@ import {
   TouchableOpacity,
   ScrollView,
   TouchableWithoutFeedback,
-  Platform,
 } from 'react-native';
 import Text from '../../../../Base/Text';
 import StyledButton from '../../../../UI/StyledButton';
@@ -30,11 +29,7 @@ import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
 import createStyles from './styles';
 import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
-import {
-  EDIT_PRIORITY_SCREEN_TEST_ID,
-  MAX_PRIORITY_FEE_INPUT_TEST_ID,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/EditGasFeeScreen.testids.js';
+import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/EditGasView.selectors.js';
 import {
   GAS_LIMIT_INCREMENT,
   GAS_PRICE_INCREMENT as GAS_INCREMENT,
@@ -440,9 +435,11 @@ const EditGasFee1559Update = ({
                   increment={GAS_LIMIT_INCREMENT}
                 />
               </View>
-              <View style={styles.rangeInputContainer}>
+              <View
+                style={styles.rangeInputContainer}
+                testID={EditGasViewSelectorsIDs.MAX_PRIORITY_FEE_INPUT_TEST_ID}
+              >
                 <RangeInput
-                  {...generateTestId(Platform, MAX_PRIORITY_FEE_INPUT_TEST_ID)}
                   leftLabelComponent={
                     <LeftLabelComponent
                       value="edit_gas_fee_eip1559.max_priority_fee"
@@ -591,7 +588,7 @@ const EditGasFee1559Update = ({
     <View style={styles.root}>
       <ScrollView
         style={styles.wrapper}
-        {...generateTestId(Platform, EDIT_PRIORITY_SCREEN_TEST_ID)}
+        testID={EditGasViewSelectorsIDs.EDIT_PRIORITY_SCREEN_TEST_ID}
       >
         <TouchableWithoutFeedback>
           <View>

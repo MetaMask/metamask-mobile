@@ -88,11 +88,10 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         sourceTokenSymbol,
         destTokenSymbol,
       );
-      await Assertions.checkIfElementToHaveText(
-        DetailsModal.title,
-        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+      await Assertions.checkIfTextIsDisplayed(
+        `Swap ${sourceTokenSymbol} to ${destTokenSymbol}`,
       );
-      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
+      await Assertions.checkIfTextIsDisplayed(`Confirmed`);
       await DetailsModal.tapOnCloseIcon();
     },
   );

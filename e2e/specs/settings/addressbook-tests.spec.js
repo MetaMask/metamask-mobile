@@ -1,6 +1,6 @@
 'use strict';
 import { SmokeCore } from '../../tags';
-import SendView from '../../pages/SendView';
+import SendView from '../../pages/Send/SendView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../pages/Settings/Contacts/AddContactView';
@@ -52,18 +52,20 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
-    await SendView.isMyAccountsVisible();
+    await Assertions.checkIfVisible(await SendView.CurrentAccountElement);
   });
 
   it('should show invalid address error message', async () => {
     await SendView.inputAddress(TETHER_ADDRESS); //Input token address to test for error
-    await SendView.incorrectAddressErrorMessageIsVisible();
+
+    await Assertions.checkIfVisible(await SendView.contractWarning);
+
     await SendView.removeAddress();
   });
 
   it('should input a valid address to send to', async () => {
     await SendView.inputAddress(MYTH_ADDRESS);
-    await SendView.noEthWarningMessageIsVisible();
+    await Assertions.checkIfVisible(await SendView.zeroBalanceWarning);
   });
 
   it('should add a new address to address book via send flow', async () => {
@@ -73,7 +75,7 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await AddAddressModal.tapTitle();
     await AddAddressModal.tapSaveButton();
     await SendView.removeAddress();
-    await SendView.isSavedAliasVisible('Myth'); // Check that the new account is on the address list
+    await Assertions.checkIfTextIsDisplayed('Myth');
   });
 
   it('should go to settings then select contacts', async () => {
@@ -137,6 +139,6 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
-    await SendView.isSavedAliasVisible('Ibrahim');
+    await Assertions.checkIfTextIsDisplayed('Ibrahim');
   });
 });

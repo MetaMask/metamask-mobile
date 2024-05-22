@@ -57,6 +57,7 @@ export default {
   DEEPLINKS: {
     ORIGIN_DEEPLINK: 'deeplink',
     ORIGIN_QR_CODE: 'qr-code',
+    ORIGIN_NOTIFICATION: 'notifications',
   },
   WALLET_CONNECT: {
     //One day in hours

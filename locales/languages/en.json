@@ -374,7 +374,7 @@
     "no_available_tokens": "Don't see your token?",
     "add_tokens": "Import tokens",
     "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved":"Your search information will not be saved.",
+    "search_information_not_saved": "Your search information will not be saved.",
     "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} new {{tokensLabel}} found in this account",
     "token_toast": {
@@ -403,9 +403,8 @@
     "nfts_autodetection_desc": "Allow MetaMask to automatically detect NFTs from OpenSea and display in your MetaMask wallet.",
     "network_details_check": "Network details check",
     "network_with_chain_id": "The network with chain ID",
-    "chain_list_returned_different_ticker_symbol":
-   "This token symbol doesn't match the network name or chain ID entered. Many popular tokens use similar symbols, which scammers can use to trick you into sending them a more valuable token in return. Verify everything before you continue.",
-   "suggested_token_symbol":"Suggested ticker symbol:",
+    "chain_list_returned_different_ticker_symbol": "This token symbol doesn't match the network name or chain ID entered. Many popular tokens use similar symbols, which scammers can use to trick you into sending them a more valuable token in return. Verify everything before you continue.",
+    "suggested_token_symbol": "Suggested ticker symbol:",
     "potential_scam": "This is a potential scam",
     "network_not_matching": "This network doesn't match its associated chain ID or name. Many popular tokens use the name",
     "target_scam_network": "making it a target for scams. Scammers may trick you into sending them more valuable currency in return. Verify everything before you continue.",
@@ -554,7 +553,7 @@
     "symbol_cant_be_empty": "Token symbol can't be empty.",
     "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Token decimals can't be empty.",
-    "decimals_is_required":"Decimal is required. Find it on:",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "We couldn't find any tokens with that name.",
     "select_token": "Select Token",
     "address_must_be_smart_contract": "Personal address detected. Enter the token contract address."
@@ -764,7 +763,7 @@
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
     "allow_notifications_desc": "Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices. Learn how we protect your privacy while using this feature.",
-    "notifications_opts" :{
+    "notifications_opts": {
       "customize_session_title": "Customize your notifications",
       "customize_session_desc": "Turn on the types of notifications you want to receive:",
       "account_session_title": "Account activity",
@@ -1523,18 +1522,13 @@
   "smart_transactions": {
     "status_submitting_header": "Submitting your transaction",
     "status_submitting_description": "Estimated completion {{timeLeft}}",
-    
     "status_success_header": "Your transaction is complete",
-
     "status_submitting_past_estimated_deadline_header": "Sorry for the wait",
     "status_submitting_past_estimated_deadline_description": "If your transaction is not finalized within {{timeLeft}}, it will be canceled and you will not be charged for gas.",
-    
     "status_cancelled_header": "Your transaction was canceled",
     "status_cancelled_description": "Your transaction couldn't be completed, so it was canceled to save you from paying unnecessary gas fees.",
-    
     "status_failed_header": "Your transaction failed",
     "status_failed_description": "Sudden market changes can cause failures. If the problem continues, reach out to MetaMask customer support.",
-    
     "view_transaction": "View transaction",
     "view_activity": "View activity",
     "return_to_dapp": "Return to {{dappName}}",
@@ -1898,7 +1892,11 @@
     "swap_completed": "Swapped {{from}} for {{to}}",
     "sent": "Sent to {{address}}",
     "received": "Received from {{address}}",
-    "sent_nft": "Sent NFT to {{address}}",
+    "nft_sent": "Sent NFT to {{address}}",
+    "erc721_sent": "Sent NFT to {{address}}",
+    "erc1155_sent": "Sent NFT to {{address}}",
+    "erc721_received": "Received NFT from {{address}}",
+    "erc1155_received": "Received NFT from {{address}}",
     "received_nft": "Received NFT from {{address}}",
     "pending_title": "Transaction submitted",
     "pending_deposit_title": "Deposit in progress!",
@@ -1960,7 +1958,7 @@
       "manage_preferences_2": "Settings > Notifications.",
       "cancel": "Cancel",
       "cta": "Turn on"
-  }
+    }
   },
   "protect_your_wallet_modal": {
     "title": "Protect your wallet",

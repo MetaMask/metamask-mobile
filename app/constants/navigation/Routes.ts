@@ -121,6 +121,7 @@ const Routes = {
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
   NOTIFICATIONS: {
+    VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
     OPT_IN_STACK: 'OptInStack',
   },

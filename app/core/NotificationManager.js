@@ -4,7 +4,7 @@ import notifee from '@notifee/react-native';
 import Engine from './Engine';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
-
+import { STORAGE_IDS } from '../util/notifications/settings/storage/constants';
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
 
@@ -118,7 +118,7 @@ class NotificationManager {
   };
 
   // TODO: Refactor this method to use notifee's channels in combination with MM auth
-  _showNotification(data, channelId = 'default') {
+  _showNotification(data, channelId = STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID) {
     if (this._backgroundMode) {
       const { title, message } = constructTitleAndMessage(data);
       const id = data?.transaction?.id || '';
