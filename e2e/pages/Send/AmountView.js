@@ -1,6 +1,6 @@
-import Matchers from '../utils/Matchers';
-import Gestures from '../utils/Gestures';
-import { AmountViewSelectorsIDs } from '../selectors/SendFlow/AmountView.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+import { AmountViewSelectorsIDs } from '../../selectors/SendFlow/AmountView.selectors';
 
 class AmountView {
   get currencySwitch() {
