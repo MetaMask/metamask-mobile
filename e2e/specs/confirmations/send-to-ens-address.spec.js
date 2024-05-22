@@ -19,6 +19,7 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import Assertions from '../../utils/Assertions';
+import AddAddressModal from '../../pages/modals/AddAddressModal';
 
 const fixtureServer = new FixtureServer();
 const orangeFoxENS = 'orangefox.eth';
@@ -56,8 +57,10 @@ describe(SmokeConfirmations('Send ETH'), () => {
 
     await SendView.tapBackSpaceKey();
     await SendView.inputAddress(secondENS);
-
     await TestHelpers.delay(3000); // wait for the ens address to resolve.
+
+    await SendView.tapAddAddressToAddressBook(); // tapping outside input box to dismiss keyboard
+
     await SendView.tapNextButton();
 
     await AmountView.typeInTransactionAmount(AMOUNT);
