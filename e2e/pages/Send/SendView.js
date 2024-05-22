@@ -43,9 +43,6 @@ class SendView {
     return Matchers.getElementByID(SendViewSelectorsIDs.I_UNDERSTAND_RISK_ID);
   }
 
-  async tapIUnderstandButton() {
-    await Gestures.waitAndTap(this.iUnderstandWarningButton);
-  }
 
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
