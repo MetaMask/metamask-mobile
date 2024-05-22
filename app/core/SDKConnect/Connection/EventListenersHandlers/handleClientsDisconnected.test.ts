@@ -23,6 +23,7 @@ describe('handleClientsDisconnected', () => {
       disconnect: mockDisconnect,
       remote: {
         isPaused: mockIsPaused,
+        hasRelayPersistence: jest.fn(() => false),
       },
       isReady: true,
       receivedClientsReady: true,

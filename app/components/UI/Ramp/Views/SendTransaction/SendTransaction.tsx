@@ -112,6 +112,12 @@ function SendTransaction() {
   }, [trackEvent, transactionAnalyticsPayload]);
 
   const handleSend = useCallback(async () => {
+    let chainIdAsHex: `0x${string}`;
+    try {
+      chainIdAsHex = toHex(orderData.cryptoCurrency.network.chainId);
+    } catch {
+      return;
+    }
     let transactionParams: Transaction;
     const amount = addHexPrefix(
       new BN(
@@ -126,7 +132,7 @@ function SendTransaction() {
         from: safeToChecksumAddress(orderData.walletAddress) as string,
         to: safeToChecksumAddress(orderData.depositWallet),
         value: amount,
-        chainId: toHex(orderData.cryptoCurrency.network.chainId),
+        chainId: chainIdAsHex,
       };
     } else {
       transactionParams = {
