@@ -269,3 +269,5 @@ declare module 'react-native-vector-icons/Zocial' {
    */
   export default class Zocial extends ZocialIconType {}
 }
+
+declare module '@metamask/snaps-controllers/react-native';
