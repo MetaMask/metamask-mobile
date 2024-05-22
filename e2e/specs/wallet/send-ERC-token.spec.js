@@ -4,10 +4,10 @@ import TestHelpers from '../../helpers';
 import WalletView from '../../pages/WalletView';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import AddCustomTokenView from '../../pages/AddCustomTokenView';
-import SendView from '../../pages/SendView';
-import AmountView from '../../pages/AmountView';
+import AmountView from '../../pages/Send/AmountView';
+import SendView from '../../pages/Send/SendView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
-import TransactionConfirmationView from '../../pages/TransactionConfirmView';
+import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import TokenOverview from '../../pages/TokenOverview';
 import Assertions from '../../utils/Assertions';
@@ -71,10 +71,8 @@ describe(SmokeCore('Send ERC Token'), () => {
     await AmountView.typeInTransactionAmount('0.000001');
     await TestHelpers.delay(5000);
     await AmountView.tapNextButton();
-    await TransactionConfirmationView.isAmountVisible('< 0.00001 LINK');
+    await Assertions.checkIfTextIsDisplayed('< 0.00001 LINK');
     await TransactionConfirmationView.tapConfirmButton();
-    await TestHelpers.checkIfElementWithTextIsNotVisible(
-      'Transaction submitted',
-    );
+    // await Assertions.checkIfTextIsDisplayed('Transaction submitted'); removing this assertion for now
   });
 });

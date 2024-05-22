@@ -9,6 +9,7 @@ export const SecurityPrivacyViewSelectorsIDs = {
   INCOMING_TRANSACTIONS: 'incoming-transactions-section',
   BIOMETRICS_TOGGLE: 'biometrics-option',
   DEVICE_PASSCODE_TOGGLE: 'DevicePasscodeOption',
+  REMEMBER_ME_TOGGLE: 'turn-on-remember-me',
 };
 
 export const SecurityPrivacyViewSelectorsText = {

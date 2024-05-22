@@ -10,7 +10,7 @@ import Browser from '../../pages/Browser/BrowserView';
 import NetworkView from '../../pages/Settings/NetworksView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import LoginView from '../../pages/LoginView';
-import TransactionConfirmationView from '../../pages/TransactionConfirmView';
+import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
@@ -152,9 +152,8 @@ describe(Regression('Deep linking Tests'), () => {
     await TransactionConfirmationView.isNetworkNameVisible(
       'Goerli Test Network',
     );
-    await TransactionConfirmationView.isTransactionTotalCorrect(
-      '0.00001 GoerliETH',
-    );
+
+    await Assertions.checkIfTextIsDisplayed('0.00001 GoerliETH');
     // Tap on the Send CTA
     await TransactionConfirmationView.tapConfirmButton();
     // Check that we are on the wallet screen
