@@ -186,15 +186,26 @@ const Wallet = ({
    */
   const { accounts, ensByAccountAddress } = useAccounts();
 
+  const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
+
+  const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
+
   const currentToast = toastRef?.current;
 
   useEffect(() => {
-    if (isDataCollectionForMarketingEnabled === null) {
+    if (
+      isDataCollectionForMarketingEnabled === null &&
+      isParticipatingInMetaMetrics
+    ) {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.EXPERIENCE_ENHANCER,
       });
     }
-  }, [isDataCollectionForMarketingEnabled, navigate]);
+  }, [
+    isDataCollectionForMarketingEnabled,
+    isParticipatingInMetaMetrics,
+    navigate,
+  ]);
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
