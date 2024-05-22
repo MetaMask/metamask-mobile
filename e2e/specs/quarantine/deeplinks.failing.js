@@ -10,7 +10,7 @@ import Browser from '../../pages/Browser/BrowserView';
 import NetworkView from '../../pages/Settings/NetworksView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import LoginView from '../../pages/LoginView';
-import TransactionConfirmationView from '../../pages/TransactionConfirmView';
+import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
