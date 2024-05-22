@@ -23,6 +23,8 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('TokenRatesController');
     expect(engine.context).toHaveProperty('TokensController');
     expect(engine.context).toHaveProperty('LoggingController');
+    expect(engine.context).toHaveProperty('TransactionController');
+    expect(engine.context).toHaveProperty('SmartTransactionsController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -55,7 +57,39 @@ describe('Engine', () => {
       },
     };
 
-    expect(backgroundState).toStrictEqual(initialState);
+    expect(backgroundState).toStrictEqual({
+      ...initialState,
+
+      // JSON cannot store the value undefined, so we append it here
+      SmartTransactionsController: {
+        smartTransactionsState: {
+          fees: {
+            approvalTxFees: undefined,
+            tradeTxFees: undefined,
+          },
+          feesByChainId: {
+            '0x1': {
+              approvalTxFees: undefined,
+              tradeTxFees: undefined,
+            },
+            '0xaa36a7': {
+              approvalTxFees: undefined,
+              tradeTxFees: undefined,
+            },
+          },
+          liveness: true,
+          livenessByChainId: {
+            '0x1': true,
+            '0xaa36a7': true,
+          },
+          smartTransactions: {
+            '0x1': [],
+          },
+          userOptIn: undefined,
+          userOptInV2: undefined,
+        },
+      },
+    });
   });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {

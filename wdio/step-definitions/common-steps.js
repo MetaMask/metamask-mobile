@@ -15,6 +15,7 @@ import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 import Gestures from "../helpers/Gestures";
+import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
 
 Then(/^the Welcome screen is displayed$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
@@ -46,7 +47,8 @@ Then(/^Terms of Use is not displayed$/, async () => {
 
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-
+  const timeOut = 3000;
+  await driver.pause(timeOut);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
@@ -69,6 +71,7 @@ Given(/^I have imported my wallet$/, async () => {
   await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
   await ImportFromSeedScreen.tapImportFromSeedTextToDismissKeyboard();
   await ImportFromSeedScreen.clickImportButton();
+  await OnboardingSucessScreen.tapDone()
 });
 
 Given(/^I create a new wallet$/, async () => {
@@ -176,7 +179,7 @@ Then(
 
 When(/^I log into my wallet$/, async () => {
   await LoginScreen.tapUnlockButton();
-  await driver.pause(10000);
+  // await driver.pause(10000); // this seems excessive. If we have to wait this long
   await WalletMainScreen.isMainWalletViewVisible();
 });
 

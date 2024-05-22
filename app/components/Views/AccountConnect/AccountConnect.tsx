@@ -45,8 +45,6 @@ import { Account, useAccounts } from '../../hooks/useAccounts';
 // Internal dependencies.
 import { StyleSheet } from 'react-native';
 import URLParse from 'url-parse';
-import AppConstants from '../../../../app/core/AppConstants';
-import { RootState } from '../../../../app/reducers';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
@@ -56,6 +54,7 @@ import {
   MM_PHISH_DETECT_URL,
 } from '../../../constants/urls';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import { useTheme } from '../../../util/theme';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
@@ -66,7 +65,6 @@ import {
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
-import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 const createStyles = () =>
   StyleSheet.create({
     fullScreenModal: {
@@ -110,7 +108,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   // on inappBrowser: hostname
-  // on sdk or walletconnect: channelId
+  // on walletConnect: hostname
+  // on sdk or walletconnect
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
@@ -119,14 +118,15 @@ const AccountConnect = (props: AccountConnectProps) => {
   const origin: string = useSelector(getActiveTabUrl, isEqual);
   const accountsLength = useSelector(selectAccountsLength);
 
-  const [hostname, setHostname] = useState<string>(origin);
-
-  const urlWithProtocol = prefixUrlWithProtocol(hostname);
   const sdkConnection = SDKConnect.getInstance().getConnection({
     channelId: channelIdOrHostname,
   });
-  // Last wallet connect session metadata
-  const wc2Metadata = useSelector((state: RootState) => state.sdk.wc2Metadata);
+  const hostname =
+    origin ?? channelIdOrHostname.indexOf('.') !== -1
+      ? channelIdOrHostname
+      : sdkConnection?.originatorInfo?.url ?? '';
+
+  const urlWithProtocol = prefixUrlWithProtocol(hostname);
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
@@ -148,7 +148,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   useEffect(() => {
-    const url = dappUrl || wc2Metadata?.url || '';
+    const url = dappUrl || channelIdOrHostname || '';
 
     const cleanUrl = url.replace(/^https?:\/\//, '');
 
@@ -158,7 +158,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       setBlockedUrl(dappUrl);
       setShowPhishingModal(true);
     }
-  }, [isAllowedUrl, dappUrl, wc2Metadata?.url]);
+  }, [isAllowedUrl, dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(origin);
 
@@ -175,33 +175,17 @@ const AccountConnect = (props: AccountConnectProps) => {
     [hostname],
   );
 
-  const loadHostname = useCallback(async () => {
-    // walletconnect channelId format: 1713357238460272
+  const eventSource = useMemo(() => {
+    // walletconnect channelId format: app.name.org
     // sdk channelId format: uuid
-    // inappbrowser channelId format: app.uniswap.io
-    DevLogger.log(
-      `AccountConnect::loadHostname hostname=${hostname} origin=${origin} metadataOrigin=${channelIdOrHostname}`,
-      sdkConnection,
-    );
-    // check if channelId contains dot, it comes from in-app browser and we can use it.
-    if (channelIdOrHostname.indexOf('.') !== -1) {
-      return origin;
-    }
-
+    // inappbrowser channelId format: app.name.org but origin is set
     if (sdkConnection) {
-      const _hostname = (
-        sdkConnection?.originatorInfo?.url ?? channelIdOrHostname
-      ).replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
-      return _hostname;
+      return 'sdk';
+    } else if (origin) {
+      return 'in-app browser';
     }
-
-    return wc2Metadata?.url ?? channelIdOrHostname;
-  }, [hostname, channelIdOrHostname, sdkConnection, origin, wc2Metadata]);
-
-  // Retrieve hostname info based on channelId
-  useEffect(() => {
-    loadHostname().then(setHostname);
-  }, [hostname, setHostname, loadHostname]);
+    return 'walletconnect';
+  }, [sdkConnection, origin]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -218,6 +202,9 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const cancelPermissionRequest = useCallback(
     (requestId) => {
+      DevLogger.log(
+        `AccountConnect::cancelPermissionRequest requestId=${requestId} channelIdOrHostname=${channelIdOrHostname} accountsLength=${accountsLength}`,
+      );
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
       if (channelIdOrHostname && accountsLength === 0) {
         // Remove Potential SDK connection
@@ -317,7 +304,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         number_of_accounts: accountsLength,
         number_of_accounts_connected: connectedAccountLength,
         account_type: getAddressAccountType(activeAddress),
-        source: 'in-app browser',
+        source: eventSource,
       });
       let labelOptions: ToastOptions['labelOptions'] = [];
       if (connectedAccountLength > 1) {
@@ -347,6 +334,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       setIsLoading(false);
     }
   }, [
+    eventSource,
     selectedAddresses,
     hostInfo,
     accounts,
