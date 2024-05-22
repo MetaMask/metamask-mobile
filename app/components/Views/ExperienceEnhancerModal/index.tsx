@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { View } from 'react-native';
+import { useDispatch } from 'react-redux';
 
 import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
@@ -24,6 +25,7 @@ import {
 } from '../../../components/hooks/useMetrics';
 
 const ExperienceEnhancerModal = () => {
+  const dispatch = useDispatch();
   const styles = createStyles();
   const { trackEvent } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -33,7 +35,7 @@ const ExperienceEnhancerModal = () => {
     label: strings('experience_enhancer_modal.cancel'),
     size: ButtonSize.Lg,
     onPress: () => {
-      setDataCollectionForMarketing(false);
+      dispatch(setDataCollectionForMarketing(false));
       bottomSheetRef.current?.onCloseBottomSheet();
       trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
         has_marketing_consent: false,
@@ -47,7 +49,7 @@ const ExperienceEnhancerModal = () => {
     label: strings('experience_enhancer_modal.accept'),
     size: ButtonSize.Lg,
     onPress: () => {
-      setDataCollectionForMarketing(true);
+      dispatch(setDataCollectionForMarketing(true));
       bottomSheetRef.current?.onCloseBottomSheet();
       trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
         has_marketing_consent: true,
