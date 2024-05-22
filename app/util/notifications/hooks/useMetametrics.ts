@@ -1,15 +1,11 @@
 import { useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import Logger from '../../../util/Logger';
-import { selectIsSignedIn } from '../../../selectors/notifications/authentication';
-import { selectIsProfileSyncingEnabled } from '../../../selectors/notifications/profile-syncing';
 import {
-  performSignOut,
-  performSignIn,
-  setParticipateInMetaMetrics,
-  showLoadingIndication,
-  hideLoadingIndication,
-} from '../../../actions/notification';
+  selectIsSignedIn,
+  selectIsProfileSyncingEnabled,
+} from '../../../selectors/notifications';
+import Creators from '../../../store/ducks/notifications';
 
 /**
  * Provides a hook to enable MetaMetrics tracking.
@@ -30,25 +26,25 @@ export function useEnableMetametrics(): {
 
   const enableMetametrics = useCallback(async () => {
     setLoading(true);
-    dispatch(showLoadingIndication());
+    dispatch(Creators.showLoadingIndication());
     setError(null);
 
     try {
       if (!isUserSignedIn) {
-        await dispatch(performSignIn());
+        await dispatch(Creators.performSignIn());
       }
 
-      await dispatch(setParticipateInMetaMetrics(true));
+      await dispatch(Creators.setParticipateInMetaMetrics(true));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'An unexpected error occurred');
       Logger.error(e as any);
       throw e;
     } finally {
       setLoading(false);
-      dispatch(hideLoadingIndication());
+      dispatch(Creators.hideLoadingIndication());
     }
 
-    dispatch(hideLoadingIndication());
+    dispatch(Creators.hideLoadingIndication());
   }, [dispatch, isUserSignedIn]);
 
   return {
@@ -77,23 +73,23 @@ export function useDisableMetametrics(): {
 
   const disableMetametrics = useCallback(async () => {
     setLoading(true);
-    dispatch(showLoadingIndication());
+    dispatch(Creators.showLoadingIndication());
     setError(null);
 
     try {
       if (!isProfileSyncingEnabled) {
-        await dispatch(performSignOut());
+        await dispatch(Creators.performSignOut());
       }
-      await dispatch(setParticipateInMetaMetrics(false));
+      await dispatch(Creators.setParticipateInMetaMetrics(false));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'An unexpected error occurred');
       throw e;
     } finally {
       setLoading(false);
-      dispatch(hideLoadingIndication());
+      dispatch(Creators.hideLoadingIndication());
     }
 
-    dispatch(hideLoadingIndication());
+    dispatch(Creators.hideLoadingIndication());
   }, [dispatch, isProfileSyncingEnabled]);
 
   return {

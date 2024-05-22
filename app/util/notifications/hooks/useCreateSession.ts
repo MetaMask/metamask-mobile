@@ -3,14 +3,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import Logger from '../../../util/Logger';
 import {
   selectIsSignedIn,
-  selectParticipateInMetaMetrics,
-} from '../../../selectors/notifications/authentication';
-import { selectIsProfileSyncingEnabled } from '../../../selectors/notifications/profile-syncing';
-import {
-  performSignIn,
-  disableProfileSyncing,
-} from '../../../actions/notification';
-
+  selectIsProfileSyncingEnabled,
+} from '../../../selectors/notifications';
+import Creators from '../../../store/ducks/notifications';
 /**
  * Custom hook to manage the creation of a session based on the user's authentication status,
  * profile syncing preference, and participation in MetaMetrics.
@@ -29,9 +24,6 @@ function useCreateSession(): {
 
   const isSignedIn = useSelector(selectIsSignedIn);
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
-  const isParticipateInMetaMetrics = useSelector(
-    selectParticipateInMetaMetrics,
-  );
 
   const createSession = useCallback(async () => {
     // If the user is already signed in, no need to create a new session
@@ -40,28 +32,23 @@ function useCreateSession(): {
     }
 
     // If profile syncing and MetaMetrics participation are disabled, no need to create a session
-    if (!isProfileSyncingEnabled && !isParticipateInMetaMetrics) {
+    if (!isProfileSyncingEnabled) {
       return;
     }
 
     // Perform sign-in process if profile syncing or MetaMetrics participation is enabled
-    if (isProfileSyncingEnabled || isParticipateInMetaMetrics) {
+    if (isProfileSyncingEnabled) {
       try {
-        await dispatch(performSignIn());
+        await dispatch(Creators.performSignInRequest());
       } catch (e) {
         // If an error occurs during the sign-in process, disable profile syncing
-        await dispatch(disableProfileSyncing());
+        await dispatch(Creators.disableProfileSyncingRequest());
         const errorMessage =
           e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
         Logger.error(errorMessage);
       }
     }
-  }, [
-    dispatch,
-    isSignedIn,
-    isProfileSyncingEnabled,
-    isParticipateInMetaMetrics,
-  ]);
+  }, [dispatch, isSignedIn, isProfileSyncingEnabled]);
 
   return {
     createSession,
