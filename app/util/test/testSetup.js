@@ -25,7 +25,7 @@ jest.mock('../../lib/snaps/preinstalled-snaps', () =>
   console.log("do nothing since we aren't testing the pre installed snaps"),
 );
 
-jest.mock('react-native-fs', () => ({
+const mockFs = {
   CachesDirectoryPath: jest.fn(),
   DocumentDirectoryPath: jest.fn(),
   ExternalDirectoryPath: jest.fn(),
@@ -41,12 +41,16 @@ jest.mock('react-native-fs', () => ({
   copyFileAssets: jest.fn(),
   copyFileAssetsIOS: jest.fn(),
   downloadFile: jest.fn(),
-  exists: jest.fn(),
+  exists: () =>
+    new Promise((resolve) => {
+      resolve('console.log()');
+    }),
   existsAssets: jest.fn(),
   getAllExternalFilesDirs: jest.fn(),
   getFSInfo: jest.fn(),
   hash: jest.fn(),
   isResumable: jest.fn(),
+  ls: jest.fn(),
   mkdir: jest.fn(),
   moveFile: jest.fn(),
   pathForBundle: jest.fn(),
@@ -70,6 +74,20 @@ jest.mock('react-native-fs', () => ({
   uploadFiles: jest.fn(),
   write: jest.fn(),
   writeFile: jest.fn(),
+};
+
+jest.mock('react-native-fs', () => mockFs);
+
+jest.mock('react-native-blob-util', () => ({
+  fs: {
+    dirs: {
+      DocumentDir: 'docs',
+    },
+    ...mockFs,
+  },
+  ios: {
+    excludeFromBackupKey: jest.fn(),
+  },
 }));
 
 Date.now = jest.fn(() => 123);
