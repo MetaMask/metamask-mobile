@@ -21,7 +21,8 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
-
+const orangeFoxENS = 'orangefox.eth';
+const secondENS = 'cdavid3.eth';
 describe(SmokeConfirmations('Send ETH'), () => {
   const TOKEN_NAME = enContent.unit.eth;
   const AMOUNT = '0.12345';
@@ -48,19 +49,21 @@ describe(SmokeConfirmations('Send ETH'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
 
-    await SendView.inputAddress('orangefox.eth');
+    await SendView.inputAddress(orangeFoxENS);
+    await TestHelpers.delay(3000); // wait for the ens address to resolve.
+
     await SendView.tapAddressInputField();
 
     await SendView.tapBackSpaceKey();
-    await SendView.inputAddress('curt.eth');
+    await SendView.inputAddress(secondENS);
 
-    await TestHelpers.delay(2000); // wait for the ens address to resolve.
+    await TestHelpers.delay(3000); // wait for the ens address to resolve.
     await SendView.tapNextButton();
 
     await AmountView.typeInTransactionAmount(AMOUNT);
     await AmountView.tapNextButton();
 
-    await Assertions.checkIfTextIsDisplayed('curt.eth');
+    await Assertions.checkIfTextIsDisplayed(secondENS);
     await TransactionConfirmationView.tapConfirmButton();
     await TabBarComponent.tapActivity();
 
