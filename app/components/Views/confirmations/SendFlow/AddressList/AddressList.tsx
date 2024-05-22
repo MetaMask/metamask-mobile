@@ -139,7 +139,7 @@ const AddressList: React.FC<AddressListProps> = ({
   }, [networkAddressBook, parseAddressBook]);
 
   const getNetworkAddressBookList = useCallback(() => {
-    if (inputSearch) {
+    if (inputSearch && fuse) {
       return fuse.search(inputSearch);
     }
 
