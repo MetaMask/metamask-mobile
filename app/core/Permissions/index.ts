@@ -21,7 +21,7 @@ function getAccountsPermissionFromSubject(subject: any = {}) {
 function getAccountsFromPermission(accountsPermission: any) {
   const accountsCaveat = getAccountsCaveatFromPermission(accountsPermission);
   return accountsCaveat && Array.isArray(accountsCaveat.value)
-    ? accountsCaveat.value
+    ? accountsCaveat.value.map((address: string) => address.toLowerCase())
     : [];
 }
 
