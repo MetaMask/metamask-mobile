@@ -10,7 +10,6 @@ import {
   FlatList,
   InteractionManager,
   ScrollView,
-  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import {

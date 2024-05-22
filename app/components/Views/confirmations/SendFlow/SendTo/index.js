@@ -42,10 +42,7 @@ import {
   SYMBOL_ERROR,
 } from '../../../../../constants/error';
 import createStyles from './styles';
-import {
-  ADD_ADDRESS_BUTTON,
-  SEND_SCREEN_ID,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+import { SEND_SCREEN_ID } from '../../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
   selectChainId,

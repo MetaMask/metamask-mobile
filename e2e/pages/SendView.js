@@ -2,7 +2,6 @@ import TestHelpers from '../helpers';
 import Gestures from '../utils/Gestures';
 import Matchers from '../utils/Matchers';
 import { SendViewSelectorsIDs } from '../selectors/SendView.selectors';
-import Assertions from '../utils/Assertions';
 
 class SendView {
   get cancelButton() {
@@ -22,7 +21,7 @@ class SendView {
   }
 
   get addAddressButton() {
-    return Matchers.getElementByID(ADD_ADDRESS_BUTTON);
+    return Matchers.getElementByID(SendViewSelectorsIDs.ADD_ADDRESS_BUTTON);
   }
 
   get contractWarning() {
