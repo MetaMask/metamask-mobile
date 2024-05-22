@@ -351,7 +351,7 @@
     "@cucumber/messages": "^22.0.0",
     "@ethersproject/contracts": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
-    "@lavamoat/allow-scripts": "^2.3.1",
+    "@lavamoat/allow-scripts": "^3.0.4",
     "@metamask/browser-passworder": "^5.0.0",
     "@metamask/build-utils": "^1.0.0",
     "@metamask/eslint-config": "^9.0.0",
