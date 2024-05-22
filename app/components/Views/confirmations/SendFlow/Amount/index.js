@@ -10,7 +10,6 @@ import {
   FlatList,
   InteractionManager,
   ScrollView,
-  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import {
@@ -76,12 +75,7 @@ import {
 import { gte } from '../../../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import Alert, { AlertType } from '../../../../Base/Alert';
-import {
-  FIAT_CONVERSION_WARNING_TEXT,
-  TRANSACTION_AMOUNT_CONVERSION_VALUE,
-  CURRENCY_SWITCH,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
+
 import {
   selectChainId,
   selectProviderType,
@@ -848,7 +842,7 @@ class Amount extends PureComponent {
           weiBalance = hexToBN(accounts[selectedAddress].balance);
           weiInput = weiValue.add(estimatedTotalGas);
         } else {
-          weiBalance = contractBalances[selectedAsset.address];
+          weiBalance = hexToBN(contractBalances[selectedAsset.address]);
           weiInput = toTokenMinimalUnit(value, selectedAsset.decimals);
         }
         // TODO: weiBalance is not always guaranteed to be type BN. Need to consolidate type.
@@ -1299,7 +1293,7 @@ class Amount extends PureComponent {
               placeholder={'0'}
               placeholderTextColor={colors.text.muted}
               keyboardAppearance={themeAppearance}
-              {...generateTestId(Platform, AmountViewSelectorsIDs.AMOUNT_INPUT)}
+              testID={AmountViewSelectorsIDs.AMOUNT_INPUT}
             />
           </View>
         </View>
@@ -1309,15 +1303,14 @@ class Amount extends PureComponent {
               <TouchableOpacity
                 style={styles.actionSwitch}
                 onPress={this.switchCurrency}
-                {...generateTestId(Platform, CURRENCY_SWITCH)}
+                testID={AmountViewSelectorsIDs.CURRENCY_SWITCH}
               >
                 <Text
                   style={styles.textSwitch}
                   numberOfLines={1}
-                  {...generateTestId(
-                    Platform,
-                    TRANSACTION_AMOUNT_CONVERSION_VALUE,
-                  )}
+                  testID={
+                    AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE
+                  }
                 >
                   {renderableInputValueConversion}
                 </Text>
@@ -1341,7 +1334,7 @@ class Amount extends PureComponent {
         {amountError && (
           <View
             style={styles.errorMessageWrapper}
-            {...generateTestId(Platform, AmountViewSelectorsIDs.AMOUNT_ERROR)}
+            testID={AmountViewSelectorsIDs.AMOUNT_ERROR}
           >
             <TouchableOpacity
               onPress={navigateToBuyOrSwaps}
@@ -1392,7 +1385,7 @@ class Amount extends PureComponent {
         {amountError && (
           <View
             style={styles.errorMessageWrapper}
-            {...generateTestId(Platform, AmountViewSelectorsIDs.AMOUNT_ERROR)}
+            testID={AmountViewSelectorsIDs.AMOUNT_ERROR}
           >
             <ErrorMessage errorMessage={amountError} />
           </View>
@@ -1414,7 +1407,7 @@ class Amount extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        {...generateTestId(Platform, AmountViewSelectorsIDs.CONTAINER)}
+        testID={AmountViewSelectorsIDs.CONTAINER}
       >
         <ScrollView style={styles.scrollWrapper}>
           {!hasExchangeRate && !selectedAsset.tokenId ? (
@@ -1435,7 +1428,7 @@ class Amount extends PureComponent {
                   <Text
                     red
                     style={styles.warningText}
-                    {...generateTestId(Platform, FIAT_CONVERSION_WARNING_TEXT)}
+                    testID={AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT}
                   >
                     {strings('transaction.fiat_conversion_not_available')}
                   </Text>

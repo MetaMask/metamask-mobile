@@ -31,10 +31,14 @@ import Button, {
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { MAINNET } from '../../../constants/network';
+import { newPrivacyPolicyDate } from '../../../reducers/legalNotices';
 import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
+
+const currentDate = new Date(Date.now());
+const isPastPrivacyPolicyDate = currentDate >= newPrivacyPolicyDate;
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -163,16 +167,26 @@ class OptinMetrics extends PureComponent {
     return createStyles({ colors, typography });
   };
 
-  actionsList = [1, 2, 3, 4, 5].map((value) => {
-    const actionVal = value <= 2 ? 0 : 1;
-    return {
-      action: actionVal,
-      prefix: actionVal
-        ? `${strings('privacy_policy.action_description_never')} `
-        : '',
-      description: strings(`privacy_policy.action_description_${value}`),
-    };
-  });
+  actionsList = isPastPrivacyPolicyDate
+    ? [1, 2, 3].map((value) => ({
+        action: value,
+        prefix: strings(`privacy_policy.action_description_${value}_prefix`),
+        description: strings(
+          `privacy_policy.action_description_${value}_description`,
+        ),
+      }))
+    : [1, 2, 3, 4, 5].map((value) => {
+        const actionVal = value <= 2 ? 0 : 1;
+        return {
+          action: actionVal,
+          prefix: actionVal
+            ? `${strings('privacy_policy.action_description_never_legacy')} `
+            : '',
+          description: strings(
+            `privacy_policy.action_description_${value}_legacy`,
+          ),
+        };
+      });
 
   updateNavBar = () => {
     const { navigation } = this.props;
@@ -228,7 +242,7 @@ class OptinMetrics extends PureComponent {
    * @param {object} - Object containing action and description to be rendered
    * @param {number} i - Index key
    */
-  renderAction = ({ action, description, prefix }, i) => {
+  renderLegacyAction = ({ action, description, prefix }, i) => {
     const styles = this.getStyles();
 
     return (
@@ -248,6 +262,24 @@ class OptinMetrics extends PureComponent {
         )}
         <Text style={styles.description}>
           <Text style={styles.descriptionBold}>{prefix}</Text>
+          {description}
+        </Text>
+      </View>
+    );
+  };
+
+  renderAction = ({ description, prefix }, i) => {
+    const styles = this.getStyles();
+
+    return (
+      <View style={styles.action} key={i}>
+        <Entypo
+          name="check"
+          size={20}
+          style={[styles.icon, styles.checkIcon]}
+        />
+        <Text style={styles.description}>
+          <Text style={styles.descriptionBold}>{prefix + ' '}</Text>
           {description}
         </Text>
       </View>
@@ -364,27 +396,43 @@ class OptinMetrics extends PureComponent {
   renderPrivacyPolicy = () => {
     const styles = this.getStyles();
 
+    if (isPastPrivacyPolicyDate) {
+      return (
+        <View>
+          <Text style={styles.privacyPolicy}>
+            <Text>{strings('privacy_policy.fine_print_1') + ' '}</Text>
+            <Button
+              variant={ButtonVariants.Link}
+              label={strings('privacy_policy.privacy_policy_button')}
+              onPress={this.openPrivacyPolicy}
+            />
+            <Text>{' ' + strings('privacy_policy.fine_print_2')}</Text>
+          </Text>
+        </View>
+      );
+    }
+
     return (
       <View>
         <Text style={styles.privacyPolicy}>
-          <Text>{strings('privacy_policy.fine_print_1')}</Text>
+          <Text>{strings('privacy_policy.fine_print_1_legacy')}</Text>
           {'\n\n'}
-          {strings('privacy_policy.fine_print_2a') + ' '}
+          {strings('privacy_policy.fine_print_2a_legacy') + ' '}
           <Button
             variant={ButtonVariants.Link}
-            label={strings('privacy_policy.here')}
+            label={strings('privacy_policy.here_legacy')}
             onPress={this.openRPCSettings}
           />
-          {' ' + strings('privacy_policy.fine_print_2b') + ' '}
+          {' ' + strings('privacy_policy.fine_print_2b_legacy') + ' '}
           <Button
             variant={ButtonVariants.Link}
             onPress={this.openDataRetentionPost}
-            label={strings('privacy_policy.here')}
+            label={strings('privacy_policy.here_legacy')}
           />
-          {strings('privacy_policy.fine_print_2c') + ' '}
+          {strings('privacy_policy.fine_print_2c_legacy') + ' '}
           <Button
             variant={ButtonVariants.Link}
-            label={strings('privacy_policy.here')}
+            label={strings('privacy_policy.here_legacy')}
             onPress={this.openPrivacyPolicy}
           />
           {strings('unit.point')}
@@ -503,12 +551,24 @@ class OptinMetrics extends PureComponent {
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
               }
             >
-              {strings('privacy_policy.description_content_1')}
+              {strings(
+                isPastPrivacyPolicyDate
+                  ? 'privacy_policy.description_content_1'
+                  : 'privacy_policy.description_content_1_legacy',
+              )}
             </Text>
             <Text style={styles.content}>
-              {strings('privacy_policy.description_content_2')}
+              {strings(
+                isPastPrivacyPolicyDate
+                  ? 'privacy_policy.description_content_2'
+                  : 'privacy_policy.description_content_2_legacy',
+              )}
             </Text>
-            {this.actionsList.map((action, i) => this.renderAction(action, i))}
+            {this.actionsList.map((action, i) =>
+              isPastPrivacyPolicyDate
+                ? this.renderAction(action, i)
+                : this.renderLegacyAction(action, i),
+            )}
             {this.renderPrivacyPolicy()}
           </View>
         </ScrollView>

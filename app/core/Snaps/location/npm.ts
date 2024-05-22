@@ -23,7 +23,7 @@ import {
 
 import { DetectSnapLocationOptions } from './location';
 import { NativeModules } from 'react-native';
-import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import Logger from '../../../util/Logger';
 import { SnapLocation } from '@metamask/snaps-controllers';
 
@@ -76,7 +76,7 @@ const decompressFile = async (
 };
 const readAndParseAt = async (path: string) => {
   try {
-    return stringToBytes(await RNFetchBlob.fs.readFile(path, 'utf8'));
+    return stringToBytes(await ReactNativeBlobUtil.fs.readFile(path, 'utf8'));
   } catch (error) {
     Logger.error(error as Error, `${SNAPS_NPM_LOG_TAG} readAndParseAt error`);
     throw new Error(`${SNAPS_NPM_LOG_TAG} readAndParseAt error: ${error}`);
@@ -85,8 +85,8 @@ const readAndParseAt = async (path: string) => {
 const fetchAndStoreNPMPackage = async (
   inputRequest: RequestInfo,
 ): Promise<string> => {
-  const { config } = RNFetchBlob;
-  const targetDir = RNFetchBlob.fs.dirs.DocumentDir;
+  const { config } = ReactNativeBlobUtil;
+  const targetDir = ReactNativeBlobUtil.fs.dirs.DocumentDir;
   const filePath = `${targetDir}/archive.tgz`;
   const urlToFetch: string =
     typeof inputRequest === 'string' ? inputRequest : inputRequest.url;
@@ -123,7 +123,7 @@ const fetchAndStoreNPMPackage = async (
 };
 
 const cleanupFileSystem = async (path: string) => {
-  RNFetchBlob.fs.unlink(path).catch((error) => {
+  ReactNativeBlobUtil.fs.unlink(path).catch((error) => {
     throw new Error(
       `${SNAPS_NPM_LOG_TAG} cleanupFileSystem failed to clean files at path with error: ${error}`,
     );

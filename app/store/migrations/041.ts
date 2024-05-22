@@ -1,9 +1,9 @@
 import { captureException } from '@sentry/react-native';
-import { hasProperty, isObject } from '@metamask/utils';
+import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 
 /**
- * Migration to remove metadata from Permissioned accounts
+ * Migration to reset state of TokenBalancesController
  *
  * @param state Persisted Redux state
  * @returns
@@ -13,46 +13,21 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  const permissionControllerState =
-    state.engine.backgroundState.PermissionController;
+  const tokenBalancesControllerState =
+    state.engine.backgroundState.TokenBalancesController;
 
-  if (!isObject(permissionControllerState)) {
+  if (!isObject(tokenBalancesControllerState)) {
     captureException(
       new Error(
-        `Migration 41: Invalid PermissionController state error: '${JSON.stringify(
-          permissionControllerState,
+        `FATAL ERROR: Migration 41: Invalid TokenBalancesController state error: '${JSON.stringify(
+          tokenBalancesControllerState,
         )}'`,
       ),
     );
     return state;
   }
 
-  if (
-    hasProperty(permissionControllerState, 'subjects') &&
-    isObject(permissionControllerState.subjects)
-  ) {
-    for (const origin in permissionControllerState.subjects) {
-      const subject = permissionControllerState.subjects[origin];
-      if (isObject(subject) && hasProperty(subject, 'permissions')) {
-        const permissions = subject.permissions;
-        if (isObject(permissions) && hasProperty(permissions, 'eth_accounts')) {
-          const ethAccounts = permissions.eth_accounts;
-          if (
-            isObject(ethAccounts) &&
-            hasProperty(ethAccounts, 'caveats') &&
-            Array.isArray(ethAccounts.caveats)
-          ) {
-            ethAccounts.caveats = ethAccounts.caveats.map((caveat) => ({
-              ...caveat,
-              value: caveat.value.map(
-                ({ address }: { address: string }) => address,
-              ),
-            }));
-          }
-        }
-      }
-    }
-  }
+  tokenBalancesControllerState.contractBalances = {};
 
   return state;
 }
