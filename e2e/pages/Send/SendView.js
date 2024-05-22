@@ -55,6 +55,7 @@ class SendView {
     await Gestures.waitAndTap(accountName);
   }
 
+
   async tapNextButton() {
     await Gestures.waitAndTap(await this.nextButton);
   }
