@@ -82,6 +82,15 @@ const NetworkList = {
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
   },
+  [LINEA_GOERLI]: {
+    name: 'Linea Goerli Test Network',
+    shortName: 'Linea Goerli',
+    networkId: 59140,
+    chainId: toHex('59140'),
+    color: '#61dfff',
+    networkType: 'linea-goerli',
+    imageSource: lineaTestnetLogo,
+  },
   [LINEA_SEPOLIA]: {
     name: 'Linea Sepolia Test Network',
     shortName: 'Linea Sepolia',
@@ -111,6 +120,7 @@ export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.AVAXCCHAIN,
   NETWORKS_CHAIN_ID.LINEA_MAINNET,
   NETWORKS_CHAIN_ID.SEPOLIA,
+  NETWORKS_CHAIN_ID.OPBNB,
 ];
 
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
@@ -122,6 +132,7 @@ export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
   [NETWORKS_CHAIN_ID.LINEA_MAINNET]: 'Linea',
   [NETWORKS_CHAIN_ID.SEPOLIA]: 'Sepolia',
+  [NETWORKS_CHAIN_ID.OPBNB]: 'opBNB',
 };
 
 export default NetworkList;

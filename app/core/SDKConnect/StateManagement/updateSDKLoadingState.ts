@@ -20,6 +20,12 @@ async function updateSDKLoadingState({
     delete instance.state.sdkLoadingState[channelId];
   }
 
+  const currentRouteName = instance.state.navigation?.getCurrentRoute?.()?.name;
+  if (currentRouteName === Routes.LOCK_SCREEN) {
+    // Skip on lock screen
+    return;
+  }
+
   const loadingSessionsLen = Object.keys(instance.state.sdkLoadingState).length;
   if (loadingSessionsLen > 0) {
     // Prevent loading state from showing if keychain is locked.

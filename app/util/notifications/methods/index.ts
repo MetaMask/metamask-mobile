@@ -27,6 +27,8 @@ import { renderFromWei } from '../../../util/number';
 import { updateNotificationStatus } from '../../../actions/notification';
 import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
+import { renderFromWei } from '../../../util/number';
+
 interface ViewOnEtherscanProps {
   navigation: any;
   transactionObject: {
@@ -62,10 +64,14 @@ interface NotificationRowProps {
 
 export const sortNotifications = (
   notifications: Notification[],
-): Notification[] =>
-  notifications.sort((a, b) =>
-    a.createdAt > b.createdAt ? -1 : b.createdAt > a.createdAt ? 1 : 0,
+): Notification[] => {
+  if (!notifications) {
+    return [];
+  }
+  return notifications.sort(
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
   );
+};
 
 export const getNotificationBadge = (trigger_type: string) => {
   switch (trigger_type) {
@@ -177,7 +183,7 @@ export const isNotificationsFeatureEnabled = () =>
 export function formatNotificationTitle(rawTitle: string): string {
   const words = rawTitle.split('_');
   words.shift();
-  return words.join('_');
+  return words.join('_').toLowerCase();
 }
 
 export enum TxStatus {
@@ -240,6 +246,7 @@ export function getRowDetails(
             details: {},
           },
         },
+
       };
     case TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN:
       return {
@@ -420,6 +427,14 @@ export function getRowDetails(
             details: {},
           },
         },
+          },
+          createdAt: formatDate(notification.createdAt),
+          imageUrl: notification.data.token.image,
+          value: `${renderFromWei(notification.data.token.amount)} ${
+            notification.data.token.symbol
+          }`,
+        },
+        details: {},
       };
     case TRIGGER_TYPES.ERC721_SENT:
     case TRIGGER_TYPES.ERC721_RECEIVED:

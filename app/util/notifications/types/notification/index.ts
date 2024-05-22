@@ -113,6 +113,7 @@ export interface MarketingNotificationData {
   routeProps?: string;
 }
 
+
 export const STAKING_PROVIDER_MAP: Record<
   | 'lido_stake_completed'
   | 'rocketpool_stake_completed'
@@ -133,3 +134,17 @@ export const networkFeeDetails: Record<string, string> = {
   'transactions.priority_fee': 'priorityFee',
   'transactions.max_fee': 'maxFeePerGas',
 };
+
+export interface SimpleNotification {
+  title?: string;
+  body?: string;
+  data?: {
+    [key: string]: string | object | number;
+  };
+}
+
+export enum NotificationsKindTypes {
+  transaction = 'transaction',
+  announcements = 'announcements',
+}
+

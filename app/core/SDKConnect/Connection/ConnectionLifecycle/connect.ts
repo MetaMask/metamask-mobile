@@ -11,7 +11,10 @@ function connect({
   DevLogger.log(
     `Connection::connect() withKeyExchange=${withKeyExchange} id=${instance.channelId}`,
   );
-  instance.remote.connectToChannel(instance.channelId, withKeyExchange);
+  instance.remote.connectToChannel({
+    channelId: instance.channelId,
+    withKeyExchange,
+  });
   instance.receivedDisconnect = false;
   instance.setLoading(true);
 }

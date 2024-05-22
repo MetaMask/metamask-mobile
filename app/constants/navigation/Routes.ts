@@ -22,7 +22,7 @@ const Routes = {
     ORDER_DETAILS: 'OrderDetails',
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
-    ADD_ACTIVATION_KEY: 'RampAddActivationKey',
+    ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
@@ -121,6 +121,7 @@ const Routes = {
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
   NOTIFICATIONS: {
+    VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
     OPT_IN_STACK: 'OptInStack',
     DETAILS: 'NotificationsDetails',

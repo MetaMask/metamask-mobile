@@ -1,9 +1,12 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import Browser from '../../pages/Browser';
+import Browser from '../../pages/Browser/BrowserView';
 import AccountListView from '../../pages/AccountListView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
+
+import CommonView from '../../pages/CommonView';
+
 import { loginToApp } from '../../viewHelper';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -29,16 +32,17 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         //should navigate to browser
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Browser.isVisible();
+        await Assertions.checkIfVisible(Browser.browserScreenID);
 
         //TODO: should re add connecting to an external swap step after detox has been updated
 
         await Browser.navigateToTestDApp();
-        await Browser.isAccountToastVisible('Account 1');
-        await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
+        await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
+        await TestHelpers.delay(2000);
+
+        await Assertions.checkIfNotVisible(CommonView.toast);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
-        await TestHelpers.delay(1000);
         await AccountListView.tapAddAccountButton();
         await AccountListView.tapCreateAccountButton();
         await AccountListView.isAccount2VisibleAtIndex(0);
@@ -46,11 +50,12 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await AccountListView.connectAccountsButton();
 
         // should revoke accounts
-        await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
+        await Browser.tapNetworkAvatarButtonOnBrowser();
         await ConnectedAccountsModal.tapPermissionsButton();
         await TestHelpers.delay(1500);
         await ConnectedAccountsModal.tapDisconnectAllButton();
-        await Browser.isRevokeAllAccountToastVisible();
+        await Assertions.checkIfNotVisible(await CommonView.toast);
+
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);

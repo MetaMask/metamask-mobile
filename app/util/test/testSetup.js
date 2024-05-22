@@ -25,7 +25,7 @@ jest.mock('../../lib/snaps/preinstalled-snaps', () =>
   console.log("do nothing since we aren't testing the pre installed snaps"),
 );
 
-jest.mock('react-native-fs', () => ({
+const mockFs = {
   CachesDirectoryPath: jest.fn(),
   DocumentDirectoryPath: jest.fn(),
   ExternalDirectoryPath: jest.fn(),
@@ -41,12 +41,16 @@ jest.mock('react-native-fs', () => ({
   copyFileAssets: jest.fn(),
   copyFileAssetsIOS: jest.fn(),
   downloadFile: jest.fn(),
-  exists: jest.fn(),
+  exists: () =>
+    new Promise((resolve) => {
+      resolve('console.log()');
+    }),
   existsAssets: jest.fn(),
   getAllExternalFilesDirs: jest.fn(),
   getFSInfo: jest.fn(),
   hash: jest.fn(),
   isResumable: jest.fn(),
+  ls: jest.fn(),
   mkdir: jest.fn(),
   moveFile: jest.fn(),
   pathForBundle: jest.fn(),
@@ -70,6 +74,20 @@ jest.mock('react-native-fs', () => ({
   uploadFiles: jest.fn(),
   write: jest.fn(),
   writeFile: jest.fn(),
+};
+
+jest.mock('react-native-fs', () => mockFs);
+
+jest.mock('react-native-blob-util', () => ({
+  fs: {
+    dirs: {
+      DocumentDir: 'docs',
+    },
+    ...mockFs,
+  },
+  ios: {
+    excludeFromBackupKey: jest.fn(),
+  },
 }));
 
 Date.now = jest.fn(() => 123);
@@ -199,22 +217,14 @@ NativeModules.Aes = {
     const hashBase = '012345678987654';
     return Promise.resolve(hashBase + uniqueAddressChar);
   }),
-  pbkdf2: jest
-    .fn()
-    .mockImplementation((_password, _salt, _iterations, _keyLength) =>
-      Promise.resolve('mockedKey'),
-    ),
+  pbkdf2: jest.fn().mockResolvedValue('mockedKey'),
   randomKey: jest.fn().mockResolvedValue('mockedIV'),
   encrypt: jest.fn().mockResolvedValue('mockedCipher'),
   decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainText"}'),
 };
 
 NativeModules.AesForked = {
-  pbkdf2: jest
-    .fn()
-    .mockImplementation((_password, _salt) =>
-      Promise.resolve('mockedKeyForked'),
-    ),
+  pbkdf2: jest.fn().mockResolvedValue('mockedKeyForked'),
   decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainTextForked"}'),
 };
 
