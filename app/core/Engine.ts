@@ -998,7 +998,7 @@ class Engine {
         ),
       getNetworkIdentifier: () => {
         const { type, rpcUrl } = networkController.state.providerConfig;
-        return type === NETWORK_TYPES.RPC ? rpcUrl : type;
+        return type === 'rpc' ? rpcUrl : type;
       },
       getCurrentChainId: () => networkController.state.providerConfig.chainId,
       environment: process.env.METAMASK_ENVIRONMENT,

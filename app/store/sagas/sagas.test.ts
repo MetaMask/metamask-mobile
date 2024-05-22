@@ -47,6 +47,9 @@ jest.mock('../../core/NavigationService', () => ({
   },
 }));
 
+const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
+const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
+
 describe('authStateMachine', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
@@ -240,7 +243,7 @@ describe('notifications', () => {
   });
 
   it('should trigger checkAccountsPresence when action CHECK_ACCOUNTS_PRESENCE_REQUEST is dispatched', async () => {
-    const accounts = ['0x000000000', '0x010101010'];
+    const accounts = [MOCK_ADDRESS_1, MOCK_ADDRESS_2];
     const generator = checkAccountsPresence(accounts);
     expect(generator.next().value).toEqual(
       take(NotificationsTypes.CHECK_ACCOUNTS_PRESENCE_REQUEST),

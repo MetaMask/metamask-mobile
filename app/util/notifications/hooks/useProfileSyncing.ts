@@ -8,16 +8,12 @@ import {
   setIsProfileSyncingEnabled as setIsProfileSyncingEnabledAction,
   hideLoadingIndication,
 } from '../../../actions/notification';
-
-// Define KeyringType interface
-export interface KeyringType {
-  type: string;
-}
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 // Define AccountType interface
 export type AccountType = InternalAccount & {
   balance: string;
-  keyring: KeyringType;
+  keyring: KeyringTypes;
   label: string;
 };
 
