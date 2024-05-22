@@ -310,7 +310,7 @@
     "react-native-size-matters": "0.4.0",
     "react-native-skeleton-placeholder": "^5.0.0",
     "react-native-step-indicator": "^1.0.3",
-    "react-native-svg": "^15.2.0",
+    "react-native-svg": "^15.3.0",
     "react-native-svg-charts": "^5.4.0",
     "react-native-swipe-gestures": "1.0.3",
     "react-native-tcp": "aprock/react-native-tcp#11/head",
