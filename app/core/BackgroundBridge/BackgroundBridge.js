@@ -386,13 +386,6 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
 
-    // Add PermissionController middleware
-    engine.push(
-      Engine.context.PermissionController.createPermissionMiddleware({
-        origin,
-      }),
-    );
-
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // Snaps middleware
     engine.push(
@@ -411,6 +404,15 @@ export class BackgroundBridge extends EventEmitter {
       this.createMiddleware({
         hostname: this.hostname,
         getProviderState: this.getProviderState.bind(this),
+      }),
+    );
+
+    // Add PermissionController middleware
+    engine.push(
+      Engine.context.PermissionController.createPermissionMiddleware({
+        // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
+        // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
+        origin: this.isMMSDK ? this.channelId : origin,
       }),
     );
 
