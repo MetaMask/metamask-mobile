@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { take, fork, cancel } from 'redux-saga/effects';
+import { take, fork, cancel, call } from 'redux-saga/effects';
 import {
   AUTH_ERROR,
   AUTH_SUCCESS,
@@ -18,6 +18,24 @@ import {
   appLockStateMachine,
   lockKeyringAndApp,
 } from './';
+
+import {
+  signIn,
+  signOut,
+  enableProfileSyncing,
+  disableProfileSyncing,
+  enableMetamaskNotifications,
+  disableMetamaskNotifications,
+  setFeatureAnnouncementsEnabled,
+  setSnapNotificationsEnabled,
+  setParticipateInMetaMetrics,
+  checkAccountsPresence,
+  setMetamaskNotificationsFeatureSeen,
+  fetchAndUpdateMetamaskNotifications,
+  markMetamaskNotificationsAsRead,
+  deleteNotifications,
+} from './notifications';
+import { NotificationsTypes } from '../ducks/notifications';
 
 const mockBioStateMachineId = '123';
 const mockNavigate = jest.fn();
@@ -123,5 +141,147 @@ describe('biometricsStateMachine', () => {
     generator.next(authError(mockBioStateMachineId) as Action);
     // Move to next step
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+});
+
+describe('notifications', () => {
+  it('should trigger signIn when action PERFORM_SIGN_IN_REQUEST is dispatched', async () => {
+    const generator = signIn();
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.PERFORM_SIGN_IN_REQUEST),
+    );
+    expect(generator.next().value).toEqual(call(signIn));
+  });
+
+  it('should trigger signOut when action PERFORM_SIGN_OUT_REQUEST is dispatched', async () => {
+    const generator = signOut();
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.PERFORM_SIGN_OUT_REQUEST),
+    );
+    expect(generator.next().value).toEqual(call(signOut));
+  });
+
+  it('should trigger enableProfileSyncing when action ENABLE_PROFILE_SYNCING_REQUEST is dispatched', async () => {
+    const generator = enableProfileSyncing();
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.ENABLE_PROFILE_SYNCING_REQUEST),
+    );
+    expect(generator.next().value).toEqual(call(enableProfileSyncing));
+  });
+
+  it('should trigger disableProfileSyncing when action DISABLE_PROFILE_SYNCING_REQUEST is dispatched', async () => {
+    const generator = disableProfileSyncing();
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.DISABLE_PROFILE_SYNCING_REQUEST),
+    );
+    expect(generator.next().value).toEqual(call(disableProfileSyncing));
+  });
+
+  it('should trigger enableMetamaskNotifications when action ENABLE_METAMASK_NOTIFICATIONS_REQUEST is dispatched', async () => {
+    const generator = enableMetamaskNotifications();
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.ENABLE_METAMASK_NOTIFICATIONS_REQUEST),
+    );
+    expect(generator.next().value).toEqual(call(enableMetamaskNotifications));
+  });
+
+  it('should trigger disableMetamaskNotifications when action DISABLE_METAMASK_NOTIFICATIONS_REQUEST is dispatched', async () => {
+    const generator = disableMetamaskNotifications();
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.DISABLE_METAMASK_NOTIFICATIONS_REQUEST),
+    );
+    expect(generator.next().value).toEqual(call(disableMetamaskNotifications));
+  });
+
+  it('should trigger setFeatureAnnouncementsEnabled when action SET_FEATURE_ANNOUNCEMENTS_ENABLED_REQUEST is dispatched', async () => {
+    const generator = setFeatureAnnouncementsEnabled();
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.SET_FEATURE_ANNOUNCEMENTS_ENABLED_REQUEST),
+    );
+    expect(generator.next().value).toEqual(
+      call(setFeatureAnnouncementsEnabled),
+    );
+  });
+
+  it('should trigger setSnapNotificationsEnabled when action SET_SNAP_NOTIFICATIONS_ENABLED_REQUEST is dispatched', async () => {
+    const generator = setSnapNotificationsEnabled();
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.SET_SNAP_NOTIFICATIONS_ENABLED_REQUEST),
+    );
+    expect(generator.next().value).toEqual(call(setSnapNotificationsEnabled));
+  });
+
+  it('should trigger setParticipateInMetaMetrics when action SET_PARTICIPATE_IN_META_METRICS_REQUEST is dispatched', async () => {
+    const generator = setParticipateInMetaMetrics();
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.SET_PARTICIPATE_IN_META_METRICS_REQUEST),
+    );
+    expect(generator.next().value).toEqual(call(setParticipateInMetaMetrics));
+  });
+
+  it('should trigger setMetamaskNotificationsFeatureSeen when action SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN_REQUEST is dispatched', async () => {
+    const generator = setMetamaskNotificationsFeatureSeen();
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN_REQUEST),
+    );
+    expect(generator.next().value).toEqual(
+      call(setMetamaskNotificationsFeatureSeen),
+    );
+  });
+
+  it('should trigger fetchAndUpdateMetamaskNotifications when action FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS_REQUEST is dispatched', async () => {
+    const generator = fetchAndUpdateMetamaskNotifications();
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS_REQUEST),
+    );
+    expect(generator.next().value).toEqual(
+      call(fetchAndUpdateMetamaskNotifications),
+    );
+  });
+
+  it('should trigger checkAccountsPresence when action CHECK_ACCOUNTS_PRESENCE_REQUEST is dispatched', async () => {
+    const accounts = ['0x000000000', '0x010101010'];
+    const generator = checkAccountsPresence(accounts);
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.CHECK_ACCOUNTS_PRESENCE_REQUEST),
+    );
+    expect(generator.next().value).toEqual(
+      call(() => checkAccountsPresence(accounts)),
+    );
+  });
+
+  it('should trigger markMetamaskNotificationsAsRead when action MARK_METAMASK_NOTIFICATIONS_AS_READ_REQUEST is dispatched', async () => {
+    const notifications = [
+      {
+        id: '01',
+        isRead: false,
+        createdAt: Date.now(),
+      },
+    ];
+
+    const generator = markMetamaskNotificationsAsRead(notifications);
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.MARK_METAMASK_NOTIFICATIONS_AS_READ_REQUEST),
+    );
+    expect(generator.next().value).toEqual(
+      call(() => markMetamaskNotificationsAsRead(notifications)),
+    );
+  });
+
+  it('should trigger deleteNotifications when action DELETE_NOTIFICATION_STATUS_REQUEST is dispatched', async () => {
+    const notifications = [
+      {
+        id: '01',
+        isRead: false,
+        createdAt: Date.now(),
+      },
+    ];
+    const generator = deleteNotifications(notifications);
+    expect(generator.next().value).toEqual(
+      take(NotificationsTypes.DELETE_NOTIFICATION_STATUS_REQUEST),
+    );
+    expect(generator.next().value).toEqual(
+      call(() => deleteNotifications(notifications)),
+    );
   });
 });

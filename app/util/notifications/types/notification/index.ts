@@ -27,6 +27,11 @@ export interface NFT {
   };
 }
 
+export type MarkAsReadNotificationsParam = Pick<
+  Notification,
+  'id' | 'type' | 'isRead'
+>[];
+
 /**
  * NotificationFC is the shared component interface for all notification components
  */
