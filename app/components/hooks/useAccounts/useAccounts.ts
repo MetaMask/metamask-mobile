@@ -33,7 +33,6 @@ import {
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import { isMainNet } from '../../../util/networks';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
