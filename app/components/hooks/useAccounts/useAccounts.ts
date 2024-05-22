@@ -32,6 +32,8 @@ import {
   selectIsMultiAccountBalancesEnabled,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { isMainNet } from '../../../util/networks';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -40,7 +42,6 @@ import {
  */
 const useAccounts = ({
   checkBalanceError,
-  isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
   const Engine = UntypedEngine as any;
   const isMountedRef = useRef(false);
@@ -60,56 +61,28 @@ const useAccounts = ({
     selectIsMultiAccountBalancesEnabled,
   );
 
-  const fetchENSNames = useCallback(
-    async ({
-      flattenedAccounts,
-      startingIndex,
-    }: {
-      flattenedAccounts: Account[];
-      startingIndex: number;
-    }) => {
+  const fetchENSName = useCallback(
+    async (address: string) => {
       // Ensure index exists in account list.
-      let safeStartingIndex = startingIndex;
-      let mirrorIndex = safeStartingIndex - 1;
+
       let latestENSbyAccountAddress: EnsByAccountAddress = {};
 
-      if (startingIndex < 0) {
-        safeStartingIndex = 0;
-      } else if (startingIndex > flattenedAccounts.length) {
-        safeStartingIndex = flattenedAccounts.length - 1;
+      try {
+        const ens: string | undefined = await doENSReverseLookup(
+          address,
+          chainId,
+        );
+        if (ens) {
+          latestENSbyAccountAddress = {
+            ...latestENSbyAccountAddress,
+            [address]: ens,
+          };
+        }
+      } catch (e) {
+        // ENS either doesn't exist or failed to fetch.
       }
 
-      const fetchENSName = async (accountIndex: number) => {
-        const { address } = flattenedAccounts[accountIndex];
-        try {
-          const ens: string | undefined = await doENSReverseLookup(
-            address,
-            chainId,
-          );
-          if (ens) {
-            latestENSbyAccountAddress = {
-              ...latestENSbyAccountAddress,
-              [address]: ens,
-            };
-          }
-        } catch (e) {
-          // ENS either doesn't exist or failed to fetch.
-        }
-      };
-
-      // Iterate outwards in both directions starting at the starting index.
-      while (mirrorIndex >= 0 || safeStartingIndex < flattenedAccounts.length) {
-        if (!isMountedRef.current) return;
-        if (safeStartingIndex < flattenedAccounts.length) {
-          await fetchENSName(safeStartingIndex);
-        }
-        if (mirrorIndex >= 0) {
-          await fetchENSName(mirrorIndex);
-        }
-        mirrorIndex--;
-        safeStartingIndex++;
-        setENSByAccountAddress(latestENSbyAccountAddress);
-      }
+      setENSByAccountAddress(latestENSbyAccountAddress);
     },
     [chainId],
   );
@@ -118,7 +91,6 @@ const useAccounts = ({
     if (!isMountedRef.current) return;
     // Keep track of the Y position of account item. Used for scrolling purposes.
     let yOffset = 0;
-    let selectedIndex = 0;
     // Reading keyrings directly from Redux doesn't work at the momemt.
     const keyrings: any[] = Engine.context.KeyringController.state.keyrings;
     const flattenedAccounts: Account[] = keyrings.reduce((result, keyring) => {
@@ -129,9 +101,6 @@ const useAccounts = ({
       for (const index in accountAddresses) {
         const checksummedAddress = toChecksumAddress(accountAddresses[index]);
         const isSelected = selectedAddress === checksummedAddress;
-        if (isSelected) {
-          selectedIndex = result.length;
-        }
         const identity = identities[checksummedAddress];
         if (!identity) continue;
         const { name } = identity;
@@ -176,12 +145,11 @@ const useAccounts = ({
     }, []);
 
     setAccounts(flattenedAccounts);
-    fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
+
     /* eslint-disable-next-line */
   }, [
     selectedAddress,
     identities,
-    fetchENSNames,
     accountInfoByAddress,
     conversionRate,
     currentCurrency,
@@ -194,14 +162,19 @@ const useAccounts = ({
     if (!isMountedRef.current) {
       isMountedRef.current = true;
     }
-    if (isLoading) return;
-    // setTimeout is needed for now to ensure next frame contains updated keyrings.
-    setTimeout(getAccounts, 0);
-    // Once we can pull keyrings from Redux, we will replace the deps with keyrings.
+    getAccounts();
     return () => {
       isMountedRef.current = false;
     };
-  }, [getAccounts, isLoading]);
+  }, [getAccounts]);
+
+  useEffect(() => {
+    // We need this check because when switching accounts the accounts state it's empty, reason still to be investigated
+
+    if (isMainNet(chainId)) {
+      fetchENSName(selectedAddress);
+    }
+  }, [chainId, fetchENSName, selectedAddress]);
 
   return {
     accounts,
