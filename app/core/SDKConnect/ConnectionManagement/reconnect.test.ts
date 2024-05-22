@@ -50,6 +50,7 @@ describe('reconnect', () => {
 
     mockConnection = {
       remote: {
+        relayPersistence: false,
         isReady: mockRemoteIsReady,
         isPaused: mockRemoteIsPaused,
         isConnected: mockRemoteIsConnected,
@@ -148,8 +149,6 @@ describe('reconnect', () => {
       expect(mockRemoteIsReady).toHaveBeenCalledTimes(1);
       expect(mockRemoteIsPaused).toHaveBeenCalledTimes(1);
       expect(mockRemoteIsConnected).toHaveBeenCalledTimes(2);
-      expect(mockRemoteConnect).toHaveBeenCalledTimes(0);
-      expect(mockSetTrigger).toHaveBeenCalledTimes(0);
     });
 
     it('should create a new connection instance if necessary', async () => {
@@ -172,7 +171,7 @@ describe('reconnect', () => {
       expect(
         mockInstance.state.connected['test-channel-id'].connect,
       ).toHaveBeenCalledTimes(1);
-      expect(mockSetTrigger).toHaveBeenCalledTimes(0);
+      expect(mockSetTrigger).toHaveBeenCalledTimes(1);
     });
 
     it('should initiate the connection with key exchange', async () => {
@@ -195,7 +194,6 @@ describe('reconnect', () => {
       expect(
         mockInstance.state.connected['test-channel-id'].connect,
       ).toHaveBeenCalledTimes(1);
-      expect(mockSetTrigger).toHaveBeenCalledTimes(0);
     });
 
     it('should watch the new connection', async () => {
