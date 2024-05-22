@@ -45,5 +45,5 @@ describe(SmokeCore('Import all tokens detected'), () => {
     await Assertions.checkIfTextIsDisplayed('Chainlink');
   });
 
-  it('should show toast alert for tokens imported', async () => {});
+  // it('should show toast alert for tokens imported', async () => {});
 });
