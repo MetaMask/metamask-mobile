@@ -1,9 +1,6 @@
 import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
-import {
-  createAsyncMiddleware,
-  JsonRpcEngineCallbackError,
-} from 'json-rpc-engine';
+import { createAsyncMiddleware } from 'json-rpc-engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   EndFlowOptions,
@@ -62,6 +59,7 @@ export enum ApprovalTypes {
   TRANSACTION = 'transaction',
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
+  SMART_TRANSACTION_STATUS = 'smart_transaction_status',
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
@@ -129,7 +127,8 @@ export const checkActiveAccountAndChainId = async ({
       permissionsController.state,
     );
 
-    const accounts = (await getPermittedAccounts(channelId ?? hostname)) ?? [];
+    const origin = isWalletConnect ? hostname : channelId ?? hostname;
+    const accounts = await getPermittedAccounts(origin);
 
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
@@ -295,8 +294,8 @@ export const getRpcMethodMiddleware = ({
   return createAsyncMiddleware(async (req: any, res: any, next: any) => {
     // Used by eth_accounts and eth_coinbase RPCs.
     const getEthAccounts = async () => {
-      const accounts: string[] =
-        (await getPermittedAccounts(channelId ?? hostname)) ?? [];
+      const origin = isWalletConnect ? hostname : channelId ?? hostname;
+      const accounts = await getPermittedAccounts(origin);
       res.result = accounts;
     };
 
@@ -390,7 +389,7 @@ export const getRpcMethodMiddleware = ({
               req,
               res,
               next,
-              (err: JsonRpcEngineCallbackError | undefined) => {
+              (err) => {
                 if (err) {
                   return reject(err);
                 }
@@ -464,9 +463,9 @@ export const getRpcMethodMiddleware = ({
       },
       eth_requestAccounts: async () => {
         const { params } = req;
-        const permittedAccounts = await getPermittedAccounts(
-          channelId ?? hostname,
-        );
+
+        const origin = isWalletConnect ? hostname : channelId ?? hostname;
+        const permittedAccounts = await getPermittedAccounts(origin);
 
         if (!params?.force && permittedAccounts.length) {
           res.result = permittedAccounts;
@@ -474,11 +473,11 @@ export const getRpcMethodMiddleware = ({
           try {
             checkTabActive();
             await Engine.context.PermissionController.requestPermissions(
-              { origin: channelId ?? hostname },
+              { origin },
               { eth_accounts: {} },
             );
             DevLogger.log(`eth_requestAccounts requestPermissions`);
-            const acc = await getPermittedAccounts(channelId ?? hostname);
+            const acc = await getPermittedAccounts(origin);
             DevLogger.log(`eth_requestAccounts getPermittedAccounts`, acc);
             res.result = acc;
           } catch (error) {
@@ -491,6 +490,7 @@ export const getRpcMethodMiddleware = ({
           }
         }
       },
+      // TODO: This code is no longer used and should be removed in the future. eth_accounts is implemented by permissions specifications
       eth_accounts: getEthAccounts,
       eth_coinbase: getEthAccounts,
       parity_defaultAccount: getEthAccounts,
@@ -836,8 +836,8 @@ export const getRpcMethodMiddleware = ({
        * initialization.
        */
       metamask_getProviderState: async () => {
-        let accounts: string[] = [];
-        accounts = (await getPermittedAccounts(channelId ?? hostname)) ?? [];
+        const origin = isWalletConnect ? hostname : channelId ?? hostname;
+        const accounts = await getPermittedAccounts(origin);
         res.result = {
           ...getProviderState(),
           accounts,
