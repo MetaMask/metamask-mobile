@@ -1,5 +1,5 @@
 import React, { Fragment, PureComponent } from 'react';
-import { View, ScrollView, Alert, BackHandler } from 'react-native';
+import { View, ScrollView, Alert, Platform, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -42,6 +42,7 @@ import {
   SYMBOL_ERROR,
 } from '../../../../../constants/error';
 import createStyles from './styles';
+import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
   selectChainId,
   selectProviderType,
@@ -493,7 +494,7 @@ class SendFlow extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        testID={SendViewSelectorsIDs.CONTAINER_ID}
+        {...generateTestId(Platform, SendViewSelectorsIDs.CONTAINER_ID)}
       >
         <View style={styles.imputWrapper}>
           <SendFlowAddressFrom
