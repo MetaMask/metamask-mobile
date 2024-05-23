@@ -1,11 +1,14 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
-import { selectSelectedInternalAccount, selectInternalAccounts } from '.';
+import {
+  selectSelectedInternalAccount,
+  selectInternalAccounts,
+} from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   expectedUuid,
   expectedUuid2,
   internalAccount1,
-} from '../../util/test/accountsControllerTestUtils';
+} from '../util/test/accountsControllerTestUtils';
 import { captureException } from '@sentry/react-native';
 
 jest.mock('@sentry/react-native', () => ({

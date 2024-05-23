@@ -1,7 +1,7 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
-import { RootState } from '../../reducers';
+import { RootState } from '../reducers';
 
 const selectAccountsControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountsController;
