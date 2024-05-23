@@ -386,7 +386,7 @@ class Engine {
   /**
    * Object that runs and manages the execution of Snaps
    */
-  snapExecutionService: WebViewExecutionService;
+  snapExecutionService: typeof WebViewExecutionService;
 
   ///: END:ONLY_INCLUDE_IF
 
@@ -908,7 +908,6 @@ class Engine {
 
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
-    //@ts-expect-error Misalign types because of Base Controller version
     const snapsRegistryMessenger: SnapsRegistryMessenger =
       this.controllerMessenger.getRestricted({
         name: 'SnapsRegistry',
@@ -919,7 +918,6 @@ class Engine {
       state: initialState.SnapsRegistry,
       messenger: snapsRegistryMessenger,
       refetchOnAllowlistMiss: requireAllowlist,
-      failOnUnavailableRegistry: requireAllowlist,
       url: {
         registry: 'https://acl.execution.metamask.io/latest/registry.json',
         signature: 'https://acl.execution.metamask.io/latest/signature.json',
@@ -929,7 +927,6 @@ class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
-      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
         allowedActions: [],
