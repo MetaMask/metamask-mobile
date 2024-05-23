@@ -80,3 +80,6 @@ export const LEDGER_SUPPORT_LINK =
 
 export const GOERLI_DEPRECATED_ARTICLE =
   'https://github.com/eth-clients/goerli#goerli-goerlitzer-testnet';
+
+export const ETHEREUM_LOGO =
+  'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg';
