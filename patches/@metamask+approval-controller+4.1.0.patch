@@ -1,0 +1,2056 @@
+diff --git a/node_modules/@metamask/approval-controller/dist/.patch.txt b/node_modules/@metamask/approval-controller/dist/.patch.txt
+new file mode 100644
+index 0000000..550de56
+--- /dev/null
++++ b/node_modules/@metamask/approval-controller/dist/.patch.txt
+@@ -0,0 +1,7 @@
++PATCH GENERATED FROM MetaMask/core branch: patch/mobile-approval-controller-4-1-0
++This patch backports various transaction controller features from the main branch of MetaMask/core
++Steps to update patch:
++* Create a new core branch from: patch/mobile-approval-controller-4-1-0
++* Run "yarn build" in the core monorepo
++* Run "yarn patch:approval <core-directory>" in the mobile repo
++* Once the new patch is merged, add your changes to: patch/mobile-approval-controller-4-1-0
+diff --git a/node_modules/@metamask/approval-controller/dist/ApprovalController.d.ts b/node_modules/@metamask/approval-controller/dist/ApprovalController.d.ts
+index 70ea87a..e5dc1cf 100644
+--- a/node_modules/@metamask/approval-controller/dist/ApprovalController.d.ts
++++ b/node_modules/@metamask/approval-controller/dist/ApprovalController.d.ts
+@@ -99,6 +99,12 @@ export declare type AcceptOptions = {
+      * If false or unspecified, the promise will resolve immediately.
+      */
+     waitForResult?: boolean;
++    /**
++     * Whether to delete the approval request after a result callback is called.
++     * If false or unspecified, the approval request will be deleted immediately.
++     * Ignored if `waitForResult` is false or unspecified.
++     */
++    deleteAfterResult?: boolean;
+ };
+ export declare type StartFlowOptions = OptionalField<ApprovalFlow, 'id' | 'loadingText'> & {
+     show?: boolean;
+diff --git a/node_modules/@metamask/approval-controller/dist/ApprovalController.d.ts.map b/node_modules/@metamask/approval-controller/dist/ApprovalController.d.ts.map
+deleted file mode 100644
+index 8917937..0000000
+--- a/node_modules/@metamask/approval-controller/dist/ApprovalController.d.ts.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"ApprovalController.d.ts","sourceRoot":"","sources":["../src/ApprovalController.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/ApprovalController.js b/node_modules/@metamask/approval-controller/dist/ApprovalController.js
+index 260261e..0c1f22a 100644
+--- a/node_modules/@metamask/approval-controller/dist/ApprovalController.js
++++ b/node_modules/@metamask/approval-controller/dist/ApprovalController.js
+@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _ApprovalController_instances, _ApprovalController_approvals, _ApprovalController_origins, _ApprovalController_showApprovalRequest, _ApprovalController_typesExcludedFromRateLimiting, _ApprovalController_add, _ApprovalController_validateAddParams, _ApprovalController_addPendingApprovalOrigin, _ApprovalController_addToStore, _ApprovalController_delete, _ApprovalController_deleteApprovalAndGetCallbacks, _ApprovalController_result;
++var _ApprovalController_instances, _ApprovalController_approvals, _ApprovalController_origins, _ApprovalController_showApprovalRequest, _ApprovalController_typesExcludedFromRateLimiting, _ApprovalController_add, _ApprovalController_validateAddParams, _ApprovalController_addPendingApprovalOrigin, _ApprovalController_addToStore, _ApprovalController_delete, _ApprovalController_getCallbacks, _ApprovalController_result;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ApprovalController = exports.APPROVAL_TYPE_RESULT_SUCCESS = exports.APPROVAL_TYPE_RESULT_ERROR = exports.ORIGIN_METAMASK = void 0;
+ const base_controller_1 = require("@metamask/base-controller");
+@@ -227,7 +227,12 @@ class ApprovalController extends base_controller_1.BaseControllerV2 {
+     accept(id, value, options) {
+         // Safe to cast as the delete method below will throw if the ID is not found
+         const approval = this.get(id);
+-        const requestPromise = __classPrivateFieldGet(this, _ApprovalController_instances, "m", _ApprovalController_deleteApprovalAndGetCallbacks).call(this, id);
++        const requestPromise = __classPrivateFieldGet(this, _ApprovalController_instances, "m", _ApprovalController_getCallbacks).call(this, id);
++        let requestDeleted = false;
++        if (!(options === null || options === void 0 ? void 0 : options.deleteAfterResult) || !options.waitForResult) {
++            __classPrivateFieldGet(this, _ApprovalController_instances, "m", _ApprovalController_delete).call(this, id);
++            requestDeleted = true;
++        }
+         return new Promise((resolve, reject) => {
+             const resultCallbacks = {
+                 success: (acceptValue) => resolve({ value: acceptValue }),
+@@ -245,6 +250,10 @@ class ApprovalController extends base_controller_1.BaseControllerV2 {
+             if (!(options === null || options === void 0 ? void 0 : options.waitForResult)) {
+                 resolve({ value: undefined });
+             }
++        }).finally(() => {
++            if (!requestDeleted) {
++                __classPrivateFieldGet(this, _ApprovalController_instances, "m", _ApprovalController_delete).call(this, id);
++            }
+         });
+     }
+     /**
+@@ -255,7 +264,9 @@ class ApprovalController extends base_controller_1.BaseControllerV2 {
+      * @param error - The error to reject the approval promise with.
+      */
+     reject(id, error) {
+-        __classPrivateFieldGet(this, _ApprovalController_instances, "m", _ApprovalController_deleteApprovalAndGetCallbacks).call(this, id).reject(error);
++        const callbacks = __classPrivateFieldGet(this, _ApprovalController_instances, "m", _ApprovalController_getCallbacks).call(this, id);
++        __classPrivateFieldGet(this, _ApprovalController_instances, "m", _ApprovalController_delete).call(this, id);
++        callbacks.reject(error);
+     }
+     /**
+      * Rejects and deletes all approval requests.
+@@ -445,10 +456,10 @@ _ApprovalController_approvals = new WeakMap(), _ApprovalController_origins = new
+         draftState.pendingApprovalCount = Object.keys(draftState.pendingApprovals).length;
+     });
+ }, _ApprovalController_delete = function _ApprovalController_delete(id) {
++    if (!__classPrivateFieldGet(this, _ApprovalController_approvals, "f").has(id)) {
++        throw new errors_1.ApprovalRequestNotFoundError(id);
++    }
+     __classPrivateFieldGet(this, _ApprovalController_approvals, "f").delete(id);
+-    // This method is only called after verifying that the approval with the
+-    // specified id exists.
+-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     const { origin, type } = this.state.pendingApprovals[id];
+     const originMap = __classPrivateFieldGet(this, _ApprovalController_origins, "f").get(origin);
+     const originTotalCount = this.getApprovalCount({ origin });
+@@ -463,12 +474,11 @@ _ApprovalController_approvals = new WeakMap(), _ApprovalController_origins = new
+         delete draftState.pendingApprovals[id];
+         draftState.pendingApprovalCount = Object.keys(draftState.pendingApprovals).length;
+     });
+-}, _ApprovalController_deleteApprovalAndGetCallbacks = function _ApprovalController_deleteApprovalAndGetCallbacks(id) {
++}, _ApprovalController_getCallbacks = function _ApprovalController_getCallbacks(id) {
+     const callbacks = __classPrivateFieldGet(this, _ApprovalController_approvals, "f").get(id);
+     if (!callbacks) {
+         throw new errors_1.ApprovalRequestNotFoundError(id);
+     }
+-    __classPrivateFieldGet(this, _ApprovalController_instances, "m", _ApprovalController_delete).call(this, id);
+     return callbacks;
+ }, _ApprovalController_result = function _ApprovalController_result(type, opts, requestData) {
+     return __awaiter(this, void 0, void 0, function* () {
+diff --git a/node_modules/@metamask/approval-controller/dist/ApprovalController.js.map b/node_modules/@metamask/approval-controller/dist/ApprovalController.js.map
+deleted file mode 100644
+index ff0b552..0000000
+--- a/node_modules/@metamask/approval-controller/dist/ApprovalController.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"ApprovalController.js","sourceRoot":"","sources":["../src/ApprovalController.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;AACA,+DAA6D;AAE7D,qDAAiD;AAGjD,mCAAgC;AAEhC,qCAMkB;AAElB,YAAY;AAEZ,0CAA0C;AAC7B,QAAA,eAAe,GAAG,UAAU,CAAC;AAC7B,QAAA,0BAA0B,GAAG,cAAc,CAAC;AAC5C,QAAA,4BAA4B,GAAG,gBAAgB,CAAC;AAE7D,MAAM,cAAc,GAAG,oBAAoB,CAAC;AAE5C,MAAM,aAAa,GAAG;IACpB,gBAAgB,EAAE,EAAE,OAAO,EAAE,KAAK,EAAE,SAAS,EAAE,IAAI,EAAE;IACrD,oBAAoB,EAAE,EAAE,OAAO,EAAE,KAAK,EAAE,SAAS,EAAE,KAAK,EAAE;IAC1D,aAAa,EAAE,EAAE,OAAO,EAAE,KAAK,EAAE,SAAS,EAAE,KAAK,EAAE;CACpD,CAAC;AAEF,MAAM,wBAAwB,GAAG,CAAC,MAAc,EAAE,IAAY,EAAE,EAAE,CAChE,oBAAoB,IAAI,gCAAgC,MAAM,gBAAgB,CAAC;AAEjF,MAAM,eAAe,GAAG,GAA4B,EAAE;IACpD,OAAO;QACL,gBAAgB,EAAE,EAAE;QACpB,oBAAoB,EAAE,CAAC;QACvB,aAAa,EAAE,EAAE;KAClB,CAAC;AACJ,CAAC,CAAC;AAgSF;;;;;;;;GAQG;AACH,MAAa,kBAAmB,SAAQ,kCAIvC;IASC;;;;;;;;;OASG;IACH,YAAY,EACV,SAAS,EACT,mBAAmB,EACnB,KAAK,GAAG,EAAE,EACV,6BAA6B,GAAG,EAAE,GACR;QAC1B,KAAK,CAAC;YACJ,IAAI,EAAE,cAAc;YACpB,QAAQ,EAAE,aAAa;YACvB,SAAS;YACT,KAAK,kCAAO,eAAe,EAAE,GAAK,KAAK,CAAE;SAC1C,CAAC,CAAC;;QA7BL,gDAA2C;QAE3C,8CAA2C;QAE3C,0DAAiC;QAEjC,oEAAyC;QAyBvC,uBAAA,IAAI,iCAAc,IAAI,GAAG,EAAE,MAAA,CAAC;QAC5B,uBAAA,IAAI,+BAAY,IAAI,GAAG,EAAE,MAAA,CAAC;QAC1B,uBAAA,IAAI,2CAAwB,mBAAmB,MAAA,CAAC;QAChD,uBAAA,IAAI,qDAAkC,6BAA6B,MAAA,CAAC;QACpE,IAAI,CAAC,uBAAuB,EAAE,CAAC;IACjC,CAAC;IAED;;;OAGG;IACK,uBAAuB;QAC7B,IAAI,CAAC,eAAe,CAAC,qBAAqB,CACxC,GAAG,cAAc,gBAAyB,EAC1C,IAAI,CAAC,KAAK,CAAC,IAAI,CAAC,IAAI,CAAC,CACtB,CAAC;QAEF,IAAI,CAAC,eAAe,CAAC,qBAAqB,CACxC,GAAG,cAAc,aAAsB,EACvC,CAAC,IAAwB,EAAE,iBAA0B,EAAE,EAAE;YACvD,IAAI,iBAAiB,EAAE;gBACrB,OAAO,IAAI,CAAC,yBAAyB,CAAC,IAAI,CAAC,CAAC;aAC7C;YACD,OAAO,IAAI,CAAC,GAAG,CAAC,IAAI,CAAC,CAAC;QACxB,CAAC,CACF,CAAC;QAEF,IAAI,CAAC,eAAe,CAAC,qBAAqB,CACxC,GAAG,cAAc,aAAsB,EACvC,IAAI,CAAC,GAAG,CAAC,IAAI,CAAC,IAAI,CAAC,CACpB,CAAC;QAEF,IAAI,CAAC,eAAe,CAAC,qBAAqB,CACxC,GAAG,cAAc,gBAAyB,EAC1C,IAAI,CAAC,MAAM,CAAC,IAAI,CAAC,IAAI,CAAC,CACvB,CAAC;QAEF,IAAI,CAAC,eAAe,CAAC,qBAAqB,CACxC,GAAG,cAAc,gBAAyB,EAC1C,IAAI,CAAC,MAAM,CAAC,IAAI,CAAC,IAAI,CAAC,CACvB,CAAC;QAEF,IAAI,CAAC,eAAe,CAAC,qBAAqB,CACxC,GAAG,cAAc,qBAA8B,EAC/C,IAAI,CAAC,kBAAkB,CAAC,IAAI,CAAC,IAAI,CAAC,CACnC,CAAC;QAEF,IAAI,CAAC,eAAe,CAAC,qBAAqB,CACxC,GAAG,cAAc,YAAqB,EACtC,IAAI,CAAC,SAAS,CAAC,IAAI,CAAC,IAAI,CAAC,CAC1B,CAAC;QAEF,IAAI,CAAC,eAAe,CAAC,qBAAqB,CACxC,GAAG,cAAc,UAAmB,EACpC,IAAI,CAAC,OAAO,CAAC,IAAI,CAAC,IAAI,CAAC,CACxB,CAAC;QAEF,IAAI,CAAC,eAAe,CAAC,qBAAqB,CACxC,GAAG,cAAc,qBAA8B,EAC/C,IAAI,CAAC,kBAAkB,CAAC,IAAI,CAAC,IAAI,CAAC,CACnC,CAAC;QAEF,IAAI,CAAC,eAAe,CAAC,qBAAqB,CACxC,GAAG,cAAc,cAAuB,EACxC,IAAI,CAAC,OAAO,CAAC,IAAI,CAAC,IAAI,CAAC,CACxB,CAAC;QAEF,IAAI,CAAC,eAAe,CAAC,qBAAqB,CACxC,GAAG,cAAc,YAAqB,EACtC,IAAI,CAAC,KAAK,CAAC,IAAI,CAAC,IAAI,CAAC,CACtB,CAAC;IACJ,CAAC;IA4CD,yBAAyB,CAAC,IAAwB;QAChD,MAAM,OAAO,GAAG,uBAAA,IAAI,8DAAK,MAAT,IAAI,EAClB,IAAI,CAAC,MAAM,EACX,IAAI,CAAC,IAAI,EACT,IAAI,CAAC,EAAE,EACP,IAAI,CAAC,WAAW,EAChB,IAAI,CAAC,YAAY,EACjB,IAAI,CAAC,aAAa,CACnB,CAAC;QACF,uBAAA,IAAI,+CAAqB,MAAzB,IAAI,CAAuB,CAAC;QAC5B,OAAO,OAAO,CAAC;IACjB,CAAC;IAsCD,GAAG,CAAC,IAAwB;QAC1B,OAAO,uBAAA,IAAI,8DAAK,MAAT,IAAI,EACT,IAAI,CAAC,MAAM,EACX,IAAI,CAAC,IAAI,EACT,IAAI,CAAC,EAAE,EACP,IAAI,CAAC,WAAW,EAChB,IAAI,CAAC,YAAY,EACjB,IAAI,CAAC,aAAa,CACnB,CAAC;IACJ,CAAC;IAED;;;;;OAKG;IACH,GAAG,CAAC,EAAU;QACZ,OAAO,IAAI,CAAC,KAAK,CAAC,gBAAgB,CAAC,EAAE,CAAC,CAAC;IACzC,CAAC;IAED;;;;;;;;;;;;;;OAcG;IACH,gBAAgB,CAAC,OAA2C,EAAE;;QAC5D,IAAI,CAAC,IAAI,CAAC,MAAM,IAAI,CAAC,IAAI,CAAC,IAAI,EAAE;YAC9B,MAAM,IAAI,KAAK,CAAC,qCAAqC,CAAC,CAAC;SACxD;QACD,MAAM,EAAE,MAAM,EAAE,IAAI,EAAE,KAAK,EAAE,GAAG,IAAI,CAAC;QAErC,IAAI,MAAM,IAAI,KAAK,EAAE;YACnB,OAAO,CAAA,MAAA,uBAAA,IAAI,mCAAS,CAAC,GAAG,CAAC,MAAM,CAAC,0CAAE,GAAG,CAAC,KAAK,CAAC,KAAI,CAAC,CAAC;SACnD;QAED,IAAI,MAAM,EAAE;YACV,OAAO,KAAK,CAAC,IAAI,CACf,CAAC,uBAAA,IAAI,mCAAS,CAAC,GAAG,CAAC,MAAM,CAAC,IAAI,IAAI,GAAG,EAAE,CAAC,CAAC,MAAM,EAAE,CAClD,CAAC,MAAM,CAAC,CAAC,KAAK,EAAE,KAAK,EAAE,EAAE,CAAC,KAAK,GAAG,KAAK,EAAE,CAAC,CAAC,CAAC;SAC9C;QAED,4BAA4B;QAC5B,IAAI,KAAK,GAAG,CAAC,CAAC;QACd,KAAK,MAAM,QAAQ,IAAI,MAAM,CAAC,MAAM,CAAC,IAAI,CAAC,KAAK,CAAC,gBAAgB,CAAC,EAAE;YACjE,IAAI,QAAQ,CAAC,IAAI,KAAK,KAAK,EAAE;gBAC3B,KAAK,IAAI,CAAC,CAAC;aACZ;SACF;QACD,OAAO,KAAK,CAAC;IACf,CAAC;IAED;;;;OAIG;IACH,qBAAqB;QACnB,OAAO,IAAI,CAAC,KAAK,CAAC,oBAAoB,CAAC;IACzC,CAAC;IAED;;;;;;;;;;;;;;OAcG;IACH,GAAG,CAAC,OAAwD,EAAE;;QAC5D,MAAM,EAAE,EAAE,EAAE,MAAM,EAAE,IAAI,EAAE,KAAK,EAAE,GAAG,IAAI,CAAC;QAEzC,IAAI,EAAE,EAAE;YACN,IAAI,OAAO,EAAE,KAAK,QAAQ,EAAE;gBAC1B,MAAM,IAAI,KAAK,CAAC,gCAAgC,CAAC,CAAC;aACnD;YACD,OAAO,uBAAA,IAAI,qCAAW,CAAC,GAAG,CAAC,EAAE,CAAC,CAAC;SAChC;QAED,IAAI,KAAK,IAAI,OAAO,KAAK,KAAK,QAAQ,EAAE;YACtC,MAAM,IAAI,KAAK,CAAC,kCAAkC,CAAC,CAAC;SACrD;QAED,IAAI,MAAM,EAAE;YACV,IAAI,OAAO,MAAM,KAAK,QAAQ,EAAE;gBAC9B,MAAM,IAAI,KAAK,CAAC,oCAAoC,CAAC,CAAC;aACvD;YAED,oDAAoD;YACpD,IAAI,KAAK,EAAE;gBACT,OAAO,OAAO,CAAC,MAAA,uBAAA,IAAI,mCAAS,CAAC,GAAG,CAAC,MAAM,CAAC,0CAAE,GAAG,CAAC,KAAK,CAAC,CAAC,CAAC;aACvD;YACD,OAAO,uBAAA,IAAI,mCAAS,CAAC,GAAG,CAAC,MAAM,CAAC,CAAC;SAClC;QAED,IAAI,KAAK,EAAE;YACT,KAAK,MAAM,QAAQ,IAAI,MAAM,CAAC,MAAM,CAAC,IAAI,CAAC,KAAK,CAAC,gBAAgB,CAAC,EAAE;gBACjE,IAAI,QAAQ,CAAC,IAAI,KAAK,KAAK,EAAE;oBAC3B,OAAO,IAAI,CAAC;iBACb;aACF;YACD,OAAO,KAAK,CAAC;SACd;QACD,MAAM,IAAI,KAAK,CACb,2DAA2D,CAC5D,CAAC;IACJ,CAAC;IAED;;;;;;;;;;OAUG;IACH,MAAM,CACJ,EAAU,EACV,KAAe,EACf,OAAuB;QAEvB,4EAA4E;QAC5E,MAAM,QAAQ,GAAG,IAAI,CAAC,GAAG,CAAC,EAAE,CAAyC,CAAC;QACtE,MAAM,cAAc,GAAG,uBAAA,IAAI,wFAA+B,MAAnC,IAAI,EAAgC,EAAE,CAAC,CAAC;QAE/D,OAAO,IAAI,OAAO,CAAC,CAAC,OAAO,EAAE,MAAM,EAAE,EAAE;YACrC,MAAM,eAAe,GAA0B;gBAC7C,OAAO,EAAE,CAAC,WAAqB,EAAE,EAAE,CAAC,OAAO,CAAC,EAAE,KAAK,EAAE,WAAW,EAAE,CAAC;gBACnE,KAAK,EAAE,MAAM;aACd,CAAC;YAEF,IAAI,CAAA,OAAO,aAAP,OAAO,uBAAP,OAAO,CAAE,aAAa,KAAI,CAAC,QAAQ,CAAC,aAAa,EAAE;gBACrD,MAAM,CAAC,IAAI,4CAAmC,CAAC,EAAE,CAAC,CAAC,CAAC;gBACpD,OAAO;aACR;YAED,MAAM,WAAW,GAAG,CAAA,OAAO,aAAP,OAAO,uBAAP,OAAO,CAAE,aAAa,EAAC,CAAC,CAAC,eAAe,CAAC,CAAC,CAAC,SAAS,CAAC;YAEzE,MAAM,YAAY,GAAG,QAAQ,CAAC,aAAa;gBACzC,CAAC,CAAC,EAAE,KAAK,EAAE,eAAe,EAAE,WAAW,EAAE;gBACzC,CAAC,CAAC,KAAK,CAAC;YAEV,cAAc,CAAC,OAAO,CAAC,YAAY,CAAC,CAAC;YAErC,IAAI,CAAC,CAAA,OAAO,aAAP,OAAO,uBAAP,OAAO,CAAE,aAAa,CAAA,EAAE;gBAC3B,OAAO,CAAC,EAAE,KAAK,EAAE,SAAS,EAAE,CAAC,CAAC;aAC/B;QACH,CAAC,CAAC,CAAC;IACL,CAAC;IAED;;;;;;OAMG;IACH,MAAM,CAAC,EAAU,EAAE,KAAc;QAC/B,uBAAA,IAAI,wFAA+B,MAAnC,IAAI,EAAgC,EAAE,CAAC,CAAC,MAAM,CAAC,KAAK,CAAC,CAAC;IACxD,CAAC;IAED;;;;;OAKG;IACH,KAAK,CAAC,cAAmD;QACvD,KAAK,MAAM,EAAE,IAAI,uBAAA,IAAI,qCAAW,CAAC,IAAI,EAAE,EAAE;YACvC,IAAI,CAAC,MAAM,CAAC,EAAE,EAAE,cAAc,CAAC,CAAC;SACjC;QACD,uBAAA,IAAI,mCAAS,CAAC,KAAK,EAAE,CAAC;QACtB,IAAI,CAAC,MAAM,CAAC,CAAC,UAAU,EAAE,EAAE;YACzB,UAAU,CAAC,gBAAgB,GAAG,EAAE,CAAC;YACjC,UAAU,CAAC,oBAAoB,GAAG,CAAC,CAAC;QACtC,CAAC,CAAC,CAAC;IACL,CAAC;IAED;;;;;;OAMG;IACH,kBAAkB,CAAC,IAA+B;QAChD,IAAI,CAAC,IAAI,CAAC,KAAK,CAAC,gBAAgB,CAAC,IAAI,CAAC,EAAE,CAAC,EAAE;YACzC,MAAM,IAAI,qCAA4B,CAAC,IAAI,CAAC,EAAE,CAAC,CAAC;SACjD;QAED,IAAI,CAAC,MAAM,CAAC,CAAC,UAAU,EAAE,EAAE;YACzB,qBAAqB;YACrB,UAAU,CAAC,gBAAgB,CAAC,IAAI,CAAC,EAAE,CAAC,CAAC,YAAY;gBAC/C,IAAI,CAAC,YAAmB,CAAC;QAC7B,CAAC,CAAC,CAAC;IACL,CAAC;IAED;;;;;;;;OAQG;IACH,SAAS,CAAC,OAAyB,EAAE;;QACnC,MAAM,EAAE,GAAG,MAAA,IAAI,CAAC,EAAE,mCAAI,IAAA,eAAM,GAAE,CAAC;QAC/B,MAAM,WAAW,GAAG,MAAA,IAAI,CAAC,WAAW,mCAAI,IAAI,CAAC;QAE7C,IAAI,CAAC,MAAM,CAAC,CAAC,UAAU,EAAE,EAAE;YACzB,UAAU,CAAC,aAAa,CAAC,IAAI,CAAC,EAAE,EAAE,EAAE,WAAW,EAAE,CAAC,CAAC;QACrD,CAAC,CAAC,CAAC;QAEH,yEAAyE;QACzE,IAAI,IAAI,CAAC,IAAI,KAAK,KAAK,EAAE;YACvB,uBAAA,IAAI,+CAAqB,MAAzB,IAAI,CAAuB,CAAC;SAC7B;QAED,OAAO,EAAE,EAAE,EAAE,WAAW,EAAE,CAAC;IAC7B,CAAC;IAED;;;;;OAKG;IACH,OAAO,CAAC,EAAE,EAAE,EAAkB;QAC5B,IAAI,CAAC,IAAI,CAAC,KAAK,CAAC,aAAa,CAAC,MAAM,EAAE;YACpC,MAAM,IAAI,6BAAoB,EAAE,CAAC;SAClC;QAED,MAAM,WAAW,GAAG,IAAI,CAAC,KAAK,CAAC,aAAa,CAAC,KAAK,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC;QAE1D,IAAI,EAAE,KAAK,WAAW,CAAC,EAAE,EAAE;YACzB,MAAM,IAAI,4BAAmB,CAC3B,EAAE,EACF,IAAI,CAAC,KAAK,CAAC,aAAa,CAAC,GAAG,CAAC,CAAC,IAAI,EAAE,EAAE,CAAC,IAAI,CAAC,EAAE,CAAC,CAChD,CAAC;SACH;QAED,IAAI,CAAC,MAAM,CAAC,CAAC,UAAU,EAAE,EAAE;YACzB,UAAU,CAAC,aAAa,CAAC,GAAG,EAAE,CAAC;QACjC,CAAC,CAAC,CAAC;IACL,CAAC;IAED;;;;;;OAMG;IACH,kBAAkB,CAAC,EAAE,EAAE,EAAE,WAAW,EAA6B;QAC/D,MAAM,SAAS,GAAG,IAAI,CAAC,KAAK,CAAC,aAAa,CAAC,SAAS,CAClD,CAAC,IAAI,EAAE,EAAE,CAAC,IAAI,CAAC,EAAE,KAAK,EAAE,CACzB,CAAC;QAEF,IAAI,SAAS,KAAK,CAAC,CAAC,EAAE;YACpB,MAAM,IAAI,iCAAwB,CAAC,EAAE,CAAC,CAAC;SACxC;QAED,IAAI,CAAC,MAAM,CAAC,CAAC,UAAU,EAAE,EAAE;YACzB,UAAU,CAAC,aAAa,CAAC,SAAS,CAAC,CAAC,WAAW,GAAG,WAAW,CAAC;QAChE,CAAC,CAAC,CAAC;IACL,CAAC;IAED;;;;;;;;OAQG;IACG,OAAO,CAAC,OAAuB,EAAE;;YACrC,MAAM,uBAAA,IAAI,iEAAQ,MAAZ,IAAI,EAAS,oCAA4B,EAAE,IAAI,EAAE;gBACrD,OAAO,EAAE,IAAI,CAAC,OAAO;gBACrB,MAAM,EAAE,IAAI,CAAC,MAAM;aACb,CAAC,CAAC;YACV,OAAO,EAAE,CAAC;QACZ,CAAC;KAAA;IAED;;;;;;;;OAQG;IACG,KAAK,CAAC,OAAqB,EAAE;;YACjC,MAAM,uBAAA,IAAI,iEAAQ,MAAZ,IAAI,EAAS,kCAA0B,EAAE,IAAI,EAAE;gBACnD,KAAK,EAAE,IAAI,CAAC,KAAK;gBACjB,MAAM,EAAE,IAAI,CAAC,MAAM;aACb,CAAC,CAAC;YACV,OAAO,EAAE,CAAC;QACZ,CAAC;KAAA;CA8NF;AAtuBD,gDAsuBC;kUAhNG,MAAc,EACd,IAAY,EACZ,KAAa,IAAA,eAAM,GAAE,EACrB,WAAkC,EAClC,YAAmC,EACnC,aAAuB;IAEvB,uBAAA,IAAI,4EAAmB,MAAvB,IAAI,EAAoB,EAAE,EAAE,MAAM,EAAE,IAAI,EAAE,WAAW,EAAE,YAAY,CAAC,CAAC;IAErE,IACE,CAAC,uBAAA,IAAI,yDAA+B,CAAC,QAAQ,CAAC,IAAI,CAAC;QACnD,IAAI,CAAC,GAAG,CAAC,EAAE,MAAM,EAAE,IAAI,EAAE,CAAC,EAC1B;QACA,MAAM,sBAAS,CAAC,mBAAmB,CACjC,wBAAwB,CAAC,MAAM,EAAE,IAAI,CAAC,CACvC,CAAC;KACH;IAED,uBAAuB;IACvB,OAAO,IAAI,OAAO,CAAC,CAAC,OAAO,EAAE,MAAM,EAAE,EAAE;QACrC,uBAAA,IAAI,qCAAW,CAAC,GAAG,CAAC,EAAE,EAAE,EAAE,OAAO,EAAE,MAAM,EAAE,CAAC,CAAC;QAC7C,uBAAA,IAAI,mFAA0B,MAA9B,IAAI,EAA2B,MAAM,EAAE,IAAI,CAAC,CAAC;QAE7C,uBAAA,IAAI,qEAAY,MAAhB,IAAI,EACF,EAAE,EACF,MAAM,EACN,IAAI,EACJ,WAAW,EACX,YAAY,EACZ,aAAa,CACd,CAAC;IACJ,CAAC,CAAC,CAAC;AACL,CAAC,yFAYC,EAAU,EACV,MAAc,EACd,IAAY,EACZ,WAAkC,EAClC,YAAmC;IAEnC,IAAI,YAAY,GAAG,IAAI,CAAC;IACxB,IAAI,CAAC,EAAE,IAAI,OAAO,EAAE,KAAK,QAAQ,EAAE;QACjC,YAAY,GAAG,mCAAmC,CAAC;KACpD;SAAM,IAAI,uBAAA,IAAI,qCAAW,CAAC,GAAG,CAAC,EAAE,CAAC,EAAE;QAClC,YAAY,GAAG,6BAA6B,EAAE,mBAAmB,CAAC;KACnE;SAAM,IAAI,CAAC,MAAM,IAAI,OAAO,MAAM,KAAK,QAAQ,EAAE;QAChD,YAAY,GAAG,uCAAuC,CAAC;KACxD;SAAM,IAAI,CAAC,IAAI,IAAI,OAAO,IAAI,KAAK,QAAQ,EAAE;QAC5C,YAAY,GAAG,qCAAqC,CAAC;KACtD;SAAM,IACL,WAAW;QACX,CAAC,OAAO,WAAW,KAAK,QAAQ,IAAI,KAAK,CAAC,OAAO,CAAC,WAAW,CAAC,CAAC,EAC/D;QACA,YAAY,GAAG,mDAAmD,CAAC;KACpE;SAAM,IACL,YAAY;QACZ,CAAC,OAAO,YAAY,KAAK,QAAQ,IAAI,KAAK,CAAC,OAAO,CAAC,YAAY,CAAC,CAAC,EACjE;QACA,YAAY,GAAG,oDAAoD,CAAC;KACrE;IAED,IAAI,YAAY,EAAE;QAChB,MAAM,sBAAS,CAAC,QAAQ,CAAC,YAAY,CAAC,CAAC;KACxC;AACH,CAAC,uGASyB,MAAc,EAAE,IAAY;IACpD,IAAI,SAAS,GAAG,uBAAA,IAAI,mCAAS,CAAC,GAAG,CAAC,MAAM,CAAC,CAAC;IAE1C,IAAI,CAAC,SAAS,EAAE;QACd,SAAS,GAAG,IAAI,GAAG,EAAE,CAAC;QACtB,uBAAA,IAAI,mCAAS,CAAC,GAAG,CAAC,MAAM,EAAE,SAAS,CAAC,CAAC;KACtC;IAED,MAAM,YAAY,GAAG,SAAS,CAAC,GAAG,CAAC,IAAI,CAAC,IAAI,CAAC,CAAC;IAC9C,SAAS,CAAC,GAAG,CAAC,IAAI,EAAE,YAAY,GAAG,CAAC,CAAC,CAAC;AACxC,CAAC,2EAcC,EAAU,EACV,MAAc,EACd,IAAY,EACZ,WAAkC,EAClC,YAAmC,EACnC,aAAuB;IAEvB,MAAM,QAAQ,GAAiD;QAC7D,EAAE;QACF,MAAM;QACN,IAAI;QACJ,IAAI,EAAE,IAAI,CAAC,GAAG,EAAE;QAChB,WAAW,EAAE,WAAW,IAAI,IAAI;QAChC,YAAY,EAAE,YAAY,IAAI,IAAI;QAClC,aAAa,EAAE,aAAa,IAAI,KAAK;KACtC,CAAC;IAEF,IAAI,CAAC,MAAM,CAAC,CAAC,UAAU,EAAE,EAAE;QACzB,qBAAqB;QACrB,UAAU,CAAC,gBAAgB,CAAC,EAAE,CAAC,GAAG,QAAe,CAAC;QAClD,UAAU,CAAC,oBAAoB,GAAG,MAAM,CAAC,IAAI,CAC3C,UAAU,CAAC,gBAAgB,CAC5B,CAAC,MAAM,CAAC;IACX,CAAC,CAAC,CAAC;AACL,CAAC,mEAUO,EAAU;IAChB,uBAAA,IAAI,qCAAW,CAAC,MAAM,CAAC,EAAE,CAAC,CAAC;IAE3B,wEAAwE;IACxE,uBAAuB;IACvB,oEAAoE;IACpE,MAAM,EAAE,MAAM,EAAE,IAAI,EAAE,GAAG,IAAI,CAAC,KAAK,CAAC,gBAAgB,CAAC,EAAE,CAAE,CAAC;IAE1D,MAAM,SAAS,GAAG,uBAAA,IAAI,mCAAS,CAAC,GAAG,CAAC,MAAM,CAAwB,CAAC;IACnE,MAAM,gBAAgB,GAAG,IAAI,CAAC,gBAAgB,CAAC,EAAE,MAAM,EAAE,CAAC,CAAC;IAC3D,MAAM,eAAe,GAAG,SAAS,CAAC,GAAG,CAAC,IAAI,CAAW,CAAC;IAEtD,IAAI,gBAAgB,KAAK,CAAC,EAAE;QAC1B,uBAAA,IAAI,mCAAS,CAAC,MAAM,CAAC,MAAM,CAAC,CAAC;KAC9B;SAAM;QACL,SAAS,CAAC,GAAG,CAAC,IAAI,EAAE,eAAe,GAAG,CAAC,CAAC,CAAC;KAC1C;IAED,IAAI,CAAC,MAAM,CAAC,CAAC,UAAU,EAAE,EAAE;QACzB,OAAO,UAAU,CAAC,gBAAgB,CAAC,EAAE,CAAC,CAAC;QACvC,UAAU,CAAC,oBAAoB,GAAG,MAAM,CAAC,IAAI,CAC3C,UAAU,CAAC,gBAAgB,CAC5B,CAAC,MAAM,CAAC;IACX,CAAC,CAAC,CAAC;AACL,CAAC,iHAU8B,EAAU;IACvC,MAAM,SAAS,GAAG,uBAAA,IAAI,qCAAW,CAAC,GAAG,CAAC,EAAE,CAAC,CAAC;IAC1C,IAAI,CAAC,SAAS,EAAE;QACd,MAAM,IAAI,qCAA4B,CAAC,EAAE,CAAC,CAAC;KAC5C;IAED,uBAAA,IAAI,iEAAQ,MAAZ,IAAI,EAAS,EAAE,CAAC,CAAC;IACjB,OAAO,SAAS,CAAC;AACnB,CAAC,mEAGC,IAAY,EACZ,IAAmB,EACnB,WAAiC;;QAEjC,IAAI;YACF,MAAM,IAAI,CAAC,yBAAyB,CAAC;gBACnC,MAAM,EAAE,uBAAe;gBACvB,IAAI;gBACJ,WAAW;aACZ,CAAC,CAAC;SACJ;QAAC,OAAO,KAAK,EAAE;YACd,OAAO,CAAC,IAAI,CAAC,+BAA+B,EAAE,KAAK,CAAC,CAAC;SACtD;gBAAS;YACR,IAAI,IAAI,CAAC,SAAS,EAAE;gBAClB,IAAI;oBACF,IAAI,CAAC,OAAO,CAAC,EAAE,EAAE,EAAE,IAAI,CAAC,SAAS,EAAE,CAAC,CAAC;iBACtC;gBAAC,OAAO,KAAK,EAAE;oBACd,OAAO,CAAC,IAAI,CAAC,oBAAoB,EAAE,EAAE,EAAE,EAAE,IAAI,CAAC,SAAS,EAAE,KAAK,EAAE,CAAC,CAAC;iBACnE;aACF;SACF;IACH,CAAC;;AAGH,kBAAe,kBAAkB,CAAC","sourcesContent":["import type { RestrictedControllerMessenger } from '@metamask/base-controller';\nimport { BaseControllerV2 } from '@metamask/base-controller';\nimport type { JsonRpcError, DataWithOptionalCause } from '@metamask/rpc-errors';\nimport { rpcErrors } from '@metamask/rpc-errors';\nimport type { Json, OptionalField } from '@metamask/utils';\nimport type { Patch } from 'immer';\nimport { nanoid } from 'nanoid';\n\nimport {\n  ApprovalRequestNotFoundError,\n  ApprovalRequestNoResultSupportError,\n  EndInvalidFlowError,\n  NoApprovalFlowsError,\n  MissingApprovalFlowError,\n} from './errors';\n\n// Constants\n\n// Avoiding dependency on controller-utils\nexport const ORIGIN_METAMASK = 'metamask';\nexport const APPROVAL_TYPE_RESULT_ERROR = 'result_error';\nexport const APPROVAL_TYPE_RESULT_SUCCESS = 'result_success';\n\nconst controllerName = 'ApprovalController';\n\nconst stateMetadata = {\n  pendingApprovals: { persist: false, anonymous: true },\n  pendingApprovalCount: { persist: false, anonymous: false },\n  approvalFlows: { persist: false, anonymous: false },\n};\n\nconst getAlreadyPendingMessage = (origin: string, type: string) =>\n  `Request of type '${type}' already pending for origin ${origin}. Please wait.`;\n\nconst getDefaultState = (): ApprovalControllerState => {\n  return {\n    pendingApprovals: {},\n    pendingApprovalCount: 0,\n    approvalFlows: [],\n  };\n};\n\n// Internal Types\n\ntype ApprovalPromiseResolve = (value?: unknown | AddResult) => void;\n\ntype ApprovalPromiseReject = (error?: unknown) => void;\n\ntype ApprovalRequestData = Record<string, Json> | null;\n\ntype ApprovalRequestState = Record<string, Json> | null;\n\ntype ApprovalCallbacks = {\n  resolve: ApprovalPromiseResolve;\n  reject: ApprovalPromiseReject;\n};\n\ntype ApprovalFlow = {\n  id: string;\n  loadingText: string | null;\n};\n\ntype ResultOptions = {\n  flowToEnd?: string;\n  header?: (string | ResultComponent)[];\n};\n\n// Miscellaneous Types\n\nexport type ApprovalRequest<RequestData extends ApprovalRequestData> = {\n  /**\n   * The ID of the approval request.\n   */\n  id: string;\n\n  /**\n   * The origin of the approval request.\n   */\n  origin: string;\n\n  /**\n   * The time that the request was received, per Date.now().\n   */\n  time: number;\n\n  /**\n   * The type of the approval request.\n   */\n  type: string;\n\n  /**\n   * Additional data associated with the request.\n   * TODO:TS4.4 make optional\n   */\n  requestData: RequestData;\n\n  /**\n   * Additional mutable state associated with the request\n   */\n  requestState: ApprovalRequestState;\n\n  /**\n   * Whether the request expects a result object to be returned instead of just the approval value.\n   */\n  expectsResult: boolean;\n};\n\nexport type ApprovalFlowState = ApprovalFlow;\n\nexport type ApprovalControllerState = {\n  pendingApprovals: Record<string, ApprovalRequest<Record<string, Json>>>;\n  pendingApprovalCount: number;\n  approvalFlows: ApprovalFlowState[];\n};\n\nexport type ApprovalControllerMessenger = RestrictedControllerMessenger<\n  typeof controllerName,\n  ApprovalControllerActions,\n  ApprovalControllerEvents,\n  string,\n  string\n>;\n\n// Option Types\n\nexport type ShowApprovalRequest = () => void | Promise<void>;\n\nexport type ResultComponent = {\n  /**\n   * A unique identifier for this instance of the component.\n   */\n  key: string;\n\n  /**\n   * The name of the component to render.\n   */\n  name: string;\n\n  /**\n   * Any properties required by the component.\n   */\n  properties?: Record<string, unknown>;\n\n  /**\n   * Any child components to render inside the component.\n   */\n  children?: string | ResultComponent | (string | ResultComponent)[];\n};\n\nexport type ApprovalControllerOptions = {\n  messenger: ApprovalControllerMessenger;\n  showApprovalRequest: ShowApprovalRequest;\n  state?: Partial<ApprovalControllerState>;\n  typesExcludedFromRateLimiting?: string[];\n};\n\nexport type AddApprovalOptions = {\n  id?: string;\n  origin: string;\n  type: string;\n  requestData?: Record<string, Json>;\n  requestState?: Record<string, Json>;\n  expectsResult?: boolean;\n};\n\nexport type UpdateRequestStateOptions = {\n  id: string;\n  requestState: Record<string, Json>;\n};\n\nexport type AcceptOptions = {\n  /**\n   * Whether to resolve the returned promise only when the request creator indicates the success of the\n   * post-approval logic using the result callbacks.\n   * If false or unspecified, the promise will resolve immediately.\n   */\n  waitForResult?: boolean;\n};\n\nexport type StartFlowOptions = OptionalField<\n  ApprovalFlow,\n  'id' | 'loadingText'\n> & { show?: boolean };\n\nexport type EndFlowOptions = Pick<ApprovalFlow, 'id'>;\n\nexport type SetFlowLoadingTextOptions = ApprovalFlow;\n\nexport type SuccessOptions = ResultOptions & {\n  message?: string | ResultComponent | (string | ResultComponent)[];\n};\n\nexport type ErrorOptions = ResultOptions & {\n  error?: string | ResultComponent | (string | ResultComponent)[];\n};\n\n// Result Types\n\nexport type AcceptResultCallbacks = {\n  /**\n   * Inform the request acceptor that the post-approval logic was successful.\n   *\n   * @param value - An optional value generated by the post-approval logic.\n   */\n  success: (value?: unknown) => void;\n\n  /**\n   * Inform the request acceptor that the post-approval logic failed.\n   *\n   * @param error - The reason for the failure.\n   */\n  error: (error: Error) => void;\n};\n\nexport type AddResult = {\n  /**\n   * An optional value provided by the request acceptor.\n   */\n  value?: unknown;\n\n  /**\n   * Callback functions that must be used to indicate to the request acceptor whether the post-approval logic was successful or not.\n   * Will be undefined if the request acceptor did not specify that they want to wait for a result.\n   */\n  resultCallbacks?: AcceptResultCallbacks;\n};\n\nexport type AcceptResult = {\n  /**\n   * An optional value provided by the request creator when indicating a successful result.\n   */\n  value?: unknown;\n};\n\nexport type ApprovalFlowStartResult = ApprovalFlow;\n\nexport type SuccessResult = Record<string, never>;\n\nexport type ErrorResult = Record<string, never>;\n\n// Event Types\n\nexport type ApprovalStateChange = {\n  type: `${typeof controllerName}:stateChange`;\n  payload: [ApprovalControllerState, Patch[]];\n};\n\nexport type ApprovalControllerEvents = ApprovalStateChange;\n\n// Action Types\n\nexport type GetApprovalsState = {\n  type: `${typeof controllerName}:getState`;\n  handler: () => ApprovalControllerState;\n};\n\nexport type ClearApprovalRequests = {\n  type: `${typeof controllerName}:clearRequests`;\n  handler: (error: JsonRpcError<DataWithOptionalCause>) => void;\n};\n\nexport type AddApprovalRequest = {\n  type: `${typeof controllerName}:addRequest`;\n  handler: (\n    opts: AddApprovalOptions,\n    shouldShowRequest: boolean,\n  ) => ReturnType<ApprovalController['add']>;\n};\n\nexport type HasApprovalRequest = {\n  type: `${typeof controllerName}:hasRequest`;\n  handler: ApprovalController['has'];\n};\n\nexport type AcceptRequest = {\n  type: `${typeof controllerName}:acceptRequest`;\n  handler: ApprovalController['accept'];\n};\n\nexport type RejectRequest = {\n  type: `${typeof controllerName}:rejectRequest`;\n  handler: ApprovalController['reject'];\n};\n\nexport type UpdateRequestState = {\n  type: `${typeof controllerName}:updateRequestState`;\n  handler: ApprovalController['updateRequestState'];\n};\n\nexport type StartFlow = {\n  type: `${typeof controllerName}:startFlow`;\n  handler: ApprovalController['startFlow'];\n};\n\nexport type EndFlow = {\n  type: `${typeof controllerName}:endFlow`;\n  handler: ApprovalController['endFlow'];\n};\n\nexport type SetFlowLoadingText = {\n  type: `${typeof controllerName}:setFlowLoadingText`;\n  handler: ApprovalController['setFlowLoadingText'];\n};\n\nexport type ShowSuccess = {\n  type: `${typeof controllerName}:showSuccess`;\n  handler: ApprovalController['success'];\n};\n\nexport type ShowError = {\n  type: `${typeof controllerName}:showError`;\n  handler: ApprovalController['error'];\n};\n\nexport type ApprovalControllerActions =\n  | GetApprovalsState\n  | ClearApprovalRequests\n  | AddApprovalRequest\n  | HasApprovalRequest\n  | AcceptRequest\n  | RejectRequest\n  | UpdateRequestState\n  | StartFlow\n  | EndFlow\n  | SetFlowLoadingText\n  | ShowSuccess\n  | ShowError;\n\n/**\n * Controller for managing requests that require user approval.\n *\n * Enables limiting the number of pending requests by origin and type, counting\n * pending requests, and more.\n *\n * Adding a request returns a promise that resolves or rejects when the request\n * is approved or denied, respectively.\n */\nexport class ApprovalController extends BaseControllerV2<\n  typeof controllerName,\n  ApprovalControllerState,\n  ApprovalControllerMessenger\n> {\n  #approvals: Map<string, ApprovalCallbacks>;\n\n  #origins: Map<string, Map<string, number>>;\n\n  #showApprovalRequest: () => void;\n\n  #typesExcludedFromRateLimiting: string[];\n\n  /**\n   * Construct an Approval controller.\n   *\n   * @param options - The controller options.\n   * @param options.showApprovalRequest - Function for opening the UI such that\n   * the request can be displayed to the user.\n   * @param options.messenger - The restricted controller messenger for the Approval controller.\n   * @param options.state - The initial controller state.\n   * @param options.typesExcludedFromRateLimiting - Array of approval types which allow multiple pending approval requests from the same origin.\n   */\n  constructor({\n    messenger,\n    showApprovalRequest,\n    state = {},\n    typesExcludedFromRateLimiting = [],\n  }: ApprovalControllerOptions) {\n    super({\n      name: controllerName,\n      metadata: stateMetadata,\n      messenger,\n      state: { ...getDefaultState(), ...state },\n    });\n\n    this.#approvals = new Map();\n    this.#origins = new Map();\n    this.#showApprovalRequest = showApprovalRequest;\n    this.#typesExcludedFromRateLimiting = typesExcludedFromRateLimiting;\n    this.registerMessageHandlers();\n  }\n\n  /**\n   * Constructor helper for registering this controller's messaging system\n   * actions.\n   */\n  private registerMessageHandlers(): void {\n    this.messagingSystem.registerActionHandler(\n      `${controllerName}:clearRequests` as const,\n      this.clear.bind(this),\n    );\n\n    this.messagingSystem.registerActionHandler(\n      `${controllerName}:addRequest` as const,\n      (opts: AddApprovalOptions, shouldShowRequest: boolean) => {\n        if (shouldShowRequest) {\n          return this.addAndShowApprovalRequest(opts);\n        }\n        return this.add(opts);\n      },\n    );\n\n    this.messagingSystem.registerActionHandler(\n      `${controllerName}:hasRequest` as const,\n      this.has.bind(this),\n    );\n\n    this.messagingSystem.registerActionHandler(\n      `${controllerName}:acceptRequest` as const,\n      this.accept.bind(this),\n    );\n\n    this.messagingSystem.registerActionHandler(\n      `${controllerName}:rejectRequest` as const,\n      this.reject.bind(this),\n    );\n\n    this.messagingSystem.registerActionHandler(\n      `${controllerName}:updateRequestState` as const,\n      this.updateRequestState.bind(this),\n    );\n\n    this.messagingSystem.registerActionHandler(\n      `${controllerName}:startFlow` as const,\n      this.startFlow.bind(this),\n    );\n\n    this.messagingSystem.registerActionHandler(\n      `${controllerName}:endFlow` as const,\n      this.endFlow.bind(this),\n    );\n\n    this.messagingSystem.registerActionHandler(\n      `${controllerName}:setFlowLoadingText` as const,\n      this.setFlowLoadingText.bind(this),\n    );\n\n    this.messagingSystem.registerActionHandler(\n      `${controllerName}:showSuccess` as const,\n      this.success.bind(this),\n    );\n\n    this.messagingSystem.registerActionHandler(\n      `${controllerName}:showError` as const,\n      this.error.bind(this),\n    );\n  }\n\n  /**\n   * Adds an approval request per the given arguments, calls the show approval\n   * request function, and returns the associated approval promise resolving to\n   * an AddResult object.\n   *\n   * There can only be one approval per origin and type. An error is thrown if\n   * attempting to add an invalid or duplicate request.\n   *\n   * @param opts - Options bag.\n   * @param opts.id - The id of the approval request. A random id will be\n   * generated if none is provided.\n   * @param opts.origin - The origin of the approval request.\n   * @param opts.type - The type associated with the approval request.\n   * @param opts.requestData - Additional data associated with the request,\n   * @param opts.requestState - Additional state associated with the request,\n   * if any.\n   * @returns The approval promise resolving to an AddResult object.\n   */\n  addAndShowApprovalRequest(\n    opts: AddApprovalOptions & { expectsResult: true },\n  ): Promise<AddResult>;\n\n  /**\n   * Adds an approval request per the given arguments, calls the show approval\n   * request function, and returns the associated approval promise resolving\n   * to a value provided during acceptance.\n   *\n   * There can only be one approval per origin and type. An error is thrown if\n   * attempting to add an invalid or duplicate request.\n   *\n   * @param opts - Options bag.\n   * @param opts.id - The id of the approval request. A random id will be\n   * generated if none is provided.\n   * @param opts.origin - The origin of the approval request.\n   * @param opts.type - The type associated with the approval request.\n   * @param opts.requestData - Additional data associated with the request,\n   * @param opts.requestState - Additional state associated with the request,\n   * if any.\n   * @returns The approval promise resolving to a value provided during acceptance.\n   */\n  addAndShowApprovalRequest(opts: AddApprovalOptions): Promise<unknown>;\n\n  addAndShowApprovalRequest(opts: AddApprovalOptions): Promise<unknown> {\n    const promise = this.#add(\n      opts.origin,\n      opts.type,\n      opts.id,\n      opts.requestData,\n      opts.requestState,\n      opts.expectsResult,\n    );\n    this.#showApprovalRequest();\n    return promise;\n  }\n\n  /**\n   * Adds an approval request per the given arguments and returns the approval\n   * promise resolving to an AddResult object.\n   *\n   * There can only be one approval per origin and type. An error is thrown if\n   * attempting to add an invalid or duplicate request.\n   *\n   * @param opts - Options bag.\n   * @param opts.id - The id of the approval request. A random id will be\n   * generated if none is provided.\n   * @param opts.origin - The origin of the approval request.\n   * @param opts.type - The type associated with the approval request.\n   * @param opts.requestData - Additional data associated with the request,\n   * if any.\n   * @returns The approval promise resolving to an AddResult object.\n   */\n  add(opts: AddApprovalOptions & { expectsResult: true }): Promise<AddResult>;\n\n  /**\n   * Adds an approval request per the given arguments and returns the approval\n   * promise resolving to a value provided during acceptance.\n   *\n   * There can only be one approval per origin and type. An error is thrown if\n   * attempting to add an invalid or duplicate request.\n   *\n   * @param opts - Options bag.\n   * @param opts.id - The id of the approval request. A random id will be\n   * generated if none is provided.\n   * @param opts.origin - The origin of the approval request.\n   * @param opts.type - The type associated with the approval request.\n   * @param opts.requestData - Additional data associated with the request,\n   * if any.\n   * @returns The approval promise resolving to a value provided during acceptance.\n   */\n  add(opts: AddApprovalOptions): Promise<unknown>;\n\n  add(opts: AddApprovalOptions): Promise<unknown | AddResult> {\n    return this.#add(\n      opts.origin,\n      opts.type,\n      opts.id,\n      opts.requestData,\n      opts.requestState,\n      opts.expectsResult,\n    );\n  }\n\n  /**\n   * Gets the info for the approval request with the given id.\n   *\n   * @param id - The id of the approval request.\n   * @returns The approval request data associated with the id.\n   */\n  get(id: string): ApprovalRequest<ApprovalRequestData> | undefined {\n    return this.state.pendingApprovals[id];\n  }\n\n  /**\n   * Gets the number of pending approvals, by origin and/or type.\n   *\n   * If only `origin` is specified, all approvals for that origin will be\n   * counted, regardless of type.\n   * If only `type` is specified, all approvals for that type will be counted,\n   * regardless of origin.\n   * If both `origin` and `type` are specified, 0 or 1 will be returned.\n   *\n   * @param opts - The approval count options.\n   * @param opts.origin - An approval origin.\n   * @param opts.type - The type of the approval request.\n   * @returns The current approval request count for the given origin and/or\n   * type.\n   */\n  getApprovalCount(opts: { origin?: string; type?: string } = {}): number {\n    if (!opts.origin && !opts.type) {\n      throw new Error('Must specify origin, type, or both.');\n    }\n    const { origin, type: _type } = opts;\n\n    if (origin && _type) {\n      return this.#origins.get(origin)?.get(_type) || 0;\n    }\n\n    if (origin) {\n      return Array.from(\n        (this.#origins.get(origin) || new Map()).values(),\n      ).reduce((total, value) => total + value, 0);\n    }\n\n    // Only \"type\" was specified\n    let count = 0;\n    for (const approval of Object.values(this.state.pendingApprovals)) {\n      if (approval.type === _type) {\n        count += 1;\n      }\n    }\n    return count;\n  }\n\n  /**\n   * Get the total count of all pending approval requests for all origins.\n   *\n   * @returns The total pending approval request count.\n   */\n  getTotalApprovalCount(): number {\n    return this.state.pendingApprovalCount;\n  }\n\n  /**\n   * Checks if there's a pending approval request per the given parameters.\n   * At least one parameter must be specified. An error will be thrown if the\n   * parameters are invalid.\n   *\n   * If `id` is specified, all other parameters will be ignored.\n   * If `id` is not specified, the method will check for requests that match\n   * all of the specified parameters.\n   *\n   * @param opts - Options bag.\n   * @param opts.id - The ID to check for.\n   * @param opts.origin - The origin to check for.\n   * @param opts.type - The type to check for.\n   * @returns `true` if a matching approval is found, and `false` otherwise.\n   */\n  has(opts: { id?: string; origin?: string; type?: string } = {}): boolean {\n    const { id, origin, type: _type } = opts;\n\n    if (id) {\n      if (typeof id !== 'string') {\n        throw new Error('May not specify non-string id.');\n      }\n      return this.#approvals.has(id);\n    }\n\n    if (_type && typeof _type !== 'string') {\n      throw new Error('May not specify non-string type.');\n    }\n\n    if (origin) {\n      if (typeof origin !== 'string') {\n        throw new Error('May not specify non-string origin.');\n      }\n\n      // Check origin and type pair if type also specified\n      if (_type) {\n        return Boolean(this.#origins.get(origin)?.get(_type));\n      }\n      return this.#origins.has(origin);\n    }\n\n    if (_type) {\n      for (const approval of Object.values(this.state.pendingApprovals)) {\n        if (approval.type === _type) {\n          return true;\n        }\n      }\n      return false;\n    }\n    throw new Error(\n      'Must specify a valid combination of id, origin, and type.',\n    );\n  }\n\n  /**\n   * Resolves the promise of the approval with the given id, and deletes the\n   * approval. Throws an error if no such approval exists.\n   *\n   * @param id - The id of the approval request.\n   * @param value - The value to resolve the approval promise with.\n   * @param options - Options bag.\n   * @returns A promise that either resolves once a result is provided by\n   * the creator of the approval request, or immediately if `options.waitForResult`\n   * is `false` or `undefined`.\n   */\n  accept(\n    id: string,\n    value?: unknown,\n    options?: AcceptOptions,\n  ): Promise<AcceptResult> {\n    // Safe to cast as the delete method below will throw if the ID is not found\n    const approval = this.get(id) as ApprovalRequest<ApprovalRequestData>;\n    const requestPromise = this.#deleteApprovalAndGetCallbacks(id);\n\n    return new Promise((resolve, reject) => {\n      const resultCallbacks: AcceptResultCallbacks = {\n        success: (acceptValue?: unknown) => resolve({ value: acceptValue }),\n        error: reject,\n      };\n\n      if (options?.waitForResult && !approval.expectsResult) {\n        reject(new ApprovalRequestNoResultSupportError(id));\n        return;\n      }\n\n      const resultValue = options?.waitForResult ? resultCallbacks : undefined;\n\n      const resolveValue = approval.expectsResult\n        ? { value, resultCallbacks: resultValue }\n        : value;\n\n      requestPromise.resolve(resolveValue);\n\n      if (!options?.waitForResult) {\n        resolve({ value: undefined });\n      }\n    });\n  }\n\n  /**\n   * Rejects the promise of the approval with the given id, and deletes the\n   * approval. Throws an error if no such approval exists.\n   *\n   * @param id - The id of the approval request.\n   * @param error - The error to reject the approval promise with.\n   */\n  reject(id: string, error: unknown): void {\n    this.#deleteApprovalAndGetCallbacks(id).reject(error);\n  }\n\n  /**\n   * Rejects and deletes all approval requests.\n   *\n   * @param rejectionError - The JsonRpcError to reject the approval\n   * requests with.\n   */\n  clear(rejectionError: JsonRpcError<DataWithOptionalCause>): void {\n    for (const id of this.#approvals.keys()) {\n      this.reject(id, rejectionError);\n    }\n    this.#origins.clear();\n    this.update((draftState) => {\n      draftState.pendingApprovals = {};\n      draftState.pendingApprovalCount = 0;\n    });\n  }\n\n  /**\n   * Updates the request state of the approval with the given id.\n   *\n   * @param opts - Options bag.\n   * @param opts.id - The id of the approval request.\n   * @param opts.requestState - Additional data associated with the request\n   */\n  updateRequestState(opts: UpdateRequestStateOptions): void {\n    if (!this.state.pendingApprovals[opts.id]) {\n      throw new ApprovalRequestNotFoundError(opts.id);\n    }\n\n    this.update((draftState) => {\n      // Typecast: ts(2589)\n      draftState.pendingApprovals[opts.id].requestState =\n        opts.requestState as any;\n    });\n  }\n\n  /**\n   * Starts a new approval flow.\n   *\n   * @param opts - Options bag.\n   * @param opts.id - The id of the approval flow.\n   * @param opts.loadingText - The loading text that will be associated to the approval flow.\n   * @param opts.show - A flag to determine whether the approval should show to the user.\n   * @returns The object containing the approval flow id.\n   */\n  startFlow(opts: StartFlowOptions = {}): ApprovalFlowStartResult {\n    const id = opts.id ?? nanoid();\n    const loadingText = opts.loadingText ?? null;\n\n    this.update((draftState) => {\n      draftState.approvalFlows.push({ id, loadingText });\n    });\n\n    // By default, if nothing else is specified, we always show the approval.\n    if (opts.show !== false) {\n      this.#showApprovalRequest();\n    }\n\n    return { id, loadingText };\n  }\n\n  /**\n   * Ends the current approval flow.\n   *\n   * @param opts - Options bag.\n   * @param opts.id - The id of the approval flow that will be finished.\n   */\n  endFlow({ id }: EndFlowOptions) {\n    if (!this.state.approvalFlows.length) {\n      throw new NoApprovalFlowsError();\n    }\n\n    const currentFlow = this.state.approvalFlows.slice(-1)[0];\n\n    if (id !== currentFlow.id) {\n      throw new EndInvalidFlowError(\n        id,\n        this.state.approvalFlows.map((flow) => flow.id),\n      );\n    }\n\n    this.update((draftState) => {\n      draftState.approvalFlows.pop();\n    });\n  }\n\n  /**\n   * Sets the loading text for the approval flow.\n   *\n   * @param opts - Options bag.\n   * @param opts.id - The approval flow loading text that will be displayed.\n   * @param opts.loadingText - The loading text that will be associated to the approval flow.\n   */\n  setFlowLoadingText({ id, loadingText }: SetFlowLoadingTextOptions) {\n    const flowIndex = this.state.approvalFlows.findIndex(\n      (flow) => flow.id === id,\n    );\n\n    if (flowIndex === -1) {\n      throw new MissingApprovalFlowError(id);\n    }\n\n    this.update((draftState) => {\n      draftState.approvalFlows[flowIndex].loadingText = loadingText;\n    });\n  }\n\n  /**\n   * Show a success page.\n   *\n   * @param opts - Options bag.\n   * @param opts.message - The message text or components to display in the page.\n   * @param opts.header - The text or components to display in the header of the page.\n   * @param opts.flowToEnd - The ID of the approval flow to end once the success page is approved.\n   * @returns Empty object to support future additions.\n   */\n  async success(opts: SuccessOptions = {}): Promise<SuccessResult> {\n    await this.#result(APPROVAL_TYPE_RESULT_SUCCESS, opts, {\n      message: opts.message,\n      header: opts.header,\n    } as any);\n    return {};\n  }\n\n  /**\n   * Show an error page.\n   *\n   * @param opts - Options bag.\n   * @param opts.message - The message text or components to display in the page.\n   * @param opts.header - The text or components to display in the header of the page.\n   * @param opts.flowToEnd - The ID of the approval flow to end once the error page is approved.\n   * @returns Empty object to support future additions.\n   */\n  async error(opts: ErrorOptions = {}): Promise<ErrorResult> {\n    await this.#result(APPROVAL_TYPE_RESULT_ERROR, opts, {\n      error: opts.error,\n      header: opts.header,\n    } as any);\n    return {};\n  }\n\n  /**\n   * Implementation of add operation.\n   *\n   * @param origin - The origin of the approval request.\n   * @param type - The type associated with the approval request.\n   * @param id - The id of the approval request.\n   * @param requestData - The request data associated with the approval request.\n   * @param requestState - The request state associated with the approval request.\n   * @param expectsResult - Whether the approval request expects a result object to be returned.\n   * @returns The approval promise.\n   */\n  #add(\n    origin: string,\n    type: string,\n    id: string = nanoid(),\n    requestData?: Record<string, Json>,\n    requestState?: Record<string, Json>,\n    expectsResult?: boolean,\n  ): Promise<unknown | AddResult> {\n    this.#validateAddParams(id, origin, type, requestData, requestState);\n\n    if (\n      !this.#typesExcludedFromRateLimiting.includes(type) &&\n      this.has({ origin, type })\n    ) {\n      throw rpcErrors.resourceUnavailable(\n        getAlreadyPendingMessage(origin, type),\n      );\n    }\n\n    // add pending approval\n    return new Promise((resolve, reject) => {\n      this.#approvals.set(id, { resolve, reject });\n      this.#addPendingApprovalOrigin(origin, type);\n\n      this.#addToStore(\n        id,\n        origin,\n        type,\n        requestData,\n        requestState,\n        expectsResult,\n      );\n    });\n  }\n\n  /**\n   * Validates parameters to the add method.\n   *\n   * @param id - The id of the approval request.\n   * @param origin - The origin of the approval request.\n   * @param type - The type associated with the approval request.\n   * @param requestData - The request data associated with the approval request.\n   * @param requestState - The request state associated with the approval request.\n   */\n  #validateAddParams(\n    id: string,\n    origin: string,\n    type: string,\n    requestData?: Record<string, Json>,\n    requestState?: Record<string, Json>,\n  ): void {\n    let errorMessage = null;\n    if (!id || typeof id !== 'string') {\n      errorMessage = 'Must specify non-empty string id.';\n    } else if (this.#approvals.has(id)) {\n      errorMessage = `Approval request with id '${id}' already exists.`;\n    } else if (!origin || typeof origin !== 'string') {\n      errorMessage = 'Must specify non-empty string origin.';\n    } else if (!type || typeof type !== 'string') {\n      errorMessage = 'Must specify non-empty string type.';\n    } else if (\n      requestData &&\n      (typeof requestData !== 'object' || Array.isArray(requestData))\n    ) {\n      errorMessage = 'Request data must be a plain object if specified.';\n    } else if (\n      requestState &&\n      (typeof requestState !== 'object' || Array.isArray(requestState))\n    ) {\n      errorMessage = 'Request state must be a plain object if specified.';\n    }\n\n    if (errorMessage) {\n      throw rpcErrors.internal(errorMessage);\n    }\n  }\n\n  /**\n   * Adds an entry to _origins.\n   * Performs no validation.\n   *\n   * @param origin - The origin of the approval request.\n   * @param type - The type associated with the approval request.\n   */\n  #addPendingApprovalOrigin(origin: string, type: string): void {\n    let originMap = this.#origins.get(origin);\n\n    if (!originMap) {\n      originMap = new Map();\n      this.#origins.set(origin, originMap);\n    }\n\n    const currentValue = originMap.get(type) || 0;\n    originMap.set(type, currentValue + 1);\n  }\n\n  /**\n   * Adds an entry to the store.\n   * Performs no validation.\n   *\n   * @param id - The id of the approval request.\n   * @param origin - The origin of the approval request.\n   * @param type - The type associated with the approval request.\n   * @param requestData - The request data associated with the approval request.\n   * @param requestState - The request state associated with the approval request.\n   * @param expectsResult - Whether the request expects a result object to be returned.\n   */\n  #addToStore(\n    id: string,\n    origin: string,\n    type: string,\n    requestData?: Record<string, Json>,\n    requestState?: Record<string, Json>,\n    expectsResult?: boolean,\n  ): void {\n    const approval: ApprovalRequest<Record<string, Json> | null> = {\n      id,\n      origin,\n      type,\n      time: Date.now(),\n      requestData: requestData || null,\n      requestState: requestState || null,\n      expectsResult: expectsResult || false,\n    };\n\n    this.update((draftState) => {\n      // Typecast: ts(2589)\n      draftState.pendingApprovals[id] = approval as any;\n      draftState.pendingApprovalCount = Object.keys(\n        draftState.pendingApprovals,\n      ).length;\n    });\n  }\n\n  /**\n   * Deletes the approval with the given id. The approval promise must be\n   * resolved or reject before this method is called.\n   * Deletion is an internal operation because approval state is solely\n   * managed by this controller.\n   *\n   * @param id - The id of the approval request to be deleted.\n   */\n  #delete(id: string): void {\n    this.#approvals.delete(id);\n\n    // This method is only called after verifying that the approval with the\n    // specified id exists.\n    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion\n    const { origin, type } = this.state.pendingApprovals[id]!;\n\n    const originMap = this.#origins.get(origin) as Map<string, number>;\n    const originTotalCount = this.getApprovalCount({ origin });\n    const originTypeCount = originMap.get(type) as number;\n\n    if (originTotalCount === 1) {\n      this.#origins.delete(origin);\n    } else {\n      originMap.set(type, originTypeCount - 1);\n    }\n\n    this.update((draftState) => {\n      delete draftState.pendingApprovals[id];\n      draftState.pendingApprovalCount = Object.keys(\n        draftState.pendingApprovals,\n      ).length;\n    });\n  }\n\n  /**\n   * Gets the approval callbacks for the given id, deletes the entry, and then\n   * returns the callbacks for promise resolution.\n   * Throws an error if no approval is found for the given id.\n   *\n   * @param id - The id of the approval request.\n   * @returns The promise callbacks associated with the approval request.\n   */\n  #deleteApprovalAndGetCallbacks(id: string): ApprovalCallbacks {\n    const callbacks = this.#approvals.get(id);\n    if (!callbacks) {\n      throw new ApprovalRequestNotFoundError(id);\n    }\n\n    this.#delete(id);\n    return callbacks;\n  }\n\n  async #result(\n    type: string,\n    opts: ResultOptions,\n    requestData: Record<string, Json>,\n  ) {\n    try {\n      await this.addAndShowApprovalRequest({\n        origin: ORIGIN_METAMASK,\n        type,\n        requestData,\n      });\n    } catch (error) {\n      console.info('Failed to display result page', error);\n    } finally {\n      if (opts.flowToEnd) {\n        try {\n          this.endFlow({ id: opts.flowToEnd });\n        } catch (error) {\n          console.info('Failed to end flow', { id: opts.flowToEnd, error });\n        }\n      }\n    }\n  }\n}\n\nexport default ApprovalController;\n"]}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/ApprovalController.mjs b/node_modules/@metamask/approval-controller/dist/ApprovalController.mjs
+new file mode 100644
+index 0000000..5360862
+--- /dev/null
++++ b/node_modules/@metamask/approval-controller/dist/ApprovalController.mjs
+@@ -0,0 +1,16 @@
++import {
++  APPROVAL_TYPE_RESULT_ERROR,
++  APPROVAL_TYPE_RESULT_SUCCESS,
++  ApprovalController,
++  ApprovalController_default,
++  ORIGIN_METAMASK
++} from "./chunk-3LR64U6N.mjs";
++import "./chunk-C4VZRQ2J.mjs";
++export {
++  APPROVAL_TYPE_RESULT_ERROR,
++  APPROVAL_TYPE_RESULT_SUCCESS,
++  ApprovalController,
++  ORIGIN_METAMASK,
++  ApprovalController_default as default
++};
++//# sourceMappingURL=ApprovalController.mjs.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/chunk-3LR64U6N.mjs b/node_modules/@metamask/approval-controller/dist/chunk-3LR64U6N.mjs
+new file mode 100644
+index 0000000..0ede92d
+--- /dev/null
++++ b/node_modules/@metamask/approval-controller/dist/chunk-3LR64U6N.mjs
+@@ -0,0 +1,589 @@
++import {
++  ApprovalRequestNoResultSupportError,
++  ApprovalRequestNotFoundError,
++  EndInvalidFlowError,
++  MissingApprovalFlowError,
++  NoApprovalFlowsError,
++  __privateAdd,
++  __privateGet,
++  __privateMethod,
++  __privateSet
++} from "./chunk-C4VZRQ2J.mjs";
++
++// src/ApprovalController.ts
++import {
++  BaseController
++} from "@metamask/base-controller";
++import { rpcErrors } from "@metamask/rpc-errors";
++import { nanoid } from "nanoid";
++var ORIGIN_METAMASK = "metamask";
++var APPROVAL_TYPE_RESULT_ERROR = "result_error";
++var APPROVAL_TYPE_RESULT_SUCCESS = "result_success";
++var controllerName = "ApprovalController";
++var stateMetadata = {
++  pendingApprovals: { persist: false, anonymous: true },
++  pendingApprovalCount: { persist: false, anonymous: false },
++  approvalFlows: { persist: false, anonymous: false }
++};
++var getAlreadyPendingMessage = (origin, type) => `Request of type '${type}' already pending for origin ${origin}. Please wait.`;
++var getDefaultState = () => {
++  return {
++    pendingApprovals: {},
++    pendingApprovalCount: 0,
++    approvalFlows: []
++  };
++};
++var _approvals, _origins, _showApprovalRequest, _typesExcludedFromRateLimiting, _add, add_fn, _validateAddParams, validateAddParams_fn, _addPendingApprovalOrigin, addPendingApprovalOrigin_fn, _addToStore, addToStore_fn, _delete, delete_fn, _deleteApprovalAndGetCallbacks, deleteApprovalAndGetCallbacks_fn, _result, result_fn;
++var ApprovalController = class extends BaseController {
++  /**
++   * Construct an Approval controller.
++   *
++   * @param options - The controller options.
++   * @param options.showApprovalRequest - Function for opening the UI such that
++   * the request can be displayed to the user.
++   * @param options.messenger - The restricted controller messenger for the Approval controller.
++   * @param options.state - The initial controller state.
++   * @param options.typesExcludedFromRateLimiting - Array of approval types which allow multiple pending approval requests from the same origin.
++   */
++  constructor({
++    messenger,
++    showApprovalRequest,
++    state = {},
++    typesExcludedFromRateLimiting = []
++  }) {
++    super({
++      name: controllerName,
++      metadata: stateMetadata,
++      messenger,
++      state: { ...getDefaultState(), ...state }
++    });
++    /**
++     * Implementation of add operation.
++     *
++     * @param origin - The origin of the approval request.
++     * @param type - The type associated with the approval request.
++     * @param id - The id of the approval request.
++     * @param requestData - The request data associated with the approval request.
++     * @param requestState - The request state associated with the approval request.
++     * @param expectsResult - Whether the approval request expects a result object to be returned.
++     * @returns The approval promise.
++     */
++    __privateAdd(this, _add);
++    /**
++     * Validates parameters to the add method.
++     *
++     * @param id - The id of the approval request.
++     * @param origin - The origin of the approval request.
++     * @param type - The type associated with the approval request.
++     * @param requestData - The request data associated with the approval request.
++     * @param requestState - The request state associated with the approval request.
++     */
++    __privateAdd(this, _validateAddParams);
++    /**
++     * Adds an entry to _origins.
++     * Performs no validation.
++     *
++     * @param origin - The origin of the approval request.
++     * @param type - The type associated with the approval request.
++     */
++    __privateAdd(this, _addPendingApprovalOrigin);
++    /**
++     * Adds an entry to the store.
++     * Performs no validation.
++     *
++     * @param id - The id of the approval request.
++     * @param origin - The origin of the approval request.
++     * @param type - The type associated with the approval request.
++     * @param requestData - The request data associated with the approval request.
++     * @param requestState - The request state associated with the approval request.
++     * @param expectsResult - Whether the request expects a result object to be returned.
++     */
++    __privateAdd(this, _addToStore);
++    /**
++     * Deletes the approval with the given id. The approval promise must be
++     * resolved or reject before this method is called.
++     * Deletion is an internal operation because approval state is solely
++     * managed by this controller.
++     *
++     * @param id - The id of the approval request to be deleted.
++     */
++    __privateAdd(this, _delete);
++    /**
++     * Gets the approval callbacks for the given id, deletes the entry, and then
++     * returns the callbacks for promise resolution.
++     * Throws an error if no approval is found for the given id.
++     *
++     * @param id - The id of the approval request.
++     * @returns The promise callbacks associated with the approval request.
++     */
++    __privateAdd(this, _deleteApprovalAndGetCallbacks);
++    __privateAdd(this, _result);
++    __privateAdd(this, _approvals, void 0);
++    __privateAdd(this, _origins, void 0);
++    __privateAdd(this, _showApprovalRequest, void 0);
++    __privateAdd(this, _typesExcludedFromRateLimiting, void 0);
++    __privateSet(this, _approvals, /* @__PURE__ */ new Map());
++    __privateSet(this, _origins, /* @__PURE__ */ new Map());
++    __privateSet(this, _showApprovalRequest, showApprovalRequest);
++    __privateSet(this, _typesExcludedFromRateLimiting, typesExcludedFromRateLimiting);
++    this.registerMessageHandlers();
++  }
++  /**
++   * Constructor helper for registering this controller's messaging system
++   * actions.
++   */
++  registerMessageHandlers() {
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:clearRequests`,
++      this.clear.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:addRequest`,
++      (opts, shouldShowRequest) => {
++        if (shouldShowRequest) {
++          return this.addAndShowApprovalRequest(opts);
++        }
++        return this.add(opts);
++      }
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:hasRequest`,
++      this.has.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:acceptRequest`,
++      this.accept.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:rejectRequest`,
++      this.reject.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:updateRequestState`,
++      this.updateRequestState.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:startFlow`,
++      this.startFlow.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:endFlow`,
++      this.endFlow.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:setFlowLoadingText`,
++      this.setFlowLoadingText.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:showSuccess`,
++      this.success.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:showError`,
++      this.error.bind(this)
++    );
++  }
++  addAndShowApprovalRequest(opts) {
++    const promise = __privateMethod(this, _add, add_fn).call(this, opts.origin, opts.type, opts.id, opts.requestData, opts.requestState, opts.expectsResult);
++    __privateGet(this, _showApprovalRequest).call(this);
++    return promise;
++  }
++  add(opts) {
++    return __privateMethod(this, _add, add_fn).call(this, opts.origin, opts.type, opts.id, opts.requestData, opts.requestState, opts.expectsResult);
++  }
++  /**
++   * Gets the info for the approval request with the given id.
++   *
++   * @param id - The id of the approval request.
++   * @returns The approval request data associated with the id.
++   */
++  get(id) {
++    return this.state.pendingApprovals[id];
++  }
++  /**
++   * Gets the number of pending approvals, by origin and/or type.
++   *
++   * If only `origin` is specified, all approvals for that origin will be
++   * counted, regardless of type.
++   * If only `type` is specified, all approvals for that type will be counted,
++   * regardless of origin.
++   * If both `origin` and `type` are specified, 0 or 1 will be returned.
++   *
++   * @param opts - The approval count options.
++   * @param opts.origin - An approval origin.
++   * @param opts.type - The type of the approval request.
++   * @returns The current approval request count for the given origin and/or
++   * type.
++   */
++  getApprovalCount(opts = {}) {
++    if (!opts.origin && !opts.type) {
++      throw new Error("Must specify origin, type, or both.");
++    }
++    const { origin, type: _type } = opts;
++    if (origin && _type) {
++      return __privateGet(this, _origins).get(origin)?.get(_type) || 0;
++    }
++    if (origin) {
++      return Array.from(
++        (__privateGet(this, _origins).get(origin) || /* @__PURE__ */ new Map()).values()
++      ).reduce((total, value) => total + value, 0);
++    }
++    let count = 0;
++    for (const approval of Object.values(this.state.pendingApprovals)) {
++      if (approval.type === _type) {
++        count += 1;
++      }
++    }
++    return count;
++  }
++  /**
++   * Get the total count of all pending approval requests for all origins.
++   *
++   * @returns The total pending approval request count.
++   */
++  getTotalApprovalCount() {
++    return this.state.pendingApprovalCount;
++  }
++  /**
++   * Checks if there's a pending approval request per the given parameters.
++   * At least one parameter must be specified. An error will be thrown if the
++   * parameters are invalid.
++   *
++   * If `id` is specified, all other parameters will be ignored.
++   * If `id` is not specified, the method will check for requests that match
++   * all of the specified parameters.
++   *
++   * @param opts - Options bag.
++   * @param opts.id - The ID to check for.
++   * @param opts.origin - The origin to check for.
++   * @param opts.type - The type to check for.
++   * @returns `true` if a matching approval is found, and `false` otherwise.
++   */
++  has(opts = {}) {
++    const { id, origin, type: _type } = opts;
++    if (id) {
++      if (typeof id !== "string") {
++        throw new Error("May not specify non-string id.");
++      }
++      return __privateGet(this, _approvals).has(id);
++    }
++    if (_type && typeof _type !== "string") {
++      throw new Error("May not specify non-string type.");
++    }
++    if (origin) {
++      if (typeof origin !== "string") {
++        throw new Error("May not specify non-string origin.");
++      }
++      if (_type) {
++        return Boolean(__privateGet(this, _origins).get(origin)?.get(_type));
++      }
++      return __privateGet(this, _origins).has(origin);
++    }
++    if (_type) {
++      for (const approval of Object.values(this.state.pendingApprovals)) {
++        if (approval.type === _type) {
++          return true;
++        }
++      }
++      return false;
++    }
++    throw new Error(
++      "Must specify a valid combination of id, origin, and type."
++    );
++  }
++  /**
++   * Resolves the promise of the approval with the given id, and deletes the
++   * approval. Throws an error if no such approval exists.
++   *
++   * @param id - The id of the approval request.
++   * @param value - The value to resolve the approval promise with.
++   * @param options - Options bag.
++   * @returns A promise that either resolves once a result is provided by
++   * the creator of the approval request, or immediately if `options.waitForResult`
++   * is `false` or `undefined`.
++   */
++  accept(id, value, options) {
++    const approval = this.get(id);
++    const requestPromise = __privateMethod(this, _deleteApprovalAndGetCallbacks, deleteApprovalAndGetCallbacks_fn).call(this, id);
++    return new Promise((resolve, reject) => {
++      const resultCallbacks = {
++        success: (acceptValue) => resolve({ value: acceptValue }),
++        error: reject
++      };
++      if (options?.waitForResult && !approval.expectsResult) {
++        reject(new ApprovalRequestNoResultSupportError(id));
++        return;
++      }
++      const resultValue = options?.waitForResult ? resultCallbacks : void 0;
++      const resolveValue = approval.expectsResult ? { value, resultCallbacks: resultValue } : value;
++      requestPromise.resolve(resolveValue);
++      if (!options?.waitForResult) {
++        resolve({ value: void 0 });
++      }
++    });
++  }
++  /**
++   * Rejects the promise of the approval with the given id, and deletes the
++   * approval. Throws an error if no such approval exists.
++   *
++   * @param id - The id of the approval request.
++   * @param error - The error to reject the approval promise with.
++   */
++  reject(id, error) {
++    __privateMethod(this, _deleteApprovalAndGetCallbacks, deleteApprovalAndGetCallbacks_fn).call(this, id).reject(error);
++  }
++  /**
++   * Rejects and deletes all approval requests.
++   *
++   * @param rejectionError - The JsonRpcError to reject the approval
++   * requests with.
++   */
++  clear(rejectionError) {
++    for (const id of __privateGet(this, _approvals).keys()) {
++      this.reject(id, rejectionError);
++    }
++    __privateGet(this, _origins).clear();
++    this.update((draftState) => {
++      draftState.pendingApprovals = {};
++      draftState.pendingApprovalCount = 0;
++    });
++  }
++  /**
++   * Updates the request state of the approval with the given id.
++   *
++   * @param opts - Options bag.
++   * @param opts.id - The id of the approval request.
++   * @param opts.requestState - Additional data associated with the request
++   */
++  updateRequestState(opts) {
++    if (!this.state.pendingApprovals[opts.id]) {
++      throw new ApprovalRequestNotFoundError(opts.id);
++    }
++    this.update((draftState) => {
++      draftState.pendingApprovals[opts.id].requestState = opts.requestState;
++    });
++  }
++  /**
++   * Starts a new approval flow.
++   *
++   * @param opts - Options bag.
++   * @param opts.id - The id of the approval flow.
++   * @param opts.loadingText - The loading text that will be associated to the approval flow.
++   * @param opts.show - A flag to determine whether the approval should show to the user.
++   * @returns The object containing the approval flow id.
++   */
++  startFlow(opts = {}) {
++    const id = opts.id ?? nanoid();
++    const loadingText = opts.loadingText ?? null;
++    this.update((draftState) => {
++      draftState.approvalFlows.push({ id, loadingText });
++    });
++    if (opts.show !== false) {
++      __privateGet(this, _showApprovalRequest).call(this);
++    }
++    return { id, loadingText };
++  }
++  /**
++   * Ends the current approval flow.
++   *
++   * @param opts - Options bag.
++   * @param opts.id - The id of the approval flow that will be finished.
++   */
++  endFlow({ id }) {
++    if (!this.state.approvalFlows.length) {
++      throw new NoApprovalFlowsError();
++    }
++    const currentFlow = this.state.approvalFlows.slice(-1)[0];
++    if (id !== currentFlow.id) {
++      throw new EndInvalidFlowError(
++        id,
++        this.state.approvalFlows.map((flow) => flow.id)
++      );
++    }
++    this.update((draftState) => {
++      draftState.approvalFlows.pop();
++    });
++  }
++  /**
++   * Sets the loading text for the approval flow.
++   *
++   * @param opts - Options bag.
++   * @param opts.id - The approval flow loading text that will be displayed.
++   * @param opts.loadingText - The loading text that will be associated to the approval flow.
++   */
++  setFlowLoadingText({ id, loadingText }) {
++    const flowIndex = this.state.approvalFlows.findIndex(
++      (flow) => flow.id === id
++    );
++    if (flowIndex === -1) {
++      throw new MissingApprovalFlowError(id);
++    }
++    this.update((draftState) => {
++      draftState.approvalFlows[flowIndex].loadingText = loadingText;
++    });
++  }
++  /**
++   * Show a success page.
++   *
++   * @param opts - Options bag.
++   * @param opts.message - The message text or components to display in the page.
++   * @param opts.header - The text or components to display in the header of the page.
++   * @param opts.flowToEnd - The ID of the approval flow to end once the success page is approved.
++   * @param opts.title - The title to display above the message. Shown by default but can be hidden with `null`.
++   * @param opts.icon - The icon to display in the page. Shown by default but can be hidden with `null`.
++   * @returns Empty object to support future additions.
++   */
++  async success(opts = {}) {
++    await __privateMethod(this, _result, result_fn).call(this, APPROVAL_TYPE_RESULT_SUCCESS, opts, {
++      message: opts.message,
++      header: opts.header,
++      title: opts.title,
++      icon: opts.icon
++    });
++    return {};
++  }
++  /**
++   * Show an error page.
++   *
++   * @param opts - Options bag.
++   * @param opts.message - The message text or components to display in the page.
++   * @param opts.header - The text or components to display in the header of the page.
++   * @param opts.flowToEnd - The ID of the approval flow to end once the error page is approved.
++   * @param opts.title - The title to display above the message. Shown by default but can be hidden with `null`.
++   * @param opts.icon - The icon to display in the page. Shown by default but can be hidden with `null`.
++   * @returns Empty object to support future additions.
++   */
++  async error(opts = {}) {
++    await __privateMethod(this, _result, result_fn).call(this, APPROVAL_TYPE_RESULT_ERROR, opts, {
++      error: opts.error,
++      header: opts.header,
++      title: opts.title,
++      icon: opts.icon
++    });
++    return {};
++  }
++};
++_approvals = new WeakMap();
++_origins = new WeakMap();
++_showApprovalRequest = new WeakMap();
++_typesExcludedFromRateLimiting = new WeakMap();
++_add = new WeakSet();
++add_fn = function(origin, type, id = nanoid(), requestData, requestState, expectsResult) {
++  __privateMethod(this, _validateAddParams, validateAddParams_fn).call(this, id, origin, type, requestData, requestState);
++  if (!__privateGet(this, _typesExcludedFromRateLimiting).includes(type) && this.has({ origin, type })) {
++    throw rpcErrors.resourceUnavailable(
++      getAlreadyPendingMessage(origin, type)
++    );
++  }
++  return new Promise((resolve, reject) => {
++    __privateGet(this, _approvals).set(id, { resolve, reject });
++    __privateMethod(this, _addPendingApprovalOrigin, addPendingApprovalOrigin_fn).call(this, origin, type);
++    __privateMethod(this, _addToStore, addToStore_fn).call(this, id, origin, type, requestData, requestState, expectsResult);
++  });
++};
++_validateAddParams = new WeakSet();
++validateAddParams_fn = function(id, origin, type, requestData, requestState) {
++  let errorMessage = null;
++  if (!id || typeof id !== "string") {
++    errorMessage = "Must specify non-empty string id.";
++  } else if (__privateGet(this, _approvals).has(id)) {
++    errorMessage = `Approval request with id '${id}' already exists.`;
++  } else if (!origin || typeof origin !== "string") {
++    errorMessage = "Must specify non-empty string origin.";
++  } else if (!type || typeof type !== "string") {
++    errorMessage = "Must specify non-empty string type.";
++  } else if (requestData && (typeof requestData !== "object" || Array.isArray(requestData))) {
++    errorMessage = "Request data must be a plain object if specified.";
++  } else if (requestState && (typeof requestState !== "object" || Array.isArray(requestState))) {
++    errorMessage = "Request state must be a plain object if specified.";
++  }
++  if (errorMessage) {
++    throw rpcErrors.internal(errorMessage);
++  }
++};
++_addPendingApprovalOrigin = new WeakSet();
++addPendingApprovalOrigin_fn = function(origin, type) {
++  let originMap = __privateGet(this, _origins).get(origin);
++  if (!originMap) {
++    originMap = /* @__PURE__ */ new Map();
++    __privateGet(this, _origins).set(origin, originMap);
++  }
++  const currentValue = originMap.get(type) || 0;
++  originMap.set(type, currentValue + 1);
++};
++_addToStore = new WeakSet();
++addToStore_fn = function(id, origin, type, requestData, requestState, expectsResult) {
++  const approval = {
++    id,
++    origin,
++    type,
++    time: Date.now(),
++    requestData: requestData || null,
++    requestState: requestState || null,
++    expectsResult: expectsResult || false
++  };
++  this.update((draftState) => {
++    draftState.pendingApprovals[id] = approval;
++    draftState.pendingApprovalCount = Object.keys(
++      draftState.pendingApprovals
++    ).length;
++  });
++};
++_delete = new WeakSet();
++delete_fn = function(id) {
++  __privateGet(this, _approvals).delete(id);
++  const { origin, type } = this.state.pendingApprovals[id];
++  const originMap = __privateGet(this, _origins).get(origin);
++  const originTotalCount = this.getApprovalCount({ origin });
++  const originTypeCount = originMap.get(type);
++  if (originTotalCount === 1) {
++    __privateGet(this, _origins).delete(origin);
++  } else {
++    originMap.set(type, originTypeCount - 1);
++  }
++  this.update((draftState) => {
++    delete draftState.pendingApprovals[id];
++    draftState.pendingApprovalCount = Object.keys(
++      draftState.pendingApprovals
++    ).length;
++  });
++};
++_deleteApprovalAndGetCallbacks = new WeakSet();
++deleteApprovalAndGetCallbacks_fn = function(id) {
++  const callbacks = __privateGet(this, _approvals).get(id);
++  if (!callbacks) {
++    throw new ApprovalRequestNotFoundError(id);
++  }
++  __privateMethod(this, _delete, delete_fn).call(this, id);
++  return callbacks;
++};
++_result = new WeakSet();
++result_fn = async function(type, opts, requestData) {
++  try {
++    await this.addAndShowApprovalRequest({
++      origin: ORIGIN_METAMASK,
++      type,
++      requestData
++    });
++  } catch (error) {
++    console.info("Failed to display result page", error);
++  } finally {
++    if (opts.flowToEnd) {
++      try {
++        this.endFlow({ id: opts.flowToEnd });
++      } catch (error) {
++        console.info("Failed to end flow", { id: opts.flowToEnd, error });
++      }
++    }
++  }
++};
++var ApprovalController_default = ApprovalController;
++
++export {
++  ORIGIN_METAMASK,
++  APPROVAL_TYPE_RESULT_ERROR,
++  APPROVAL_TYPE_RESULT_SUCCESS,
++  ApprovalController,
++  ApprovalController_default
++};
++//# sourceMappingURL=chunk-3LR64U6N.mjs.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/chunk-5K4GVAX5.js b/node_modules/@metamask/approval-controller/dist/chunk-5K4GVAX5.js
+new file mode 100644
+index 0000000..7f87ba0
+--- /dev/null
++++ b/node_modules/@metamask/approval-controller/dist/chunk-5K4GVAX5.js
+@@ -0,0 +1,589 @@
++"use strict";Object.defineProperty(exports, "__esModule", {value: true});
++
++
++
++
++
++
++
++
++
++var _chunkLKCXZAKDjs = require('./chunk-LKCXZAKD.js');
++
++// src/ApprovalController.ts
++
++
++var _basecontroller = require('@metamask/base-controller');
++var _rpcerrors = require('@metamask/rpc-errors');
++var _nanoid = require('nanoid');
++var ORIGIN_METAMASK = "metamask";
++var APPROVAL_TYPE_RESULT_ERROR = "result_error";
++var APPROVAL_TYPE_RESULT_SUCCESS = "result_success";
++var controllerName = "ApprovalController";
++var stateMetadata = {
++  pendingApprovals: { persist: false, anonymous: true },
++  pendingApprovalCount: { persist: false, anonymous: false },
++  approvalFlows: { persist: false, anonymous: false }
++};
++var getAlreadyPendingMessage = (origin, type) => `Request of type '${type}' already pending for origin ${origin}. Please wait.`;
++var getDefaultState = () => {
++  return {
++    pendingApprovals: {},
++    pendingApprovalCount: 0,
++    approvalFlows: []
++  };
++};
++var _approvals, _origins, _showApprovalRequest, _typesExcludedFromRateLimiting, _add, add_fn, _validateAddParams, validateAddParams_fn, _addPendingApprovalOrigin, addPendingApprovalOrigin_fn, _addToStore, addToStore_fn, _delete, delete_fn, _deleteApprovalAndGetCallbacks, deleteApprovalAndGetCallbacks_fn, _result, result_fn;
++var ApprovalController = class extends _basecontroller.BaseController {
++  /**
++   * Construct an Approval controller.
++   *
++   * @param options - The controller options.
++   * @param options.showApprovalRequest - Function for opening the UI such that
++   * the request can be displayed to the user.
++   * @param options.messenger - The restricted controller messenger for the Approval controller.
++   * @param options.state - The initial controller state.
++   * @param options.typesExcludedFromRateLimiting - Array of approval types which allow multiple pending approval requests from the same origin.
++   */
++  constructor({
++    messenger,
++    showApprovalRequest,
++    state = {},
++    typesExcludedFromRateLimiting = []
++  }) {
++    super({
++      name: controllerName,
++      metadata: stateMetadata,
++      messenger,
++      state: { ...getDefaultState(), ...state }
++    });
++    /**
++     * Implementation of add operation.
++     *
++     * @param origin - The origin of the approval request.
++     * @param type - The type associated with the approval request.
++     * @param id - The id of the approval request.
++     * @param requestData - The request data associated with the approval request.
++     * @param requestState - The request state associated with the approval request.
++     * @param expectsResult - Whether the approval request expects a result object to be returned.
++     * @returns The approval promise.
++     */
++    _chunkLKCXZAKDjs.__privateAdd.call(void 0, this, _add);
++    /**
++     * Validates parameters to the add method.
++     *
++     * @param id - The id of the approval request.
++     * @param origin - The origin of the approval request.
++     * @param type - The type associated with the approval request.
++     * @param requestData - The request data associated with the approval request.
++     * @param requestState - The request state associated with the approval request.
++     */
++    _chunkLKCXZAKDjs.__privateAdd.call(void 0, this, _validateAddParams);
++    /**
++     * Adds an entry to _origins.
++     * Performs no validation.
++     *
++     * @param origin - The origin of the approval request.
++     * @param type - The type associated with the approval request.
++     */
++    _chunkLKCXZAKDjs.__privateAdd.call(void 0, this, _addPendingApprovalOrigin);
++    /**
++     * Adds an entry to the store.
++     * Performs no validation.
++     *
++     * @param id - The id of the approval request.
++     * @param origin - The origin of the approval request.
++     * @param type - The type associated with the approval request.
++     * @param requestData - The request data associated with the approval request.
++     * @param requestState - The request state associated with the approval request.
++     * @param expectsResult - Whether the request expects a result object to be returned.
++     */
++    _chunkLKCXZAKDjs.__privateAdd.call(void 0, this, _addToStore);
++    /**
++     * Deletes the approval with the given id. The approval promise must be
++     * resolved or reject before this method is called.
++     * Deletion is an internal operation because approval state is solely
++     * managed by this controller.
++     *
++     * @param id - The id of the approval request to be deleted.
++     */
++    _chunkLKCXZAKDjs.__privateAdd.call(void 0, this, _delete);
++    /**
++     * Gets the approval callbacks for the given id, deletes the entry, and then
++     * returns the callbacks for promise resolution.
++     * Throws an error if no approval is found for the given id.
++     *
++     * @param id - The id of the approval request.
++     * @returns The promise callbacks associated with the approval request.
++     */
++    _chunkLKCXZAKDjs.__privateAdd.call(void 0, this, _deleteApprovalAndGetCallbacks);
++    _chunkLKCXZAKDjs.__privateAdd.call(void 0, this, _result);
++    _chunkLKCXZAKDjs.__privateAdd.call(void 0, this, _approvals, void 0);
++    _chunkLKCXZAKDjs.__privateAdd.call(void 0, this, _origins, void 0);
++    _chunkLKCXZAKDjs.__privateAdd.call(void 0, this, _showApprovalRequest, void 0);
++    _chunkLKCXZAKDjs.__privateAdd.call(void 0, this, _typesExcludedFromRateLimiting, void 0);
++    _chunkLKCXZAKDjs.__privateSet.call(void 0, this, _approvals, /* @__PURE__ */ new Map());
++    _chunkLKCXZAKDjs.__privateSet.call(void 0, this, _origins, /* @__PURE__ */ new Map());
++    _chunkLKCXZAKDjs.__privateSet.call(void 0, this, _showApprovalRequest, showApprovalRequest);
++    _chunkLKCXZAKDjs.__privateSet.call(void 0, this, _typesExcludedFromRateLimiting, typesExcludedFromRateLimiting);
++    this.registerMessageHandlers();
++  }
++  /**
++   * Constructor helper for registering this controller's messaging system
++   * actions.
++   */
++  registerMessageHandlers() {
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:clearRequests`,
++      this.clear.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:addRequest`,
++      (opts, shouldShowRequest) => {
++        if (shouldShowRequest) {
++          return this.addAndShowApprovalRequest(opts);
++        }
++        return this.add(opts);
++      }
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:hasRequest`,
++      this.has.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:acceptRequest`,
++      this.accept.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:rejectRequest`,
++      this.reject.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:updateRequestState`,
++      this.updateRequestState.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:startFlow`,
++      this.startFlow.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:endFlow`,
++      this.endFlow.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:setFlowLoadingText`,
++      this.setFlowLoadingText.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:showSuccess`,
++      this.success.bind(this)
++    );
++    this.messagingSystem.registerActionHandler(
++      `${controllerName}:showError`,
++      this.error.bind(this)
++    );
++  }
++  addAndShowApprovalRequest(opts) {
++    const promise = _chunkLKCXZAKDjs.__privateMethod.call(void 0, this, _add, add_fn).call(this, opts.origin, opts.type, opts.id, opts.requestData, opts.requestState, opts.expectsResult);
++    _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _showApprovalRequest).call(this);
++    return promise;
++  }
++  add(opts) {
++    return _chunkLKCXZAKDjs.__privateMethod.call(void 0, this, _add, add_fn).call(this, opts.origin, opts.type, opts.id, opts.requestData, opts.requestState, opts.expectsResult);
++  }
++  /**
++   * Gets the info for the approval request with the given id.
++   *
++   * @param id - The id of the approval request.
++   * @returns The approval request data associated with the id.
++   */
++  get(id) {
++    return this.state.pendingApprovals[id];
++  }
++  /**
++   * Gets the number of pending approvals, by origin and/or type.
++   *
++   * If only `origin` is specified, all approvals for that origin will be
++   * counted, regardless of type.
++   * If only `type` is specified, all approvals for that type will be counted,
++   * regardless of origin.
++   * If both `origin` and `type` are specified, 0 or 1 will be returned.
++   *
++   * @param opts - The approval count options.
++   * @param opts.origin - An approval origin.
++   * @param opts.type - The type of the approval request.
++   * @returns The current approval request count for the given origin and/or
++   * type.
++   */
++  getApprovalCount(opts = {}) {
++    if (!opts.origin && !opts.type) {
++      throw new Error("Must specify origin, type, or both.");
++    }
++    const { origin, type: _type } = opts;
++    if (origin && _type) {
++      return _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _origins).get(origin)?.get(_type) || 0;
++    }
++    if (origin) {
++      return Array.from(
++        (_chunkLKCXZAKDjs.__privateGet.call(void 0, this, _origins).get(origin) || /* @__PURE__ */ new Map()).values()
++      ).reduce((total, value) => total + value, 0);
++    }
++    let count = 0;
++    for (const approval of Object.values(this.state.pendingApprovals)) {
++      if (approval.type === _type) {
++        count += 1;
++      }
++    }
++    return count;
++  }
++  /**
++   * Get the total count of all pending approval requests for all origins.
++   *
++   * @returns The total pending approval request count.
++   */
++  getTotalApprovalCount() {
++    return this.state.pendingApprovalCount;
++  }
++  /**
++   * Checks if there's a pending approval request per the given parameters.
++   * At least one parameter must be specified. An error will be thrown if the
++   * parameters are invalid.
++   *
++   * If `id` is specified, all other parameters will be ignored.
++   * If `id` is not specified, the method will check for requests that match
++   * all of the specified parameters.
++   *
++   * @param opts - Options bag.
++   * @param opts.id - The ID to check for.
++   * @param opts.origin - The origin to check for.
++   * @param opts.type - The type to check for.
++   * @returns `true` if a matching approval is found, and `false` otherwise.
++   */
++  has(opts = {}) {
++    const { id, origin, type: _type } = opts;
++    if (id) {
++      if (typeof id !== "string") {
++        throw new Error("May not specify non-string id.");
++      }
++      return _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _approvals).has(id);
++    }
++    if (_type && typeof _type !== "string") {
++      throw new Error("May not specify non-string type.");
++    }
++    if (origin) {
++      if (typeof origin !== "string") {
++        throw new Error("May not specify non-string origin.");
++      }
++      if (_type) {
++        return Boolean(_chunkLKCXZAKDjs.__privateGet.call(void 0, this, _origins).get(origin)?.get(_type));
++      }
++      return _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _origins).has(origin);
++    }
++    if (_type) {
++      for (const approval of Object.values(this.state.pendingApprovals)) {
++        if (approval.type === _type) {
++          return true;
++        }
++      }
++      return false;
++    }
++    throw new Error(
++      "Must specify a valid combination of id, origin, and type."
++    );
++  }
++  /**
++   * Resolves the promise of the approval with the given id, and deletes the
++   * approval. Throws an error if no such approval exists.
++   *
++   * @param id - The id of the approval request.
++   * @param value - The value to resolve the approval promise with.
++   * @param options - Options bag.
++   * @returns A promise that either resolves once a result is provided by
++   * the creator of the approval request, or immediately if `options.waitForResult`
++   * is `false` or `undefined`.
++   */
++  accept(id, value, options) {
++    const approval = this.get(id);
++    const requestPromise = _chunkLKCXZAKDjs.__privateMethod.call(void 0, this, _deleteApprovalAndGetCallbacks, deleteApprovalAndGetCallbacks_fn).call(this, id);
++    return new Promise((resolve, reject) => {
++      const resultCallbacks = {
++        success: (acceptValue) => resolve({ value: acceptValue }),
++        error: reject
++      };
++      if (options?.waitForResult && !approval.expectsResult) {
++        reject(new (0, _chunkLKCXZAKDjs.ApprovalRequestNoResultSupportError)(id));
++        return;
++      }
++      const resultValue = options?.waitForResult ? resultCallbacks : void 0;
++      const resolveValue = approval.expectsResult ? { value, resultCallbacks: resultValue } : value;
++      requestPromise.resolve(resolveValue);
++      if (!options?.waitForResult) {
++        resolve({ value: void 0 });
++      }
++    });
++  }
++  /**
++   * Rejects the promise of the approval with the given id, and deletes the
++   * approval. Throws an error if no such approval exists.
++   *
++   * @param id - The id of the approval request.
++   * @param error - The error to reject the approval promise with.
++   */
++  reject(id, error) {
++    _chunkLKCXZAKDjs.__privateMethod.call(void 0, this, _deleteApprovalAndGetCallbacks, deleteApprovalAndGetCallbacks_fn).call(this, id).reject(error);
++  }
++  /**
++   * Rejects and deletes all approval requests.
++   *
++   * @param rejectionError - The JsonRpcError to reject the approval
++   * requests with.
++   */
++  clear(rejectionError) {
++    for (const id of _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _approvals).keys()) {
++      this.reject(id, rejectionError);
++    }
++    _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _origins).clear();
++    this.update((draftState) => {
++      draftState.pendingApprovals = {};
++      draftState.pendingApprovalCount = 0;
++    });
++  }
++  /**
++   * Updates the request state of the approval with the given id.
++   *
++   * @param opts - Options bag.
++   * @param opts.id - The id of the approval request.
++   * @param opts.requestState - Additional data associated with the request
++   */
++  updateRequestState(opts) {
++    if (!this.state.pendingApprovals[opts.id]) {
++      throw new (0, _chunkLKCXZAKDjs.ApprovalRequestNotFoundError)(opts.id);
++    }
++    this.update((draftState) => {
++      draftState.pendingApprovals[opts.id].requestState = opts.requestState;
++    });
++  }
++  /**
++   * Starts a new approval flow.
++   *
++   * @param opts - Options bag.
++   * @param opts.id - The id of the approval flow.
++   * @param opts.loadingText - The loading text that will be associated to the approval flow.
++   * @param opts.show - A flag to determine whether the approval should show to the user.
++   * @returns The object containing the approval flow id.
++   */
++  startFlow(opts = {}) {
++    const id = opts.id ?? _nanoid.nanoid.call(void 0, );
++    const loadingText = opts.loadingText ?? null;
++    this.update((draftState) => {
++      draftState.approvalFlows.push({ id, loadingText });
++    });
++    if (opts.show !== false) {
++      _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _showApprovalRequest).call(this);
++    }
++    return { id, loadingText };
++  }
++  /**
++   * Ends the current approval flow.
++   *
++   * @param opts - Options bag.
++   * @param opts.id - The id of the approval flow that will be finished.
++   */
++  endFlow({ id }) {
++    if (!this.state.approvalFlows.length) {
++      throw new (0, _chunkLKCXZAKDjs.NoApprovalFlowsError)();
++    }
++    const currentFlow = this.state.approvalFlows.slice(-1)[0];
++    if (id !== currentFlow.id) {
++      throw new (0, _chunkLKCXZAKDjs.EndInvalidFlowError)(
++        id,
++        this.state.approvalFlows.map((flow) => flow.id)
++      );
++    }
++    this.update((draftState) => {
++      draftState.approvalFlows.pop();
++    });
++  }
++  /**
++   * Sets the loading text for the approval flow.
++   *
++   * @param opts - Options bag.
++   * @param opts.id - The approval flow loading text that will be displayed.
++   * @param opts.loadingText - The loading text that will be associated to the approval flow.
++   */
++  setFlowLoadingText({ id, loadingText }) {
++    const flowIndex = this.state.approvalFlows.findIndex(
++      (flow) => flow.id === id
++    );
++    if (flowIndex === -1) {
++      throw new (0, _chunkLKCXZAKDjs.MissingApprovalFlowError)(id);
++    }
++    this.update((draftState) => {
++      draftState.approvalFlows[flowIndex].loadingText = loadingText;
++    });
++  }
++  /**
++   * Show a success page.
++   *
++   * @param opts - Options bag.
++   * @param opts.message - The message text or components to display in the page.
++   * @param opts.header - The text or components to display in the header of the page.
++   * @param opts.flowToEnd - The ID of the approval flow to end once the success page is approved.
++   * @param opts.title - The title to display above the message. Shown by default but can be hidden with `null`.
++   * @param opts.icon - The icon to display in the page. Shown by default but can be hidden with `null`.
++   * @returns Empty object to support future additions.
++   */
++  async success(opts = {}) {
++    await _chunkLKCXZAKDjs.__privateMethod.call(void 0, this, _result, result_fn).call(this, APPROVAL_TYPE_RESULT_SUCCESS, opts, {
++      message: opts.message,
++      header: opts.header,
++      title: opts.title,
++      icon: opts.icon
++    });
++    return {};
++  }
++  /**
++   * Show an error page.
++   *
++   * @param opts - Options bag.
++   * @param opts.message - The message text or components to display in the page.
++   * @param opts.header - The text or components to display in the header of the page.
++   * @param opts.flowToEnd - The ID of the approval flow to end once the error page is approved.
++   * @param opts.title - The title to display above the message. Shown by default but can be hidden with `null`.
++   * @param opts.icon - The icon to display in the page. Shown by default but can be hidden with `null`.
++   * @returns Empty object to support future additions.
++   */
++  async error(opts = {}) {
++    await _chunkLKCXZAKDjs.__privateMethod.call(void 0, this, _result, result_fn).call(this, APPROVAL_TYPE_RESULT_ERROR, opts, {
++      error: opts.error,
++      header: opts.header,
++      title: opts.title,
++      icon: opts.icon
++    });
++    return {};
++  }
++};
++_approvals = new WeakMap();
++_origins = new WeakMap();
++_showApprovalRequest = new WeakMap();
++_typesExcludedFromRateLimiting = new WeakMap();
++_add = new WeakSet();
++add_fn = function(origin, type, id = _nanoid.nanoid.call(void 0, ), requestData, requestState, expectsResult) {
++  _chunkLKCXZAKDjs.__privateMethod.call(void 0, this, _validateAddParams, validateAddParams_fn).call(this, id, origin, type, requestData, requestState);
++  if (!_chunkLKCXZAKDjs.__privateGet.call(void 0, this, _typesExcludedFromRateLimiting).includes(type) && this.has({ origin, type })) {
++    throw _rpcerrors.rpcErrors.resourceUnavailable(
++      getAlreadyPendingMessage(origin, type)
++    );
++  }
++  return new Promise((resolve, reject) => {
++    _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _approvals).set(id, { resolve, reject });
++    _chunkLKCXZAKDjs.__privateMethod.call(void 0, this, _addPendingApprovalOrigin, addPendingApprovalOrigin_fn).call(this, origin, type);
++    _chunkLKCXZAKDjs.__privateMethod.call(void 0, this, _addToStore, addToStore_fn).call(this, id, origin, type, requestData, requestState, expectsResult);
++  });
++};
++_validateAddParams = new WeakSet();
++validateAddParams_fn = function(id, origin, type, requestData, requestState) {
++  let errorMessage = null;
++  if (!id || typeof id !== "string") {
++    errorMessage = "Must specify non-empty string id.";
++  } else if (_chunkLKCXZAKDjs.__privateGet.call(void 0, this, _approvals).has(id)) {
++    errorMessage = `Approval request with id '${id}' already exists.`;
++  } else if (!origin || typeof origin !== "string") {
++    errorMessage = "Must specify non-empty string origin.";
++  } else if (!type || typeof type !== "string") {
++    errorMessage = "Must specify non-empty string type.";
++  } else if (requestData && (typeof requestData !== "object" || Array.isArray(requestData))) {
++    errorMessage = "Request data must be a plain object if specified.";
++  } else if (requestState && (typeof requestState !== "object" || Array.isArray(requestState))) {
++    errorMessage = "Request state must be a plain object if specified.";
++  }
++  if (errorMessage) {
++    throw _rpcerrors.rpcErrors.internal(errorMessage);
++  }
++};
++_addPendingApprovalOrigin = new WeakSet();
++addPendingApprovalOrigin_fn = function(origin, type) {
++  let originMap = _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _origins).get(origin);
++  if (!originMap) {
++    originMap = /* @__PURE__ */ new Map();
++    _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _origins).set(origin, originMap);
++  }
++  const currentValue = originMap.get(type) || 0;
++  originMap.set(type, currentValue + 1);
++};
++_addToStore = new WeakSet();
++addToStore_fn = function(id, origin, type, requestData, requestState, expectsResult) {
++  const approval = {
++    id,
++    origin,
++    type,
++    time: Date.now(),
++    requestData: requestData || null,
++    requestState: requestState || null,
++    expectsResult: expectsResult || false
++  };
++  this.update((draftState) => {
++    draftState.pendingApprovals[id] = approval;
++    draftState.pendingApprovalCount = Object.keys(
++      draftState.pendingApprovals
++    ).length;
++  });
++};
++_delete = new WeakSet();
++delete_fn = function(id) {
++  _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _approvals).delete(id);
++  const { origin, type } = this.state.pendingApprovals[id];
++  const originMap = _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _origins).get(origin);
++  const originTotalCount = this.getApprovalCount({ origin });
++  const originTypeCount = originMap.get(type);
++  if (originTotalCount === 1) {
++    _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _origins).delete(origin);
++  } else {
++    originMap.set(type, originTypeCount - 1);
++  }
++  this.update((draftState) => {
++    delete draftState.pendingApprovals[id];
++    draftState.pendingApprovalCount = Object.keys(
++      draftState.pendingApprovals
++    ).length;
++  });
++};
++_deleteApprovalAndGetCallbacks = new WeakSet();
++deleteApprovalAndGetCallbacks_fn = function(id) {
++  const callbacks = _chunkLKCXZAKDjs.__privateGet.call(void 0, this, _approvals).get(id);
++  if (!callbacks) {
++    throw new (0, _chunkLKCXZAKDjs.ApprovalRequestNotFoundError)(id);
++  }
++  _chunkLKCXZAKDjs.__privateMethod.call(void 0, this, _delete, delete_fn).call(this, id);
++  return callbacks;
++};
++_result = new WeakSet();
++result_fn = async function(type, opts, requestData) {
++  try {
++    await this.addAndShowApprovalRequest({
++      origin: ORIGIN_METAMASK,
++      type,
++      requestData
++    });
++  } catch (error) {
++    console.info("Failed to display result page", error);
++  } finally {
++    if (opts.flowToEnd) {
++      try {
++        this.endFlow({ id: opts.flowToEnd });
++      } catch (error) {
++        console.info("Failed to end flow", { id: opts.flowToEnd, error });
++      }
++    }
++  }
++};
++var ApprovalController_default = ApprovalController;
++
++
++
++
++
++
++
++exports.ORIGIN_METAMASK = ORIGIN_METAMASK; exports.APPROVAL_TYPE_RESULT_ERROR = APPROVAL_TYPE_RESULT_ERROR; exports.APPROVAL_TYPE_RESULT_SUCCESS = APPROVAL_TYPE_RESULT_SUCCESS; exports.ApprovalController = ApprovalController; exports.ApprovalController_default = ApprovalController_default;
++//# sourceMappingURL=chunk-5K4GVAX5.js.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/chunk-C4VZRQ2J.mjs b/node_modules/@metamask/approval-controller/dist/chunk-C4VZRQ2J.mjs
+new file mode 100644
+index 0000000..184ae25
+--- /dev/null
++++ b/node_modules/@metamask/approval-controller/dist/chunk-C4VZRQ2J.mjs
+@@ -0,0 +1,66 @@
++var __accessCheck = (obj, member, msg) => {
++  if (!member.has(obj))
++    throw TypeError("Cannot " + msg);
++};
++var __privateGet = (obj, member, getter) => {
++  __accessCheck(obj, member, "read from private field");
++  return getter ? getter.call(obj) : member.get(obj);
++};
++var __privateAdd = (obj, member, value) => {
++  if (member.has(obj))
++    throw TypeError("Cannot add the same private member more than once");
++  member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
++};
++var __privateSet = (obj, member, value, setter) => {
++  __accessCheck(obj, member, "write to private field");
++  setter ? setter.call(obj, value) : member.set(obj, value);
++  return value;
++};
++var __privateMethod = (obj, member, method) => {
++  __accessCheck(obj, member, "access private method");
++  return method;
++};
++
++// src/errors.ts
++var ApprovalRequestNotFoundError = class extends Error {
++  constructor(id) {
++    super(`Approval request with id '${id}' not found.`);
++  }
++};
++var ApprovalRequestNoResultSupportError = class extends Error {
++  constructor(id) {
++    super(
++      `Approval acceptance requested result but request with id '${id}' does not support it.`
++    );
++  }
++};
++var NoApprovalFlowsError = class extends Error {
++  constructor() {
++    super(`No approval flows found.`);
++  }
++};
++var EndInvalidFlowError = class extends Error {
++  constructor(id, flowIds) {
++    super(
++      `Attempted to end flow with id '${id}' which does not match current flow with id '${flowIds.slice(-1)[0]}'. All Flows: ${flowIds.join(", ")}`
++    );
++  }
++};
++var MissingApprovalFlowError = class extends Error {
++  constructor(id) {
++    super(`No approval flows found with id '${id}'.`);
++  }
++};
++
++export {
++  __privateGet,
++  __privateAdd,
++  __privateSet,
++  __privateMethod,
++  ApprovalRequestNotFoundError,
++  ApprovalRequestNoResultSupportError,
++  NoApprovalFlowsError,
++  EndInvalidFlowError,
++  MissingApprovalFlowError
++};
++//# sourceMappingURL=chunk-C4VZRQ2J.mjs.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/chunk-LKCXZAKD.js b/node_modules/@metamask/approval-controller/dist/chunk-LKCXZAKD.js
+new file mode 100644
+index 0000000..3e91d66
+--- /dev/null
++++ b/node_modules/@metamask/approval-controller/dist/chunk-LKCXZAKD.js
+@@ -0,0 +1,66 @@
++"use strict";Object.defineProperty(exports, "__esModule", {value: true});var __accessCheck = (obj, member, msg) => {
++  if (!member.has(obj))
++    throw TypeError("Cannot " + msg);
++};
++var __privateGet = (obj, member, getter) => {
++  __accessCheck(obj, member, "read from private field");
++  return getter ? getter.call(obj) : member.get(obj);
++};
++var __privateAdd = (obj, member, value) => {
++  if (member.has(obj))
++    throw TypeError("Cannot add the same private member more than once");
++  member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
++};
++var __privateSet = (obj, member, value, setter) => {
++  __accessCheck(obj, member, "write to private field");
++  setter ? setter.call(obj, value) : member.set(obj, value);
++  return value;
++};
++var __privateMethod = (obj, member, method) => {
++  __accessCheck(obj, member, "access private method");
++  return method;
++};
++
++// src/errors.ts
++var ApprovalRequestNotFoundError = class extends Error {
++  constructor(id) {
++    super(`Approval request with id '${id}' not found.`);
++  }
++};
++var ApprovalRequestNoResultSupportError = class extends Error {
++  constructor(id) {
++    super(
++      `Approval acceptance requested result but request with id '${id}' does not support it.`
++    );
++  }
++};
++var NoApprovalFlowsError = class extends Error {
++  constructor() {
++    super(`No approval flows found.`);
++  }
++};
++var EndInvalidFlowError = class extends Error {
++  constructor(id, flowIds) {
++    super(
++      `Attempted to end flow with id '${id}' which does not match current flow with id '${flowIds.slice(-1)[0]}'. All Flows: ${flowIds.join(", ")}`
++    );
++  }
++};
++var MissingApprovalFlowError = class extends Error {
++  constructor(id) {
++    super(`No approval flows found with id '${id}'.`);
++  }
++};
++
++
++
++
++
++
++
++
++
++
++
++exports.__privateGet = __privateGet; exports.__privateAdd = __privateAdd; exports.__privateSet = __privateSet; exports.__privateMethod = __privateMethod; exports.ApprovalRequestNotFoundError = ApprovalRequestNotFoundError; exports.ApprovalRequestNoResultSupportError = ApprovalRequestNoResultSupportError; exports.NoApprovalFlowsError = NoApprovalFlowsError; exports.EndInvalidFlowError = EndInvalidFlowError; exports.MissingApprovalFlowError = MissingApprovalFlowError;
++//# sourceMappingURL=chunk-LKCXZAKD.js.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/errors.d.ts.map b/node_modules/@metamask/approval-controller/dist/errors.d.ts.map
+deleted file mode 100644
+index 43e92d5..0000000
+--- a/node_modules/@metamask/approval-controller/dist/errors.d.ts.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"errors.d.ts","sourceRoot":"","sources":["../src/errors.ts"],"names":[],"mappings":"AAAA,qBAAa,4BAA6B,SAAQ,KAAK;gBACzC,EAAE,EAAE,MAAM;CAGvB;AAED,qBAAa,mCAAoC,SAAQ,KAAK;gBAChD,EAAE,EAAE,MAAM;CAKvB;AAED,qBAAa,oBAAqB,SAAQ,KAAK;;CAI9C;AAED,qBAAa,mBAAoB,SAAQ,KAAK;gBAChC,EAAE,EAAE,MAAM,EAAE,OAAO,EAAE,MAAM,EAAE;CAO1C;AAED,qBAAa,wBAAyB,SAAQ,KAAK;gBACrC,EAAE,EAAE,MAAM;CAGvB"}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/errors.js.map b/node_modules/@metamask/approval-controller/dist/errors.js.map
+deleted file mode 100644
+index c709895..0000000
+--- a/node_modules/@metamask/approval-controller/dist/errors.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"errors.js","sourceRoot":"","sources":["../src/errors.ts"],"names":[],"mappings":";;;AAAA,MAAa,4BAA6B,SAAQ,KAAK;IACrD,YAAY,EAAU;QACpB,KAAK,CAAC,6BAA6B,EAAE,cAAc,CAAC,CAAC;IACvD,CAAC;CACF;AAJD,oEAIC;AAED,MAAa,mCAAoC,SAAQ,KAAK;IAC5D,YAAY,EAAU;QACpB,KAAK,CACH,6DAA6D,EAAE,wBAAwB,CACxF,CAAC;IACJ,CAAC;CACF;AAND,kFAMC;AAED,MAAa,oBAAqB,SAAQ,KAAK;IAC7C;QACE,KAAK,CAAC,0BAA0B,CAAC,CAAC;IACpC,CAAC;CACF;AAJD,oDAIC;AAED,MAAa,mBAAoB,SAAQ,KAAK;IAC5C,YAAY,EAAU,EAAE,OAAiB;QACvC,KAAK,CACH,kCAAkC,EAAE,gDAClC,OAAO,CAAC,KAAK,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CACrB,iBAAiB,OAAO,CAAC,IAAI,CAAC,IAAI,CAAC,EAAE,CACtC,CAAC;IACJ,CAAC;CACF;AARD,kDAQC;AAED,MAAa,wBAAyB,SAAQ,KAAK;IACjD,YAAY,EAAU;QACpB,KAAK,CAAC,oCAAoC,EAAE,IAAI,CAAC,CAAC;IACpD,CAAC;CACF;AAJD,4DAIC","sourcesContent":["export class ApprovalRequestNotFoundError extends Error {\n  constructor(id: string) {\n    super(`Approval request with id '${id}' not found.`);\n  }\n}\n\nexport class ApprovalRequestNoResultSupportError extends Error {\n  constructor(id: string) {\n    super(\n      `Approval acceptance requested result but request with id '${id}' does not support it.`,\n    );\n  }\n}\n\nexport class NoApprovalFlowsError extends Error {\n  constructor() {\n    super(`No approval flows found.`);\n  }\n}\n\nexport class EndInvalidFlowError extends Error {\n  constructor(id: string, flowIds: string[]) {\n    super(\n      `Attempted to end flow with id '${id}' which does not match current flow with id '${\n        flowIds.slice(-1)[0]\n      }'. All Flows: ${flowIds.join(', ')}`,\n    );\n  }\n}\n\nexport class MissingApprovalFlowError extends Error {\n  constructor(id: string) {\n    super(`No approval flows found with id '${id}'.`);\n  }\n}\n"]}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/errors.mjs b/node_modules/@metamask/approval-controller/dist/errors.mjs
+new file mode 100644
+index 0000000..b8520e3
+--- /dev/null
++++ b/node_modules/@metamask/approval-controller/dist/errors.mjs
+@@ -0,0 +1,15 @@
++import {
++  ApprovalRequestNoResultSupportError,
++  ApprovalRequestNotFoundError,
++  EndInvalidFlowError,
++  MissingApprovalFlowError,
++  NoApprovalFlowsError
++} from "./chunk-C4VZRQ2J.mjs";
++export {
++  ApprovalRequestNoResultSupportError,
++  ApprovalRequestNotFoundError,
++  EndInvalidFlowError,
++  MissingApprovalFlowError,
++  NoApprovalFlowsError
++};
++//# sourceMappingURL=errors.mjs.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/index.d.ts.map b/node_modules/@metamask/approval-controller/dist/index.d.ts.map
+deleted file mode 100644
+index ae4b431..0000000
+--- a/node_modules/@metamask/approval-controller/dist/index.d.ts.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,cAAc,sBAAsB,CAAC;AACrC,cAAc,UAAU,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/index.js.map b/node_modules/@metamask/approval-controller/dist/index.js.map
+deleted file mode 100644
+index af114e6..0000000
+--- a/node_modules/@metamask/approval-controller/dist/index.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"index.js","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;AAAA,uDAAqC;AACrC,2CAAyB","sourcesContent":["export * from './ApprovalController';\nexport * from './errors';\n"]}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/index.mjs b/node_modules/@metamask/approval-controller/dist/index.mjs
+new file mode 100644
+index 0000000..28e08a0
+--- /dev/null
++++ b/node_modules/@metamask/approval-controller/dist/index.mjs
+@@ -0,0 +1,25 @@
++import {
++  APPROVAL_TYPE_RESULT_ERROR,
++  APPROVAL_TYPE_RESULT_SUCCESS,
++  ApprovalController,
++  ORIGIN_METAMASK
++} from "./chunk-3LR64U6N.mjs";
++import {
++  ApprovalRequestNoResultSupportError,
++  ApprovalRequestNotFoundError,
++  EndInvalidFlowError,
++  MissingApprovalFlowError,
++  NoApprovalFlowsError
++} from "./chunk-C4VZRQ2J.mjs";
++export {
++  APPROVAL_TYPE_RESULT_ERROR,
++  APPROVAL_TYPE_RESULT_SUCCESS,
++  ApprovalController,
++  ApprovalRequestNoResultSupportError,
++  ApprovalRequestNotFoundError,
++  EndInvalidFlowError,
++  MissingApprovalFlowError,
++  NoApprovalFlowsError,
++  ORIGIN_METAMASK
++};
++//# sourceMappingURL=index.mjs.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/tsconfig.build.tsbuildinfo b/node_modules/@metamask/approval-controller/dist/tsconfig.build.tsbuildinfo
+new file mode 100644
+index 0000000..4885fdb
+--- /dev/null
++++ b/node_modules/@metamask/approval-controller/dist/tsconfig.build.tsbuildinfo
+@@ -0,0 +1 @@
++{"program":{"fileNames":["../../../node_modules/typescript/lib/lib.es5.d.ts","../../../node_modules/typescript/lib/lib.es2015.d.ts","../../../node_modules/typescript/lib/lib.es2016.d.ts","../../../node_modules/typescript/lib/lib.es2017.d.ts","../../../node_modules/typescript/lib/lib.es2018.d.ts","../../../node_modules/typescript/lib/lib.es2019.d.ts","../../../node_modules/typescript/lib/lib.es2020.d.ts","../../../node_modules/typescript/lib/lib.dom.d.ts","../../../node_modules/typescript/lib/lib.es2015.core.d.ts","../../../node_modules/typescript/lib/lib.es2015.collection.d.ts","../../../node_modules/typescript/lib/lib.es2015.generator.d.ts","../../../node_modules/typescript/lib/lib.es2015.iterable.d.ts","../../../node_modules/typescript/lib/lib.es2015.promise.d.ts","../../../node_modules/typescript/lib/lib.es2015.proxy.d.ts","../../../node_modules/typescript/lib/lib.es2015.reflect.d.ts","../../../node_modules/typescript/lib/lib.es2015.symbol.d.ts","../../../node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts","../../../node_modules/typescript/lib/lib.es2016.array.include.d.ts","../../../node_modules/typescript/lib/lib.es2017.object.d.ts","../../../node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts","../../../node_modules/typescript/lib/lib.es2017.string.d.ts","../../../node_modules/typescript/lib/lib.es2017.intl.d.ts","../../../node_modules/typescript/lib/lib.es2017.typedarrays.d.ts","../../../node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts","../../../node_modules/typescript/lib/lib.es2018.asynciterable.d.ts","../../../node_modules/typescript/lib/lib.es2018.intl.d.ts","../../../node_modules/typescript/lib/lib.es2018.promise.d.ts","../../../node_modules/typescript/lib/lib.es2018.regexp.d.ts","../../../node_modules/typescript/lib/lib.es2019.array.d.ts","../../../node_modules/typescript/lib/lib.es2019.object.d.ts","../../../node_modules/typescript/lib/lib.es2019.string.d.ts","../../../node_modules/typescript/lib/lib.es2019.symbol.d.ts","../../../node_modules/typescript/lib/lib.es2019.intl.d.ts","../../../node_modules/typescript/lib/lib.es2020.bigint.d.ts","../../../node_modules/typescript/lib/lib.es2020.date.d.ts","../../../node_modules/typescript/lib/lib.es2020.promise.d.ts","../../../node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts","../../../node_modules/typescript/lib/lib.es2020.string.d.ts","../../../node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts","../../../node_modules/typescript/lib/lib.es2020.intl.d.ts","../../../node_modules/typescript/lib/lib.es2020.number.d.ts","../../../node_modules/typescript/lib/lib.esnext.intl.d.ts","../../../types/eth-ens-namehash.d.ts","../../../types/ethereum-ens-network-map.d.ts","../../../types/global.d.ts","../../../types/single-call-balance-checker-abi.d.ts","../../../types/@metamask/contract-metadata.d.ts","../../../types/@metamask/eth-hd-keyring.d.ts","../../../types/@metamask/eth-simple-keyring.d.ts","../../../types/@metamask/ethjs-provider-http.d.ts","../../../types/@metamask/ethjs-unit.d.ts","../../../types/@metamask/metamask-eth-abis.d.ts","../../../types/eth-json-rpc-infura/src/createProvider.d.ts","../../../types/eth-phishing-detect/src/config.json.d.ts","../../../types/eth-phishing-detect/src/detector.d.ts","../../base-controller/dist/types/BaseControllerV1.d.ts","../../../node_modules/superstruct/dist/error.d.ts","../../../node_modules/superstruct/dist/utils.d.ts","../../../node_modules/superstruct/dist/struct.d.ts","../../../node_modules/superstruct/dist/structs/coercions.d.ts","../../../node_modules/superstruct/dist/structs/refinements.d.ts","../../../node_modules/superstruct/dist/structs/types.d.ts","../../../node_modules/superstruct/dist/structs/utilities.d.ts","../../../node_modules/superstruct/dist/index.d.ts","../../../node_modules/@metamask/utils/dist/types/assert.d.ts","../../../node_modules/@metamask/utils/dist/types/base64.d.ts","../../../node_modules/@metamask/utils/dist/types/hex.d.ts","../../../node_modules/@metamask/utils/dist/types/bytes.d.ts","../../../node_modules/@metamask/utils/dist/types/caip-types.d.ts","../../../node_modules/@metamask/utils/dist/types/checksum.d.ts","../../../node_modules/@metamask/utils/dist/types/coercers.d.ts","../../../node_modules/@metamask/utils/dist/types/collections.d.ts","../../../node_modules/@metamask/utils/dist/types/encryption-types.d.ts","../../../node_modules/@metamask/utils/dist/types/errors.d.ts","../../../node_modules/@metamask/utils/dist/types/json.d.ts","../../../node_modules/@types/node/assert.d.ts","../../../node_modules/@types/node/assert/strict.d.ts","../../../node_modules/@types/node/globals.d.ts","../../../node_modules/@types/node/async_hooks.d.ts","../../../node_modules/@types/node/buffer.d.ts","../../../node_modules/@types/node/child_process.d.ts","../../../node_modules/@types/node/cluster.d.ts","../../../node_modules/@types/node/console.d.ts","../../../node_modules/@types/node/constants.d.ts","../../../node_modules/@types/node/crypto.d.ts","../../../node_modules/@types/node/dgram.d.ts","../../../node_modules/@types/node/diagnostics_channel.d.ts","../../../node_modules/@types/node/dns.d.ts","../../../node_modules/@types/node/dns/promises.d.ts","../../../node_modules/@types/node/dom-events.d.ts","../../../node_modules/@types/node/domain.d.ts","../../../node_modules/@types/node/events.d.ts","../../../node_modules/@types/node/fs.d.ts","../../../node_modules/@types/node/fs/promises.d.ts","../../../node_modules/@types/node/http.d.ts","../../../node_modules/@types/node/http2.d.ts","../../../node_modules/@types/node/https.d.ts","../../../node_modules/@types/node/inspector.d.ts","../../../node_modules/@types/node/module.d.ts","../../../node_modules/@types/node/net.d.ts","../../../node_modules/@types/node/os.d.ts","../../../node_modules/@types/node/path.d.ts","../../../node_modules/@types/node/perf_hooks.d.ts","../../../node_modules/@types/node/process.d.ts","../../../node_modules/@types/node/punycode.d.ts","../../../node_modules/@types/node/querystring.d.ts","../../../node_modules/@types/node/readline.d.ts","../../../node_modules/@types/node/repl.d.ts","../../../node_modules/@types/node/stream.d.ts","../../../node_modules/@types/node/stream/promises.d.ts","../../../node_modules/@types/node/stream/consumers.d.ts","../../../node_modules/@types/node/stream/web.d.ts","../../../node_modules/@types/node/string_decoder.d.ts","../../../node_modules/@types/node/test.d.ts","../../../node_modules/@types/node/timers.d.ts","../../../node_modules/@types/node/timers/promises.d.ts","../../../node_modules/@types/node/tls.d.ts","../../../node_modules/@types/node/trace_events.d.ts","../../../node_modules/@types/node/tty.d.ts","../../../node_modules/@types/node/url.d.ts","../../../node_modules/@types/node/util.d.ts","../../../node_modules/@types/node/v8.d.ts","../../../node_modules/@types/node/vm.d.ts","../../../node_modules/@types/node/wasi.d.ts","../../../node_modules/@types/node/worker_threads.d.ts","../../../node_modules/@types/node/zlib.d.ts","../../../node_modules/@types/node/globals.global.d.ts","../../../node_modules/@types/node/index.d.ts","../../../node_modules/@ethereumjs/common/dist/enums.d.ts","../../../node_modules/@ethereumjs/common/dist/types.d.ts","../../../node_modules/buffer/index.d.ts","../../../node_modules/@ethereumjs/util/dist/constants.d.ts","../../../node_modules/@ethereumjs/util/dist/units.d.ts","../../../node_modules/@ethereumjs/util/dist/address.d.ts","../../../node_modules/@ethereumjs/util/dist/bytes.d.ts","../../../node_modules/@ethereumjs/util/dist/types.d.ts","../../../node_modules/@ethereumjs/util/dist/account.d.ts","../../../node_modules/@ethereumjs/util/dist/withdrawal.d.ts","../../../node_modules/@ethereumjs/util/dist/signature.d.ts","../../../node_modules/@ethereumjs/util/dist/encoding.d.ts","../../../node_modules/@ethereumjs/util/dist/asyncEventEmitter.d.ts","../../../node_modules/@ethereumjs/util/dist/internal.d.ts","../../../node_modules/@ethereumjs/util/dist/lock.d.ts","../../../node_modules/@ethereumjs/util/dist/provider.d.ts","../../../node_modules/@ethereumjs/util/dist/index.d.ts","../../../node_modules/@ethereumjs/common/dist/common.d.ts","../../../node_modules/@ethereumjs/common/dist/utils.d.ts","../../../node_modules/@ethereumjs/common/dist/index.d.ts","../../../node_modules/@ethereumjs/tx/dist/eip2930Transaction.d.ts","../../../node_modules/@ethereumjs/tx/dist/legacyTransaction.d.ts","../../../node_modules/@ethereumjs/tx/dist/types.d.ts","../../../node_modules/@ethereumjs/tx/dist/baseTransaction.d.ts","../../../node_modules/@ethereumjs/tx/dist/eip1559Transaction.d.ts","../../../node_modules/@ethereumjs/tx/dist/transactionFactory.d.ts","../../../node_modules/@ethereumjs/tx/dist/index.d.ts","../../../node_modules/@metamask/utils/dist/types/keyring.d.ts","../../../node_modules/@types/ms/index.d.ts","../../../node_modules/@types/debug/index.d.ts","../../../node_modules/@metamask/utils/dist/types/logging.d.ts","../../../node_modules/@metamask/utils/dist/types/misc.d.ts","../../../node_modules/@metamask/utils/dist/types/number.d.ts","../../../node_modules/@metamask/utils/dist/types/opaque.d.ts","../../../node_modules/@metamask/utils/dist/types/promise.d.ts","../../../node_modules/@metamask/utils/dist/types/time.d.ts","../../../node_modules/@metamask/utils/dist/types/transaction-types.d.ts","../../../node_modules/@metamask/utils/dist/types/versions.d.ts","../../../node_modules/@metamask/utils/dist/types/index.d.ts","../../../node_modules/immer/dist/utils/env.d.ts","../../../node_modules/immer/dist/utils/errors.d.ts","../../../node_modules/immer/dist/types/types-external.d.ts","../../../node_modules/immer/dist/types/types-internal.d.ts","../../../node_modules/immer/dist/utils/common.d.ts","../../../node_modules/immer/dist/utils/plugins.d.ts","../../../node_modules/immer/dist/core/scope.d.ts","../../../node_modules/immer/dist/core/finalize.d.ts","../../../node_modules/immer/dist/core/proxy.d.ts","../../../node_modules/immer/dist/core/immerClass.d.ts","../../../node_modules/immer/dist/core/current.d.ts","../../../node_modules/immer/dist/internal.d.ts","../../../node_modules/immer/dist/plugins/es5.d.ts","../../../node_modules/immer/dist/plugins/patches.d.ts","../../../node_modules/immer/dist/plugins/mapset.d.ts","../../../node_modules/immer/dist/plugins/all.d.ts","../../../node_modules/immer/dist/immer.d.ts","../../base-controller/dist/types/RestrictedControllerMessenger.d.ts","../../base-controller/dist/types/ControllerMessenger.d.ts","../../base-controller/dist/types/BaseControllerV2.d.ts","../../base-controller/dist/types/index.d.ts","../../../node_modules/@metamask/rpc-errors/dist/types/utils.d.ts","../../../node_modules/@metamask/rpc-errors/dist/types/classes.d.ts","../../../node_modules/@metamask/rpc-errors/dist/types/errors.d.ts","../../../node_modules/@metamask/rpc-errors/dist/types/error-constants.d.ts","../../../node_modules/@metamask/rpc-errors/dist/types/index.d.ts","../../../node_modules/nanoid/index.d.ts","../src/errors.ts","../src/ApprovalController.ts","../src/index.ts","../../../node_modules/@babel/types/lib/index.d.ts","../../../node_modules/@types/babel__generator/index.d.ts","../../../node_modules/@babel/parser/typings/babel-parser.d.ts","../../../node_modules/@types/babel__template/index.d.ts","../../../node_modules/@types/babel__traverse/index.d.ts","../../../node_modules/@types/babel__core/index.d.ts","../../../node_modules/@types/bn.js/index.d.ts","../../../node_modules/@types/deep-freeze-strict/index.d.ts","../../../node_modules/@types/eslint/helpers.d.ts","../../../node_modules/@types/estree/index.d.ts","../../../node_modules/@types/json-schema/index.d.ts","../../../node_modules/@types/eslint/index.d.ts","../../../node_modules/@types/graceful-fs/index.d.ts","../../../node_modules/@types/istanbul-lib-coverage/index.d.ts","../../../node_modules/@types/istanbul-lib-report/index.d.ts","../../../node_modules/@types/istanbul-reports/index.d.ts","../../../node_modules/chalk/index.d.ts","../../../node_modules/jest-diff/build/cleanupSemantic.d.ts","../../../node_modules/pretty-format/build/types.d.ts","../../../node_modules/pretty-format/build/index.d.ts","../../../node_modules/jest-diff/build/types.d.ts","../../../node_modules/jest-diff/build/diffLines.d.ts","../../../node_modules/jest-diff/build/printDiffs.d.ts","../../../node_modules/jest-diff/build/index.d.ts","../../../node_modules/jest-matcher-utils/build/index.d.ts","../../../node_modules/@types/jest/index.d.ts","../../../node_modules/@types/jest-when/index.d.ts","../../../node_modules/@types/json5/index.d.ts","../../../node_modules/@types/lodash/common/common.d.ts","../../../node_modules/@types/lodash/common/array.d.ts","../../../node_modules/@types/lodash/common/collection.d.ts","../../../node_modules/@types/lodash/common/date.d.ts","../../../node_modules/@types/lodash/common/function.d.ts","../../../node_modules/@types/lodash/common/lang.d.ts","../../../node_modules/@types/lodash/common/math.d.ts","../../../node_modules/@types/lodash/common/number.d.ts","../../../node_modules/@types/lodash/common/object.d.ts","../../../node_modules/@types/lodash/common/seq.d.ts","../../../node_modules/@types/lodash/common/string.d.ts","../../../node_modules/@types/lodash/common/util.d.ts","../../../node_modules/@types/lodash/index.d.ts","../../../node_modules/@types/minimatch/index.d.ts","../../../node_modules/@types/parse-json/index.d.ts","../../../node_modules/@types/pbkdf2/index.d.ts","../../../node_modules/@types/prettier/index.d.ts","../../../node_modules/@types/punycode/index.d.ts","../../../node_modules/@types/readable-stream/node_modules/safe-buffer/index.d.ts","../../../node_modules/@types/readable-stream/index.d.ts","../../../node_modules/@types/secp256k1/index.d.ts","../../../node_modules/@types/semver/classes/semver.d.ts","../../../node_modules/@types/semver/functions/parse.d.ts","../../../node_modules/@types/semver/functions/valid.d.ts","../../../node_modules/@types/semver/functions/clean.d.ts","../../../node_modules/@types/semver/functions/inc.d.ts","../../../node_modules/@types/semver/functions/diff.d.ts","../../../node_modules/@types/semver/functions/major.d.ts","../../../node_modules/@types/semver/functions/minor.d.ts","../../../node_modules/@types/semver/functions/patch.d.ts","../../../node_modules/@types/semver/functions/prerelease.d.ts","../../../node_modules/@types/semver/functions/compare.d.ts","../../../node_modules/@types/semver/functions/rcompare.d.ts","../../../node_modules/@types/semver/functions/compare-loose.d.ts","../../../node_modules/@types/semver/functions/compare-build.d.ts","../../../node_modules/@types/semver/functions/sort.d.ts","../../../node_modules/@types/semver/functions/rsort.d.ts","../../../node_modules/@types/semver/functions/gt.d.ts","../../../node_modules/@types/semver/functions/lt.d.ts","../../../node_modules/@types/semver/functions/eq.d.ts","../../../node_modules/@types/semver/functions/neq.d.ts","../../../node_modules/@types/semver/functions/gte.d.ts","../../../node_modules/@types/semver/functions/lte.d.ts","../../../node_modules/@types/semver/functions/cmp.d.ts","../../../node_modules/@types/semver/functions/coerce.d.ts","../../../node_modules/@types/semver/classes/comparator.d.ts","../../../node_modules/@types/semver/classes/range.d.ts","../../../node_modules/@types/semver/functions/satisfies.d.ts","../../../node_modules/@types/semver/ranges/max-satisfying.d.ts","../../../node_modules/@types/semver/ranges/min-satisfying.d.ts","../../../node_modules/@types/semver/ranges/to-comparators.d.ts","../../../node_modules/@types/semver/ranges/min-version.d.ts","../../../node_modules/@types/semver/ranges/valid.d.ts","../../../node_modules/@types/semver/ranges/outside.d.ts","../../../node_modules/@types/semver/ranges/gtr.d.ts","../../../node_modules/@types/semver/ranges/ltr.d.ts","../../../node_modules/@types/semver/ranges/intersects.d.ts","../../../node_modules/@types/semver/ranges/simplify.d.ts","../../../node_modules/@types/semver/ranges/subset.d.ts","../../../node_modules/@types/semver/internals/identifiers.d.ts","../../../node_modules/@types/semver/index.d.ts","../../../node_modules/@types/sinonjs__fake-timers/index.d.ts","../../../node_modules/@types/sinon/index.d.ts","../../../node_modules/@types/stack-utils/index.d.ts","../../../node_modules/@types/uuid/index.d.ts","../../../node_modules/@types/yargs-parser/index.d.ts","../../../node_modules/@types/yargs/index.d.ts"],"fileInfos":[{"version":"8730f4bf322026ff5229336391a18bcaa1f94d4f82416c8b2f3954e2ccaae2ba","affectsGlobalScope":true},"dc47c4fa66b9b9890cf076304de2a9c5201e94b740cffdf09f87296d877d71f6","7a387c58583dfca701b6c85e0adaf43fb17d590fb16d5b2dc0a2fbd89f35c467","8a12173c586e95f4433e0c6dc446bc88346be73ffe9ca6eec7aa63c8f3dca7f9","5f4e733ced4e129482ae2186aae29fde948ab7182844c3a5a51dd346182c7b06","4b421cbfb3a38a27c279dec1e9112c3d1da296f77a1a85ddadf7e7a425d45d18","1fc5ab7a764205c68fa10d381b08417795fc73111d6dd16b5b1ed36badb743d9",{"version":"3aafcb693fe5b5c3bd277bd4c3a617b53db474fe498fc5df067c5603b1eebde7","affectsGlobalScope":true},{"version":"adb996790133eb33b33aadb9c09f15c2c575e71fb57a62de8bf74dbf59ec7dfb","affectsGlobalScope":true},{"version":"8cc8c5a3bac513368b0157f3d8b31cfdcfe78b56d3724f30f80ed9715e404af8","affectsGlobalScope":true},{"version":"cdccba9a388c2ee3fd6ad4018c640a471a6c060e96f1232062223063b0a5ac6a","affectsGlobalScope":true},{"version":"c5c05907c02476e4bde6b7e76a79ffcd948aedd14b6a8f56e4674221b0417398","affectsGlobalScope":true},{"version":"5f406584aef28a331c36523df688ca3650288d14f39c5d2e555c95f0d2ff8f6f","affectsGlobalScope":true},{"version":"22f230e544b35349cfb3bd9110b6ef37b41c6d6c43c3314a31bd0d9652fcec72","affectsGlobalScope":true},{"version":"7ea0b55f6b315cf9ac2ad622b0a7813315bb6e97bf4bb3fbf8f8affbca7dc695","affectsGlobalScope":true},{"version":"3013574108c36fd3aaca79764002b3717da09725a36a6fc02eac386593110f93","affectsGlobalScope":true},{"version":"eb26de841c52236d8222f87e9e6a235332e0788af8c87a71e9e210314300410a","affectsGlobalScope":true},{"version":"3be5a1453daa63e031d266bf342f3943603873d890ab8b9ada95e22389389006","affectsGlobalScope":true},{"version":"17bb1fc99591b00515502d264fa55dc8370c45c5298f4a5c2083557dccba5a2a","affectsGlobalScope":true},{"version":"7ce9f0bde3307ca1f944119f6365f2d776d281a393b576a18a2f2893a2d75c98","affectsGlobalScope":true},{"version":"6a6b173e739a6a99629a8594bfb294cc7329bfb7b227f12e1f7c11bc163b8577","affectsGlobalScope":true},{"version":"81cac4cbc92c0c839c70f8ffb94eb61e2d32dc1c3cf6d95844ca099463cf37ea","affectsGlobalScope":true},{"version":"b0124885ef82641903d232172577f2ceb5d3e60aed4da1153bab4221e1f6dd4e","affectsGlobalScope":true},{"version":"0eb85d6c590b0d577919a79e0084fa1744c1beba6fd0d4e951432fa1ede5510a","affectsGlobalScope":true},{"version":"da233fc1c8a377ba9e0bed690a73c290d843c2c3d23a7bd7ec5cd3d7d73ba1e0","affectsGlobalScope":true},{"version":"d154ea5bb7f7f9001ed9153e876b2d5b8f5c2bb9ec02b3ae0d239ec769f1f2ae","affectsGlobalScope":true},{"version":"bb2d3fb05a1d2ffbca947cc7cbc95d23e1d053d6595391bd325deb265a18d36c","affectsGlobalScope":true},{"version":"c80df75850fea5caa2afe43b9949338ce4e2de086f91713e9af1a06f973872b8","affectsGlobalScope":true},{"version":"9d57b2b5d15838ed094aa9ff1299eecef40b190722eb619bac4616657a05f951","affectsGlobalScope":true},{"version":"6c51b5dd26a2c31dbf37f00cfc32b2aa6a92e19c995aefb5b97a3a64f1ac99de","affectsGlobalScope":true},{"version":"6e7997ef61de3132e4d4b2250e75343f487903ddf5370e7ce33cf1b9db9a63ed","affectsGlobalScope":true},{"version":"2ad234885a4240522efccd77de6c7d99eecf9b4de0914adb9a35c0c22433f993","affectsGlobalScope":true},{"version":"5e5e095c4470c8bab227dbbc61374878ecead104c74ab9960d3adcccfee23205","affectsGlobalScope":true},{"version":"09aa50414b80c023553090e2f53827f007a301bc34b0495bfb2c3c08ab9ad1eb","affectsGlobalScope":true},{"version":"d7f680a43f8cd12a6b6122c07c54ba40952b0c8aa140dcfcf32eb9e6cb028596","affectsGlobalScope":true},{"version":"3787b83e297de7c315d55d4a7c546ae28e5f6c0a361b7a1dcec1f1f50a54ef11","affectsGlobalScope":true},{"version":"e7e8e1d368290e9295ef18ca23f405cf40d5456fa9f20db6373a61ca45f75f40","affectsGlobalScope":true},{"version":"faf0221ae0465363c842ce6aa8a0cbda5d9296940a8e26c86e04cc4081eea21e","affectsGlobalScope":true},{"version":"06393d13ea207a1bfe08ec8d7be562549c5e2da8983f2ee074e00002629d1871","affectsGlobalScope":true},{"version":"2768ef564cfc0689a1b76106c421a2909bdff0acbe87da010785adab80efdd5c","affectsGlobalScope":true},{"version":"b248e32ca52e8f5571390a4142558ae4f203ae2f94d5bac38a3084d529ef4e58","affectsGlobalScope":true},{"version":"52d1bb7ab7a3306fd0375c8bff560feed26ed676a5b0457fa8027b563aecb9a4","affectsGlobalScope":true},"70bbfaec021ac4a0c805374225b55d70887f987df8b8dd7711d79464bb7b4385","869089d60b67219f63e6aca810284c89bae1b384b5cbc7ce64e53d82ad223ed5",{"version":"18338b6a4b920ec7d49b4ffafcbf0fa8a86b4bfd432966efd722dab611157cf4","affectsGlobalScope":true},"62a0875a0397b35a2364f1d401c0ce17975dfa4d47bf6844de858ae04da349f9","ee7491d0318d1fafcba97d5b72b450eb52671570f7a4ecd9e8898d40eaae9472","e3e7d217d89b380c1f34395eadc9289542851b0f0a64007dfe1fb7cf7423d24e","fd79909e93b4d50fd0ed9f3d39ddf8ba0653290bac25c295aac49f6befbd081b","345a9cc2945406f53051cd0e9b51f82e1e53929848eab046fdda91ee8aa7da31","9debe2de883da37a914e5e784a7be54c201b8f1d783822ad6f443ff409a5ea21","dee5d5c5440cda1f3668f11809a5503c30db0476ad117dd450f7ba5a45300e8f","f5e396c1424c391078c866d6f84afe0b4d2f7f85a160b9c756cd63b5b1775d93","5caa6f4fff16066d377d4e254f6c34c16540da3809cd66cd626a303bc33c419f","730d055528bdf12c8524870bb33d237991be9084c57634e56e5d8075f6605e02","75b22c74010ba649de1a1676a4c4b8b5bb4294fecd05089e2094429b16d7840c","5615ccf831db2ffc82145243081ebdb60ea8e1005ee8f975d1c0c1401a9c894e","38682ed3630bb6ecdace80d5a9adc811fc20a419f1940446e306c3a020d083b9","cc182e6e4f691cd6f7bf7cb491247a4c7818f9f1cb2db1d45c65ff906e3f741b","a50599c08934a62f11657bdbe0dc929ab66da1b1f09974408fd9a33ec1bb8060","5a20e7d6c630b91be15e9b837853173829d00273197481dc8d3e94df61105a71","8d478048d71cc16f806d4b71b252ecb67c7444ccf4f4b09b29a312712184f859","e0eda929c6b9b628cdeb0e54cd3582cb97e64f28aab34612fc1431c545899584","9df4662ca3dbc2522bc115833ee04faa1afbb4e249a85ef4a0a09c621346bd08","b25d9065cf1c1f537a140bbc508e953ed2262f77134574c432d206ff36f4bdbf","1b103313097041aa9cd705a682c652f08613cb5cf8663321061c0902f845e81c","68ccec8662818911d8a12b8ed028bc5729fb4f1d34793c4701265ba60bc73cf4","5f85b8b79dc4d36af672c035b2beb71545de63a5d60bccbeee64c260941672ab","b3d48529ae61dc27d0bfbfa2cb3e0dff8189644bd155bdf5df1e8e14669f7043","40fe4b689225816b31fe5794c0fbf3534568819709e40295ead998a2bc1ab237","f65b5e33b9ad545a1eebbd6afe857314725ad42aaf069913e33f928ab3e4990a","fb6f2a87beb7fb1f4c2b762d0c76a9459fc91f557231569b0ee21399e22aa13d","31c858dc85996fac4b7fa944e1016d5c72f514930a72357ab5001097bf6511c7","3de30a871b3340be8b679c52aa12f90dd1c8c60874517be58968fdbcc4d79445","6fd985bd31eaf77542625306fb0404d32bff978990f0a06428e5f0b9a3b58109","5b3cd03ae354ea96eff1f74d7c410fe4852e6382227e8b0ecf87ab5e3a5bbcd4","7394959e5a741b185456e1ef5d64599c36c60a323207450991e7a42e08911419",{"version":"056097110efd16869ec118cedb44ecbac9a019576eee808d61304ca6d5cb2cbe","affectsGlobalScope":true},"f51b4042a3ac86f1f707500a9768f88d0b0c1fc3f3e45a73333283dea720cdc6",{"version":"6fb8358e10ed92a7f515b7d79da3904c955a3ffd4e14aa9df6f0ea113041f1cf","affectsGlobalScope":true},"45c831238c6dac21c72da5f335747736a56a3847192bf03c84b958a7e9ec93e2","661a11d16ad2e3543a77c53bcd4017ee9a450f47ab7def3ab493a86eae4d550c",{"version":"8cdc646cec7819581ef343b83855b1bfe4fe674f2c84f4fb8dc90d82fb56bd3a","affectsGlobalScope":true},"a40826e8476694e90da94aa008283a7de50d1dafd37beada623863f1901cb7fb","9dd56225cc2d8cb8fe5ceb0043ff386987637e12fecc6078896058a99deae284","2375ed4b439215aa3b6d0c6fd175c78a4384b30cb43cbadaecbf0a18954c98cb","7693b90b3075deaccafd5efb467bf9f2b747a3075be888652ef73e64396d8628","41231da15bb5e3e806a8395bd15c7befd2ec90f9f4e3c9d0ae1356bccb76dbb0","fccfef201d057cb407fa515311bd608549bab6c7b8adcf8f2df31f5d3b796478",{"version":"ee1ee365d88c4c6c0c0a5a5701d66ebc27ccd0bcfcfaa482c6e2e7fe7b98edf7","affectsGlobalScope":true},"5f20d20b7607174caf1a6da9141aeb9f2142159ae2410ca30c7a0fccd1d19c99",{"version":"464762c6213566d072f1ced5e8e9a954785ec5e53883b7397198abb5ef5b8f71","affectsGlobalScope":true},"6387920dc3e18927335b086deec75bf8e50f879a5e273d32ee7bb7a55ba50572","9bba37424094688c4663c177a1379b229f919b8912889a472f32fdc5f08ddb4d","29a4be13b3a30d3e66667b75c58ec61fb2df8fa0422534fdee3cfb30c5dbf450","83366d901beda79d6eb37aaaf6ca248dcd88946302b2a7d975590783be51e88e","bf268a0aea37ad4ae3b7a9b58559190b6fc01ea16a31e35cd05817a0a60f895a","43ec77c369473e92e2ecebf0554a0fdaa9c256644a6070f28228dfcceec77351",{"version":"d7dad6db394a3d9f7b49755e4b610fbf8ed6eb0c9810ae5f1a119f6b5d76de45","affectsGlobalScope":true},"95ed02bacb4502c985b69742ec82a4576d4ff4a6620ecc91593f611d502ae546","bf755525c4e6f85a970b98c4755d98e8aa1b6dbd83a5d8fcc57d3d497351b936","dd67d2b5e4e8a182a38de8e69fb736945eaa4588e0909c14e01a14bd3cc1fd1e",{"version":"28084e15b63e6211769db2fe646d8bc5c4c6776321e0deffe2d12eefd52cb6b9","affectsGlobalScope":true},{"version":"aed37dabf86c99d6c8508700576ecede86688397bc12523541858705a0c737c2","affectsGlobalScope":true},"cc6ef5733d4ea6d2e06310a32dffd2c16418b467c5033d49cecc4f3a25de7497","94768454c3348b6ebe48e45fbad8c92e2bb7af4a35243edbe2b90823d0bd7f9a","0be79b3ff0f16b6c2f9bc8c4cc7097ea417d8d67f8267f7e1eec8e32b548c2ff","1c61ffa3a71b77363b30d19832c269ef62fba787f5610cac7254728d3b69ab2e","84da3c28344e621fd1d591f2c09e9595292d2b70018da28a553268ac122597d4","269929a24b2816343a178008ac9ae9248304d92a8ba8e233055e0ed6dbe6ef71","6e191fea1db6e9e4fa828259cf489e820ec9170effff57fb081a2f3295db4722","aed943465fbce1efe49ee16b5ea409050f15cd8eaf116f6fadb64ef0772e7d95","70d08483a67bf7050dbedace398ef3fee9f436fcd60517c97c4c1e22e3c6f3e8","c40fdf7b2e18df49ce0568e37f0292c12807a0748be79e272745e7216bed2606",{"version":"e933de8143e1d12dd51d89b398760fd5a9081896be366dad88a922d0b29f3c69","affectsGlobalScope":true},"4e228e78c1e9b0a75c70588d59288f63a6258e8b1fe4a67b0c53fe03461421d9","b38d55d08708c2410a3039687db70b4a5bfa69fc4845617c313b5a10d9c5c637","205d50c24359ead003dc537b9b65d2a64208dfdffe368f403cf9e0357831db9e","1265fddcd0c68be9d2a3b29805d0280484c961264dd95e0b675f7bd91f777e78",{"version":"a05e2d784c9be7051c4ac87a407c66d2106e23490c18c038bbd0712bde7602fd","affectsGlobalScope":true},{"version":"df90b9d0e9980762da8daf8adf6ffa0c853e76bfd269c377be0d07a9ad87acd2","affectsGlobalScope":true},"cf434b5c04792f62d6f4bdd5e2c8673f36e638e910333c172614d5def9b17f98","1d65d4798df9c2df008884035c41d3e67731f29db5ecb64cd7378797c7c53a2f","0faee6b555890a1cb106e2adc5d3ffd89545b1da894d474e9d436596d654998f","c6c01ea1c42508edf11a36d13b70f6e35774f74355ba5d358354d4a77cc67ea1","867f95abf1df444aab146b19847391fc2f922a55f6a970a27ed8226766cee29f",{"version":"ab9b9a36e5284fd8d3bf2f7d5fcbc60052f25f27e4d20954782099282c60d23e","affectsGlobalScope":true},"b0297b09e607bec9698cac7cf55463d6731406efb1161ee4d448293b47397c84","175323e2a79a6076e0bada8a390d535a3ea817158bf1b1f46e31efca9028a0a2","7a10053aadc19335532a4d02756db4865974fd69bea5439ddcc5bfdf062d9476","4967529644e391115ca5592184d4b63980569adf60ee685f968fd59ab1557188","aed9e712a9b168345362e8f3a949f16c99ca1e05d21328f05735dfdbb24414ef","b04fe6922ed3db93afdbd49cdda8576aa75f744592fceea96fb0d5f32158c4f5","ed8d6c8de90fc2a4faaebc28e91f2469928738efd5208fb75ade0fa607e892b7","d7c52b198d680fe65b1a8d1b001f0173ffa2536ca2e7082431d726ce1f6714cd","c07f251e1c4e415a838e5498380b55cfea94f3513229de292d2aa85ae52fc3e9","0ed401424892d6bf294a5374efe512d6951b54a71e5dd0290c55b6d0d915f6f7","b945be6da6a3616ef3a250bfe223362b1c7c6872e775b0c4d82a1bf7a28ff902","beea49237dd7c7110fabf3c7509919c9cb9da841d847c53cac162dc3479e2f87","0f45f8a529c450d8f394106cc622bff79e44a1716e1ac9c3cc68b43f7ecf65ee","c624ce90b04c27ce4f318ba6330d39bde3d4e306f0f497ce78d4bda5ab8e22ca","9b8253aa5cb2c82d505f72afdbf96e83b15cc6b9a6f4fadbbbab46210d5f1977","86a8f52e4b1ac49155e889376bcfa8528a634c90c27fec65aa0e949f77b740c5","aab5dd41c1e2316cc0b42a7dd15684f8582d5a1d16c0516276a2a8a7d0fecd9c","59948226626ee210045296ba1fc6cb0fe748d1ff613204e08e7157ab6862dee7","ec3e54d8b713c170fdc8110a7e4a6a97513a7ab6b05ac9e1100cb064d2bb7349","43beb30ecb39a603fde4376554887310b0699f25f7f39c5c91e3147b51bb3a26","666b77d7f06f49da114b090a399abbfa66d5b6c01a3fd9dc4f063a52ace28507","31997714a93fbc570f52d47d6a8ebfb021a34a68ea9ba58bbb69cdec9565657e","6032e4262822160128e644de3fc4410bcd7517c2f137525fd2623d2bb23cb0d3","8bd5c9b1016629c144fd228983395b9dbf0676a576716bc3d316cab612c33cd5","2ed90bd3925b23aed8f859ffd0e885250be0424ca2b57e9866dabef152e1d6b7","93f6bd17d92dab9db7897e1430a5aeaa03bcf51623156213d8397710367a76ce","3f62b770a42e8c47c7008726f95aa383e69d97e85e680d237b99fcb0ee601dd8","5b84cfe78028c35c3bb89c042f18bf08d09da11e82d275c378ae4d07d8477e6c","980d21b0081cbf81774083b1e3a46f4bbdcd2b68858df0f66d7fad9c82bc34bc","68cc8d6fcc2f270d7108f02f3ebc59480a54615be3e09a47e14527f349e9d53e","3eb11dbf3489064a47a2e1cf9d261b1f100ef0b3b50ffca6c44dd99d6dd81ac1","b17f3bb7d8333479c7e45e5f3d876761b9bca58f97594eca3f6a944fd825e632","3c1f1236cce6d6e0c4e2c1b4371e6f72d7c14842ecd76a98ed0748ee5730c8f3","6d7f58d5ea72d7834946fd7104a734dc7d40661be8b2e1eaced1ddce3268ebaf","4c26222991e6c97d5a8f541d4f2c67585eda9e8b33cf9f52931b098045236e88","277983d414aa99d78655186c3ee1e1c38c302e336aff1d77b47fcdc39d8273fe","47383b45796d525a4039cd22d2840ac55a1ff03a43d027f7f867ba7314a9cf53","6548773b3abbc18de29176c2141f766d4e437e40596ee480447abf83575445ad","6ddd27af0436ce59dd4c1896e2bfdb2bdb2529847d078b83ce67a144dff05491","816264799aef3fd5a09a3b6c25217d5ec26a9dfc7465eac7d6073bcdc7d88f3f","4df0891b133884cd9ed752d31c7d0ec0a09234e9ed5394abffd3c660761598db","b603b62d3dcd31ef757dc7339b4fa8acdbca318b0fb9ac485f9a1351955615f9","e642bd47b75ad6b53cbf0dfd7ddfa0f120bd10193f0c58ec37d87b59bf604aca","be90b24d2ee6f875ce3aaa482e7c41a54278856b03d04212681c4032df62baf9","78f5ff400b3cb37e7b90eef1ff311253ed31c8cb66505e9828fad099bffde021","372c47090e1131305d163469a895ff2938f33fa73aad988df31cd31743f9efb6","71c67dc6987bdbd5599353f90009ff825dd7db0450ef9a0aee5bb0c574d18512","6f12403b5eca6ae7ca8e3efe3eeb9c683b06ce3e3844ccfd04098d83cd7e4957","282c535df88175d64d9df4550d2fd1176fd940c1c6822f1e7584003237f179d3","c3a4752cf103e4c6034d5bd449c8f9d5e7b352d22a5f8f9a41a8efb11646f9c2","11a9e38611ac3c77c74240c58b6bd64a0032128b29354e999650f1de1e034b1c","4ed103ca6fff9cb244f7c4b86d1eb28ce8069c32db720784329946731badb5bb","d738f282842970e058672663311c6875482ee36607c88b98ffb6604fba99cb2a","ec859cd8226aa623e41bbb47c249a55ee16dc1b8647359585244d57d3a5ed0c7","8891c6e959d253a66434ff5dc9ae46058fb3493e84b4ca39f710ef2d350656b1","c4463cf02535444dcbc3e67ecd29f1972490f74e49957d6fd4282a1013796ba6","0cb0a957ff02de0b25fd0f3f37130ca7f22d1e0dea256569c714c1f73c6791f8","2f5075dc512d51786b1ba3b1696565641dfaae3ac854f5f13d61fa12ef81a47e","ca3353cc82b1981f0d25d71d7432d583a6ef882ccdea82d65fbe49af37be51cb","50679a8e27aacf72f8c40bcab15d7ef5e83494089b4726b83eec4554344d5cdc","45351e0d51780b6f4088277a4457b9879506ee2720a887de232df0f1efcb33d8","9f9e5bae412fa5909fae636d6733aee27a108cc2ed5b13980611016336774d3c","662fe197bba64bd3f17ee118058cd2d0d2dbe33d7c0c865fd6365d90bfc44e1e","030519c351f800551cac2658038804969ca4584d2c0175a710602ac234ca1340","0278a6939ca83cd040b08ff8c5fc7838b6693ddc52f22526bf158e6b10e0246c","c2d6206e5ba4fd3063b01218c2b3b997afc1cfbeb49fcee991fa8595842ce53d","a45ee7555d019a67fbe092898d1aef0b1d02a9f6679ab84461ff515b4460d706",{"version":"47fc8d3105da26422943e3728d068da7766aab6aa2c475e4fbc406b09e1ac4df","signature":"df3fe991057a951202c2f6d5eedcf210e75fb6bf29bf262bd5cd40e7ae1bf17e"},{"version":"be69bc832040124901e8a0141ff64edec2cd15e6498d4e2eb469a26ed7e91a05","signature":"a4bf9f436e49c5eef442d1ce8220a657fa63024a8c375e880c0f94caf21df9ac"},"f207c76b09220a4c22a544ef660cb257e0af11a3d63f163efab6701b641c1cea","4489c6a9fde8934733aa7df6f7911461ee6e9e4ad092736bd416f6b2cc20b2c6","2c8e55457aaf4902941dfdba4061935922e8ee6e120539c9801cd7b400fae050","8041cfce439ff29d339742389de04c136e3029d6b1817f07b2d7fcbfb7534990","670a76db379b27c8ff42f1ba927828a22862e2ab0b0908e38b671f0e912cc5ed","9d38964b57191567a14b396422c87488cecd48f405c642daa734159875ee81d9","069bebfee29864e3955378107e243508b163e77ab10de6a5ee03ae06939f0bb9","8aceb205dcc6f814ad99635baf1e40b6e01d06d3fe27b72fd766c6d0b8c0c600","8c95f96ccd4be0674944077aec1e4f2cccd515ca06d4327562dd017250e7d3fc",{"version":"64d4b35c5456adf258d2cf56c341e203a073253f229ef3208fc0d5020253b241","affectsGlobalScope":true},"ee7d8894904b465b072be0d2e4b45cf6b887cdba16a467645c4e200982ece7ea","f3d8c757e148ad968f0d98697987db363070abada5f503da3c06aefd9d4248c1","bc3cba7b0af2d52e7425299aee518db479d44004eff6fbbd206d1ee7e5ec3fb5","afe73051ff6a03a9565cbd8ebb0e956ee3df5e913ad5c1ded64218aabfa3dcb5","035a5df183489c2e22f3cf59fc1ed2b043d27f357eecc0eb8d8e840059d44245","a4809f4d92317535e6b22b01019437030077a76fec1d93b9881c9ed4738fcc54","5f53fa0bd22096d2a78533f94e02c899143b8f0f9891a46965294ee8b91a9434","0d14fa22c41fdc7277e6f71473b20ebc07f40f00e38875142335d5b63cdfc9d2","d8aab31ba8e618cc3eea10b0945de81cb93b7e8150a013a482332263b9305322","462bccdf75fcafc1ae8c30400c9425e1a4681db5d605d1a0edb4f990a54d8094","5923d8facbac6ecf7c84739a5c701a57af94a6f6648d6229a6c768cf28f0f8cb","7adecb2c3238794c378d336a8182d4c3dd2c4fa6fa1785e2797a3db550edea62","dc12dc0e5aa06f4e1a7692149b78f89116af823b9e1f1e4eae140cd3e0e674e6","1bfc6565b90c8771615cd8cfcf9b36efc0275e5e83ac7d9181307e96eb495161","8a8a96898906f065f296665e411f51010b51372fa260d5373bf9f64356703190","7f82ef88bdb67d9a850dd1c7cd2d690f33e0f0acd208e3c9eba086f3670d4f73",{"version":"ccfd8774cd9b929f63ff7dcf657977eb0652e3547f1fcac1b3a1dc5db22d4d58","affectsGlobalScope":true},"d92dc90fecd2552db74d8dc3c6fb4db9145b2aa0efe2c127236ba035969068d4","96d14f21b7652903852eef49379d04dbda28c16ed36468f8c9fa08f7c14c9538","b8442e9db28157344d1bc5d8a5a256f1692de213f0c0ddeb84359834015a008c","458111fc89d11d2151277c822dfdc1a28fa5b6b2493cf942e37d4cd0a6ee5f22","da2b6356b84a40111aaecb18304ea4e4fcb43d70efb1c13ca7d7a906445ee0d3","187119ff4f9553676a884e296089e131e8cc01691c546273b1d0089c3533ce42","febf0b2de54781102b00f61653b21377390a048fbf5262718c91860d11ff34a6","6f294731b495c65ecf46a5694f0082954b961cf05463bea823f8014098eaffa0","0aaef8cded245bf5036a7a40b65622dd6c4da71f7a35343112edbe112b348a1e","00baffbe8a2f2e4875367479489b5d43b5fc1429ecb4a4cc98cfc3009095f52a","68a0d0c508e1b6d8d23a519a8a0a3303dc5baa4849ca049f21e5bad41945e3fc","3c92b6dfd43cc1c2485d9eba5ff0b74a19bb8725b692773ef1d66dac48cda4bd","b03afe4bec768ae333582915146f48b161e567a81b5ebc31c4d78af089770ac9","df996e25faa505f85aeb294d15ebe61b399cf1d1e49959cdfaf2cc0815c203f9","4f6a12044ee6f458db11964153830abbc499e73d065c51c329ec97407f4b13dd","8841e2aa774b89bd23302dede20663306dc1b9902431ac64b24be8b8d0e3f649","916be7d770b0ae0406be9486ac12eb9825f21514961dd050594c4b250617d5a8","254d9fb8c872d73d34594be8a200fd7311dbfa10a4116bfc465fba408052f2b3","d88a5e779faf033be3d52142a04fbe1cb96009868e3bbdd296b2bc6c59e06c0e","2ccea88888048bbfcacbc9531a5596ea48a3e7dcd0a25f531a81bb717903ba4f","5e379df3d61561c2ed7789b5995b9ba2143bbba21a905e2381e16efe7d1fa424","f07a137bbe2de7a122c37bfea00e761975fb264c49f18003d398d71b3fb35a5f","d8f7109e14f20eb735225a62fd3f8366da1a8349e90331cdad57f4b04caf6c5a","cf3d384d082b933d987c4e2fe7bfb8710adfd9dc8155190056ed6695a25a559e","9871b7ee672bc16c78833bdab3052615834b08375cb144e4d2cba74473f4a589","c863198dae89420f3c552b5a03da6ed6d0acfa3807a64772b895db624b0de707","8b03a5e327d7db67112ebbc93b4f744133eda2c1743dbb0a990c61a8007823ef","86c73f2ee1752bac8eeeece234fd05dfcf0637a4fbd8032e4f5f43102faa8eec","42fad1f540271e35ca37cecda12c4ce2eef27f0f5cf0f8dd761d723c744d3159","ff3743a5de32bee10906aff63d1de726f6a7fd6ee2da4b8229054dfa69de2c34","83acd370f7f84f203e71ebba33ba61b7f1291ca027d7f9a662c6307d74e4ac22","1445cec898f90bdd18b2949b9590b3c012f5b7e1804e6e329fb0fe053946d5ec","0e5318ec2275d8da858b541920d9306650ae6ac8012f0e872fe66eb50321a669","cf530297c3fb3a92ec9591dd4fa229d58b5981e45fe6702a0bd2bea53a5e59be","c1f6f7d08d42148ddfe164d36d7aba91f467dbcb3caa715966ff95f55048b3a4","f4e9bf9103191ef3b3612d3ec0044ca4044ca5be27711fe648ada06fad4bcc85","0c1ee27b8f6a00097c2d6d91a21ee4d096ab52c1e28350f6362542b55380059a","7677d5b0db9e020d3017720f853ba18f415219fb3a9597343b1b1012cfd699f7","bc1c6bc119c1784b1a2be6d9c47addec0d83ef0d52c8fbe1f14a51b4dfffc675","52cf2ce99c2a23de70225e252e9822a22b4e0adb82643ab0b710858810e00bf1","770625067bb27a20b9826255a8d47b6b5b0a2d3dfcbd21f89904c731f671ba77","d1ed6765f4d7906a05968fb5cd6d1db8afa14dbe512a4884e8ea5c0f5e142c80","799c0f1b07c092626cf1efd71d459997635911bb5f7fc1196efe449bba87e965","2a184e4462b9914a30b1b5c41cf80c6d3428f17b20d3afb711fff3f0644001fd","9eabde32a3aa5d80de34af2c2206cdc3ee094c6504a8d0c2d6d20c7c179503cc","397c8051b6cfcb48aa22656f0faca2553c5f56187262135162ee79d2b2f6c966","a8ead142e0c87dcd5dc130eba1f8eeed506b08952d905c47621dc2f583b1bff9","a02f10ea5f73130efca046429254a4e3c06b5475baecc8f7b99a0014731be8b3","c2576a4083232b0e2d9bd06875dd43d371dee2e090325a9eac0133fd5650c1cb","4c9a0564bb317349de6a24eb4efea8bb79898fa72ad63a1809165f5bd42970dd","f40ac11d8859092d20f953aae14ba967282c3bb056431a37fced1866ec7a2681","cc11e9e79d4746cc59e0e17473a59d6f104692fd0eeea1bdb2e206eabed83b03","b444a410d34fb5e98aa5ee2b381362044f4884652e8bc8a11c8fe14bbd85518e","c35808c1f5e16d2c571aa65067e3cb95afeff843b259ecfa2fc107a9519b5392","14d5dc055143e941c8743c6a21fa459f961cbc3deedf1bfe47b11587ca4b3ef5","a3ad4e1fc542751005267d50a6298e6765928c0c3a8dce1572f2ba6ca518661c","f237e7c97a3a89f4591afd49ecb3bd8d14f51a1c4adc8fcae3430febedff5eb6","3ffdfbec93b7aed71082af62b8c3e0cc71261cc68d796665faa1e91604fbae8f","662201f943ed45b1ad600d03a90dffe20841e725203ced8b708c91fcd7f9379a","c9ef74c64ed051ea5b958621e7fb853fe3b56e8787c1587aefc6ea988b3c7e79","2462ccfac5f3375794b861abaa81da380f1bbd9401de59ffa43119a0b644253d","34baf65cfee92f110d6653322e2120c2d368ee64b3c7981dff08ed105c4f19b0","7d8ddf0f021c53099e34ee831a06c394d50371816caa98684812f089b4c6b3d4","7d2a0ba1297be385a89b5515b88cd31b4a1eeef5236f710166dc1b36b1741e1b","9d92b037978bb9525bc4b673ebddd443277542e010c0aef019c03a170ccdaa73","ab82804a14454734010dcdcd43f564ff7b0389bee4c5692eec76ff5b30d4cf66","fab58e600970e66547644a44bc9918e3223aa2cbd9e8763cec004b2cfb48827e","bae8d023ef6b23df7da26f51cea44321f95817c190342a36882e93b80d07a960","ae271d475b632ce7b03fea6d9cf6da72439e57a109672671cbc79f54e1386938"],"options":{"composite":true,"declaration":true,"declarationMap":true,"emitDeclarationOnly":true,"esModuleInterop":true,"inlineSources":true,"module":1,"outDir":"./types","rootDir":"../src","sourceMap":true,"strict":true,"target":7},"fileIdsList":[[198],[92,128,129,130,145],[129,130,146,147],[128,129],[128,145,148,151],[128,148,151,152],[149,150,151,153,154],[128,151],[128,145,148,149,150,153],[128,136],[128],[92,128],[80,128],[132,133,134,135,136,137,138,139,140,141,142,143,144],[128,134,135],[128,134,136],[167,189],[189,190],[189,190,191,192],[167],[64],[67],[64,67],[65,66,67,68,69,70,71,72,73,74,75,156,159,160,161,162,163,164,165,166],[58,64,65],[67,73,75,155],[158],[67,68],[64,162],[198,199,200,201,202],[198,200],[157],[206,207,208],[93,128],[211],[212],[223],[217,222],[226,228,229,230,231,232,233,234,235,236,237,238],[226,227,229,230,231,232,233,234,235,236,237,238],[227,228,229,230,231,232,233,234,235,236,237,238],[226,227,228,230,231,232,233,234,235,236,237,238],[226,227,228,229,231,232,233,234,235,236,237,238],[226,227,228,229,230,232,233,234,235,236,237,238],[226,227,228,229,230,231,233,234,235,236,237,238],[226,227,228,229,230,231,232,234,235,236,237,238],[226,227,228,229,230,231,232,233,235,236,237,238],[226,227,228,229,230,231,232,233,234,236,237,238],[226,227,228,229,230,231,232,233,234,235,237,238],[226,227,228,229,230,231,232,233,234,235,236,238],[226,227,228,229,230,231,232,233,234,235,236,237],[76],[79],[80,85,112],[81,92,93,100,109,120],[81,82,92,100],[83,121],[84,85,93,101],[85,109,117],[86,88,92,100],[87],[88,89],[92],[91,92],[79,92],[92,93,94,109,120],[92,93,94,109],[92,95,100,109,120],[92,93,95,96,100,109,117,120],[95,97,109,117,120],[76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127],[92,98],[99,120,125],[88,92,100,109],[101],[102],[79,103],[104,119,125],[105],[106],[92,107],[107,108,121,123],[80,92,109,110,111],[80,109,111],[109,110],[112],[113],[92,115,116],[115,116],[85,100,109,117],[118],[100,119],[80,95,106,120],[85,121],[109,122],[123],[124],[80,85,92,94,103,109,120,123,125],[109,126],[128,244],[247,286],[247,271,286],[286],[247],[247,272,286],[247,248,249,250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,265,266,267,268,269,270,271,272,273,274,275,276,277,278,279,280,281,282,283,284,285],[272,286],[287],[291],[179],[179,180,181,182,183],[168,169,170,171,172,173,174,175,176,177,178],[215,218],[215,218,219,220],[217],[214,221],[216],[57,59,60,61,62,63],[57,58],[59],[58,59],[57,59],[167,188,193,194,195],[195,196],[167,184,185,186],[185],[186],[56,185,186,187],[167,188,193]],"referencedMap":[[200,1],[146,2],[148,3],[130,4],[152,5],[153,6],[149,6],[155,7],[150,6],[154,8],[151,9],[137,10],[134,11],[141,12],[135,10],[132,13],[145,14],[139,11],[136,15],[138,16],[190,17],[191,18],[193,19],[189,20],[65,21],[66,21],[68,22],[69,21],[70,21],[71,23],[67,21],[167,24],[75,25],[156,26],[159,27],[165,28],[166,29],[203,30],[199,1],[201,31],[202,1],[204,11],[158,32],[209,33],[210,34],[212,35],[213,36],[224,37],[223,38],[227,39],[228,40],[226,41],[229,42],[230,43],[231,44],[232,45],[233,46],[234,47],[235,48],[236,49],[237,50],[238,51],[76,52],[77,52],[79,53],[80,54],[81,55],[82,56],[83,57],[84,58],[85,59],[86,60],[87,61],[88,62],[89,62],[90,63],[91,64],[92,65],[93,66],[94,67],[95,68],[96,69],[97,70],[128,71],[98,72],[99,73],[100,74],[101,75],[102,76],[103,77],[104,78],[105,79],[106,80],[107,81],[108,82],[109,83],[111,84],[110,85],[112,86],[113,87],[115,88],[116,89],[117,90],[118,91],[119,92],[120,93],[121,94],[122,95],[123,96],[124,97],[125,98],[126,99],[241,11],[245,100],[246,11],[271,101],[272,102],[247,103],[250,103],[269,101],[270,101],[260,101],[259,104],[257,101],[252,101],[265,101],[263,101],[267,101],[251,101],[264,101],[268,101],[253,101],[254,101],[266,101],[248,101],[255,101],[256,101],[258,101],[262,101],[273,105],[261,101],[249,101],[286,106],[280,105],[282,107],[281,105],[274,105],[275,105],[277,105],[279,105],[283,107],[284,107],[276,107],[278,107],[288,108],[292,109],[175,110],[177,110],[176,110],[174,110],[184,111],[179,112],[170,110],[171,110],[172,110],[173,110],[219,113],[221,114],[220,113],[218,115],[222,116],[217,117],[64,118],[59,119],[60,120],[61,120],[62,121],[63,121],[58,122],[196,123],[197,124],[187,125],[186,126],[185,127],[188,128]],"exportedModulesMap":[[200,1],[146,2],[148,3],[130,4],[152,5],[153,6],[149,6],[155,7],[150,6],[154,8],[151,9],[137,10],[134,11],[141,12],[135,10],[132,13],[145,14],[139,11],[136,15],[138,16],[190,17],[191,18],[193,19],[189,20],[65,21],[66,21],[68,22],[69,21],[70,21],[71,23],[67,21],[167,24],[75,25],[156,26],[159,27],[165,28],[166,29],[203,30],[199,1],[201,31],[202,1],[204,11],[158,32],[209,33],[210,34],[212,35],[213,36],[224,37],[223,38],[227,39],[228,40],[226,41],[229,42],[230,43],[231,44],[232,45],[233,46],[234,47],[235,48],[236,49],[237,50],[238,51],[76,52],[77,52],[79,53],[80,54],[81,55],[82,56],[83,57],[84,58],[85,59],[86,60],[87,61],[88,62],[89,62],[90,63],[91,64],[92,65],[93,66],[94,67],[95,68],[96,69],[97,70],[128,71],[98,72],[99,73],[100,74],[101,75],[102,76],[103,77],[104,78],[105,79],[106,80],[107,81],[108,82],[109,83],[111,84],[110,85],[112,86],[113,87],[115,88],[116,89],[117,90],[118,91],[119,92],[120,93],[121,94],[122,95],[123,96],[124,97],[125,98],[126,99],[241,11],[245,100],[246,11],[271,101],[272,102],[247,103],[250,103],[269,101],[270,101],[260,101],[259,104],[257,101],[252,101],[265,101],[263,101],[267,101],[251,101],[264,101],[268,101],[253,101],[254,101],[266,101],[248,101],[255,101],[256,101],[258,101],[262,101],[273,105],[261,101],[249,101],[286,106],[280,105],[282,107],[281,105],[274,105],[275,105],[277,105],[279,105],[283,107],[284,107],[276,107],[278,107],[288,108],[292,109],[175,110],[177,110],[176,110],[174,110],[184,111],[179,112],[170,110],[171,110],[172,110],[173,110],[219,113],[221,114],[220,113],[218,115],[222,116],[217,117],[64,118],[59,119],[60,120],[61,120],[62,121],[63,121],[58,122],[196,129],[197,124],[187,125],[186,126],[185,127],[188,128]],"semanticDiagnosticsPerFile":[200,198,146,129,148,130,147,152,153,149,155,150,154,151,137,134,141,135,132,140,145,142,143,144,139,136,133,138,190,192,191,193,189,65,66,68,69,70,71,72,73,74,67,167,75,156,159,160,161,162,163,164,165,166,203,199,201,202,204,158,205,206,209,207,210,211,212,213,224,223,208,225,227,228,226,229,230,231,232,233,234,235,236,237,238,239,157,76,77,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,78,127,95,96,97,128,98,99,100,101,102,103,104,105,106,107,108,109,111,110,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,240,241,242,243,245,244,246,271,272,247,250,269,270,260,259,257,252,265,263,267,251,264,268,253,254,266,248,255,256,258,262,273,261,249,286,285,280,282,281,274,275,277,279,283,284,276,278,288,287,289,290,291,292,131,214,178,175,177,176,174,184,179,183,180,182,181,170,171,172,168,169,173,215,219,221,220,218,222,194,217,216,57,64,59,60,61,62,63,58,8,10,9,2,11,12,13,14,15,16,17,18,3,4,22,19,20,21,23,24,25,5,26,27,28,29,6,33,30,31,32,34,7,35,40,41,36,37,38,39,1,42,196,195,197,56,187,186,185,188,47,48,49,50,51,52,43,53,54,55,44,45,46],"latestChangedDtsFile":"./types/index.d.ts"},"version":"4.9.5"}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/types/ApprovalController.d.ts b/node_modules/@metamask/approval-controller/dist/types/ApprovalController.d.ts
+new file mode 100644
+index 0000000..2b9ad4d
+--- /dev/null
++++ b/node_modules/@metamask/approval-controller/dist/types/ApprovalController.d.ts
+@@ -0,0 +1,439 @@
++import type { ControllerGetStateAction } from '@metamask/base-controller';
++import { BaseController, type ControllerStateChangeEvent, type RestrictedControllerMessenger } from '@metamask/base-controller';
++import type { JsonRpcError, DataWithOptionalCause } from '@metamask/rpc-errors';
++import type { Json, OptionalField } from '@metamask/utils';
++export declare const ORIGIN_METAMASK = "metamask";
++export declare const APPROVAL_TYPE_RESULT_ERROR = "result_error";
++export declare const APPROVAL_TYPE_RESULT_SUCCESS = "result_success";
++declare const controllerName = "ApprovalController";
++type ApprovalRequestData = Record<string, Json> | null;
++type ApprovalRequestState = Record<string, Json> | null;
++type ApprovalFlow = {
++    id: string;
++    loadingText: string | null;
++};
++type ResultOptions = {
++    flowToEnd?: string;
++    header?: (string | ResultComponent)[];
++    icon?: string | null;
++    title?: string | null;
++};
++export type ApprovalRequest<RequestData extends ApprovalRequestData> = {
++    /**
++     * The ID of the approval request.
++     */
++    id: string;
++    /**
++     * The origin of the approval request.
++     */
++    origin: string;
++    /**
++     * The time that the request was received, per Date.now().
++     */
++    time: number;
++    /**
++     * The type of the approval request.
++     * Unfortunately, not all values will match the `ApprovalType` enum, so we are using `string` here.
++     * TODO: Replace `string` with `ApprovalType` when all `type` values used by the clients can be encompassed by the `ApprovalType` enum.
++     */
++    type: string;
++    /**
++     * Additional data associated with the request.
++     */
++    requestData: RequestData;
++    /**
++     * Additional mutable state associated with the request
++     */
++    requestState: ApprovalRequestState;
++    /**
++     * Whether the request expects a result object to be returned instead of just the approval value.
++     */
++    expectsResult: boolean;
++};
++export type ApprovalFlowState = ApprovalFlow;
++export type ApprovalControllerState = {
++    pendingApprovals: Record<string, ApprovalRequest<Record<string, Json>>>;
++    pendingApprovalCount: number;
++    approvalFlows: ApprovalFlowState[];
++};
++export type ApprovalControllerMessenger = RestrictedControllerMessenger<typeof controllerName, ApprovalControllerActions, ApprovalControllerEvents, never, never>;
++export type ShowApprovalRequest = () => void | Promise<void>;
++export type ResultComponent = {
++    /**
++     * A unique identifier for this instance of the component.
++     */
++    key: string;
++    /**
++     * The name of the component to render.
++     */
++    name: string;
++    /**
++     * Any properties required by the component.
++     */
++    properties?: Record<string, unknown>;
++    /**
++     * Any child components to render inside the component.
++     */
++    children?: string | ResultComponent | (string | ResultComponent)[];
++};
++export type ApprovalControllerOptions = {
++    messenger: ApprovalControllerMessenger;
++    showApprovalRequest: ShowApprovalRequest;
++    state?: Partial<ApprovalControllerState>;
++    typesExcludedFromRateLimiting?: string[];
++};
++export type AddApprovalOptions = {
++    id?: string;
++    origin: string;
++    type: string;
++    requestData?: Record<string, Json>;
++    requestState?: Record<string, Json>;
++    expectsResult?: boolean;
++};
++export type UpdateRequestStateOptions = {
++    id: string;
++    requestState: Record<string, Json>;
++};
++export type AcceptOptions = {
++    /**
++     * Whether to resolve the returned promise only when the request creator indicates the success of the
++     * post-approval logic using the result callbacks.
++     * If false or unspecified, the promise will resolve immediately.
++     */
++    waitForResult?: boolean;
++};
++export type StartFlowOptions = OptionalField<ApprovalFlow, 'id' | 'loadingText'> & {
++    show?: boolean;
++};
++export type EndFlowOptions = Pick<ApprovalFlow, 'id'>;
++export type SetFlowLoadingTextOptions = ApprovalFlow;
++export type SuccessOptions = ResultOptions & {
++    message?: string | ResultComponent | (string | ResultComponent)[];
++};
++export type ErrorOptions = ResultOptions & {
++    error?: string | ResultComponent | (string | ResultComponent)[];
++};
++export type AcceptResultCallbacks = {
++    /**
++     * Inform the request acceptor that the post-approval logic was successful.
++     *
++     * @param value - An optional value generated by the post-approval logic.
++     */
++    success: (value?: unknown) => void;
++    /**
++     * Inform the request acceptor that the post-approval logic failed.
++     *
++     * @param error - The reason for the failure.
++     */
++    error: (error: Error) => void;
++};
++export type AddResult = {
++    /**
++     * An optional value provided by the request acceptor.
++     */
++    value?: unknown;
++    /**
++     * Callback functions that must be used to indicate to the request acceptor whether the post-approval logic was successful or not.
++     * Will be undefined if the request acceptor did not specify that they want to wait for a result.
++     */
++    resultCallbacks?: AcceptResultCallbacks;
++};
++export type AcceptResult = {
++    /**
++     * An optional value provided by the request creator when indicating a successful result.
++     */
++    value?: unknown;
++};
++export type ApprovalFlowStartResult = ApprovalFlow;
++export type SuccessResult = Record<string, never>;
++export type ErrorResult = Record<string, never>;
++export type ApprovalStateChange = ControllerStateChangeEvent<typeof controllerName, ApprovalControllerState>;
++export type ApprovalControllerEvents = ApprovalStateChange;
++export type GetApprovalsState = ControllerGetStateAction<typeof controllerName, ApprovalControllerState>;
++export type ClearApprovalRequests = {
++    type: `${typeof controllerName}:clearRequests`;
++    handler: (error: JsonRpcError<DataWithOptionalCause>) => void;
++};
++export type AddApprovalRequest = {
++    type: `${typeof controllerName}:addRequest`;
++    handler: (opts: AddApprovalOptions, shouldShowRequest: boolean) => ReturnType<ApprovalController['add']>;
++};
++export type HasApprovalRequest = {
++    type: `${typeof controllerName}:hasRequest`;
++    handler: ApprovalController['has'];
++};
++export type AcceptRequest = {
++    type: `${typeof controllerName}:acceptRequest`;
++    handler: ApprovalController['accept'];
++};
++export type RejectRequest = {
++    type: `${typeof controllerName}:rejectRequest`;
++    handler: ApprovalController['reject'];
++};
++export type UpdateRequestState = {
++    type: `${typeof controllerName}:updateRequestState`;
++    handler: ApprovalController['updateRequestState'];
++};
++export type StartFlow = {
++    type: `${typeof controllerName}:startFlow`;
++    handler: ApprovalController['startFlow'];
++};
++export type EndFlow = {
++    type: `${typeof controllerName}:endFlow`;
++    handler: ApprovalController['endFlow'];
++};
++export type SetFlowLoadingText = {
++    type: `${typeof controllerName}:setFlowLoadingText`;
++    handler: ApprovalController['setFlowLoadingText'];
++};
++export type ShowSuccess = {
++    type: `${typeof controllerName}:showSuccess`;
++    handler: ApprovalController['success'];
++};
++export type ShowError = {
++    type: `${typeof controllerName}:showError`;
++    handler: ApprovalController['error'];
++};
++export type ApprovalControllerActions = GetApprovalsState | ClearApprovalRequests | AddApprovalRequest | HasApprovalRequest | AcceptRequest | RejectRequest | UpdateRequestState | StartFlow | EndFlow | SetFlowLoadingText | ShowSuccess | ShowError;
++/**
++ * Controller for managing requests that require user approval.
++ *
++ * Enables limiting the number of pending requests by origin and type, counting
++ * pending requests, and more.
++ *
++ * Adding a request returns a promise that resolves or rejects when the request
++ * is approved or denied, respectively.
++ */
++export declare class ApprovalController extends BaseController<typeof controllerName, ApprovalControllerState, ApprovalControllerMessenger> {
++    #private;
++    /**
++     * Construct an Approval controller.
++     *
++     * @param options - The controller options.
++     * @param options.showApprovalRequest - Function for opening the UI such that
++     * the request can be displayed to the user.
++     * @param options.messenger - The restricted controller messenger for the Approval controller.
++     * @param options.state - The initial controller state.
++     * @param options.typesExcludedFromRateLimiting - Array of approval types which allow multiple pending approval requests from the same origin.
++     */
++    constructor({ messenger, showApprovalRequest, state, typesExcludedFromRateLimiting, }: ApprovalControllerOptions);
++    /**
++     * Constructor helper for registering this controller's messaging system
++     * actions.
++     */
++    private registerMessageHandlers;
++    /**
++     * Adds an approval request per the given arguments, calls the show approval
++     * request function, and returns the associated approval promise resolving to
++     * an AddResult object.
++     *
++     * There can only be one approval per origin and type. An error is thrown if
++     * attempting to add an invalid or duplicate request.
++     *
++     * @param opts - Options bag.
++     * @param opts.id - The id of the approval request. A random id will be
++     * generated if none is provided.
++     * @param opts.origin - The origin of the approval request.
++     * @param opts.type - The type associated with the approval request.
++     * @param opts.requestData - Additional data associated with the request,
++     * @param opts.requestState - Additional state associated with the request,
++     * if any.
++     * @returns The approval promise resolving to an AddResult object.
++     */
++    addAndShowApprovalRequest(opts: AddApprovalOptions & {
++        expectsResult: true;
++    }): Promise<AddResult>;
++    /**
++     * Adds an approval request per the given arguments, calls the show approval
++     * request function, and returns the associated approval promise resolving
++     * to a value provided during acceptance.
++     *
++     * There can only be one approval per origin and type. An error is thrown if
++     * attempting to add an invalid or duplicate request.
++     *
++     * @param opts - Options bag.
++     * @param opts.id - The id of the approval request. A random id will be
++     * generated if none is provided.
++     * @param opts.origin - The origin of the approval request.
++     * @param opts.type - The type associated with the approval request.
++     * @param opts.requestData - Additional data associated with the request,
++     * @param opts.requestState - Additional state associated with the request,
++     * if any.
++     * @returns The approval promise resolving to a value provided during acceptance.
++     */
++    addAndShowApprovalRequest(opts: AddApprovalOptions): Promise<unknown>;
++    /**
++     * Adds an approval request per the given arguments and returns the approval
++     * promise resolving to an AddResult object.
++     *
++     * There can only be one approval per origin and type. An error is thrown if
++     * attempting to add an invalid or duplicate request.
++     *
++     * @param opts - Options bag.
++     * @param opts.id - The id of the approval request. A random id will be
++     * generated if none is provided.
++     * @param opts.origin - The origin of the approval request.
++     * @param opts.type - The type associated with the approval request.
++     * @param opts.requestData - Additional data associated with the request,
++     * if any.
++     * @returns The approval promise resolving to an AddResult object.
++     */
++    add(opts: AddApprovalOptions & {
++        expectsResult: true;
++    }): Promise<AddResult>;
++    /**
++     * Adds an approval request per the given arguments and returns the approval
++     * promise resolving to a value provided during acceptance.
++     *
++     * There can only be one approval per origin and type. An error is thrown if
++     * attempting to add an invalid or duplicate request.
++     *
++     * @param opts - Options bag.
++     * @param opts.id - The id of the approval request. A random id will be
++     * generated if none is provided.
++     * @param opts.origin - The origin of the approval request.
++     * @param opts.type - The type associated with the approval request.
++     * @param opts.requestData - Additional data associated with the request,
++     * if any.
++     * @returns The approval promise resolving to a value provided during acceptance.
++     */
++    add(opts: AddApprovalOptions): Promise<unknown>;
++    /**
++     * Gets the info for the approval request with the given id.
++     *
++     * @param id - The id of the approval request.
++     * @returns The approval request data associated with the id.
++     */
++    get(id: string): ApprovalRequest<ApprovalRequestData> | undefined;
++    /**
++     * Gets the number of pending approvals, by origin and/or type.
++     *
++     * If only `origin` is specified, all approvals for that origin will be
++     * counted, regardless of type.
++     * If only `type` is specified, all approvals for that type will be counted,
++     * regardless of origin.
++     * If both `origin` and `type` are specified, 0 or 1 will be returned.
++     *
++     * @param opts - The approval count options.
++     * @param opts.origin - An approval origin.
++     * @param opts.type - The type of the approval request.
++     * @returns The current approval request count for the given origin and/or
++     * type.
++     */
++    getApprovalCount(opts?: {
++        origin?: string;
++        type?: string;
++    }): number;
++    /**
++     * Get the total count of all pending approval requests for all origins.
++     *
++     * @returns The total pending approval request count.
++     */
++    getTotalApprovalCount(): number;
++    /**
++     * Checks if there's a pending approval request per the given parameters.
++     * At least one parameter must be specified. An error will be thrown if the
++     * parameters are invalid.
++     *
++     * If `id` is specified, all other parameters will be ignored.
++     * If `id` is not specified, the method will check for requests that match
++     * all of the specified parameters.
++     *
++     * @param opts - Options bag.
++     * @param opts.id - The ID to check for.
++     * @param opts.origin - The origin to check for.
++     * @param opts.type - The type to check for.
++     * @returns `true` if a matching approval is found, and `false` otherwise.
++     */
++    has(opts?: {
++        id?: string;
++        origin?: string;
++        type?: string;
++    }): boolean;
++    /**
++     * Resolves the promise of the approval with the given id, and deletes the
++     * approval. Throws an error if no such approval exists.
++     *
++     * @param id - The id of the approval request.
++     * @param value - The value to resolve the approval promise with.
++     * @param options - Options bag.
++     * @returns A promise that either resolves once a result is provided by
++     * the creator of the approval request, or immediately if `options.waitForResult`
++     * is `false` or `undefined`.
++     */
++    accept(id: string, value?: unknown, options?: AcceptOptions): Promise<AcceptResult>;
++    /**
++     * Rejects the promise of the approval with the given id, and deletes the
++     * approval. Throws an error if no such approval exists.
++     *
++     * @param id - The id of the approval request.
++     * @param error - The error to reject the approval promise with.
++     */
++    reject(id: string, error: unknown): void;
++    /**
++     * Rejects and deletes all approval requests.
++     *
++     * @param rejectionError - The JsonRpcError to reject the approval
++     * requests with.
++     */
++    clear(rejectionError: JsonRpcError<DataWithOptionalCause>): void;
++    /**
++     * Updates the request state of the approval with the given id.
++     *
++     * @param opts - Options bag.
++     * @param opts.id - The id of the approval request.
++     * @param opts.requestState - Additional data associated with the request
++     */
++    updateRequestState(opts: UpdateRequestStateOptions): void;
++    /**
++     * Starts a new approval flow.
++     *
++     * @param opts - Options bag.
++     * @param opts.id - The id of the approval flow.
++     * @param opts.loadingText - The loading text that will be associated to the approval flow.
++     * @param opts.show - A flag to determine whether the approval should show to the user.
++     * @returns The object containing the approval flow id.
++     */
++    startFlow(opts?: StartFlowOptions): ApprovalFlowStartResult;
++    /**
++     * Ends the current approval flow.
++     *
++     * @param opts - Options bag.
++     * @param opts.id - The id of the approval flow that will be finished.
++     */
++    endFlow({ id }: EndFlowOptions): void;
++    /**
++     * Sets the loading text for the approval flow.
++     *
++     * @param opts - Options bag.
++     * @param opts.id - The approval flow loading text that will be displayed.
++     * @param opts.loadingText - The loading text that will be associated to the approval flow.
++     */
++    setFlowLoadingText({ id, loadingText }: SetFlowLoadingTextOptions): void;
++    /**
++     * Show a success page.
++     *
++     * @param opts - Options bag.
++     * @param opts.message - The message text or components to display in the page.
++     * @param opts.header - The text or components to display in the header of the page.
++     * @param opts.flowToEnd - The ID of the approval flow to end once the success page is approved.
++     * @param opts.title - The title to display above the message. Shown by default but can be hidden with `null`.
++     * @param opts.icon - The icon to display in the page. Shown by default but can be hidden with `null`.
++     * @returns Empty object to support future additions.
++     */
++    success(opts?: SuccessOptions): Promise<SuccessResult>;
++    /**
++     * Show an error page.
++     *
++     * @param opts - Options bag.
++     * @param opts.message - The message text or components to display in the page.
++     * @param opts.header - The text or components to display in the header of the page.
++     * @param opts.flowToEnd - The ID of the approval flow to end once the error page is approved.
++     * @param opts.title - The title to display above the message. Shown by default but can be hidden with `null`.
++     * @param opts.icon - The icon to display in the page. Shown by default but can be hidden with `null`.
++     * @returns Empty object to support future additions.
++     */
++    error(opts?: ErrorOptions): Promise<ErrorResult>;
++}
++export default ApprovalController;
++//# sourceMappingURL=ApprovalController.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/types/ApprovalController.d.ts.map b/node_modules/@metamask/approval-controller/dist/types/ApprovalController.d.ts.map
+new file mode 100644
+index 0000000..e32f581
+--- /dev/null
++++ b/node_modules/@metamask/approval-controller/dist/types/ApprovalController.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"ApprovalController.d.ts","sourceRoot":"","sources":["../../src/ApprovalController.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/errors.d.ts b/node_modules/@metamask/approval-controller/dist/types/errors.d.ts
+similarity index 100%
+rename from node_modules/@metamask/approval-controller/dist/errors.d.ts
+rename to node_modules/@metamask/approval-controller/dist/types/errors.d.ts
+diff --git a/node_modules/@metamask/approval-controller/dist/types/errors.d.ts.map b/node_modules/@metamask/approval-controller/dist/types/errors.d.ts.map
+new file mode 100644
+index 0000000..9febd9b
+--- /dev/null
++++ b/node_modules/@metamask/approval-controller/dist/types/errors.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"errors.d.ts","sourceRoot":"","sources":["../../src/errors.ts"],"names":[],"mappings":"AAAA,qBAAa,4BAA6B,SAAQ,KAAK;gBACzC,EAAE,EAAE,MAAM;CAGvB;AAED,qBAAa,mCAAoC,SAAQ,KAAK;gBAChD,EAAE,EAAE,MAAM;CAKvB;AAED,qBAAa,oBAAqB,SAAQ,KAAK;;CAI9C;AAED,qBAAa,mBAAoB,SAAQ,KAAK;gBAChC,EAAE,EAAE,MAAM,EAAE,OAAO,EAAE,MAAM,EAAE;CAO1C;AAED,qBAAa,wBAAyB,SAAQ,KAAK;gBACrC,EAAE,EAAE,MAAM;CAGvB"}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/index.d.ts b/node_modules/@metamask/approval-controller/dist/types/index.d.ts
+similarity index 100%
+rename from node_modules/@metamask/approval-controller/dist/index.d.ts
+rename to node_modules/@metamask/approval-controller/dist/types/index.d.ts
+diff --git a/node_modules/@metamask/approval-controller/dist/types/index.d.ts.map b/node_modules/@metamask/approval-controller/dist/types/index.d.ts.map
+new file mode 100644
+index 0000000..6f1777e
+--- /dev/null
++++ b/node_modules/@metamask/approval-controller/dist/types/index.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../src/index.ts"],"names":[],"mappings":"AAAA,cAAc,sBAAsB,CAAC;AACrC,cAAc,UAAU,CAAC"}
+\ No newline at end of file
