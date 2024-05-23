@@ -19,7 +19,6 @@ function filterDiffByFilePath(diff: string, regex: RegExp): string {
         // corresponding diff block in
         .forEach((path) => {
           if (!regex.test(path)) {
-            console.log('PATH', path)
             // Not excluded, include in check
             shouldCheckBlock = true;
           }
