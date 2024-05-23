@@ -10,7 +10,6 @@ import { getTokenDetails } from '../../../util/address';
 import useBalanceChanges from './useBalanceChanges';
 import { AssetType } from './types';
 
-
 jest.mock('../../../util/address', () => ({
   getTokenDetails: jest.fn(),
 }));
