@@ -26,8 +26,6 @@ import Logger from '../../../util/Logger';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { safeToChecksumAddress } from '../../../util/address';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
 
 interface IConnectQRHardwareProps {
   navigation: any;
@@ -174,13 +172,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     async (error: string) => {
       hideScanner();
       setErrorMsg(error);
-      await KeyringController.withKeyring(
-        { type: KeyringTypes.qr },
-        async (keyring: QRKeyring) => {
-          keyring.cancelSync();
-        },
-        { createIfMissing: true },
-      );
+      await KeyringController.cancelQRSynchronization();
     },
     [hideScanner, KeyringController],
   );
