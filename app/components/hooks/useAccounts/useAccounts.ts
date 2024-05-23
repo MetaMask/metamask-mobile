@@ -60,6 +60,7 @@ const useAccounts = ({
   // Memoize checkBalanceErrorFn so it doesn't cause an infinite loop
   const checkBalanceError = useCallback(
     (balance: string) => checkBalanceErrorFn?.(balance),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
@@ -191,7 +192,6 @@ const useAccounts = ({
 
   useEffect(() => {
     // eslint-disable-next-line
-    console.log('RENDER');
     if (!isMountedRef.current) {
       isMountedRef.current = true;
     }
