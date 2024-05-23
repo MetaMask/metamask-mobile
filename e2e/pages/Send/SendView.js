@@ -50,6 +50,11 @@ class SendView {
     await Gestures.waitAndTap(this.addressInputField);
   }
 
+  async tapAccountName(account) {
+    const accountName = await Matchers.getElementByText(account);
+    await Gestures.waitAndTap(accountName);
+  }
+
   async tapNextButton() {
     await Gestures.waitAndTap(await this.nextButton);
   }
