@@ -643,7 +643,7 @@ class Engine {
         );
       },
       clientId: AppConstants.SWAPS.CLIENT_ID,
-      legacyAPIEndpoint: process.env.MM_INFURA_PROJECT_ID,
+      infuraAPIKey: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
     });
 
     const phishingController = new PhishingController({
