@@ -9,6 +9,7 @@ import {
   Keyboard,
   InteractionManager,
   Platform,
+  Linking,
 } from 'react-native';
 import AsyncStorage from '../../../../store/async-storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,6 +20,7 @@ import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { setDataCollectionForMarketing } from '../../../../actions/security';
+import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
@@ -538,7 +540,7 @@ const Settings: React.FC = () => {
         <Button
           variant={ButtonVariants.Link}
           size={ButtonSize.Auto}
-          onPress={() => {}}
+          onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
           label={strings('app_settings.learn_more')}
         />
       </Text>

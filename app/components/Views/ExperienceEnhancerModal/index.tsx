@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
 import { useDispatch } from 'react-redux';
 
 import { strings } from '../../../../locales/i18n';
@@ -23,6 +23,7 @@ import {
   MetaMetricsEvents,
   useMetrics,
 } from '../../../components/hooks/useMetrics';
+import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
@@ -69,8 +70,7 @@ const ExperienceEnhancerModal = () => {
           <Button
             variant={ButtonVariants.Link}
             label={strings('experience_enhancer_modal.link')}
-            // TODO: add link
-            onPress={() => {}}
+            onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
           />
           {strings('experience_enhancer_modal.paragraph1b')}
         </Text>
