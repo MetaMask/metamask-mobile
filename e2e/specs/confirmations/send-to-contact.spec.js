@@ -67,6 +67,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
 
     await SendView.tapNextButton();
 
+    await Assertions.checkIfVisible(await AmountView.container);
     await AmountView.typeInTransactionAmount(AMOUNT);
     await AmountView.tapNextButton();
     await Assertions.checkIfTextIsDisplayed('Test Name 1');

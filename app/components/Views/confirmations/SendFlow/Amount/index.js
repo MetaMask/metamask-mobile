@@ -1403,12 +1403,11 @@ class Amount extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView
-        edges={['bottom']}
-        style={styles.wrapper}
-        testID={AmountViewSelectorsIDs.CONTAINER}
-      >
-        <ScrollView style={styles.scrollWrapper}>
+      <SafeAreaView edges={['bottom']} style={styles.wrapper}>
+        <ScrollView
+          style={styles.scrollWrapper}
+          testID={AmountViewSelectorsIDs.CONTAINER}
+        >
           {!hasExchangeRate && !selectedAsset.tokenId ? (
             <Alert
               small

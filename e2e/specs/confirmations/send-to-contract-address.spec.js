@@ -22,7 +22,7 @@ import Assertions from '../../utils/Assertions';
 const fixtureServer = new FixtureServer();
 
 describe(SmokeConfirmations('Send ETH'), () => {
-  const AMOUNT = '0.12345';
+  const AMOUNT = '1';
 
   beforeEach(async () => {
     await TestHelpers.reverseServerPort();
@@ -51,6 +51,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
     await SendView.inputAddress(DAI);
     await Assertions.checkIfVisible(await SendView.iUnderstandWarningButton);
     await SendView.tapIUnderstandButton();
+    await Assertions.checkIfVisible(await AmountView.container);
 
     await AmountView.typeInTransactionAmount(AMOUNT);
     await AmountView.tapNextButton();
