@@ -621,6 +621,17 @@ class FixtureBuilder {
     return this;
   }
 
+  withAddressBookController(data) {
+    merge(
+      this.fixture.state.engine.backgroundState.AddressBookController
+        ? this.fixture.state.engine.backgroundState.AddressBookController
+        : (this.fixture.state.engine.backgroundState.AddressBookController =
+            {}),
+      data,
+    );
+    return this;
+  }
+
   /**
    * Connects the PermissionController to a test dapp with specific permissions and origins.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
