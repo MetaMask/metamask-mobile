@@ -348,7 +348,7 @@ class FixtureBuilder {
               estimatedGasFeeTimeBounds: {},
               gasEstimateType: 'none',
               gasFeeEstimatesByChainId: {},
-              nonRPCGasFeeApisDisabled: false,
+              nonRPCGasFeeApisDisabled: true,
             },
             TokenDetectionController: {},
             NftDetectionController: {},
