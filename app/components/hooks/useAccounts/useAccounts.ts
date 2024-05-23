@@ -26,11 +26,11 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectIsMultiAccountBalancesEnabled } from '../../../selectors/preferencesController';
 import {
-  selectIsMultiAccountBalancesEnabled,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
+  selectInternalAccounts,
+  selectSelectedInternalAccount,
+} from '../../../selectors/accountsController';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -47,11 +47,11 @@ const useAccounts = ({
     useState<EnsByAccountAddress>({});
   const chainId = useSelector(selectChainId);
   const accountInfoByAddress = useSelector(selectAccounts, isEqual);
-  const selectedAddress = useSelector(selectSelectedAddress);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
   const internalAccounts = useSelector(selectInternalAccounts);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -126,7 +126,7 @@ const useAccounts = ({
           },
         } = internalAccount;
         const checksummedAddress = toChecksumAddress(address);
-        const isSelected = selectedAddress === checksummedAddress;
+        const isSelected = selectedInternalAccount.address === address;
         if (isSelected) {
           selectedIndex = index;
         }
@@ -172,13 +172,12 @@ const useAccounts = ({
     setAccounts(flattenedAccounts);
     fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
   }, [
-    selectedAddress,
+    selectedInternalAccount,
     fetchENSNames,
     accountInfoByAddress,
     conversionRate,
     currentCurrency,
     ticker,
-    checkBalanceError,
     isMultiAccountBalancesEnabled,
     internalAccounts,
   ]);
