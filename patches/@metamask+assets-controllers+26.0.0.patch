@@ -1038,7 +1038,7 @@ index 796f2be..86d635f 100644
  //# sourceMappingURL=TokenBalancesController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
-index 7d09db2..fa7866f 100644
+index 7d09db2..6f9cc4c 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
 @@ -52,11 +52,12 @@ class TokenBalancesController extends base_controller_1.BaseController {
@@ -1069,7 +1069,40 @@ index 7d09db2..fa7866f 100644
          __classPrivateFieldSet(this, _TokenBalancesController_getERC20BalanceOf, getERC20BalanceOf, "f");
          this.poll();
      }
-@@ -135,6 +136,15 @@ class TokenBalancesController extends base_controller_1.BaseController {
+@@ -112,29 +113,40 @@ class TokenBalancesController extends base_controller_1.BaseController {
+     /**
+      * Updates balances for all tokens.
+      */
+-    updateBalances() {
++      updateBalances() {
+         return __awaiter(this, void 0, void 0, function* () {
+             if (__classPrivateFieldGet(this, _TokenBalancesController_disabled, "f")) {
+                 return;
+             }
+             const newContractBalances = {};
+-            for (const token of __classPrivateFieldGet(this, _TokenBalancesController_tokens, "f")) {
++            const balancePromises = __classPrivateFieldGet(this, _TokenBalancesController_tokens, "f").map((token) => {
+                 const { address } = token;
+                 const { selectedAddress } = this.messagingSystem.call('PreferencesController:getState');
+-                try {
+-                    newContractBalances[address] = (0, controller_utils_1.toHex)(yield __classPrivateFieldGet(this, _TokenBalancesController_getERC20BalanceOf, "f").call(this, address, selectedAddress));
++                return __classPrivateFieldGet(this, _TokenBalancesController_getERC20BalanceOf, "f").call(this, address, selectedAddress)
++                    .then((balance) => {
++                    newContractBalances[address] = (0, controller_utils_1.toHex)(balance);
+                     token.balanceError = null;
+-                }
+-                catch (error) {
++                })
++                    .catch((error) => {
+                     newContractBalances[address] = (0, controller_utils_1.toHex)(0);
+                     token.balanceError = error;
+-                }
+-            }
++                });
++            });
++            yield Promise.all(balancePromises);
+             this.update((state) => {
+                 state.contractBalances = newContractBalances;
              });
          });
      }
