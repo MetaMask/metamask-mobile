@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import DataCollectionModal from './'; // Adjust the import path as necessary
 import { strings } from '../../../../locales/i18n';
 import { shallow } from 'enzyme';

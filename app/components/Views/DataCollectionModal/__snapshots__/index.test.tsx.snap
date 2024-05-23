@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DataCollectionModal should render correctly 1`] = `
+exports[`DataCollectionModal should render expected snapshot 1`] = `
 <ContextProvider
   value={
     {
