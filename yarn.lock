@@ -4568,10 +4568,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/react-native-splash-screen/-/react-native-splash-screen-3.2.0.tgz#06a6547c143b088e47af40eacea9ac6657ac937f"
   integrity sha512-V8Cn0MXe9jdaUli/DK3PoJ71tx7k3IW2v2slqflvNstvHiO3MpCtdylsYIyu+tiPwI2JiyLRzLK8s02/3jxk6g==
 
-"@metamask/react-native-webview@^14.0.0":
-  version "14.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/react-native-webview/-/react-native-webview-14.0.0.tgz#bf920b30bf8dfa4f13ac17d2e49fcf655c37d6fa"
-  integrity sha512-gmudbGO5K9+Ewo+ScA+H6vFlnSp7xrp/VRCO2cI9kNQU0tHuXWK/gJ9atZojuL92vbc6Zf295dMdiNQEtaD3mw==
+"@metamask/react-native-webview@^14.0.1":
+  version "14.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-webview/-/react-native-webview-14.0.1.tgz#db1a1f4abea077b17fcc163538db4fcd7b2890bd"
+  integrity sha512-euctbS170XwxCCOIP36pr3N2bW8hQdZIKzpoEpWFK+5aumQ7UrTmwswcD3OCqnlk5JvpsRvlixIje8AA+6Gmtg==
   dependencies:
     escape-string-regexp "2.0.0"
     invariant "2.2.4"
