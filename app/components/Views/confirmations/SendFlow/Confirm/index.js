@@ -7,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
@@ -99,8 +98,6 @@ import {
 import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
-import { COMFIRM_TXN_AMOUNT } from '../../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 import { ConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
@@ -122,6 +119,7 @@ import { updateTransaction } from '../../../../../util/transaction-controller';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
+import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/TransactionConfirmView.selectors.js';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1278,7 +1276,7 @@ class Confirm extends PureComponent {
               </Text>
               <Text
                 style={styles.textAmount}
-                {...generateTestId(Platform, COMFIRM_TXN_AMOUNT)}
+                testID={TransactionConfirmViewSelectorsIDs.COMFIRM_TXN_AMOUNT}
               >
                 {transactionValue}
               </Text>
