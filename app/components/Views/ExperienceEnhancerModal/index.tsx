@@ -28,7 +28,7 @@ import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
   const styles = createStyles();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, addTraitsToUser } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const cancelButtonProps: ButtonProps = {
@@ -38,8 +38,13 @@ const ExperienceEnhancerModal = () => {
     onPress: () => {
       dispatch(setDataCollectionForMarketing(false));
       bottomSheetRef.current?.onCloseBottomSheet();
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+
+      const traits = {
         has_marketing_consent: false,
+      };
+      addTraitsToUser(traits);
+      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        ...traits,
         location: 'marketing_consent_modal',
       });
     },
@@ -52,8 +57,11 @@ const ExperienceEnhancerModal = () => {
     onPress: () => {
       dispatch(setDataCollectionForMarketing(true));
       bottomSheetRef.current?.onCloseBottomSheet();
+
+      const traits = { has_marketing_consent: true };
+      addTraitsToUser(traits);
       trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        has_marketing_consent: true,
+        ...traits,
         location: 'marketing_consent_modal',
       });
     },

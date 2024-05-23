@@ -349,11 +349,16 @@ class OptinMetrics extends PureComponent {
       this.props.clearOnboardingEvents();
 
       if (this.props.isDataCollectionForMarketingEnabled) {
-        metrics.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        const traits = {
           is_metrics_opted_in: true,
           has_marketing_consent: Boolean(
             this.props.setDataCollectionForMarketing,
           ),
+        };
+
+        metrics.addTraitsToUser(traits);
+        metrics.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+          ...traits,
           location: 'onboarding_metametrics',
         });
       }
