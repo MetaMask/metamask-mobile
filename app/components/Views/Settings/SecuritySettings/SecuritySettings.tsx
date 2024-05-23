@@ -91,6 +91,7 @@ import {
   HASH_STRING,
   HASH_TO_TEST,
   IPFS_GATEWAY_SECTION,
+  META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
   NFT_AUTO_DETECT_MODE_SECTION,
   NFT_DISPLAY_MEDIA_MODE_SECTION,
@@ -556,7 +557,10 @@ const Settings: React.FC = () => {
   );
 
   const renderDataCollectionSection = () => (
-    <View style={styles.halfSetting} testID={META_METRICS_SECTION}>
+    <View
+      style={styles.halfSetting}
+      testID={META_METRICS_DATA_MARKETING_SECTION}
+    >
       <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('app_settings.data_collection_title')}
