@@ -65,7 +65,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const _onSelectAccount = useCallback(
     (address: string) => {
-      Engine.setSelectedAddress(address);
+      Engine.context.PreferencesController.setSelectedAddress(address);
       sheetRef.current?.onCloseBottomSheet();
       onSelectAccount?.(address);
 
@@ -80,7 +80,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const onRemoveImportedAccount = useCallback(
     ({ nextActiveAddress }: { nextActiveAddress: string }) => {
-      nextActiveAddress && Engine.setSelectedAddress(nextActiveAddress);
+      nextActiveAddress &&
+        Engine.context.PreferencesController.setSelectedAddress(
+          nextActiveAddress,
+        );
     },
     [Engine],
   );

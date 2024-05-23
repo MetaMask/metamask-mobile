@@ -84,7 +84,10 @@ const EditAccountName = () => {
 
   const saveAccountName = async () => {
     if (accountName && accountName.length > 0) {
-      Engine.setAccountLabel(selectedAddress, accountName);
+      Engine.context.PreferencesController.setAccountLabel(
+        selectedAddress,
+        accountName,
+      );
       navigate('WalletView');
 
       try {

@@ -211,7 +211,9 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     // removedAccounts and remainingAccounts are not checksummed here.
     const { removedAccounts, remainingAccounts } =
       await KeyringController.forgetQRDevice();
-    Engine.setSelectedAddress(remainingAccounts[remainingAccounts.length - 1]);
+    Engine.context.PreferencesController.setSelectedAddress(
+      remainingAccounts[remainingAccounts.length - 1],
+    );
     const checksummedRemovedAccounts = removedAccounts.map(
       safeToChecksumAddress,
     );

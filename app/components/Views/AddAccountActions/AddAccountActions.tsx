@@ -41,7 +41,9 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       setIsLoading(true);
 
       const { addedAccountAddress } = await KeyringController.addNewAccount();
-      Engine.setSelectedAddress(addedAccountAddress);
+      Engine.context.PreferencesController.setSelectedAddress(
+        addedAccountAddress,
+      );
       trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
     } catch (e: any) {
       Logger.error(e, 'error while trying to add a new account');
