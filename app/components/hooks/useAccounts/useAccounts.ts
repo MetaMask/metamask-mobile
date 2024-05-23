@@ -38,7 +38,7 @@ import {
  * @returns Object that contains both wallet accounts and ens name information.
  */
 const useAccounts = ({
-  checkBalanceError,
+  checkBalanceError: checkBalanceErrorFn,
   isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
   const isMountedRef = useRef(false);
@@ -55,6 +55,12 @@ const useAccounts = ({
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
+  );
+
+  // Memoize checkBalanceErrorFn so it doesn't cause an infinite loop
+  const checkBalanceError = useCallback(
+    (balance: string) => checkBalanceErrorFn?.(balance),
+    [],
   );
 
   const fetchENSNames = useCallback(
@@ -180,9 +186,12 @@ const useAccounts = ({
     ticker,
     isMultiAccountBalancesEnabled,
     internalAccounts,
+    checkBalanceError,
   ]);
 
   useEffect(() => {
+    // eslint-disable-next-line
+    console.log('RENDER');
     if (!isMountedRef.current) {
       isMountedRef.current = true;
     }
