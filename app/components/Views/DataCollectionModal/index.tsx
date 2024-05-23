@@ -34,6 +34,7 @@ const DataCollectionModal = () => {
     onPress: () => {
       bottomSheetRef.current?.onCloseBottomSheet();
     },
+    testID: 'accept-button',
   };
 
   return (
@@ -43,6 +44,7 @@ const DataCollectionModal = () => {
           size={IconSize.Lg}
           name={IconName.Warning}
           color={IconColor.Warning}
+          testID="icon-warning"
         />
         <View style={styles.content}>
           <Text variant={TextVariant.BodyMD}>
