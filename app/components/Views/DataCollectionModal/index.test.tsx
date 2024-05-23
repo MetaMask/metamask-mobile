@@ -2,8 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import DataCollectionModal from './'; // Adjust the import path as necessary
 import { strings } from '../../../../locales/i18n';
-import { shallow } from 'enzyme';
-import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn().mockReturnValue('Mocked string'),
@@ -41,15 +40,13 @@ describe('DataCollectionModal', () => {
     expect(strings).toHaveBeenCalledWith('data_collection_modal.content');
     expect(strings).toHaveBeenCalledWith('data_collection_modal.accept');
   });
-});
 
-describe('DataCollectionModal', () => {
   it('should render expected snapshot', () => {
-    const wrapper = shallow(
-      <NavigationContainer>
+    const { toJSON } = render(
+      <SafeAreaProvider>
         <DataCollectionModal />
-      </NavigationContainer>,
+      </SafeAreaProvider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

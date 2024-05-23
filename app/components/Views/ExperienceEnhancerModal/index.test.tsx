@@ -1,15 +1,15 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import ExperienceEnhancerModal from './';
-import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { render } from '@testing-library/react-native';
 
 describe('ExperienceEnhancerModal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <NavigationContainer>
+    const { toJSON } = render(
+      <SafeAreaProvider>
         <ExperienceEnhancerModal />
-      </NavigationContainer>,
+      </SafeAreaProvider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
