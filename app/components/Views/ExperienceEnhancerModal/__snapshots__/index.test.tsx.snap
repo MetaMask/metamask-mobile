@@ -1,31 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ExperienceEnhancerModal should render correctly 1`] = `
-<ContextProvider
-  value={
-    {
-      "options": undefined,
-    }
-  }
->
-  <ThemeProvider
-    value={
+<RNCSafeAreaProvider
+  onInsetsChange={[Function]}
+  style={
+    [
       {
-        "colors": {
-          "background": "rgb(242, 242, 242)",
-          "border": "rgb(216, 216, 216)",
-          "card": "rgb(255, 255, 255)",
-          "notification": "rgb(255, 59, 48)",
-          "primary": "rgb(0, 122, 255)",
-          "text": "rgb(28, 28, 30)",
-        },
-        "dark": false,
-      }
-    }
-  >
-    <ForwardRef(BaseNavigationContainer)>
-      <ExperienceEnhancerModal />
-    </ForwardRef(BaseNavigationContainer)>
-  </ThemeProvider>
-</ContextProvider>
+        "flex": 1,
+      },
+      undefined,
+    ]
+  }
+/>
 `;
