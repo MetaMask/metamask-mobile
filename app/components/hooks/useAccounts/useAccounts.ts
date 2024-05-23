@@ -6,7 +6,6 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { isEqual } from 'lodash';
 
 // External Dependencies.
-import UntypedEngine from '../../../core/Engine';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
@@ -28,10 +27,10 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import {
-  selectIdentities,
   selectIsMultiAccountBalancesEnabled,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -42,19 +41,17 @@ const useAccounts = ({
   checkBalanceError,
   isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
-  const Engine = UntypedEngine as any;
   const isMountedRef = useRef(false);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
-
-  const identities = useSelector(selectIdentities);
   const chainId = useSelector(selectChainId);
   const accountInfoByAddress = useSelector(selectAccounts, isEqual);
   const selectedAddress = useSelector(selectSelectedAddress);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
+  const internalAccounts = useSelector(selectInternalAccounts);
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -119,22 +116,20 @@ const useAccounts = ({
     // Keep track of the Y position of account item. Used for scrolling purposes.
     let yOffset = 0;
     let selectedIndex = 0;
-    // Reading keyrings directly from Redux doesn't work at the momemt.
-    const keyrings: any[] = Engine.context.KeyringController.state.keyrings;
-    const flattenedAccounts: Account[] = keyrings.reduce((result, keyring) => {
-      const {
-        accounts: accountAddresses,
-        type,
-      }: { accounts: string[]; type: KeyringTypes } = keyring;
-      for (const index in accountAddresses) {
-        const checksummedAddress = toChecksumAddress(accountAddresses[index]);
+    const flattenedAccounts: Account[] = internalAccounts.map(
+      (internalAccount, index) => {
+        const {
+          address,
+          metadata: {
+            name,
+            keyring: { type },
+          },
+        } = internalAccount;
+        const checksummedAddress = toChecksumAddress(address);
         const isSelected = selectedAddress === checksummedAddress;
         if (isSelected) {
-          selectedIndex = result.length;
+          selectedIndex = index;
         }
-        const identity = identities[checksummedAddress];
-        if (!identity) continue;
-        const { name } = identity;
         // TODO - Improve UI to either include loading and/or balance load failures.
         const balanceWeiHex =
           accountInfoByAddress?.[checksummedAddress]?.balance || '0x0';
@@ -152,7 +147,7 @@ const useAccounts = ({
         const mappedAccount: Account = {
           name,
           address: checksummedAddress,
-          type,
+          type: type as KeyringTypes,
           yOffset,
           isSelected,
           // TODO - Also fetch assets. Reference AccountList component.
@@ -162,7 +157,6 @@ const useAccounts = ({
             : undefined,
           balanceError,
         };
-        result.push(mappedAccount);
         // Calculate height of the account item.
         yOffset += 78;
         if (balanceError) {
@@ -171,16 +165,14 @@ const useAccounts = ({
         if (type !== KeyringTypes.hd) {
           yOffset += 24;
         }
-      }
-      return result;
-    }, []);
+        return mappedAccount;
+      },
+    );
 
     setAccounts(flattenedAccounts);
     fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
-    /* eslint-disable-next-line */
   }, [
     selectedAddress,
-    identities,
     fetchENSNames,
     accountInfoByAddress,
     conversionRate,
@@ -188,6 +180,7 @@ const useAccounts = ({
     ticker,
     checkBalanceError,
     isMultiAccountBalancesEnabled,
+    internalAccounts,
   ]);
 
   useEffect(() => {
@@ -196,7 +189,7 @@ const useAccounts = ({
     }
     if (isLoading) return;
     // setTimeout is needed for now to ensure next frame contains updated keyrings.
-    setTimeout(getAccounts, 0);
+    getAccounts();
     // Once we can pull keyrings from Redux, we will replace the deps with keyrings.
     return () => {
       isMountedRef.current = false;
