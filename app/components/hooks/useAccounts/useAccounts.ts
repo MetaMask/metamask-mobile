@@ -6,7 +6,6 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { isEqual } from 'lodash';
 
 // External Dependencies.
-import UntypedEngine from '../../../core/Engine';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
@@ -27,11 +26,11 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectIsMultiAccountBalancesEnabled } from '../../../selectors/preferencesController';
 import {
-  selectIdentities,
-  selectIsMultiAccountBalancesEnabled,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+  selectInternalAccounts,
+  selectSelectedInternalAccount,
+} from '../../../selectors/accountsController';
 import { isMainNet } from '../../../util/networks';
 
 /**
@@ -40,69 +39,72 @@ import { isMainNet } from '../../../util/networks';
  * @returns Object that contains both wallet accounts and ens name information.
  */
 const useAccounts = ({
-  checkBalanceError,
+  checkBalanceError: checkBalanceErrorFn,
+  isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
-  const Engine = UntypedEngine as any;
   const isMountedRef = useRef(false);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
-
-  const identities = useSelector(selectIdentities);
   const chainId = useSelector(selectChainId);
   const accountInfoByAddress = useSelector(selectAccounts, isEqual);
-  const selectedAddress = useSelector(selectSelectedAddress);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
+  const internalAccounts = useSelector(selectInternalAccounts);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
   );
 
-  const fetchENSName = useCallback(
-    async (address: string) => {
-      // Ensure index exists in account list.
-
-      let latestENSbyAccountAddress: EnsByAccountAddress = {};
-
-      try {
-        const ens: string | undefined = await doENSReverseLookup(
-          address,
-          chainId,
-        );
-        if (ens) {
-          latestENSbyAccountAddress = {
-            ...latestENSbyAccountAddress,
-            [address]: ens,
-          };
-        }
-      } catch (e) {
-        // ENS either doesn't exist or failed to fetch.
-      }
-
-      setENSByAccountAddress(latestENSbyAccountAddress);
-    },
-    [chainId],
+  // Memoize checkBalanceErrorFn so it doesn't cause an infinite loop
+  const checkBalanceError = useCallback(
+    (balance: string) => checkBalanceErrorFn?.(balance),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
+
+  const fetchENSName = useCallback(async () => {
+    // Ensure index exists in account list.
+    let latestENSbyAccountAddress: EnsByAccountAddress = {};
+    const address = toChecksumAddress(selectedInternalAccount.address);
+    try {
+      const ens: string | undefined = await doENSReverseLookup(
+        address,
+        chainId,
+      );
+
+      if (ens) {
+        latestENSbyAccountAddress = {
+          ...latestENSbyAccountAddress,
+          [address]: ens,
+        };
+      }
+    } catch (e) {
+      // ENS either doesn't exist or failed to fetch.
+    }
+
+    setENSByAccountAddress(latestENSbyAccountAddress);
+  }, [chainId, selectedInternalAccount.address]);
 
   const getAccounts = useCallback(() => {
     if (!isMountedRef.current) return;
     // Keep track of the Y position of account item. Used for scrolling purposes.
     let yOffset = 0;
-    // Reading keyrings directly from Redux doesn't work at the momemt.
-    const keyrings: any[] = Engine.context.KeyringController.state.keyrings;
-    const flattenedAccounts: Account[] = keyrings.reduce((result, keyring) => {
-      const {
-        accounts: accountAddresses,
-        type,
-      }: { accounts: string[]; type: KeyringTypes } = keyring;
-      for (const index in accountAddresses) {
-        const checksummedAddress = toChecksumAddress(accountAddresses[index]);
-        const isSelected = selectedAddress === checksummedAddress;
-        const identity = identities[checksummedAddress];
-        if (!identity) continue;
-        const { name } = identity;
+
+    const flattenedAccounts: Account[] = internalAccounts.map(
+      (internalAccount) => {
+        const {
+          address,
+          metadata: {
+            name,
+            keyring: { type },
+          },
+        } = internalAccount;
+        const checksummedAddress = toChecksumAddress(address);
+        const isSelected = selectedInternalAccount.address === address;
+
         // TODO - Improve UI to either include loading and/or balance load failures.
         const balanceWeiHex =
           accountInfoByAddress?.[checksummedAddress]?.balance || '0x0';
@@ -120,7 +122,7 @@ const useAccounts = ({
         const mappedAccount: Account = {
           name,
           address: checksummedAddress,
-          type,
+          type: type as KeyringTypes,
           yOffset,
           isSelected,
           // TODO - Also fetch assets. Reference AccountList component.
@@ -130,7 +132,6 @@ const useAccounts = ({
             : undefined,
           balanceError,
         };
-        result.push(mappedAccount);
         // Calculate height of the account item.
         yOffset += 78;
         if (balanceError) {
@@ -139,41 +140,43 @@ const useAccounts = ({
         if (type !== KeyringTypes.hd) {
           yOffset += 24;
         }
-      }
-      return result;
-    }, []);
+        return mappedAccount;
+      },
+    );
 
     setAccounts(flattenedAccounts);
-
-    /* eslint-disable-next-line */
   }, [
-    selectedAddress,
-    identities,
+    selectedInternalAccount,
     accountInfoByAddress,
     conversionRate,
     currentCurrency,
     ticker,
-    checkBalanceError,
     isMultiAccountBalancesEnabled,
+    internalAccounts,
+    checkBalanceError,
   ]);
 
   useEffect(() => {
+    // eslint-disable-next-line
     if (!isMountedRef.current) {
       isMountedRef.current = true;
     }
+    if (isLoading) return;
+    // setTimeout is needed for now to ensure next frame contains updated keyrings.
     getAccounts();
+    // Once we can pull keyrings from Redux, we will replace the deps with keyrings.
     return () => {
       isMountedRef.current = false;
     };
-  }, [getAccounts]);
+  }, [getAccounts, isLoading]);
 
   useEffect(() => {
     // We need this check because when switching accounts the accounts state it's empty, reason still to be investigated
 
     if (isMainNet(chainId)) {
-      fetchENSName(selectedAddress);
+      fetchENSName();
     }
-  }, [chainId, fetchENSName, selectedAddress]);
+  }, [chainId, fetchENSName]);
 
   return {
     accounts,
