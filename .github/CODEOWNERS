@@ -7,8 +7,8 @@ patches/                             @MetaMask/mobile-platform
 bitrise.yml                          @MetaMask/mobile-platform
 app/components/UI/Ramp/              @MetaMask/ramp @MetaMask/mobile-platform
 app/reducers/fiatOrders/             @MetaMask/ramp @MetaMask/mobile-platform
-app/components/Views/confirmations   @MetaMask/confirmations-ux @MetaMask/mobile-platform
-ppom                                 @MetaMask/confirmations-ux @MetaMask/mobile-platform
+app/components/Views/confirmations   @MetaMask/confirmations @MetaMask/mobile-platform
+ppom                                 @MetaMask/confirmations @MetaMask/mobile-platform
 
 # Accounts Team
 
