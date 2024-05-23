@@ -2,7 +2,8 @@
  * WE ARE USING THE DUCK PATTERN WITH REDUX SAUCE FOR NEW NOTIFICATIONS
  */
 import { createActions, createReducer } from 'reduxsauce';
-
+import DefaultPreference from 'react-native-default-preference';
+import { AGREED, DENIED, METRICS_OPT_IN } from '../../constants/storage';
 import { Notification } from '../../util/notifications';
 
 export const { Types, Creators } = createActions({
@@ -547,20 +548,24 @@ const setParticipateInMetaMetricsRequest = (state = INITIAL_STATE) => ({
     },
   },
 });
-const setParticipateInMetaMetricsSuccess = (state = INITIAL_STATE) => ({
-  pushNotifications: {
-    ...state.pushNotifications,
-    isParticipatingInMetaMetrics: {
-      loading: false,
-      error: null,
-      status: true,
+const setParticipateInMetaMetricsSuccess = async (state = INITIAL_STATE) => {
+  await DefaultPreference.get(AGREED);
+  return {
+    pushNotifications: {
+      ...state.pushNotifications,
+      isParticipatingInMetaMetrics: {
+        loading: false,
+        error: null,
+        status: true,
+      },
     },
-  },
-});
-const setParticipateInMetaMetricsFailure = (
+  };
+};
+const setParticipateInMetaMetricsFailure = async (
   action: any,
   state = INITIAL_STATE,
 ) => {
+  await DefaultPreference.get(DENIED);
   const { error } = action;
   return {
     pushNotifications: {

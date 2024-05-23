@@ -1,19 +1,16 @@
 import { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import Logger from '../../../util/Logger';
+import Creators from '../../../store/ducks/notifications';
 import {
-  setSnapNotificationsEnabled,
-  setFeatureAnnouncementsEnabled,
-  checkAccountsPresence,
-  deleteOnChainTriggersByAccount,
-  updateOnChainTriggersByAccount,
-  hideLoadingIndication,
-} from '../../../actions/notification';
+  SwitchSnapNotificationsChangeReturn,
+  SwitchFeatureAnnouncementsChangeReturn,
+  SwitchAccountNotificationsReturn,
+  UseSwitchAccountNotificationsData,
+  SwitchAccountNotificationsChangeReturn,
+} from './types';
 
-export function useSwitchSnapNotificationsChange(): {
-  onChange: (state: boolean) => Promise<void>;
-  error: null | string;
-} {
+export function useSwitchSnapNotificationsChange(): SwitchSnapNotificationsChangeReturn {
   const dispatch = useDispatch();
 
   const [error, setError] = useState<null | string>(null);
@@ -23,7 +20,7 @@ export function useSwitchSnapNotificationsChange(): {
       setError(null);
 
       try {
-        await dispatch(setSnapNotificationsEnabled(state));
+        await dispatch(Creators.setSnapNotificationsEnabledRequest(state));
       } catch (e) {
         const errorMessage =
           e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
@@ -41,10 +38,7 @@ export function useSwitchSnapNotificationsChange(): {
   };
 }
 
-export function useSwitchFeatureAnnouncementsChange(): {
-  onChange: (state: boolean) => Promise<void>;
-  error: null | string;
-} {
+export function useSwitchFeatureAnnouncementsChange(): SwitchFeatureAnnouncementsChangeReturn {
   const dispatch = useDispatch();
 
   const [error, setError] = useState<null | string>(null);
@@ -54,7 +48,7 @@ export function useSwitchFeatureAnnouncementsChange(): {
       setError(null);
 
       try {
-        await dispatch(setFeatureAnnouncementsEnabled(state));
+        await dispatch(Creators.setFeatureAnnouncementsEnabledRequest(state));
       } catch (e) {
         const errorMessage =
           e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
@@ -71,17 +65,9 @@ export function useSwitchFeatureAnnouncementsChange(): {
   };
 }
 
-export interface UseSwitchAccountNotificationsData {
-  [address: string]: boolean;
-}
-
-export function useSwitchAccountNotifications(accounts: string[]): {
-  switchAccountNotifications: () => Promise<
-    UseSwitchAccountNotificationsData | undefined
-  >;
-  isLoading: boolean;
-  error: string | null;
-} {
+export function useSwitchAccountNotifications(
+  accounts: string[],
+): SwitchAccountNotificationsReturn {
   const dispatch = useDispatch();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -94,7 +80,9 @@ export function useSwitchAccountNotifications(accounts: string[]): {
     setError(null);
 
     try {
-      const data = await dispatch(checkAccountsPresence(accounts));
+      const data = await dispatch(
+        Creators.checkAccountsPresenceRequest(accounts),
+      );
       return data as unknown as UseSwitchAccountNotificationsData;
     } catch (e) {
       const errorMessage =
@@ -110,23 +98,24 @@ export function useSwitchAccountNotifications(accounts: string[]): {
   return { switchAccountNotifications, isLoading, error };
 }
 
-export function useSwitchAccountNotificationsChange(): {
-  onChange: (addresses: string[], state: boolean) => Promise<void>;
-  error: string | null;
-} {
+export function useSwitchAccountNotificationsChange(): SwitchAccountNotificationsChangeReturn {
   const dispatch = useDispatch();
 
   const [error, setError] = useState<string | null>(null);
 
   const onChange = useCallback(
-    async (addresses: string[], state: boolean) => {
+    async (accounts: string[], state: boolean) => {
       setError(null);
 
       try {
         if (state) {
-          await dispatch(updateOnChainTriggersByAccount(addresses));
+          await dispatch(
+            Creators.updateOnChainTriggersByAccountRequest(accounts),
+          );
         } else {
-          await dispatch(deleteOnChainTriggersByAccount(addresses));
+          await dispatch(
+            Creators.deleteOnChainTriggersByAccountRequest(accounts),
+          );
         }
       } catch (e) {
         const errorMessage =
@@ -135,7 +124,7 @@ export function useSwitchAccountNotificationsChange(): {
         setError(errorMessage);
         throw e;
       }
-      dispatch(hideLoadingIndication());
+      dispatch(Creators.hideLoadingIndication());
     },
     [dispatch],
   );

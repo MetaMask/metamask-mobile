@@ -6,6 +6,7 @@ import {
   selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
 import Creators from '../../../store/ducks/notifications';
+import { DisableMetametricsReturn, EnableMetametricsReturn } from './types';
 
 /**
  * Provides a hook to enable MetaMetrics tracking.
@@ -13,11 +14,7 @@ import Creators from '../../../store/ducks/notifications';
  *
  * @returns An object containing the `enableMetametrics` function, a `loading` boolean indicating the operation status, and an `error` string for error messages.
  */
-export function useEnableMetametrics(): {
-  enableMetametrics: () => Promise<void>;
-  loading: boolean;
-  error: string | null;
-} {
+export function useEnableMetametrics(): EnableMetametricsReturn {
   const dispatch = useDispatch();
   const isUserSignedIn = useSelector(selectIsSignedIn);
 
@@ -53,18 +50,13 @@ export function useEnableMetametrics(): {
     error,
   };
 }
-
 /**
  * Provides a hook to disable MetaMetrics tracking.
  * This hook handles user sign-out if profile syncing is not enabled and sets participation in MetaMetrics to false.
  *
  * @returns An object containing the `disableMetametrics` function, a `loading` boolean indicating the operation status, and an `error` string for error messages.
  */
-export function useDisableMetametrics(): {
-  disableMetametrics: () => Promise<void>;
-  loading: boolean;
-  error: string | null;
-} {
+export function useDisableMetametrics(): DisableMetametricsReturn {
   const dispatch = useDispatch();
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
 

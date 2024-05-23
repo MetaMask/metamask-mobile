@@ -1,31 +1,19 @@
 import { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import type { InternalAccount } from '@metamask/keyring-api';
+
 import Logger from '../../../util/Logger';
 import type {
   Notification,
   MarkAsReadNotificationsParam,
-} from '../../../app/scripts/controllers/metamask-notifications/types/notification/notification';
+} from '../../../util/notifications/types/notification';
+import Creators from '../../../store/ducks/notifications';
 import {
-  createOnChainTriggers,
-  fetchAndUpdateMetamaskNotifications,
-  markMetamaskNotificationsAsRead,
-  setMetamaskNotificationsFeatureSeen,
-  enableMetamaskNotifications,
-  disableMetamaskNotifications,
-} from '../../../actions/notification';
-
-// Define KeyringType interface
-interface KeyringType {
-  type: string;
-}
-
-// Define AccountType interface
-export type AccountType = InternalAccount & {
-  balance: string;
-  keyring: KeyringType;
-  label: string;
-};
+  ListNotificationsReturn,
+  CreateNotificationsReturn,
+  EnableNotificationsReturn,
+  DisableNotificationsReturn,
+  MarkNotificationAsReadReturn,
+} from './types';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -33,12 +21,7 @@ export type AccountType = InternalAccount & {
  *
  * @returns An object containing the `listNotifications` function, loading state, and error state.
  */
-export function useListNotifications(): {
-  listNotifications: () => Promise<Notification[] | undefined>;
-  notificationsData?: Notification[];
-  isLoading: boolean;
-  error?: unknown;
-} {
+export function useListNotifications(): ListNotificationsReturn {
   const dispatch = useDispatch();
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -54,7 +37,9 @@ export function useListNotifications(): {
     setError(null);
 
     try {
-      const data = await dispatch(fetchAndUpdateMetamaskNotifications());
+      const data = await dispatch(
+        Creators.fetchAndUpdateMetamaskNotificationsRequest(),
+      );
       setNotificationsData(data as unknown as Notification[]);
       return data as unknown as Notification[];
     } catch (e: any) {
@@ -73,18 +58,13 @@ export function useListNotifications(): {
     error,
   };
 }
-
 /**
  * Custom hook to enable notifications by creating on-chain triggers.
  * It manages loading and error states internally.
  *
  * @returns An object containing the `enableNotifications` function, loading state, and error state.
  */
-export function useCreateNotifications(): {
-  createNotifications: () => Promise<void>;
-  loading: boolean;
-  error: string | null;
-} {
+export function useCreateNotifications(): CreateNotificationsReturn {
   const dispatch = useDispatch();
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -95,8 +75,8 @@ export function useCreateNotifications(): {
     setError(null);
 
     try {
-      await dispatch(createOnChainTriggers());
-      dispatch(setMetamaskNotificationsFeatureSeen());
+      await dispatch(Creators.createOnChainTriggersByAccountRequest());
+      dispatch(Creators.setMetamaskNotificationsFeatureSeenRequest());
     } catch (e: any) {
       setError(e instanceof Error ? e.message : 'An unexpected error occurred');
       Logger.error(e);
@@ -112,7 +92,6 @@ export function useCreateNotifications(): {
     error,
   };
 }
-
 /**
  * Custom hook to enable MetaMask notifications.
  * This hook encapsulates the logic for enabling notifications, handling loading and error states.
@@ -123,11 +102,7 @@ export function useCreateNotifications(): {
  * - `loading`: A boolean indicating if the enabling process is ongoing.
  * - `error`: A string or null value representing any error that occurred during the process.
  */
-export function useEnableNotifications(): {
-  enableNotifications: () => Promise<void>;
-  loading: boolean;
-  error: string | null;
-} {
+export function useEnableNotifications(): EnableNotificationsReturn {
   const dispatch = useDispatch();
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -138,8 +113,8 @@ export function useEnableNotifications(): {
     setError(null);
 
     try {
-      await dispatch(enableMetamaskNotifications());
-      dispatch(setMetamaskNotificationsFeatureSeen());
+      await dispatch(Creators.enableMetamaskNotificationsRequest());
+      dispatch(Creators.setMetamaskNotificationsFeatureSeenRequest());
     } catch (e: any) {
       setError(e instanceof Error ? e.message : 'An unexpected error occurred');
       Logger.error(e);
@@ -155,18 +130,13 @@ export function useEnableNotifications(): {
     error,
   };
 }
-
 /**
  * Custom hook to disable notifications by deleting on-chain triggers associated with accounts.
  * It also disables snap and feature announcements. Manages loading and error states internally.
  *
  * @returns An object containing the `disableNotifications` function, loading state, and error state.
  */
-export function useDisableNotifications(): {
-  disableNotifications: () => Promise<void>;
-  loading: boolean;
-  error: string | null;
-} {
+export function useDisableNotifications(): DisableNotificationsReturn {
   const dispatch = useDispatch();
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -177,7 +147,7 @@ export function useDisableNotifications(): {
     setError(null);
 
     try {
-      await dispatch(disableMetamaskNotifications());
+      await dispatch(Creators.disableMetamaskNotificationsRequest());
     } catch (e: any) {
       setError(e instanceof Error ? e.message : 'An unexpected error occurred');
       Logger.error(e);
@@ -193,7 +163,6 @@ export function useDisableNotifications(): {
     error,
   };
 }
-
 /**
  * Custom hook to mark specific notifications as read.
  * It accepts a parameter of notifications to be marked as read and manages loading and error states internally.
@@ -203,14 +172,12 @@ export function useDisableNotifications(): {
  */
 export function useMarkNotificationAsRead(
   notifications: MarkAsReadNotificationsParam,
-): {
-  markNotificationAsRead: () => Promise<void>;
-} {
+): MarkNotificationAsReadReturn {
   const dispatch = useDispatch();
 
   const markNotificationAsRead = useCallback(async () => {
     try {
-      dispatch(markMetamaskNotificationsAsRead(notifications));
+      dispatch(Creators.markMetamaskNotificationsAsReadRequest(notifications));
     } catch (e: any) {
       Logger.error(e);
       throw e;

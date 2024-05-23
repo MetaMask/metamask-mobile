@@ -9,17 +9,17 @@ export function* signIn() {
     );
     if (!accessToken) {
       yield put(
-        NotificationsActions.failurePerformSignIn(
+        NotificationsActions.performSignInFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_SIGN_IN,
         ),
       );
       return;
     }
     yield put(
-      NotificationsActions.successPerformSignIn({ accessToken, expiresIn }),
+      NotificationsActions.performSignInSuccess({ accessToken, expiresIn }),
     );
   } catch (error) {
-    yield put(NotificationsActions.failurePerformSignIn({ error }));
+    yield put(NotificationsActions.performSignInFailure({ error }));
   }
 }
 
@@ -28,15 +28,15 @@ export function* signOut() {
     const { result } = yield call(AuthenticationController.performSignOut());
     if (!result.ok) {
       yield put(
-        NotificationsActions.failurePerformSignOut(
+        NotificationsActions.performSignOutFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_SIGN_OUT,
         ),
       );
       return;
     }
-    yield put(NotificationsActions.successPerformSignOut());
+    yield put(NotificationsActions.performSignOutSuccess());
   } catch (error) {
-    yield put(NotificationsActions.failurePerformSignOut({ error }));
+    yield put(NotificationsActions.performSignOutFailure({ error }));
   }
 }
 
@@ -45,15 +45,15 @@ export function* enableProfileSyncing() {
     const { result } = yield call(UserStorageController.enableProfileSyncing());
     if (!result.ok) {
       yield put(
-        NotificationsActions.failureEnableProfileSyncing(
+        NotificationsActions.enableProfileSyncingFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_ENABLE_PROFILE_SYNCING,
         ),
       );
       return;
     }
-    yield put(NotificationsActions.successEnableProfileSyncing());
+    yield put(NotificationsActions.enableProfileSyncingSuccess());
   } catch (error) {
-    yield put(NotificationsActions.failureEnableProfileSyncing({ error }));
+    yield put(NotificationsActions.enableProfileSyncingFailure({ error }));
   }
 }
 
@@ -64,15 +64,15 @@ export function* disableProfileSyncing() {
     );
     if (!result.ok) {
       yield put(
-        NotificationsActions.failureDisableProfileSyncing(
+        NotificationsActions.disableProfileSyncingFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_DISABLE_PROFILE_SYNCING,
         ),
       );
       return;
     }
-    yield put(NotificationsActions.successDisableProfileSyncing());
+    yield put(NotificationsActions.disableProfileSyncingSuccess());
   } catch (error) {
-    yield put(NotificationsActions.failureDisableProfileSyncing({ error }));
+    yield put(NotificationsActions.disableProfileSyncingFailure({ error }));
   }
 }
 
@@ -83,18 +83,18 @@ export function* enableMetamaskNotifications() {
     );
     if (!result.ok) {
       yield put(
-        NotificationsActions.failureEnableMetamaskNotifications(
+        NotificationsActions.enableMetamaskNotificationsFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_ENABLE_METAMASK_NOTIFICATIONS,
         ),
       );
       return;
     }
-    yield put(NotificationsActions.successEnableMetamaskNotifications());
-    yield put(NotificationsActions.successSetFeatureAnnouncementsEnabled());
-    yield put(NotificationsActions.successSetSnapNotificationsEnabled());
+    yield put(NotificationsActions.enableMetamaskNotificationsSuccess());
+    yield put(NotificationsActions.setFeatureAnnouncementsEnabledSuccess());
+    yield put(NotificationsActions.setSnapNotificationsEnabledSuccess());
   } catch (error) {
     yield put(
-      NotificationsActions.failureEnableMetamaskNotifications({ error }),
+      NotificationsActions.enableMetamaskNotificationsFailure({ error }),
     );
   }
 }
@@ -106,16 +106,16 @@ export function* disableMetamaskNotifications() {
     );
     if (!result.ok) {
       yield put(
-        NotificationsActions.failureDisableMetamaskNotifications(
+        NotificationsActions.disableMetamaskNotificationsFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_DISABLE_METAMASK_NOTIFICATIONS,
         ),
       );
       return;
     }
-    yield put(NotificationsActions.successDisableMetamaskNotifications());
+    yield put(NotificationsActions.disableMetamaskNotificationsSuccess());
   } catch (error) {
     yield put(
-      NotificationsActions.failureDisableMetamaskNotifications({ error }),
+      NotificationsActions.disableMetamaskNotificationsFailure({ error }),
     );
   }
 }
@@ -127,16 +127,16 @@ export function* setFeatureAnnouncementsEnabled() {
     );
     if (!result.ok) {
       yield put(
-        NotificationsActions.failureSetFeatureAnnouncementsEnabled(
+        NotificationsActions.setFeatureAnnouncementsEnabledFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_ENABLE_FEATURE_NOTIFICATIONS,
         ),
       );
       return;
     }
-    yield put(NotificationsActions.successSetFeatureAnnouncementsEnabled());
+    yield put(NotificationsActions.setFeatureAnnouncementsEnabledSuccess());
   } catch (error) {
     yield put(
-      NotificationsActions.failureSetFeatureAnnouncementsEnabled({ error }),
+      NotificationsActions.setFeatureAnnouncementsEnabledFailure({ error }),
     );
   }
 }
@@ -148,16 +148,16 @@ export function* setSnapNotificationsEnabled() {
     );
     if (!result.ok) {
       yield put(
-        NotificationsActions.failureSetSnapNotificationsEnabled(
+        NotificationsActions.setSnapNotificationsEnabledFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_ENABLE_SNAP_NOTIFICATIONS,
         ),
       );
       return;
     }
-    yield put(NotificationsActions.successSetSnapNotificationsEnabled());
+    yield put(NotificationsActions.setSnapNotificationsEnabledSuccess());
   } catch (error) {
     yield put(
-      NotificationsActions.failureSetSnapNotificationsEnabled({ error }),
+      NotificationsActions.setSnapNotificationsEnabledFailure({ error }),
     );
   }
 }
@@ -167,18 +167,19 @@ export function* setParticipateInMetaMetrics() {
     const { result } = yield call(
       MetaMetricsController.setParticipateInMetaMetrics(),
     );
+
     if (!result.ok) {
       yield put(
-        NotificationsActions.failureSetParticipateInMetaMetrics(
+        NotificationsActions.setParticipateInMetaMetricsFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_ENABLE_PARTICIPATE_IN_META_METRICS,
         ),
       );
       return;
     }
-    yield put(NotificationsActions.successSetParticipateInMetaMetrics());
+    yield put(NotificationsActions.setParticipateInMetaMetricsSuccess());
   } catch (error) {
     yield put(
-      NotificationsActions.failureSetParticipateInMetaMetrics({ error }),
+      NotificationsActions.setParticipateInMetaMetricsFailure({ error }),
     );
   }
 }
@@ -191,15 +192,15 @@ export function* checkAccountsPresence(action: any) {
     );
     if (!presence) {
       yield put(
-        NotificationsActions.failureCheckAccountsPresence(
+        NotificationsActions.checkAccountsPresenceFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_CHECK_ACCOUNTS_PRESENCE,
         ),
       );
       return;
     }
-    yield put(NotificationsActions.successCheckAccountsPresence({ presence }));
+    yield put(NotificationsActions.checkAccountsPresenceSuccess({ presence }));
   } catch (error) {
-    yield put(NotificationsActions.failureCheckAccountsPresence({ error }));
+    yield put(NotificationsActions.checkAccountsPresenceFailure({ error }));
   }
 }
 
@@ -210,18 +211,18 @@ export function* setMetamaskNotificationsFeatureSeen() {
     );
     if (!result.ok) {
       yield put(
-        NotificationsActions.failureSetMetamaskNotificationsFeatureSeen(
+        NotificationsActions.setMetamaskNotificationsFeatureSeenFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_SET_NOTIFICATIONS_FEATURE_SEEN,
         ),
       );
       return;
     }
     yield put(
-      NotificationsActions.successSetMetamaskNotificationsFeatureSeen(),
+      NotificationsActions.setMetamaskNotificationsFeatureSeenSuccess(),
     );
   } catch (error) {
     yield put(
-      NotificationsActions.failureSetMetamaskNotificationsFeatureSeen({
+      NotificationsActions.setMetamaskNotificationsFeatureSeenFailure({
         error,
       }),
     );
@@ -235,14 +236,14 @@ export function* fetchAndUpdateMetamaskNotifications() {
     );
     if (!result.ok) {
       yield put(
-        NotificationsActions.failureFetchAndUpdateMetamaskNotifications(
+        NotificationsActions.fetchAndUpdateMetamaskNotificationsFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_FETCH_NOTIFICATIONS,
         ),
       );
       return;
     }
     yield put(
-      NotificationsActions.successFetchAndUpdateMetamaskNotifications({
+      NotificationsActions.fetchAndUpdateMetamaskNotificationsSuccess({
         metamaskNotificationsList: result.data.metamaskNotificationsList,
         metamaskNotificationsReadList:
           result.data.metamaskNotificationsReadList,
@@ -250,7 +251,7 @@ export function* fetchAndUpdateMetamaskNotifications() {
     );
   } catch (error) {
     yield put(
-      NotificationsActions.failureFetchAndUpdateMetamaskNotifications({
+      NotificationsActions.fetchAndUpdateMetamaskNotificationsFailure({
         error,
       }),
     );
@@ -267,14 +268,14 @@ export function* markMetamaskNotificationsAsRead(action: any) {
     );
     if (!result.ok) {
       yield put(
-        NotificationsActions.failureMarkMetamaskNotificationsAsRead(
+        NotificationsActions.markMetamaskNotificationsAsReadFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_MARK_AS_READ_NOTIFICATIONS,
         ),
       );
       return;
     }
     yield put(
-      NotificationsActions.successMarkMetamaskNotificationsAsRead({
+      NotificationsActions.markMetamaskNotificationsAsReadSuccess({
         metamaskNotificationsList: result.data.metamaskNotificationsList,
         metamaskNotificationsReadList:
           result.data.metamaskNotificationsReadList,
@@ -282,7 +283,7 @@ export function* markMetamaskNotificationsAsRead(action: any) {
     );
   } catch (error) {
     yield put(
-      NotificationsActions.failureMarkMetamaskNotificationsAsRead({
+      NotificationsActions.markMetamaskNotificationsAsReadFailure({
         error,
       }),
     );
@@ -297,20 +298,20 @@ export function* deleteNotifications(action: any) {
     );
     if (!result.ok) {
       yield put(
-        NotificationsActions.failureDeleteNotificationsStatus(
+        NotificationsActions.deleteNotificationStatusFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_DELETE_NOTIFICATIONS,
         ),
       );
       return;
     }
     yield put(
-      NotificationsActions.successDeleteNotificationsStatus({
+      NotificationsActions.deleteNotificationStatusSuccess({
         metamaskNotificationsList: result.data.metamaskNotificationsList,
       }),
     );
   } catch (error) {
     yield put(
-      NotificationsActions.failureDeleteNotificationsStatus({
+      NotificationsActions.deleteNotificationStatusFailure({
         error,
       }),
     );

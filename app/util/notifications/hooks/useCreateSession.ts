@@ -6,6 +6,8 @@ import {
   selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
 import Creators from '../../../store/ducks/notifications';
+import { UseCreateSessionReturn } from './types';
+
 /**
  * Custom hook to manage the creation of a session based on the user's authentication status,
  * profile syncing preference, and participation in MetaMetrics.
@@ -17,9 +19,7 @@ import Creators from '../../../store/ducks/notifications';
  * @returns An object containing:
  * - `createSession`: A function to initiate the session creation process.
  */
-function useCreateSession(): {
-  createSession: () => Promise<void>;
-} {
+function useCreateSession(): UseCreateSessionReturn {
   const dispatch = useDispatch();
 
   const isSignedIn = useSelector(selectIsSignedIn);

@@ -1,21 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import type { InternalAccount } from '@metamask/keyring-api';
 import Logger from '../../../util/Logger';
+import Creators from '../../../store/ducks/notifications';
 import {
-  disableProfileSyncing as disableProfileSyncingAction,
-  enableProfileSyncing as enableProfileSyncingAction,
-  setIsProfileSyncingEnabled as setIsProfileSyncingEnabledAction,
-  hideLoadingIndication,
-} from '../../../actions/notification';
-import { KeyringTypes } from '@metamask/keyring-controller';
-
-// Define AccountType interface
-export type AccountType = InternalAccount & {
-  balance: string;
-  keyring: KeyringTypes;
-  label: string;
-};
+  EnableProfileSyncingReturn,
+  DisableProfileSyncingReturn,
+  SetIsProfileSyncingEnabledReturn,
+} from './types';
 
 /**
  * Custom hook to enable profile syncing. This hook handles the process of signing in
@@ -23,10 +14,7 @@ export type AccountType = InternalAccount & {
  *
  * @returns An object containing the `enableProfileSyncing` function, loading state, and error state.
  */
-export function useEnableProfileSyncing(): {
-  enableProfileSyncing: () => Promise<void>;
-  error: string | null;
-} {
+export function useEnableProfileSyncing(): EnableProfileSyncingReturn {
   const dispatch = useDispatch();
 
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +24,7 @@ export function useEnableProfileSyncing(): {
 
     try {
       // set profile syncing to true
-      await dispatch(enableProfileSyncingAction());
+      await dispatch(Creators.enableProfileSyncingRequest());
     } catch (e) {
       const errorMessage =
         e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
@@ -48,7 +36,6 @@ export function useEnableProfileSyncing(): {
 
   return { enableProfileSyncing, error };
 }
-
 /**
  * Custom hook to disable profile syncing. This hook handles the process of disabling notifications,
  * disabling profile syncing, and signing out if MetaMetrics participation is not enabled.
@@ -56,10 +43,7 @@ export function useEnableProfileSyncing(): {
  * @returns An object containing the `disableProfileSyncing` function, current profile syncing state,
  * loading state, and error state.
  */
-export function useDisableProfileSyncing(): {
-  disableProfileSyncing: () => Promise<void>;
-  error: string | null;
-} {
+export function useDisableProfileSyncing(): DisableProfileSyncingReturn {
   const dispatch = useDispatch();
 
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +53,7 @@ export function useDisableProfileSyncing(): {
 
     try {
       // disable profile syncing
-      await dispatch(disableProfileSyncingAction());
+      await dispatch(Creators.disableProfileSyncingRequest());
     } catch (e) {
       const errorMessage =
         e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
@@ -77,17 +61,15 @@ export function useDisableProfileSyncing(): {
       Logger.error(errorMessage);
       throw e;
     } finally {
-      dispatch(hideLoadingIndication());
+      dispatch(Creators.hideLoadingIndication());
     }
   }, [dispatch]);
 
   return { disableProfileSyncing, error };
 }
-
-export function useSetIsProfileSyncingEnabled(state: boolean): {
-  setIsProfileSyncingEnabled: () => Promise<void>;
-  error: string | null;
-} {
+export function useSetIsProfileSyncingEnabled(
+  state: boolean,
+): SetIsProfileSyncingEnabledReturn {
   const dispatch = useDispatch();
 
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +78,8 @@ export function useSetIsProfileSyncingEnabled(state: boolean): {
     setError(null);
 
     try {
-      await dispatch(setIsProfileSyncingEnabledAction(state));
+      //TODO: check necessity of a separate action for this or not
+      await dispatch(Creators.setIsProfileSyncingEnabledAction(state));
     } catch (e) {
       const errorMessage =
         e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);

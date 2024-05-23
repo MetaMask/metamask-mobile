@@ -49,7 +49,6 @@ const mockNotificationEvent = (event: NotifeeEvent) => ({
     },
   },
 });
-
 describe('useNotificationHandler', () => {
   beforeEach(() => {
     jest.clearAllMocks();
