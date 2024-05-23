@@ -19,7 +19,6 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import Assertions from '../../utils/Assertions';
-import AddAddressModal from '../../pages/modals/AddAddressModal';
 
 const fixtureServer = new FixtureServer();
 const orangeFoxENS = 'orangefox.eth';
