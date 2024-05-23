@@ -189,21 +189,6 @@ const buildInpageBridgeTask = {
   },
 };
 
-const nodeifyTask = {
-  // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
-  title: 'Nodeify npm packages',
-  task: async (_, task) => {
-    if (IS_NODE) {
-      return task.skip('Skipping nodeifying npm packages.');
-    }
-    await $`node_modules/.bin/rn-nodeify --hack`;
-    const diffResult = await $`git diff --exit-code -w package.json yarn.lock`;
-    if (diffResult.exitCode !== 0) {
-      throw new Error($`Dirty package state after rn-nodeify. Any necessary devDependencies should be added. (exitCode: ${diffResult.exitCode})`);
-    }
-  },
-};
-
 const jetifyTask = {
   title: 'Jetify npm packages for Android',
   task: async (_, task) => {
@@ -303,7 +288,6 @@ const prepareDependenciesTask = {
         // Inpage bridge must generate before node modules are altered
         buildInpageBridgeTask,
         patchPackageTask,
-        nodeifyTask,
         jetifyTask,
         runLavamoatAllowScriptsTask,
       ],
