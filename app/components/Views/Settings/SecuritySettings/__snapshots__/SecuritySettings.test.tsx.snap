@@ -2385,7 +2385,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 16,
           }
         }
-        testID="metametrics-section"
+        testID="metametrics-data-marketing-section"
       >
         <View
           style={
