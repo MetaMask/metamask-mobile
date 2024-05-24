@@ -84,11 +84,6 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     return keyring;
   }, []);
 
-  const [QRState, setQRState] = useState({
-    sync: {
-      reading: false,
-    },
-  });
   const [scannerVisible, setScannerVisible] = useState(false);
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
   const [accounts, setAccounts] = useState<
@@ -100,6 +95,14 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, []);
 
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
+
+  useEffect(() => {
+    KeyringController.connectQRHardware(0).then(
+      (connectedAccounts: Awaited<ReturnType<QRKeyring['getFirstPage']>>) => {
+        setAccounts(connectedAccounts);
+      },
+    );
+  }, [KeyringController]);
 
   const showScanner = useCallback(() => {
     setScannerVisible(true);
@@ -115,55 +118,24 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     });
   }, [KeyringController]);
 
-  const subscribeKeyringState = useCallback((storeValue: any) => {
-    setQRState(storeValue);
-  }, []);
-
-  useEffect(() => {
-    // This ensures that a QR keyring gets created if it doesn't already exist.
-    // This is intentionally not awaited (the subscription still gets setup correctly if called
-    // before the keyring is created).
-    // TODO: Stop automatically creating keyrings
-    Engine.context.KeyringController.getOrAddQRKeyring();
-    Engine.controllerMessenger.subscribe(
-      'KeyringController:qrKeyringStateChange',
-      subscribeKeyringState,
-    );
-    return () => {
-      Engine.controllerMessenger.unsubscribe(
-        'KeyringController:qrKeyringStateChange',
-        subscribeKeyringState,
-      );
-    };
-  }, [KeyringController, subscribeKeyringState]);
-
-  useEffect(() => {
-    if (QRState.sync.reading) {
-      showScanner();
-    } else {
-      hideScanner();
-    }
-  }, [QRState.sync, hideScanner, showScanner]);
-
   const onConnectHardware = useCallback(async () => {
     trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
       device_type: 'QR Hardware',
     });
     resetError();
-    const _accounts = await KeyringController.connectQRHardware(0);
-    setAccounts(_accounts);
-  }, [KeyringController, resetError, trackEvent]);
+    showScanner();
+  }, [resetError, trackEvent, showScanner]);
 
   const onScanSuccess = useCallback(
-    (ur: UR) => {
+    async (ur: UR) => {
       hideScanner();
       trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS, {
         device_type: 'QR Hardware',
       });
       if (ur.type === SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
-        KeyringController.submitQRCryptoHDKey(ur.cbor.toString('hex'));
+        await KeyringController.submitQRCryptoHDKey(ur.cbor.toString('hex'));
       } else {
-        KeyringController.submitQRCryptoAccount(ur.cbor.toString('hex'));
+        await KeyringController.submitQRCryptoAccount(ur.cbor.toString('hex'));
       }
       resetError();
     },
