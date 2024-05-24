@@ -8,12 +8,12 @@ import EmptyPopularList from '../emptyList';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import PopularList from '../../../../../../util/networks/customNetworks';
 import createStyles from '../styles';
 import { CustomNetworkProps, Network } from './CustomNetwork.types';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import { PopularList } from '../../../../../../util/networks/customNetworks';
 
 const CustomNetwork = ({
   isNetworkModalVisible,

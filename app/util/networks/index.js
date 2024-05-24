@@ -37,7 +37,6 @@ const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 
 /* eslint-enable */
-import PopularList from './customNetworks';
 import { strings } from '../../../locales/i18n';
 import {
   getEtherscanAddressUrl,
@@ -46,6 +45,7 @@ import {
 } from '../etherscan';
 import { LINEA_FAUCET, SEPOLIA_FAUCET } from '../../constants/urls';
 import { getNonceLock } from '../../util/transaction-controller';
+import { PopularList, UnpopularNetworkList } from './customNetworks';
 
 /**
  * List of the supported networks
@@ -410,11 +410,16 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
     return defaultNetwork.imageSource;
   }
 
+  const unpopularNetwork = UnpopularNetworkList.find(
+    (networkConfig) => networkConfig.chainId === chainId,
+  );
+
   const popularNetwork = PopularList.find(
     (networkConfig) => networkConfig.chainId === chainId,
   );
-  if (popularNetwork) {
-    return popularNetwork.rpcPrefs.imageSource;
+  const network = unpopularNetwork || popularNetwork;
+  if (network) {
+    return network.rpcPrefs.imageSource;
   }
   return getTestNetImage(networkType);
 };

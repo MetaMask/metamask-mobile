@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { BannerAlertSeverity } from '../../component-library/components/Banners/Banner';
 import { strings } from '../../../locales/i18n';
-import PopularList from '../../util/networks/customNetworks';
 import { toHex } from '@metamask/controller-utils';
+import { PopularList } from '../../util/networks/customNetworks';
 
 const findPopularNetwork = (rpcUrl: string, chainId: string) =>
   PopularList.some((network) => {

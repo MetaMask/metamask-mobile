@@ -34,7 +34,6 @@ import AppConstants from '../../../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import PopularList from '../../../../../util/networks/customNetworks';
 import WarningMessage from '../../../confirmations/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import {
@@ -73,6 +72,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectUseSafeChainsListValidation } from '../../../../../../app/selectors/preferencesController';
 import withIsOriginalNativeToken from './withIsOriginalNativeToken';
 import { compose } from 'redux';
+import { PopularList } from '../../../../../util/networks/customNetworks';
 
 const createStyles = (colors) =>
   StyleSheet.create({

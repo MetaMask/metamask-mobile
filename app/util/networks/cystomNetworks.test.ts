@@ -1,5 +1,5 @@
-import PopularList from './customNetworks';
 import { toHex } from '@metamask/controller-utils';
+import { PopularList } from './customNetworks';
 
 describe('popularNetwork', () => {
   it('should have correct chainIds for all popular network', () => {
