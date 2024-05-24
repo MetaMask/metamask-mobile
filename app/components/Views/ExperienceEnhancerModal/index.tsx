@@ -48,6 +48,7 @@ const ExperienceEnhancerModal = () => {
         location: 'marketing_consent_modal',
       });
     },
+    testID: 'cancel-button',
   };
 
   const acceptButtonProps: ButtonProps = {
@@ -65,42 +66,44 @@ const ExperienceEnhancerModal = () => {
         location: 'marketing_consent_modal',
       });
     },
+    testID: 'accept-button',
   };
 
   return (
-    <BottomSheet ref={bottomSheetRef}>
-      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+    <BottomSheet ref={bottomSheetRef} testID="bottom-sheet">
+      <Text variant={TextVariant.HeadingMD} style={styles.title} testID="title">
         {strings('experience_enhancer_modal.title')}
       </Text>
-      <View style={styles.content}>
+      <View style={styles.content} testID="content">
         <Text variant={TextVariant.BodyMD}>
           {strings('experience_enhancer_modal.paragraph1a')}
           <Button
             variant={ButtonVariants.Link}
             label={strings('experience_enhancer_modal.link')}
             onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
+            testID="link-button"
           />
           {strings('experience_enhancer_modal.paragraph1b')}
         </Text>
 
-        <Text variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMD} testID="paragraph2">
           {strings('experience_enhancer_modal.paragraph2')}
         </Text>
         <View style={styles.list}>
-          <Text style={styles.line}>
+          <Text style={styles.line} testID="bullet1">
             <Text style={styles.dot}>•</Text>{' '}
             {strings('experience_enhancer_modal.bullet1')}
           </Text>
-          <Text style={styles.line}>
+          <Text style={styles.line} testID="bullet2">
             <Text style={styles.dot}>•</Text>{' '}
             {strings('experience_enhancer_modal.bullet2')}
           </Text>
-          <Text style={styles.line}>
+          <Text style={styles.line} testID="bullet3">
             <Text style={styles.dot}>•</Text>{' '}
             {strings('experience_enhancer_modal.bullet3')}
           </Text>
         </View>
-        <Text variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMD} testID="footer">
           {strings('experience_enhancer_modal.footer')}
         </Text>
         <BottomSheetFooter
