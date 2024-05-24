@@ -9,7 +9,6 @@ import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
-import ExperienceEnhancerModal from './pages/modals/ExperienceEnhancerModal';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/WalletView';
 import WhatsNewModal from './pages/modals/WhatsNewModal';
@@ -75,10 +74,6 @@ export const importWalletWithRecoveryPhrase = async () => {
     await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
     await OnboardingWizardModal.tapNoThanksButton();
     await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
-
-    await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
-    await ExperienceEnhancerModal.tapNoThanks();
-    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.title);
   } catch {
     //
   }
@@ -132,10 +127,6 @@ export const CreateNewWallet = async () => {
     await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
     await OnboardingWizardModal.tapNoThanksButton();
     await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
-
-    await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
-    await ExperienceEnhancerModal.tapNoThanks();
-    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.title);
   } catch {
     //
   }
