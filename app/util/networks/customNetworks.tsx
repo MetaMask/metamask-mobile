@@ -105,17 +105,6 @@ export const PopularList = [
  */
 export const UnpopularNetworkList = [
   {
-    chainId: toHex('11297108109'),
-    nickname: 'Palm',
-    rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
-    ticker: 'PALM',
-    rpcPrefs: {
-      blockExplorerUrl: 'https://explorer.palm.io',
-      imageUrl: 'PALM',
-      imageSource: require('../../images/palm.png'),
-    },
-  },
-  {
     chainId: toHex('250'),
     nickname: 'Fantom Opera',
     rpcUrl: 'https://rpc.ftm.tools/',
