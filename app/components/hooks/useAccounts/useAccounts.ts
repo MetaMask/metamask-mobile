@@ -26,7 +26,10 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectIsMultiAccountBalancesEnabled } from '../../../selectors/preferencesController';
+import {
+  selectIsMultiAccountBalancesEnabled,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
@@ -51,7 +54,7 @@ const useAccounts = ({
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAddress = useSelector(selectSelectedAddress);
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -133,7 +136,8 @@ const useAccounts = ({
           },
         } = internalAccount;
         const checksummedAddress = toChecksumAddress(address);
-        const isSelected = selectedInternalAccount.address === address;
+        const isSelected =
+          toChecksumAddress(selectedAddress) === toChecksumAddress(address);
         if (isSelected) {
           selectedIndex = index;
         }
@@ -179,7 +183,7 @@ const useAccounts = ({
     setAccounts(flattenedAccounts);
     fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
   }, [
-    selectedInternalAccount,
+    selectedAddress,
     fetchENSNames,
     accountInfoByAddress,
     conversionRate,
