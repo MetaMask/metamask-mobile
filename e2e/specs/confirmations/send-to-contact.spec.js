@@ -25,7 +25,7 @@ const fixtureServer = new FixtureServer();
 
 describe(SmokeConfirmations('Send ETH to Contact'), () => {
   const TOKEN_NAME = enContent.unit.eth;
-  const AMOUNT = '0.12345';
+  const AMOUNT = '2';
 
   beforeEach(async () => {
     await TestHelpers.reverseServerPort();
