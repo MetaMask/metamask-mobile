@@ -28,10 +28,6 @@ class AmountView {
     await Gestures.typeTextAndHideKeyboard(this.amountInputField, amount);
   }
 
-  async tapInputField() {
-    await Gestures.waitAndTap(this.amountInputField);
-  }
-
   async tapCurrencySwitch() {
     await Gestures.waitAndTap(this.currencySwitch);
   }
