@@ -19,10 +19,10 @@ index 0000000..b867ea9
 +* Run "yarn patch:assets <core-directory>" in the mobile repo
 +* If you have changes also add them to the branch: patch/mobile-assets-controllers-26
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index ee99eb2..a447b70 100644
+index ee99eb2..8dc714e 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-@@ -69,8 +69,12 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
+@@ -69,8 +69,13 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
                      : [this.getSelectedAddress()];
                  const accountsForChain = Object.assign({}, accountsByChainId[chainId]);
                  for (const address of accountsToUpdate) {
@@ -30,13 +30,14 @@ index ee99eb2..a447b70 100644
 +                     * IMPORTANT NOTE ABOUT THIS PATCH
 +                     * This patch can be removed once Assets Controller is updated to v^27
 +                     */
++                    console.log('ENTER HEREEEEE', address);
                      accountsForChain[address] = {
 -                        balance: (0, controller_utils_1.BNToHex)(yield this.getBalanceFromChain(address, ethQuery)),
 +                        balance: yield this.getBalanceFromChain(address, ethQuery),
                      };
                  }
                  this.update(Object.assign(Object.assign({}, (chainId === this.getCurrentChainId() && {
-@@ -78,8 +82,12 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
+@@ -78,8 +83,12 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
                  })), { accountsByChainId: Object.assign(Object.assign({}, this.state.accountsByChainId), { [chainId]: accountsForChain }) }));
              }
              catch (err) {
@@ -1038,9 +1039,18 @@ index 796f2be..86d635f 100644
  //# sourceMappingURL=TokenBalancesController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
-index 7d09db2..6f9cc4c 100644
+index 7d09db2..92d57ce 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.js
+@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _TokenBalancesController_handle, _TokenBalancesController_getERC20BalanceOf, _TokenBalancesController_interval, _TokenBalancesController_tokens, _TokenBalancesController_disabled;
++var _TokenBalancesController_handle, _TokenBalancesController_getERC20BalanceOf, _TokenBalancesController_interval, _TokenBalancesController_tokens, _TokenBalancesController_disabled, _TokenBalancesController_updateInProgress;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TokenBalancesController = exports.getDefaultTokenBalancesState = void 0;
+ const base_controller_1 = require("@metamask/base-controller");
 @@ -52,11 +52,12 @@ class TokenBalancesController extends base_controller_1.BaseController {
       * @param options.interval - Polling interval used to fetch new token balances.
       * @param options.tokens - List of tokens to track balances for.
@@ -1055,7 +1065,11 @@ index 7d09db2..6f9cc4c 100644
          super({
              name: controllerName,
              metadata,
-@@ -71,10 +72,10 @@ class TokenBalancesController extends base_controller_1.BaseController {
+@@ -68,13 +69,14 @@ class TokenBalancesController extends base_controller_1.BaseController {
+         _TokenBalancesController_interval.set(this, void 0);
+         _TokenBalancesController_tokens.set(this, void 0);
+         _TokenBalancesController_disabled.set(this, void 0);
++        _TokenBalancesController_updateInProgress.set(this, false);
          __classPrivateFieldSet(this, _TokenBalancesController_disabled, disabled, "f");
          __classPrivateFieldSet(this, _TokenBalancesController_interval, interval, "f");
          __classPrivateFieldSet(this, _TokenBalancesController_tokens, tokens, "f");
@@ -1069,16 +1083,15 @@ index 7d09db2..6f9cc4c 100644
          __classPrivateFieldSet(this, _TokenBalancesController_getERC20BalanceOf, getERC20BalanceOf, "f");
          this.poll();
      }
-@@ -112,29 +113,40 @@ class TokenBalancesController extends base_controller_1.BaseController {
-     /**
-      * Updates balances for all tokens.
+@@ -114,29 +116,42 @@ class TokenBalancesController extends base_controller_1.BaseController {
       */
--    updateBalances() {
-+      updateBalances() {
+     updateBalances() {
          return __awaiter(this, void 0, void 0, function* () {
-             if (__classPrivateFieldGet(this, _TokenBalancesController_disabled, "f")) {
+-            if (__classPrivateFieldGet(this, _TokenBalancesController_disabled, "f")) {
++            if (__classPrivateFieldGet(this, _TokenBalancesController_disabled, "f") || __classPrivateFieldGet(this, _TokenBalancesController_updateInProgress, "f")) {
                  return;
              }
++            __classPrivateFieldSet(this, _TokenBalancesController_updateInProgress, true, "f");
              const newContractBalances = {};
 -            for (const token of __classPrivateFieldGet(this, _TokenBalancesController_tokens, "f")) {
 +            const balancePromises = __classPrivateFieldGet(this, _TokenBalancesController_tokens, "f").map((token) => {
@@ -1104,8 +1117,9 @@ index 7d09db2..6f9cc4c 100644
              this.update((state) => {
                  state.contractBalances = newContractBalances;
              });
-         });
-     }
++            __classPrivateFieldSet(this, _TokenBalancesController_updateInProgress, false, "f");
++        });
++    }
 +    /**
 +     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
 +     * Resets to the default state
@@ -1113,11 +1127,15 @@ index 7d09db2..6f9cc4c 100644
 +    reset() {
 +        this.update((state) => {
 +            state.contractBalances = {};
-+        });
-+    }
+         });
+     }
  }
  exports.TokenBalancesController = TokenBalancesController;
- _TokenBalancesController_handle = new WeakMap(), _TokenBalancesController_getERC20BalanceOf = new WeakMap(), _TokenBalancesController_interval = new WeakMap(), _TokenBalancesController_tokens = new WeakMap(), _TokenBalancesController_disabled = new WeakMap();
+-_TokenBalancesController_handle = new WeakMap(), _TokenBalancesController_getERC20BalanceOf = new WeakMap(), _TokenBalancesController_interval = new WeakMap(), _TokenBalancesController_tokens = new WeakMap(), _TokenBalancesController_disabled = new WeakMap();
++_TokenBalancesController_handle = new WeakMap(), _TokenBalancesController_getERC20BalanceOf = new WeakMap(), _TokenBalancesController_interval = new WeakMap(), _TokenBalancesController_tokens = new WeakMap(), _TokenBalancesController_disabled = new WeakMap(), _TokenBalancesController_updateInProgress = new WeakMap();
+ exports.default = TokenBalancesController;
+ //# sourceMappingURL=TokenBalancesController.js.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.ts b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.ts
 index 528f665..87859b7 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.ts
