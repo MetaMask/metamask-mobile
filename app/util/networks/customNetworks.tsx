@@ -113,7 +113,7 @@ export const UnpopularNetworkList = [
       blockExplorerUrl: 'https://explorer.palm.io',
       imageUrl: 'PALM',
       imageSource: require('../../images/palm.png'),
-    }
+    },
   },
   {
     chainId: toHex('250'),
@@ -137,8 +137,6 @@ export const UnpopularNetworkList = [
       blockExplorerUrl: 'https://basescan.org',
       imageUrl: 'BASE',
       imageSource: require('../../images/base.png'),
-    }
-  }
-
-]
-
+    },
+  },
+];
