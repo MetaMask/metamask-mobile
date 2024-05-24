@@ -30,7 +30,6 @@ export const shouldShowNewPrivacyToastSelector = (
 
   if (newPrivacyPolicyToastClickedOrClosed) return false;
 
-  const currentDate = new Date();
   const shownDate = new Date(newPrivacyPolicyToastShownDate);
 
   const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
