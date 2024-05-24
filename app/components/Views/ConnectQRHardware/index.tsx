@@ -156,6 +156,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
             }
             return await firstPagePromise;
           },
+          { createIfMissing: true },
         ),
       );
       resetError();
