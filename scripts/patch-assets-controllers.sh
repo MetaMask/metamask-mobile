@@ -26,14 +26,14 @@ COMMENT='+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-assets-control
 +This patch backports various assets controllers features from the main branch of MetaMask/core\
 +Steps to update patch:\
 +* Create a new core branch from: patch/mobile-assets-controllers-26\
-+* Run "yarn build" in the core monorepo\
++* Run "yarn build:clean" in the core monorepo\
 +* Run "yarn patch:assets <core-directory>" in the mobile repo\
 +* If you have changes also add them to the branch: patch/mobile-assets-controllers-26\
 +* Steps to update the assets-controllers version\
 +* Create a new core branch from the next assets-controllers version\
 +* Merge the branch patch/mobile-assets-controllers-26\
 +* Solve the conflicts and review changes accordingly the changelog\
-+* Run "yarn build" in the core monorepo\
++* Run "yarn build:clean" in the core monorepo\
 +* Run "yarn patch:assets <core-directory>" in the mobile repo\
 +* If you have changes also add them to the branch: patch/mobile-assets-controllers-26'
 

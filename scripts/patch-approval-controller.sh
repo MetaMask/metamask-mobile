@@ -26,7 +26,7 @@ COMMENT='+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-approval-contr
 +This patch backports various transaction controller features from the main branch of MetaMask/core\
 +Steps to update patch:\
 +* Create a new core branch from: patch/mobile-approval-controller-3-5-2\
-+* Run "yarn build" in the core monorepo\
++* Run "yarn build:clean" in the core monorepo\
 +* Run "yarn patch:approval <core-directory>" in the mobile repo\
 +* Once the new patch is merged, add your changes to: patch/mobile-approval-controller-3-5-2'
 

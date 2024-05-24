@@ -24,7 +24,7 @@ COMMENT='+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-transaction-co
 +This patch backports various transaction controller features from the main branch of MetaMask/core\
 +Steps to update patch:\
 +* Create a new core branch from: patch/mobile-transaction-controller-13-0-0\
-+* Run "yarn build" in the core monorepo\
++* Run "yarn build:clean" in the core monorepo\
 +* Run "yarn patch:tx <core-directory>" in the mobile repo\
 +* Once the new patch is merged, add your changes to: patch/mobile-transaction-controller-13-0-0'
 
