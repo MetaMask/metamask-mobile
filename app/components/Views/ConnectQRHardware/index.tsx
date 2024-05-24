@@ -79,7 +79,9 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
-  const KeyringController = useMemo(() => {
+  const KeyringController = useMemo<
+    typeof Engine.context.KeyringController
+  >(() => {
     const { KeyringController: keyring } = Engine.context as any;
     return keyring;
   }, []);
@@ -96,13 +98,21 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
 
-  useEffect(() => {
-    KeyringController.connectQRHardware(0).then(
-      (connectedAccounts: Awaited<ReturnType<QRKeyring['getFirstPage']>>) => {
-        setAccounts(connectedAccounts);
-      },
+  const connectFirstPage = useCallback(async () => {
+    const connectedAccounts = await KeyringController.withKeyring(
+      { type: KeyringTypes.qr },
+      // @ts-expect-error QRKeyring is not yet compatible with EthKeyring type
+      async (keyring: QRKeyring) => keyring.getFirstPage(),
+      { createIfMissing: true },
     );
+    setAccounts(connectedAccounts);
   }, [KeyringController]);
+
+  useEffect(() => {
+    // in case there is a QR keyring already connected, this will
+    // show the first page of accounts once the view is loaded
+    connectFirstPage();
+  }, [connectFirstPage]);
 
   const showScanner = useCallback(() => {
     setScannerVisible(true);
@@ -137,9 +147,10 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       } else {
         await KeyringController.submitQRCryptoAccount(ur.cbor.toString('hex'));
       }
+      await connectFirstPage();
       resetError();
     },
-    [KeyringController, hideScanner, resetError, trackEvent],
+    [KeyringController, hideScanner, resetError, trackEvent, connectFirstPage],
   );
 
   const onScanError = useCallback(
@@ -148,6 +159,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       setErrorMsg(error);
       await KeyringController.withKeyring(
         { type: KeyringTypes.qr },
+        // @ts-expect-error QRKeyring is not yet compatible with EthKeyring type
         async (keyring: QRKeyring) => {
           keyring.cancelSync();
         },
@@ -196,9 +208,9 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     const { removedAccounts, remainingAccounts } =
       await KeyringController.forgetQRDevice();
     Engine.setSelectedAddress(remainingAccounts[remainingAccounts.length - 1]);
-    const checksummedRemovedAccounts = removedAccounts.map(
-      safeToChecksumAddress,
-    );
+    const checksummedRemovedAccounts = removedAccounts
+      .map(safeToChecksumAddress)
+      .filter((address) => address) as string[];
     removeAccountsFromPermissions(checksummedRemovedAccounts);
     navigation.pop(2);
   }, [KeyringController, navigation, resetError]);
