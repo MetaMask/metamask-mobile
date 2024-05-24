@@ -94,13 +94,18 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
 
   const connectFirstPage = useCallback(async () => {
-    const connectedAccounts = await KeyringController.withKeyring(
+    await KeyringController.withKeyring(
       { type: KeyringTypes.qr },
       // @ts-expect-error QRKeyring is not yet compatible with EthKeyring type
-      async (keyring: QRKeyring) => keyring.getFirstPage(),
+      async (keyring: QRKeyring) => {
+        if ((await keyring.serialize()).initialized) {
+          // the first page of accounts is obtained only if
+          // the keyring is already initialized (e.g. there is already an HDKey)
+          setAccounts(await keyring.getFirstPage());
+        }
+      },
       { createIfMissing: true },
     );
-    setAccounts(connectedAccounts);
   }, [KeyringController]);
 
   useEffect(() => {
@@ -137,15 +142,25 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS, {
         device_type: 'QR Hardware',
       });
-      if (ur.type === SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
-        await KeyringController.submitQRCryptoHDKey(ur.cbor.toString('hex'));
-      } else {
-        await KeyringController.submitQRCryptoAccount(ur.cbor.toString('hex'));
-      }
-      await connectFirstPage();
+      setAccounts(
+        await KeyringController.withKeyring(
+          { type: KeyringTypes.qr },
+          // @ts-expect-error QRKeyring is not yet compatible with EthKeyring type
+          async (keyring: QRKeyring) => {
+            // this promise is left pending until a CBOR is submitted
+            const firstPagePromise = keyring.getFirstPage();
+            if (ur.type === SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
+              keyring.submitCryptoHDKey(ur.cbor.toString('hex'));
+            } else {
+              keyring.submitCryptoAccount(ur.cbor.toString('hex'));
+            }
+            return await firstPagePromise;
+          },
+        ),
+      );
       resetError();
     },
-    [KeyringController, hideScanner, resetError, trackEvent, connectFirstPage],
+    [KeyringController, hideScanner, resetError, trackEvent],
   );
 
   const onScanError = useCallback(
