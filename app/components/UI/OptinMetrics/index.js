@@ -33,14 +33,11 @@ import Button, {
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { MAINNET } from '../../../constants/network';
-import { newPrivacyPolicyDate } from '../../../reducers/legalNotices';
+import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
 import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
-
-const currentDate = new Date(Date.now());
-const isPastPrivacyPolicyDate = currentDate >= newPrivacyPolicyDate;
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({

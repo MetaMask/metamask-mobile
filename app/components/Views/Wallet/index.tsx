@@ -28,6 +28,7 @@ import {
   toHexadecimal,
 } from '../../../util/number';
 import {
+  isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
@@ -195,7 +196,8 @@ const Wallet = ({
   useEffect(() => {
     if (
       isDataCollectionForMarketingEnabled === null &&
-      isParticipatingInMetaMetrics
+      isParticipatingInMetaMetrics &&
+      isPastPrivacyPolicyDate
     ) {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.EXPERIENCE_ENHANCER,

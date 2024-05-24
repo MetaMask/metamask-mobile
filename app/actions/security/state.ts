@@ -3,6 +3,6 @@ export interface SecuritySettingsState {
   automaticSecurityChecksEnabled: boolean;
   hasUserSelectedAutomaticSecurityCheckOption: boolean;
   isAutomaticSecurityChecksModalOpen: boolean;
-  // 'null' represents the user not having set his preference over dataCollectionForMarketing yet.
+  // 'null' represents the user not having set his preference over dataCollectionForMarketing yet
   dataCollectionForMarketing: boolean | null;
 }
