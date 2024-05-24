@@ -23,7 +23,7 @@ import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeConfirmations('Send ETH'), () => {
+describe(SmokeConfirmations('Send ETH to Contact'), () => {
   const TOKEN_NAME = enContent.unit.eth;
   const AMOUNT = '0.12345';
 

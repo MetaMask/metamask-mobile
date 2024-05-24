@@ -17,7 +17,7 @@ import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.sele
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
-describe(SmokeConfirmations('ERC20 tokens'), () => {
+describe(SmokeConfirmations('Approve Custom ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {

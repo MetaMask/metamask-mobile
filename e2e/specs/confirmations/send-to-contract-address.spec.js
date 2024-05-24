@@ -21,7 +21,7 @@ import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeConfirmations('Send ETH'), () => {
+describe(SmokeConfirmations('Send ETH to Contract'), () => {
   const AMOUNT = '1';
 
   beforeEach(async () => {
