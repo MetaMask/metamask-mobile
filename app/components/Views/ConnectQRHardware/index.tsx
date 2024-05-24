@@ -79,12 +79,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
-  const KeyringController = useMemo<
-    typeof Engine.context.KeyringController
-  >(() => {
-    const { KeyringController: keyring } = Engine.context as any;
-    return keyring;
-  }, []);
+  const KeyringController = useMemo(() => Engine.context.KeyringController, []);
 
   const [scannerVisible, setScannerVisible] = useState(false);
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
