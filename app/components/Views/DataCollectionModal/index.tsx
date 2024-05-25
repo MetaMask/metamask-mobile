@@ -35,7 +35,7 @@ const DataCollectionModal = () => {
     onPress: () => {
       bottomSheetRef.current?.onCloseBottomSheet();
     },
-    testID: 'accept-button',
+    testID: DataCollectionModalTestIds.ACCEPT_BUTTON,
   };
 
   return (

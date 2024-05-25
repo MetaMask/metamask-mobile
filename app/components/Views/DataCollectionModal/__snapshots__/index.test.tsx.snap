@@ -196,7 +196,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            testID="accept-button"
+            testID="data-collection-modal-accept-button"
             variant="Primary"
           >
             <Text
