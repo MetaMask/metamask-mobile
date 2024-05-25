@@ -476,7 +476,7 @@ const Settings: React.FC = () => {
     } else {
       await enable(false);
       setAnalyticsEnabled(false);
-      if (isDataCollectionForMarketingEnabled) {
+      if (isDataCollectionForMarketingEnabled === true) {
         dispatch(setDataCollectionForMarketing(false));
       }
       Alert.alert(
