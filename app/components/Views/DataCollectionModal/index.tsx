@@ -22,6 +22,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import createStyles from './styles';
+import DataCollectionModalTestIds from './index.constants';
 
 const DataCollectionModal = () => {
   const styles = createStyles();
@@ -44,7 +45,7 @@ const DataCollectionModal = () => {
           size={IconSize.Lg}
           name={IconName.Warning}
           color={IconColor.Warning}
-          testID="icon-warning"
+          testID={DataCollectionModalTestIds.ICON_WARNING}
         />
         <View style={styles.content}>
           <Text variant={TextVariant.BodyMD}>

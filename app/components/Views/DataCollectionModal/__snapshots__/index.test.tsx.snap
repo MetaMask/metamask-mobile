@@ -136,7 +136,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
               "width": 24,
             }
           }
-          testID="icon-warning"
+          testID="data-collection-modal-icon-warning"
           width={24}
         />
         <View
