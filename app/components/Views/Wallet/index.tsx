@@ -173,7 +173,7 @@ const Wallet = ({
   const prevChainId = usePrevious(providerConfig.chainId);
 
   const isDataCollectionForMarketingEnabled = useSelector(
-    (state: any) => state.security.dataCollectionForMarketing,
+    (state: RootState) => state.security.dataCollectionForMarketing,
   );
   /**
    * Is basic functionality enabled
