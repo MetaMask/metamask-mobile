@@ -24,6 +24,7 @@ import {
   useMetrics,
 } from '../../../components/hooks/useMetrics';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
+import ExperienceEhancerModalTestsIds from './index.constants';
 
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
@@ -48,7 +49,7 @@ const ExperienceEnhancerModal = () => {
         location: 'marketing_consent_modal',
       });
     },
-    testID: 'cancel-button',
+    testID: ExperienceEhancerModalTestsIds.CANCEL_BUTTON,
   };
 
   const acceptButtonProps: ButtonProps = {
@@ -66,7 +67,7 @@ const ExperienceEnhancerModal = () => {
         location: 'marketing_consent_modal',
       });
     },
-    testID: 'accept-button',
+    testID: ExperienceEhancerModalTestsIds.ACCEPT_BUTTON,
   };
 
   return (
@@ -81,7 +82,7 @@ const ExperienceEnhancerModal = () => {
             variant={ButtonVariants.Link}
             label={strings('experience_enhancer_modal.link')}
             onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
-            testID="link-button"
+            testID={ExperienceEhancerModalTestsIds.LINK_BUTTON}
           />
           {strings('experience_enhancer_modal.paragraph1b')}
         </Text>

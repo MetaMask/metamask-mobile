@@ -1,11 +1,12 @@
+import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
-import ExperienceEnhancerModal from './';
-import { render, fireEvent } from '@testing-library/react-native';
-import { useDispatch } from 'react-redux';
 import { Linking } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useDispatch } from 'react-redux';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import ExperienceEnhancerModal from './';
+import ExperienceEhancerModalTestsIds from './index.constants';
 
 // Mock the BottomSheet component
 jest.mock(
@@ -48,7 +49,9 @@ describe('ExperienceEnhancerModal', () => {
   it('should handle cancel button press correctly', () => {
     const { getByTestId } = render(<ExperienceEnhancerModal />);
 
-    const cancelButton = getByTestId('cancel-button');
+    const cancelButton = getByTestId(
+      ExperienceEhancerModalTestsIds.CANCEL_BUTTON,
+    );
     expect(cancelButton).toBeTruthy();
 
     fireEvent.press(cancelButton);
@@ -60,7 +63,9 @@ describe('ExperienceEnhancerModal', () => {
   it('should handle accept button press correctly', () => {
     const { getByTestId } = render(<ExperienceEnhancerModal />);
 
-    const acceptButton = getByTestId('accept-button');
+    const acceptButton = getByTestId(
+      ExperienceEhancerModalTestsIds.ACCEPT_BUTTON,
+    );
     expect(acceptButton).toBeTruthy();
 
     fireEvent.press(acceptButton);
@@ -72,7 +77,7 @@ describe('ExperienceEnhancerModal', () => {
   it('should open URL when link button is pressed', () => {
     const { getByTestId } = render(<ExperienceEnhancerModal />);
 
-    const linkButton = getByTestId('link-button');
+    const linkButton = getByTestId(ExperienceEhancerModalTestsIds.LINK_BUTTON);
     expect(linkButton).toBeTruthy();
 
     fireEvent.press(linkButton);
