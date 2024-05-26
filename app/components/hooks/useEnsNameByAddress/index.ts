@@ -4,6 +4,7 @@ import { selectProviderConfig } from '../../../selectors/networkController';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 
 /**
+ * Gets the ENS name for the account address
  *
  * @param address - Account address
  * @returns - An object containing the ENS name for the account address if it exists
