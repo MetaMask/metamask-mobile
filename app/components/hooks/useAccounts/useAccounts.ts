@@ -1,9 +1,8 @@
 // Third party dependencies.
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { isEqual } from 'lodash';
 
 // External Dependencies.
 import { doENSReverseLookup } from '../../../util/ENSUtils';
@@ -46,7 +45,7 @@ const useAccounts = ({
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
   const chainId = useSelector(selectChainId);
-  const accountInfoByAddress = useSelector(selectAccounts, isEqual);
+  const accountInfoByAddress = useSelector(selectAccounts);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
@@ -191,14 +190,11 @@ const useAccounts = ({
   ]);
 
   useEffect(() => {
-    // eslint-disable-next-line
     if (!isMountedRef.current) {
       isMountedRef.current = true;
     }
     if (isLoading) return;
-    // setTimeout is needed for now to ensure next frame contains updated keyrings.
     getAccounts();
-    // Once we can pull keyrings from Redux, we will replace the deps with keyrings.
     return () => {
       isMountedRef.current = false;
     };
