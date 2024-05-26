@@ -21,12 +21,7 @@ import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import {
-  renderFromWei,
-  weiToFiat,
-  hexToBN,
-  toHexadecimal,
-} from '../../../util/number';
+import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import {
   shouldShowNewPrivacyToastSelector,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
@@ -68,17 +63,16 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectAccountByChainId } from '../../../selectors/accountTrackerController';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { useAccounts } from '../../hooks/useAccounts';
-import { RootState } from 'app/reducers';
+import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -137,9 +131,9 @@ const Wallet = ({
   const { colors } = theme;
 
   /**
-   * Map of accountsByChainId to information objects including balances
+   * Object containing the balance of the current selected account
    */
-  const accountsByChainId = useSelector(selectAccountsByChainId);
+  const accountByChainId = useSelector(selectAccountByChainId);
 
   /**
    * ETH to current currency conversion rate
@@ -152,7 +146,9 @@ const Wallet = ({
   /**
    * A string that represents the selected address
    */
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountChecksummedAddress,
+  );
   /**
    * An array that represents the user tokens
    */
@@ -177,12 +173,10 @@ const Wallet = ({
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
 
-  /**
-   * A list of all the user accounts and a mapping of ENS name to account address if they exist
-   */
-  const { accounts, ensByAccountAddress } = useAccounts();
-
   const currentToast = toastRef?.current;
+
+  // eslint-disable-next-line
+  console.log('RENDERING!');
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
@@ -227,30 +221,9 @@ const Wallet = ({
     (state: any) => state.networkOnboarded.networkOnboardedState,
   );
 
-  /**
-   * An object representing the currently selected account.
-   */
-  const selectedAccount = useMemo(() => {
-    if (accounts.length > 0) {
-      return accounts.find((account) => account.isSelected);
-    }
-    return undefined;
-  }, [accounts]);
-
   const isNotificationEnabled = useSelector(
     (state: any) => state.notification?.notificationsSettings?.isEnabled,
   );
-
-  /**
-   * ENS name for the currently selected account.
-   * This value may be undefined if there is no corresponding ENS name for the account.
-   */
-  const ensForSelectedAccount = useMemo(() => {
-    if (ensByAccountAddress && selectedAccount) {
-      return ensByAccountAddress[selectedAccount.address];
-    }
-    return undefined;
-  }, [ensByAccountAddress, selectedAccount]);
 
   const networkName = useMemo(
     () => getNetworkNameFromProviderConfig(providerConfig),
@@ -277,7 +250,6 @@ const Wallet = ({
       chain_id: getDecimalChainId(providerConfig.chainId),
     });
   }, [navigate, providerConfig.chainId, trackEvent]);
-  const { colors: themeColors } = useTheme();
 
   /**
    * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
@@ -369,14 +341,14 @@ const Wallet = ({
         networkImageSource,
         onTitlePress,
         navigation,
-        themeColors,
+        colors,
         isNotificationEnabled,
       ),
     );
     /* eslint-disable-next-line */
   }, [
     navigation,
-    themeColors,
+    colors,
     networkName,
     networkImageSource,
     onTitlePress,
@@ -423,16 +395,8 @@ const Wallet = ({
     let balance: any = 0;
     let assets = tokens;
 
-    if (
-      accountsByChainId?.[toHexadecimal(providerConfig.chainId)]?.[
-        selectedAddress
-      ]
-    ) {
-      balance = renderFromWei(
-        accountsByChainId[toHexadecimal(providerConfig.chainId)][
-          selectedAddress
-        ].balance,
-      );
+    if (accountByChainId) {
+      balance = renderFromWei(accountByChainId.balance);
 
       assets = [
         {
@@ -442,11 +406,7 @@ const Wallet = ({
           isETH: true,
           balance,
           balanceFiat: weiToFiat(
-            hexToBN(
-              accountsByChainId[toHexadecimal(providerConfig.chainId)][
-                selectedAddress
-              ].balance,
-            ) as any,
+            hexToBN(accountByChainId.balance) as any,
             conversionRate,
             currentCurrency,
           ),
@@ -472,10 +432,10 @@ const Wallet = ({
             />
           </View>
         ) : null}
-        {selectedAccount ? (
+        {selectedAddress ? (
           <WalletAccount
-            account={selectedAccount}
-            ens={ensForSelectedAccount}
+            // account={selectedAccount}
+            // ens={ensForSelectedAccount}
             style={styles.walletAccount}
             ref={walletRef}
           />
@@ -502,14 +462,12 @@ const Wallet = ({
             key={'nfts-tab'}
             navigation={navigation}
           />
-          {/* </View> */}
         </ScrollableTabView>
-        {/* </View> */}
       </View>
     );
   }, [
     tokens,
-    accountsByChainId,
+    accountByChainId,
     providerConfig.chainId,
     selectedAddress,
     styles.wrapper,
@@ -517,8 +475,6 @@ const Wallet = ({
     styles.walletAccount,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
-    selectedAccount,
-    ensForSelectedAccount,
     renderTabBar,
     onChangeTab,
     navigation,
