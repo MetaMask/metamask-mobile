@@ -430,12 +430,7 @@ const Wallet = ({
           </View>
         ) : null}
         {selectedAddress ? (
-          <WalletAccount
-            // account={selectedAccount}
-            // ens={ensForSelectedAccount}
-            style={styles.walletAccount}
-            ref={walletRef}
-          />
+          <WalletAccount style={styles.walletAccount} ref={walletRef} />
         ) : null}
         <ScrollableTabView
           renderTabBar={renderTabBar}
