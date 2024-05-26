@@ -1,4 +1,5 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
@@ -13,7 +14,7 @@ export const selectInternalAccounts = createDeepEqualSelector(
     Object.values(accountControllerState.internalAccounts.accounts),
 );
 
-export const selectSelectedInternalAccount = createSelector(
+export const selectSelectedInternalAccount = createDeepEqualSelector(
   selectAccountsControllerState,
   (accountsControllerState: AccountsControllerState) => {
     const accountId = accountsControllerState.internalAccounts.selectedAccount;
@@ -27,5 +28,13 @@ export const selectSelectedInternalAccount = createSelector(
       throw err;
     }
     return account;
+  },
+);
+
+export const selectSelectedInternalAccountChecksummedAddress = createSelector(
+  selectSelectedInternalAccount,
+  (account) => {
+    const selectedAddress = account.address;
+    return toChecksumHexAddress(selectedAddress);
   },
 );
