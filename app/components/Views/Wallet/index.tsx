@@ -175,9 +175,6 @@ const Wallet = ({
 
   const currentToast = toastRef?.current;
 
-  // eslint-disable-next-line
-  console.log('RENDERING!');
-
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
 
