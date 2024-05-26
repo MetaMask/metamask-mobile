@@ -5,7 +5,7 @@ const MOCK_CHAIN_ID = '0x1';
 
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
 
-const MOCK_ACCOUNT_ADDRESS: string = '0xABC123';
+const MOCK_ACCOUNT_ADDRESS = '0xABC123';
 
 const MOCK_STORE_STATE = {
   engine: {
@@ -25,7 +25,7 @@ jest.mock('../../../util/ENSUtils', () => ({
     .fn()
     .mockImplementation((address: string, chainId: string) => {
       const cacheKey = `${chainId}${address}`;
-      const MOCK_ENS_CACHE = {
+      const MOCK_ENS_CACHE: { [key: string]: string } = {
         [`${MOCK_CHAIN_ID}${MOCK_ACCOUNT_ADDRESS}`]: MOCK_ENS_CACHED_NAME,
       };
       return MOCK_ENS_CACHE[cacheKey];

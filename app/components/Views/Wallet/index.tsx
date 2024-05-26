@@ -468,7 +468,6 @@ const Wallet = ({
   }, [
     tokens,
     accountByChainId,
-    providerConfig.chainId,
     selectedAddress,
     styles.wrapper,
     styles.banner,
