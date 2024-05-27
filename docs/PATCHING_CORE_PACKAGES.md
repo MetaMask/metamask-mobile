@@ -33,6 +33,7 @@ This guide details the procedure for generating and applying patches to core pac
      For instance, if `metamask-mobile` and the `core` package are in the same directory, the patch script would be `yarn patch:tx ../core`.
 
    - Include the updated patch file in your pull request (PR) and submit it to the mobile repository.
+   - Another good practice is to have the core branch in the mobile PR description with a link so it's easier to review what is changed in the patched core package.
 
 3. **Finalizing Your Mobile PR:**
 
