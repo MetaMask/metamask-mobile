@@ -102,6 +102,19 @@ describe('Browser utils :: onUrlSubmit', () => {
     const url = onUrlSubmit(input, 'DuckDuckGo');
     expect(url).toBe(input);
   });
+
+  it('should return undefined if input starts with "javascript://"', () => {
+    // eslint-disable-next-line no-script-url
+    const input = 'javascript://alert("XSS")';
+    const output = onUrlSubmit(input);
+    expect(output).toBeUndefined();
+  });
+
+  it('should not return undefined if input does not start with "javascript://"', () => {
+    const input = 'http://example.com';
+    const output = onUrlSubmit(input);
+    expect(output).not.toBeUndefined();
+  });
 });
 
 describe('Browser utils :: isTLD', () => {
