@@ -19,16 +19,12 @@ import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
 import {
   selectChainId,
-  selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectNetworkName } from '../../../selectors/networkInfos';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
-import {
-  getDecimalChainId,
-  getNetworkNameFromProviderConfig,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { EngineState } from '../../../selectors/types';
 import Routes from '../../../constants/navigation/Routes';
 import MultiAssetListItems from '../MultiAssetListItems/MultiAssetListItems';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -197,10 +193,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     });
   }, [addToken, selectedAsset, goToWalletPage]);
 
-  const networkName = useSelector((state: EngineState) => {
-    const providerConfig = selectProviderConfig(state);
-    return getNetworkNameFromProviderConfig(providerConfig);
-  });
+  const networkName = useSelector(selectNetworkName);
 
   const goToConfirmAddToken = () => {
     navigation.push('ConfirmAddAsset', {
