@@ -42,4 +42,4 @@ This guide details the procedure for generating and applying patches to core pac
 
    - After your PR in the mobile repository is merged, you can proceed to merge the PR you created against the patch branch in the core repository.
 
-By following these steps, you can efficiently manage and apply patches to core packages, ensuring that the `metamask-mobile` project remains up-to-date with necessary fixes and improvements.
+To maintain the `metamask-mobile` project's integrity and ensure it stays current with essential fixes and enhancements, it's crucial to manage and apply patches to core packages efficiently. However, it's worth noting that patching should be considered a last resort, reserved primarily for addressing security vulnerabilities or implementing high-priority features.
