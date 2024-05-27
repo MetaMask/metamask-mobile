@@ -1,4 +1,5 @@
-export default {
+// eslint-disable-next-line import/prefer-default-export
+export const ExperienceEnhancerModalSelectorsIDs = {
   LINK_BUTTON: 'experience-enhancer-modal-link-button',
   CANCEL_BUTTON: 'experience-enhancer-modal-cancel-button',
   ACCEPT_BUTTON: 'experience-enhancer-modal-accept-button',

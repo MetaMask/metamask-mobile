@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import ExperienceEnhancerModal from './';
-import ExperienceEhancerModalTestsIds from './index.constants';
+import { ExperienceEnhancerModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ExperienceEnhancerModal.selectors.js';
 
 // Mock the BottomSheet component
 jest.mock(
@@ -50,7 +50,7 @@ describe('ExperienceEnhancerModal', () => {
     const { getByTestId } = render(<ExperienceEnhancerModal />);
 
     const cancelButton = getByTestId(
-      ExperienceEhancerModalTestsIds.CANCEL_BUTTON,
+      ExperienceEnhancerModalSelectorsIDs.CANCEL_BUTTON,
     );
     expect(cancelButton).toBeTruthy();
 
@@ -64,7 +64,7 @@ describe('ExperienceEnhancerModal', () => {
     const { getByTestId } = render(<ExperienceEnhancerModal />);
 
     const acceptButton = getByTestId(
-      ExperienceEhancerModalTestsIds.ACCEPT_BUTTON,
+      ExperienceEnhancerModalSelectorsIDs.ACCEPT_BUTTON,
     );
     expect(acceptButton).toBeTruthy();
 
@@ -77,7 +77,9 @@ describe('ExperienceEnhancerModal', () => {
   it('should open URL when link button is pressed', () => {
     const { getByTestId } = render(<ExperienceEnhancerModal />);
 
-    const linkButton = getByTestId(ExperienceEhancerModalTestsIds.LINK_BUTTON);
+    const linkButton = getByTestId(
+      ExperienceEnhancerModalSelectorsIDs.LINK_BUTTON,
+    );
     expect(linkButton).toBeTruthy();
 
     fireEvent.press(linkButton);

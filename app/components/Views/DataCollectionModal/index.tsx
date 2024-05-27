@@ -22,7 +22,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import createStyles from './styles';
-import DataCollectionModalTestIds from './index.constants';
+import { DataCollectionModalSelectorsIDs } from '../../../../e2e/selectors/Modals/DataCollectionModal.selectors';
 
 const DataCollectionModal = () => {
   const styles = createStyles();
@@ -35,7 +35,7 @@ const DataCollectionModal = () => {
     onPress: () => {
       bottomSheetRef.current?.onCloseBottomSheet();
     },
-    testID: DataCollectionModalTestIds.ACCEPT_BUTTON,
+    testID: DataCollectionModalSelectorsIDs.ACCEPT_BUTTON,
   };
 
   return (
@@ -45,7 +45,7 @@ const DataCollectionModal = () => {
           size={IconSize.Lg}
           name={IconName.Warning}
           color={IconColor.Warning}
-          testID={DataCollectionModalTestIds.ICON_WARNING}
+          testID={DataCollectionModalSelectorsIDs.ICON_WARNING}
         />
         <View style={styles.content}>
           <Text variant={TextVariant.BodyMD}>

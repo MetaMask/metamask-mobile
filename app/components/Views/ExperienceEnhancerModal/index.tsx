@@ -24,7 +24,7 @@ import {
   useMetrics,
 } from '../../../components/hooks/useMetrics';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
-import ExperienceEhancerModalTestsIds from './index.constants';
+import { ExperienceEnhancerModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ExperienceEnhancerModal.selectors.js';
 
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
@@ -49,7 +49,7 @@ const ExperienceEnhancerModal = () => {
         location: 'marketing_consent_modal',
       });
     },
-    testID: ExperienceEhancerModalTestsIds.CANCEL_BUTTON,
+    testID: ExperienceEnhancerModalSelectorsIDs.CANCEL_BUTTON,
   };
 
   const acceptButtonProps: ButtonProps = {
@@ -67,24 +67,24 @@ const ExperienceEnhancerModal = () => {
         location: 'marketing_consent_modal',
       });
     },
-    testID: ExperienceEhancerModalTestsIds.ACCEPT_BUTTON,
+    testID: ExperienceEnhancerModalSelectorsIDs.ACCEPT_BUTTON,
   };
 
   return (
     <BottomSheet
       ref={bottomSheetRef}
-      testID={ExperienceEhancerModalTestsIds.BOTTOM_SHEET}
+      testID={ExperienceEnhancerModalSelectorsIDs.BOTTOM_SHEET}
     >
       <Text
         variant={TextVariant.HeadingMD}
         style={styles.title}
-        testID={ExperienceEhancerModalTestsIds.TITLE}
+        testID={ExperienceEnhancerModalSelectorsIDs.TITLE}
       >
         {strings('experience_enhancer_modal.title')}
       </Text>
       <View
         style={styles.content}
-        testID={ExperienceEhancerModalTestsIds.CONTENT}
+        testID={ExperienceEnhancerModalSelectorsIDs.CONTENT}
       >
         <Text variant={TextVariant.BodyMD}>
           {strings('experience_enhancer_modal.paragraph1a')}
@@ -92,35 +92,35 @@ const ExperienceEnhancerModal = () => {
             variant={ButtonVariants.Link}
             label={strings('experience_enhancer_modal.link')}
             onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
-            testID={ExperienceEhancerModalTestsIds.LINK_BUTTON}
+            testID={ExperienceEnhancerModalSelectorsIDs.LINK_BUTTON}
           />
           {strings('experience_enhancer_modal.paragraph1b')}
         </Text>
 
         <Text
           variant={TextVariant.BodyMD}
-          testID={ExperienceEhancerModalTestsIds.PARAGRAPH_2}
+          testID={ExperienceEnhancerModalSelectorsIDs.PARAGRAPH_2}
         >
           {strings('experience_enhancer_modal.paragraph2')}
         </Text>
         <View style={styles.list}>
           <Text
             style={styles.line}
-            testID={ExperienceEhancerModalTestsIds.BULLET_1}
+            testID={ExperienceEnhancerModalSelectorsIDs.BULLET_1}
           >
             <Text style={styles.dot}>•</Text>{' '}
             {strings('experience_enhancer_modal.bullet1')}
           </Text>
           <Text
             style={styles.line}
-            testID={ExperienceEhancerModalTestsIds.BULLET_2}
+            testID={ExperienceEnhancerModalSelectorsIDs.BULLET_2}
           >
             <Text style={styles.dot}>•</Text>{' '}
             {strings('experience_enhancer_modal.bullet2')}
           </Text>
           <Text
             style={styles.line}
-            testID={ExperienceEhancerModalTestsIds.BULLET_3}
+            testID={ExperienceEnhancerModalSelectorsIDs.BULLET_3}
           >
             <Text style={styles.dot}>•</Text>{' '}
             {strings('experience_enhancer_modal.bullet3')}
@@ -128,7 +128,7 @@ const ExperienceEnhancerModal = () => {
         </View>
         <Text
           variant={TextVariant.BodyMD}
-          testID={ExperienceEhancerModalTestsIds.FOOTER}
+          testID={ExperienceEnhancerModalSelectorsIDs.FOOTER}
         >
           {strings('experience_enhancer_modal.footer')}
         </Text>
