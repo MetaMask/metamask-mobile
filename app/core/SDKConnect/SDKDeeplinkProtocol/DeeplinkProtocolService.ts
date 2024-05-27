@@ -368,6 +368,16 @@ export default class DeeplinkProtocolService {
       return;
     }
 
+    await SDKConnect.getInstance().addDappConnection({
+      id: clientInfo.clientId,
+      lastAuthorized: Date.now(),
+      origin: AppConstants.MM_SDK.IOS_SDK,
+      originatorInfo: clientInfo.originatorInfo,
+      otherPublicKey: this.dappPublicKeyByClientId[clientInfo.clientId],
+      validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
+      scheme: clientInfo.scheme,
+    });
+
     const handleEventAsync = async () => {
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
@@ -415,6 +425,7 @@ export default class DeeplinkProtocolService {
         DevLogger.log(`DeeplinkProtocolService::sendMessage 2`);
 
         if (params.request) {
+          DevLogger.log(`DeeplinkProtocolService::sendMessage 11`);
           await this.processDappRpcRequest(params);
 
           return;
