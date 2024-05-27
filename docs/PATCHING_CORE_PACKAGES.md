@@ -25,11 +25,13 @@ This guide details the procedure for generating and applying patches to core pac
 2. **Applying Your Changes to the Mobile Repository:**
 
    - Use the appropriate script to apply your patch, depending on the package you're modifying:
+
      - `yarn patch:tx <core-directory>`
      - `yarn patch:assets <core-directory>`
      - `yarn patch:approval <core-directory>`
-     
+
      For instance, if `metamask-mobile` and the `core` package are in the same directory, the patch script would be `yarn patch:tx ../core`.
+
    - Include the updated patch file in your pull request (PR) and submit it to the mobile repository.
 
 3. **Finalizing Your Mobile PR:**
