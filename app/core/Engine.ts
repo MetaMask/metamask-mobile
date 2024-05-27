@@ -191,16 +191,16 @@ import {
 import {
   PushPlatformNotificationsController,
   PushPlatformNotificationsControllerState,
-} from '@metamask/push-platform-notifications';
+} from '@metamask/push-platform-notifications-controller';
 import {
   MetamaskNotificationsController,
   MetamaskNotificationsControllerState,
-} from '@metamask/metamask-notifications';
+} from '@metamask/notifications-controller';
 
 import {
   MetaMetricsController,
   MetaMetricsControllerState,
-} from '@metamask/metamask-metametrics';
+} from '@metamask/metametrics-controller';
 
 import { providerErrors } from '@metamask/rpc-errors';
 

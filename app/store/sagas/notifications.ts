@@ -2,6 +2,11 @@ import { put, call } from 'redux-saga/effects';
 import { NOTIFICATIONS_ERRORS } from './constants';
 import NotificationsActions from '../ducks/notifications';
 
+import { AuthenticationController } from '@metamask/authentication-controller';
+import { UserStorageController } from '@metamask/user-storage-controller';
+import { MetamaskNotificationsController } from '@metamask/notifications-controller';
+import { MetaMetricsController } from '@metamask/metametrics-controller';
+
 export function* signIn() {
   try {
     const { accessToken, expiresIn } = yield call(
