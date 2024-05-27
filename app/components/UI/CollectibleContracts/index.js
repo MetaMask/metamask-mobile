@@ -197,7 +197,6 @@ const CollectibleContracts = ({
     const updatableCollectibles = collectibles.filter((single) =>
       shouldUpdateCollectibleMetadata(single),
     );
-
     if (updatableCollectibles.length !== 0 && !useNftDetection) {
       updateAllCollectibleMetadata(updatableCollectibles);
     }
@@ -331,6 +330,7 @@ const CollectibleContracts = ({
         data={collectibleContracts}
         renderItem={({ item, index }) => renderCollectibleContract(item, index)}
         keyExtractor={(_, index) => index.toString()}
+        testID="refreshControl"
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
