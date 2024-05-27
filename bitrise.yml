@@ -491,6 +491,21 @@ workflows:
       - notify_failure
     steps:
       - script@1:
+          title: Set commit hash env variable
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                BRANCH_COMMIT_HASH=$BITRISE_GIT_COMMIT
+
+                if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
+                  BRANCH_COMMIT_HASH="$(git rev-parse HEAD)"
+                fi
+
+                # Log the value of BRANCH_COMMIT_HASH
+                echo "BRANCH_COMMIT_HASH is set to: $BRANCH_COMMIT_HASH"
+
+                envman add --key BRANCH_COMMIT_HASH --value "$BRANCH_COMMIT_HASH"
+      - script@1:
           title: Generating ccache key using native folder checksum
           inputs:
             - content: |-
@@ -558,7 +573,7 @@ workflows:
       - save-cache@1:
           title: Save node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BITRISE_GIT_COMMIT" }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
     meta:
       bitrise.io:
@@ -592,7 +607,7 @@ workflows:
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BITRISE_GIT_COMMIT" }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - script@1:
           title: Download cmake 3.22.1 with sdkmanager
           is_always_run: false
@@ -669,6 +684,21 @@ workflows:
       - notify_failure
     steps:
       - script@1:
+          title: Set commit hash env variable
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                BRANCH_COMMIT_HASH=$BITRISE_GIT_COMMIT
+
+                if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
+                  BRANCH_COMMIT_HASH="$(git rev-parse HEAD)"
+                fi
+
+                # Log the value of BRANCH_COMMIT_HASH
+                echo "BRANCH_COMMIT_HASH is set to: $BRANCH_COMMIT_HASH"
+
+                envman add --key BRANCH_COMMIT_HASH --value "$BRANCH_COMMIT_HASH"
+      - script@1:
           title: Generating ccache key using native folder checksum
           inputs:
             - content: |-
@@ -744,7 +774,7 @@ workflows:
       - save-cache@1:
           title: Save node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BITRISE_GIT_COMMIT" }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
   ios_e2e_test:
     before_run:
@@ -776,7 +806,7 @@ workflows:
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BITRISE_GIT_COMMIT" }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
