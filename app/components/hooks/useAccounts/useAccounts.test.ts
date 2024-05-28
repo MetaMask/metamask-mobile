@@ -3,14 +3,9 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumAddress } from 'ethereumjs-util';
 import useAccounts from './useAccounts';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import {
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
-  MOCK_ADDRESS_2,
-} from '../../../util/test/accountsControllerTestUtils';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
-interface MockEnsCacheType {
-  [key: string]: string;
-}
+
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
 
 const MOCK_CHAIN_ID = '0x1';
@@ -43,6 +38,7 @@ const MOCK_ACCOUNT_2: Account = {
 };
 
 const MOCK_STORE_STATE = {
+  settings: {},
   engine: {
     backgroundState: {
       ...initialBackgroundState,
@@ -72,9 +68,8 @@ jest.mock('../../../util/ENSUtils', () => ({
     .fn()
     .mockImplementation((address: string, chainId: string) => {
       const cacheKey = `${chainId}${address}`;
-
-      const MOCK_ENS_CACHE: MockEnsCacheType = {
-        [`${MOCK_CHAIN_ID}${MOCK_ADDRESS_2}`]: MOCK_ENS_CACHED_NAME,
+      const MOCK_ENS_CACHE = {
+        [`${MOCK_CHAIN_ID}${MOCK_ACCOUNT_1.address}`]: MOCK_ENS_CACHED_NAME,
       };
       return MOCK_ENS_CACHE[cacheKey];
     }),
@@ -125,9 +120,9 @@ describe('useAccounts', () => {
     expect(result.current.accounts).toStrictEqual(expectedInternalAccounts);
   });
 
-  it('returns ENS name for the selected account when available', async () => {
+  it('returns ENS name when available', async () => {
     const expectedENSNames = {
-      [MOCK_ADDRESS_2]: MOCK_ENS_CACHED_NAME,
+      [MOCK_ACCOUNT_1.address]: MOCK_ENS_CACHED_NAME,
     };
     const { result, waitForNextUpdate } = renderHook(() => useAccounts());
     await act(async () => {

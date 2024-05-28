@@ -1,22 +1,13 @@
 // Third party dependencies.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { isEqual } from 'lodash';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 // External Dependencies.
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
-
-// Internal dependencies
-import {
-  Account,
-  EnsByAccountAddress,
-  UseAccounts,
-  UseAccountsParams,
-} from './useAccounts.types';
 import {
   selectChainId,
   selectTicker,
@@ -31,7 +22,14 @@ import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
 } from '../../../selectors/accountsController';
-import { isMainNet } from '../../../util/networks';
+
+// Internal dependencies
+import {
+  Account,
+  EnsByAccountAddress,
+  UseAccounts,
+  UseAccountsParams,
+} from './useAccounts.types';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -47,7 +45,7 @@ const useAccounts = ({
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
   const chainId = useSelector(selectChainId);
-  const accountInfoByAddress = useSelector(selectAccounts, isEqual);
+  const accountInfoByAddress = useSelector(selectAccounts);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
@@ -65,36 +63,67 @@ const useAccounts = ({
     [],
   );
 
-  const fetchENSName = useCallback(async () => {
-    // Ensure index exists in account list.
-    let latestENSbyAccountAddress: EnsByAccountAddress = {};
-    const address = toChecksumAddress(selectedInternalAccount.address);
-    try {
-      const ens: string | undefined = await doENSReverseLookup(
-        address,
-        chainId,
-      );
+  const fetchENSNames = useCallback(
+    async ({
+      flattenedAccounts,
+      startingIndex,
+    }: {
+      flattenedAccounts: Account[];
+      startingIndex: number;
+    }) => {
+      // Ensure index exists in account list.
+      let safeStartingIndex = startingIndex;
+      let mirrorIndex = safeStartingIndex - 1;
+      let latestENSbyAccountAddress: EnsByAccountAddress = {};
 
-      if (ens) {
-        latestENSbyAccountAddress = {
-          ...latestENSbyAccountAddress,
-          [address]: ens,
-        };
+      if (startingIndex < 0) {
+        safeStartingIndex = 0;
+      } else if (startingIndex > flattenedAccounts.length) {
+        safeStartingIndex = flattenedAccounts.length - 1;
       }
-    } catch (e) {
-      // ENS either doesn't exist or failed to fetch.
-    }
 
-    setENSByAccountAddress(latestENSbyAccountAddress);
-  }, [chainId, selectedInternalAccount.address]);
+      const fetchENSName = async (accountIndex: number) => {
+        const { address } = flattenedAccounts[accountIndex];
+        try {
+          const ens: string | undefined = await doENSReverseLookup(
+            address,
+            chainId,
+          );
+          if (ens) {
+            latestENSbyAccountAddress = {
+              ...latestENSbyAccountAddress,
+              [address]: ens,
+            };
+          }
+        } catch (e) {
+          // ENS either doesn't exist or failed to fetch.
+        }
+      };
+
+      // Iterate outwards in both directions starting at the starting index.
+      while (mirrorIndex >= 0 || safeStartingIndex < flattenedAccounts.length) {
+        if (!isMountedRef.current) return;
+        if (safeStartingIndex < flattenedAccounts.length) {
+          await fetchENSName(safeStartingIndex);
+        }
+        if (mirrorIndex >= 0) {
+          await fetchENSName(mirrorIndex);
+        }
+        mirrorIndex--;
+        safeStartingIndex++;
+        setENSByAccountAddress(latestENSbyAccountAddress);
+      }
+    },
+    [chainId],
+  );
 
   const getAccounts = useCallback(() => {
     if (!isMountedRef.current) return;
     // Keep track of the Y position of account item. Used for scrolling purposes.
     let yOffset = 0;
-
+    let selectedIndex = 0;
     const flattenedAccounts: Account[] = internalAccounts.map(
-      (internalAccount) => {
+      (internalAccount, index) => {
         const {
           address,
           metadata: {
@@ -102,9 +131,11 @@ const useAccounts = ({
             keyring: { type },
           },
         } = internalAccount;
-        const checksummedAddress = toChecksumAddress(address);
-        const isSelected = selectedInternalAccount.address === address;
-
+        const checksummedAddress = toChecksumHexAddress(address);
+        const isSelected = selectedInternalAccount?.address === address;
+        if (isSelected) {
+          selectedIndex = index;
+        }
         // TODO - Improve UI to either include loading and/or balance load failures.
         const balanceWeiHex =
           accountInfoByAddress?.[checksummedAddress]?.balance || '0x0';
@@ -145,8 +176,10 @@ const useAccounts = ({
     );
 
     setAccounts(flattenedAccounts);
+    fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
   }, [
     selectedInternalAccount,
+    fetchENSNames,
     accountInfoByAddress,
     conversionRate,
     currentCurrency,
@@ -157,26 +190,15 @@ const useAccounts = ({
   ]);
 
   useEffect(() => {
-    // eslint-disable-next-line
     if (!isMountedRef.current) {
       isMountedRef.current = true;
     }
     if (isLoading) return;
-    // setTimeout is needed for now to ensure next frame contains updated keyrings.
     getAccounts();
-    // Once we can pull keyrings from Redux, we will replace the deps with keyrings.
     return () => {
       isMountedRef.current = false;
     };
   }, [getAccounts, isLoading]);
-
-  useEffect(() => {
-    // We need this check because when switching accounts the accounts state it's empty, reason still to be investigated
-
-    if (isMainNet(chainId)) {
-      fetchENSName();
-    }
-  }, [chainId, fetchENSName]);
 
   return {
     accounts,
