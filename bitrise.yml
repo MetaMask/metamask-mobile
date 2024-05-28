@@ -206,6 +206,9 @@ workflows:
                 asdf list all nodejs
                 asdf install nodejs "$NODE_VERSION"
                 asdf global nodejs "$NODE_VERSION"
+                asdf plugin add ruby
+                asdf install ruby 3.1.4
+                asdf global ruby 3.1.4
                 echo "Corepack being installed with npm"
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
