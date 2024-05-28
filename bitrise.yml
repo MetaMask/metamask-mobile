@@ -200,8 +200,6 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo "Installing ruby version as specified in .ruby-version"
-                rbenv install $(cat .ruby-version)
                 echo "Gems being installed with bundler gem"
                 bundle install
                 echo "Node $NODE_VERSION being installed with asdf"
