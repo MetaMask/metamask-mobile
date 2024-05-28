@@ -53,14 +53,16 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import {
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../selectors/networkInfos';
 import { selectTokens } from '../../../selectors/tokensController';
 import { useNavigation } from '@react-navigation/native';
 import { WalletAccount } from '../../../components/UI/WalletAccount';
@@ -252,19 +254,9 @@ const Wallet = ({
     return undefined;
   }, [ensByAccountAddress, selectedAccount]);
 
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
+  const networkName = useSelector(selectNetworkName);
 
-  const networkImageSource = useMemo(
-    () =>
-      getNetworkImageSource({
-        networkType: providerConfig.type,
-        chainId: providerConfig.chainId,
-      }),
-    [providerConfig],
-  );
+  const networkImageSource = useSelector(selectNetworkImageSource);
 
   /**
    * Callback to trigger when pressing the navigation title.
