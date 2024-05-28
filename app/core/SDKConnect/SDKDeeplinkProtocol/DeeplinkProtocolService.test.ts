@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Linking } from 'react-native';
 import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import SDKConnect from '../SDKConnect';
+import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import DeeplinkProtocolService from './DeeplinkProtocolService';
@@ -14,6 +16,7 @@ jest.mock('../../BackgroundBridge/BackgroundBridge');
 jest.mock('../utils/DevLogger');
 jest.mock('../../../util/Logger');
 jest.mock('../handlers/handleCustomRpcCalls');
+jest.mock('../handlers/handleBatchRpcResponse');
 
 describe('DeeplinkProtocolService', () => {
   let service: DeeplinkProtocolService;
@@ -21,7 +24,14 @@ describe('DeeplinkProtocolService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (SDKConnect.getInstance as jest.Mock).mockReturnValue({
-      loadDappConnections: jest.fn().mockResolvedValue([]),
+      loadDappConnections: jest.fn().mockResolvedValue({
+        connection1: {
+          id: 'connection1',
+          originatorInfo: { url: 'test.com', title: 'Test' },
+          validUntil: Date.now(),
+          scheme: 'scheme1',
+        },
+      }),
       addDappConnection: jest.fn().mockResolvedValue(null),
     });
 
@@ -50,6 +60,28 @@ describe('DeeplinkProtocolService', () => {
       // @ts-ignore
       expect(service.isInitialized).toBe(true);
     });
+
+    it('should handle initialization error', async () => {
+      (
+        SDKConnect.getInstance().loadDappConnections as jest.Mock
+      ).mockRejectedValue(new Error('Failed to load connections'));
+      // @ts-ignore
+      await service.init().catch(() => {
+        // @ts-ignore
+        expect(service.isInitialized).toBe(false);
+        expect(Logger.log).toHaveBeenCalledWith(
+          expect.any(Error),
+          'DeeplinkProtocolService:: error initializing',
+        );
+      });
+    });
+
+    it('should initialize with raw connections', async () => {
+      // @ts-ignore
+      await service.init();
+      // @ts-ignore
+      expect(service.connections.connection1).toBeDefined();
+    });
   });
 
   describe('setupBridge', () => {
@@ -68,6 +100,22 @@ describe('DeeplinkProtocolService', () => {
         BackgroundBridge,
       );
     });
+
+    it('should return early if bridge already exists', () => {
+      const clientInfo = {
+        clientId: 'client1',
+        originatorInfo: { url: 'test.com', title: 'Test' },
+        connected: false,
+        validUntil: Date.now(),
+        scheme: 'test',
+      };
+      // @ts-ignore
+      service.bridgeByClientId.client1 = {} as BackgroundBridge;
+      const setupBridgeSpy = jest.spyOn(service as any, 'setupBridge');
+      // @ts-ignore
+      service.setupBridge(clientInfo);
+      expect(setupBridgeSpy).toHaveReturned();
+    });
   });
 
   describe('sendMessage', () => {
@@ -84,6 +132,40 @@ describe('DeeplinkProtocolService', () => {
       await service.sendMessage({ data: { id: '1' } }, true);
       // @ts-ignore
       expect(service.rpcQueueManager.remove).toHaveBeenCalledWith('1');
+    });
+
+    it('should handle batch RPC responses', async () => {
+      const mockChainRPCs = [{ id: '1' }];
+      const mockMessage = { data: { id: '1', error: null } };
+      // @ts-ignore
+      service.batchRPCManager.getById = jest
+        .fn()
+        .mockReturnValue(mockChainRPCs);
+      // @ts-ignore
+      handleBatchRpcResponse.mockResolvedValue(true);
+
+      // @ts-ignore
+      service.currentClientId = 'client1';
+      // @ts-ignore
+      service.bridgeByClientId.client1 = new BackgroundBridge({
+        webview: null,
+        channelId: 'client1',
+        isMMSDK: true,
+        url: 'test-url',
+        isRemoteConn: true,
+        sendMessage: jest.fn(),
+      });
+
+      await service.sendMessage(mockMessage, true);
+      expect(handleBatchRpcResponse).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainRpcs: mockChainRPCs,
+          msg: mockMessage,
+          backgroundBridge: expect.any(BackgroundBridge),
+          batchRPCManager: expect.anything(),
+          sendMessage: expect.any(Function),
+        }),
+      );
     });
   });
 
@@ -108,15 +190,30 @@ describe('DeeplinkProtocolService', () => {
       // @ts-ignore
       await service.checkPermission({
         channelId: 'channel1',
-        originatorInfo: {
-          url: 'test.com',
-          title: 'Test',
-          icon: 'icon',
-          platform: 'platform',
-          dappId: 'dappId',
-        },
+        // @ts-ignore
+        originatorInfo: { url: 'test.com' },
       });
       expect(spy).toHaveBeenCalled();
+    });
+  });
+
+  describe('handleConnection', () => {
+    it('should handle a new connection', async () => {
+      const connectionParams = {
+        dappPublicKey: 'key',
+        url: 'url',
+        scheme: 'scheme',
+        channelId: 'channel1',
+        originatorInfo: Buffer.from(
+          JSON.stringify({
+            originatorInfo: { url: 'test.com', title: 'Test' },
+          }),
+        ).toString('base64'),
+      };
+      await service.handleConnection(connectionParams);
+
+      // @ts-ignore
+      expect(service.connections.connection1).toBeDefined();
     });
   });
 
