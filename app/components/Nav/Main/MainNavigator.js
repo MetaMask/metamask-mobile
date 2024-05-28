@@ -290,6 +290,11 @@ const SettingsFlow = () => (
       )
     }
     <Stack.Screen
+      name="AesCryptoTestForm"
+      component={AesCryptoTestForm}
+      options={AesCryptoTestForm.navigationOptions}
+    />
+    <Stack.Screen
       name="ExperimentalSettings"
       component={ExperimentalSettings}
       options={ExperimentalSettings.navigationOptions}
