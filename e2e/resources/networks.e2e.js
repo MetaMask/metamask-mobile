@@ -88,7 +88,7 @@ const CustomNetworks = {
       type: 'mainnet',
       chainId: '11155111',
       rpcTarget: 'https://sepolia.infura.io/v3/',
-      nickname: 'Sepolia Test Network',
+      nickname: 'Sepolia',
       ticker: 'SepoliaETH',
     },
   },
