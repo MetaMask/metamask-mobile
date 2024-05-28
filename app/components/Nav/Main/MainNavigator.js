@@ -79,6 +79,7 @@ import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
+import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -272,6 +273,11 @@ const SettingsFlow = () => (
     <Stack.Screen
       name={Routes.RAMP.ACTIVATION_KEY_FORM}
       component={RampActivationKeyForm}
+    />
+    <Stack.Screen
+      name="AesCryptoTestForm"
+      component={AesCryptoTestForm}
+      options={AesCryptoTestForm.navigationOptions}
     />
     <Stack.Screen
       name="ExperimentalSettings"

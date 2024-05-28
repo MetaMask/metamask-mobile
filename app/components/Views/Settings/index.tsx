@@ -82,6 +82,10 @@ const Settings = () => {
     navigation.navigate('ExperimentalSettings');
   };
 
+  const onPressAesCryptoTestForm = () => {
+    navigation.navigate('AesCryptoTestForm');
+  };
+
   const onPressInfo = () => {
     trackEvent(MetaMetricsEvents.SETTINGS_ABOUT);
     navigation.navigate('CompanySettings');
@@ -232,6 +236,11 @@ const Settings = () => {
         description={strings('app_settings.experimental_desc')}
         onPress={onPressExperimental}
         testID={SettingsViewSelectorsIDs.EXPERIMENTAL}
+      />
+      <SettingsDrawer
+        title={strings('app_settings.aes_crypto_test_form_title')}
+        onPress={onPressAesCryptoTestForm}
+        testID={SettingsViewSelectorsIDs.AES_CRYPTO}
       />
       <SettingsDrawer
         title={aboutMetaMaskTitle}
