@@ -189,10 +189,11 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+                asdf plugin-update ruby
                 asdf install ruby "$RUBY_VERSION"
                 asdf global ruby "$RUBY_VERSION"
-                asdf exec -- gem install bundler
-                asdf exec -- bundle install
+                asdf gem install bundler
+                asdf bundle install
           title: Get Yarn cache directory
       - yarn@0:
           inputs:
