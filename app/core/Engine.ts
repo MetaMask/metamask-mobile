@@ -179,15 +179,12 @@ import { hasProperty, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 
-// Notification controllers and state
 import {
   AuthenticationController,
   AuthenticationControllerState,
-} from '@metamask/authentication-controller';
-import {
   UserStorageController,
   UserStorageControllerState,
-} from '@metamask/user-storage-controller';
+} from '@metamask/profile-sync-controller';
 import {
   PushPlatformNotificationsController,
   PushPlatformNotificationsControllerState,

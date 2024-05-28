@@ -2,8 +2,10 @@ import { put, call } from 'redux-saga/effects';
 import { NOTIFICATIONS_ERRORS } from './constants';
 import NotificationsActions from '../ducks/notifications';
 
-import { AuthenticationController } from '@metamask/authentication-controller';
-import { UserStorageController } from '@metamask/user-storage-controller';
+import {
+  AuthenticationController,
+  UserStorageController,
+} from '@metamask/profile-sync-controller';
 import { MetamaskNotificationsController } from '@metamask/notifications-controller';
 import { MetaMetricsController } from '@metamask/metametrics-controller';
 
