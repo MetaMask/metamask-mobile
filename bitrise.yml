@@ -200,15 +200,14 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                asdf install ruby 3.1.4
+                asdf global ruby 3.1.4
                 echo "Gems being installed with bundler gem"
                 bundle install
                 echo "Node $NODE_VERSION being installed with asdf"
                 asdf list all nodejs
                 asdf install nodejs "$NODE_VERSION"
                 asdf global nodejs "$NODE_VERSION"
-                asdf plugin add ruby
-                asdf install ruby 3.1.4
-                asdf global ruby 3.1.4
                 echo "Corepack being installed with npm"
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
