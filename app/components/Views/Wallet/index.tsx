@@ -59,7 +59,6 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAccountByChainId } from '../../../selectors/accountTrackerController';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import Text, {
@@ -68,7 +67,10 @@ import Text, {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccountChecksummedAddress,
+  selectAccountByChainId,
+} from '../../../selectors/accountsController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({

@@ -34,7 +34,25 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
 export const selectSelectedInternalAccountChecksummedAddress = createSelector(
   selectSelectedInternalAccount,
   (account) => {
-    const selectedAddress = account.address;
-    return toChecksumHexAddress(selectedAddress);
+    const selectedAddress = account?.address;
+    return selectedAddress ? toChecksumHexAddress(selectedAddress) : undefined;
+  },
+);
+
+export const selectAccountByChainId = createDeepEqualSelector(
+  (state: RootState) => state.engine.backgroundState,
+  (backgroundState) => {
+    const { AccountTrackerController, NetworkController, AccountsController } =
+      backgroundState;
+    const accountsByChainId = AccountTrackerController.accountsByChainId;
+    const chainId = NetworkController.providerConfig.chainId;
+    const selectedAccountId =
+      AccountsController.internalAccounts?.selectedAccount;
+    const selectedAccountAddress =
+      AccountsController.internalAccounts?.accounts?.[selectedAccountId]
+        ?.address;
+    return selectedAccountAddress
+      ? accountsByChainId[chainId][toChecksumHexAddress(selectedAccountAddress)]
+      : undefined;
   },
 );
