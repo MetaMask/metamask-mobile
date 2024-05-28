@@ -1511,6 +1511,7 @@ export const BrowserTab = (props) => {
                   'dapp://',
                   'wc://',
                   'ethereum://',
+                  'file://',
                 ]}
                 decelerationRate={'normal'}
                 ref={webviewRef}
