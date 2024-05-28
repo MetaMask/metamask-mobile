@@ -60,9 +60,6 @@ export default class DeeplinkProtocolService {
 
     if (rawConnections) {
       Object.values(rawConnections).forEach((connection) => {
-        DevLogger.log(
-          `DeeplinkProtocolService::init recover client: ${connection.id}`,
-        );
         const clientInfo = {
           connected: false,
           clientId: connection.id,
@@ -75,10 +72,6 @@ export default class DeeplinkProtocolService {
 
         this.setupBridge(clientInfo);
       });
-    } else {
-      DevLogger.log(
-        `DeeplinkProtocolService::init no previous connections found`,
-      );
     }
   }
 
@@ -145,11 +138,6 @@ export default class DeeplinkProtocolService {
         sendMessage: ({ msg }) => this.sendMessage(msg),
       });
 
-      DevLogger.log(
-        `DeeplinkProtocolService::sendMessage isLastRpc=${isLastRpcOrError}`,
-        chainRPCs,
-      );
-
       const hasError = !!message?.data?.error;
 
       if (!isLastRpcOrError) {
@@ -172,10 +160,6 @@ export default class DeeplinkProtocolService {
 
       // Always set the method to metamask_batch otherwise it may not have been set correctly because of the batch rpc flow.
       rpcMethod = RPC_METHODS.METAMASK_BATCH;
-
-      DevLogger.log(
-        `DeeplinkProtocolService::sendMessage chainRPCs=${chainRPCs} COMPLETED!`,
-      );
     }
 
     this.rpcQueueManager.remove(id);
@@ -299,8 +283,6 @@ export default class DeeplinkProtocolService {
 
     this.dappPublicKeyByClientId[params.channelId] = params.dappPublicKey;
 
-    Logger.log('DeeplinkProtocolService::handleConnection params', params);
-
     const decodedOriginatorInfo = Buffer.from(
       params.originatorInfo,
       'base64',
@@ -308,16 +290,7 @@ export default class DeeplinkProtocolService {
 
     const originatorInfoJson = JSON.parse(decodedOriginatorInfo);
 
-    DevLogger.log(
-      `DeeplinkProtocolService::handleConnection originatorInfoJson`,
-      originatorInfoJson,
-    );
-
     const originatorInfo = originatorInfoJson.originatorInfo;
-
-    Logger.log(
-      `DeeplinkProtocolService::originatorInfo: ${originatorInfo.url}  ${originatorInfo.title}`,
-    );
 
     const clientInfo: DappClient = {
       clientId: params.channelId,
@@ -329,16 +302,10 @@ export default class DeeplinkProtocolService {
 
     this.currentClientId = params.channelId;
 
-    DevLogger.log(`DeeplinkProtocolService::clients_connected`, clientInfo);
-
     const isSessionExists = this.connections?.[clientInfo.clientId];
 
     if (isSessionExists) {
       // Skip existing client -- bridge has been setup
-
-      Logger.log(
-        `DeeplinkProtocolService::clients_connected - existing client, sending ready`,
-      );
 
       // Update connected state
       this.connections[clientInfo.clientId] = {
@@ -422,10 +389,7 @@ export default class DeeplinkProtocolService {
           });
         }
 
-        DevLogger.log(`DeeplinkProtocolService::sendMessage 2`);
-
         if (params.request) {
-          DevLogger.log(`DeeplinkProtocolService::sendMessage 11`);
           await this.processDappRpcRequest(params);
 
           return;
@@ -471,13 +435,6 @@ export default class DeeplinkProtocolService {
           },
           name: 'metamask-provider',
         };
-
-        // TODO: Remove this log after testing
-        DevLogger.log(
-          `DeeplinkProtocolService::sendMessage handleEventAsync hasError ===> sending deeplink`,
-          message,
-          this.currentClientId,
-        );
 
         this.openDeeplink({
           message,
