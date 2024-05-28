@@ -47,6 +47,20 @@ const mockInitialState = {
   },
 };
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+          },
+        ],
+      },
+    },
+  },
+}));
+
 jest.mock('../../../core/ClipboardManager');
 
 const mockNavigate = jest.fn();

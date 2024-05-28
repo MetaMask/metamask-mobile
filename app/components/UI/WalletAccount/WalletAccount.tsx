@@ -80,7 +80,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
         onPress={() => {
           navigate(...createAccountSelectorNavDetails({}));
         }}
-        accountTypeLabel={getLabelTextByAddress(accountName)}
+        accountTypeLabel={getLabelTextByAddress(selectedAccount.address)}
         showAddress={false}
         cellAccountContainerStyle={styles.account}
         style={styles.accountPicker}
