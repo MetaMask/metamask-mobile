@@ -200,10 +200,10 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                echo "Gems being installed with bundler gem"
+                asdf exec --bundle install
                 asdf install ruby 3.1.4
                 asdf global ruby 3.1.4
-                echo "Gems being installed with bundler gem"
-                bundle install
                 echo "Node $NODE_VERSION being installed with asdf"
                 asdf list all nodejs
                 asdf install nodejs "$NODE_VERSION"
