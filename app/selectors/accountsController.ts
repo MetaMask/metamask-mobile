@@ -25,7 +25,7 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
         `selectSelectedInternalAccount: Account with ID ${accountId} not found.`,
       );
       captureException(err);
-      throw err;
+      return undefined;
     }
     return account;
   },
@@ -36,23 +36,5 @@ export const selectSelectedInternalAccountChecksummedAddress = createSelector(
   (account) => {
     const selectedAddress = account?.address;
     return selectedAddress ? toChecksumHexAddress(selectedAddress) : undefined;
-  },
-);
-
-export const selectAccountByChainId = createDeepEqualSelector(
-  (state: RootState) => state.engine.backgroundState,
-  (backgroundState) => {
-    const { AccountTrackerController, NetworkController, AccountsController } =
-      backgroundState;
-    const accountsByChainId = AccountTrackerController.accountsByChainId;
-    const chainId = NetworkController.providerConfig.chainId;
-    const selectedAccountId =
-      AccountsController.internalAccounts?.selectedAccount;
-    const selectedAccountAddress =
-      AccountsController.internalAccounts?.accounts?.[selectedAccountId]
-        ?.address;
-    return selectedAccountAddress
-      ? accountsByChainId[chainId][toChecksumHexAddress(selectedAccountAddress)]
-      : undefined;
   },
 );
