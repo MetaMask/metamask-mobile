@@ -1,21 +1,13 @@
 // Third party dependencies.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 // External Dependencies.
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
-
-// Internal dependencies
-import {
-  Account,
-  EnsByAccountAddress,
-  UseAccounts,
-  UseAccountsParams,
-} from './useAccounts.types';
 import {
   selectChainId,
   selectTicker,
@@ -30,6 +22,14 @@ import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
 } from '../../../selectors/accountsController';
+
+// Internal dependencies
+import {
+  Account,
+  EnsByAccountAddress,
+  UseAccounts,
+  UseAccountsParams,
+} from './useAccounts.types';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -131,7 +131,7 @@ const useAccounts = ({
             keyring: { type },
           },
         } = internalAccount;
-        const checksummedAddress = toChecksumAddress(address);
+        const checksummedAddress = toChecksumHexAddress(address);
         const isSelected = selectedInternalAccount.address === address;
         if (isSelected) {
           selectedIndex = index;

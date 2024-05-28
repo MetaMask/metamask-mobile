@@ -3,9 +3,9 @@ import {
   AccountTrackerState,
   AccountInformation,
 } from '@metamask/assets-controllers';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
-import { toChecksumAddress } from 'ethereumjs-util';
 
 const selectAccountTrackerControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountTrackerController;
@@ -40,7 +40,7 @@ export const selectAccountByChainId = createDeepEqualSelector(
     const selectedAccountAddress =
       AccountsController.internalAccounts.accounts[selectedAccountId].address;
     return accountsByChainId[chainId][
-      toChecksumAddress(selectedAccountAddress)
+      toChecksumHexAddress(selectedAccountAddress)
     ];
   },
 );
