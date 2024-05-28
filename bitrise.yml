@@ -189,12 +189,16 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-                ruby -v
+                asdf install ruby "$RUBY_VERSION"
+                asdf global ruby "$RUBY_VERSION"
+                asdf exec -- gem install bundler
+                asdf exec -- bundle install
           title: Get Yarn cache directory
       - yarn@0:
           inputs:
             - command: setup
           title: Yarn Setup
+        
   prep_environment:
     steps:
       - script@1:
@@ -202,10 +206,6 @@ workflows:
             - content: |-
                   #!/usr/bin/env bash
                   echo "Gems being installed with bundler gem"
-                  asdf install ruby "$RUBY_VERSION"
-                  asdf global ruby "$RUBY_VERSION"
-                  asdf exec -- gem install bundler
-                  asdf exec -- bundle install
                   echo "Node $NODE_VERSION being installed with asdf"
                   asdf list all nodejs
                   asdf install nodejs "$NODE_VERSION"
