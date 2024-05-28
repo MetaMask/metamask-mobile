@@ -38,6 +38,7 @@ const MOCK_ACCOUNT_2: Account = {
 };
 
 const MOCK_STORE_STATE = {
+  settings: {},
   engine: {
     backgroundState: {
       ...initialBackgroundState,
