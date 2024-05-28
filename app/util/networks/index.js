@@ -74,7 +74,7 @@ const NetworkList = {
     imageSource: lineaMainnetLogo,
   },
   [SEPOLIA]: {
-    name: 'Sepolia Test Network',
+    name: 'Sepolia',
     shortName: 'Sepolia',
     networkId: 11155111,
     chainId: toHex('11155111'),
@@ -92,7 +92,7 @@ const NetworkList = {
     imageSource: lineaTestnetLogo,
   },
   [LINEA_SEPOLIA]: {
-    name: 'Linea Sepolia Test Network',
+    name: 'Linea Sepolia',
     shortName: 'Linea Sepolia',
     networkId: 59141,
     chainId: toHex('59141'),
