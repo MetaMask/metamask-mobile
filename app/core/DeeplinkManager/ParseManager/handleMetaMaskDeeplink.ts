@@ -89,8 +89,6 @@ export function handleMetaMaskDeeplink({
       );
     }
 
-    DevLogger.log('DeepLinkManager:: ===> params from deeplink', params);
-
     SDKConnect.getInstance().state.deeplinkingService?.handleMessage({
       channelId: params.channelId,
       url,
