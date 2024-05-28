@@ -3,7 +3,7 @@ import { NetworkController } from '@metamask/network-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { Linking } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
@@ -23,6 +23,7 @@ import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
 import getDefaultBridgeParams from '../AndroidSDK/getDefaultBridgeParams';
+import { rpcErrors } from '@metamask/rpc-errors';
 
 export default class DeeplinkProtocolService {
   private connections: DappConnections = {};
@@ -567,7 +568,13 @@ export default class DeeplinkProtocolService {
       this.currentClientId ?? '',
     );
 
-    const connectedAddresses = permissions?.eth_accounts?.caveats?.[0]
+    const preferencesController = (
+      Engine.context as { PreferencesController: PreferencesController }
+    ).PreferencesController;
+
+    const selectedAddress = preferencesController.state.selectedAddress;
+
+    let connectedAddresses = permissions?.eth_accounts?.caveats?.[0]
       ?.value as string[];
 
     DevLogger.log(
@@ -575,7 +582,22 @@ export default class DeeplinkProtocolService {
       connectedAddresses,
     );
 
-    return connectedAddresses ?? [];
+    if (!Array.isArray(connectedAddresses)) {
+      return [];
+    }
+
+    const isPartOfConnectedAddresses =
+      connectedAddresses.includes(selectedAddress);
+
+    if (isPartOfConnectedAddresses) {
+      // Create a new array with selectedAddress at the first position
+      connectedAddresses = [
+        selectedAddress,
+        ...connectedAddresses.filter((address) => address !== selectedAddress),
+      ];
+    }
+
+    return connectedAddresses;
   }
 
   public getSelectedAddress() {
@@ -601,7 +623,14 @@ export default class DeeplinkProtocolService {
     message: string;
     channelId: string;
     scheme: string;
+    account: string; // account@chainid
   }) {
+    const account = params.account.split('@');
+    const walletSelectedAddress = this.getSelectedAddress();
+    const walletSelectedChainId = this.getChainId();
+    const dappAccountChainId = account[1];
+    const dappAccountAddress = account[0];
+
     DevLogger.log(
       'DeeplinkProtocolService:: handleMessage params from deeplink',
       params,
@@ -643,6 +672,36 @@ export default class DeeplinkProtocolService {
         const message = JSON.parse(parsedMessage); // handle message and redirect to corresponding bridge
         DevLogger.log('DeeplinkProtocolService:: parsed message:-', message);
         data = message;
+
+        const isAccountChanged = dappAccountAddress !== walletSelectedAddress;
+        const isChainChanged = dappAccountChainId !== walletSelectedChainId;
+
+        if (isAccountChanged || isChainChanged) {
+          this.sendMessage(
+            {
+              data: {
+                id: data.id,
+                accounts: this.getSelectedAccounts(),
+                chainId: this.getChainId(),
+                error: {
+                  code: -32602,
+                  message:
+                    'The selected account or chain has changed. Please try again.',
+                },
+                jsonrpc: '2.0',
+              },
+              name: 'metamask-provider',
+            },
+            true,
+          ).catch((err) => {
+            Logger.log(
+              err,
+              `DeeplinkProtocolService::onMessageReceived error sending jsonrpc error message to client ${sessionId}`,
+            );
+          });
+
+          return;
+        }
       } catch (error) {
         Logger.log(
           error,

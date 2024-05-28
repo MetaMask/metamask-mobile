@@ -97,6 +97,7 @@ export function handleMetaMaskDeeplink({
       message: params.message,
       dappPublicKey: params.pubkey,
       scheme: params.scheme,
+      account: params.account ?? '@',
     });
   } else if (
     url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`) ||
