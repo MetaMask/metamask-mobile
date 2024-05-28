@@ -32,10 +32,6 @@ export default function onUrlSubmit(
   searchEngine = 'Google',
   defaultProtocol = 'https://',
 ) {
-  // eslint-disable-next-line no-script-url
-  if (input.startsWith('javascript://')) {
-    return;
-  }
   //Check if it's a url or a keyword
   if (!isUrl(input) && !input.match(regex.url)) {
     // Add exception for localhost
