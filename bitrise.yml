@@ -724,6 +724,9 @@ workflows:
                   TEST_SUITE="Smoke"
                 fi
                 node -v
+                asdf plugin add ruby
+                asdf install ruby 3.1.4
+                asdf global ruby 3.1.4
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:build
