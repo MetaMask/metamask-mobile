@@ -189,6 +189,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+                ruby -v
           title: Get Yarn cache directory
       - yarn@0:
           inputs:
@@ -199,20 +200,20 @@ workflows:
       - script@1:
           inputs:
             - content: |-
-                #!/usr/bin/env bash
-                echo "Gems being installed with bundler gem"
-                asdf install ruby 3.1.4
-                asdf global ruby 3.1.4
-                asdf exec -- gem install bundler
-                asdf exec -- bundle install
-                echo "Node $NODE_VERSION being installed with asdf"
-                asdf list all nodejs
-                asdf install nodejs "$NODE_VERSION"
-                asdf global nodejs "$NODE_VERSION"
-                echo "Corepack being installed with npm"
-                npm i -g "corepack@$COREPACK_VERSION"
-                echo "Corepack enabling $YARN_VERSION"
-                corepack enable
+                  #!/usr/bin/env bash
+                  echo "Gems being installed with bundler gem"
+                  asdf install ruby "$RUBY_VERSION"
+                  asdf global ruby "$RUBY_VERSION"
+                  asdf exec -- gem install bundler
+                  asdf exec -- bundle install
+                  echo "Node $NODE_VERSION being installed with asdf"
+                  asdf list all nodejs
+                  asdf install nodejs "$NODE_VERSION"
+                  asdf global nodejs "$NODE_VERSION"
+                  echo "Corepack being installed with npm"
+                  npm i -g "corepack@$COREPACK_VERSION"
+                  echo "Corepack enabling $YARN_VERSION"
+                  corepack enable
           title: Install node, yarn and corepack
 
   # Notifications utility workflows
@@ -1375,6 +1376,9 @@ app:
     - opts:
         is_expand: false
       COREPACK_VERSION: 0.28.0
+    - opts:
+        is_expand: false
+      RUBY_VERSION: 3.1.4
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
