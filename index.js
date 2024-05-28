@@ -10,10 +10,6 @@ import 'react-native-url-polyfill/auto';
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
-import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no-namespace
-import { setupSentry } from './app/util/sentry/utils';
-setupSentry();
-
 import notifee, { EventType } from '@notifee/react-native';
 
 import { AppRegistry, LogBox } from 'react-native';
@@ -106,7 +102,9 @@ isNotificationsFeatureEnabled() &&
 /**
  * Application entry point responsible for registering root component
  */
-AppRegistry.registerComponent(name, () =>
-  // Disable Sentry for E2E tests
-  isTest ? Root : Sentry.wrap(Root),
+AppRegistry.registerComponent(
+  name,
+  () =>
+    // Disable Sentry for E2E tests
+    Root,
 );
