@@ -38,7 +38,7 @@ const PopularNetworksList = {
       type: 'rpc',
       chainId: toHex('8453'),
       rpcUrl: `https://mainnet.base.org`,
-      nickname: 'Base Mainnet',
+      nickname: 'Base',
       ticker: 'ETH',
     },
   },
