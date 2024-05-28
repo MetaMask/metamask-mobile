@@ -178,6 +178,28 @@ workflows:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
+  set_commit_hash:
+    steps:
+      - script@1:
+          title: Set commit hash env variable
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                BRANCH_COMMIT_HASH=$BITRISE_GIT_COMMIT
+
+                if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
+                  BRANCH_COMMIT_HASH="$(git rev-parse HEAD)"
+                fi
+
+                # Log the value of BRANCH_COMMIT_HASH
+                echo "BRANCH_COMMIT_HASH is set to: $BRANCH_COMMIT_HASH"
+
+                envman add --key BRANCH_COMMIT_HASH --value "$BRANCH_COMMIT_HASH"
+      - share-pipeline-variable@1:
+          title: Persist commit hash across all stages
+          inputs:
+            - variables: |-
+                BRANCH_COMMIT_HASH
   code_setup:
     before_run:
       - setup
@@ -486,25 +508,11 @@ workflows:
       - android_e2e_test
   android_e2e_build:
     before_run:
+      - set_commit_hash
       - code_setup
     after_run:
       - notify_failure
     steps:
-      - script@1:
-          title: Set commit hash env variable
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                BRANCH_COMMIT_HASH=$BITRISE_GIT_COMMIT
-
-                if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
-                  BRANCH_COMMIT_HASH="$(git rev-parse HEAD)"
-                fi
-
-                # Log the value of BRANCH_COMMIT_HASH
-                echo "BRANCH_COMMIT_HASH is set to: $BRANCH_COMMIT_HASH"
-
-                envman add --key BRANCH_COMMIT_HASH --value "$BRANCH_COMMIT_HASH"
       - script@1:
           title: Generating ccache key using native folder checksum
           inputs:
@@ -679,25 +687,11 @@ workflows:
         stack: linux-docker-android-20.04
   ios_e2e_build:
     before_run:
+      - set_commit_hash
       - code_setup
     after_run:
       - notify_failure
     steps:
-      - script@1:
-          title: Set commit hash env variable
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                BRANCH_COMMIT_HASH=$BITRISE_GIT_COMMIT
-
-                if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
-                  BRANCH_COMMIT_HASH="$(git rev-parse HEAD)"
-                fi
-
-                # Log the value of BRANCH_COMMIT_HASH
-                echo "BRANCH_COMMIT_HASH is set to: $BRANCH_COMMIT_HASH"
-
-                envman add --key BRANCH_COMMIT_HASH --value "$BRANCH_COMMIT_HASH"
       - script@1:
           title: Generating ccache key using native folder checksum
           inputs:
