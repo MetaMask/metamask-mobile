@@ -67,10 +67,8 @@ import Text, {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
-import {
-  selectSelectedInternalAccountChecksummedAddress,
-  selectAccountByChainId,
-} from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -131,7 +129,7 @@ const Wallet = ({
   /**
    * Object containing the balance of the current selected account
    */
-  const accountByChainId = useSelector(selectAccountByChainId);
+  const accountBalanceByChainId = useSelector(selectAccountBalanceByChainId);
 
   /**
    * ETH to current currency conversion rate
@@ -380,8 +378,8 @@ const Wallet = ({
     let balance: any = 0;
     let assets = tokens;
 
-    if (accountByChainId) {
-      balance = renderFromWei(accountByChainId.balance);
+    if (accountBalanceByChainId) {
+      balance = renderFromWei(accountBalanceByChainId.balance);
 
       assets = [
         {
@@ -391,7 +389,7 @@ const Wallet = ({
           isETH: true,
           balance,
           balanceFiat: weiToFiat(
-            hexToBN(accountByChainId.balance) as any,
+            hexToBN(accountBalanceByChainId.balance) as any,
             conversionRate,
             currentCurrency,
           ),
@@ -447,7 +445,7 @@ const Wallet = ({
     );
   }, [
     tokens,
-    accountByChainId,
+    accountBalanceByChainId,
     selectedAddress,
     styles.wrapper,
     styles.banner,

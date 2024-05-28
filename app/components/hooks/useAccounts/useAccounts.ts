@@ -132,7 +132,7 @@ const useAccounts = ({
           },
         } = internalAccount;
         const checksummedAddress = toChecksumHexAddress(address);
-        const isSelected = selectedInternalAccount.address === address;
+        const isSelected = selectedInternalAccount?.address === address;
         if (isSelected) {
           selectedIndex = index;
         }

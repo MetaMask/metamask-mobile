@@ -1,5 +1,5 @@
 // Third parties dependencies
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Platform, View } from 'react-native';
@@ -23,6 +23,7 @@ import {
 import { getLabelTextByAddress } from '../../../util/address';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import useEnsNameByAddress from '../../../components/hooks/useEnsNameByAddress';
+import Logger from '../../../util/Logger';
 
 // Internal dependencies
 import styleSheet from './WalletAccount.styles';
@@ -36,7 +37,13 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const accountActionsRef = useRef(null);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const { ensName } = useEnsNameByAddress(selectedAccount?.address);
-  const accountName = selectedAccount?.metadata?.name;
+  const defaultName = selectedAccount?.metadata?.name;
+  const accountName = useMemo(
+    () =>
+      (isDefaultAccountName(defaultName) && ensName ? ensName : defaultName) ||
+      '',
+    [defaultName, ensName],
+  );
 
   useImperativeHandle(ref, () => ({
     yourAccountRef,
@@ -55,14 +62,20 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
     });
   };
 
+  if (!selectedAccount) {
+    const undefinedAccountError = new Error(
+      'selectedAccount is undefined on WalletAccount!',
+    );
+    Logger.error(undefinedAccountError);
+    return null;
+  }
+
   return (
     <View style={styles.base}>
       <PickerAccount
         ref={yourAccountRef}
         accountAddress={selectedAccount.address}
-        accountName={
-          isDefaultAccountName(accountName) && ensName ? ensName : accountName
-        }
+        accountName={accountName}
         accountAvatarType={accountAvatarType}
         onPress={() => {
           navigate(...createAccountSelectorNavDetails({}));
