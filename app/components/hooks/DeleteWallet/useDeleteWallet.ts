@@ -5,6 +5,7 @@ import { EXISTING_USER } from '../../../constants/storage';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { resetVaultBackup } from '../../../core/BackupVault/backupVault';
+import { MetaMetrics } from '../../../core/Analytics';
 
 const useDeleteWallet = () => {
   const resetWalletState = useCallback(async () => {
@@ -21,8 +22,10 @@ const useDeleteWallet = () => {
   }, []);
 
   const deleteUser = useCallback(async () => {
+    const metrics = MetaMetrics.getInstance();
     try {
       await AsyncStorage.removeItem(EXISTING_USER);
+      await metrics.createDataDeletionTask();
     } catch (error: any) {
       const errorMsg = `Failed to remove key: ${EXISTING_USER} from AsyncStorage`;
       Logger.log(error, errorMsg);
