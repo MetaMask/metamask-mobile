@@ -57,6 +57,7 @@ jobs:
     strategy:
       matrix:
         scripts:
+          - pod:install
           - lint
           - lint:tsc
           - audit:ci
@@ -69,6 +70,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - run: yarn setup:node
+        run: apt install -y bundler
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
