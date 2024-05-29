@@ -37,6 +37,10 @@ export const KEYSTONE_LEARN_MORE =
   'https://keyst.one/metamask?rfsn=6088257.656b3e9&utm_source=refersion&utm_medium=affiliate&utm_campaign=6088257.656b3e9';
 export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
 
+//NGRAVE
+export const NGRAVE_LEARN_MORE = 'https://ngrave.io/zero';
+export const NGRAVE_BUY = 'https://shop.ngrave.io/';
+
 // Network
 export const CHAINLIST_URL = 'https://chainlist.wtf';
 export const MM_ETHERSCAN_URL = 'https://etherscamdb.info/domain/meta-mask.com';
