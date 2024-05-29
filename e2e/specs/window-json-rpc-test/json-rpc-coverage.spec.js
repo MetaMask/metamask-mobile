@@ -22,16 +22,17 @@ import ConnectModal from '../../pages/modals/ConnectModal';
 
 import Assertions from '../../utils/Assertions';
 
-describe(SmokeCore(''), () => {
+describe(SmokeCore('API Spec Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
   });
 
-  it('', async () => {
+  it('should run open-rpc/test-coverage tool without any errors', async () => {
+    console.log('Running JSON-RPC Coverage Test');
     const port = 8545;
     const chainId = 1337;
 
+    console.log('parseOpenRPCDocument');
     const openrpcDocument = await parseOpenRPCDocument(
       'https://metamask.github.io/api-specs/latest/openrpc.json',
     );
@@ -52,6 +53,33 @@ describe(SmokeCore(''), () => {
     if (transaction) {
       delete transaction.unevaluatedProperties;
     }
+    // net_version missing from execution-apis. see here: https://github.com/ethereum/execution-apis/issues/540
+    const netVersion = {
+      name: 'net_version',
+      params: [],
+      result: {
+        description: 'Returns the current network ID.',
+        name: 'net_version',
+        schema: {
+          type: 'string',
+        },
+      },
+      description: 'Returns the current network ID.',
+      examples: [
+        {
+          name: 'net_version',
+          description: 'Example of a net_version request',
+          params: [],
+          result: {
+            name: 'net_version',
+            description: 'The current network ID',
+            value: '0x1',
+          },
+        },
+      ],
+    };
+    // add net_version
+    openrpcDocument.methods.push(netVersion);
 
     const server = mockServer(port, openrpcDocument);
     server.start();
@@ -219,6 +247,7 @@ describe(SmokeCore(''), () => {
       }
     }
 
+    console.log('about to run withFixtures');
     await withFixtures(
       {
         dapp: true,
@@ -228,8 +257,11 @@ describe(SmokeCore(''), () => {
         restartDevice: true,
       },
       async () => {
+        console.log('about to run loginToApp');
         await loginToApp();
+        console.log('about to run TabBarComponent.tapBrowser');
         await TabBarComponent.tapBrowser();
+        console.log('about to run Browser.navigateToTestDApp');
         await Browser.navigateToTestDApp();
 
         const webElement = await web.element(by.web.id('json-rpc-response'));
@@ -314,6 +346,7 @@ describe(SmokeCore(''), () => {
           'wallet_registerOnboarding',
           'eth_getEncryptionPublicKey',
         ];
+        console.log('about to run rpcCoverageTool');
 
         await rpcCoverageTool({
           openrpcDocument,
