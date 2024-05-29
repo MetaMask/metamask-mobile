@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import NotificationsSettings from '.';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 
 const mockInitialState = {
   settings: {
@@ -15,6 +16,7 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };

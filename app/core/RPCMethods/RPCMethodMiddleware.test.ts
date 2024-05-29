@@ -350,6 +350,8 @@ describe('getRpcMethodMiddleware', () => {
     const permissionController = new PermissionController({
       messenger: controllerMessenger.getRestricted({
         name: 'PermissionController',
+        allowedActions: [],
+        allowedEvents: [],
       }),
       caveatSpecifications: getCaveatSpecifications({
         getInternalAccounts: mockGetInternalAccounts,
