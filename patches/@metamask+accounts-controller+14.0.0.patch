@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/accounts-controller/dist/chunk-YSAAOUCM.js b/node_modules/@metamask/accounts-controller/dist/chunk-YSAAOUCM.js
+index cb3fb28..4b55f04 100644
+--- a/node_modules/@metamask/accounts-controller/dist/chunk-YSAAOUCM.js
++++ b/node_modules/@metamask/accounts-controller/dist/chunk-YSAAOUCM.js
+@@ -535,7 +535,7 @@ handleNewAccountAdded_fn = function(account) {
+       }
+     };
+   });
+-  this.setSelectedAccount(newAccount.id);
++ // this.setSelectedAccount(newAccount.id);
+ };
+ _handleAccountRemoved = new WeakSet();
+ handleAccountRemoved_fn = function(accountId) {
