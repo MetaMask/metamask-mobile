@@ -74,7 +74,7 @@ const NetworkList = {
     imageSource: lineaMainnetLogo,
   },
   [SEPOLIA]: {
-    name: 'Sepolia Test Network',
+    name: 'Sepolia',
     shortName: 'Sepolia',
     networkId: 11155111,
     chainId: toHex('11155111'),
@@ -82,8 +82,17 @@ const NetworkList = {
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
   },
+  [LINEA_GOERLI]: {
+    name: 'Linea Goerli Test Network',
+    shortName: 'Linea Goerli',
+    networkId: 59140,
+    chainId: toHex('59140'),
+    color: '#61dfff',
+    networkType: 'linea-goerli',
+    imageSource: lineaTestnetLogo,
+  },
   [LINEA_SEPOLIA]: {
-    name: 'Linea Sepolia Test Network',
+    name: 'Linea Sepolia',
     shortName: 'Linea Sepolia',
     networkId: 59141,
     chainId: toHex('59141'),
@@ -117,7 +126,7 @@ export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
   [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
-  [NETWORKS_CHAIN_ID.BASE]: 'Base Mainnet',
+  [NETWORKS_CHAIN_ID.BASE]: 'Base',
   [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
   [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
   [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',

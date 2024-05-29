@@ -147,7 +147,7 @@ const AccountPermissionsRevoke = ({
                   },
                   { label: strings('toast.disconnected') },
                 ];
-                if (activeAddress === address) {
+                if (activeAddress.toLowerCase() === address.toLowerCase()) {
                   const nextActiveAddress = permittedAddresses[1];
                   const newActiveAccountName = getAccountNameWithENS({
                     accountAddress: nextActiveAddress,

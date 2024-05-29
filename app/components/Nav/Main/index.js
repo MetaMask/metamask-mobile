@@ -27,6 +27,8 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
+import Device from '../../../util/device';
+import Routes from '../../../constants/navigation/Routes';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -52,10 +54,6 @@ import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import { colors as importedColors } from '../../../styles/common';
 import {
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
-} from '../../../util/networks';
-import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
@@ -67,6 +65,10 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import {
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../selectors/networkInfos';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
 import {
   DEPRECATED_NETWORKS,
@@ -235,8 +237,10 @@ const Main = (props) => {
    * Current network
    */
   const providerConfig = useSelector(selectProviderConfig);
+  const networkName = useSelector(selectNetworkName);
   const previousProviderConfig = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
+  const networkImage = useSelector(selectNetworkImageSource);
 
   // Show network switch confirmation.
   useEffect(() => {
@@ -245,12 +249,6 @@ const Main = (props) => {
       (providerConfig.chainId !== previousProviderConfig.current.chainId ||
         providerConfig.type !== previousProviderConfig.current.type)
     ) {
-      const { type, chainId } = providerConfig;
-      const networkImage = getNetworkImageSource({
-        networkType: type,
-        chainId,
-      });
-      const networkName = getNetworkNameFromProviderConfig(providerConfig);
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
         labelOptions: [
@@ -260,12 +258,11 @@ const Main = (props) => {
           },
           { label: strings('toast.now_active') },
         ],
-        networkName,
         networkImageSource: networkImage,
       });
     }
     previousProviderConfig.current = providerConfig;
-  }, [providerConfig, toastRef]);
+  }, [providerConfig, networkName, networkImage, toastRef]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
@@ -275,23 +272,21 @@ const Main = (props) => {
     }
   });
 
-  const bootstrapInitialNotification = useCallback(async () => {
-    const initialNotification = await notifee.getInitialNotification();
+  const bootstrapAndroidInitialNotification = useCallback(async () => {
+    if (Device.isAndroid()) {
+      const initialNotification = await notifee.getInitialNotification();
 
-    if (initialNotification) {
       if (
-        initialNotification.data &&
-        initialNotification.data.action === 'tx'
+        initialNotification?.data?.action === 'tx' &&
+        initialNotification.data.id
       ) {
-        if (initialNotification.data.id) {
-          NotificationManager.setTransactionToView(initialNotification.data.id);
-        }
-        props.navigation.navigate('TransactionsView');
+        NotificationManager.setTransactionToView(initialNotification.data.id);
+        props.navigation.navigate(Routes.TRANSACTIONS_VIEW);
       }
     }
   }, [props.navigation]);
 
-  useNotificationHandler(bootstrapInitialNotification, props.navigation);
+  useNotificationHandler(bootstrapAndroidInitialNotification, props.navigation);
 
   // Remove all notifications that aren't visible
   useEffect(() => {

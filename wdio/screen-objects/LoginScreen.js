@@ -40,7 +40,7 @@ class LoginScreen {
 
   async waitForScreenToDisplay() {
     const element = await this.loginScreen;
-    await element.waitForDisplayed({ interval: 500 });
+    await element.waitForDisplayed({ interval: 100 });
   }
 
   async tapResetWalletButton() {
@@ -48,6 +48,7 @@ class LoginScreen {
   }
 
   async typePassword(password) {
+    await this.isLoginScreenVisible()
     await Gestures.typeText(this.passwordInput, password);
   }
 
