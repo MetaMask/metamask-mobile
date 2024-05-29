@@ -1,0 +1,309 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Balance should render correctly with a fiat balance 1`] = `
+<View
+  style={{}}
+>
+  <Text
+    style={
+      [
+        {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+          "marginVertical": 0,
+        },
+      ]
+    }
+  >
+    Your balance
+  </Text>
+  <Text
+    style={
+      [
+        {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [
+          {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 18,
+            "fontWeight": "600",
+            "marginVertical": 3,
+          },
+          undefined,
+          undefined,
+          {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+        ],
+      ]
+    }
+  >
+    456
+  </Text>
+  <Text
+    style={
+      [
+        {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+          "marginVertical": 0,
+        },
+      ]
+    }
+  >
+    123
+  </Text>
+</View>
+`;
+
+exports[`Balance should render correctly without a fiat balance 1`] = `
+<View
+  style={{}}
+>
+  <Text
+    style={
+      [
+        {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+          "marginVertical": 0,
+        },
+      ]
+    }
+  >
+    Your balance
+  </Text>
+  <Text
+    style={
+      [
+        {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [
+          {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 18,
+            "fontWeight": "600",
+            "marginVertical": 3,
+          },
+          undefined,
+          undefined,
+          {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+        ],
+      ]
+    }
+  >
+    123
+  </Text>
+  <Text
+    style={
+      [
+        {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+          "marginVertical": 0,
+        },
+      ]
+    }
+  />
+</View>
+`;
