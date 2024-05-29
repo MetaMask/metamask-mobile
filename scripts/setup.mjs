@@ -138,7 +138,7 @@ const mainSetupTask = {
         if (!BUILD_IOS) {
           return podInstallTask.skip('Skipping iOS.')
         }
-        await $`bundle exec pod install --project-directory=ios`;
+        await $`yarn pod:install`;
       },
     },
     {
