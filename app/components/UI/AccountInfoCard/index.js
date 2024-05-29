@@ -159,15 +159,12 @@ class AccountInfoCard extends PureComponent {
     const weiBalance = accounts?.[fromAddress]?.balance
       ? hexToBN(accounts[fromAddress].balance)
       : 0;
-    const balance = `(${renderFromWei(weiBalance)} ${getTicker(ticker)})`;
+    const balance = `${renderFromWei(weiBalance)} ${getTicker(ticker)}`;
     const accountLabel = renderAccountName(fromAddress, identities);
     const address = renderShortAddress(fromAddress);
-    const dollarBalance = weiToFiat(
-      weiBalance,
-      conversionRate,
-      currentCurrency,
-      2,
-    )?.toUpperCase();
+    const dollarBalance = showFiatBalance
+      ? weiToFiat(weiBalance, conversionRate, currentCurrency, 2)?.toUpperCase()
+      : undefined;
     return operation === 'signing' && transaction !== undefined ? (
       <ApproveTransactionHeader
         origin={transaction.origin || origin}
@@ -210,7 +207,9 @@ class AccountInfoCard extends PureComponent {
             ]}
           >
             {strings('signature_request.balance_title')}{' '}
-            {showFiatBalance ? dollarBalance : ''} {balance}
+            {dollarBalance !== undefined
+              ? `${dollarBalance} (${balance})`
+              : balance}
           </Text>
         </View>
         {accountLabelTag && (
