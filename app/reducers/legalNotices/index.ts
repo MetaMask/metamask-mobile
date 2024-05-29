@@ -2,7 +2,7 @@ import { RootState } from '..';
 import { Action } from 'redux';
 import ACTIONS from './types';
 
-export const newPrivacyPolicyDate = new Date('2024-06-04T00:00:00Z');
+export const newPrivacyPolicyDate = new Date('2024-06-18T12:00:00Z');
 
 const initialState = {
   newPrivacyPolicyToastClickedOrClosed: false,
