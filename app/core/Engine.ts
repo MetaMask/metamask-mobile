@@ -620,20 +620,15 @@ class Engine {
         allowedActions: [
           `${networkController.name}:getNetworkClientById`,
           `${networkController.name}:getEIP1559Compatibility`,
+          `${networkController.name}:getState`,
         ],
         allowedEvents: [AppConstants.NETWORK_DID_CHANGE_EVENT],
       }),
       getProvider: () =>
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         networkController.getProviderAndBlockTracker().provider,
-      onNetworkDidChange: (listener) =>
-        this.controllerMessenger.subscribe(
-          AppConstants.NETWORK_DID_CHANGE_EVENT,
-          listener,
-        ),
       getCurrentNetworkEIP1559Compatibility: async () =>
         (await networkController.getEIP1559Compatibility()) ?? false,
-      getChainId: () => networkController.state.providerConfig.chainId,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
         const chainId = networkController.state.providerConfig.chainId;
         return (
