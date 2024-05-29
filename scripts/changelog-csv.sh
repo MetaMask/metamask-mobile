@@ -8,7 +8,7 @@ readonly CSV_FILE='commits.csv'
 # Temporary file for new entries
 NEW_ENTRIES=$(mktemp)
 # Backup file for existing CHANGELOG
-CHANGELOG_BACKUP="CHANGELOG.md.bak"
+CHANGELOG_BACKUP="CHANGELOG.md.bak-$(date +%s)"
 
 # Backup existing CHANGELOG.md
 cp CHANGELOG.md "$CHANGELOG_BACKUP"
