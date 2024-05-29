@@ -1,5 +1,7 @@
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react/display-name */
 import React, { FC, useEffect } from 'react';
-import { ScrollView, Switch, View } from 'react-native';
+import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { camelCase } from 'lodash';
 
@@ -29,6 +31,11 @@ import {
 } from '../../../../util/notifications';
 import { updateNotificationStatus } from '../../../../actions/notification';
 import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
+import Routes from '../../../../constants/navigation/Routes';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
 
 /**
  * TODO: Discuss the granularity of the notifications settings.
@@ -58,8 +65,10 @@ const SessionHeader = ({ title, description, styles }: SessionHeaderProps) => (
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const notificationsSettingsState = useSelector(
-    (state: any) => state.notification?.notificationsSettings,
+    (state: any) => state.notification.notificationsSettings,
   );
+
+  const isNotificationEnabled = notificationsSettingsState?.isEnabled;
 
   const dispatch = useDispatch();
   const { accounts } = useAccounts();
@@ -71,7 +80,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   );
 
   const toggleNotificationsEnabled = () => {
-    !notificationsSettingsState?.isEnabled
+    !isNotificationEnabled
       ? requestPushNotificationsPermission()
       : dispatch(
           updateNotificationStatus({
@@ -89,10 +98,11 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const styles = createStyles(colors);
 
   useEffect(() => {
-    mmStorage.saveLocal(
-      STORAGE_IDS.NOTIFICATIONS_SETTINGS,
-      JSON.stringify(notificationsSettingsState),
-    );
+    notificationsSettingsState &&
+      mmStorage.saveLocal(
+        STORAGE_IDS.NOTIFICATIONS_SETTINGS,
+        JSON.stringify(notificationsSettingsState),
+      );
   }, [notificationsSettingsState]);
 
   useEffect(
@@ -124,13 +134,17 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 
   const MainNotificationSettings: FC = () => (
     <>
-      <View style={styles.switchElement}>
+      <Pressable
+        style={styles.switchElement}
+        onPressOut={toggleNotificationsEnabled}
+      >
         <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.allow_notifications')}
         </Text>
         <Switch
-          value={notificationsSettingsState?.isEnabled}
-          onValueChange={toggleNotificationsEnabled}
+          disabled={!isNotificationEnabled}
+          value={isNotificationEnabled}
+          onChange={toggleNotificationsEnabled}
           trackColor={{
             true: colors.primary.default,
             false: colors.border.muted,
@@ -139,7 +153,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
         />
-      </View>
+      </Pressable>
       <View style={styles.setting}>
         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
           {strings('app_settings.allow_notifications_desc')}
@@ -228,3 +242,24 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 };
 
 export default NotificationsSettings;
+
+NotificationsSettings.navigationOptions = ({
+  navigation,
+  isNotificationEnabled,
+}: {
+  navigation: any;
+  isNotificationEnabled: boolean;
+}) => ({
+  headerLeft: () => (
+    <ButtonIcon
+      size={ButtonIconSizes.Lg}
+      iconName={IconName.ArrowLeft}
+      onPress={() =>
+        !isNotificationEnabled
+          ? navigation.navigate(Routes.WALLET.HOME)
+          : navigation.goBack()
+      }
+      style={{ marginHorizontal: 16 }}
+    />
+  ),
+});

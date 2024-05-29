@@ -1,17 +1,51 @@
 // Third party dependencies.
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { Account } from '../../hooks/useAccounts';
+import {
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+  internalAccount2,
+  expectedUuid2,
+} from '../../../util/test/accountsControllerTestUtils';
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import { Account } from '../../hooks/useAccounts';
-import { KeyringTypes } from '@metamask/keyring-controller';
+
+const MOCK_CHAIN_ID = '0x1';
+
+const MOCK_ENS_CACHED_NAME = 'fox.eth';
+
+const mockAccount: Account = {
+  name: internalAccount2.metadata.name,
+  address: internalAccount2.address,
+  type: internalAccount2.metadata.keyring.type as KeyringTypes,
+  yOffset: 0,
+  isSelected: true,
+};
+
+const mockInitialState = {
+  settings: {
+    useBlockieIcon: false,
+  },
+  engine: {
+    backgroundState: {
+      ...initialBackgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      NetworkController: {
+        providerConfig: {
+          chainId: MOCK_CHAIN_ID,
+        },
+      },
+    },
+  },
+};
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -26,25 +60,6 @@ jest.mock('../../../core/Engine', () => ({
     },
   },
 }));
-
-const mockAccount: Account = {
-  name: 'Test account 1',
-  address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-  type: KeyringTypes.hd,
-  yOffset: 0,
-  isSelected: true,
-};
-
-const mockInitialState = {
-  settings: {
-    useBlockieIcon: false,
-  },
-  engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-    },
-  },
-};
 
 jest.mock('../../../core/ClipboardManager');
 
@@ -64,6 +79,19 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, left: 0, right: 0, bottom: 0 }),
 }));
 
+jest.mock('../../../util/ENSUtils', () => ({
+  ...jest.requireActual('../../../util/ENSUtils'),
+  doENSReverseLookup: jest
+    .fn()
+    .mockImplementation((address: string, chainId: string) => {
+      const cacheKey = `${chainId}${address}`;
+      const MOCK_ENS_CACHE = {
+        [`${MOCK_CHAIN_ID}${mockAccount.address}`]: MOCK_ENS_CACHED_NAME,
+      };
+      return MOCK_ENS_CACHE[cacheKey];
+    }),
+}));
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
@@ -73,44 +101,32 @@ jest.mock('react-redux', () => ({
 
 describe('WalletAccount', () => {
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
-      <WalletAccount account={mockAccount} />,
-      {
-        state: mockInitialState,
-      },
-    );
+    const { toJSON } = renderWithProvider(<WalletAccount />, {
+      state: mockInitialState,
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('shows the account address', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletAccount account={mockAccount} />,
-      {
-        state: mockInitialState,
-      },
-    );
+    const { getByTestId } = renderWithProvider(<WalletAccount />, {
+      state: mockInitialState,
+    });
     expect(getByTestId('wallet-account-address')).toBeDefined();
   });
 
   it('copies the account address to the clipboard when the copy button is pressed', async () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletAccount account={mockAccount} />,
-      {
-        state: mockInitialState,
-      },
-    );
+    const { getByTestId } = renderWithProvider(<WalletAccount />, {
+      state: mockInitialState,
+    });
 
     fireEvent.press(getByTestId('wallet-account-copy-button'));
     expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
   });
 
   it('should navigate to the account selector screen on account press', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletAccount account={mockAccount} />,
-      {
-        state: mockInitialState,
-      },
-    );
+    const { getByTestId } = renderWithProvider(<WalletAccount />, {
+      state: mockInitialState,
+    });
 
     fireEvent.press(getByTestId('account-picker'));
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -118,36 +134,31 @@ describe('WalletAccount', () => {
     );
   });
   it('displays the correct account name', () => {
-    const { getByText } = renderWithProvider(
-      <WalletAccount account={mockAccount} />,
-      {
-        state: mockInitialState,
-      },
-    );
+    const { getByText } = renderWithProvider(<WalletAccount />, {
+      state: mockInitialState,
+    });
     expect(getByText(mockAccount.name)).toBeDefined();
   });
-  it('displays custom account name when ENS is defined but account name is not the default', () => {
-    const ensName = 'test.eth';
-    const { getByText } = renderWithProvider(
-      <WalletAccount account={mockAccount} ens={ensName} />,
-      {
-        state: mockInitialState,
-      },
-    );
-    expect(getByText(mockAccount.name)).toBeDefined();
+  it('displays ENS name when defined and account name is the default', async () => {
+    const { getByText } = renderWithProvider(<WalletAccount />, {
+      state: mockInitialState,
+    });
+    // Wait for ENS to update state
+    await waitFor(() => {
+      expect(getByText(MOCK_ENS_CACHED_NAME)).toBeDefined();
+    });
   });
-  it('displays ENS name when defined and account name is the default', () => {
-    const ensName = 'test.eth';
-    const mockAccountWithDefaultName: Account = {
-      ...mockAccount,
-      name: 'Account 1',
-    };
-    const { getByText } = renderWithProvider(
-      <WalletAccount account={mockAccountWithDefaultName} ens={ensName} />,
-      {
-        state: mockInitialState,
-      },
-    );
-    expect(getByText(ensName)).toBeDefined();
+  it('displays custom account name when ENS is defined but account name is not the default', async () => {
+    const customAccountName = 'Custom Account Name';
+    mockInitialState.engine.backgroundState.AccountsController.internalAccounts.accounts[
+      expectedUuid2
+    ].metadata.name = customAccountName;
+    const { getByText } = renderWithProvider(<WalletAccount />, {
+      state: mockInitialState,
+    });
+    // Wait for ENS to update state
+    await waitFor(() => {
+      expect(getByText(customAccountName)).toBeDefined();
+    });
   });
 });

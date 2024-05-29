@@ -22,7 +22,7 @@ const Routes = {
     ORDER_DETAILS: 'OrderDetails',
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
-    ADD_ACTIVATION_KEY: 'RampAddActivationKey',
+    ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
@@ -95,6 +95,7 @@ const Routes = {
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
     ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
+    FIAT_ON_TESTNETS_FRICTION: 'SettingsAdvancedFiatOnTestnetsFriction',
     SHOW_IPFS: 'ShowIpfs',
     SHOW_NFT_DISPLAY_MEDIA: 'ShowNftDisplayMedia',
   },
@@ -121,6 +122,7 @@ const Routes = {
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
   NOTIFICATIONS: {
+    VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
     OPT_IN_STACK: 'OptInStack',
   },

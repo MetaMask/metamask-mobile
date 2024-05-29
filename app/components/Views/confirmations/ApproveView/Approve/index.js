@@ -60,7 +60,6 @@ import {
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectNativeCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectTokensLength } from '../../../../../selectors/tokensController';
 import {
@@ -76,6 +75,8 @@ import { updateTransaction } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -172,6 +173,10 @@ class Approve extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Boolean that indicates if smart transaction should be used
+     */
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -501,7 +506,13 @@ class Approve extends PureComponent {
   onConfirm = async () => {
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
-    const { transactions, gasEstimateType, metrics } = this.props;
+    const {
+      transactions,
+      gasEstimateType,
+      metrics,
+      chainId,
+      shouldUseSmartTransaction,
+    } = this.props;
     const {
       legacyGasTransaction,
       transactionConfirmed,
@@ -540,7 +551,15 @@ class Approve extends PureComponent {
       );
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
-      const updatedTx = { ...fullTx, transaction };
+
+      const updatedTx = {
+        ...fullTx,
+        txParams: {
+          ...fullTx.txParams,
+          ...transaction,
+          chainId,
+        },
+      };
       await updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
 
@@ -566,16 +585,23 @@ class Approve extends PureComponent {
         this.props.hideModal();
         return;
       }
+
       await ApprovalController.accept(transaction.id, undefined, {
-        waitForResult: true,
+        waitForResult: !shouldUseSmartTransaction,
       });
+      if (shouldUseSmartTransaction) {
+        this.props.hideModal();
+      }
 
       metrics.trackEvent(
         MetaMetricsEvents.APPROVAL_COMPLETED,
         this.getAnalyticsParams(),
       );
     } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      if (
+        !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+        !error?.message.startsWith(STX_NO_HASH_ERROR)
+      ) {
         Alert.alert(
           strings('transactions.transaction_error'),
           error && error.message,
@@ -756,6 +782,7 @@ class Approve extends PureComponent {
     }
 
     if (!transaction.id) return null;
+
     return (
       <Modal
         isVisible={this.props.modalVisible}
@@ -899,12 +926,12 @@ const mapStateToProps = (state) => ({
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  nativeCurrency: selectNativeCurrency(state),
   showCustomNonce: state.settings.showCustomNonce,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -3,7 +3,7 @@
 exports[`AccountInfoCard should match snapshot 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "borderColor": "#BBC0C5",
       "borderRadius": 10,
@@ -16,7 +16,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
 >
   <View
     placeholderStyle={
-      Object {
+      {
         "backgroundColor": "#F2F4F6",
       }
     }
@@ -25,18 +25,18 @@ exports[`AccountInfoCard should match snapshot 1`] = `
     <View
       onLoadEnd={[Function]}
       style={
-        Object {
+        {
           "marginRight": 8,
         }
       }
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "overflow": "hidden",
             },
-            Object {
+            {
               "backgroundColor": "#C7144F",
               "borderRadius": 20,
               "height": 40,
@@ -52,12 +52,12 @@ exports[`AccountInfoCard should match snapshot 1`] = `
           focusable={false}
           height={40}
           style={
-            Array [
-              Object {
+            [
+              {
                 "backgroundColor": "transparent",
                 "borderWidth": 0,
               },
-              Object {
+              {
                 "flex": 0,
                 "height": 40,
                 "width": 40,
@@ -66,12 +66,24 @@ exports[`AccountInfoCard should match snapshot 1`] = `
           }
           width={40}
         >
-          <RNSVGGroup>
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
             <RNSVGRect
-              fill={4294711651}
+              fill={
+                {
+                  "payload": 4294711651,
+                  "type": 0,
+                }
+              }
               height={40}
               matrix={
-                Array [
+                [
                   0.46329603511986217,
                   0.8862035792312145,
                   -0.8862035792312145,
@@ -81,7 +93,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
                 ]
               }
               propList={
-                Array [
+                [
                   "fill",
                 ]
               }
@@ -90,10 +102,15 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4280576225}
+              fill={
+                {
+                  "payload": 4280576225,
+                  "type": 0,
+                }
+              }
               height={40}
               matrix={
-                Array [
+                [
                   -0.5778576243835052,
                   0.8161375900801603,
                   -0.8161375900801603,
@@ -103,7 +120,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
                 ]
               }
               propList={
-                Array [
+                [
                   "fill",
                 ]
               }
@@ -112,10 +129,15 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4278407261}
+              fill={
+                {
+                  "payload": 4278407261,
+                  "type": 0,
+                }
+              }
               height={40}
               matrix={
-                Array [
+                [
                   0.7046342099635947,
                   -0.7095707365365209,
                   0.7095707365365209,
@@ -125,7 +147,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
                 ]
               }
               propList={
-                Array [
+                [
                   "fill",
                 ]
               }
@@ -140,7 +162,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
     <View
       collapsable={false}
       style={
-        Object {
+        {
           "bottom": 0,
           "left": 0,
           "opacity": 1,
@@ -152,14 +174,14 @@ exports[`AccountInfoCard should match snapshot 1`] = `
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "marginRight": 8,
             },
-            Object {
+            {
               "backgroundColor": "#eee",
             },
-            Object {
+            {
               "backgroundColor": "#F2F4F6",
             },
           ]
@@ -169,7 +191,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "alignItems": "flex-start",
         "flexDirection": "column",
         "flexGrow": 1,
@@ -180,7 +202,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "flexDirection": "row",
           "justifyContent": "flex-start",
           "width": "100%",
@@ -191,8 +213,8 @@ exports[`AccountInfoCard should match snapshot 1`] = `
         accessibilityRole="text"
         numberOfLines={1}
         style={
-          Object {
-            "0": Object {
+          {
+            "0": {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 16,
@@ -216,8 +238,8 @@ exports[`AccountInfoCard should match snapshot 1`] = `
         accessibilityRole="text"
         numberOfLines={1}
         style={
-          Object {
-            "0": Object {
+          {
+            "0": {
               "color": "#24272A",
               "flexGrow": 1,
               "fontFamily": "EuclidCircularB-Bold",
@@ -243,8 +265,8 @@ exports[`AccountInfoCard should match snapshot 1`] = `
       accessibilityRole="text"
       numberOfLines={1}
       style={
-        Object {
-          "0": Object {
+        {
+          "0": {
             "alignSelf": "flex-start",
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
@@ -263,9 +285,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
     >
       Balance:
        
-      0 INR
-       
-      (&lt; 0.00001 ETH)
+      &lt; 0.00001 ETH
     </Text>
   </View>
 </View>

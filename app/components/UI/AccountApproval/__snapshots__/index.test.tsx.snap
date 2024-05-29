@@ -3,7 +3,7 @@
 exports[`AccountApproval should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
@@ -16,7 +16,7 @@ exports[`AccountApproval should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "justifyContent": "center",
       }
@@ -24,7 +24,7 @@ exports[`AccountApproval should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "borderRadius": 10,
           "justifyContent": "center",
@@ -33,7 +33,7 @@ exports[`AccountApproval should render correctly 1`] = `
     >
       <View
         placeholderStyle={
-          Object {
+          {
             "backgroundColor": "#F2F4F6",
           }
         }
@@ -43,12 +43,12 @@ exports[`AccountApproval should render correctly 1`] = `
           onError={[Function]}
           onLoadEnd={[Function]}
           source={
-            Object {
+            {
               "uri": undefined,
             }
           }
           style={
-            Object {
+            {
               "borderRadius": 32,
               "height": 56,
               "width": 56,
@@ -58,7 +58,7 @@ exports[`AccountApproval should render correctly 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -70,16 +70,16 @@ exports[`AccountApproval should render correctly 1`] = `
         >
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "borderRadius": 32,
                   "height": 56,
                   "width": 56,
                 },
-                Object {
+                {
                   "backgroundColor": "#eee",
                 },
-                Object {
+                {
                   "backgroundColor": "#F2F4F6",
                 },
               ]
@@ -90,7 +90,7 @@ exports[`AccountApproval should render correctly 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
           "justifyContent": "center",
@@ -101,21 +101,21 @@ exports[`AccountApproval should render correctly 1`] = `
       <Text
         allowFontScaling={false}
         style={
-          Array [
-            Object {
+          [
+            {
               "color": undefined,
               "fontSize": 15,
             },
-            Object {
+            {
               "color": "#24272A",
               "marginRight": 5,
             },
-            Object {
+            {
               "fontFamily": "FontAwesome",
               "fontStyle": "normal",
               "fontWeight": "normal",
             },
-            Object {},
+            {},
           ]
         }
       >
@@ -123,7 +123,7 @@ exports[`AccountApproval should render correctly 1`] = `
       </Text>
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 14,
@@ -135,7 +135,7 @@ exports[`AccountApproval should render correctly 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
           "justifyContent": "center",
@@ -144,13 +144,13 @@ exports[`AccountApproval should render correctly 1`] = `
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "borderRadius": 2.5,
               "height": 5,
               "width": 5,
             },
-            Object {
+            {
               "backgroundColor": "#3cc29e",
             },
           ]
@@ -158,7 +158,7 @@ exports[`AccountApproval should render correctly 1`] = `
       />
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
@@ -176,7 +176,7 @@ exports[`AccountApproval should render correctly 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      Object {
+      {
         "color": "#24272A",
         "fontFamily": "Euclid Circular B",
         "fontSize": 18,
@@ -194,7 +194,7 @@ exports[`AccountApproval should render correctly 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      Object {
+      {
         "color": "#24272A",
         "fontFamily": "Euclid Circular B",
         "fontSize": 16,
@@ -212,14 +212,14 @@ exports[`AccountApproval should render correctly 1`] = `
   </Text>
   <View
     style={
-      Object {
+      {
         "paddingHorizontal": 24,
       }
     }
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "borderColor": "#BBC0C5",
           "borderRadius": 10,
@@ -232,7 +232,7 @@ exports[`AccountApproval should render correctly 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "flex-start",
             "flexDirection": "column",
             "flexGrow": 1,
@@ -243,7 +243,7 @@ exports[`AccountApproval should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "flexDirection": "row",
               "justifyContent": "flex-start",
               "width": "100%",
@@ -254,8 +254,8 @@ exports[`AccountApproval should render correctly 1`] = `
             accessibilityRole="text"
             numberOfLines={1}
             style={
-              Object {
-                "0": Object {
+              {
+                "0": {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 16,
@@ -277,8 +277,8 @@ exports[`AccountApproval should render correctly 1`] = `
             accessibilityRole="text"
             numberOfLines={1}
             style={
-              Object {
-                "0": Object {
+              {
+                "0": {
                   "color": "#24272A",
                   "flexGrow": 1,
                   "fontFamily": "EuclidCircularB-Bold",
@@ -303,8 +303,8 @@ exports[`AccountApproval should render correctly 1`] = `
           accessibilityRole="text"
           numberOfLines={1}
           style={
-            Object {
-              "0": Object {
+            {
+              "0": {
                 "alignSelf": "flex-start",
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
@@ -323,15 +323,14 @@ exports[`AccountApproval should render correctly 1`] = `
         >
           Balance:
            
-           
-          (0 ETH)
+          0 ETH
         </Text>
       </View>
     </View>
   </View>
   <View
     style={
-      Object {
+      {
         "flex": 0,
         "flexDirection": "row",
         "paddingHorizontal": 24,
@@ -345,23 +344,23 @@ exports[`AccountApproval should render correctly 1`] = `
       activeOpacity={0.2}
       onPress={[Function]}
       style={
-        Array [
-          Array [
-            Object {
+        [
+          [
+            {
               "borderRadius": 100,
               "justifyContent": "center",
               "padding": 15,
             },
-            Object {
+            {
               "backgroundColor": "#FFFFFF",
               "borderColor": "#535A61",
               "borderWidth": 1,
             },
-            Array [
-              Object {
+            [
+              {
                 "flex": 1,
               },
-              Object {
+              {
                 "marginRight": 8,
               },
             ],
@@ -373,22 +372,22 @@ exports[`AccountApproval should render correctly 1`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#007aff",
               "fontSize": 17,
               "fontWeight": "500",
               "textAlign": "center",
             },
             null,
-            Array [
-              Object {
+            [
+              {
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "textAlign": "center",
               },
-              Object {
+              {
                 "color": "#535A61",
               },
               undefined,
@@ -407,22 +406,22 @@ exports[`AccountApproval should render correctly 1`] = `
       disabled={false}
       onPress={[Function]}
       style={
-        Array [
-          Array [
-            Object {
+        [
+          [
+            {
               "borderRadius": 100,
               "justifyContent": "center",
               "padding": 15,
             },
-            Object {
+            {
               "backgroundColor": "#0376C9",
               "minHeight": 50,
             },
-            Array [
-              Object {
+            [
+              {
                 "flex": 1,
               },
-              Object {
+              {
                 "marginLeft": 8,
               },
               false,
@@ -435,22 +434,22 @@ exports[`AccountApproval should render correctly 1`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#007aff",
               "fontSize": 17,
               "fontWeight": "500",
               "textAlign": "center",
             },
             null,
-            Array [
-              Object {
+            [
+              {
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "textAlign": "center",
               },
-              Object {
+              {
                 "color": "#FFFFFF",
               },
               undefined,

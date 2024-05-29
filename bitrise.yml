@@ -200,15 +200,17 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo "Node and Yarn being installed"
+                echo "Gems being installed with bundler gem"
+                bundle install
+                echo "Node $NODE_VERSION being installed with asdf"
                 asdf list all nodejs
                 asdf install nodejs "$NODE_VERSION"
                 asdf global nodejs "$NODE_VERSION"
-                asdf plugin add yarn
-                asdf list all yarn
-                asdf install yarn "$YARN_VERSION"
-                asdf global yarn "$YARN_VERSION"
-          title: Install node and yarn
+                echo "Corepack being installed with npm"
+                npm i -g "corepack@$COREPACK_VERSION"
+                echo "Corepack enabling $YARN_VERSION"
+                corepack enable
+          title: Install node, yarn and corepack
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -524,14 +526,10 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
-      - restore-cache@2:
-          title: Restore build from cache
-          inputs:
-            - key: apk-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
-          is_always_run: false
+          timeout: 1200
+          is_always_run: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -553,11 +551,10 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
-      - save-cache@1:
-          title: Save build
+      - deploy-to-bitrise-io@2.2.3:
           inputs:
-            - key: apk-cache-{{ .CommitHash }}
-            - paths: android/app/build/outputs
+            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
+          title: Save Android build
       - save-cache@1:
           title: Save node_modules
           inputs:
@@ -575,10 +572,23 @@ workflows:
       - notify_failure
     steps:
       - restore-gradle-cache@2: {}
-      - restore-cache@2:
-          title: Restore cache build
+      - pull-intermediate-files@1:
           inputs:
-            - key: apk-cache-{{ .CommitHash }}
+            - artifact_sources: .*
+          title: Pull Android build
+      - script@1:
+          title: Copy Android build for Detox
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/android/app/build/outputs"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_ANDROID_BUILD_DIR is the cached directory from android_e2e_build's "Save Android build" step
+                cp -r "$INTERMEDIATE_ANDROID_BUILD_DIR" "$BITRISE_SOURCE_DIR/android/app/build"
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
@@ -599,6 +609,7 @@ workflows:
       - wait-for-android-emulator@1: {}
       - script@1:
           title: Run detox test
+          timeout: 1200
           is_always_run: false
           inputs:
             - content: |-
@@ -681,7 +692,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                brew install ccache
+                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
                 ln -s $(which ccache) /usr/local/bin/gcc
                 ln -s $(which ccache) /usr/local/bin/g++
                 ln -s $(which ccache) /usr/local/bin/cc
@@ -699,14 +710,10 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
-      - restore-cache@2:
-          title: Restore build from cache
-          inputs:
-            - key: ipa-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
-          is_always_run: false
+          timeout: 1200
+          is_always_run: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -728,13 +735,12 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
-      - save-cache@1:
-          title: Save build
+      - deploy-to-bitrise-io@2.2.3:
           inputs:
-            - key: ipa-cache-{{ .CommitHash }}
-            - paths: |-
-                ios/build/Build
-                ../Library/Detox/ios
+            - pipeline_intermediate_files: |-
+                ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
+                ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
+          title: Save iOS build
       - save-cache@1:
           title: Save node_modules
           inputs:
@@ -747,10 +753,25 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - restore-cache@2:
-          title: Restore cache build
+      - pull-intermediate-files@1:
           inputs:
-            - key: ipa-cache-{{ .CommitHash }}
+            - artifact_sources: .*
+          title: Pull iOS build
+      - script@1:
+          title: Copy iOS build for Detox
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build"
+                mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
+                cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
       - restore-cocoapods-cache@2: {}
       - restore-cache@2:
           title: Restore cache node_modules
@@ -770,6 +791,9 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - script@1:
+          title: Run detox test
+          timeout: 1200
+          is_always_run: false
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -789,8 +813,6 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
-          title: Run detox test
-          is_always_run: false
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -1322,16 +1344,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.21.0
+      VERSION_NAME: 7.22.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1317
+      VERSION_NUMBER: 1325
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.21.0
+      FLASK_VERSION_NAME: 7.22.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1317
+      FLASK_VERSION_NUMBER: 1325
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1343,10 +1365,13 @@ app:
       IOS_APP_LINK: ''
     - opts:
         is_expand: false
-      NODE_VERSION: 18.18.2
+      NODE_VERSION: 20.12.2
     - opts:
         is_expand: false
-      YARN_VERSION: 1.22.19
+      YARN_VERSION: 1.22.22
+    - opts:
+        is_expand: false
+      COREPACK_VERSION: 0.28.0
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x

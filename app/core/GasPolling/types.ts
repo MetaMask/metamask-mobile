@@ -1,3 +1,5 @@
+import { Hex } from '@metamask/utils';
+
 export interface GasTransactionProps {
   error: any;
   estimatedBaseFee: string;
@@ -25,7 +27,7 @@ export interface GasTransactionProps {
   /**
    * The gas limit in hexadecimal format.
    */
-  gasLimitHex: string;
+  gasLimitHex: Hex;
   /**
    * The time estimate to complete the transaction.
    */
