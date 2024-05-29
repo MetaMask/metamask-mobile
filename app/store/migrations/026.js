@@ -6,6 +6,13 @@ import { captureException } from '@sentry/react-native';
  *
  **/
 export default function migrate(state) {
+  const keyringControllerState = state.engine.backgroundState.KeyringController;
+  // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
+  if (!isObject(keyringControllerState.vault)) {
+    captureException(
+      new Error(`Migration 26: Invalid vault in KeyringController`),
+    );
+  }
   const phishingControllerState =
     state.engine.backgroundState.PhishingController;
   if (phishingControllerState?.listState) {
