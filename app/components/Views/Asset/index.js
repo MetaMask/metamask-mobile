@@ -335,6 +335,7 @@ class Asset extends PureComponent {
     if (this.isNormalizing) return;
     let accountAddedTimeInsertPointFound = false;
     const { selectedAddress } = this.props;
+    // TODO this can be removed in favour of selectInternalAccounts after @metamask/accounts-controller is updated to 14 or higher
     const addedAccountTime = this.props.identities[selectedAddress]?.importTime;
     this.isNormalizing = true;
 

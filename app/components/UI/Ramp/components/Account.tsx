@@ -7,8 +7,11 @@ import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { colors as importedColors } from '../../../../styles/common';
-import { selectIdentities } from '../../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccountChecksummedAddress,
+  selectInternalAccounts,
+} from '../../../../selectors/accountsController';
+import { toLowerCaseEquals } from '../../../../util/general';
 
 // TODO: Convert into typescript and correctly type
 // TODO: Replace "any" with type
@@ -51,14 +54,23 @@ const Account = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
-  const identities = useSelector(selectIdentities);
+
+  const internalAccounts = useSelector(selectInternalAccounts);
+  const selectedInternalAccount =
+    internalAccounts.find((account) =>
+      toLowerCaseEquals(account.address, address),
+    ) ||
+    internalAccounts.find((account) =>
+      toLowerCaseEquals(account.address, selectedAddress),
+    );
+  const accountName = selectedInternalAccount?.metadata?.name || '';
   return (
     <View
       style={[styles.container, transparent && styles.transparentContainer]}
     >
       <Identicon diameter={15} address={address || selectedAddress} />
       <Text style={styles.accountText} primary centered numberOfLines={1}>
-        {identities[address || selectedAddress]?.name} (
+        {accountName} (
         <EthereumAddress address={address || selectedAddress} type={'short'} />)
       </Text>
     </View>

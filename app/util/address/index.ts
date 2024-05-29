@@ -1,17 +1,18 @@
 import {
   toChecksumAddress,
   isValidAddress,
+  //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
   isHexString,
   addHexPrefix,
   isValidChecksumAddress,
+  //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
   isHexPrefixed,
 } from 'ethereumjs-util';
-import URL from 'url-parse';
 import punycode from 'punycode/punycode';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
-import { tlc } from '../general';
+import { tlc, toLowerCaseEquals } from '../general';
 import {
   doENSLookup,
   doENSReverseLookup,
@@ -33,6 +34,12 @@ import TransactionTypes from '../../core/TransactionTypes';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
+import { InternalAccount } from '@metamask/keyring-api';
+import { AddressBookState } from '@metamask/address-book-controller';
+import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
+import { NetworkState } from '@metamask/network-controller';
+import { AccountImportStrategy } from '@metamask/keyring-controller';
+import { Hex } from '@metamask/utils';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -43,7 +50,7 @@ const {
  * @param {String} address - String corresponding to an address
  * @returns {String} - String corresponding to full checksummed address
  */
-export function renderFullAddress(address) {
+export function renderFullAddress(address: string) {
   return address
     ? toChecksumAddress(address)
     : strings('transactions.tx_details_not_available');
@@ -55,7 +62,8 @@ export function renderFullAddress(address) {
  * @param {String} type - Format  type
  * @returns {String} Formatted address
  */
-export const formatAddress = (rawAddress, type) => {
+type FormatAddressType = 'short' | 'mid';
+export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
   let formattedAddress = rawAddress;
 
   if (!isValidAddress(rawAddress)) {
@@ -81,7 +89,7 @@ export const formatAddress = (rawAddress, type) => {
  * Defaults to 4.
  * @returns {String} - String corresponding to short address format
  */
-export function renderShortAddress(address, chars = 4) {
+export function renderShortAddress(address: string, chars = 4) {
   if (!address) return address;
   const checksummedAddress = toChecksumAddress(address);
   return `${checksummedAddress.substr(
@@ -91,11 +99,10 @@ export function renderShortAddress(address, chars = 4) {
 }
 
 export function renderSlightlyLongAddress(
-  address,
+  address: string,
   chars = 4,
   initialChars = 20,
 ) {
-  if (!address) return address;
   const checksummedAddress = toChecksumAddress(address);
   return `${checksummedAddress.slice(
     0,
@@ -104,33 +111,40 @@ export function renderSlightlyLongAddress(
 }
 
 /**
- * Returns address name if it's in known identities
+ * Returns address name if it's in known InternalAccounts
  *
  * @param {String} address - String corresponding to an address
- * @param {Object} identities - Identities object
+ * @param {Array} internalAccounts -  Array of InternalAccounts objects
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
-export function renderAccountName(address, identities) {
+export function renderAccountName(
+  address: string,
+  internalAccounts: InternalAccount[],
+) {
   const chainId = selectChainId(store.getState());
-  address = safeToChecksumAddress(address);
-  if (identities && address && address in identities) {
-    const identityName = identities[address].name;
+  address = toChecksumHexAddress(address);
+  const account = internalAccounts.find((acc) =>
+    toLowerCaseEquals(acc.address, address),
+  );
+  if (account) {
+    const identityName = account.metadata.name;
     const ensName = getCachedENSName(address, chainId) || '';
     return isDefaultAccountName(identityName) && ensName
       ? ensName
       : identityName;
   }
+
   return renderShortAddress(address);
 }
 
 /**
- * Imports a an account from a private key
+ * Imports an account from a private key
  *
  * @param {String} private_key - String corresponding to a private key
  * @returns {Promise} - Returns a promise
  */
 
-export async function importAccountFromPrivateKey(private_key) {
+export async function importAccountFromPrivateKey(private_key: string) {
   const { KeyringController } = Engine.context;
   // Import private key
   let pkey = private_key;
@@ -139,8 +153,11 @@ export async function importAccountFromPrivateKey(private_key) {
     pkey = pkey.substr(2);
   }
   const importedAccountAddress =
-    await KeyringController.importAccountWithStrategy('privateKey', [pkey]);
-  const checksummedAddress = safeToChecksumAddress(importedAccountAddress);
+    await KeyringController.importAccountWithStrategy(
+      AccountImportStrategy.privateKey,
+      [pkey],
+    );
+  const checksummedAddress = toChecksumHexAddress(importedAccountAddress);
   return Engine.setSelectedAddress(checksummedAddress);
 }
 
@@ -150,7 +167,7 @@ export async function importAccountFromPrivateKey(private_key) {
  * @param {String} address - String corresponding to an address
  * @returns {Boolean} - Returns a boolean
  */
-export function isQRHardwareAccount(address) {
+export function isQRHardwareAccount(address: string) {
   if (!isValidHexAddress(address)) return false;
 
   const { KeyringController } = Engine.context;
@@ -158,7 +175,7 @@ export function isQRHardwareAccount(address) {
   const qrKeyrings = keyrings.filter(
     (keyring) => keyring.type === ExtendedKeyringTypes.qr,
   );
-  let qrAccounts = [];
+  let qrAccounts: string[] = [];
   for (const qrKeyring of qrKeyrings) {
     qrAccounts = qrAccounts.concat(
       qrKeyring.accounts.map((account) => account.toLowerCase()),
@@ -173,7 +190,7 @@ export function isQRHardwareAccount(address) {
  * @param {String} address - String corresponding to an address
  * @returns {Keyring | undefined} - Returns the keyring of the provided address if keyring found, otherwise returns undefined
  */
-export function getKeyringByAddress(address) {
+export function getKeyringByAddress(address: string) {
   if (!isValidHexAddress(address)) {
     return undefined;
   }
@@ -194,11 +211,11 @@ export function getKeyringByAddress(address) {
  * @returns {Boolean} - Returns a boolean
  */
 export function isHardwareAccount(
-  address,
+  address: string,
   accountTypes = [ExtendedKeyringTypes.qr, ExtendedKeyringTypes.ledger],
 ) {
   const keyring = getKeyringByAddress(address);
-  return keyring && accountTypes.includes(keyring.type);
+  return keyring && accountTypes.includes(keyring.type as ExtendedKeyringTypes);
 }
 
 /**
@@ -207,7 +224,7 @@ export function isHardwareAccount(
  * @param {String} address - String corresponding to an address
  * @returns {Boolean} - Returns a boolean
  */
-export function isExternalHardwareAccount(address) {
+export function isExternalHardwareAccount(address: string) {
   return isHardwareAccount(address, [ExtendedKeyringTypes.ledger]);
 }
 
@@ -217,7 +234,7 @@ export function isExternalHardwareAccount(address) {
  * @param {String} address - String corresponding to an address
  * @returns {String} - Returns address's i18n label text
  */
-export function getLabelTextByAddress(address) {
+export function getLabelTextByAddress(address: string) {
   if (!address) return null;
   const keyring = getKeyringByAddress(address);
   if (keyring) {
@@ -239,7 +256,7 @@ export function getLabelTextByAddress(address) {
  * @param {String} address - String corresponding to an address
  * @returns {String} - Returns address's account type
  */
-export function getAddressAccountType(address) {
+export function getAddressAccountType(address: string) {
   if (!isValidHexAddress(address)) {
     throw new Error(`Invalid address: ${address}`);
   }
@@ -272,7 +289,7 @@ export function getAddressAccountType(address) {
  * @param {String} name - String corresponding to an ENS name
  * @returns {boolean} - Returns a boolean indicating if it is valid
  */
-export function isENS(name = undefined) {
+export function isENS(name: string | undefined = undefined) {
   if (!name) return false;
 
   // Checks that the domain consists of at least one valid domain pieces separated by periods, followed by a tld
@@ -281,7 +298,7 @@ export function isENS(name = undefined) {
   const match = punycode.toASCII(name).toLowerCase().match(regex.ensName);
 
   const OFFSET = 1;
-  const index = name && name.lastIndexOf('.');
+  const index = name?.lastIndexOf('.');
   const tld =
     index &&
     index >= OFFSET &&
@@ -296,11 +313,11 @@ export function isENS(name = undefined) {
  * @param {string} address The 42 character Ethereum address composed of:
  * 2 ('0x': 2 char hex prefix) + 20 (last 20 bytes of public key) * 2 (as each byte is 2 chars in ascii)
  */
-export function resemblesAddress(address) {
+export function resemblesAddress(address: string) {
   return address && address.length === 2 + 20 * 2;
 }
 
-export function safeToChecksumAddress(address) {
+export function safeToChecksumAddress(address: string) {
   if (!address) return undefined;
   return toChecksumAddress(address);
 }
@@ -317,14 +334,14 @@ export function safeToChecksumAddress(address) {
  * @param {string} possibleAddress - Input parameter to check against
  * @param {Object} [options] - options bag
  * @param {boolean} [options.allowNonPrefixed] - If true will first ensure '0x'
- *  is prepended to the string
+ * is prepended to the string
  * @param {boolean} [options.mixedCaseUseChecksum] - If true will treat mixed
- *  case addresses as checksum addresses and validate that proper checksum
- *  format is used
+ * case addresses as checksum addresses and validate that proper checksum
+ * format is used
  * @returns {boolean} whether or not the input is a valid hex address
  */
 export function isValidHexAddress(
-  possibleAddress,
+  possibleAddress: string,
   { allowNonPrefixed = false, mixedCaseUseChecksum = false } = {},
 ) {
   const addressToCheck = allowNonPrefixed
@@ -351,21 +368,27 @@ export function isValidHexAddress(
  * @param {Object} params - Contains multiple variables that are needed to
  * check if the address is already saved in our contact list or in our accounts
  * Variables:
- *  address (String) - Represents the address of the account
- *  addressBook (Object) -  Represents all the contacts that we have saved on the address book
- *  identities (Object) - Represents our accounts on the current network of the wallet
- *  chainId (string) - The chain ID for the current selected network
+ * address (String) - Represents the address of the account
+ * addressBook (Object) -  Represents all the contacts that we have saved on the address book
+ * internalAccounts (Array) InternalAccount - Represents our accounts on the current network of the wallet
+ * chainId (string) - The chain ID for the current selected network
  * @returns String | undefined - When it is saved returns a string "contactAlreadySaved" if it's not reutrn undefined
  */
-function checkIfAddressAlreadySaved(params) {
-  const { address, addressBook, chainId, identities } = params;
+function checkIfAddressAlreadySaved(
+  address: string,
+  addressBook: AddressBookState['addressBook'],
+  chainId: Hex,
+  internalAccounts: InternalAccount[],
+) {
   if (address) {
     const networkAddressBook = addressBook[chainId] || {};
 
     const checksummedResolvedAddress = toChecksumAddress(address);
     if (
       networkAddressBook[checksummedResolvedAddress] ||
-      identities[checksummedResolvedAddress]
+      internalAccounts.find((account) =>
+        toLowerCaseEquals(account.address, checksummedResolvedAddress),
+      )
     ) {
       return CONTACT_ALREADY_SAVED;
     }
@@ -379,25 +402,29 @@ function checkIfAddressAlreadySaved(params) {
  * This function is needed in two place of the app, SendTo of SendFlow in order to send tokes and
  * is present in ContactForm of Contatcs, in order to add a new contact
  * Variables:
- *  toAccount (String) - Represents the account address or ens
- *  chainId (String) - Represents the current chain ID
- *  addressBook (Object) - Represents all the contacts that we have saved on the address book
- *  identities (Object) - Represents our accounts on the current network of the wallet
- *  providerType (String) - Represents the network name
+ * toAccount (String) - Represents the account address or ens
+ * chainId (Hex String) - Represents the current chain ID
+ * addressBook (Object) - Represents all the contacts that we have saved on the address book
+ * internalAccounts (Array) InternalAccount - Represents our accounts on the current network of the wallet
+ * providerType (String) - Represents the network name
  * @returns the variables that are needed for updating the state of the two flows metioned above
  * Variables:
- *  addressError (String) - Contains the message or the error
- *  toEnsName (String) - Represents the ens name of the destination account
- *  addressReady (Bollean) - Represents if the address is validated or not
- *  toEnsAddress (String) - Represents the address of the ens inserted
- *  addToAddressToAddressBook (Boolean) - Represents if the address it can be add to the address book
- *  toAddressName (String) - Represents the address of the destination account
- *  errorContinue (Boolean) - Represents if with one error we can proceed or not to the next step if we wish
- *  confusableCollection (Object) - Represents one array with the confusable characters of the ens
+ * addressError (String) - Contains the message or the error
+ * toEnsName (String) - Represents the ens name of the destination account
+ * addressReady (Bollean) - Represents if the address is validated or not
+ * toEnsAddress (String) - Represents the address of the ens inserted
+ * addToAddressToAddressBook (Boolean) - Represents if the address it can be add to the address book
+ * toAddressName (String) - Represents the address of the destination account
+ * errorContinue (Boolean) - Represents if with one error we can proceed or not to the next step if we wish
+ * confusableCollection (Object) - Represents one array with the confusable characters of the ens
  *
  */
-export async function validateAddressOrENS(params) {
-  const { toAccount, addressBook, identities, chainId } = params;
+export async function validateAddressOrENS(
+  toAccount: string,
+  addressBook: AddressBookState['addressBook'],
+  internalAccounts: InternalAccount[],
+  chainId: Hex,
+) {
   const { AssetsContractController } = Engine.context;
 
   let addressError,
@@ -410,15 +437,20 @@ export async function validateAddressOrENS(params) {
   let [addressReady, addToAddressToAddressBook] = [false, false];
 
   if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
-    const contactAlreadySaved = checkIfAddressAlreadySaved({
-      address: toAccount,
+    const contactAlreadySaved = checkIfAddressAlreadySaved(
+      toAccount,
       addressBook,
       chainId,
-      identities,
-    });
+      internalAccounts,
+    );
 
     if (contactAlreadySaved) {
-      addressError = checkIfAddressAlreadySaved(toAccount);
+      addressError = checkIfAddressAlreadySaved(
+        toAccount,
+        addressBook,
+        chainId,
+        internalAccounts,
+      );
     }
     const checksummedAddress = toChecksumAddress(toAccount);
     addressReady = true;
@@ -467,12 +499,12 @@ export async function validateAddressOrENS(params) {
     toEnsName = toAccount;
     confusableCollection = collectConfusables(toEnsName);
     const resolvedAddress = await doENSLookup(toAccount, chainId);
-    const contactAlreadySaved = checkIfAddressAlreadySaved({
-      address: resolvedAddress,
+    const contactAlreadySaved = checkIfAddressAlreadySaved(
+      resolvedAddress,
       addressBook,
       chainId,
-      identities,
-    });
+      internalAccounts,
+    );
 
     if (resolvedAddress) {
       if (!contactAlreadySaved) {
@@ -508,10 +540,10 @@ export async function validateAddressOrENS(params) {
  * @param {string} input - a random string.
  * @returns {boolean} indicates if the string is a valid input.
  */
-export function isValidAddressInputViaQRCode(input) {
+export function isValidAddressInputViaQRCode(input: string) {
   if (input.includes(PROTOCOLS.ETHEREUM)) {
     const { pathname } = new URL(input);
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [address, _] = pathname.split('@');
     return isValidHexAddress(address);
   }
@@ -523,7 +555,7 @@ export function isValidAddressInputViaQRCode(input) {
  * @param {string} str
  * @returns {string}
  */
-export const stripHexPrefix = (str) => {
+export const stripHexPrefix = (str: string) => {
   if (typeof str !== 'string') {
     return str;
   }
@@ -537,7 +569,10 @@ export const stripHexPrefix = (str) => {
  * @param {String} chainId - The chain ID for the given address
  * @returns {String} - Address or null
  */
-export async function getAddress(toAccount, chainId) {
+export async function getAddress(
+  toAccount: string,
+  chainId: string,
+): Promise<string | null> {
   if (isENS(toAccount)) {
     return await doENSLookup(toAccount, chainId);
   }
@@ -547,7 +582,11 @@ export async function getAddress(toAccount, chainId) {
   return null;
 }
 
-export const getTokenDetails = async (tokenAddress, userAddress, tokenId) => {
+export const getTokenDetails = async (
+  tokenAddress: string,
+  userAddress: string,
+  tokenId: string,
+) => {
   const { AssetsContractController } = Engine.context;
   const tokenData = await AssetsContractController.getTokenStandardAndDetails(
     tokenAddress,
@@ -569,11 +608,11 @@ export const getTokenDetails = async (tokenAddress, userAddress, tokenId) => {
   };
 };
 
-export const shouldShowBlockExplorer = ({
-  providerType,
-  providerRpcTarget,
-  networkConfigurations,
-}) => {
+export const shouldShowBlockExplorer = (
+  providerType: NetworkType,
+  providerRpcTarget: string,
+  networkConfigurations: NetworkState['networkConfigurations'],
+) => {
   if (providerType === RPC) {
     return findBlockExplorerForRpc(providerRpcTarget, networkConfigurations);
   }

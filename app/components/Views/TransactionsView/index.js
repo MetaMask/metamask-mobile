@@ -63,6 +63,7 @@ const TransactionsView = ({
       if (networkId === NETWORK_ID_LOADING) return;
 
       let accountAddedTimeInsertPointFound = false;
+      // TODO this can be removed in favour of selectInternalAccounts after @metamask/accounts-controller is updated to 14 or higher
       const addedAccountTime = identities[selectedAddress]?.importTime;
 
       const submittedTxs = [];

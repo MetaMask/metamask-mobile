@@ -241,7 +241,7 @@ class TransactionElement extends PureComponent {
     const { tx, identities, selectedAddress } = this.props;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
-
+    // TODO this can be removed in favour of selectInternalAccounts after @metamask/accounts-controller is updated to 14 or higher
     const accountImportTime = identities[selectedAddress]?.importTime;
     if (tx.insertImportTime && accountImportTime) {
       return (
@@ -329,6 +329,7 @@ class TransactionElement extends PureComponent {
     const renderUnsignedQRActions =
       status === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
+    // TODO this can be removed in favour of selectInternalAccounts after @metamask/accounts-controller is updated to 14 or higher
     const accountImportTime = identities[selectedAddress]?.importTime;
     return (
       <>

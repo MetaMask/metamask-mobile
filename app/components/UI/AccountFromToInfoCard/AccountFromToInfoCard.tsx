@@ -9,7 +9,6 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import { selectIdentities } from '../../../selectors/preferencesController';
 import { collectConfusables } from '../../../util/confusables';
 import { decodeTransferData } from '../../../util/transactions';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
@@ -20,10 +19,12 @@ import useExistingAddress from '../../hooks/useExistingAddress';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import createStyles from './AccountFromToInfoCard.styles';
 import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const {
-    identities,
+    internalAccounts,
     chainId,
     onPressFromAddressIcon,
     ticker,
@@ -68,11 +69,15 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       if (fromEns) {
         setFromAccountName(fromEns);
       } else {
-        const { name: fromName } = identities[fromAddress];
-        setFromAccountName(fromName);
+        const accountWithMatchingFromAddress = internalAccounts.find(
+          (account) => toLowerCaseEquals(account.address, fromAddress),
+        );
+        if (accountWithMatchingFromAddress) {
+          setFromAccountName(accountWithMatchingFromAddress.metadata.name);
+        }
       }
     })();
-  }, [fromAddress, identities, transactionFromName, chainId]);
+  }, [fromAddress, transactionFromName, chainId, internalAccounts]);
 
   useEffect(() => {
     if (existingToAddress) {
@@ -83,23 +88,32 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       const toEns = await doENSReverseLookup(toAddress, chainId);
       if (toEns) {
         setToAccountName(toEns);
-      } else if (identities[toAddress]) {
-        const { name: toName } = identities[toAddress];
-        setToAccountName(toName);
+      } else {
+        const accountWithMatchingToAddress = internalAccounts.find((account) =>
+          toLowerCaseEquals(account.address, toAddress),
+        );
+        if (accountWithMatchingToAddress) {
+          setToAccountName(accountWithMatchingToAddress.metadata.name);
+        }
       }
     })();
-  }, [existingToAddress, identities, chainId, toAddress, transactionToName]);
+  }, [
+    existingToAddress,
+    chainId,
+    toAddress,
+    transactionToName,
+    internalAccounts,
+  ]);
 
   useEffect(() => {
-    const accountNames =
-      (identities &&
-        Object.keys(identities).map((hash) => identities[hash].name)) ||
-      [];
+    const accountNames = internalAccounts.map(
+      (account) => account.metadata.name,
+    );
     const isOwnAccount = ensRecipient && accountNames.includes(ensRecipient);
     if (ensRecipient && !isOwnAccount) {
       setConfusableCollection(collectConfusables(ensRecipient));
     }
-  }, [identities, ensRecipient]);
+  }, [internalAccounts, ensRecipient]);
 
   useEffect(() => {
     let toAddr;
@@ -175,7 +189,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
-  identities: selectIdentities(state),
+  internalAccounts: selectInternalAccounts(state),
   chainId: selectChainId(state),
   ticker: selectTicker(state),
 });

@@ -48,16 +48,6 @@ const initialState = {
       PreferencesController: {
         isMultiAccountBalancesEnabled: true,
         selectedAddress: BUSINESS_ACCOUNT,
-        identities: {
-          [BUSINESS_ACCOUNT]: {
-            address: BUSINESS_ACCOUNT,
-            name: 'Business Account',
-          },
-          [PERSONAL_ACCOUNT]: {
-            address: PERSONAL_ACCOUNT,
-            name: 'Personal Account',
-          },
-        },
       },
       CurrencyRateController: {
         currentCurrency: 'usd',
@@ -197,6 +187,15 @@ describe('AccountSelectorList', () => {
       expect(rightAccessories.length).toBe(2);
 
       expect(toJSON()).toMatchSnapshot();
+    });
+  });
+  it('should render correct account names', async () => {
+    const { getAllByTestId } = renderComponent(initialState);
+
+    await waitFor(() => {
+      const accountNameItems = getAllByTestId('cellbase-avatar-title');
+      expect(within(accountNameItems[0]).getByText('Account 1')).toBeDefined();
+      expect(within(accountNameItems[1]).getByText('Account 2')).toBeDefined();
     });
   });
 });
