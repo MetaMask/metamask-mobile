@@ -37,30 +37,29 @@ perform_updates () {
 
 
   # update android/app/build.gradle
-  sed -e 's/\([[:space:]]*versionCode \)[0-9]\+/\1'"$VERSION_NUMBER"'/' -i '' $ANDROID_BUILD_GRADLE_FILE
-  sed -e 's/\([[:space:]]*versionName \)".*"/\1"'"$SEMVER_VERSION"'"/' -i '' $ANDROID_BUILD_GRADLE_FILE
+  sed -Ei 's/(\s*versionCode )[0-9]+/\1'"$VERSION_NUMBER"'/' $ANDROID_BUILD_GRADLE_FILE
+  sed -Ei 's/(\s*versionName )".*"/\1"'"$SEMVER_VERSION"'"/' $ANDROID_BUILD_GRADLE_FILE
   echo "- $ANDROID_BUILD_GRADLE_FILE updated"
 
 
   # update bitrise.yml
-  sed -e 's/\([[:space:]]*VERSION_NAME: \).*/\1'"$SEMVER_VERSION"'/' -i '' $BITRISE_YML_FILE
-  sed -e 's/\([[:space:]]*VERSION_NUMBER: \)[0-9]\+/\1'"$VERSION_NUMBER"'/' -i '' $BITRISE_YML_FILE
+  sed -Ei 's/(\s*VERSION_NAME: ).*/\1'"$SEMVER_VERSION"'/' $BITRISE_YML_FILE
+  sed -Ei 's/(\s*VERSION_NUMBER: )[0-9]+/\1'"$VERSION_NUMBER"'/' $BITRISE_YML_FILE
   # update flask version numbers in bitrise.yml
-  sed -e 's/\([[:space:]]*VERSION_NUMBER: \)[0-9]\+/\1'"$VERSION_NUMBER"'/' -i '' $BITRISE_YML_FILE
-  sed -e 's/\([[:space:]]*FLASK_VERSION_NUMBER: \)[0-9]\+/\1'"$VERSION_NUMBER"'/' -i '' $BITRISE_YML_FILE
+  sed -Ei 's/(\s*VERSION_NUMBER: )[0-9]+/\1'"$VERSION_NUMBER"'/' $BITRISE_YML_FILE
+  sed -Ei 's/(\s*FLASK_VERSION_NUMBER: )[0-9]+/\1'"$VERSION_NUMBER"'/' $BITRISE_YML_FILE
   echo "- $BITRISE_YML_FILE updated"
 
 
   # update ios/MetaMask.xcodeproj/project.pbxproj
-  sed -e 's/\([[:space:]]*MARKETING_VERSION = \).*/\1'"$SEMVER_VERSION;"'/' -i '' $IOS_PROJECT_FILE
-  sed -e 's/\([[:space:]]*CURRENT_PROJECT_VERSION = \)[0-9]\+/\1'"$VERSION_NUMBER"'/' -i '' $IOS_PROJECT_FILE
+  sed -Ei 's/(\s*MARKETING_VERSION = ).*/\1'"$SEMVER_VERSION;"'/' $IOS_PROJECT_FILE
+  sed -Ei 's/(\s*CURRENT_PROJECT_VERSION = )[0-9]+/\1'"$VERSION_NUMBER"'/' $IOS_PROJECT_FILE
   echo "- $IOS_PROJECT_FILE updated"
 
   echo -e "-------------------"
   echo -e "files updated with:"
   echo -e "semver version: $SEMVER_VERSION"
   echo -e "version number: $VERSION_NUMBER"
-
 }
 
 # get current numbers
