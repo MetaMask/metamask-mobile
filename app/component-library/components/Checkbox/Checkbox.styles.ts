@@ -19,6 +19,7 @@ const styleSheet = (params: { theme: Theme; vars: CheckboxStyleSheetVars }) => {
   const { vars, theme } = params;
   const {
     style,
+    checkboxStyle,
     isChecked,
     isIndeterminate,
     isDisabled,
@@ -54,16 +55,19 @@ const styleSheet = (params: { theme: Theme; vars: CheckboxStyleSheetVars }) => {
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    checkbox: {
-      width: 20,
-      height: 20,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderRadius: 4,
-      borderWidth: 2,
-      backgroundColor,
-      borderColor,
-    },
+    checkbox: Object.assign(
+      {
+        width: 20,
+        height: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 4,
+        borderWidth: 2,
+        backgroundColor,
+        borderColor,
+      } as ViewStyle,
+      checkboxStyle,
+    ) as ViewStyle,
     icon: {
       color: isReadOnly
         ? theme.colors.icon.alternative

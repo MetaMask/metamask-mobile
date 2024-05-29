@@ -1,15 +1,10 @@
-import React, {
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-  useContext,
-} from 'react';
+import React, { useEffect, useRef, useCallback, useContext } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
   View,
   TextStyle,
+  InteractionManager,
   Linking,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
@@ -20,12 +15,7 @@ import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import {
-  renderFromWei,
-  weiToFiat,
-  hexToBN,
-  toHexadecimal,
-} from '../../../util/number';
+import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import {
   shouldShowNewPrivacyToastSelector,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
@@ -43,19 +33,25 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
-import { shouldShowWhatsNewModal } from '../../../util/onboarding';
+import {
+  shouldShowSmartTransactionsOptInModal,
+  shouldShowWhatsNewModal,
+} from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
+  getIsNetworkOnboarded,
 } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import {
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../selectors/networkInfos';
 import { selectTokens } from '../../../selectors/tokensController';
 import { useNavigation } from '@react-navigation/native';
 import { WalletAccount } from '../../../components/UI/WalletAccount';
@@ -63,16 +59,16 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { useAccounts } from '../../hooks/useAccounts';
-import { RootState } from 'app/reducers';
+import { RootState } from '../../../reducers';
+import usePrevious from '../../hooks/usePrevious';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -131,9 +127,9 @@ const Wallet = ({
   const { colors } = theme;
 
   /**
-   * Map of accountsByChainId to information objects including balances
+   * Object containing the balance of the current selected account
    */
-  const accountsByChainId = useSelector(selectAccountsByChainId);
+  const accountBalanceByChainId = useSelector(selectAccountBalanceByChainId);
 
   /**
    * ETH to current currency conversion rate
@@ -146,7 +142,9 @@ const Wallet = ({
   /**
    * A string that represents the selected address
    */
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountChecksummedAddress,
+  );
   /**
    * An array that represents the user tokens
    */
@@ -163,7 +161,7 @@ const Wallet = ({
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
-
+  const prevChainId = usePrevious(providerConfig.chainId);
   /**
    * Is basic functionality enabled
    */
@@ -171,10 +169,43 @@ const Wallet = ({
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
 
-  /**
-   * A list of all the user accounts and a mapping of ENS name to account address if they exist
-   */
-  const { accounts, ensByAccountAddress } = useAccounts();
+  const currentToast = toastRef?.current;
+
+  useEffect(() => {
+    if (!shouldShowNewPrivacyToast) return;
+
+    storePrivacyPolicyShownDate();
+    currentToast?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: strings(`privacy_policy.toast_message`),
+          isBold: false,
+        },
+      ],
+      closeButtonOptions: {
+        label: strings(`privacy_policy.toast_action_button`),
+        onPress: () => {
+          storePrivacyPolicyClickedOrClosed();
+          currentToast?.closeToast();
+        },
+      },
+      linkButtonOptions: {
+        label: strings(`privacy_policy.toast_read_more`),
+        onPress: () => {
+          storePrivacyPolicyClickedOrClosed();
+          currentToast?.closeToast();
+          Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+        },
+      },
+      hasNoTimeout: true,
+    });
+  }, [
+    storePrivacyPolicyShownDate,
+    shouldShowNewPrivacyToast,
+    storePrivacyPolicyClickedOrClosed,
+    currentToast,
+  ]);
 
   const currentToast = toastRef?.current;
 
@@ -215,43 +246,19 @@ const Wallet = ({
   ]);
 
   /**
-   * An object representing the currently selected account.
+   * Network onboarding state
    */
-  const selectedAccount = useMemo(() => {
-    if (accounts.length > 0) {
-      return accounts.find((account) => account.isSelected);
-    }
-    return undefined;
-  }, [accounts]);
+  const networkOnboardingState = useSelector(
+    (state: any) => state.networkOnboarded.networkOnboardedState,
+  );
 
   const isNotificationEnabled = useSelector(
     (state: any) => state.notification?.notificationsSettings?.isEnabled,
   );
 
-  /**
-   * ENS name for the currently selected account.
-   * This value may be undefined if there is no corresponding ENS name for the account.
-   */
-  const ensForSelectedAccount = useMemo(() => {
-    if (ensByAccountAddress && selectedAccount) {
-      return ensByAccountAddress[selectedAccount.address];
-    }
-    return undefined;
-  }, [ensByAccountAddress, selectedAccount]);
+  const networkName = useSelector(selectNetworkName);
 
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
-
-  const networkImageSource = useMemo(
-    () =>
-      getNetworkImageSource({
-        networkType: providerConfig.type,
-        chainId: providerConfig.chainId,
-      }),
-    [providerConfig],
-  );
+  const networkImageSource = useSelector(selectNetworkImageSource);
 
   /**
    * Callback to trigger when pressing the navigation title.
@@ -264,16 +271,24 @@ const Wallet = ({
       chain_id: getDecimalChainId(providerConfig.chainId),
     });
   }, [navigate, providerConfig.chainId, trackEvent]);
-  const { colors: themeColors } = useTheme();
 
   /**
-   * Check to see if we need to show What's New modal
+   * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
    */
   useEffect(() => {
-    if (wizardStep > 0) {
-      // Do not check since it will conflict with the onboarding wizard
+    const networkOnboarded = getIsNetworkOnboarded(
+      providerConfig.chainId,
+      networkOnboardingState,
+    );
+
+    if (
+      wizardStep > 0 ||
+      (!networkOnboarded && prevChainId !== providerConfig.chainId)
+    ) {
+      // Do not check since it will conflict with the onboarding wizard and/or network onboarding
       return;
     }
+
     const checkWhatsNewModal = async () => {
       try {
         const shouldShowWhatsNew = await shouldShowWhatsNewModal();
@@ -286,8 +301,42 @@ const Wallet = ({
         Logger.log(error, "Error while checking What's New modal!");
       }
     };
-    checkWhatsNewModal();
-  }, [wizardStep, navigation]);
+
+    // Show STX opt in modal before What's New modal
+    // Fired on the first load of the wallet and also on network switch
+    const checkSmartTransactionsOptInModal = async () => {
+      try {
+        const showShowStxOptInModal =
+          await shouldShowSmartTransactionsOptInModal(
+            providerConfig.chainId,
+            providerConfig.rpcUrl,
+          );
+        if (showShowStxOptInModal) {
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
+          });
+        } else {
+          await checkWhatsNewModal();
+        }
+      } catch (error) {
+        Logger.log(
+          error,
+          'Error while checking Smart Tranasctions Opt In modal!',
+        );
+      }
+    };
+
+    InteractionManager.runAfterInteractions(() => {
+      checkSmartTransactionsOptInModal();
+    });
+  }, [
+    wizardStep,
+    navigation,
+    providerConfig.chainId,
+    providerConfig.rpcUrl,
+    networkOnboardingState,
+    prevChainId,
+  ]);
 
   useEffect(
     () => {
@@ -313,14 +362,14 @@ const Wallet = ({
         networkImageSource,
         onTitlePress,
         navigation,
-        themeColors,
+        colors,
         isNotificationEnabled,
       ),
     );
     /* eslint-disable-next-line */
   }, [
     navigation,
-    themeColors,
+    colors,
     networkName,
     networkImageSource,
     onTitlePress,
@@ -367,16 +416,8 @@ const Wallet = ({
     let balance: any = 0;
     let assets = tokens;
 
-    if (
-      accountsByChainId?.[toHexadecimal(providerConfig.chainId)]?.[
-        selectedAddress
-      ]
-    ) {
-      balance = renderFromWei(
-        accountsByChainId[toHexadecimal(providerConfig.chainId)][
-          selectedAddress
-        ].balance,
-      );
+    if (accountBalanceByChainId) {
+      balance = renderFromWei(accountBalanceByChainId.balance);
 
       assets = [
         {
@@ -386,11 +427,7 @@ const Wallet = ({
           isETH: true,
           balance,
           balanceFiat: weiToFiat(
-            hexToBN(
-              accountsByChainId[toHexadecimal(providerConfig.chainId)][
-                selectedAddress
-              ].balance,
-            ) as any,
+            hexToBN(accountBalanceByChainId.balance) as any,
             conversionRate,
             currentCurrency,
           ),
@@ -416,13 +453,8 @@ const Wallet = ({
             />
           </View>
         ) : null}
-        {selectedAccount ? (
-          <WalletAccount
-            account={selectedAccount}
-            ens={ensForSelectedAccount}
-            style={styles.walletAccount}
-            ref={walletRef}
-          />
+        {selectedAddress ? (
+          <WalletAccount style={styles.walletAccount} ref={walletRef} />
         ) : null}
         <ScrollableTabView
           renderTabBar={renderTabBar}
@@ -446,23 +478,18 @@ const Wallet = ({
             key={'nfts-tab'}
             navigation={navigation}
           />
-          {/* </View> */}
         </ScrollableTabView>
-        {/* </View> */}
       </View>
     );
   }, [
     tokens,
-    accountsByChainId,
-    providerConfig.chainId,
+    accountBalanceByChainId,
     selectedAddress,
     styles.wrapper,
     styles.banner,
     styles.walletAccount,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
-    selectedAccount,
-    ensForSelectedAccount,
     renderTabBar,
     onChangeTab,
     navigation,
@@ -484,7 +511,7 @@ const Wallet = ({
    */
   const renderOnboardingWizard = useCallback(
     () =>
-      [1, 2, 3].includes(wizardStep) && (
+      [1, 2, 3, 4, 5, 6, 7].includes(wizardStep) && (
         <OnboardingWizard
           navigation={navigation}
           coachmarkRef={walletRef.current}

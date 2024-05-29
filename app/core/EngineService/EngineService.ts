@@ -35,12 +35,16 @@ class EngineService {
 
   private updateControllers = (store: any, engine: any) => {
     const controllers = [
-      { name: 'AccountTrackerController' },
       { name: 'AddressBookController' },
       { name: 'AssetsContractController' },
       { name: 'NftController' },
-      { name: 'TokensController' },
-      { name: 'TokenDetectionController' },
+      {
+        name: 'TokensController',
+      },
+      {
+        name: 'TokenDetectionController',
+        key: `${engine.context.TokenDetectionController.name}:stateChange`,
+      },
       { name: 'NftDetectionController' },
       {
         name: 'KeyringController',
@@ -59,9 +63,13 @@ class EngineService {
         name: 'PreferencesController',
         key: `${engine.context.PreferencesController.name}:stateChange`,
       },
-      { name: 'TokenBalancesController' },
+      {
+        name: 'TokenBalancesController',
+        key: `${engine.context.TokenBalancesController.name}:stateChange`,
+      },
       { name: 'TokenRatesController' },
       { name: 'TransactionController' },
+      { name: 'SmartTransactionsController' },
       { name: 'SwapsController' },
       {
         name: 'TokenListController',

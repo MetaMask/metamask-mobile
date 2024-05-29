@@ -20,6 +20,10 @@ import {
   TOKEN_METHOD_TRANSFER_FROM,
   calculateEIP1559Times,
   parseTransactionLegacy,
+  getIsNativeTokenTransferred,
+  getIsSwapApproveOrSwapTransaction,
+  getIsSwapApproveTransaction,
+  getIsSwapTransaction,
 } from '.';
 import buildUnserializedTransaction from './optimismTransaction';
 import Engine from '../../core/Engine';
@@ -673,5 +677,276 @@ describe('Transactions utils :: buildUnserializedTransaction', () => {
       value: '0x9184e72a000',
       data: '0x00',
     });
+  });
+});
+
+const dappTxMeta = {
+  chainId: '0x1',
+  origin: 'pancakeswap.finance',
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: '0x5ae401dc0000000000000000000000000000000000000000000000000000000065e8dac400000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e404e45aaf000000000000000000000000b4fbf271143f4fbf7b91a5ded31805e42b2208d600000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f00000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000c5fe6ef47965741f6f7a4734bf784bf3ae3f245200000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000f666eed80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+    gas: '0x2e7b1',
+    nonce: '0xeb',
+    to: '0x9a489505a00ce272eaa5e07dba6491314cae3796',
+    value: '0x38d7ea4c68000',
+    maxFeePerGas: '0x59682f0a',
+    maxPriorityFeePerGas: '0x59682f00',
+  },
+};
+const sendEthTxMeta = {
+  chainId: '0x1',
+  origin: 'MetaMask Mobile',
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: undefined,
+    gas: '0x5208',
+    nonce: '0xf3',
+    to: '0xdc738206f559bdae106894a62876a119e470aee2',
+    value: '0x2386f26fc10000',
+    maxFeePerGas: '0x59682f0a',
+    maxPriorityFeePerGas: '0x59682f00',
+    estimatedBaseFee: '0x7',
+  },
+};
+const sendERC20TxMeta = {
+  chainId: '0x1',
+  origin: 'MetaMask Mobile',
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: '0xa9059cbb000000000000000000000000dc738206f559bdae106894a62876a119e470aee20000000000000000000000000000000000000000000000000000000005f5e100',
+    gas: '0x10a3e',
+    nonce: '0xf4',
+    to: '0x07865c6e87b9f70255377e024ace6630c1eaa37f',
+    value: '0x0',
+    maxFeePerGas: '0x59682f0b',
+    maxPriorityFeePerGas: '0x59682f00',
+    estimatedBaseFee: '0x8',
+  },
+};
+
+const swapFlowApproveERC20TxMeta = {
+  chainId: '0x1',
+  origin: process.env.MM_FOX_CODE,
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: '0x095ea7b3000000000000000000000000881d40237659c251811cec9c364ef91dc08d300c00000000000000000000000000000000000000000000000000000000000f4240',
+    gas: '0xdd87',
+    nonce: '0x3c',
+    to: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    value: '0x0',
+    maxFeePerGas: '0x19dd8c2510',
+    maxPriorityFeePerGas: '0x9e3311',
+    estimatedBaseFee: '0xf36aa15e1',
+  },
+};
+const swapFlowSwapERC20TxMeta = {
+  chainId: '0x1',
+  origin: process.env.MM_FOX_CODE,
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: '0x5f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f424000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e3cb0338a1e400000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000020d440d83ed000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e5cdc5e9b7a80000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b5dc1003926a168c11a816e10c13977f75f488bfffe88e4ab4991fe00000000000000000000000000000000000000000000000000bd',
+    gas: '0x3dad5',
+    nonce: '0x3e',
+    to: '0x881d40237659c251811cec9c364ef91dc08d300c',
+    value: '0x0',
+    maxFeePerGas: '0x1bbbdf536e',
+    maxPriorityFeePerGas: '0x120a5d1',
+    estimatedBaseFee: '0x104fbb752f',
+  },
+};
+const swapFlowSwapEthTxMeta = {
+  chainId: '0x1',
+  origin: process.env.MM_FOX_CODE,
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: '0x5f57552900000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002386f26fc1000000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d69630000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000023375dc15608000000000000000000000000000000000000000000000000000000000002477ac5000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000004f94ae6af800000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c80502b1c500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000023375dc15608000000000000000000000000000000000000000000000000000000000002477ac40000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000180000000000000003b6d0340b4e16d0168e52d35cacd2c6185b44281ec28c9dcab4991fe000000000000000000000000000000000000000000000000001e',
+    gas: '0x333c5',
+    nonce: '0x3c',
+    to: '0x881d40237659c251811cec9c364ef91dc08d300c',
+    value: '0x2386f26fc10000',
+    maxFeePerGas: '0x1b6bf7e1c3',
+    maxPriorityFeePerGas: '0x200a3b7',
+    estimatedBaseFee: '0x1020371570',
+  },
+};
+
+describe('Transactions utils :: getIsSwapApproveOrSwapTransaction', () => {
+  it('returns true if the transaction is an approve tx in the swap flow for ERC20 from token', () => {
+    const result = getIsSwapApproveOrSwapTransaction(
+      swapFlowApproveERC20TxMeta.transaction.data,
+      swapFlowApproveERC20TxMeta.origin,
+      swapFlowApproveERC20TxMeta.transaction.to,
+      swapFlowApproveERC20TxMeta.chainId,
+    );
+    expect(result).toBe(true);
+  });
+  it('returns true if the transaction is a swap tx in the swap flow for ERC20 from token', () => {
+    const result = getIsSwapApproveOrSwapTransaction(
+      swapFlowSwapERC20TxMeta.transaction.data,
+      swapFlowSwapERC20TxMeta.origin,
+      swapFlowSwapERC20TxMeta.transaction.to,
+      swapFlowSwapERC20TxMeta.chainId,
+    );
+    expect(result).toBe(true);
+  });
+  it('returns true if the transaction is a swap tx in the swap flow for ETH from token', () => {
+    const result = getIsSwapApproveOrSwapTransaction(
+      swapFlowSwapEthTxMeta.transaction.data,
+      swapFlowSwapEthTxMeta.origin,
+      swapFlowSwapEthTxMeta.transaction.to,
+      swapFlowSwapEthTxMeta.chainId,
+    );
+    expect(result).toBe(true);
+  });
+  it('returns false if the transaction is a send ERC20 tx', () => {
+    const result = getIsSwapApproveOrSwapTransaction(
+      sendERC20TxMeta.transaction.data,
+      sendERC20TxMeta.origin,
+      sendERC20TxMeta.transaction.to,
+      sendERC20TxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a send ETH tx', () => {
+    const result = getIsSwapApproveOrSwapTransaction(
+      sendEthTxMeta.transaction.data,
+      sendEthTxMeta.origin,
+      sendEthTxMeta.transaction.to,
+      sendEthTxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a dapp tx', () => {
+    const result = getIsSwapApproveOrSwapTransaction(
+      dappTxMeta.transaction.data,
+      dappTxMeta.origin,
+      dappTxMeta.transaction.to,
+      dappTxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getIsSwapApproveTransaction', () => {
+  it('returns true if the transaction is an approve ERC20 tx in the swap flow', () => {
+    const result = getIsSwapApproveTransaction(
+      swapFlowApproveERC20TxMeta.transaction.data,
+      swapFlowApproveERC20TxMeta.origin,
+      swapFlowApproveERC20TxMeta.transaction.to,
+      swapFlowApproveERC20TxMeta.chainId,
+    );
+    expect(result).toBe(true);
+  });
+  it('returns false if the transaction is a swap ERC20 tx in the swap flow', () => {
+    const result = getIsSwapApproveTransaction(
+      swapFlowSwapERC20TxMeta.transaction.data,
+      swapFlowSwapERC20TxMeta.origin,
+      swapFlowSwapERC20TxMeta.transaction.to,
+      swapFlowSwapERC20TxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a send ETH tx', () => {
+    const result = getIsSwapApproveTransaction(
+      sendEthTxMeta.transaction.data,
+      sendEthTxMeta.origin,
+      sendEthTxMeta.transaction.to,
+      sendEthTxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a send ERC20 tx', () => {
+    const result = getIsSwapApproveTransaction(
+      sendERC20TxMeta.transaction.data,
+      sendERC20TxMeta.origin,
+      sendERC20TxMeta.transaction.to,
+      sendERC20TxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a dapp tx', () => {
+    const result = getIsSwapApproveTransaction(
+      dappTxMeta.transaction.data,
+      dappTxMeta.origin,
+      dappTxMeta.transaction.to,
+      dappTxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getIsSwapTransaction', () => {
+  it('returns false if the transaction is an approve ERC20 tx in the swap flow', () => {
+    const result = getIsSwapTransaction(
+      swapFlowApproveERC20TxMeta.transaction.data,
+      swapFlowApproveERC20TxMeta.origin,
+      swapFlowApproveERC20TxMeta.transaction.to,
+      swapFlowApproveERC20TxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns true if the transaction is a swap ERC20 tx in the swap flow', () => {
+    const result = getIsSwapTransaction(
+      swapFlowSwapERC20TxMeta.transaction.data,
+      swapFlowSwapERC20TxMeta.origin,
+      swapFlowSwapERC20TxMeta.transaction.to,
+      swapFlowSwapERC20TxMeta.chainId,
+    );
+    expect(result).toBe(true);
+  });
+  it('returns true if the transaction is a swap ETH tx in the swap flow', () => {
+    const result = getIsSwapTransaction(
+      swapFlowSwapEthTxMeta.transaction.data,
+      swapFlowSwapEthTxMeta.origin,
+      swapFlowSwapEthTxMeta.transaction.to,
+      swapFlowSwapEthTxMeta.chainId,
+    );
+    expect(result).toBe(true);
+  });
+  it('returns false if the transaction is a send tx', () => {
+    const result = getIsSwapTransaction(
+      sendEthTxMeta.transaction.data,
+      sendEthTxMeta.origin,
+      sendEthTxMeta.transaction.to,
+      sendEthTxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a dapp tx', () => {
+    const result = getIsSwapTransaction(
+      dappTxMeta.transaction.data,
+      dappTxMeta.origin,
+      dappTxMeta.transaction.to,
+      dappTxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getIsNativeTokenTransferred', () => {
+  it('should return true if the transaction does not have a value of 0x0', () => {
+    const tx = {
+      nonce: '0x0',
+      gasPrice: `0x${new BN('100').toString(16)}`,
+      gas: `0x${new BN('21000').toString(16)}`,
+      to: '0x0000000000000000000000000000000000000000',
+      value: `0x${new BN('10000000000000').toString(16)}`,
+      data: '0x0',
+    };
+    const result = getIsNativeTokenTransferred(tx);
+    expect(result).toBe(true);
+  });
+  it('should return false if the transaction has a value of 0x0', () => {
+    const tx = {
+      nonce: '0x0',
+      gasPrice: `0x${new BN('100').toString(16)}`,
+      gas: `0x${new BN('21000').toString(16)}`,
+      to: '0x0000000000000000000000000000000000000000',
+      value: `0x0`,
+      data: '0x0',
+    };
+    const result = getIsNativeTokenTransferred(tx);
+    expect(result).toBe(false);
   });
 });

@@ -1,9 +1,6 @@
 import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
-import {
-  createAsyncMiddleware,
-  JsonRpcEngineCallbackError,
-} from 'json-rpc-engine';
+import { createAsyncMiddleware } from 'json-rpc-engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   EndFlowOptions,
@@ -62,6 +59,7 @@ export enum ApprovalTypes {
   TRANSACTION = 'transaction',
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
+  SMART_TRANSACTION_STATUS = 'smart_transaction_status',
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
@@ -391,7 +389,7 @@ export const getRpcMethodMiddleware = ({
               req,
               res,
               next,
-              (err: JsonRpcEngineCallbackError | undefined) => {
+              (err) => {
                 if (err) {
                   return reject(err);
                 }
