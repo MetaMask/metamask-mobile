@@ -1,6 +1,7 @@
 'use strict';
 
 import { SmokeConfirmations } from '../../tags';
+
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
@@ -21,16 +22,28 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
-const orangeFoxENS = 'orangefox.eth';
-const secondENS = 'cdavid3.eth';
+
 describe(SmokeConfirmations('Send ETH'), () => {
   const TOKEN_NAME = enContent.unit.eth;
-  const AMOUNT = '2';
+  const AMOUNT = '1';
 
   beforeEach(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(CustomNetworks.Tenderly)
+      .withAddressBookController({
+        addressBook: {
+          '0x1': {
+            '0x2f318C334780961FB129D2a6c30D0763d9a5C970': {
+              address: '0x2f318C334780961FB129D2a6c30D0763d9a5C970',
+              chainId: '0x1',
+              isEns: false,
+              memo: '',
+              name: 'Test Name 1',
+            },
+          },
+        },
+      })
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -45,30 +58,20 @@ describe(SmokeConfirmations('Send ETH'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-  it('should send ETH to an ENS address from inside the wallet', async () => {
+  it('should send ETH to a contact from inside the wallet', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
+    await SendView.scrollToSavedAccount();
 
-    await SendView.inputAddress(orangeFoxENS);
-    await TestHelpers.delay(3000); // wait for the ens address to resolve.
-
-    await SendView.tapAddressInputField();
-
-    await SendView.tapBackSpaceKey();
-    await SendView.inputAddress(secondENS);
-    await TestHelpers.delay(3000); // wait for the ens address to resolve.
-
-    await SendView.tapAddAddressToAddressBook(); // tapping outside input box to dismiss keyboard
+    await SendView.tapAccountName('Test Name 1');
 
     await SendView.tapNextButton();
 
     await AmountView.typeInTransactionAmount(AMOUNT);
     await AmountView.tapNextButton();
-
-    await Assertions.checkIfTextIsDisplayed(secondENS);
+    await Assertions.checkIfTextIsDisplayed('Test Name 1');
     await TransactionConfirmationView.tapConfirmButton();
     await TabBarComponent.tapActivity();
-
-    await TestHelpers.checkIfElementByTextIsVisible(`${AMOUNT} ${TOKEN_NAME}`);
+    await Assertions.checkIfTextIsDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
   });
 });
