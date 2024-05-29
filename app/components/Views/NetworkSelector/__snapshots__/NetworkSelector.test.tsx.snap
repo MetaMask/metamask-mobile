@@ -3,7 +3,7 @@
 exports[`Network Selector renders correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -11,8 +11,8 @@ exports[`Network Selector renders correctly 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -23,7 +23,7 @@ exports[`Network Selector renders correctly 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -39,7 +39,7 @@ exports[`Network Selector renders correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -53,12 +53,12 @@ exports[`Network Selector renders correctly 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "rgb(255, 255, 255)",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -72,7 +72,7 @@ exports[`Network Selector renders correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -84,7 +84,7 @@ exports[`Network Selector renders correctly 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -92,7 +92,7 @@ exports[`Network Selector renders correctly 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -104,7 +104,7 @@ exports[`Network Selector renders correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 16,
                   "opacity": 1,
                 }
@@ -117,7 +117,7 @@ exports[`Network Selector renders correctly 1`] = `
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
-                  Object {
+                  {
                     "color": "rgb(28, 28, 30)",
                     "fontSize": 17,
                     "fontWeight": "600",
@@ -134,7 +134,7 @@ exports[`Network Selector renders correctly 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -144,7 +144,7 @@ exports[`Network Selector renders correctly 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -153,7 +153,7 @@ exports[`Network Selector renders correctly 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -165,7 +165,7 @@ exports[`Network Selector renders correctly 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -183,11 +183,11 @@ exports[`Network Selector renders correctly 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -197,10 +197,10 @@ exports[`Network Selector renders correctly 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -209,9 +209,9 @@ exports[`Network Selector renders correctly 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -228,7 +228,7 @@ exports[`Network Selector renders correctly 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -239,13 +239,13 @@ exports[`Network Selector renders correctly 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -256,13 +256,13 @@ exports[`Network Selector renders correctly 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -275,13 +275,13 @@ exports[`Network Selector renders correctly 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -291,7 +291,7 @@ exports[`Network Selector renders correctly 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -299,7 +299,7 @@ exports[`Network Selector renders correctly 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
@@ -307,8 +307,8 @@ exports[`Network Selector renders correctly 1`] = `
                     <View
                       onLayout={[Function]}
                       style={
-                        Array [
-                          Object {
+                        [
+                          {
                             "bottom": 0,
                             "justifyContent": "flex-end",
                             "left": 0,
@@ -316,7 +316,7 @@ exports[`Network Selector renders correctly 1`] = `
                             "right": 0,
                             "top": 0,
                           },
-                          Object {
+                          {
                             "paddingBottom": 0,
                           },
                         ]
@@ -324,8 +324,8 @@ exports[`Network Selector renders correctly 1`] = `
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#00000099",
                               "bottom": 0,
                               "left": 0,
@@ -333,7 +333,7 @@ exports[`Network Selector renders correctly 1`] = `
                               "right": 0,
                               "top": 0,
                             },
-                            Object {
+                            {
                               "opacity": 0,
                             },
                           ]
@@ -342,7 +342,7 @@ exports[`Network Selector renders correctly 1`] = `
                         <TouchableOpacity
                           onPress={[Function]}
                           style={
-                            Object {
+                            {
                               "flex": 1,
                             }
                           }
@@ -351,14 +351,14 @@ exports[`Network Selector renders correctly 1`] = `
                       <View
                         onLayout={[Function]}
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
                             },
-                            Object {
+                            {
                               "paddingBottom": 0,
                             },
                           ]
@@ -370,8 +370,8 @@ exports[`Network Selector renders correctly 1`] = `
                           onGestureHandlerStateChange={[Function]}
                           onLayout={[Function]}
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "backgroundColor": "#FFFFFF",
                                 "borderColor": "#D6D9DC",
                                 "borderTopLeftRadius": 8,
@@ -381,16 +381,16 @@ exports[`Network Selector renders correctly 1`] = `
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
                                 "shadowColor": "#0000001A",
-                                "shadowOffset": Object {
+                                "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
                                 },
                                 "shadowOpacity": 1,
                                 "shadowRadius": 40,
                               },
-                              Object {
-                                "transform": Array [
-                                  Object {
+                              {
+                                "transform": [
+                                  {
                                     "translateY": 1334,
                                   },
                                 ],
@@ -400,7 +400,7 @@ exports[`Network Selector renders correctly 1`] = `
                         >
                           <View
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
                                 "padding": 4,
@@ -409,7 +409,7 @@ exports[`Network Selector renders correctly 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "backgroundColor": "#D6D9DC",
                                   "borderRadius": 2,
                                   "height": 4,
@@ -420,7 +420,7 @@ exports[`Network Selector renders correctly 1`] = `
                           </View>
                           <View
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "backgroundColor": "#FFFFFF",
                                 "flexDirection": "row",
@@ -432,7 +432,7 @@ exports[`Network Selector renders correctly 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "flex": 1,
                                 }
                               }
@@ -440,7 +440,7 @@ exports[`Network Selector renders correctly 1`] = `
                             <Text
                               accessibilityRole="text"
                               style={
-                                Object {
+                                {
                                   "color": "#24272A",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 18,
@@ -454,7 +454,7 @@ exports[`Network Selector renders correctly 1`] = `
                             </Text>
                             <View
                               style={
-                                Object {
+                                {
                                   "alignItems": "flex-end",
                                   "flex": 1,
                                 }
@@ -472,7 +472,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 disabled={false}
                                 onPress={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "backgroundColor": "#FFFFFF",
                                     "borderRadius": 4,
@@ -487,7 +487,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessibilityRole="none"
                                   accessible={true}
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "flexDirection": "row",
                                       "padding": 0,
@@ -496,7 +496,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 >
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "flexDirection": "row",
                                       }
@@ -504,10 +504,12 @@ exports[`Network Selector renders correctly 1`] = `
                                   >
                                     <View
                                       style={
-                                        Object {
+                                        {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "marginRight": 16,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -519,15 +521,14 @@ exports[`Network Selector renders correctly 1`] = `
                                         onError={[Function]}
                                         resizeMode="contain"
                                         source={
-                                          Object {
+                                          {
                                             "uri": "MockImage",
                                           }
                                         }
                                         style={
-                                          Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                          {
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -535,7 +536,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Object {
+                                        {
                                           "alignItems": "flex-start",
                                           "flex": 1,
                                         }
@@ -545,7 +546,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         accessibilityRole="text"
                                         numberOfLines={1}
                                         style={
-                                          Object {
+                                          {
                                             "color": "#24272A",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 16,
@@ -565,7 +566,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessibilityRole="checkbox"
                                   accessible={true}
                                   style={
-                                    Object {
+                                    {
                                       "backgroundColor": "#0376C919",
                                       "bottom": 0,
                                       "flexDirection": "row",
@@ -578,7 +579,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 >
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "backgroundColor": "#0376C9",
                                         "borderRadius": 2,
                                         "marginLeft": 4,
@@ -593,7 +594,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 disabled={false}
                                 onPress={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "backgroundColor": "#FFFFFF",
                                     "borderRadius": 4,
                                     "opacity": 1,
@@ -607,7 +608,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessibilityRole="none"
                                   accessible={true}
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "flexDirection": "row",
                                       "padding": 0,
@@ -616,17 +617,19 @@ exports[`Network Selector renders correctly 1`] = `
                                 >
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "flexDirection": "row",
                                       }
                                     }
                                   >
                                     <View
                                       style={
-                                        Object {
+                                        {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "marginRight": 16,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -638,15 +641,14 @@ exports[`Network Selector renders correctly 1`] = `
                                         onError={[Function]}
                                         resizeMode="contain"
                                         source={
-                                          Object {
+                                          {
                                             "uri": "MockImage",
                                           }
                                         }
                                         style={
-                                          Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                          {
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -654,7 +656,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Object {
+                                        {
                                           "alignItems": "flex-start",
                                           "flex": 1,
                                         }
@@ -664,7 +666,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         accessibilityRole="text"
                                         numberOfLines={1}
                                         style={
-                                          Object {
+                                          {
                                             "color": "#24272A",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 16,
@@ -685,7 +687,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 disabled={false}
                                 onPress={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "backgroundColor": "#FFFFFF",
                                     "borderRadius": 4,
@@ -700,7 +702,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessibilityRole="none"
                                   accessible={true}
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "flexDirection": "row",
                                       "padding": 0,
@@ -709,7 +711,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 >
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "flexDirection": "row",
                                       }
@@ -717,10 +719,12 @@ exports[`Network Selector renders correctly 1`] = `
                                   >
                                     <View
                                       style={
-                                        Object {
+                                        {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "marginRight": 16,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -732,17 +736,16 @@ exports[`Network Selector renders correctly 1`] = `
                                         onError={[Function]}
                                         resizeMode="contain"
                                         source={
-                                          Object {
-                                            "default": Object {
+                                          {
+                                            "default": {
                                               "uri": "MockImage",
                                             },
                                           }
                                         }
                                         style={
-                                          Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                          {
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -750,7 +753,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Object {
+                                        {
                                           "alignItems": "flex-start",
                                           "flex": 1,
                                         }
@@ -760,7 +763,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         accessibilityRole="text"
                                         numberOfLines={1}
                                         style={
-                                          Object {
+                                          {
                                             "color": "#24272A",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 16,
@@ -781,7 +784,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 disabled={false}
                                 onPress={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "backgroundColor": "#FFFFFF",
                                     "borderRadius": 4,
@@ -796,7 +799,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessibilityRole="none"
                                   accessible={true}
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "flexDirection": "row",
                                       "padding": 0,
@@ -805,7 +808,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 >
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "flexDirection": "row",
                                       }
@@ -813,10 +816,12 @@ exports[`Network Selector renders correctly 1`] = `
                                   >
                                     <View
                                       style={
-                                        Object {
+                                        {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "marginRight": 16,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -828,17 +833,16 @@ exports[`Network Selector renders correctly 1`] = `
                                         onError={[Function]}
                                         resizeMode="contain"
                                         source={
-                                          Object {
-                                            "default": Object {
+                                          {
+                                            "default": {
                                               "uri": "MockImage",
                                             },
                                           }
                                         }
                                         style={
-                                          Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                          {
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -846,7 +850,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Object {
+                                        {
                                           "alignItems": "flex-start",
                                           "flex": 1,
                                         }
@@ -856,7 +860,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         accessibilityRole="text"
                                         numberOfLines={1}
                                         style={
-                                          Object {
+                                          {
                                             "color": "#24272A",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 16,
@@ -877,7 +881,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 disabled={false}
                                 onPress={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "backgroundColor": "#FFFFFF",
                                     "borderRadius": 4,
@@ -892,7 +896,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessibilityRole="none"
                                   accessible={true}
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "flexDirection": "row",
                                       "padding": 0,
@@ -901,7 +905,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 >
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "flexDirection": "row",
                                       }
@@ -909,10 +913,12 @@ exports[`Network Selector renders correctly 1`] = `
                                   >
                                     <View
                                       style={
-                                        Object {
+                                        {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "marginRight": 16,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -924,17 +930,16 @@ exports[`Network Selector renders correctly 1`] = `
                                         onError={[Function]}
                                         resizeMode="contain"
                                         source={
-                                          Object {
-                                            "default": Object {
+                                          {
+                                            "default": {
                                               "uri": "MockImage",
                                             },
                                           }
                                         }
                                         style={
-                                          Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                          {
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -942,7 +947,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Object {
+                                        {
                                           "alignItems": "flex-start",
                                           "flex": 1,
                                         }
@@ -952,7 +957,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         accessibilityRole="text"
                                         numberOfLines={1}
                                         style={
-                                          Object {
+                                          {
                                             "color": "#24272A",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 16,
@@ -973,7 +978,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 disabled={false}
                                 onPress={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "backgroundColor": "#FFFFFF",
                                     "borderRadius": 4,
@@ -988,7 +993,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessibilityRole="none"
                                   accessible={true}
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "flexDirection": "row",
                                       "padding": 0,
@@ -997,7 +1002,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 >
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "flexDirection": "row",
                                       }
@@ -1005,7 +1010,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   >
                                     <View
                                       style={
-                                        Object {
+                                        {
                                           "alignItems": "center",
                                           "backgroundColor": "#F2F4F6",
                                           "borderRadius": 16,
@@ -1022,7 +1027,7 @@ exports[`Network Selector renders correctly 1`] = `
                                       <Text
                                         accessibilityRole="text"
                                         style={
-                                          Object {
+                                          {
                                             "color": "#24272A",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 16,
@@ -1037,7 +1042,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Object {
+                                        {
                                           "alignItems": "flex-start",
                                           "flex": 1,
                                         }
@@ -1047,7 +1052,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         accessibilityRole="text"
                                         numberOfLines={1}
                                         style={
-                                          Object {
+                                          {
                                             "color": "#24272A",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 16,
@@ -1066,7 +1071,7 @@ exports[`Network Selector renders correctly 1`] = `
                               </TouchableOpacity>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flexDirection": "row",
                                     "justifyContent": "space-between",
@@ -1078,7 +1083,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#535A61",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 16,
@@ -1098,12 +1103,12 @@ exports[`Network Selector renders correctly 1`] = `
                                   onStartShouldSetResponder={[Function]}
                                   onTintColor="#0376C9"
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "height": 31,
                                         "width": 51,
                                       },
-                                      Object {
+                                      {
                                         "backgroundColor": "#D6D9DC",
                                         "borderRadius": 16,
                                       },
@@ -1125,7 +1130,7 @@ exports[`Network Selector renders correctly 1`] = `
                             onPressIn={[Function]}
                             onPressOut={[Function]}
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
                                 "backgroundColor": "transparent",
@@ -1146,7 +1151,7 @@ exports[`Network Selector renders correctly 1`] = `
                             <Text
                               accessibilityRole="text"
                               style={
-                                Object {
+                                {
                                   "color": "#0376C9",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,

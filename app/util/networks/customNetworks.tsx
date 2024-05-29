@@ -41,7 +41,7 @@ const PopularList = [
   },
   {
     chainId: toHex('8453'),
-    nickname: 'Base Mainnet',
+    nickname: 'Base',
     rpcUrl: `https://mainnet.base.org`,
     ticker: 'ETH',
     warning: true,
@@ -60,6 +60,17 @@ const PopularList = [
       blockExplorerUrl: 'https://optimistic.etherscan.io',
       imageUrl: 'OPTIMISM',
       imageSource: require('../../images/optimism.png'),
+    },
+  },
+  {
+    chainId: toHex('11297108109'),
+    nickname: 'Palm',
+    rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
+    ticker: 'PALM',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explorer.palm.io',
+      imageUrl: 'PALM',
+      imageSource: require('../../images/palm.png'),
     },
   },
   {

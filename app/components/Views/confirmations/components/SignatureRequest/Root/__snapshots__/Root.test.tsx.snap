@@ -5,8 +5,11 @@ exports[`Root should match snapshot 1`] = `null`;
 exports[`Root should render correctly 1`] = `
 <ContextProvider
   value={
-    Object {
-      "store": Object {
+    {
+      "getServerState": undefined,
+      "noopCheck": "once",
+      "stabilityCheck": "once",
+      "store": {
         "clearActions": [Function],
         "dispatch": [Function],
         "getActions": [Function],
@@ -14,42 +17,34 @@ exports[`Root should render correctly 1`] = `
         "replaceReducer": [Function],
         "subscribe": [Function],
       },
-      "subscription": Subscription {
+      "subscription": {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
         "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
       },
     }
   }
 >
   <ContextProvider
     value={
-      Object {
-        "brandColors": Object {
-          "black": Object {
+      {
+        "brandColors": {
+          "black": {
             "000": "#000000",
           },
-          "white": Object {
+          "white": {
             "000": "#FFFFFF",
           },
-          "yellow": Object {
+          "yellow": {
             "500": "#ffd33d",
           },
         },
-        "colors": Object {
-          "background": Object {
+        "colors": {
+          "background": {
             "alternative": "#F2F4F6",
             "alternativeHover": "#EDEFF1",
             "alternativePressed": "#DFE0E2",
@@ -59,11 +54,11 @@ exports[`Root should render correctly 1`] = `
             "hover": "#00000005",
             "pressed": "#00000014",
           },
-          "border": Object {
+          "border": {
             "default": "#BBC0C5",
             "muted": "#D6D9DC",
           },
-          "error": Object {
+          "error": {
             "alternative": "#B92534",
             "default": "#D73847",
             "defaultHover": "#CD4250",
@@ -73,42 +68,42 @@ exports[`Root should render correctly 1`] = `
             "muted": "#D7384719",
             "shadow": "#D7384766",
           },
-          "flask": Object {
+          "flask": {
             "default": "#8B45B6",
             "inverse": "#FCFCFC",
           },
-          "icon": Object {
+          "icon": {
             "alternative": "#6A737D",
             "default": "#24272A",
             "muted": "#BBC0C5",
           },
-          "info": Object {
+          "info": {
             "alternative": "#0260A4",
             "default": "#0376C9",
             "disabled": "#0376C980",
             "inverse": "#FFFFFF",
             "muted": "#0376C919",
           },
-          "networks": Object {
-            "goerli": Object {
+          "networks": {
+            "goerli": {
               "default": "#1098FC",
               "inverse": "#FCFCFC",
             },
-            "localhost": Object {
+            "localhost": {
               "default": "#BBC0C5",
               "inverse": "#FCFCFC",
             },
-            "sepolia": Object {
+            "sepolia": {
               "default": "#CFB5F0",
               "inverse": "#FCFCFC",
             },
           },
-          "overlay": Object {
+          "overlay": {
             "alternative": "#000000CC",
             "default": "#00000099",
             "inverse": "#FCFCFC",
           },
-          "primary": Object {
+          "primary": {
             "alternative": "#0260A4",
             "default": "#0376C9",
             "defaultHover": "#0379CE",
@@ -118,17 +113,17 @@ exports[`Root should render correctly 1`] = `
             "muted": "#0376C919",
             "shadow": "#0376C933",
           },
-          "secondary": Object {
+          "secondary": {
             "alternative": "#BF5208",
             "default": "#F66A0A",
             "disabled": "#F66A0A80",
             "inverse": "#FCFCFC",
             "muted": "#F66A0A19",
           },
-          "shadow": Object {
+          "shadow": {
             "default": "#0000001A",
           },
-          "success": Object {
+          "success": {
             "alternative": "#1C8234",
             "default": "#1C8234",
             "defaultHover": "#208838",
@@ -137,12 +132,12 @@ exports[`Root should render correctly 1`] = `
             "inverse": "#FFFFFF",
             "muted": "#1C823419",
           },
-          "text": Object {
+          "text": {
             "alternative": "#535A61",
             "default": "#24272A",
             "muted": "#BBC0C5",
           },
-          "warning": Object {
+          "warning": {
             "alternative": "#FFC70A",
             "default": "#BF5208",
             "defaultHover": "#C2540A",
@@ -152,38 +147,38 @@ exports[`Root should render correctly 1`] = `
             "muted": "#BF520819",
           },
         },
-        "shadows": Object {
-          "size": Object {
-            "lg": Object {
+        "shadows": {
+          "size": {
+            "lg": {
               "shadowColor": "#0000001A",
-              "shadowOffset": Object {
+              "shadowOffset": {
                 "height": 2,
                 "width": 0,
               },
               "shadowOpacity": 1,
               "shadowRadius": 40,
             },
-            "md": Object {
+            "md": {
               "shadowColor": "#0000001A",
-              "shadowOffset": Object {
+              "shadowOffset": {
                 "height": 2,
                 "width": 0,
               },
               "shadowOpacity": 1,
               "shadowRadius": 16,
             },
-            "sm": Object {
+            "sm": {
               "shadowColor": "#0000001A",
-              "shadowOffset": Object {
+              "shadowOffset": {
                 "height": 2,
                 "width": 0,
               },
               "shadowOpacity": 1,
               "shadowRadius": 8,
             },
-            "xs": Object {
+            "xs": {
               "shadowColor": "#0000001A",
-              "shadowOffset": Object {
+              "shadowOffset": {
                 "height": 2,
                 "width": 0,
               },
@@ -193,197 +188,197 @@ exports[`Root should render correctly 1`] = `
           },
         },
         "themeAppearance": "light",
-        "typography": Object {
-          "lBodyLGMedium": Object {
+        "typography": {
+          "lBodyLGMedium": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 18,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           },
-          "lBodyMD": Object {
+          "lBodyMD": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           },
-          "lBodyMDBold": Object {
+          "lBodyMDBold": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
             "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
           },
-          "lBodyMDMedium": Object {
+          "lBodyMDMedium": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           },
-          "lBodySM": Object {
+          "lBodySM": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           },
-          "lBodySMBold": Object {
+          "lBodySMBold": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 22,
           },
-          "lBodySMMedium": Object {
+          "lBodySMMedium": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 22,
           },
-          "lBodyXS": Object {
+          "lBodyXS": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0.25,
             "lineHeight": 20,
           },
-          "lBodyXSMedium": Object {
+          "lBodyXSMedium": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
             "fontWeight": "500",
             "letterSpacing": 0.25,
             "lineHeight": 20,
           },
-          "lDisplayMD": Object {
+          "lDisplayMD": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 48,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 56,
           },
-          "lHeadingLG": Object {
+          "lHeadingLG": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 32,
             "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 40,
           },
-          "lHeadingMD": Object {
+          "lHeadingMD": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 24,
             "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 32,
           },
-          "lHeadingSM": Object {
+          "lHeadingSM": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
           },
-          "lHeadingSMRegular": Object {
+          "lHeadingSMRegular": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 18,
             "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           },
-          "sBodyLGMedium": Object {
+          "sBodyLGMedium": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           },
-          "sBodyMD": Object {
+          "sBodyMD": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           },
-          "sBodyMDBold": Object {
+          "sBodyMDBold": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 22,
           },
-          "sBodyMDMedium": Object {
+          "sBodyMDMedium": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 22,
           },
-          "sBodySM": Object {
+          "sBodySM": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 20,
           },
-          "sBodySMBold": Object {
+          "sBodySMBold": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 20,
           },
-          "sBodySMMedium": Object {
+          "sBodySMMedium": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 20,
           },
-          "sBodyXS": Object {
+          "sBodyXS": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 10,
             "fontWeight": "400",
             "letterSpacing": 0.25,
             "lineHeight": 16,
           },
-          "sBodyXSMedium": Object {
+          "sBodyXSMedium": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 10,
             "fontWeight": "500",
             "letterSpacing": 0.25,
             "lineHeight": 16,
           },
-          "sDisplayMD": Object {
+          "sDisplayMD": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 32,
             "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 40,
           },
-          "sHeadingLG": Object {
+          "sHeadingLG": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 24,
             "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 32,
           },
-          "sHeadingMD": Object {
+          "sHeadingMD": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
           },
-          "sHeadingSM": Object {
+          "sHeadingSM": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
             "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
           },
-          "sHeadingSMRegular": Object {
+          "sHeadingSMRegular": {
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
             "fontWeight": "400",

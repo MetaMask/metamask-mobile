@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
-import ActionSheet from 'react-native-actionsheet';
+import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import {
   renderFromTokenMinimalUnit,
@@ -29,7 +29,6 @@ import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
 import {
   getDecimalChainId,
-  getNetworkNameFromProviderConfig,
   getTestNetImageByChainId,
   isLineaMainnetByChainId,
   isMainnetByChainId,
@@ -42,9 +41,11 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectNetworkName } from '../../../selectors/networkInfos';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import { BadgeVariant } from '../../../component-library/components/Badges/Badge/Badge.types';
@@ -65,7 +66,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
-import { EngineState } from '../../../selectors/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
 import SkeletonText from '../Ramp/components/SkeletonText';
@@ -96,7 +96,7 @@ import { selectDetectedTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import useIsOriginalNativeTokenSymbol from '../../UI/Ramp/hooks/useIsOriginalNativeTokenSymbol';
+import useIsOriginalNativeTokenSymbol from '../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import ButtonIcon, {
   ButtonIconVariants,
 } from '../../../../app/component-library/components/Buttons/ButtonIcon';
@@ -118,13 +118,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const actionSheet = useRef<ActionSheet>();
 
-  const networkName = useSelector((state: EngineState) => {
-    const providerConfig = selectProviderConfig(state);
-    return getNetworkNameFromProviderConfig(providerConfig);
-  });
+  const networkName = useSelector(selectNetworkName);
   const { type, rpcUrl } = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
+  const networkClientId = useSelector(selectNetworkClientId);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const primaryCurrency = useSelector(
@@ -160,7 +158,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const goToNetworkEdit = () => {
     navigation.navigate(Routes.ADD_NETWORK, {
       network: rpcUrl,
-      isEdit: true,
     });
 
     setShowScamWarningModal(false);
@@ -562,7 +559,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const actions = [
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
-        CurrencyRateController.start(),
+        CurrencyRateController.startPollingByNetworkClientId(networkClientId),
         TokenRatesController.updateExchangeRates(),
       ];
       await Promise.all(actions).catch((error) => {
@@ -582,6 +579,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     } else {
       total = balance?.tokenFiat ?? 0;
     }
+
     const fiatBalance = `${renderFiat(total, currentCurrency)}`;
 
     const onOpenPortfolio = () => {

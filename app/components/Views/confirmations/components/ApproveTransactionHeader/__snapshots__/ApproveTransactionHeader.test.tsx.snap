@@ -3,7 +3,7 @@
 exports[`ApproveTransactionHeader should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "justifyContent": "center",
     }
@@ -11,7 +11,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "alignSelf": "center",
         "backgroundColor": "#FFFFFF",
@@ -29,7 +29,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "backgroundColor": "#FFFFFF",
           "borderRadius": 16,
           "height": 24,
@@ -42,9 +42,9 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       <Image
         onError={[Function]}
         resizeMode="contain"
-        source={Object {}}
+        source={{}}
         style={
-          Object {
+          {
             "flex": 1,
             "height": undefined,
             "width": undefined,
@@ -56,7 +56,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
+        {
           "color": "#535A61",
           "flexShrink": 1,
           "fontFamily": "Euclid Circular B",
@@ -72,7 +72,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
   </View>
   <TouchableOpacity
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "borderColor": "#BBC0C5",
         "borderRadius": 4,
@@ -87,7 +87,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "flex": 1,
           "flexDirection": "row",
           "justifyContent": "space-between",
@@ -97,7 +97,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "flexDirection": "row",
           }
@@ -106,7 +106,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         <View
           onLayout={[Function]}
           style={
-            Object {
+            {
               "alignSelf": "center",
               "marginRight": 8,
               "position": "relative",
@@ -117,7 +117,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           <View>
             <View
               style={
-                Object {
+                {
                   "backgroundColor": "#FFFFFF",
                   "borderRadius": 16,
                   "height": 32,
@@ -129,11 +129,11 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             >
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "overflow": "hidden",
                     },
-                    Object {
+                    {
                       "backgroundColor": "#C7144F",
                       "borderRadius": 16,
                       "height": 32,
@@ -149,12 +149,12 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   focusable={false}
                   height={32}
                   style={
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "transparent",
                         "borderWidth": 0,
                       },
-                      Object {
+                      {
                         "flex": 0,
                         "height": 32,
                         "width": 32,
@@ -163,12 +163,24 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711651}
+                      fill={
+                        {
+                          "payload": 4294711651,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
-                        Array [
+                        [
                           0.46329603511986217,
                           0.8862035792312145,
                           -0.8862035792312145,
@@ -178,7 +190,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                         ]
                       }
                       propList={
-                        Array [
+                        [
                           "fill",
                         ]
                       }
@@ -187,10 +199,15 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4280576225}
+                      fill={
+                        {
+                          "payload": 4280576225,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
-                        Array [
+                        [
                           -0.5778576243835052,
                           0.8161375900801603,
                           -0.8161375900801603,
@@ -200,7 +217,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                         ]
                       }
                       propList={
-                        Array [
+                        [
                           "fill",
                         ]
                       }
@@ -209,10 +226,15 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278407261}
+                      fill={
+                        {
+                          "payload": 4278407261,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
-                        Array [
+                        [
                           0.7046342099635947,
                           -0.7095707365365209,
                           0.7095707365365209,
@@ -222,7 +244,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                         ]
                       }
                       propList={
-                        Array [
+                        [
                           "fill",
                         ]
                       }
@@ -237,7 +259,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           </View>
           <View
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "aspectRatio": 1,
                 "height": 0,
@@ -245,11 +267,11 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                 "position": "absolute",
                 "right": 0,
                 "top": 0,
-                "transform": Array [
-                  Object {
+                "transform": [
+                  {
                     "translateX": 0,
                   },
-                  Object {
+                  {
                     "translateY": -0,
                   },
                 ],
@@ -259,12 +281,13 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             <View
               onLayout={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "aspectRatio": 1,
                   "height": "50%",
                   "justifyContent": "center",
-                  "minHeight": 16,
+                  "maxHeight": 24,
+                  "minHeight": 8,
                   "opacity": 0,
                 }
               }
@@ -272,13 +295,24 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             >
               <View
                 style={
-                  Object {
+                  {
+                    "alignItems": "center",
                     "backgroundColor": "#FFFFFF",
+                    "borderColor": "#FFFFFF",
                     "borderRadius": 16,
+                    "borderWidth": 2,
                     "height": 32,
+                    "justifyContent": "center",
                     "overflow": "hidden",
-                    "transform": Array [
-                      Object {
+                    "shadowColor": "#0000001A",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 1,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
                         "scale": 1,
                       },
                     ],
@@ -290,15 +324,14 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   onError={[Function]}
                   resizeMode="contain"
                   source={
-                    Object {
+                    {
                       "uri": "MockImage",
                     }
                   }
                   style={
-                    Object {
-                      "flex": 1,
-                      "height": undefined,
-                      "width": undefined,
+                    {
+                      "height": 32,
+                      "width": 32,
                     }
                   }
                   testID="network-avatar-image"
@@ -311,7 +344,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 12,
@@ -325,7 +358,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           </Text>
           <View
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
                 "justifyContent": "flex-start",
@@ -335,7 +368,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#24272A",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
@@ -354,7 +387,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 12,
@@ -370,7 +403,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -391,7 +424,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
 exports[`ApproveTransactionHeader should return origin to be null when not present 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "justifyContent": "center",
     }
@@ -399,7 +432,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
 >
   <TouchableOpacity
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "borderColor": "#BBC0C5",
         "borderRadius": 4,
@@ -414,7 +447,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
   >
     <View
       style={
-        Object {
+        {
           "flex": 1,
           "flexDirection": "row",
           "justifyContent": "space-between",
@@ -424,7 +457,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "flexDirection": "row",
           }
@@ -433,7 +466,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
         <View
           onLayout={[Function]}
           style={
-            Object {
+            {
               "alignSelf": "center",
               "marginRight": 8,
               "position": "relative",
@@ -444,7 +477,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           <View>
             <View
               style={
-                Object {
+                {
                   "backgroundColor": "#FFFFFF",
                   "borderRadius": 16,
                   "height": 32,
@@ -456,11 +489,11 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             >
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "overflow": "hidden",
                     },
-                    Object {
+                    {
                       "backgroundColor": "#C7144F",
                       "borderRadius": 16,
                       "height": 32,
@@ -476,12 +509,12 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   focusable={false}
                   height={32}
                   style={
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "transparent",
                         "borderWidth": 0,
                       },
-                      Object {
+                      {
                         "flex": 0,
                         "height": 32,
                         "width": 32,
@@ -490,12 +523,24 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711651}
+                      fill={
+                        {
+                          "payload": 4294711651,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
-                        Array [
+                        [
                           0.46329603511986217,
                           0.8862035792312145,
                           -0.8862035792312145,
@@ -505,7 +550,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                         ]
                       }
                       propList={
-                        Array [
+                        [
                           "fill",
                         ]
                       }
@@ -514,10 +559,15 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4280576225}
+                      fill={
+                        {
+                          "payload": 4280576225,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
-                        Array [
+                        [
                           -0.5778576243835052,
                           0.8161375900801603,
                           -0.8161375900801603,
@@ -527,7 +577,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                         ]
                       }
                       propList={
-                        Array [
+                        [
                           "fill",
                         ]
                       }
@@ -536,10 +586,15 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278407261}
+                      fill={
+                        {
+                          "payload": 4278407261,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
-                        Array [
+                        [
                           0.7046342099635947,
                           -0.7095707365365209,
                           0.7095707365365209,
@@ -549,7 +604,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                         ]
                       }
                       propList={
-                        Array [
+                        [
                           "fill",
                         ]
                       }
@@ -564,7 +619,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           </View>
           <View
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "aspectRatio": 1,
                 "height": 0,
@@ -572,11 +627,11 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                 "position": "absolute",
                 "right": 0,
                 "top": 0,
-                "transform": Array [
-                  Object {
+                "transform": [
+                  {
                     "translateX": 0,
                   },
-                  Object {
+                  {
                     "translateY": -0,
                   },
                 ],
@@ -586,12 +641,13 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             <View
               onLayout={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "aspectRatio": 1,
                   "height": "50%",
                   "justifyContent": "center",
-                  "minHeight": 16,
+                  "maxHeight": 24,
+                  "minHeight": 8,
                   "opacity": 0,
                 }
               }
@@ -599,13 +655,24 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             >
               <View
                 style={
-                  Object {
+                  {
+                    "alignItems": "center",
                     "backgroundColor": "#FFFFFF",
+                    "borderColor": "#FFFFFF",
                     "borderRadius": 16,
+                    "borderWidth": 2,
                     "height": 32,
+                    "justifyContent": "center",
                     "overflow": "hidden",
-                    "transform": Array [
-                      Object {
+                    "shadowColor": "#0000001A",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 1,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
                         "scale": 1,
                       },
                     ],
@@ -617,15 +684,14 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   onError={[Function]}
                   resizeMode="contain"
                   source={
-                    Object {
+                    {
                       "uri": "MockImage",
                     }
                   }
                   style={
-                    Object {
-                      "flex": 1,
-                      "height": undefined,
-                      "width": undefined,
+                    {
+                      "height": 32,
+                      "width": 32,
                     }
                   }
                   testID="network-avatar-image"
@@ -638,7 +704,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 12,
@@ -652,7 +718,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           </Text>
           <View
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
                 "justifyContent": "flex-start",
@@ -662,7 +728,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#24272A",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
@@ -681,7 +747,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 12,
@@ -697,7 +763,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,

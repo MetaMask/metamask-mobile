@@ -4,7 +4,7 @@ exports[`FadeView should render correctly 1`] = `
 <View
   collapsable={false}
   style={
-    Object {
+    {
       "opacity": 1,
     }
   }

@@ -4,7 +4,7 @@ exports[`WebviewProgressBar should render correctly 1`] = `
 <View
   collapsable={false}
   style={
-    Object {
+    {
       "opacity": 1,
     }
   }
@@ -13,7 +13,7 @@ exports[`WebviewProgressBar should render correctly 1`] = `
   <View
     animated={true}
     animationConfig={
-      Object {
+      {
         "bounciness": 0,
       }
     }
@@ -22,8 +22,8 @@ exports[`WebviewProgressBar should render correctly 1`] = `
     onLayout={[Function]}
     progress={0}
     style={
-      Array [
-        Object {
+      [
+        {
           "backgroundColor": undefined,
           "borderColor": "#0376C9",
           "borderRadius": 0,
@@ -39,17 +39,17 @@ exports[`WebviewProgressBar should render correctly 1`] = `
     <View
       collapsable={false}
       style={
-        Object {
+        {
           "backgroundColor": "#0376C9",
           "height": 3,
-          "transform": Array [
-            Object {
+          "transform": [
+            {
               "translateX": -0,
             },
-            Object {
+            {
               "translateX": -0,
             },
-            Object {
+            {
               "scaleX": 0.0001,
             },
           ],

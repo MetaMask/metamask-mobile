@@ -18,10 +18,10 @@
     }
   },
   "AccountsController": {
-     "internalAccounts": {
-       "accounts": {},
-       "selectedAccount": ""
-     }
+    "internalAccounts": {
+      "accounts": {},
+      "selectedAccount": ""
+    }
   },
   "AddressBookController": {
     "addressBook": {}
@@ -54,13 +54,14 @@
   },
 
   "CurrencyRateController": {
-    "conversionDate": 0,
-    "conversionRate": 0,
     "currentCurrency": "usd",
-    "nativeCurrency": "ETH",
-    "pendingCurrentCurrency": null,
-    "pendingNativeCurrency": null,
-    "usdConversionRate": null
+    "currencyRates": {
+      "ETH": {
+        "conversionDate": 0,
+        "conversionRate": 0,
+        "usdConversionRate": null
+      }
+    }
   },
   "NetworkController": {
     "networkConfigurations": {},
@@ -70,7 +71,7 @@
       "ticker": "ETH"
     },
     "networksMetadata": {
-      "mainnet":{  "EIPS": {},"status": "unknown"}
+      "mainnet": { "EIPS": {}, "status": "unknown" }
     },
     "selectedNetworkClientId": "mainnet"
   },
@@ -118,7 +119,8 @@
       "0x505": true,
       "0x64": true
     },
-    "isIpfsGatewayEnabled": true
+    "isIpfsGatewayEnabled": true,
+    "smartTransactionsOptInStatus": false
   },
   "TokenBalancesController": {
     "contractBalances": {}
@@ -132,6 +134,11 @@
     "methodData": {},
     "submitHistory": [],
     "transactions": []
+  },
+  "SmartTransactionsController": {
+    "smartTransactionsState": {
+      "liveness": true
+    }
   },
   "SnapController": {
     "snapStates": {},

@@ -35,6 +35,6 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
     await WalletView.tapOnToken(CustomNetworks.Sepolia.providerConfig.ticker);
     await TokenOverview.isVisible();
     await TokenOverview.ChartNotVisible();
-    await TokenOverview.TokenQuoteIsNotZero();
+    await TokenOverview.TokenQuoteIsZero();
   });
 });

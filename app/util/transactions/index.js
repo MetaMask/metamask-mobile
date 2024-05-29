@@ -337,7 +337,11 @@ export async function isCollectibleAddress(address, tokenId) {
  * @returns {string} - Corresponding transaction action key
  */
 export async function getTransactionActionKey(transaction, chainId) {
-  const { transaction: { data, to } = {} } = transaction;
+  // This condition is needed until the transaction reducer be refactored
+  if (!transaction.txParams) {
+    transaction.txParams = transaction.transaction;
+  }
+  const { txParams: { data, to } = {} } = transaction;
   if (!to) return CONTRACT_METHOD_DEPLOY;
   if (to === getSwapsContractAddress(chainId))
     return SWAPS_TRANSACTION_ACTION_KEY;
@@ -384,11 +388,9 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
       currencySymbol = tx.transferInformation.symbol;
     }
 
-    const incoming =
-      safeToChecksumAddress(tx.transaction.to) === selectedAddress;
+    const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
     const selfSent =
-      incoming &&
-      safeToChecksumAddress(tx.transaction.from) === selectedAddress;
+      incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
     return incoming
       ? selfSent
         ? currencySymbol
@@ -503,6 +505,7 @@ export function addAccountTimeFlagFilter(
   );
 }
 
+//Leaving here a comment to re-visit this function since it's probably be possible to deprecate
 export function getNormalizedTxState(state) {
   return state.transaction
     ? { ...state.transaction, ...state.transaction.transaction }
@@ -1438,15 +1441,65 @@ export const minimumTokenAllowance = (tokenDecimals) => {
 };
 
 /**
- *
+ * For a MM Swap tx: Determines if the transaction is an ERC20 approve tx OR the actual swap tx where tokens are transferred
  */
-export const isSwapTransaction = (data, origin, to, chainId) =>
+export const getIsSwapApproveOrSwapTransaction = (
+  data,
+  origin,
+  to,
+  chainId,
+) => {
+  if (!data) {
+    return false;
+  }
+
   // if approval data includes metaswap contract
   // if destination address is metaswap contract
-  origin === process.env.MM_FOX_CODE &&
-  to &&
-  (swapsUtils.isValidContractAddress(chainId, to) ||
-    (data &&
-      data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-      decodeApproveData(data).spenderAddress?.toLowerCase() ===
-        swapsUtils.getSwapsContractAddress(chainId)));
+  return (
+    origin === process.env.MM_FOX_CODE &&
+    to &&
+    (swapsUtils.isValidContractAddress(chainId, to) ||
+      (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
+        decodeApproveData(data).spenderAddress?.toLowerCase() ===
+          swapsUtils.getSwapsContractAddress(chainId)))
+  );
+};
+
+/**
+ * For a MM Swap tx: Determines if the transaction is an ERC20 approve tx
+ */
+export const getIsSwapApproveTransaction = (data, origin, to, chainId) => {
+  if (!data) {
+    return false;
+  }
+
+  const isFromSwaps = origin === process.env.MM_FOX_CODE;
+  const isApproveFunction =
+    data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE;
+  const isSpenderSwapsContract =
+    decodeApproveData(data).spenderAddress?.toLowerCase() ===
+    swapsUtils.getSwapsContractAddress(chainId);
+
+  return isFromSwaps && to && isApproveFunction && isSpenderSwapsContract;
+};
+
+/**
+ * For a MM Swap tx: Determines if the transaction is the actual swap tx where tokens are transferred
+ */
+export const getIsSwapTransaction = (data, origin, to, chainId) => {
+  const isSwapApproveOrSwapTransaction = getIsSwapApproveOrSwapTransaction(
+    data,
+    origin,
+    to,
+    chainId,
+  );
+  const isSwapApprove = getIsSwapApproveTransaction(data, origin, to, chainId);
+
+  return isSwapApproveOrSwapTransaction && !isSwapApprove;
+};
+
+/**
+ * For a MM Swap tx: Determines if the transaction is a native swap
+ */
+export const getIsNativeTokenTransferred = (txParams) =>
+  txParams?.value !== '0x0';

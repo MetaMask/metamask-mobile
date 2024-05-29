@@ -3,7 +3,7 @@
 exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "flex": 1,
     }
@@ -13,12 +13,12 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
   <Image
     resizeMode="contain"
     source={
-      Object {
+      {
         "uri": "MockImage",
       }
     }
     style={
-      Object {
+      {
         "height": 54,
         "overflow": "visible",
       }
@@ -26,7 +26,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
   />
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flexDirection": "row",
         "marginHorizontal": "auto",
@@ -36,8 +36,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
   >
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -46,7 +46,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
           },
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
@@ -61,7 +61,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "fontSize": 16,
           },
           undefined,
@@ -72,7 +72,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "fontSize": 22,
           },
         ]
@@ -82,7 +82,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
     </Text>
     <View
       style={
-        Object {
+        {
           "marginLeft": 20,
         }
       }
@@ -92,15 +92,15 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "marginTop": 30,
       }
     }
   >
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -138,8 +138,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
     </Text>
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -169,7 +169,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "paddingLeft": 7,
           },
         ]
@@ -179,8 +179,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
     </Text>
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -210,7 +210,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "paddingLeft": 7,
           },
         ]
@@ -220,8 +220,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
     </Text>
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -251,7 +251,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "paddingLeft": 7,
           },
         ]
@@ -261,8 +261,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
     </Text>
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -292,7 +292,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "paddingLeft": 7,
           },
         ]
@@ -302,8 +302,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
     </Text>
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -333,7 +333,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "paddingLeft": 7,
           },
         ]
@@ -348,8 +348,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
     <Text
       numerOfLines={2}
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -358,7 +358,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
           },
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
@@ -378,13 +378,13 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "color": "#0376C9",
           },
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "flex": 1,
             "flexWrap": "wrap",
             "marginLeft": 20,
@@ -403,7 +403,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
 exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "flex": 1,
     }
@@ -413,12 +413,12 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
   <Image
     resizeMode="contain"
     source={
-      Object {
+      {
         "uri": "MockImage",
       }
     }
     style={
-      Object {
+      {
         "height": 54,
         "overflow": "visible",
       }
@@ -426,7 +426,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
   />
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flexDirection": "row",
         "marginHorizontal": "auto",
@@ -436,8 +436,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
   >
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -446,7 +446,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
           },
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
@@ -461,7 +461,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "fontSize": 16,
           },
           undefined,
@@ -472,7 +472,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "fontSize": 22,
           },
         ]
@@ -482,7 +482,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
     </Text>
     <View
       style={
-        Object {
+        {
           "marginLeft": 20,
         }
       }
@@ -492,15 +492,15 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "marginTop": 30,
       }
     }
   >
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -538,8 +538,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
     </Text>
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -569,7 +569,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "paddingLeft": 7,
           },
         ]
@@ -579,8 +579,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
     </Text>
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -610,7 +610,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "paddingLeft": 7,
           },
         ]
@@ -620,8 +620,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
     </Text>
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -651,7 +651,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "paddingLeft": 7,
           },
         ]
@@ -661,8 +661,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
     </Text>
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -692,7 +692,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "paddingLeft": 7,
           },
         ]
@@ -702,8 +702,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
     </Text>
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -733,7 +733,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "paddingLeft": 7,
           },
         ]
@@ -748,8 +748,8 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
     <Text
       numerOfLines={2}
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -758,7 +758,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
           },
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
@@ -778,13 +778,13 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "color": "#0376C9",
           },
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "flex": 1,
             "flexWrap": "wrap",
             "marginLeft": 20,

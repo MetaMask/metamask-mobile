@@ -56,7 +56,6 @@ import { providerErrors } from '@metamask/rpc-errors';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectNativeCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
@@ -698,7 +697,7 @@ class Transactions extends PureComponent {
             contentContainerStyle={styles.keyboardAwareWrapper}
           >
             <UpdateEIP1559Tx
-              gas={this.existingTx.transaction.gas}
+              gas={this.existingTx.txParams.gas}
               onSave={
                 isCancel ? this.cancelTransaction : this.speedUpTransaction
               }
@@ -743,9 +742,12 @@ class Transactions extends PureComponent {
     const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
+
     const transactions =
       submittedTransactions && submittedTransactions.length
-        ? submittedTransactions.concat(confirmedTransactions)
+        ? submittedTransactions
+            .sort((a, b) => b.time - a.time)
+            .concat(confirmedTransactions)
         : this.props.transactions;
 
     const renderSpeedUpGas = () => {
@@ -864,7 +866,6 @@ const mapStateToProps = (state) => ({
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  nativeCurrency: selectNativeCurrency(state),
   selectedAddress: selectSelectedAddress(state),
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
