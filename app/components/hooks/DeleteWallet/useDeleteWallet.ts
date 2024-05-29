@@ -5,9 +5,10 @@ import { EXISTING_USER } from '../../../constants/storage';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { resetVaultBackup } from '../../../core/BackupVault/backupVault';
-import { MetaMetrics } from '../../../core/Analytics';
+import { useMetrics } from '../useMetrics';
 
 const useDeleteWallet = () => {
+  const metrics = useMetrics();
   const resetWalletState = useCallback(async () => {
     try {
       await Authentication.newWalletAndKeychain(`${Date.now()}`, {
@@ -22,7 +23,6 @@ const useDeleteWallet = () => {
   }, []);
 
   const deleteUser = useCallback(async () => {
-    const metrics = MetaMetrics.getInstance();
     try {
       await AsyncStorage.removeItem(EXISTING_USER);
       await metrics.createDataDeletionTask();
