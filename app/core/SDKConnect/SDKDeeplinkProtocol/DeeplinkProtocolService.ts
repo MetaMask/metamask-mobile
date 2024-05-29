@@ -25,17 +25,17 @@ import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
 
 export default class DeeplinkProtocolService {
-  private connections: DappConnections = {};
-  private bridgeByClientId: { [clientId: string]: BackgroundBridge } = {};
-  private rpcQueueManager = new RPCQueueManager();
-  private batchRPCManager: BatchRPCManager = new BatchRPCManager('deeplink');
+  public connections: DappConnections = {};
+  public bridgeByClientId: { [clientId: string]: BackgroundBridge } = {};
+  public rpcQueueManager = new RPCQueueManager();
+  public batchRPCManager: BatchRPCManager = new BatchRPCManager('deeplink');
   // To keep track in order to get the associated bridge to handle batch rpc calls
-  private currentClientId?: string;
-  private dappPublicKeyByClientId: {
+  public currentClientId?: string;
+  public dappPublicKeyByClientId: {
     [clientId: string]: string;
   } = {};
 
-  private isInitialized = false;
+  public isInitialized = false;
 
   public constructor() {
     if (!this.isInitialized) {
@@ -51,7 +51,7 @@ export default class DeeplinkProtocolService {
     }
   }
 
-  private async init() {
+  public async init() {
     if (this.isInitialized) {
       return;
     }
@@ -75,7 +75,7 @@ export default class DeeplinkProtocolService {
     }
   }
 
-  private setupBridge(clientInfo: DappClient) {
+  public setupBridge(clientInfo: DappClient) {
     DevLogger.log(
       `DeeplinkProtocolService::setupBridge for id=${
         clientInfo.clientId
@@ -213,7 +213,7 @@ export default class DeeplinkProtocolService {
     }
   }
 
-  private async openDeeplink({
+  public async openDeeplink({
     message,
     clientId,
     scheme,
@@ -248,7 +248,7 @@ export default class DeeplinkProtocolService {
     }
   }
 
-  private async checkPermission({
+  public async checkPermission({
     channelId,
   }: {
     originatorInfo: OriginatorInfo;
@@ -454,7 +454,7 @@ export default class DeeplinkProtocolService {
     });
   }
 
-  private async processDappRpcRequest(params: {
+  public async processDappRpcRequest(params: {
     dappPublicKey: string;
     url: string;
     scheme: string;
@@ -528,7 +528,8 @@ export default class DeeplinkProtocolService {
       Engine.context as { PreferencesController: PreferencesController }
     ).PreferencesController;
 
-    const selectedAddress = preferencesController.state.selectedAddress;
+    const selectedAddress =
+      preferencesController.state.selectedAddress?.toLowerCase();
 
     let connectedAddresses = permissions?.eth_accounts?.caveats?.[0]
       ?.value as string[];
@@ -542,14 +543,21 @@ export default class DeeplinkProtocolService {
       return [];
     }
 
-    const isPartOfConnectedAddresses =
-      connectedAddresses.includes(selectedAddress);
+    const lowerCaseConnectedAddresses = connectedAddresses.map((address) =>
+      address.toLowerCase(),
+    );
+
+    const isPartOfConnectedAddresses = lowerCaseConnectedAddresses.includes(
+      selectedAddress.toLowerCase(),
+    );
 
     if (isPartOfConnectedAddresses) {
       // Create a new array with selectedAddress at the first position
       connectedAddresses = [
         selectedAddress,
-        ...connectedAddresses.filter((address) => address !== selectedAddress),
+        ...connectedAddresses.filter(
+          (address) => address.toLowerCase() !== selectedAddress.toLowerCase(),
+        ),
       ];
     }
 
@@ -581,11 +589,22 @@ export default class DeeplinkProtocolService {
     scheme: string;
     account: string; // account@chainid
   }) {
-    const account = params.account.split('@');
-    const walletSelectedAddress = this.getSelectedAddress();
-    const walletSelectedChainId = this.getChainId();
-    const dappAccountChainId = account[1];
-    const dappAccountAddress = account[0];
+    let walletSelectedAddress = '';
+    let walletSelectedChainId = '';
+    let dappAccountChainId = '';
+    let dappAccountAddress = '';
+
+    if (!params.account?.includes('@')) {
+      DevLogger.log(
+        `DeeplinkProtocolService:: handleMessage invalid params.account format ${params.account}`,
+      );
+    } else {
+      const account = params.account.split('@');
+      walletSelectedAddress = this.getSelectedAddress();
+      walletSelectedChainId = this.getChainId();
+      dappAccountChainId = account[1];
+      dappAccountAddress = account[0];
+    }
 
     DevLogger.log(
       'DeeplinkProtocolService:: handleMessage params from deeplink',
