@@ -51,3 +51,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ./scripts/create-release-pr.sh ${{ github.event.inputs.semver-version }}
+          
