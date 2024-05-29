@@ -508,8 +508,8 @@ workflows:
       - android_e2e_test
   android_e2e_build:
     before_run:
-      - set_commit_hash
       - code_setup
+      - set_commit_hash
     after_run:
       - notify_failure
     steps:
@@ -687,8 +687,8 @@ workflows:
         stack: linux-docker-android-20.04
   ios_e2e_build:
     before_run:
-      - set_commit_hash
       - code_setup
+      - set_commit_hash
     after_run:
       - notify_failure
     steps:
