@@ -39,6 +39,10 @@ export default function BasicFunctionalityComponent({
       </View>
       <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {strings('default_settings.functionality_body')}
+        <Text color={TextColor.Info} onPress={handleLink}>
+          {strings('default_settings.privacy_policy')}
+        </Text>
+        {strings('default_settings.functionality_body2')}
       </Text>
     </View>
   );
