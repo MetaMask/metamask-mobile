@@ -364,6 +364,19 @@
   "receive": {
     "title": "Receive"
   },
+  "experience_enhancer_modal": {
+    "title": "Help us enhance your experience",
+    "paragraph1a": "In addition to ",
+    "paragraph1b": ", we'd like to use data (like information from cookies) to learn how you interact with our marketing communications.",
+    "link": "MetaMetrics",
+    "paragraph2": "This helps us personalize what we share with you, like:",
+    "bullet1": "Latest developments",
+    "bullet2": "Product features",
+    "bullet3": "Other relevant promotional materials",
+    "footer": "Remember, we never sell the data you provide and you can opt out any time.",
+    "accept": "I agree",
+    "cancel": "No thanks"
+  },
   "wallet": {
     "title": "Wallet",
     "tokens": "Tokens",
@@ -507,6 +520,7 @@
     "description_title": "Help us improve MetaMask",
     "description_content_1": "We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.",
     "description_content_2": "When we gather metrics, it will always be...",
+    "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relavent news (like product features).",
     "action_description_1_prefix": "Private:",
     "action_description_2_prefix": "General:",
     "action_description_3_prefix": "Optional:",
@@ -655,6 +669,10 @@
     "purpose_sign": "confirm the transaction",
     "select_accounts": "Select an Account",
     "please_wait": "Please wait"
+  },
+  "data_collection_modal": {
+    "accept": "Okay",
+    "content": "You turned off data collection for our marketing purposes. This only applies to this device. If you use MetaMask on other devices, make sure to opt out there as well."
   },
   "account_selector": {
     "prev": "PREV",
@@ -827,7 +845,9 @@
     "clear_history_desc": "Choose this option to clear your entire browsing history.",
     "clear_cookies_desc": "Choose this option to clear your browser's cookies.",
     "metametrics_title": "Participate in MetaMetrics",
-    "metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
+    "metametrics_description": "Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.",
+    "data_collection_title": "Data collection for marketing",
+    "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
     "batch_balance_requests_title": "Batch account balance requests",
     "batch_balance_requests_description": "We batch accounts and query Infura to responsively show your balances. If you turn this off, only active accounts will be queried. Some dApps won’t work unless you connect your wallet.",
     "third_party_title": "Get incoming transactions",
