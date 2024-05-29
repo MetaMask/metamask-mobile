@@ -207,44 +207,6 @@ const Wallet = ({
     currentToast,
   ]);
 
-  const currentToast = toastRef?.current;
-
-  useEffect(() => {
-    if (!shouldShowNewPrivacyToast) return;
-
-    storePrivacyPolicyShownDate();
-    currentToast?.showToast({
-      variant: ToastVariants.Plain,
-      labelOptions: [
-        {
-          label: strings(`privacy_policy.toast_message`),
-          isBold: false,
-        },
-      ],
-      closeButtonOptions: {
-        label: strings(`privacy_policy.toast_action_button`),
-        onPress: () => {
-          storePrivacyPolicyClickedOrClosed();
-          currentToast?.closeToast();
-        },
-      },
-      linkButtonOptions: {
-        label: strings(`privacy_policy.toast_read_more`),
-        onPress: () => {
-          storePrivacyPolicyClickedOrClosed();
-          currentToast?.closeToast();
-          Linking.openURL(CONSENSYS_PRIVACY_POLICY);
-        },
-      },
-      hasNoTimeout: true,
-    });
-  }, [
-    storePrivacyPolicyShownDate,
-    shouldShowNewPrivacyToast,
-    storePrivacyPolicyClickedOrClosed,
-    currentToast,
-  ]);
-
   /**
    * Network onboarding state
    */
