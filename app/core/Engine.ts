@@ -133,6 +133,7 @@ import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import {
   isMainnetByChainId,
   fetchEstimatedMultiLayerL1Fee,
+  isTestNet,
   deprecatedGetNetworkId,
   getDecimalChainId,
 } from '../util/networks';
@@ -1208,7 +1209,7 @@ class Engine {
         getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
           assetsContractController,
         ),
-        interval: 10000,
+        interval: 180000,
       }),
       new TokenRatesController({
         onTokensStateChange: (listener) => tokensController.subscribe(listener),
@@ -1497,25 +1498,28 @@ class Engine {
     } = this.context;
     const { selectedAddress } = PreferencesController.state;
     const { currentCurrency } = CurrencyRateController.state;
-    const networkProvider = NetworkController.state.providerConfig;
-    const conversionRate =
-      CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
-        ?.conversionRate ?? 0;
-    const { accountsByChainId } = AccountTrackerController.state;
+    const { chainId, ticker } = NetworkController.state.providerConfig;
+    const {
+      settings: { showFiatOnTestnets },
+    } = store.getState();
 
+    if (isTestNet(chainId) && !showFiatOnTestnets) {
+      return { ethFiat: 0, tokenFiat: 0 };
+    }
+
+    const conversionRate =
+      CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
+      0;
+
+    const { accountsByChainId } = AccountTrackerController.state;
     const { tokens } = TokensController.state;
+
     let ethFiat = 0;
     let tokenFiat = 0;
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-    if (
-      accountsByChainId?.[toHexadecimal(networkProvider.chainId)]?.[
-        selectedAddress
-      ]
-    ) {
+    if (accountsByChainId?.[toHexadecimal(chainId)]?.[selectedAddress]) {
       ethFiat = weiToFiatNumber(
-        accountsByChainId[toHexadecimal(networkProvider.chainId)][
-          selectedAddress
-        ].balance,
+        accountsByChainId[toHexadecimal(chainId)][selectedAddress].balance,
         conversionRate,
         decimalsToShow,
       );

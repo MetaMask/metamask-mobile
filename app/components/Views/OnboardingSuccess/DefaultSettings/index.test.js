@@ -6,7 +6,7 @@ import DefaultSettings from '.';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../../selectors/networkController';
+import { selectNetworkName } from '../../../../selectors/networkInfos';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -29,15 +29,12 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-const mockProviderConfig = {
-  type: 'mainnet',
-  chainId: '1',
-};
+const mockNetworkName = 'Ethereum Main Network';
 
 describe('DefaultSettings', () => {
   it('should render correctly', () => {
     useSelector.mockImplementation((selector) => {
-      if (selector === selectProviderConfig) return mockProviderConfig;
+      if (selector === selectNetworkName) return mockNetworkName;
     });
     const { toJSON } = renderWithProvider(
       <DefaultSettings navigation={useNavigation()} />,

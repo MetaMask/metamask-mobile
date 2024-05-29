@@ -1353,7 +1353,7 @@ app:
       FLASK_VERSION_NAME: 7.22.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1319
+      FLASK_VERSION_NUMBER: 1325
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
