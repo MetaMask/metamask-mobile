@@ -25,12 +25,11 @@ import ambiguousNetworks from './migration-data/amibiguous-networks.json';
  **/
 export default function migrate(state) {
   const keyringControllerState = state.engine.backgroundState.KeyringController;
-// @ts-expect-error We are not returning state not to stop the flow of Vault recovery
+  // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
   if (!isObject(keyringControllerState.vault)) {
     captureException(
-      new Error(
-        `Migration 23: Invalid vault in KeyringController`,
-      ),
+  // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
+      new Error(`Migration 23: Invalid vault in KeyringController: '${typeof keyringControllerState.vault}'`),
     );
   }
 

@@ -10,7 +10,8 @@ export default function migrate(state) {
   // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
   if (!isObject(keyringControllerState.vault)) {
     captureException(
-      new Error(`Migration 26: Invalid vault in KeyringController`),
+  // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
+      new Error(`Migration 26: Invalid vault in KeyringController: '${typeof keyringControllerState.vault}'`),
     );
   }
   const phishingControllerState =
