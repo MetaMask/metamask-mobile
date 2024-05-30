@@ -1,8 +1,7 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": [],
-    "vault": ""
+    "keyrings": []
   },
   "LoggingController": {
     "logs": {}
@@ -205,7 +204,6 @@
     "snaps": {},
     "unencryptedSnapStates": {}
   },
-  "SnapsRegistry": {"database": null, "lastUpdated": null},
   "SubjectMetadataController": {
     "subjectMetadata": {}
   },
@@ -273,26 +271,7 @@
     "approvalFlows": []
   },
   "PermissionController": {
-    "subjects": {
-      "example.com": {
-        "origin": "example.com",
-        "permissions": {
-          "eth_accounts": {
-            "parentCapability": "eth_accounts",
-            "id": "eth_accounts:example.com",
-            "date": 1618846224974,
-            "invoker": "example.com",
-            "caveats": [
-              {
-                "type": "filterResponse",
-                "value": ["0x123...", "0x456..."],
-                "id": "someCaveatId"
-              }
-            ]
-          }
-        }
-      }
-    }
+    "subjects": {}
   },
   "SignatureController": {
     "unapprovedMsgs": {},
