@@ -200,7 +200,7 @@ class ErrorBoundary extends Component {
       view,
       metrics: { trackEvent },
     } = this.props;
-    let analyticsParams = { error: error?.toString(), boundary: view };
+    const analyticsParams = { error: error?.toString(), boundary: view };
     // Organize stack trace
     const stackList = (errorInfo.split('\n') || []).map((stack) =>
       stack.trim(),
