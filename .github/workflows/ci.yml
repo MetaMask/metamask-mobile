@@ -70,7 +70,7 @@ jobs:
       - name: Setup project and install CocoaPods
         run: |
           git config --global advice.detachedHead false
-          BUNDLE_PATH=/${HOME}/.bundle yarn setup --build-ios
+          MALLOC_ARENA_MAX=1 BUNDLE_PATH=/${HOME}/.bundle yarn setup --build-ios
       - name: Print error if not clean
         shell: bash
         run: |
