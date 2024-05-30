@@ -56,19 +56,19 @@ jobs:
     #needs: setup
     steps:
       - uses: actions/checkout@v4
-      - run: |
+      - name: Install CocoaPods dependencies
+        run: |
           sudo apt-get update
           sudo apt-get install -y ruby-rubygems build-essential
           sudo gem install bundler -v 2.5.8
           sudo gem install bigdecimal cocoapods
-          # don't do this at home, kids
-          sudo bundle install
+          BUNDLE_PATH=/${HOME}/.bundle bundle install
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Setup project and install CocoaPods
-        run: yarn setup --build-ios
+        run: BUNDLE_PATH=/${HOME}/.bundle yarn setup --build-ios
       - name: Print error if not clean
         shell: bash
         run: |
