@@ -7,7 +7,7 @@
     "watch": "./scripts/build.sh watcher watch",
     "watch:clean": "./scripts/build.sh watcher clean",
     "clean:ios": "rm -rf ios/build",
-    "pod:install": "bundle exec pod install --project-directory=ios || echo \"Skipping pod install\"",
+    "pod:install": "bundle exec pod install --project-directory=ios",
     "clean:ppom": "rm -rf ppom/dist ppom/node_modules app/lib/ppom/ppom.html.js",
     "clean:android": "rm -rf android/app/build",
     "clean:node": "rm -rf node_modules && yarn --frozen-lockfile",
