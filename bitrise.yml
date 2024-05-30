@@ -185,7 +185,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                BRANCH_COMMIT_HASH=.CommitHash
+                BRANCH_COMMIT_HASH={{ .CommitHash }}
 
                 # if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
                 #   BRANCH_COMMIT_HASH="$(git rev-parse HEAD)"
@@ -199,7 +199,7 @@ workflows:
           title: Persist commit hash across all stages
           inputs:
             - variables: |-
-                BRANCH_COMMIT_HASH=.CommitHash
+                BRANCH_COMMIT_HASH={{ .CommitHash }}
   code_setup:
     before_run:
       - setup
