@@ -134,9 +134,5 @@ const sanitizeMessage = (
 
 export const parseTypedSignDataMessage = (dataToParse: string) => {
   const { message, primaryType, types } = JSON.parse(dataToParse);
-  console.log(
-    '******************',
-    JSON.stringify(sanitizeMessage(message, primaryType, types)),
-  );
   return sanitizeMessage(message, primaryType, types);
 };
