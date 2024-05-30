@@ -22,7 +22,7 @@ const useDeleteWallet = () => {
     }
   }, []);
 
-  const deleteUser = useCallback(async () => {
+  const deleteUser = async () => {
     try {
       await AsyncStorage.removeItem(EXISTING_USER);
       await metrics.createDataDeletionTask();
@@ -30,7 +30,7 @@ const useDeleteWallet = () => {
       const errorMsg = `Failed to remove key: ${EXISTING_USER} from AsyncStorage`;
       Logger.log(error, errorMsg);
     }
-  }, []);
+  };
 
   return [resetWalletState, deleteUser];
 };
