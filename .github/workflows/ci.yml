@@ -51,13 +51,37 @@ jobs:
             echo "Duplicate dependencies detected; run 'yarn deduplicate' to remove them"
             exit 1
           fi
+  lint-podfile:
+    runs-on: ubuntu-22.04
+    #needs: setup
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby-rubygems build-essential
+          sudo gem install bundler -v 2.5.8
+          sudo gem install bigdecimal cocoapods
+          # don't do this at home, kids
+          sudo bundle install
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Setup project and install CocoaPods
+        run: yarn setup --build-ios
+      - name: Print error if not clean
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Podfile changes detected; run 'yarn setup && yarn pod:install' to sync."
+            exit 1
+          fi
   scripts:
     runs-on: ubuntu-20.04
     needs: setup
     strategy:
       matrix:
         scripts:
-          - pod:install
           - lint
           - lint:tsc
           - audit:ci
@@ -70,7 +94,6 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - run: yarn setup:node
-        run: apt install -y bundler
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
@@ -187,6 +210,6 @@ jobs:
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
-    needs: [setup, dedupe, scripts, unit-tests, check-workflows, sonar-cloud]
+    needs: [setup, dedupe, lint-podfile, scripts, unit-tests, check-workflows, sonar-cloud]
     steps:
       - run: echo "Great success!"
