@@ -7,10 +7,10 @@ on:
         description: 'Target branch name to merge the cherry-picked branch into'
         required: true
       commit_hash:
-        description: 'Commit Hash'     
+        description: 'Commit Hash'
         required: true
       PR_number:
-        description: 'PR # Associated with Cherry Pick'     
+        description: 'PR # Associated with Cherry Pick'
         required: true
 jobs:
   cherry-pick:
@@ -21,7 +21,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ vars.GITHUB_REF }}
           fetch-depth: 0
           token: ${{ secrets.BUG_REPORT_TOKEN }}
       - name: Get Node.js version
