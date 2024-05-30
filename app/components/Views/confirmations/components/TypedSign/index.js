@@ -9,7 +9,10 @@ import Device from '../../../../../util/device';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
-import sanitizeString from '../../../../../util/string';
+import {
+  parseTypedSignDataMessage,
+  sanitizeString,
+} from '../../../../../util/string';
 
 import {
   addSignatureErrorListener,
@@ -180,7 +183,6 @@ class TypedSign extends PureComponent {
 
   renderTypedMessageV3 = (obj) => {
     const styles = this.getStyles();
-
     return Object.keys(obj).map((key) => (
       <View style={styles.message} key={key}>
         {obj[key] && typeof obj[key] === 'object' ? (
@@ -221,7 +223,7 @@ class TypedSign extends PureComponent {
       );
     }
     if (messageParams.version === 'V3' || messageParams.version === 'V4') {
-      const { message } = JSON.parse(messageParams.data);
+      const message = parseTypedSignDataMessage(messageParams.data);
       return this.renderTypedMessageV3(message);
     }
   };
