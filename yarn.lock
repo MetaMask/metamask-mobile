@@ -20612,10 +20612,10 @@ listr2@^3.2.2:
     through "^2.3.8"
     wrap-ansi "^7.0.0"
 
-listr2@^8.0.2:
-  version "8.0.2"
-  resolved "https://registry.yarnpkg.com/listr2/-/listr2-8.0.2.tgz#07649d1f93ee28c9922c0fca64eaf348b7e4a6b7"
-  integrity sha512-v5jEMOeEJUpRjSXSB4U3w5A3YPmURYMUO/86f1PA4GGYcdbUQYpkbvKYT7Xaq1iu4Zjn51Rv1UeD1zsBXRijiQ==
+listr2@^8.2.1:
+  version "8.2.1"
+  resolved "https://registry.yarnpkg.com/listr2/-/listr2-8.2.1.tgz#06a1a6efe85f23c5324180d7c1ddbd96b5eefd6d"
+  integrity sha512-irTfvpib/rNiD637xeevjO2l3Z5loZmuaRi0L0YE5LfijwVY96oyVn0DFD3o/teAok7nfobMG1THvvcHh/BP6g==
   dependencies:
     cli-truncate "^4.0.0"
     colorette "^2.0.20"
