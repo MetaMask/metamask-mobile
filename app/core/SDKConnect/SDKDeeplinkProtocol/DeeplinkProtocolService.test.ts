@@ -194,6 +194,40 @@ describe('DeeplinkProtocolService', () => {
         ),
       );
     });
+
+    it('should handle non-final batch RPC response and error in message data', async () => {
+      const mockChainRPCs = [{ id: '1' }];
+      const mockMessage = { data: { id: '1', error: new Error('Test error') } };
+      const devLoggerSpy = jest.spyOn(DevLogger, 'log');
+      const openDeeplinkSpy = jest.spyOn(service, 'openDeeplink');
+      service.batchRPCManager.getById = jest
+        .fn()
+        .mockReturnValue(mockChainRPCs);
+      (handleBatchRpcResponse as jest.Mock).mockResolvedValue(false);
+
+      service.currentClientId = 'client1';
+      service.bridgeByClientId.client1 = new BackgroundBridge({
+        webview: null,
+        channelId: 'client1',
+        isMMSDK: true,
+        url: 'test-url',
+        isRemoteConn: true,
+        sendMessage: jest.fn(),
+      } as any);
+
+      service.rpcQueueManager.remove = jest.fn();
+
+      await service.sendMessage(mockMessage, true);
+      expect(devLoggerSpy).toHaveBeenCalledWith(
+        expect.stringContaining('NOT last rpc --- skip goBack()'),
+        mockChainRPCs,
+      );
+      expect(service.rpcQueueManager.remove).toHaveBeenCalledWith('1');
+      expect(openDeeplinkSpy).toHaveBeenCalledWith({
+        message: mockMessage,
+        clientId: 'client1',
+      });
+    });
   });
 
   describe('openDeeplink', () => {
