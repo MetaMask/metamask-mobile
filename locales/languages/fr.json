@@ -365,17 +365,17 @@
     "title": "Recevoir"
   },
   "experience_enhancer_modal": {
-    "title": "Help us enhance your experience",
-    "paragraph1a": "In addition to ",
-    "paragraph1b": ", we'd like to use data (like information from cookies) to learn how you interact with our marketing communications.",
+    "title": "Aidez-nous à améliorer votre expérience",
+    "paragraph1a": "En plus de ",
+    "paragraph1b": ", nous aimerions utiliser des données (comme des informations provenant de cookies) pour savoir comment vous interagissez avec nos communications commerciales.",
     "link": "MetaMetrics",
-    "paragraph2": "This helps us personalize what we share with you, like:",
-    "bullet1": "Latest developments",
-    "bullet2": "Product features",
-    "bullet3": "Other relevant promotional materials",
-    "footer": "Remember, we never sell the data you provide and you can opt out any time.",
-    "accept": "I agree",
-    "cancel": "No thanks"
+    "paragraph2": "Cela nous aide à personnaliser les informations que nous partageons avec vous, comme :",
+    "bullet1": "Dernières avancées",
+    "bullet2": "Caractéristiques du produit",
+    "bullet3": "Autres matériels promotionnels pertinents",
+    "footer": "N’oubliez pas que nous ne vendons jamais les données que vous nous fournissez et que vous pouvez vous désinscrire à tout moment.",
+    "accept": "J’accepte",
+    "cancel": "Non, merci"
   },
   "wallet": {
     "title": "Portefeuille",
@@ -520,7 +520,7 @@
     "description_title": "Aidez-nous à améliorer MetaMask",
     "description_content_1": "Nous aimerions recueillir des données d’utilisation de base pour améliorer MetaMask. Sachez que nous ne vendrons jamais les informations que vous nous fournissez ici.",
     "description_content_2": "Lorsque nous recueillons des données, elles sont toujours…",
-    "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relavent news (like product features).",
+    "checkbox": "Nous utiliserons ces données pour savoir comment vous interagissez avec nos communications commerciales et pour partager avec vous des informations pertinentes (comme les caractéristiques des produits).",
     "action_description_1_prefix": "Privé :",
     "action_description_2_prefix": "Général :",
     "action_description_3_prefix": "Facultatif :",
@@ -671,8 +671,8 @@
     "please_wait": "Veuillez patienter"
   },
   "data_collection_modal": {
-    "accept": "Okay",
-    "content": "You turned off data collection for our marketing purposes. This only applies to this device. If you use MetaMask on other devices, make sure to opt out there as well."
+    "accept": "OK",
+    "content": "Vous avez désactivé la collecte de données à des fins de marketing. Cela ne s’applique qu’à cet appareil. Si vous utilisez MetaMask sur d’autres appareils, n’oubliez pas de désactiver cette fonctionnalité sur ces appareils aussi."
   },
   "account_selector": {
     "prev": "PRÉCÉDENT",
@@ -845,9 +845,9 @@
     "clear_history_desc": "Choisissez cette option pour effacer l’ensemble de votre historique de navigation.",
     "clear_cookies_desc": "Choisissez cette option pour effacer l’ensemble des cookies de votre navigateur.",
     "metametrics_title": "Participer à MetaMetrics",
-    "metametrics_description": "Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.",
-    "data_collection_title": "Data collection for marketing",
-    "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
+    "metametrics_description": "Autorisez MetaMetrics à collecter des données d’utilisation et de diagnostic de base afin d’améliorer notre produit. Vous pouvez désactiver MetaMetrics pour cet appareil.",
+    "data_collection_title": "Collecte de données à des fins de marketing",
+    "data_collection_description": "Nous utiliserons MetaMetrics pour savoir comment vous interagissez avec nos communications commerciales et pour partager avec vous des informations pertinentes (comme les caractéristiques des produits et d’autres contenus).",
     "batch_balance_requests_title": "Demandes d’informations concernant le solde de plusieurs comptes",
     "batch_balance_requests_description": "Nous regroupons vos comptes et demandons à Infura de fournir des informations sur le solde de chacun de vos comptes. Si vous désactivez cette fonction, Infura ne fournira que des informations sur le solde des comptes actifs. Certaines applications décentralisées (dApps) ne fonctionneront pas si vous ne connectez pas votre portefeuille.",
     "third_party_title": "Obtenir les transactions entrantes",
@@ -888,6 +888,13 @@
     "delete": "Supprimer",
     "network_exists": "Ce réseau a déjà été ajouté.",
     "delete_metrics_title": "Supprimer les données MetaMetrics",
+    "delete_metrics_description_part_one": "Cela supprimera l’historique des données",
+    "delete_metrics_description_part_two": "MetaMetrics",
+    "delete_metrics_description_part_three": "associées à votre portefeuille.",
+    "delete_metrics_description_before_delete": "Votre portefeuille et vos comptes resteront exactement tels qu’ils sont maintenant après la suppression de ces données. Ce processus peut prendre jusqu’à 30 jours. Veuillez consulter notre",
+    "delete_metrics_description_after_delete_part_one": "Vous avez entrepris cette action le",
+    "delete_metrics_description_after_delete_part_two": ". Ce processus peut prendre jusqu’à 30 jours. Veuillez consulter notre",
+    "delete_metrics_description_privacy_policy": "Politique de confidentialité.",
     "delete_metrics_button": "Supprimer les données MetaMetrics",
     "check_status_button": "Vérifier l’état",
     "delete_metrics_confirm_modal_title": "Voulez-vous supprimer les données MetaMetrics ?",
@@ -1906,11 +1913,11 @@
     "swap_completed": "A échangé {{from}} contre {{to}}",
     "sent": "Envoyée à {{address}}",
     "received": "Reçue de {{address}}",
-    "nft_sent": "Sent NFT to {{address}}",
-    "erc721_sent": "Sent NFT to {{address}}",
-    "erc1155_sent": "Sent NFT to {{address}}",
-    "erc721_received": "Received NFT from {{address}}",
-    "erc1155_received": "Received NFT from {{address}}",
+    "nft_sent": "A envoyé un NFT à {{address}}",
+    "erc721_sent": "A envoyé un NFT à {{address}}",
+    "erc1155_sent": "A envoyé un NFT à {{address}}",
+    "erc721_received": "A reçu un NFT de {{address}}",
+    "erc1155_received": "A reçu un NFT de {{address}}",
     "received_nft": "A reçu un NFT de {{address}}",
     "pending_title": "Transaction soumise",
     "pending_deposit_title": "Dépôt en cours !",
@@ -2110,7 +2117,7 @@
     "limited_time": "durée limitée",
     "supported_countries": "Pays acceptés",
     "no_countries_result": "Aucun pays accepté ne correspond à « {{searchString}} »",
-    "wyre_loading_rates": " ",
+    "wyre_loading_rates": "",
     "fast_no_registration": "Rapide – aucune inscription requise",
     "debit_credit_card_required": "Cartes de débit ou de crédit. Apple Cash non pris en charge.",
     "select_card_country": "Sélectionnez le pays où votre carte est enregistrée (et non celui où vous vous trouvez).",
@@ -3035,7 +3042,7 @@
       "buttons": {
         "cancel": "Annuler",
         "turn_on": "Activer",
-        "turn_off": "Désactiver"
+        "turn_off": ""
       }
     }
   }
