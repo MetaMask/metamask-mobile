@@ -238,6 +238,28 @@ index 290bd23..20d85e0 100644
      }
      return inputConnection;
    }
+diff --git a/node_modules/react-native/scripts/ios-configure-glog.sh b/node_modules/react-native/scripts/ios-configure-glog.sh
+index f13c61b..02a875d 100755
+--- a/node_modules/react-native/scripts/ios-configure-glog.sh
++++ b/node_modules/react-native/scripts/ios-configure-glog.sh
+@@ -42,8 +42,15 @@ EOF
+     patch -p1 config.sub fix_glog_0.3.5_apple_silicon.patch
+ fi
+ 
+-export CC="$(xcrun -find -sdk $PLATFORM_NAME cc) -arch $CURRENT_ARCH -isysroot $(xcrun -sdk $PLATFORM_NAME --show-sdk-path)"
+-export CXX="$CC"
++XCRUN="$(which xcrun)"
++if [ -n "$XCRUN" ]; then
++  export CC="$(xcrun -find -sdk $PLATFORM_NAME cc) -arch $CURRENT_ARCH -isysroot $(xcrun -sdk $PLATFORM_NAME --show-sdk-path)"
++  export CXX="$CC"
++else
++  export CC="$CC:-$(which gcc)"
++  export CXX="$CXX:-$(which g++ || true)"
++fi
++export CXX="$CXX:-$CC"
+ 
+ # Remove automake symlink if it exists
+ if [ -h "test-driver" ]; then
 diff --git a/node_modules/react-native/scripts/react_native_pods.rb b/node_modules/react-native/scripts/react_native_pods.rb
 index 78b187a..d9d0be5 100644
 --- a/node_modules/react-native/scripts/react_native_pods.rb
