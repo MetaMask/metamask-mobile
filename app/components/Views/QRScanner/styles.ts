@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
+import { colors } from '../../../styles/common';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -20,13 +21,27 @@ const createStyles = (theme: Theme) =>
       alignSelf: 'flex-end',
       color: theme.brandColors.white['000'],
     },
+    overlayContainerColumn: {
+      display: 'flex',
+      width: '100%',
+      height: '100%',
+      flexDirection: 'column',
+    },
+    overlayContainerRow: {
+      display: 'flex',
+      flexDirection: 'row',
+    },
+    overlay: {
+      flex: 1,
+      flexBasis: 0,
+      backgroundColor: colors.overlay,
+    },
     frame: {
       width: 250,
       height: 250,
       alignSelf: 'center',
       justifyContent: 'center',
-      marginTop: 100,
-      opacity: 0.5,
+      margin: -4,
     },
     text: {
       flex: 1,
