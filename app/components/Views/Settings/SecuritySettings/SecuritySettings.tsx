@@ -676,7 +676,12 @@ const Settings: React.FC = () => {
     [colors, styles, useSafeChainsListValidation, theme.brandColors.white],
   );
 
-  const renderSimulationToggle = useCallback(
+  const toggleUseTransactionSimulations = (value: boolean) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setUseTransactionSimulations(value);
+  };
+
+  const renderUseTransactionSimulations = useCallback(
     () => (
       <View style={styles.halfSetting}>
         <View style={styles.titleContainer}>
@@ -686,10 +691,7 @@ const Settings: React.FC = () => {
           <View style={styles.switchElement}>
             <Switch
               value={useTransactionSimulations}
-              onValueChange={(value) => {
-                const { PreferencesController } = Engine.context;
-                PreferencesController.setUseTransactionSimulations(value);
-              }}
+              onValueChange={toggleUseTransactionSimulations}
               trackColor={{
                 true: colors.primary.default,
                 false: colors.border.muted,
@@ -715,7 +717,7 @@ const Settings: React.FC = () => {
                 { category: 'EXTERNAL_LINK_CLICKED' },
                 {
                   location: 'app_settings',
-                  text: 'Learn More.',
+                  text: strings('app_settings.simulation_details_learn_more'),
                   url_domain: SIMULATION_DETALS_ARTICLE_URL,
                 },
               );
@@ -1093,7 +1095,7 @@ const Settings: React.FC = () => {
         {renderMultiAccountBalancesSection()}
         {renderShowIncomingTransactions()}
         {renderHistoryModal()}
-        {renderSimulationToggle()}
+        {renderUseTransactionSimulations()}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
