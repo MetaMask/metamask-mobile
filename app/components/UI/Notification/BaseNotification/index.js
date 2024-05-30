@@ -66,7 +66,7 @@ export const getIcon = (status, colors, styles) => {
     case 'pending_withdrawal':
     case 'pending_deposit':
     case 'speedup':
-      return <AnimatedSpinner size={36} />;
+      return <AnimatedSpinner />;
     case 'success_deposit':
     case 'success_withdrawal':
     case 'success':

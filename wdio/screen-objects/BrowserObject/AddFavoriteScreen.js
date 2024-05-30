@@ -1,6 +1,7 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import {AddBookmarkViewSelectorsIDs} from '../../../e2e/selectors/Browser/AddBookmarkView.selectors'
+import { AddBookmarkViewSelectorsIDs } from '../../../e2e/selectors/Browser/AddBookmarkView.selectors';
+
 class AddFavoriteScreen {
   get screen() {
     return Selectors.getElementByPlatform(AddBookmarkViewSelectorsIDs.CONTAINER);
