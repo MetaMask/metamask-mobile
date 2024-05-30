@@ -2,11 +2,7 @@
   "KeyringController": {
     "isUnlocked": false,
     "keyrings": [],
-    "vault": {
-      "cipher": "mock-cipher",
-      "iv": "mock-iv",
-      "lib": "original"
-    }
+    "vault": ""
   },
   "LoggingController": {
     "logs": {}
