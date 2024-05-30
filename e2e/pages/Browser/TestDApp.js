@@ -48,6 +48,12 @@ class TestDApp {
       TestDappSelectorsWebIDs.ETH_SIGN,
     );
   }
+  get increaseAllowanceButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.INCREASE_ALLOWANCE_BUTTON_ID,
+    );
+  }
   get personalSignButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
@@ -90,6 +96,10 @@ class TestDApp {
 
   async tapEthSignButton() {
     await this.tapButton(this.ethSignButton);
+  }
+
+  async tapIncreaseAllowanceButton() {
+    await this.tapButton(this.increaseAllowanceButton);
   }
 
   async tapPersonalSignButton() {
