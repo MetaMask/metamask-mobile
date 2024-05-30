@@ -115,6 +115,7 @@ const getStories = () => {
     './app/component-library/base-components/TagBase/TagBase.stories.tsx': require('../app/component-library/base-components/TagBase/TagBase.stories.tsx'),
     './app/component-library/components-temp/TagColored/TagColored.stories.tsx': require('../app/component-library/components-temp/TagColored/TagColored.stories.tsx'),
     './app/components/UI/Name/Name.stories.tsx': require('../app/components/UI/Name/Name.stories.tsx'),
+    "./app/components/UI/SimulationDetails/SimulationDetails.stories.tsx": require("../app/components/UI/SimulationDetails/SimulationDetails.stories.tsx"),
   };
 };
 
