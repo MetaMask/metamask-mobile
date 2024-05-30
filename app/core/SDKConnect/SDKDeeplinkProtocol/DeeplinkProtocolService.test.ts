@@ -64,8 +64,6 @@ describe('DeeplinkProtocolService', () => {
         SDKConnect.getInstance().loadDappConnections as jest.Mock
       ).mockRejectedValue(new Error('Failed to load connections'));
       await service.init().catch(() => {
-        // Because method is private
-        // @ts-ignore
         expect(service.isInitialized).toBe(false);
         expect(Logger.log).toHaveBeenCalledWith(
           expect.any(Error),
@@ -181,9 +179,12 @@ describe('DeeplinkProtocolService', () => {
       );
       await service.checkPermission({
         channelId: 'channel1',
-        // Because method is private
-        // @ts-ignore
-        originatorInfo: { url: 'test.com' },
+        originatorInfo: {
+          url: 'test.com',
+          title: 'Test',
+          platform: 'test',
+          dappId: 'dappId',
+        },
       });
       expect(spy).toHaveBeenCalled();
     });
