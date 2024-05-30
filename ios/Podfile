@@ -62,6 +62,7 @@ def common_target_logic
   #     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
   # ```
   flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
+
   use_react_native!(
     :path => config[:reactNativePath],
     # to enable hermes on iOS, change `false` to `true` and then install pods
@@ -80,6 +81,11 @@ def common_target_logic
     :app_path => "#{Pod::Config.instance.installation_root}/..",
   )
 
+  # Adding OpenSSL-Universal to fix build issues in react-native-quick-crypto
+  # Ref: https://github.com/margelo/react-native-quick-crypto/issues/121
+  # Ref: https://stackoverflow.com/questions/29082174/ios-xcode-build-failing-due-to-openssl/76455587#76455587
+  # pod 'OpenSSL-Universal', :modular_headers => true, :configurations => ['Release']
+
   # Pods for MetaMask
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
   pod 'ReactNativePayments', :path => '../node_modules/@metamask/react-native-payments/lib/ios/'
@@ -95,11 +101,6 @@ def common_target_logic
   # use_frameworks!
 	pod 'Permission-BluetoothPeripheral', :path => '../node_modules/react-native-permissions/ios/BluetoothPeripheral'
   pod 'GzipSwift'
-
-  # Adding OpenSSL-Universal to fix build issues in react-native-quick-crypto
-  # Ref: https://github.com/margelo/react-native-quick-crypto/issues/121
-  # Ref: https://stackoverflow.com/questions/29082174/ios-xcode-build-failing-due-to-openssl/76455587#76455587
-  pod 'OpenSSL-Universal', :modular_headers => true, :configurations => ['Release']
 end
 
 target 'MetaMask' do
