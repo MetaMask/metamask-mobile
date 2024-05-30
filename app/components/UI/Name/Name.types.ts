@@ -1,3 +1,5 @@
+import { ViewProps } from 'react-native';
+
 /**
  * The name types supported by the NameController.
  *
@@ -8,7 +10,7 @@ export enum NameType {
   EthereumAddress = 'EthereumAddress',
 }
 
-export interface NameProperties {
+export interface NameProperties extends ViewProps {
   type: NameType;
   value: string;
 }
