@@ -43,8 +43,8 @@ import Icon, {
 import { createStyles } from './styles';
 import { Theme } from '../../../../util/theme/models';
 import NotificationBadge from './Badge';
-import BadgeWrapper from 'app/component-library/components/Badges/BadgeWrapper';
-import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from 'app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 
 interface useDetailsProps {
   notification: HalRawNotification;
