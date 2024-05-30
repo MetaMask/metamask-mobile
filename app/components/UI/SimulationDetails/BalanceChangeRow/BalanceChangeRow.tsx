@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { View, ViewProps } from 'react-native';
-
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
