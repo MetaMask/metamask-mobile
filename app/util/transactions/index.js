@@ -51,6 +51,7 @@ const { SAI_ADDRESS } = AppConstants;
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
 export const TOKEN_METHOD_TRANSFER_FROM = 'transferfrom';
+export const TOKEN_METHOD_INCREASE_ALLOWANCE = 'increaseAllowance';
 export const CONTRACT_METHOD_DEPLOY = 'deploy';
 export const CONNEXT_METHOD_DEPOSIT = 'connextdeposit';
 
@@ -62,22 +63,25 @@ export const TRANSFER_FROM_ACTION_KEY = 'transferfrom';
 export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 export const SMART_CONTRACT_INTERACTION_ACTION_KEY = 'smartContractInteraction';
 export const SWAPS_TRANSACTION_ACTION_KEY = 'swapsTransaction';
+export const INCREASE_ALLOWANCE_ACTION_KEY = 'increaseAllowance';
 
 export const TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
 export const APPROVE_FUNCTION_SIGNATURE = '0x095ea7b3';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
+export const INCREASE_ALLOWANCE_SIGNATURE = '0x39509351';
 
 export const TRANSACTION_TYPES = {
-  SENT: 'transaction_sent',
-  SENT_TOKEN: 'transaction_sent_token',
-  SENT_COLLECTIBLE: 'transaction_sent_collectible',
+  APPROVE: 'transaction_approve',
+  INCREASE_ALLOWANCE: 'transaction_increase_allowance',
   RECEIVED: 'transaction_received',
-  RECEIVED_TOKEN: 'transaction_received_token',
   RECEIVED_COLLECTIBLE: 'transaction_received_collectible',
+  RECEIVED_TOKEN: 'transaction_received_token',
+  SENT: 'transaction_sent',
+  SENT_COLLECTIBLE: 'transaction_sent_collectible',
+  SENT_TOKEN: 'transaction_sent_token',
   SITE_INTERACTION: 'transaction_site_interaction',
   SWAPS_TRANSACTION: 'swaps_transaction',
-  APPROVE: 'transaction_approve',
 };
 
 const MULTIPLIER_HEX = 16;
@@ -105,6 +109,9 @@ const reviewActionKeys = {
     'transactions.tx_review_unknown',
   ),
   [APPROVE_ACTION_KEY]: strings('transactions.tx_review_approve'),
+  [INCREASE_ALLOWANCE_ACTION_KEY]: strings(
+    'transactions.tx_review_increase_allowance',
+  ),
 };
 
 /**
@@ -119,6 +126,7 @@ const actionKeys = {
   ),
   [SWAPS_TRANSACTION_ACTION_KEY]: strings('transactions.swaps_transaction'),
   [APPROVE_ACTION_KEY]: strings('transactions.approve'),
+  [INCREASE_ALLOWANCE_ACTION_KEY]: strings('transactions.increase_allowance'),
 };
 
 /**
@@ -265,6 +273,8 @@ export async function getMethodData(data) {
     return { name: TOKEN_METHOD_TRANSFER_FROM };
   } else if (fourByteSignature === APPROVE_FUNCTION_SIGNATURE) {
     return { name: TOKEN_METHOD_APPROVE };
+  } else if (fourByteSignature === INCREASE_ALLOWANCE_SIGNATURE) {
+    return { name: TOKEN_METHOD_INCREASE_ALLOWANCE };
   } else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
     return { name: CONTRACT_METHOD_DEPLOY };
   }

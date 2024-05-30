@@ -17,6 +17,7 @@ import {
   APPROVE_FUNCTION_SIGNATURE,
   decodeTransferData,
   getTicker,
+  INCREASE_ALLOWANCE_SIGNATURE,
 } from '../../../../../util/transactions';
 import {
   weiToFiat,
@@ -304,7 +305,9 @@ class TransactionReview extends PureComponent {
     showHexData = showHexData || data;
     const approveTransaction =
       data &&
-      data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+      [APPROVE_FUNCTION_SIGNATURE, INCREASE_ALLOWANCE_SIGNATURE].includes(
+        data.substr(0, 10),
+      ) &&
       (!value || isZeroValue(value));
     const actionKey = await getTransactionReviewActionKey(transaction, chainId);
     if (approveTransaction) {

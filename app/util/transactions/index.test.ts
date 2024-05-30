@@ -24,6 +24,9 @@ import {
   getIsSwapApproveOrSwapTransaction,
   getIsSwapApproveTransaction,
   getIsSwapTransaction,
+  INCREASE_ALLOWANCE_SIGNATURE,
+  TOKEN_METHOD_INCREASE_ALLOWANCE,
+  getTransactionActionKey,
 } from '.';
 import buildUnserializedTransaction from './optimismTransaction';
 import Engine from '../../core/Engine';
@@ -285,14 +288,21 @@ describe('Transactions utils :: getMethodData', () => {
       '0x60a060405260046060527f48302e31000000000000000000000000000000000000000000000000000000006080526006805460008290527f48302e310000000000000000000000000000000000000000000000000000000882556100b5907ff652222313e28459528d920b65115c16c04f3efc82aaedc97be59f3f377c0d3f602060026001841615610100026000190190931692909204601f01919091048101905b8082111561017957600081556001016100a1565b505060405161094b38038061094b833981';
     const randomData = '0x987654321000000000';
     const transferFromData = '0x23b872dd0000000000000000000000000000';
+    const increaseAllowanceDataMock = `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000000000`;
     const firstMethodData = await getMethodData(transferData);
-    const secondtMethodData = await getMethodData(contractData);
+    const secondMethodData = await getMethodData(contractData);
     const thirdMethodData = await getMethodData(transferFromData);
     const fourthMethodData = await getMethodData(randomData);
+    const increaseAllowanceMethodData = await getMethodData(
+      increaseAllowanceDataMock,
+    );
     expect(firstMethodData.name).toEqual(TOKEN_METHOD_TRANSFER);
-    expect(secondtMethodData.name).toEqual(CONTRACT_METHOD_DEPLOY);
+    expect(secondMethodData.name).toEqual(CONTRACT_METHOD_DEPLOY);
     expect(thirdMethodData.name).toEqual(TOKEN_METHOD_TRANSFER_FROM);
     expect(fourthMethodData).toEqual({});
+    expect(increaseAllowanceMethodData.name).toEqual(
+      TOKEN_METHOD_INCREASE_ALLOWANCE,
+    );
   });
 });
 
@@ -948,5 +958,20 @@ describe('Transactions utils :: getIsNativeTokenTransferred', () => {
     };
     const result = getIsNativeTokenTransferred(tx);
     expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getTransactionActionKey', () => {
+  it('should return increase allowance method when receiving increase allowance signature', async () => {
+    const transaction = {
+      txParams: {
+        data: `${INCREASE_ALLOWANCE_SIGNATURE}000000000000000000000000000000000000000000000`,
+        to: '0xAddress',
+      },
+    };
+    const chainId = '1';
+
+    const actionKey = await getTransactionActionKey(transaction, chainId);
+    expect(actionKey).toBe(TOKEN_METHOD_INCREASE_ALLOWANCE);
   });
 });
