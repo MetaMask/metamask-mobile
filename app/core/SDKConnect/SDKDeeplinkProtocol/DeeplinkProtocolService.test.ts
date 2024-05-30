@@ -117,7 +117,6 @@ describe('DeeplinkProtocolService', () => {
       expect(setupBridgeSpy).toHaveReturned();
     });
   });
-
   describe('sendMessage', () => {
     it('should handle sending messages correctly', async () => {
       service.rpcQueueManager.getId = jest.fn().mockReturnValue('rpcMethod');
@@ -227,6 +226,41 @@ describe('DeeplinkProtocolService', () => {
         message: mockMessage,
         clientId: 'client1',
       });
+    });
+
+    it('should update connection state and skip bridge setup if session exists', async () => {
+      const connectionParams = {
+        dappPublicKey: 'key',
+        url: 'url',
+        scheme: 'scheme',
+        channelId: 'channel1',
+        originatorInfo: Buffer.from(
+          JSON.stringify({
+            originatorInfo: {
+              url: 'test.com',
+              title: 'Test',
+              platform: 'test',
+              dappId: 'dappId',
+            },
+          }),
+        ).toString('base64'),
+      };
+      service.connections.channel1 = {
+        clientId: 'channel1',
+        originatorInfo: {
+          url: 'test.com',
+          title: 'Test',
+          platform: 'test',
+          dappId: 'dappId',
+        },
+        connected: false,
+        validUntil: Date.now(),
+        scheme: 'scheme',
+      };
+
+      await service.handleConnection(connectionParams);
+
+      expect(service.connections.channel1.connected).toBe(true);
     });
   });
 
