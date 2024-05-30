@@ -20,4 +20,10 @@ export default class AdvancedSettingsView {
       await TestHelpers.waitAndTap(AdvancedViewSelectorsIDs.ETH_SIGN_SWITCH);
     }
   }
+
+  static async tapShowFiatOnTestnetsSwitch() {
+    await TestHelpers.waitAndTap(
+      AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS,
+    );
+  }
 }
