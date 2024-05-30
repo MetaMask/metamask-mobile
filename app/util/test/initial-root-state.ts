@@ -6,8 +6,9 @@ import { initialState as initialInpageProvider } from '../../core/redux/slices/i
 import { initialState as initialSmartTransactions } from '../../core/redux/slices/smartTransactions';
 import initialBackgroundState from './initial-background-state.json';
 
-// Cast because TypeScript is incorrectly inferring the type of this JSON object
-export const backgroundState: EngineState = initialBackgroundState as any;
+// Cast as unknown since there are still mock variables that do not correspond with the existing types
+export const backgroundState: EngineState =
+  initialBackgroundState as unknown as EngineState;
 
 const initialRootState: RootState = {
   legalNotices: undefined,

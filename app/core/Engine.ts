@@ -276,6 +276,17 @@ type GlobalEvents =
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
+interface VaultObject {
+  cipher: string;
+  iv: string;
+  lib: string;
+}
+
+// Define a new type for KeyringController that has the vault property as you want it
+type ModifiedKeyringControllerState = Omit<KeyringControllerState, 'vault'> & {
+  vault?: VaultObject;
+};
+
 export interface EngineState {
   AccountTrackerController: AccountTrackerState;
   AddressBookController: AddressBookState;
@@ -283,7 +294,7 @@ export interface EngineState {
   NftController: NftState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
-  KeyringController: KeyringControllerState;
+  KeyringController: ModifiedKeyringControllerState;
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
   PhishingController: PhishingControllerState;
