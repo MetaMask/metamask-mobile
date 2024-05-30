@@ -6,9 +6,7 @@ export interface UseTokenListNameRequest {
   type: NameType;
 }
 
-export function useTokenListNames(
-  requests: UseTokenListNameRequest[],
-): (string | null)[] {
+export function useTokenListNames(requests: UseTokenListNameRequest[]) {
   const tokenList = useTokenList();
 
   return requests.map(({ value, type }) => {
@@ -18,10 +16,10 @@ export function useTokenListNames(
 
     const normalizedValue = value.toLowerCase();
 
-    return tokenList[normalizedValue]?.name ?? null;
+    return tokenList[normalizedValue];
   });
 }
 
-export function useTokenListName(value: string, type: NameType): string | null {
+export function useTokenListName(value: string, type: NameType) {
   return useTokenListNames([{ value, type }])[0];
 }

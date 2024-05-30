@@ -52,6 +52,7 @@ import { updateTransaction } from '../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
+import { selectTransactionSimulationMetrics } from '../../../../core/redux/slices/transactionSimulationMetrics';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -122,6 +123,11 @@ class Approval extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
+
+    /**
+     * Function to get transaction simulation metrics
+     */
+    getTransactionSimulationMetrics: PropTypes.func,
   };
 
   state = {
@@ -384,6 +390,7 @@ class Approval extends PureComponent {
       {
         ...this.getAnalyticsParams(),
         ...this.getBlockaidMetricsParams(),
+        ...this.getTransactionSimulationMetrics(),
       },
     );
   };
@@ -514,11 +521,10 @@ class Approval extends PureComponent {
             transactionId: transaction.id,
             deviceId: ledgerKeyring.deviceId,
             onConfirmationComplete: (approve) =>
-              this.onLedgerConfirmation(
-                approve,
-                transaction.id,
-                this.getAnalyticsParams({ gasEstimateType, gasSelected }),
-              ),
+              this.onLedgerConfirmation(approve, transaction.id, {
+                ...this.getAnalyticsParams({ gasEstimateType, gasSelected }),
+                ...this.getTransactionSimulationMetrics(),
+              }),
             type: 'signTransaction',
           }),
         );
@@ -563,6 +569,7 @@ class Approval extends PureComponent {
           gasSelected,
         }),
         ...this.getBlockaidMetricsParams(),
+        ...this.getTransactionSimulationMetrics(),
       },
     );
     this.setState({ transactionConfirmed: false });
@@ -650,6 +657,15 @@ class Approval extends PureComponent {
     return transactionToSend;
   };
 
+  getTransactionSimulationMetrics = () => {
+    const { transactionMeta } = this.state;
+    const { getTransactionSimulationMetrics } = this.props;
+    const { id: transactionId } = transactionMeta;
+
+    // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
+    return getTransactionSimulationMetrics(transactionId)?.properties || {};
+  };
+
   render = () => {
     const { dappTransactionModalVisible } = this.props;
     const { mode, transactionConfirmed } = this.state;
@@ -694,6 +710,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   activeTabUrl: getActiveTabUrl(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  getTransactionSimulationMetrics: selectTransactionSimulationMetrics(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
