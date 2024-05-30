@@ -158,6 +158,42 @@ describe('DeeplinkProtocolService', () => {
         }),
       );
     });
+
+    it('should handle error in message data', async () => {
+      const mockMessage = { data: { id: '1', error: new Error('Test error') } };
+      const openDeeplinkSpy = jest.spyOn(service, 'openDeeplink');
+
+      service.currentClientId = 'client1';
+      service.bridgeByClientId.client1 = new BackgroundBridge({
+        webview: null,
+        channelId: 'client1',
+        isMMSDK: true,
+        url: 'test-url',
+        isRemoteConn: true,
+        sendMessage: jest.fn(),
+      } as any);
+
+      await service.sendMessage(mockMessage, true);
+      expect(openDeeplinkSpy).toHaveBeenCalledWith({
+        message: mockMessage,
+        clientId: 'client1',
+      });
+    });
+
+    it('should skip goBack if no rpc method and forceRedirect is not true', async () => {
+      const mockMessage = { data: { id: '1' } };
+      const devLoggerSpy = jest.spyOn(DevLogger, 'log');
+
+      service.rpcQueueManager.getId = jest.fn().mockReturnValue(undefined);
+      service.rpcQueueManager.isEmpty = jest.fn().mockReturnValue(true);
+
+      await service.sendMessage(mockMessage);
+      expect(devLoggerSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'no rpc method --- rpcMethod=undefined forceRedirect=undefined --- skip goBack()',
+        ),
+      );
+    });
   });
 
   describe('openDeeplink', () => {

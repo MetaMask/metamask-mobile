@@ -143,7 +143,7 @@ describe('handleMetaMaskProtocol', () => {
           origin,
           wcURL,
         });
-      }).toThrowError('DeepLinkManager failed to connect - Invalid scheme');
+      }).toThrow('DeepLinkManager failed to connect - Invalid scheme');
     });
 
     it('should call handleConnection if params.scheme is defined', () => {
@@ -198,7 +198,7 @@ describe('handleMetaMaskProtocol', () => {
           origin,
           wcURL,
         });
-      }).toThrowError(
+      }).toThrow(
         'DeepLinkManager: deeplinkingService failed to handleMessage - Invalid message',
       );
     });
@@ -216,7 +216,7 @@ describe('handleMetaMaskProtocol', () => {
           origin,
           wcURL,
         });
-      }).toThrowError(
+      }).toThrow(
         'DeepLinkManager: deeplinkingService failed to handleMessage - Invalid scheme',
       );
     });
