@@ -13,7 +13,7 @@ import {
   isExternalHardwareAccount,
   stripHexPrefix,
 } from '../../../../../util/address';
-import sanitizeString from '../../../../../util/string';
+import { sanitizeString } from '../../../../../util/string';
 import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
 import { useTheme } from '../../../../../util/theme';
 import { PersonalSignProps } from './types';
