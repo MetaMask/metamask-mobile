@@ -57,6 +57,7 @@ export default {
   DEEPLINKS: {
     ORIGIN_DEEPLINK: 'deeplink',
     ORIGIN_QR_CODE: 'qr-code',
+    ORIGIN_NOTIFICATION: 'notifications',
   },
   WALLET_CONNECT: {
     //One day in hours
@@ -116,12 +117,15 @@ export default {
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
     WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:
       'https://support.metamask.io/hc/articles/14764161421467',
+    TESTNET_ETH_SCAMS:
+      'https://support.metamask.io/hc/en-us/articles/11836891903003-Testnet-ETH-scams',
     WHAT_IS_SRP:
       'https://community.metamask.io/t/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/3440',
     PRIVACY_POLICY_2024: 'https://consensys.io/privacy-policy',
     PRIVACY_BEST_PRACTICES:
       'https://support.metamask.io/privacy-and-security/privacy-best-practices',
-    SMART_TXS: 'https://support.metamask.io/hc/en-us/articles/9184393821211',
+    SMART_TXS:
+      'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -181,6 +185,7 @@ export default {
   CANCEL_RATE: 'Transactions (Cancel)',
   SPEED_UP_RATE: 'Transactions (Speed Up)',
   NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
+  NETWORK_DID_CHANGE_EVENT: 'NetworkController:networkDidChange',
   KEYRING_STATE_CHANGE_EVENT: 'KeyringController:stateChange',
   TOKEN_LIST_STATE_CHANGE_EVENT: 'TokenListController:stateChange',
   ETH_SIGN_ERROR: 'eth_sign requires 32 byte message hash',

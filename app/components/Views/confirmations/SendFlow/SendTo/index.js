@@ -42,10 +42,6 @@ import {
   SYMBOL_ERROR,
 } from '../../../../../constants/error';
 import createStyles from './styles';
-import {
-  ADD_ADDRESS_BUTTON,
-  SEND_SCREEN_ID,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
   selectChainId,
@@ -498,7 +494,7 @@ class SendFlow extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        {...generateTestId(Platform, SEND_SCREEN_ID)}
+        {...generateTestId(Platform, SendViewSelectorsIDs.CONTAINER_ID)}
       >
         <View style={styles.imputWrapper}>
           <SendFlowAddressFrom
@@ -595,7 +591,7 @@ class SendFlow extends PureComponent {
               >
                 <Text
                   style={styles.myAccountsText}
-                  {...generateTestId(Platform, ADD_ADDRESS_BUTTON)}
+                  testID={SendViewSelectorsIDs.ADD_ADDRESS_BUTTON}
                 >
                   {strings('address_book.add_this_address')}
                 </Text>
