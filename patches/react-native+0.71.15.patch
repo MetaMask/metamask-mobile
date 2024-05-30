@@ -275,3 +275,15 @@ index 78b187a..d9d0be5 100644
    ReactNativePodsUtils.updateIphoneOSDeploymentTarget(installer)
  
    NewArchitectureHelper.set_clang_cxx_language_standard_if_needed(installer)
+diff --git a/node_modules/react-native/scripts/react_native_pods_utils/script_phases.rb b/node_modules/react-native/scripts/react_native_pods_utils/script_phases.rb
+index 4520da1..eb1accb 100644
+--- a/node_modules/react-native/scripts/react_native_pods_utils/script_phases.rb
++++ b/node_modules/react-native/scripts/react_native_pods_utils/script_phases.rb
+@@ -48,6 +48,6 @@ def get_script_template(react_native_path, export_vars={})
+         WITH_ENVIRONMENT="$RCT_SCRIPT_RN_DIR/scripts/xcode/with-environment.sh"
+         /bin/sh -c "$WITH_ENVIRONMENT $SCRIPT_PHASES_SCRIPT"
+         EOS
+-    result = ERB.new(template, 0, '->').result(binding)
++    result = ERB.new(template, trim_mode: '->').result(binding)
+     return result
+ end
