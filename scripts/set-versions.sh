@@ -30,7 +30,9 @@ log_and_exit () {
 
 perform_updates () {
   # update package.json
-  jq ".version = \"$SEMVER_VERSION\"" $PACKAGE_JSON_FILE | sponge $PACKAGE_JSON_FILE
+  tmp="${PACKAGE_JSON_FILE}_temp"
+  jq ".version = \"$SEMVER_VERSION\"" $PACKAGE_JSON_FILE > "$tmp"
+  mv "$tmp" $PACKAGE_JSON_FILE
   echo "- $PACKAGE_JSON_FILE updated"
 
 
