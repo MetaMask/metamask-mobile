@@ -1909,7 +1909,8 @@
   },
   "notifications": {
     "staked": "Staked",
-    "unstaked": "Received",
+    "received": "Received",
+    "unstaked": "Unstaked",
     "to": "To",
     "rate": "Rate(fees included)",
     "unstaking_requested": "Unstaking requested",
@@ -1921,7 +1922,7 @@
     "swap_completed": "Swapped {{from}} for {{to}}",
     "swap": "Swapped",
     "sent": "Sent to {{address}}",
-    "received": "Received from {{address}}",
+    "received_from": "Received from {{address}}",
     "nft_sent": "Sent NFT to {{address}}",
     "erc721_sent": "Sent NFT to {{address}}",
     "erc1155_sent": "Sent NFT to {{address}}",

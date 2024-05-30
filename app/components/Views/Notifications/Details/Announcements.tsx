@@ -13,13 +13,16 @@ import Text, {
 import { FeatureAnnouncementRawNotification } from '../../../../util/notifications';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const PLACEHOLDER_IMG_URI = require('../../../../images/no-image-placeholder.jpeg');
+
 const renderAnnouncementsDetails = (
   notification: FeatureAnnouncementRawNotification,
   styles: Record<string, any>,
   navigation: any,
 ) => {
   const handleCTAPress = () => {
-    // TODO: Currently handling CTAs with external links only. For now, we aren't handleing deeplinks.
+    // TODO: Currently handling CTAs with external links only. For now, we aren't handling deeplinks.
     const { link } = notification.data;
     if (!link) return;
     navigation.navigate('Webview', {
@@ -32,15 +35,11 @@ const renderAnnouncementsDetails = (
     });
   };
 
+  const IMAGE_URI = notification.data.image?.file?.url || PLACEHOLDER_IMG_URI;
   return (
     <View style={styles.renderContainer}>
       <View style={styles.renderFCMCard}>
-        <Image
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          source={{ uri: notification.data.image?.file?.url }}
-          style={styles.FCMImage}
-        />
+        <Image source={{ uri: IMAGE_URI }} style={styles.FCMImage} />
       </View>
       {notification.data.title && (
         <Text variant={TextVariant.BodyLGMedium}>

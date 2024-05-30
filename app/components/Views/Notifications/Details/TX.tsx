@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View } from 'react-native';
 
 import { strings } from '../../../../../locales/i18n';
 
@@ -11,6 +12,7 @@ import {
   TRIGGER_TYPES,
 } from '../../../../util/notifications';
 
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 import { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import Button, {
   ButtonVariants,
@@ -20,12 +22,10 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { Theme } from '../../../../util/theme/models';
 import useDetails from './useDetails';
 import NetworkFee from './NetworkFee';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
-import { View } from 'react-native';
 
 interface TXDetailsProps {
   notification: HalRawNotification;
-  styles: any;
+  styles: Record<string, any>;
   theme: Theme;
   accountAvatarType?: AvatarAccountType;
   navigation: any;

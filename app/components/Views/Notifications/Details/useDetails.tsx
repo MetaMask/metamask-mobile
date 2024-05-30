@@ -43,6 +43,8 @@ import Icon, {
 import { createStyles } from './styles';
 import { Theme } from '../../../../util/theme/models';
 import NotificationBadge from './Badge';
+import BadgeWrapper from 'app/component-library/components/Badges/BadgeWrapper';
+import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from 'app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 
 interface useDetailsProps {
   notification: HalRawNotification;
@@ -192,14 +194,29 @@ const useDetails = ({
   );
 
   const renderCollection = useCallback(
-    (type, collection, badgeIcon, network) => (
+    (collection, network) => (
       <View style={styles.row}>
-        <NotificationBadge
-          notificationType={type}
-          styles={styles}
-          badgeIcon={badgeIcon}
-          imageUrl={network.image}
-        />
+        <BadgeWrapper
+          badgePosition={DEFAULT_BADGEWRAPPER_BADGEPOSITION}
+          badgeElement={
+            <RemoteImage
+              source={{
+                uri:
+                  network.image ||
+                  'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg',
+              }}
+            />
+          }
+          style={styles.badgeWrapper}
+        >
+          <RemoteImage
+            source={{
+              uri: collection.image,
+            }}
+            style={styles.nftLogo}
+            placeholderStyle={styles.nftPlaceholder}
+          />
+        </BadgeWrapper>
         <View style={styles.boxLeft}>
           <Text variant={TextVariant.BodyLGMedium}>
             {strings('collectible.collection')}
@@ -214,7 +231,7 @@ const useDetails = ({
   );
 
   const renderAsset = useCallback(
-    ({ type, title, token, badgeIcon, network }) => {
+    ({ type, title, token, network }) => {
       const exchangeRate =
         token.address && contractExchangeRates[token.address];
       const balanceFiat = token
@@ -230,8 +247,8 @@ const useDetails = ({
           <NotificationBadge
             notificationType={type}
             styles={styles}
-            badgeIcon={badgeIcon}
-            imageUrl={network.image}
+            badgeImageSource={network.image}
+            imageUrl={token.image}
           />
           <View style={styles.boxLeft}>
             <Text variant={TextVariant.BodyLGMedium}>{title}</Text>
@@ -255,17 +272,8 @@ const useDetails = ({
 
   const renderNFT = useCallback(
     (notificationDetails) => {
-      const {
-        type,
-        nft,
-        from,
-        to,
-        status,
-        tx_hash,
-        collection,
-        badgeIcon,
-        network,
-      } = notificationDetails as Record<string, any>;
+      const { type, nft, from, to, status, tx_hash, collection, network } =
+        notificationDetails as Record<string, any>;
       return (
         <>
           <Badge
@@ -289,7 +297,7 @@ const useDetails = ({
             actionType: type,
           })}
           {renderStatus(status, tx_hash)}
-          {renderCollection(type, collection, badgeIcon, network)}
+          {renderCollection(collection, network)}
           {renderNetwork(network)}
         </>
       );
@@ -307,7 +315,7 @@ const useDetails = ({
 
   const renderTransfer = useCallback(
     (notificationDetails) => {
-      const { type, from, to, status, tx_hash, token, badgeIcon, network } =
+      const { type, from, to, status, tx_hash, token, network } =
         notificationDetails as Record<string, any>;
       return (
         <>
@@ -325,7 +333,6 @@ const useDetails = ({
             type,
             title: strings('transaction.asset'),
             token,
-            badgeIcon,
             network,
           })}
           {renderStatus(status, tx_hash)}
@@ -369,7 +376,7 @@ const useDetails = ({
 
   const renderStake = useCallback(
     (notificationDetails) => {
-      const { type, status, tx_hash, stake_in, stake_out, badgeIcon, network } =
+      const { type, status, tx_hash, stake_in, stake_out, network } =
         notificationDetails as Record<string, any>;
 
       const unstakingInProgress =
@@ -381,23 +388,24 @@ const useDetails = ({
 
       return (
         <>
+          {/*
+          // TODO: At the moment, we don’t show this data in the UI.
+          The backend team is working to include this information in the notifications API
           {renderAddress({
             key: 'from',
-            address: from, // TODO: how to get from in a stake?
+            address: from,
             actionType: type,
-          })}
+          })} */}
           {renderAsset({
             type,
             title: strings('notifications.staked'),
             stake_in,
-            badgeIcon,
             network,
           })}
           {renderAsset({
             type,
-            title: strings('notifications.unstaked'),
+            title: strings('notifications.received'),
             stake_out,
-            badgeIcon,
             network,
           })}
           {renderStatus(status, tx_hash)}
@@ -405,34 +413,36 @@ const useDetails = ({
         </>
       );
     },
-    [renderAddress, renderAsset, renderStakeProvider, renderStatus],
+    [renderAsset, renderStakeProvider, renderStatus],
   );
 
   const renderStakeReadyToBeWithdrawn = useCallback(
     (notificationDetails) => {
-      const { type, badgeIcon, staked_eth, tx_hash, status, network } =
+      const { type, staked_eth, tx_hash, status, network } =
         notificationDetails as Record<string, any>;
 
       return (
         <>
+          {/*
+          // TODO: At the moment, we don’t show this data in the UI.
+          The backend team is working to include this information in the notifications API
           {renderAddress({
             key: 'from',
             address: from, // TODO: how to get from in a stake?
             actionType: type,
-          })}
+          })} */}
           {renderStatus(status, tx_hash)}
           {renderAsset({
             type,
             title: strings('notifications.unstaking_requested'),
             staked_eth,
-            badgeIcon,
             network,
           })}
           {renderStakeProvider(type, staked_eth)}
         </>
       );
     },
-    [renderAddress, renderAsset, renderStakeProvider, renderStatus],
+    [renderAsset, renderStakeProvider, renderStatus],
   );
 
   const renderRate = useCallback(
@@ -466,16 +476,8 @@ const useDetails = ({
 
   const renderSwap = useCallback(
     (notificationDetails) => {
-      const {
-        type,
-        status,
-        tx_hash,
-        token_in,
-        token_out,
-        rate,
-        badgeIcon,
-        network,
-      } = notificationDetails as Record<string, any>;
+      const { type, status, tx_hash, token_in, token_out, rate, network } =
+        notificationDetails as Record<string, any>;
 
       return (
         <>
@@ -488,14 +490,12 @@ const useDetails = ({
             type,
             title: strings('notifications.swap'),
             token_in,
-            badgeIcon,
             network,
           })}
           {renderAsset({
             type,
             title: strings('notifications.to'),
             token_out,
-            badgeIcon,
             network,
           })}
           {renderStatus(status, tx_hash)}

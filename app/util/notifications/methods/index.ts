@@ -27,7 +27,6 @@ import { renderFromWei } from '../../../util/number';
 import { updateNotificationStatus } from '../../../actions/notification';
 import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
-import { renderFromWei } from '../../../util/number';
 
 interface ViewOnEtherscanProps {
   navigation: any;
@@ -228,7 +227,6 @@ export function getRowDetails(
           }`,
         },
         details: {
-          badgeIcon: getNotificationBadge(notification.type),
           stake_in: notification.data.stake_in,
           stake_out: notification.data.stake_out,
           tx_hash: notification.tx_hash,
@@ -246,7 +244,6 @@ export function getRowDetails(
             details: {},
           },
         },
-
       };
     case TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN:
       return {
@@ -267,7 +264,6 @@ export function getRowDetails(
         },
         details: {
           type: notification.type,
-          badgeIcon: getNotificationBadge(notification.type),
           request_id: notification.data.request_id,
           staked_eth: notification.data.staked_eth,
           tx_hash: notification.tx_hash,
@@ -304,7 +300,6 @@ export function getRowDetails(
         },
         details: {
           type: notification.type,
-          badgeIcon: getNotificationBadge(notification.type),
           rate: notification.data.rate,
           token_in: notification.data.token_in,
           token_out: notification.data.token_out,
@@ -351,7 +346,6 @@ export function getRowDetails(
         },
         details: {
           type: notification.type,
-          badgeIcon: getNotificationBadge(notification.type),
           amount: notification.data.amount,
           from: notification.data.from,
           to: notification.data.to,
@@ -408,7 +402,6 @@ export function getRowDetails(
         },
         details: {
           type: notification.type,
-          badgeIcon: getNotificationBadge(notification.type),
           token: notification.data.token,
           from: notification.data.from,
           to: notification.data.to,
@@ -427,14 +420,6 @@ export function getRowDetails(
             details: {},
           },
         },
-          },
-          createdAt: formatDate(notification.createdAt),
-          imageUrl: notification.data.token.image,
-          value: `${renderFromWei(notification.data.token.amount)} ${
-            notification.data.token.symbol
-          }`,
-        },
-        details: {},
       };
     case TRIGGER_TYPES.ERC721_SENT:
     case TRIGGER_TYPES.ERC721_RECEIVED:
@@ -463,7 +448,6 @@ export function getRowDetails(
         },
         details: {
           type: notification.type,
-          badgeIcon: getNotificationBadge(notification.type),
           nft: {
             name: notification.data?.nft?.name,
             image: notification.data?.nft?.image,

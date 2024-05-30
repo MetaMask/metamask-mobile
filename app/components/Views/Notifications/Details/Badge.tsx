@@ -1,4 +1,5 @@
 import React from 'react';
+import { ImageSourcePropType } from 'react-native';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
@@ -6,20 +7,23 @@ import Badge, {
 import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import { TRIGGER_TYPES } from '../../../../util/notifications';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 
-import RemoteImage from '../../../Base/RemoteImage';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 
 interface NotificationBadgeProps {
   notificationType: TRIGGER_TYPES;
   styles: any;
-  badgeIcon?: IconName;
+  badgeImageSource?: ImageSourcePropType;
   imageUrl?: string;
 }
 function NotificationBadge({
   notificationType,
   styles,
-  badgeIcon,
+  badgeImageSource,
   imageUrl,
 }: NotificationBadgeProps) {
   const customStyles = () => {
@@ -39,19 +43,17 @@ function NotificationBadge({
     <BadgeWrapper
       badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
       badgeElement={
-        <Badge variant={BadgeVariant.NotificationsKinds} iconName={badgeIcon} />
+        <Badge variant={BadgeVariant.Network} imageSource={badgeImageSource} />
       }
       style={styles.badgeWrapper}
     >
       {notificationType.toLowerCase().includes('eth') ? (
         <NetworkMainAssetLogo style={styles.ethLogo} />
       ) : (
-        <RemoteImage
-          source={{
-            uri:
-              imageUrl ||
-              'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg',
-          }}
+        <AvatarToken
+          variant={AvatarVariant.Token}
+          imageSource={{ uri: imageUrl }}
+          size={AvatarSize.Md}
           style={customStyles().style}
           placeholderStyle={customStyles().placeholderStyle}
         />
