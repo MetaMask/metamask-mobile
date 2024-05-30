@@ -41,7 +41,7 @@ const PopularList = [
   },
   {
     chainId: toHex('8453'),
-    nickname: 'Base Mainnet',
+    nickname: 'Base',
     rpcUrl: `https://mainnet.base.org`,
     ticker: 'ETH',
     warning: true,
