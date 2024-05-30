@@ -68,7 +68,9 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Setup project and install CocoaPods
-        run: BUNDLE_PATH=/${HOME}/.bundle yarn setup --build-ios
+        run: |
+          git config --global advice.detachedHead false
+          BUNDLE_PATH=/${HOME}/.bundle yarn setup --build-ios
       - name: Print error if not clean
         shell: bash
         run: |
