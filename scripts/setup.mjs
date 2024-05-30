@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { $ } from 'execa';
+import { $, execaCommand } from 'execa';
 import { Listr } from 'listr2';
 
 const IS_OSX = process.platform === 'darwin';
@@ -138,7 +138,10 @@ const mainSetupTask = {
         if (!BUILD_IOS) {
           return podInstallTask.skip('Skipping iOS.')
         }
-        await $`yarn pod:install`;
+        const execute = execaCommand('yarn pod:install');
+        execute.stdout.pipe(task.stdout());
+        execute.stderr.pipe(task.stdout());
+        await execute;
       },
     },
     {
