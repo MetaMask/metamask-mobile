@@ -97,6 +97,7 @@ index d8fa996..fd00cb8 100644
      private readonly getCurrentAccountEIP1559Compatibility;
      private readonly getCurrentNetworkEIP1559Compatibility;
 +    private readonly gasFeeFlows;
++    private readonly getSelectedAddress;
 +    private readonly getGasFeeEstimates;
      private readonly messagingSystem;
      private readonly incomingTransactionHelper;
@@ -377,6 +378,7 @@ index bfa2871..61ac826 100644
 +            getExternalPendingTransactions !== null && getExternalPendingTransactions !== void 0 ? getExternalPendingTransactions : (() => []);
 +        this.publish =
 +            (_a = hooks === null || hooks === void 0 ? void 0 : hooks.publish) !== null && _a !== void 0 ? _a : (() => Promise.resolve({ transactionHash: undefined }));
++        this.getSelectedAddress = getSelectedAddress;
 +        this.nonceTracker = new NonceTracker_1.NonceTracker({
              provider,
              blockTracker,
