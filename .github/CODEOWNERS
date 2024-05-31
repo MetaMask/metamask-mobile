@@ -17,12 +17,12 @@ app/core/Encryptor/                  @MetaMask/accounts-engineers
 app/components/UI/Swaps              @MetaMask/swaps-engineers @MetaMask/mobile-platform
 
 # Notifications Team
-app/components/Views/Notifications   @MetaMask/notifications-dev-team @MetaMask/mobile-platform
-app/components/Views/Settings/NotificationsSettings @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
-app/components/UI/Notifications @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
-app/core/  @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
-app/components/Nav  @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
-app/store @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
-app/reducers  @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
-app/actions @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
-app/util/notifications  @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
+app/components/Views/Notifications   @MetaMask/notifications @MetaMask/mobile-platform
+app/components/Views/Settings/NotificationsSettings @MetaMask/notifications  @MetaMask/mobile-platform
+app/components/UI/Notifications @MetaMask/notifications  @MetaMask/mobile-platform
+app/core/  @MetaMask/notifications  @MetaMask/mobile-platform
+app/components/Nav  @MetaMask/notifications  @MetaMask/mobile-platform
+app/store @MetaMask/notifications  @MetaMask/mobile-platform
+app/reducers  @MetaMask/notifications  @MetaMask/mobile-platform
+app/actions @MetaMask/notifications  @MetaMask/mobile-platform
+app/util/notifications  @MetaMask/notifications  @MetaMask/mobile-platform
