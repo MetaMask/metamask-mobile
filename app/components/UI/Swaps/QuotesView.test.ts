@@ -36,7 +36,7 @@ describe('QuotesView', () => {
     });
   });
   describe('isCorrectDestinationAmount', () => {
-    it('should return true for valid destinationAmount', () => {
+    it('returns true for valid destinationAmount', () => {
       const quote = { destinationAmount: '100' };
       expect(isCorrectDestinationAmount(quote)).toBe(true);
     });
