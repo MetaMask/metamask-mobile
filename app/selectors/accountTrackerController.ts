@@ -28,8 +28,12 @@ export const selectAccountBalanceByChainId = createDeepEqualSelector(
   selectAccountsByChainId,
   selectChainId,
   selectSelectedInternalAccountChecksummedAddress,
-  (accountsByChainId, chainId, selectedInternalAccountChecksummedAddress) =>
-    selectedInternalAccountChecksummedAddress && chainId && accountsByChainId
-      ? accountsByChainId[chainId][selectedInternalAccountChecksummedAddress]
-      : undefined,
+  (accountsByChainId, chainId, selectedInternalAccountChecksummedAddress) => {
+    const accountsBalance = selectedInternalAccountChecksummedAddress
+      ? accountsByChainId?.[chainId]?.[
+          selectedInternalAccountChecksummedAddress
+        ]
+      : undefined;
+    return accountsBalance;
+  },
 );
