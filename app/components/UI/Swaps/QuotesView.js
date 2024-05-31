@@ -495,7 +495,7 @@ function SwapsQuotesView({
             Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote),
         )
       : Object.values(quotes)
-          .filter(isCorrectDestinationAmount)
+          .filter(isValidDestinationAmount)
           .sort((a, b) => {
             const comparison = new BigNumber(b.destinationAmount).comparedTo(
               a.destinationAmount,
