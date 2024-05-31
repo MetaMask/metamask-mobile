@@ -20,6 +20,7 @@ import {
 } from '@metamask/transaction-controller';
 import { query } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { getGasLimitWithMultiplier, isValidDestinationAmount } from './utils';
 
 import {
   addHexPrefix,
@@ -312,23 +313,6 @@ async function resetAndStartPolling({
   );
 }
 
-/**
- * Multiplies gasLimit by multiplier if both defined
- * @param {string} gasLimit
- * @param {number} multiplier
- */
-export const getGasLimitWithMultiplier = (gasLimit, multiplier) => {
-  try {
-    if (!gasLimit || !multiplier) return;
-    const gasLimitWithMultiplier = new BigNumber(gasLimit)
-      .times(multiplier)
-      .integerValue();
-    return gasLimitWithMultiplier.isNaN() ? undefined : gasLimitWithMultiplier;
-  } catch (e) {
-    return undefined;
-  }
-};
-
 function getTransactionPropertiesFromGasEstimates(gasEstimateType, estimates) {
   if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
     return {
@@ -375,15 +359,6 @@ async function addTokenToAssetsController(newToken) {
     await TokensController.addToken({ address, symbol, decimals, name });
   }
 }
-
-export const isValidDestinationAmount = (quote) => {
-  try {
-    const bn = new BigNumber(quote.destinationAmount);
-    return Boolean(bn) && !bn.isNaN();
-  } catch (e) {
-    return false;
-  }
-};
 
 function SwapsQuotesView({
   swapsTokens,
