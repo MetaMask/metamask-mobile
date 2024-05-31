@@ -1,22 +1,13 @@
 // Third party dependencies.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { isEqual } from 'lodash';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 // External Dependencies.
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
-
-// Internal dependencies
-import {
-  Account,
-  EnsByAccountAddress,
-  UseAccounts,
-  UseAccountsParams,
-} from './useAccounts.types';
 import {
   selectChainId,
   selectTicker,
@@ -32,6 +23,14 @@ import {
   selectSelectedInternalAccount,
 } from '../../../selectors/accountsController';
 
+// Internal dependencies
+import {
+  Account,
+  EnsByAccountAddress,
+  UseAccounts,
+  UseAccountsParams,
+} from './useAccounts.types';
+
 /**
  * Hook that returns both wallet accounts and ens name information.
  *
@@ -46,7 +45,7 @@ const useAccounts = ({
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
   const chainId = useSelector(selectChainId);
-  const accountInfoByAddress = useSelector(selectAccounts, isEqual);
+  const accountInfoByAddress = useSelector(selectAccounts);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
@@ -132,8 +131,8 @@ const useAccounts = ({
             keyring: { type },
           },
         } = internalAccount;
-        const checksummedAddress = toChecksumAddress(address);
-        const isSelected = selectedInternalAccount.address === address;
+        const checksummedAddress = toChecksumHexAddress(address);
+        const isSelected = selectedInternalAccount?.address === address;
         if (isSelected) {
           selectedIndex = index;
         }
@@ -191,14 +190,11 @@ const useAccounts = ({
   ]);
 
   useEffect(() => {
-    // eslint-disable-next-line
     if (!isMountedRef.current) {
       isMountedRef.current = true;
     }
     if (isLoading) return;
-    // setTimeout is needed for now to ensure next frame contains updated keyrings.
     getAccounts();
-    // Once we can pull keyrings from Redux, we will replace the deps with keyrings.
     return () => {
       isMountedRef.current = false;
     };

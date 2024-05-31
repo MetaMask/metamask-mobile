@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useContext } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -11,11 +11,7 @@ import SheetHeader from '../../../../component-library/components/Sheet/SheetHea
 import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
-import {
-  getNetworkNameFromProviderConfig,
-  getNetworkImageSource,
-  getDecimalChainId,
-} from '../../../../util/networks';
+import { getDecimalChainId } from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { switchActiveAccounts } from '../../../../core/Permissions';
@@ -27,6 +23,10 @@ import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderConfig } from '../../../../selectors/networkController';
+import {
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../../selectors/networkInfos';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
 // Internal dependencies.
@@ -52,15 +52,8 @@ const AccountPermissionsConnected = ({
   const { trackEvent } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
-
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
-  const networkImageSource = useMemo(() => {
-    const { type, chainId } = providerConfig;
-    return getNetworkImageSource({ networkType: type, chainId });
-  }, [providerConfig]);
+  const networkName = useSelector(selectNetworkName);
+  const networkImageSource = useSelector(selectNetworkImageSource);
 
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);

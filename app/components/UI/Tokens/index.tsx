@@ -29,7 +29,6 @@ import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
 import {
   getDecimalChainId,
-  getNetworkNameFromProviderConfig,
   getTestNetImageByChainId,
   isLineaMainnetByChainId,
   isMainnetByChainId,
@@ -46,6 +45,7 @@ import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectNetworkName } from '../../../selectors/networkInfos';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import { BadgeVariant } from '../../../component-library/components/Badges/Badge/Badge.types';
@@ -66,7 +66,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
-import { EngineState } from '../../../selectors/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
 import SkeletonText from '../Ramp/components/SkeletonText';
@@ -119,10 +118,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const actionSheet = useRef<ActionSheet>();
 
-  const networkName = useSelector((state: EngineState) => {
-    const providerConfig = selectProviderConfig(state);
-    return getNetworkNameFromProviderConfig(providerConfig);
-  });
+  const networkName = useSelector(selectNetworkName);
   const { type, rpcUrl } = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);

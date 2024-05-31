@@ -1,15 +1,21 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
+import { captureException } from '@sentry/react-native';
+import { Hex, isValidChecksumAddress } from '@metamask/utils';
+import DefaultPreference from 'react-native-default-preference';
 import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
+  selectSelectedInternalAccountChecksummedAddress,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   expectedUuid,
   expectedUuid2,
   internalAccount1,
+  MOCK_ADDRESS_2,
 } from '../util/test/accountsControllerTestUtils';
-import { captureException } from '@sentry/react-native';
+import { RootState } from '../reducers';
+import { AGREED } from '../constants/storage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -19,6 +25,7 @@ const mockedCaptureException = jest.mocked(captureException);
 describe('Accounts Controller Selectors', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    DefaultPreference.get = jest.fn(() => Promise.resolve(AGREED));
   });
   describe('selectSelectedInternalAccount', () => {
     it('returns selected internal account', () => {
@@ -29,7 +36,7 @@ describe('Accounts Controller Selectors', () => {
               AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
             },
           },
-        } as any),
+        } as RootState),
       ).toEqual({
         address: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
         id: expectedUuid2,
@@ -62,15 +69,14 @@ describe('Accounts Controller Selectors', () => {
       };
       const errorMessage =
         'selectSelectedInternalAccount: Account with ID non-existent-id not found.';
-      expect(() =>
-        selectSelectedInternalAccount({
-          engine: {
-            backgroundState: {
-              AccountsController: invalidState,
-            },
+      const result = selectSelectedInternalAccount({
+        engine: {
+          backgroundState: {
+            AccountsController: invalidState,
           },
-        } as any),
-      ).toThrow(errorMessage);
+        },
+      } as RootState);
+      expect(result).toBeUndefined();
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         errorMessage,
@@ -86,7 +92,7 @@ describe('Accounts Controller Selectors', () => {
               AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
             },
           },
-        } as any),
+        } as RootState),
       ).toEqual([
         {
           address: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
@@ -119,6 +125,36 @@ describe('Accounts Controller Selectors', () => {
           type: 'eip155:eoa',
         },
       ]);
+    });
+  });
+  describe('selectSelectedInternalAccountChecksummedAddress', () => {
+    it('returns selected internal account address in checksum format', () => {
+      const result = selectSelectedInternalAccountChecksummedAddress({
+        engine: {
+          backgroundState: {
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          },
+        },
+      } as RootState);
+      const checksummedAddress = MOCK_ADDRESS_2;
+      expect(isValidChecksumAddress(result as Hex)).toEqual(true);
+      expect(result).toEqual(checksummedAddress);
+    });
+    it('returns undefined if selected account does not exist', () => {
+      const result = selectSelectedInternalAccountChecksummedAddress({
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+              internalAccounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+                selectedAccount: {},
+              },
+            },
+          },
+        },
+      } as RootState);
+      expect(result).toEqual(undefined);
     });
   });
 });

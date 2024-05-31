@@ -26,8 +26,8 @@ import Networks, {
   compareRpcUrls,
   getAllNetworks,
   getDecimalChainId,
-  getNetworkImageSource,
   isTestNet,
+  getNetworkImageSource,
 } from '../../../util/networks';
 import {
   LINEA_MAINNET,

@@ -13,3 +13,6 @@ ppom                                 @MetaMask/confirmations @MetaMask/mobile-pl
 # Accounts Team
 
 app/core/Encryptor/                  @MetaMask/accounts-engineers
+
+# Swaps Team
+app/components/UI/Swaps              @MetaMask/swaps-engineers @MetaMask/mobile-platform

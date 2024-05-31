@@ -651,7 +651,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  Sepolia Test Network
+                                  Sepolia
                                 </Text>
                                 <Text
                                   allowFontScaling={false}
@@ -787,7 +787,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  Linea Sepolia Test Network
+                                  Linea Sepolia
                                 </Text>
                                 <Text
                                   allowFontScaling={false}

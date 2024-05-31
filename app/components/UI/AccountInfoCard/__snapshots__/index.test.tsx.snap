@@ -285,9 +285,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
     >
       Balance:
        
-      0 INR
-       
-      (&lt; 0.00001 ETH)
+      &lt; 0.00001 ETH
     </Text>
   </View>
 </View>
