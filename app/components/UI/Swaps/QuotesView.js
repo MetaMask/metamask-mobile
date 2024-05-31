@@ -368,6 +368,15 @@ async function addTokenToAssetsController(newToken) {
   }
 }
 
+export const isCorrectDestinationAmount = (quote) => {
+  try {
+    const bn = new BigNumber(quote.destinationAmount);
+    return Boolean(bn) && !bn.isNaN();
+  } catch (e) {
+    return false;
+  }
+};
+
 function SwapsQuotesView({
   swapsTokens,
   accounts,
@@ -486,14 +495,7 @@ function SwapsQuotesView({
             Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote),
         )
       : Object.values(quotes)
-          .filter((quote) => {
-            try {
-              const bn = new BigNumber(quote.destinationAmount);
-              return Boolean(bn);
-            } catch (e) {
-              return false;
-            }
-          })
+          .filter(isCorrectDestinationAmount)
           .sort((a, b) => {
             const comparison = new BigNumber(b.destinationAmount).comparedTo(
               a.destinationAmount,
