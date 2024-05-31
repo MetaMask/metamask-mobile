@@ -8,6 +8,6 @@ enum AUTOMATION_TYPE {
 }
 
 // only allow TS and TSX files in the app directory only
-const APP_FOLDER_TS_REGEX = /^(app).*\.(ts|tsx)$/;
+const APP_FOLDER_TS_REGEX = /^.*\.(ts|tsx)$/;
 
 export { EXCLUDE_REGEX, APP_FOLDER_TS_REGEX, AUTOMATION_TYPE };
