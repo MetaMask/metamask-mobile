@@ -80,9 +80,15 @@ class Matchers {
    *  @param {string} innerID - The web ID of the browser webview
    * @return {Promise<Detox.IndexableWebElement>} Resolves to the located element
    */
-  static async getElementByWebID(webviewID, innerID) {
-    const myWebView = web(by.id(webviewID));
-    return myWebView.element(by.web.id(innerID));
+  static async getElementByWebID(innerID) {
+    // if ((await device.getPlatform()) === 'android') {
+    //   return web.element(by.web.id(innerID));
+    // } else if ((await device.getPlatform()) === 'ios') {
+    //   const myWebView = web(by.id('browser-webview'));
+    //   return myWebView.element(by.web.id(innerID));
+    // }
+
+    return web.element(by.web.id(innerID));
   }
 
   /**
