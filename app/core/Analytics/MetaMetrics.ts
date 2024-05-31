@@ -2,6 +2,7 @@ import {
   createClient,
   GroupTraits,
   JsonMap,
+  SegmentClient,
   UserTraits,
 } from '@segment/analytics-react-native';
 import axios, { AxiosHeaderValue } from 'axios';
@@ -36,6 +37,7 @@ import { Config } from '@segment/analytics-react-native/lib/typescript/src/types
 import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import preProcessAnalyticsEvent from '../../util/events/preProcessAnalyticsEvent';
+import { isE2E } from '../../util/test/utils';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -495,7 +497,9 @@ class MetaMetrics implements IMetaMetrics {
           )}`,
         );
 
-      this.instance = new MetaMetrics(createClient(config));
+      const segmentClient = isE2E ? undefined : createClient(config);
+
+      this.instance = new MetaMetrics(segmentClient as SegmentClient);
     }
     return this.instance;
   }
