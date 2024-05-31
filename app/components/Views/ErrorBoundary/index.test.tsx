@@ -26,7 +26,7 @@ describe('ErrorBoundary', () => {
     jest.resetAllMocks();
   });
 
-  it('should render correctly', () => {
+  it('render matches snapshot', () => {
     const { toJSON } = renderWithProvider(<ErrorBoundary />, {});
     expect(toJSON()).toMatchSnapshot();
   });
