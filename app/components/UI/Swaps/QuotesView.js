@@ -311,11 +311,13 @@ async function resetAndStartPolling({
  * @param {string} gasLimit
  * @param {number} multiplier
  */
-export const gasLimitWithMultiplier = (gasLimit, multiplier) => {
+export const getGasLimitWithMultiplier = (gasLimit, multiplier) => {
   try {
     if (!gasLimit || !multiplier) return;
-    const res = new BigNumber(gasLimit).times(multiplier).integerValue();
-    return res.isNaN() ? undefined : res;
+    const gasLimitWithMultiplier = new BigNumber(gasLimit)
+      .times(multiplier)
+      .integerValue();
+    return gasLimitWithMultiplier.isNaN() ? undefined : gasLimitWithMultiplier;
   } catch (e) {
     return undefined;
   }
@@ -557,7 +559,7 @@ function SwapsQuotesView({
     }
     return (
       selectedQuoteValue?.tradeMaxGasLimit ||
-      gasLimitWithMultiplier(
+      getGasLimitWithMultiplier(
         selectedQuote?.gasEstimate,
         selectedQuote?.gasMultiplier,
       )?.toString(10) ||

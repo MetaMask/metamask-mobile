@@ -1,36 +1,39 @@
 import BigNumber from 'bignumber.js';
-import { gasLimitWithMultiplier, isValidDestinationAmount } from './QuotesView';
+import {
+  getGasLimitWithMultiplier,
+  isValidDestinationAmount,
+} from './QuotesView';
 
 describe('QuotesView', () => {
-  describe('gasLimitWithMultiplier', () => {
+  describe('getGasLimitWithMultiplier', () => {
     it('multiplies gas limit by multiplier', () => {
-      const res = gasLimitWithMultiplier('123', 2);
+      const res = getGasLimitWithMultiplier('123', 2);
       expect(res).toEqual(new BigNumber('246'));
     });
     it('returns undefined if gas limit undefined', () => {
       // @ts-expect-error Testing undefined case, which could happen in JS file
-      const res = gasLimitWithMultiplier(undefined, 2);
+      const res = getGasLimitWithMultiplier(undefined, 2);
       expect(res).toEqual(undefined);
     });
     it('returns undefined if multiplier undefined', () => {
       // @ts-expect-error Testing undefined case, which could happen in JS file
-      const res = gasLimitWithMultiplier('123', undefined);
+      const res = getGasLimitWithMultiplier('123', undefined);
       expect(res).toEqual(undefined);
     });
     it('returns undefined if multiplier and and gas limit are undefined', () => {
       // @ts-expect-error Testing undefined case, which could happen in JS file
-      const res = gasLimitWithMultiplier(undefined, undefined);
+      const res = getGasLimitWithMultiplier(undefined, undefined);
       expect(res).toEqual(undefined);
     });
     it('returns undefined if result is NaN', () => {
-      const res = gasLimitWithMultiplier('asd', 2);
+      const res = getGasLimitWithMultiplier('asd', 2);
       expect(res).toEqual(undefined);
     });
     it('returns undefined if error is thrown', () => {
       jest.spyOn(BigNumber.prototype, 'times').mockImplementation(() => {
         throw new Error('Test error');
       });
-      const res = gasLimitWithMultiplier('asd', 2);
+      const res = getGasLimitWithMultiplier('asd', 2);
       expect(res).toEqual(undefined);
 
       // @ts-expect-error We mocked this earlier, so restore it
