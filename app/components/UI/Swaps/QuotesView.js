@@ -311,12 +311,13 @@ async function resetAndStartPolling({
  * @param {string} gasLimit
  * @param {number} multiplier
  */
-const gasLimitWithMultiplier = (gasLimit, multiplier) => {
+export const gasLimitWithMultiplier = (gasLimit, multiplier) => {
   try {
     if (!gasLimit || !multiplier) return;
-    return new BigNumber(gasLimit).times(multiplier).integerValue();
+    const res = new BigNumber(gasLimit).times(multiplier).integerValue();
+    return res.isNaN() ? undefined : res;
   } catch (e) {
-    return;
+    return undefined;
   }
 };
 
