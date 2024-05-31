@@ -1,27 +1,30 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { View, ViewProps } from 'react-native';
+
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../hooks/useStyles';
-
-import styleSheet from './BalanceChangeRow.styles';
 import { BalanceChange } from '../types';
 import AmountPill from '../AmountPill/AmountPill';
 import AssetPill from '../AssetPill/AssetPill';
+import { IndividualFiatDisplay } from '../FiatDisplay/FiatDisplay';
+import styleSheet from './BalanceChangeRow.styles';
 
 interface BalanceChangeRowProperties extends ViewProps {
   label?: string;
+  showFiat?: boolean;
   balanceChange: BalanceChange;
 }
 
 const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
   label,
   balanceChange,
+  showFiat,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { asset, amount } = balanceChange;
+  const { asset, amount, fiatAmount } = balanceChange;
   return (
     <View style={styles.container}>
       {label && (
@@ -41,6 +44,12 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
           />
           <AssetPill asset={asset} testID="balance-change-row-asset-pill" />
         </View>
+        {showFiat && (
+          <IndividualFiatDisplay
+            testID="balance-change-row-fiat-display"
+            fiatAmount={fiatAmount}
+          />
+        )}
       </View>
     </View>
   );
