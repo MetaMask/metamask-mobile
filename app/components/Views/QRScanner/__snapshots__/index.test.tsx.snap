@@ -311,7 +311,133 @@ exports[`QrScanner should render correctly 1`] = `
                           "flex": 1,
                         }
                       }
-                    />
+                    >
+                      <RCTSafeAreaView
+                        style={
+                          {
+                            "display": "flex",
+                            "flexDirection": "column",
+                            "height": "100%",
+                            "position": "absolute",
+                            "width": "100%",
+                            "zIndex": 1,
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "rgba(242, 244, 246, 0.33)",
+                              "flex": 1,
+                              "flexBasis": 0,
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "alignSelf": "flex-end",
+                                "color": "#FFFFFF",
+                                "marginRight": 20,
+                                "marginTop": 20,
+                                "width": 40,
+                              }
+                            }
+                          >
+                            <Text
+                              allowFontScaling={false}
+                              style={
+                                [
+                                  {
+                                    "color": "#FFFFFF",
+                                    "fontSize": 50,
+                                  },
+                                  undefined,
+                                  {
+                                    "fontFamily": "Ionicons",
+                                    "fontStyle": "normal",
+                                    "fontWeight": "normal",
+                                  },
+                                  {},
+                                ]
+                              }
+                            >
+                              
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "display": "flex",
+                              "flexDirection": "row",
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "rgba(242, 244, 246, 0.33)",
+                                "flex": 1,
+                                "flexBasis": 0,
+                              }
+                            }
+                          />
+                          <Image
+                            source={
+                              {
+                                "default": {
+                                  "uri": "MockImage",
+                                },
+                              }
+                            }
+                            style={
+                              {
+                                "alignSelf": "center",
+                                "height": 250,
+                                "justifyContent": "center",
+                                "margin": -4,
+                                "width": 250,
+                              }
+                            }
+                          />
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "rgba(242, 244, 246, 0.33)",
+                                "flex": 1,
+                                "flexBasis": 0,
+                              }
+                            }
+                          />
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "rgba(242, 244, 246, 0.33)",
+                              "flex": 1,
+                              "flexBasis": 0,
+                            }
+                          }
+                        >
+                          <Text
+                            style={
+                              {
+                                "color": "#FFFFFF",
+                                "flex": 1,
+                                "fontSize": 17,
+                                "justifyContent": "center",
+                                "marginTop": 100,
+                                "textAlign": "center",
+                              }
+                            }
+                          >
+                            scanning...
+                          </Text>
+                        </View>
+                      </RCTSafeAreaView>
+                    </View>
                   </View>
                 </View>
               </View>

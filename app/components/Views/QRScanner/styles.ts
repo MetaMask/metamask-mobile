@@ -10,6 +10,10 @@ const createStyles = (theme: Theme) =>
     },
     preview: {
       flex: 1,
+      width: '100%',
+      height: '100%',
+      position: 'absolute',
+      zIndex: 0,
     },
     innerView: {
       flex: 1,
@@ -26,6 +30,8 @@ const createStyles = (theme: Theme) =>
       width: '100%',
       height: '100%',
       flexDirection: 'column',
+      position: 'absolute',
+      zIndex: 1,
     },
     overlayContainerRow: {
       display: 'flex',

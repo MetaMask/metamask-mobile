@@ -308,27 +308,22 @@ const QRScanner = () => {
           buttonNegative: strings('qr_scanner.cancel'),
         }}
         onStatusChange={onStatusChange}
-      >
-        <SafeAreaView style={styles.overlayContainerColumn}>
-          <View style={styles.overlay}>
-            <TouchableOpacity style={styles.closeIcon} onPress={goBack}>
-              <Icon
-                name={'ios-close'}
-                size={50}
-                color={styles.closeIcon.color}
-              />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.overlayContainerRow}>
-            <View style={styles.overlay} />
-            <Image source={frameImage} style={styles.frame} />
-            <View style={styles.overlay} />
-          </View>
-          <View style={styles.overlay}>
-            <Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>
-          </View>
-        </SafeAreaView>
-      </RNCamera>
+      />
+      <SafeAreaView style={styles.overlayContainerColumn}>
+        <View style={styles.overlay}>
+          <TouchableOpacity style={styles.closeIcon} onPress={goBack}>
+            <Icon name={'ios-close'} size={50} color={styles.closeIcon.color} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.overlayContainerRow}>
+          <View style={styles.overlay} />
+          <Image source={frameImage} style={styles.frame} />
+          <View style={styles.overlay} />
+        </View>
+        <View style={styles.overlay}>
+          <Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>
+        </View>
+      </SafeAreaView>
     </View>
   );
 };
