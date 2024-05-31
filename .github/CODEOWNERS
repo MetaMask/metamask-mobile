@@ -11,8 +11,17 @@ app/components/Views/confirmations   @MetaMask/confirmations @MetaMask/mobile-pl
 ppom                                 @MetaMask/confirmations @MetaMask/mobile-platform
 
 # Accounts Team
-
 app/core/Encryptor/                  @MetaMask/accounts-engineers
 
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers @MetaMask/mobile-platform
+
+# Notifications Team
+app/components/Views/Notifications   @MetaMask/notifications-dev-team @MetaMask/mobile-platform
+app/components/Views/Settings/NotificationsSettings @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
+app/components/UI/Notifications @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
+app/core/  @MetaMask/notifications-dev-team  @MetaMask/mobile-platformc
+app/store @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
+app/reducers  @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
+app/actions @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
+app/util/notifications  @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
