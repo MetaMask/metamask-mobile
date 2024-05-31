@@ -43,10 +43,19 @@ describe('QuotesView', () => {
       expect(isValidDestinationAmount(quote)).toBe(true);
     });
 
-    it('returns false for invalid destinationAmount', () => {
-      const quote = { destinationAmount: 'abc' };
-      expect(isValidDestinationAmount(quote)).toBe(false);
-    });
+    const testCases = [
+      { destinationAmount: 'abc', expected: false },
+      { destinationAmount: {}, expected: false },
+      { destinationAmount: [], expected: false },
+    ];
+
+    it.each(testCases)(
+      'returns $expected when destinationAmount is $destinationAmount',
+      ({ destinationAmount, expected }) => {
+        const quote = { destinationAmount };
+        expect(isValidDestinationAmount(quote)).toBe(expected);
+      },
+    );
 
     it('return false when destinationAmount is not provided', () => {
       const quote = {};
