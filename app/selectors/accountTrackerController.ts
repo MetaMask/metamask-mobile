@@ -28,7 +28,7 @@ export const selectAccountsLength = createSelector(
     Object.keys(accounts || {}).length,
 );
 
-export const selectAccountBalanceByChainId = createDeepEqualSelector(
+export const selectAccountBalanceByChainId = createSelector(
   (state: RootState) => state.engine.backgroundState,
   (backgroundState) => {
     const { AccountTrackerController, NetworkController, AccountsController } =
