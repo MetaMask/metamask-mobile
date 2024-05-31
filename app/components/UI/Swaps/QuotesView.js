@@ -368,7 +368,7 @@ async function addTokenToAssetsController(newToken) {
   }
 }
 
-export const isCorrectDestinationAmount = (quote) => {
+export const isValidDestinationAmount = (quote) => {
   try {
     const bn = new BigNumber(quote.destinationAmount);
     return Boolean(bn) && !bn.isNaN();
