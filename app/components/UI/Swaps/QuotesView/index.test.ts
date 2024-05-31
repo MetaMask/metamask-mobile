@@ -1,8 +1,5 @@
 import BigNumber from 'bignumber.js';
-import {
-  getGasLimitWithMultiplier,
-  isValidDestinationAmount,
-} from './QuotesView';
+import { getGasLimitWithMultiplier, isValidDestinationAmount } from '.';
 
 describe('QuotesView', () => {
   describe('getGasLimitWithMultiplier', () => {

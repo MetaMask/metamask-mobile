@@ -31,76 +31,82 @@ import {
   toWei,
   weiToFiat,
   calculateEthFeeForMultiLayer,
-} from '../../../util/number';
+} from '../../../../util/number/index.js';
 import {
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
   getDecimalChainId,
-} from '../../../util/networks';
+} from '../../../../util/networks/index.js';
 import {
   getErrorMessage,
   getFetchParams,
   getQuotesNavigationsParams,
   isSwapsNativeAsset,
-} from './utils';
-import { strings } from '../../../../locales/i18n';
+} from '../utils/index.js';
+import { strings } from '../../../../../locales/i18n.js';
 
-import Engine from '../../../core/Engine';
-import AppConstants from '../../../core/AppConstants';
-import Device from '../../../util/device';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { getSwapsQuotesNavbar } from '../Navbar';
-import ScreenView from '../../Base/ScreenView';
-import Text from '../../Base/Text';
-import Alert, { AlertType } from '../../Base/Alert';
-import StyledButton from '../StyledButton';
-import SliderButton from '../SliderButton';
+import Engine from '../../../../core/Engine.js';
+import AppConstants from '../../../../core/AppConstants.js';
+import Device from '../../../../util/device/index.js';
+import { MetaMetricsEvents } from '../../../../core/Analytics/index.js';
+import { getSwapsQuotesNavbar } from '../../Navbar/index.js';
+import ScreenView from '../../../Base/ScreenView.js';
+import Text from '../../../Base/Text/index.js';
+import Alert, { AlertType } from '../../../Base/Alert.js';
+import StyledButton from '../../StyledButton/index.js';
+import SliderButton from '../../SliderButton/index.js';
 
-import LoadingAnimation from './components/LoadingAnimation';
-import TokenIcon from './components/TokenIcon';
-import QuotesSummary from './components/QuotesSummary';
-import QuotesModal from './components/QuotesModal';
-import Ratio from './components/Ratio';
-import ActionAlert from './components/ActionAlert';
-import ApprovalTransactionEditionModal from './components/ApprovalTransactionEditionModal';
-import GasEditModal from './components/GasEditModal';
-import InfoModal from './components/InfoModal';
-import useModalHandler from '../../Base/hooks/useModalHandler';
-import useBalance from './utils/useBalance';
-import { decodeApproveData, getTicker } from '../../../util/transactions';
-import { toLowerCaseEquals } from '../../../util/general';
-import { swapsTokensSelector } from '../../../reducers/swaps';
-import { decGWEIToHexWEI } from '../../../util/conversions';
-import FadeAnimationView from '../FadeAnimationView';
-import Logger from '../../../util/Logger';
-import { useTheme } from '../../../util/theme';
+import LoadingAnimation from '../components/LoadingAnimation/index.js';
+import TokenIcon from '../components/TokenIcon.js';
+import QuotesSummary from '../components/QuotesSummary.js';
+import QuotesModal from '../components/QuotesModal.js';
+import Ratio from '../components/Ratio.js';
+import ActionAlert from '../components/ActionAlert.js';
+import ApprovalTransactionEditionModal from '../components/ApprovalTransactionEditionModal.js';
+import GasEditModal from '../components/GasEditModal.js';
+import InfoModal from '../components/InfoModal.js';
+import useModalHandler from '../../../Base/hooks/useModalHandler.js';
+import useBalance from '../utils/useBalance.js';
+import {
+  decodeApproveData,
+  getTicker,
+} from '../../../../util/transactions/index.js';
+import { toLowerCaseEquals } from '../../../../util/general/index.js';
+import { swapsTokensSelector } from '../../../../reducers/swaps/index.js';
+import { decGWEIToHexWEI } from '../../../../util/conversions.js';
+import FadeAnimationView from '../../FadeAnimationView/index.js';
+import Logger from '../../../../util/Logger/index.js';
+import { useTheme } from '../../../../util/theme/index.js';
 import {
   getAddressAccountType,
   isHardwareAccount,
-} from '../../../util/address';
+} from '../../../../util/address/index.js';
 import {
   selectChainId,
   selectTicker,
-} from '../../../selectors/networkController';
+} from '../../../../selectors/networkController.js';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { resetTransaction, setRecipient } from '../../../actions/transaction';
-import Routes from '../../../constants/navigation/Routes';
+} from '../../../../selectors/currencyRateController.js';
+import { selectAccounts } from '../../../../selectors/accountTrackerController.js';
+import { selectContractBalances } from '../../../../selectors/tokenBalancesController.js';
+import { selectSelectedAddress } from '../../../../selectors/preferencesController.js';
+import {
+  resetTransaction,
+  setRecipient,
+} from '../../../../actions/transaction/index.js';
+import Routes from '../../../../constants/navigation/Routes.js';
 import {
   SWAP_QUOTE_SUMMARY,
   SWAP_GAS_FEE,
-} from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { addTransaction } from '../../../util/transaction-controller';
-import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
-import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+} from '../../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
+import { useMetrics } from '../../../hooks/useMetrics/index.js';
+import { addTransaction } from '../../../../util/transaction-controller/index.js';
+import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics.js';
+import { selectGasFeeEstimates } from '../../../../selectors/confirmTransaction.js';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController.js';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
