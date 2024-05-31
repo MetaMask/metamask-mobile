@@ -1,8 +1,5 @@
 import BigNumber from 'bignumber.js';
-import {
-  gasLimitWithMultiplier,
-  isCorrectDestinationAmount,
-} from './QuotesView';
+import { gasLimitWithMultiplier, isValidDestinationAmount } from './QuotesView';
 
 describe('QuotesView', () => {
   describe('gasLimitWithMultiplier', () => {
@@ -35,20 +32,20 @@ describe('QuotesView', () => {
       BigNumber.prototype.times.mockRestore();
     });
   });
-  describe('isCorrectDestinationAmount', () => {
+  describe('isValidDestinationAmount', () => {
     it('returns true for valid destinationAmount', () => {
       const quote = { destinationAmount: '100' };
-      expect(isCorrectDestinationAmount(quote)).toBe(true);
+      expect(isValidDestinationAmount(quote)).toBe(true);
     });
 
     it('returns false for invalid destinationAmount', () => {
       const quote = { destinationAmount: 'abc' };
-      expect(isCorrectDestinationAmount(quote)).toBe(false);
+      expect(isValidDestinationAmount(quote)).toBe(false);
     });
 
     it('return false when destinationAmount is not provided', () => {
       const quote = {};
-      expect(isCorrectDestinationAmount(quote)).toBe(false);
+      expect(isValidDestinationAmount(quote)).toBe(false);
     });
   });
 });
