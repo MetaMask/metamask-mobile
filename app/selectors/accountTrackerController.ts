@@ -5,12 +5,11 @@ import {
 } from '@metamask/assets-controllers';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { RootState } from '../reducers';
-import { createDeepEqualSelector } from './util';
 
 const selectAccountTrackerControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountTrackerController;
 
-export const selectAccounts = createDeepEqualSelector(
+export const selectAccounts = createSelector(
   selectAccountTrackerControllerState,
   (accountTrackerControllerState: AccountTrackerState) =>
     accountTrackerControllerState.accounts,
@@ -30,10 +29,9 @@ export const selectAccountsLength = createSelector(
 
 export const selectAccountBalanceByChainId = createSelector(
   (state: RootState) => state.engine.backgroundState,
-  (backgroundState) => {
-    const { AccountTrackerController, NetworkController, AccountsController } =
-      backgroundState;
-    const accountsByChainId = AccountTrackerController.accountsByChainId;
+  selectAccountsByChainId,
+  (backgroundState, accountsByChainId) => {
+    const { NetworkController, AccountsController } = backgroundState;
     const chainId = NetworkController.providerConfig.chainId;
     const selectedAccountId =
       AccountsController.internalAccounts?.selectedAccount;
