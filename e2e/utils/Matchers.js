@@ -80,7 +80,12 @@ class Matchers {
    * @return {Promise<Detox.IndexableWebElement>} Resolves to the located element
    */
   static async getElementByWebID(innerID) {
-    return web.element(by.web.id(innerID));
+    if ((await device.getPlatform()) === 'android') {
+      return web.element(by.web.id(innerID));
+    } else if ((await device.getPlatform()) === 'ios') {
+      const myWebView = web(by.id('browser-webview'));
+      return myWebView.element(by.web.id(innerID));
+    }
   }
 
   /**
