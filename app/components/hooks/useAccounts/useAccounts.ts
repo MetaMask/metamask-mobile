@@ -190,6 +190,7 @@ const useAccounts = ({
   ]);
 
   useEffect(() => {
+    // eslint-disable-next-line
     if (!isMountedRef.current) {
       isMountedRef.current = true;
     }
