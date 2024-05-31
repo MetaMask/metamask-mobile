@@ -20,7 +20,8 @@ app/components/UI/Swaps              @MetaMask/swaps-engineers @MetaMask/mobile-
 app/components/Views/Notifications   @MetaMask/notifications-dev-team @MetaMask/mobile-platform
 app/components/Views/Settings/NotificationsSettings @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
 app/components/UI/Notifications @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
-app/core/  @MetaMask/notifications-dev-team  @MetaMask/mobile-platformc
+app/core/  @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
+app/components/Nav  @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
 app/store @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
 app/reducers  @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
 app/actions @MetaMask/notifications-dev-team  @MetaMask/mobile-platform
