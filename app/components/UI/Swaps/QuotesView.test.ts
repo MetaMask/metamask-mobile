@@ -17,6 +17,11 @@ describe('QuotesView', () => {
       const res = gasLimitWithMultiplier('123', undefined);
       expect(res).toEqual(undefined);
     });
+    it('returns undefined if multiplier and and gas limit are undefined', () => {
+      // @ts-expect-error Testing undefined case, which could happen in JS file
+      const res = gasLimitWithMultiplier(undefined, undefined);
+      expect(res).toEqual(undefined);
+    });
     it('returns undefined if result is NaN', () => {
       const res = gasLimitWithMultiplier('asd', 2);
       expect(res).toEqual(undefined);
