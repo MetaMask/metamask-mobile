@@ -32,10 +32,12 @@ export default async function migrate(stateAsync: unknown) {
 
   const keyringControllerState = state.engine.backgroundState.KeyringController;
   // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
-  if (!isObject(keyringControllerState.vault)) {
+  if (!keyringControllerState.vault) {
     captureException(
-  // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
-      new Error(`Migration 37: Invalid vault in KeyringController: '${typeof keyringControllerState.vault}'`),
+      new Error(
+        // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
+        `Migration 37: Invalid vault in KeyringController: '${typeof keyringControllerState.vault}'`,
+      ),
     );
   }
 
