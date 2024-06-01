@@ -11,22 +11,28 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
+import ClipboardText from './Clipboard';
 
 const TestForm = ({
   title,
   textFields,
   buttonLabel,
   callback,
+  callbackTestId,
+  responseTestId,
   styles,
 }: {
   title: string;
   textFields: {
     placeholder: string;
+    testId: string;
   }[];
   buttonLabel: string;
   callback:
     | ((...args: any[]) => Promise<unknown>)
     | ((...args: any[]) => unknown);
+  callbackTestId: string;
+  responseTestId: string;
   styles: any;
 }) => {
   const [result, setResult] = useState('');
@@ -63,17 +69,19 @@ const TestForm = ({
             autoComplete={'off'}
             placeholder={textField.placeholder}
             onChangeText={(value: string) => handleInputChange(index, value)}
+            testID={textField.testId}
           />
         </View>
       ))}
       <Text variant={TextVariant.BodyMDBold}>Response</Text>
-      <Text variant={TextVariant.BodyMD}>{result}</Text>
+      <ClipboardText text={result} styles={styles} testID={responseTestId} />
       <Button
         variant={ButtonVariants.Primary}
         onPress={executeTest}
         label={buttonLabel}
         size={ButtonSize.Md}
         style={styles.button}
+        testID={callbackTestId}
       />
     </SafeAreaView>
   );

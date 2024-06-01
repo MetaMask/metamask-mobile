@@ -18,6 +18,13 @@ const createStyles = (colors: any) =>
     button: {
       width: '100%',
     },
+    clipboardText: {
+      marginVertical: 5,
+      paddingVertical: 5,
+      paddingHorizontal: 10,
+      backgroundColor: colors.background.alternative,
+      borderRadius: 15,
+    },
   });
 
 export default createStyles;
