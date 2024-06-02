@@ -1,6 +1,5 @@
 import TestHelpers from '../../helpers';
 import { DetectedTokensSelectorIDs } from '../../selectors/assets/DetectedTokensView.selectors';
-import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
 class DetectedTokensView {
