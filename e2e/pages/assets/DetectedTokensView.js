@@ -1,3 +1,4 @@
+import TestHelpers from '../../helpers';
 import { DetectedTokensSelectorIDs } from '../../selectors/assets/DetectedTokensView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
@@ -8,8 +9,9 @@ class DetectedTokensView {
   }
 
   async tapImport() {
-    // await Gestures.waitAndTap(this.importButton);
-    await Gestures.tapTextBeginingWith('Import');
+    //TODO: import button is dynamic and we should use regex to tap button text
+    // await Gestures.tapTextBeginingWith('Import');
+    await TestHelpers.tapByText('Import (1)');
   }
 }
 
