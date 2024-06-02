@@ -57,7 +57,8 @@ const copyEnvVarsTask = {
       const envFiles = [
         '.js.env',
         '.ios.env',
-        '.android.env'];
+        '.android.env',
+        '.e2e.env'];
       envFiles.forEach((envFileName) => {
         try {
           fs.copyFileSync(`${envFileName}.example`, envFileName, fs.constants.COPYFILE_EXCL);
@@ -132,7 +133,7 @@ const mainSetupTask = {
   title: 'Dependencies setup',
   task: (_, task) => task.newListr([
     {
-      title: 'Install iOS Pods',
+      title: 'Install CocoaPods',
       task: async (_, podInstallTask) => {
         if (!BUILD_IOS) {
           return podInstallTask.skip('Skipping iOS.')
@@ -205,9 +206,9 @@ const patchModulesTask = {
 }
 const tasks = new Listr([
   gemInstallTask,
+  patchModulesTask,
   mainSetupTask,
   ppomBuildTask,
-  patchModulesTask
 ],
   {
     exitOnError: true,
