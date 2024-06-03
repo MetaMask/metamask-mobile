@@ -135,6 +135,7 @@
     "@keystonehq/bc-ur-registry-eth": "^0.19.1",
     "@keystonehq/metamask-airgapped-keyring": "^0.13.1",
     "@keystonehq/ur-decoder": "^0.12.2",
+    "@launchdarkly/react-native-client-sdk": "^10.1.3",
     "@ledgerhq/react-native-hw-transport-ble": "^6.32.3",
     "@metamask/accounts-controller": "^11.0.0",
     "@metamask/address-book-controller": "^3.0.0",

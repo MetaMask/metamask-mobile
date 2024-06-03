@@ -3422,6 +3422,28 @@
     "@keystonehq/bc-ur-registry-eth" "^0.6.12"
     "@ngraveio/bc-ur" "^1.1.6"
 
+"@launchdarkly/js-client-sdk-common@1.1.3":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@launchdarkly/js-client-sdk-common/-/js-client-sdk-common-1.1.3.tgz#d2fc86cf63164f409ba76e294a9f13051d1bdb8a"
+  integrity sha512-8yy/ghdj9QRWpXMFsxF+Hu6hUJGk2HBVNTBXvqByjSgkL1Q/v9QpDJJnqjE0MwXNoL2PNPBpgje3NAC+XtvtTw==
+  dependencies:
+    "@launchdarkly/js-sdk-common" "2.4.2"
+
+"@launchdarkly/js-sdk-common@2.4.2":
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/@launchdarkly/js-sdk-common/-/js-sdk-common-2.4.2.tgz#9e9123d5fe2bb099e7b424ee676cc683fbeb09c9"
+  integrity sha512-dgxjY8qN7Gyqg/Gn4RZaEyUNmMgORkeVDacWaFb34Wc4m4NFD4cpiABk6hT216IUuhIdKSbG3TV2h6oKlwsAyw==
+
+"@launchdarkly/react-native-client-sdk@^10.1.3":
+  version "10.1.3"
+  resolved "https://registry.yarnpkg.com/@launchdarkly/react-native-client-sdk/-/react-native-client-sdk-10.1.3.tgz#7e5f3ac27359a344e089ab56ea20af40be1ee367"
+  integrity sha512-A/yctCGlOQ/mgIXFuptWJGu+ztaXoFNvr26EXOFF0M68bhPZZlrCIWzEBkaCHlEsns4RDXrCS+FL6vhVyQeX0g==
+  dependencies:
+    "@launchdarkly/js-client-sdk-common" "1.1.3"
+    "@react-native-async-storage/async-storage" "^1.21.0"
+    base64-js "^1.5.1"
+    event-target-shim "^6.0.2"
+
 "@lavamoat/aa@^4.2.0":
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/@lavamoat/aa/-/aa-4.2.0.tgz#1262589c77386b1741fe904ebdfe97b959bc8fa4"
@@ -16568,6 +16590,11 @@ event-target-shim@^5.0.0, event-target-shim@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/event-target-shim/-/event-target-shim-5.0.1.tgz#5d4d3ebdf9583d63a5333ce2deb7480ab2b05789"
   integrity sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==
+
+event-target-shim@^6.0.2:
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/event-target-shim/-/event-target-shim-6.0.2.tgz#ea5348c3618ee8b62ff1d344f01908ee2b8a2b71"
+  integrity sha512-8q3LsZjRezbFZ2PN+uP+Q7pnHUMmAOziU2vA2OwoFaKIXxlxl38IylhSSgUorWu/rf4er67w0ikBqjBFk/pomA==
 
 eventemitter2@^6.4.9:
   version "6.4.9"
