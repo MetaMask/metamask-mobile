@@ -1,12 +1,12 @@
 import { NameType } from '../../UI/Name/Name.types';
 import useTokenList from './useTokenList';
 
-export interface UseTokenListNameRequest {
+export interface UseTokenListEntriesRequest {
   value: string;
   type: NameType;
 }
 
-export function useTokenListNames(requests: UseTokenListNameRequest[]) {
+export function useTokenListEntries(requests: UseTokenListEntriesRequest[]) {
   const tokenList = useTokenList();
 
   return requests.map(({ value, type }) => {
@@ -20,6 +20,6 @@ export function useTokenListNames(requests: UseTokenListNameRequest[]) {
   });
 }
 
-export function useTokenListName(value: string, type: NameType) {
-  return useTokenListNames([{ value, type }])[0];
+export function useTokenListEntry(value: string, type: NameType) {
+  return useTokenListEntries([{ value, type }])[0];
 }

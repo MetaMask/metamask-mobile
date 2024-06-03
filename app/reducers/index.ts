@@ -27,7 +27,7 @@ import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
 import smartTransactionsReducer from '../core/redux/slices/smartTransactions';
-import transactionSimulationMetricsReducer from '../core/redux/slices/transactionSimulationMetrics';
+import transactionSimulationMetricsReducer from '../core/redux/slices/transactionMetrics';
 
 /**
  * Infer state from a reducer

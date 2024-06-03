@@ -52,7 +52,7 @@ import { updateTransaction } from '../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
-import { selectTransactionSimulationMetrics } from '../../../../core/redux/slices/transactionSimulationMetrics';
+import { selectTransactionSimulationMetrics } from '../../../../core/redux/slices/transactionMetrics';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -662,8 +662,10 @@ class Approval extends PureComponent {
     const { getTransactionSimulationMetrics } = this.props;
     const { id: transactionId } = transactionMeta;
 
+    const simulationMetricsByTransactionId = getTransactionSimulationMetrics();
+
     // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
-    return getTransactionSimulationMetrics(transactionId)?.properties || {};
+    return simulationMetricsByTransactionId[transactionId]?.properties || {};
   };
 
   render = () => {

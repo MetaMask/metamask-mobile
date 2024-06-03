@@ -7,7 +7,7 @@ import {
 
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { updateTransactionSimulationMetric } from '../../../core/redux/slices/transactionSimulationMetrics';
+import { updateTransactionSimulationMetric } from '../../../core/redux/slices/transactionMetrics';
 import {
   UseDisplayNameRequest,
   UseDisplayNameResponse,

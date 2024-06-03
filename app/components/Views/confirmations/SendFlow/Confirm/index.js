@@ -120,7 +120,7 @@ import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartT
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/TransactionConfirmView.selectors.js';
-import { selectTransactionSimulationMetrics } from '../../../../../core/redux/slices/transactionSimulationMetrics';
+import { selectTransactionSimulationMetrics } from '../../../../../core/redux/slices/transactionMetrics';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1214,8 +1214,10 @@ class Confirm extends PureComponent {
     const { getTransactionSimulationMetrics } = this.props;
     const { id: transactionId } = transactionMeta;
 
+    const simulationMetricsByTransactionId = getTransactionSimulationMetrics();
+
     // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
-    return getTransactionSimulationMetrics(transactionId)?.properties || {};
+    return simulationMetricsByTransactionId[transactionId]?.properties || {};
   };
 
   render = () => {

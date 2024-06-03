@@ -7,7 +7,7 @@ import { BigNumber } from 'bignumber.js';
 import { renderHook } from '@testing-library/react-hooks';
 import { useDispatch } from 'react-redux';
 
-import { updateTransactionSimulationMetric } from '../../../core/redux/slices/transactionSimulationMetrics';
+import { updateTransactionSimulationMetric } from '../../../core/redux/slices/transactionMetrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -36,7 +36,7 @@ jest.mock('react', () => ({
 
 jest.mock('./useLoadingTime');
 jest.mock('../../hooks/DisplayName/useDisplayName');
-jest.mock('../../../core/redux/slices/transactionSimulationMetrics');
+jest.mock('../../../core/redux/slices/transactionMetrics');
 jest.mock('../../../components/hooks/useMetrics');
 
 const TRANSACTION_ID_MOCK = 'testTransactionId';

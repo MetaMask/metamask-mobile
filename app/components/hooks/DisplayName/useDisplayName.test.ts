@@ -3,7 +3,7 @@ import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import { NameType } from '../../UI/Name/Name.types';
 import useDisplayName, { DisplayNameVariant } from './useDisplayName';
 import { useFirstPartyContractNames } from './useFirstPartyContractName';
-import { useTokenListNames } from './useTokenListName';
+import { useTokenListEntries } from './useTokenListEntry';
 import { useWatchedNFTNames } from './useWatchedNFTName';
 
 const UNKNOWN_ADDRESS_CHECKSUMMED =
@@ -21,8 +21,8 @@ jest.mock('./useWatchedNFTName', () => ({
 jest.mock('./useFirstPartyContractName', () => ({
   useFirstPartyContractNames: jest.fn(),
 }));
-jest.mock('./useTokenListName', () => ({
-  useTokenListNames: jest.fn(),
+jest.mock('./useTokenListEntry', () => ({
+  useTokenListEntries: jest.fn(),
 }));
 
 describe('useDisplayName', () => {
@@ -30,13 +30,13 @@ describe('useDisplayName', () => {
   const mockUseFirstPartyContractNames = jest.mocked(
     useFirstPartyContractNames,
   );
-  const mockUseTokenListNames = jest.mocked(useTokenListNames);
+  const mockUseTokenListEntries = jest.mocked(useTokenListEntries);
 
   beforeEach(() => {
     jest.resetAllMocks();
     mockUseWatchedNFTNames.mockReturnValue([]);
     mockUseFirstPartyContractNames.mockReturnValue([]);
-    mockUseTokenListNames.mockReturnValue([]);
+    mockUseTokenListEntries.mockReturnValue([]);
   });
 
   describe('unknown address', () => {
@@ -94,7 +94,7 @@ describe('useDisplayName', () => {
     });
 
     it('returns token list name', () => {
-      mockUseTokenListNames.mockReturnValue([
+      mockUseTokenListEntries.mockReturnValue([
         { name: KNOWN_TOKEN_LIST_NAME } as TokenListToken,
       ]);
 
@@ -122,7 +122,7 @@ describe('useDisplayName', () => {
     });
 
     it('returns token symbol if preferContractSymbol set to true', () => {
-      mockUseTokenListNames.mockReturnValue([
+      mockUseTokenListEntries.mockReturnValue([
         {
           name: KNOWN_TOKEN_LIST_NAME,
           symbol: KNOWN_TOKEN_LIST_SYMBOL,

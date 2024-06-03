@@ -2,7 +2,7 @@ import { Hex } from '@metamask/utils';
 import { NameType } from '../../UI/Name/Name.types';
 import { useFirstPartyContractNames } from './useFirstPartyContractName';
 import { useWatchedNFTNames } from './useWatchedNFTName';
-import { useTokenListNames } from './useTokenListName';
+import { useTokenListEntries } from './useTokenListEntry';
 
 export interface UseDisplayNameRequest {
   value: string;
@@ -73,7 +73,7 @@ export function useDisplayNames(
 ): UseDisplayNameResponse[] {
   const firstPartyContractNames = useFirstPartyContractNames(requests);
   const watchedNftNames = useWatchedNFTNames(requests);
-  const tokenListNames = useTokenListNames(requests);
+  const tokenListNames = useTokenListEntries(requests);
 
   return requests.map(({ preferContractSymbol }, index) => {
     const watchedNftName = watchedNftNames[index];

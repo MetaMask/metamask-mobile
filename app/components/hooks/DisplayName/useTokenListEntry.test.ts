@@ -1,6 +1,6 @@
 import { TokenListMap } from '@metamask/assets-controllers';
 import { NameType } from '../../UI/Name/Name.types';
-import { useTokenListName } from './useTokenListName';
+import { useTokenListEntry } from './useTokenListEntry';
 import useTokenList from './useTokenList';
 
 jest.mock('./useTokenList', () => ({
@@ -13,7 +13,7 @@ const TOKEN_ADDRESS_MOCK = '0x0439e60F02a8900a951603950d8D4527f400C3f1';
 const TOKEN_SYMBOL_MOCK = 'MMT';
 const UNKNOWN_ADDRESS_MOCK = '0xabc123';
 
-describe('useTokenListName', () => {
+describe('useTokenListEntry', () => {
   const useTokenListMock = jest.mocked(useTokenList);
   beforeEach(() => {
     jest.resetAllMocks();
@@ -27,7 +27,7 @@ describe('useTokenListName', () => {
   });
 
   it('returns undefined if no token found', () => {
-    const name = useTokenListName(
+    const name = useTokenListEntry(
       UNKNOWN_ADDRESS_MOCK,
       NameType.EthereumAddress,
     );
@@ -36,7 +36,7 @@ describe('useTokenListName', () => {
   });
 
   it('returns name if found', () => {
-    const token = useTokenListName(
+    const token = useTokenListEntry(
       TOKEN_ADDRESS_MOCK,
       NameType.EthereumAddress,
     );
@@ -47,13 +47,13 @@ describe('useTokenListName', () => {
   it('returns null if type is not address', () => {
     const alternateType = 'alternateType' as NameType;
 
-    const token = useTokenListName(TOKEN_ADDRESS_MOCK, alternateType);
+    const token = useTokenListEntry(TOKEN_ADDRESS_MOCK, alternateType);
 
     expect(token).toBe(null);
   });
 
   it('normalizes addresses to lowercase', () => {
-    const token = useTokenListName(
+    const token = useTokenListEntry(
       TOKEN_ADDRESS_MOCK.toUpperCase(),
       NameType.EthereumAddress,
     );
