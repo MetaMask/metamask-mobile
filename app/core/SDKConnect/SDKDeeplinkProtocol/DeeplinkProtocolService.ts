@@ -528,8 +528,7 @@ export default class DeeplinkProtocolService {
       Engine.context as { PreferencesController: PreferencesController }
     ).PreferencesController;
 
-    const selectedAddress =
-      preferencesController.state.selectedAddress?.toLowerCase();
+    const selectedAddress = preferencesController.state.selectedAddress;
 
     let connectedAddresses = permissions?.eth_accounts?.caveats?.[0]
       ?.value as string[];
