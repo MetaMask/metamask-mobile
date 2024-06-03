@@ -18,6 +18,7 @@ import {
   aesCryptoFormInputs,
   aesCryptoFormResponses,
   aesCryptoFormButtons,
+  aesCryptoFormScrollIdentifier,
 } from '../../../../e2e/selectors/AesCrypto.selectors';
 
 const AesCryptoTestForm = () => {
@@ -27,6 +28,10 @@ const AesCryptoTestForm = () => {
   const styles = createStyles(colors);
 
   const [encryptor, setEncryptor] = useState<Encryptor | undefined>();
+
+  const [passwordEncryptedData, setPasswordEncryptedData] =
+    useState<string>('');
+  const [keyEncryptedData, setKeyEncryptedData] = useState<any>();
 
   useEffect(() => {
     const encryptorInstance = new Encryptor({
@@ -47,12 +52,38 @@ const AesCryptoTestForm = () => {
     );
   }, [colors, navigation]);
 
-  const keyFromPassword = useCallback(
+  const generateSalt = useCallback(
+    async (args: any[]) => await encryptor?.generateSalt(args[0]),
+    [encryptor],
+  );
+
+  const generateEncryptionKey = useCallback(
     async (args: any[]) => {
       const response = await encryptor?.keyFromPassword(args[0], args[1]);
       return response?.key;
     },
     [encryptor],
+  );
+
+  const encrypt = useCallback(
+    async (args: any[]) => {
+      const response = await encryptor?.encrypt(args[1], args[0]);
+      if (!response) {
+        throw new Error('Encryption failed');
+      }
+
+      setPasswordEncryptedData(response);
+      return JSON.parse(response).cipher;
+    },
+    [encryptor],
+  );
+
+  const decrypt = useCallback(
+    async (args: any[]) => {
+      const response = await encryptor?.decrypt(args[0], passwordEncryptedData);
+      return response;
+    },
+    [encryptor, passwordEncryptedData],
   );
 
   const encryptWithKey = useCallback(
@@ -66,7 +97,8 @@ const AesCryptoTestForm = () => {
         },
         args[1],
       );
-      return JSON.stringify(response);
+      setKeyEncryptedData(response);
+      return response?.cipher;
     },
     [encryptor],
   );
@@ -80,15 +112,15 @@ const AesCryptoTestForm = () => {
           exportable: false,
           keyMetadata: DERIVATION_OPTIONS_DEFAULT_OWASP2023,
         },
-        JSON.parse(args[1]),
+        keyEncryptedData,
       );
-      return JSON.stringify(response);
+      return response;
     },
-    [encryptor],
+    [encryptor, keyEncryptedData],
   );
 
   return (
-    <ScrollView>
+    <ScrollView testID={aesCryptoFormScrollIdentifier}>
       <SafeAreaView style={styles.container}>
         {encryptor && (
           <>
@@ -101,7 +133,7 @@ const AesCryptoTestForm = () => {
                   testId: aesCryptoFormInputs.saltBytesCountInput,
                 },
               ]}
-              callback={encryptor.generateSalt}
+              callback={generateSalt}
               callbackTestId={aesCryptoFormButtons.generateSaltButton}
               responseTestId={aesCryptoFormResponses.saltResponse}
               styles={{ ...styles }}
@@ -119,7 +151,7 @@ const AesCryptoTestForm = () => {
                   testId: aesCryptoFormInputs.saltInputForEncryptionKey,
                 },
               ]}
-              callback={keyFromPassword}
+              callback={generateEncryptionKey}
               callbackTestId={aesCryptoFormButtons.generateEncryptionKeyButton}
               responseTestId={
                 aesCryptoFormResponses.generateEncryptionKeyResponse
@@ -135,15 +167,11 @@ const AesCryptoTestForm = () => {
                   testId: aesCryptoFormInputs.dataInputForEncryption,
                 },
                 {
-                  placeholder: 'Encryption key',
-                  testId: aesCryptoFormInputs.encryptionKeyInputForEncryption,
-                },
-                {
-                  placeholder: 'IV',
-                  testId: aesCryptoFormInputs.ivInputForEncryption,
+                  placeholder: 'Password',
+                  testId: aesCryptoFormInputs.passwordInputForEncryption,
                 },
               ]}
-              callback={encryptor.encrypt}
+              callback={encrypt}
               callbackTestId={aesCryptoFormButtons.encryptButton}
               responseTestId={aesCryptoFormResponses.encryptionResponse}
               styles={{ ...styles }}
@@ -153,19 +181,11 @@ const AesCryptoTestForm = () => {
               buttonLabel="Decrypt"
               textFields={[
                 {
-                  placeholder: 'Data',
-                  testId: aesCryptoFormInputs.dataInputForDecryption,
-                },
-                {
-                  placeholder: 'Encryption key',
-                  testId: aesCryptoFormInputs.encryptionKeyInputForDecryption,
-                },
-                {
-                  placeholder: 'IV',
-                  testId: aesCryptoFormInputs.ivInputForDecryption,
+                  placeholder: 'Password',
+                  testId: aesCryptoFormInputs.passwordInputForDecryption,
                 },
               ]}
-              callback={encryptor.decrypt}
+              callback={decrypt}
               callbackTestId={aesCryptoFormButtons.decryptButton}
               responseTestId={aesCryptoFormResponses.decryptionResponse}
               styles={{ ...styles }}
@@ -197,11 +217,6 @@ const AesCryptoTestForm = () => {
                   placeholder: 'Encryption Key',
                   testId:
                     aesCryptoFormInputs.encryptionKeyInputForDecryptionWithKey,
-                },
-                {
-                  placeholder: 'Data',
-                  testId:
-                    aesCryptoFormInputs.encryptedDataInputForDecryptionWithKey,
                 },
               ]}
               callback={decryptWithKey}

@@ -2,11 +2,16 @@ import {
   aesCryptoFormInputs,
   aesCryptoFormResponses,
   aesCryptoFormButtons,
+  aesCryptoFormScrollIdentifier,
 } from '../../selectors/AesCrypto.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
 class AesCryptoTestForm {
+  get scrollViewIdentifier() {
+    return Matchers.getIdentifier(aesCryptoFormScrollIdentifier);
+  }
+
   // Generate salt getters
   get generateSaltBytesCountInput() {
     return Matchers.getElementByID(aesCryptoFormInputs.saltBytesCountInput);
@@ -42,13 +47,10 @@ class AesCryptoTestForm {
   get encryptDataInput() {
     return Matchers.getElementByID(aesCryptoFormInputs.dataInputForEncryption);
   }
-  get encryptEncryptionKeyInput() {
+  get encryptPasswordInput() {
     return Matchers.getElementByID(
-      aesCryptoFormInputs.encryptionKeyInputForEncryption,
+      aesCryptoFormInputs.passwordInputForEncryption,
     );
-  }
-  get encryptIvInput() {
-    return Matchers.getElementByID(aesCryptoFormInputs.ivInputForEncryption);
   }
   get encryptResponse() {
     return Matchers.getElementByID(aesCryptoFormResponses.encryptionResponse);
@@ -58,16 +60,10 @@ class AesCryptoTestForm {
   }
 
   // Decrypt getters
-  get decryptDataInput() {
-    return Matchers.getElementByID(aesCryptoFormInputs.dataInputForDecryption);
-  }
-  get decryptEncryptionKeyInput() {
+  get decryptPasswordInput() {
     return Matchers.getElementByID(
-      aesCryptoFormInputs.encryptionKeyInputForDecryption,
+      aesCryptoFormInputs.passwordInputForDecryption,
     );
-  }
-  get decryptIvInput() {
-    return Matchers.getElementByID(aesCryptoFormInputs.ivInputForDecryption);
   }
   get decryptResponse() {
     return Matchers.getElementByID(aesCryptoFormResponses.decryptionResponse);
@@ -102,11 +98,6 @@ class AesCryptoTestForm {
       aesCryptoFormInputs.encryptionKeyInputForDecryptionWithKey,
     );
   }
-  get decryptWithKeyEncryptedDataInput() {
-    return Matchers.getElementByID(
-      aesCryptoFormInputs.encryptedDataInputForDecryptionWithKey,
-    );
-  }
   get decryptWithKeyResponse() {
     return Matchers.getElementByID(
       aesCryptoFormResponses.decryptionWithKeyResponse,
@@ -116,14 +107,92 @@ class AesCryptoTestForm {
     return Matchers.getElementByID(aesCryptoFormButtons.decryptWithKeyButton);
   }
 
-  async generateSalt(saltBytesCount: string): Promise<string> {
+  async scrollToEncrypt() {
+    await Gestures.scrollToElement(
+      this.encryptButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async scrollToDecrypt() {
+    await Gestures.scrollToElement(
+      this.decryptButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async scrollToEncryptWithKey() {
+    await Gestures.scrollToElement(
+      this.encryptWithKeyButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async scrollToDecryptWithKey() {
+    await Gestures.scrollToElement(
+      this.decryptWithKeyButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async generateSalt(saltBytesCount: string) {
     await Gestures.typeTextAndHideKeyboard(
       this.generateSaltBytesCountInput,
       saltBytesCount,
     );
     await Gestures.waitAndTap(this.generateSaltButton);
-    return await this.generateSaltResponse.getText();
+  }
+
+  async generateEncryptionKey(password: string, salt: string) {
+    await Gestures.typeTextAndHideKeyboard(
+      this.generateEncryptionKeyPasswordInput,
+      password,
+    );
+    await Gestures.typeTextAndHideKeyboard(
+      this.generateEncryptionKeySaltInput,
+      salt,
+    );
+    await Gestures.waitAndTap(this.generateEncryptionKeyButton);
+    // return await this.generateEncryptionKeyResponse.getText();
+  }
+
+  async encrypt(data: string, encryptionKey: string) {
+    await this.scrollToEncrypt();
+    await Gestures.typeTextAndHideKeyboard(this.encryptDataInput, data);
+    await Gestures.typeTextAndHideKeyboard(
+      this.encryptPasswordInput,
+      encryptionKey,
+    );
+    await Gestures.waitAndTap(this.encryptButton);
+  }
+
+  async decrypt(encryptionKey: string) {
+    await this.scrollToDecrypt();
+    await Gestures.typeTextAndHideKeyboard(
+      this.decryptPasswordInput,
+      encryptionKey,
+    );
+    await Gestures.waitAndTap(this.decryptButton);
+  }
+
+  async encryptWithKey(encryptionKey: string, data: string) {
+    await this.scrollToEncryptWithKey();
+    await Gestures.typeTextAndHideKeyboard(
+      this.encryptWithKeyEncryptionKeyInput,
+      encryptionKey,
+    );
+    await Gestures.typeTextAndHideKeyboard(this.encryptWithKeyDataInput, data);
+    await Gestures.waitAndTap(this.encryptWithKeyButton);
+  }
+
+  async decryptedWithKey(encryptionKey: string) {
+    await this.scrollToDecryptWithKey();
+    await Gestures.typeTextAndHideKeyboard(
+      this.decryptWithKeyEncryptionKeyInput,
+      encryptionKey,
+    );
+    await Gestures.waitAndTap(this.decryptWithKeyButton);
   }
 }
 
-export default AesCryptoTestForm;
+export default new AesCryptoTestForm();

@@ -52,7 +52,7 @@ const TestForm = ({
   );
 
   const executeTest = useCallback(async () => {
-    const response = (await callback(...args)) as string;
+    const response = (await callback(args)) as string;
     setResult(response);
   }, [callback, args]);
 

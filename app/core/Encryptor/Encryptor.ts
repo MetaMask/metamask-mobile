@@ -74,7 +74,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    * @returns The base64-encoded salt string.
    */
   generateSalt = (size: number = SALT_BYTES_COUNT) => {
-    console.log('size', size, typeof size);
     const view = new Uint8Array(size);
     global.crypto.getRandomValues(view);
 
