@@ -63,22 +63,13 @@ class Browser {
     );
   }
   get HomePageFavourtiesTab() {
-    return Matchers.getElementByXPath(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      BrowserViewSelectorsXPaths.FAVORITE_TAB,
-    );
+    return Matchers.getElementByXPath(BrowserViewSelectorsXPaths.FAVORITE_TAB);
   }
 
   get TestDappURLInFavourtiesTab() {
     return device.getPlatform() === 'ios'
-      ? Matchers.getElementByXPath(
-          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-          BrowserViewSelectorsXPaths.TEST_DAPP_LINK,
-        )
-      : Matchers.getElementByXPath(
-          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-          BrowserViewSelectorsXPaths.TEST_DAPP_TEXT,
-        );
+      ? Matchers.getElementByXPath(BrowserViewSelectorsXPaths.TEST_DAPP_LINK)
+      : Matchers.getElementByXPath(BrowserViewSelectorsXPaths.TEST_DAPP_TEXT);
   }
 
   get multiTabButton() {
