@@ -19,6 +19,7 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import Assertions from '../../utils/Assertions';
+import AddAddressModal from '../../pages/modals/AddAddressModal';
 
 const fixtureServer = new FixtureServer();
 const orangeFoxENS = 'orangefox.eth';
@@ -59,7 +60,10 @@ describe(SmokeConfirmations('Send ETH'), () => {
     await TestHelpers.delay(3000); // wait for the ens address to resolve.
 
     await SendView.tapAddAddressToAddressBook(); // tapping outside input box to dismiss keyboard
-
+    // After inputting an ENS address, it takes a few seconds to resolve, upon resolving, the keyboard expands again
+    try {
+      await AddAddressModal.tapCancelButton();
+    } catch {}
     await SendView.tapNextButton();
 
     await AmountView.typeInTransactionAmount(AMOUNT);
@@ -67,6 +71,9 @@ describe(SmokeConfirmations('Send ETH'), () => {
 
     await Assertions.checkIfTextIsDisplayed(secondENS);
     await TransactionConfirmationView.tapConfirmButton();
+    await Assertions.checkIfNotVisible(
+      await TransactionConfirmationView.transactionViewContainer,
+    );
     await TabBarComponent.tapActivity();
 
     await TestHelpers.checkIfElementByTextIsVisible(`${AMOUNT} ${TOKEN_NAME}`);
