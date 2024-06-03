@@ -1,9 +1,6 @@
 import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
-import {
-  createAsyncMiddleware,
-  JsonRpcEngineCallbackError,
-} from 'json-rpc-engine';
+import { createAsyncMiddleware } from 'json-rpc-engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   EndFlowOptions,
@@ -392,7 +389,7 @@ export const getRpcMethodMiddleware = ({
               req,
               res,
               next,
-              (err: JsonRpcEngineCallbackError | undefined) => {
+              (err) => {
                 if (err) {
                   return reject(err);
                 }
@@ -493,6 +490,7 @@ export const getRpcMethodMiddleware = ({
           }
         }
       },
+      // TODO: This code is no longer used and should be removed in the future. eth_accounts is implemented by permissions specifications
       eth_accounts: getEthAccounts,
       eth_coinbase: getEthAccounts,
       parity_defaultAccount: getEthAccounts,

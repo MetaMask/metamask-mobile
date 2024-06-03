@@ -82,6 +82,7 @@ import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 import AccountActions from '../../../components/Views/AccountActions';
 import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
+import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
@@ -106,6 +107,7 @@ import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSet
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
+import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -591,6 +593,10 @@ const App = ({ userLoggedIn }) => {
       />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
       <Stack.Screen
+        name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
+        component={SmartTransactionsOptInModal}
+      />
+      <Stack.Screen
         name={Routes.SHEET.ACCOUNT_SELECTOR}
         component={AccountSelector}
       />
@@ -660,6 +666,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ETH_SIGN_FRICTION}
         component={EthSignFriction}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.FIAT_ON_TESTNETS_FRICTION}
+        component={FiatOnTestnetsFriction}
       />
       <Stack.Screen
         name={Routes.SHEET.SHOW_IPFS}

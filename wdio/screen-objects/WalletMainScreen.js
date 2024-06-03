@@ -155,7 +155,7 @@ class WalletMainScreen {
 
   async isMainWalletViewVisible() {
     const element = await this.walletButton;
-    await element.waitForDisplayed({ timeout: 100000 });
+    await element.waitForDisplayed();
   }
 
   async isSubmittedNotificationDisplayed() {
