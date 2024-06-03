@@ -6,6 +6,9 @@ const styleSheet = () =>
       flexDirection: 'column',
       gap: 16,
     },
+    totalFiatDisplayContainer: {
+      flexDirection: 'row-reverse',
+    },
   });
 
 export default styleSheet;
