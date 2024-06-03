@@ -18,6 +18,10 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { mockTheme, ThemeContext, useTheme } from '../../../util/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  MetaMetricsEvents,
+  withMetricsAwareness,
+} from '../../../components/hooks/useMetrics';
 
 // eslint-disable-next-line import/no-commonjs
 const metamaskErrorImage = require('../../../images/metamask-error.png');
@@ -184,13 +188,31 @@ class ErrorBoundary extends Component {
     ]),
     view: PropTypes.string.isRequired,
     navigation: PropTypes.object,
+    metrics: PropTypes.object,
   };
 
   static getDerivedStateFromError(error) {
     return { error };
   }
 
+  generateErrorReport = (error, errorInfo = '') => {
+    const {
+      view,
+      metrics: { trackEvent },
+    } = this.props;
+    const analyticsParams = { error: error?.toString(), boundary: view };
+    // Organize stack trace
+    const stackList = (errorInfo.split('\n') || []).map((stack) =>
+      stack.trim(),
+    );
+    // Limit to 5 levels
+    analyticsParams.stack = stackList.slice(1, 5).join(', ');
+
+    trackEvent(MetaMetricsEvents.ERROR_SCREEN_VIEWED, analyticsParams);
+  };
+
   componentDidCatch(error, errorInfo) {
+    this.generateErrorReport(error, errorInfo?.componentStack);
     Logger.error(error, { View: this.props.view, ...errorInfo });
   }
 
@@ -258,4 +280,4 @@ class ErrorBoundary extends Component {
 
 ErrorBoundary.contextType = ThemeContext;
 
-export default ErrorBoundary;
+export default withMetricsAwareness(ErrorBoundary);

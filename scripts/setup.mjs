@@ -57,7 +57,8 @@ const copyEnvVarsTask = {
       const envFiles = [
         '.js.env',
         '.ios.env',
-        '.android.env'];
+        '.android.env',
+        '.e2e.env'];
       envFiles.forEach((envFileName) => {
         try {
           fs.copyFileSync(`${envFileName}.example`, envFileName, fs.constants.COPYFILE_EXCL);

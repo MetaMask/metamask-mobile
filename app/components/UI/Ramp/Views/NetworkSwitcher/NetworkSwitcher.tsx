@@ -35,7 +35,7 @@ import { selectNetworkConfigurations } from '../../../../../selectors/networkCon
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 
-import PopularList from '../../../../../util/networks/customNetworks';
+import { PopularList } from '../../../../../util/networks/customNetworks';
 
 function NetworkSwitcher() {
   const navigation = useNavigation();

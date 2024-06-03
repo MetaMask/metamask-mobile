@@ -38,6 +38,7 @@ const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
 enum EVENT_NAME {
   // Error
   ERROR = 'Error occurred',
+  ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
 
   // Approval
   APPROVAL_STARTED = 'Approval Started',
@@ -416,6 +417,7 @@ enum ACTIONS {
 
 const events = {
   ERROR: generateOpt(EVENT_NAME.ERROR),
+  ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),

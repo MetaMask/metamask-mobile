@@ -888,12 +888,13 @@
     "delete": "Delete",
     "network_exists": "This network has already been added.",
     "delete_metrics_title": "Delete MetaMetrics data",
-    "delete_metrics_description_part_one": "This will delete historical MetaMetrics data associated with your wallet.",
-    "delete_metrics_description_part_two": "MetaMetrics data is anonymized usage and diagnostic data.",
-    "delete_metrics_description_part_three": "Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 60 days. View the",
-    "delete_metrics_description_part_four": "You initiated this action on",
-    "delete_metrics_description_part_five": ". This process can take up to 60 days. View the",
-    "consensys_privacy_policy": "ConsenSys Privacy Policy.",
+    "delete_metrics_description_part_one": "This will delete historical",
+    "delete_metrics_description_part_two": "MetaMetrics",
+    "delete_metrics_description_part_three": "data associated with your wallet.",
+    "delete_metrics_description_before_delete": "Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 30 days. View our",
+    "delete_metrics_description_after_delete_part_one": "You initiated this action on",
+    "delete_metrics_description_after_delete_part_two": ". This process can take up to 30 days. View our",
+    "delete_metrics_description_privacy_policy": "Privacy Policy.",
     "delete_metrics_button": "Delete MetaMetrics data",
     "check_status_button": "Check Status",
     "delete_metrics_confirm_modal_title": "Delete MetaMetrics data?",
@@ -1443,7 +1444,7 @@
     "yes": "Yes",
     "undefined_account": "Undefined account",
     "close_tab": "Close tab",
-    "switch_tab": "Switch tab", 
+    "switch_tab": "Switch tab",
     "protocol_alert_options": {
       "ignore": "Ignore",
       "allow": "Allow"
@@ -3048,12 +3049,13 @@
   },
   "simulation_details": {
     "failed": "There was an error loading your estimation.",
+    "fiat_not_available": "Not Available",
     "incoming_heading": "You receive", 
     "no_balance_changes": "No changes predicted for your wallet",
     "outgoing_heading": "You send",
     "reverted": "This transaction is likely to fail",
     "title": "Estimated changes",
     "tooltip_description": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
-    "total_fiat": "Total {{currency}}"
+    "total_fiat": "Total = {{currency}}"
   }
 }
