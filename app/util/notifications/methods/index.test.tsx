@@ -4,10 +4,10 @@ import {
   getNotificationBadge,
   sortNotifications,
   getRowDetails,
-  NotificationRowProps,
 } from '.';
 import { TRIGGER_TYPES, Notification } from '../../../util/notifications';
 import { IconName } from '../../../component-library/components/Icons/Icon';
+import { ETHEREUM_LOGO } from '../../../constants/urls';
 
 describe('formatDate', () => {
   const realDateNow = Date.now.bind(global.Date);
@@ -22,12 +22,12 @@ describe('formatDate', () => {
 
   it('returns formatted date as "May 8" if the date is earlier this year but not yesterday', () => {
     const earlierThisYear = new Date('2024-05-08T12:00:00Z');
-    expect(formatDate(earlierThisYear)).toBe('May 8');
+    expect(formatDate(earlierThisYear)).toBe('8/05');
   });
 
   it('returns formatted date with year if the date is from a previous year', () => {
     const lastYear = new Date('2023-12-25T12:00:00Z');
-    expect(formatDate(lastYear)).toBe('Dec 25');
+    expect(formatDate(lastYear)).toBe('25/12');
   });
 
   it('removes the first word and returns the rest in lowercase', () => {
@@ -123,35 +123,39 @@ describe('getRowDetails', () => {
   it('handles LIDO_STAKE_COMPLETED notification', () => {
     const notification: Notification = {
       type: TRIGGER_TYPES.LIDO_STAKE_COMPLETED,
-      createdAt: new Date('2023-01-01'),
+      createdAt: new Date('2023-12-31'),
       data: {
         stake_out: {
           symbol: 'ETH',
           name: 'Ethereum',
-          image: 'image_url',
+          image: ETHEREUM_LOGO,
           amount: '1000000',
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: '8',
+          usd: '0.00001',
+        },
+        network_fee: {
+          gas_price: '1000000000',
+          native_token_price_in_usd: '0.00001',
         },
       },
     };
 
-    const expected: NotificationRowProps = {
-      row: {
-        badgeIcon: 'Plant',
-        title: 'Stake completed',
-        description: {
-          asset: {
-            symbol: 'ETH',
-            name: 'Ethereum',
-          },
+    const expectedRow: any = {
+      badgeIcon: IconName.Plant,
+      title: 'Stake completed',
+      description: {
+        asset: {
+          symbol: 'ETH',
+          name: 'Ethereum',
         },
-        createdAt: 'Dec 31',
-        imageUrl: 'image_url',
-        value: '< 0.00001 ETH',
       },
-      details: {},
+      createdAt: '30/12',
+      imageUrl: ETHEREUM_LOGO,
+      value: '< 0.00001 ETH',
     };
 
-    expect(getRowDetails(notification)).toEqual(expected);
+    expect(getRowDetails(notification).row).toEqual(expectedRow);
   });
 
   it('handles METAMASK_SWAP_COMPLETED notification', () => {
@@ -161,35 +165,36 @@ describe('getRowDetails', () => {
       data: {
         token_in: {
           symbol: 'BTC',
-          image: 'btc_image_url',
+          image: ETHEREUM_LOGO,
         },
         token_out: {
           symbol: 'ETH',
           name: 'Ethereum',
-          image: 'eth_image_url',
+          image: ETHEREUM_LOGO,
           amount: '500000',
         },
-      },
-    };
-
-    const expected: NotificationRowProps = {
-      row: {
-        badgeIcon: 'SwapHorizontal',
-        title: 'Swapped BTC for ETH',
-        description: {
-          asset: {
-            symbol: 'ETH',
-            name: 'Ethereum',
-          },
+        network_fee: {
+          gas_price: '1000000000',
+          native_token_price_in_usd: '0.00001',
         },
-        createdAt: 'Dec 31',
-        imageUrl: 'eth_image_url',
-        value: '< 0.00001 ETH',
       },
-      details: {},
     };
 
-    expect(getRowDetails(notification)).toEqual(expected);
+    const expected: any = {
+      badgeIcon: IconName.SwapHorizontal,
+      title: 'Swapped BTC for ETH',
+      description: {
+        asset: {
+          symbol: 'ETH',
+          name: 'Ethereum',
+        },
+      },
+      createdAt: '31/12',
+      imageUrl: ETHEREUM_LOGO,
+      value: '< 0.00001 ETH',
+    };
+
+    expect(getRowDetails(notification).row).toEqual(expected);
   });
 
   it('handles ETH_SENT notification', () => {
@@ -201,26 +206,27 @@ describe('getRowDetails', () => {
         amount: {
           eth: '1.5',
         },
-      },
-    };
-
-    const expected: NotificationRowProps = {
-      row: {
-        badgeIcon: 'Arrow2Upright',
-        title: 'Sent to 0xABC123',
-        description: {
-          asset: {
-            symbol: 'ETH',
-            name: 'Ethereum',
-          },
+        network_fee: {
+          gas_price: '1000000000',
+          native_token_price_in_usd: '0.00001',
         },
-        createdAt: 'Dec 31',
-        value: '1.5 ETH',
       },
-      details: {},
     };
 
-    expect(getRowDetails(notification)).toEqual(expected);
+    const expected: any = {
+      badgeIcon: IconName.Arrow2Upright,
+      title: 'Sent to 0xABC123',
+      description: {
+        asset: {
+          symbol: 'ETH',
+          name: 'Ethereum',
+        },
+      },
+      createdAt: '31/12',
+      value: '1.5 ETH',
+    };
+
+    expect(getRowDetails(notification).row).toEqual(expected);
   });
 
   it('handles ERC721_RECEIVED notification', () => {
@@ -235,28 +241,29 @@ describe('getRowDetails', () => {
             symbol: 'ART',
             name: 'ArtCollection',
           },
-          image: 'nft_image_url',
+          image: ETHEREUM_LOGO,
+        },
+        network_fee: {
+          gas_price: '1000000000',
+          native_token_price_in_usd: '0.00001',
         },
       },
     };
 
-    const expected: NotificationRowProps = {
-      row: {
-        badgeIcon: 'Received',
-        title: 'Received NFT from 0xDEF456',
-        description: {
-          asset: {
-            symbol: 'ART',
-            name: 'ArtCollection',
-          },
+    const expected: any = {
+      badgeIcon: IconName.Received,
+      title: 'Received NFT from 0xDEF456',
+      description: {
+        asset: {
+          symbol: 'ART',
+          name: 'ArtCollection',
         },
-        createdAt: 'Dec 31',
-        imageUrl: 'nft_image_url',
-        value: '#1234',
       },
-      details: {},
+      createdAt: '31/12',
+      imageUrl: ETHEREUM_LOGO,
+      value: '#1234',
     };
 
-    expect(getRowDetails(notification)).toEqual(expected);
+    expect(getRowDetails(notification).row).toEqual(expected);
   });
 });
