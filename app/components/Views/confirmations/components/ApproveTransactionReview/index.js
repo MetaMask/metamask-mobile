@@ -36,7 +36,7 @@ import {
   decodeApproveData,
   generateTxWithNewTokenAllowance,
   minimumTokenAllowance,
-  generateTokenAllowanceData,
+  generateApprovalData,
 } from '../../../../../util/transactions';
 import Avatar, {
   AvatarSize,
@@ -427,7 +427,7 @@ class ApproveTransactionReview extends PureComponent {
     const { name: method } = await getMethodData(data);
     const minTokenAllowance = minimumTokenAllowance(tokenDecimals);
 
-    const approvalData = generateTokenAllowanceData({
+    const approvalData = generateApprovalData({
       spender: spenderAddress,
       value:
         tokenStandard === ERC721 || tokenStandard === ERC1155

@@ -176,15 +176,15 @@ export function generateTransferData(type = undefined, opts = {}) {
 }
 
 /**
- * Generates ERC20 allowance data
+ * Generates ERC20 approval data
  *
  * @param {object} opts - Object containing spender address, value and data
  * @param {string} opts.spender - The address of the spender
  * @param {string} opts.value - The amount of tokens to be approved or increased
- * @param {string} opts.data - The data of the transaction
- * @returns {String} - String containing the generated data
+ * @param {string} [opts.data] - The data of the transaction
+ * @returns {String} - String containing the generated data, by default for approve method
  */
-export function generateTokenAllowanceData(opts) {
+export function generateApprovalData(opts) {
   const { spender, value, data } = opts;
 
   if (!spender || !value) {
@@ -1428,7 +1428,7 @@ export const generateTxWithNewTokenAllowance = (
   transaction,
 ) => {
   const uint = toTokenMinimalUnit(tokenValue, tokenDecimals);
-  const approvalData = generateTokenAllowanceData({
+  const approvalData = generateApprovalData({
     spender: spenderAddress,
     value: uint.gt(UINT256_BN_MAX_VALUE)
       ? UINT256_BN_MAX_VALUE.toString(16)

@@ -27,7 +27,7 @@ import {
   INCREASE_ALLOWANCE_SIGNATURE,
   TOKEN_METHOD_INCREASE_ALLOWANCE,
   getTransactionActionKey,
-  generateTokenAllowanceData,
+  generateApprovalData,
 } from '.';
 import buildUnserializedTransaction from './optimismTransaction';
 import Engine from '../../core/Engine';
@@ -548,10 +548,10 @@ describe('Transactions utils :: generateTxWithNewTokenAllowance', () => {
   });
 });
 
-describe('Transaction utils :: generateTokenAllowanceData', () => {
+describe('Transaction utils :: generateApprovalData', () => {
   it('generates the correct data for a token increase allowance transaction', () => {
     const increaseAllowanceDataMock = `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000000000`;
-    const data = generateTokenAllowanceData({
+    const data = generateApprovalData({
       spender: MOCK_ADDRESS3,
       value: '0x1',
       data: increaseAllowanceDataMock,
@@ -561,7 +561,7 @@ describe('Transaction utils :: generateTokenAllowanceData', () => {
     );
   });
   it('generates the correct data for a approve transaction with a value of 0', () => {
-    const data = generateTokenAllowanceData({
+    const data = generateApprovalData({
       spender: MOCK_ADDRESS3,
       value: '0x0',
       data: '0x095ea7b3',
