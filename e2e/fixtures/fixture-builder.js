@@ -274,9 +274,7 @@ class FixtureBuilder {
             TokenBalancesController: {
               contractBalances: {},
             },
-            TokenRatesController: {
-              contractExchangeRates: {},
-            },
+            TokenRatesController: {},
             TokensController: {
               tokens: [],
               ignoredTokens: [],

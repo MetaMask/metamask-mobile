@@ -124,7 +124,7 @@ const initialState = {
         },
       },
       TokenRatesController: {
-        contractExchangeRates: {},
+        marketData: {},
       },
       TransactionController: {
         methodData: {},
