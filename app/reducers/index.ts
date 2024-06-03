@@ -27,7 +27,7 @@ import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
 import smartTransactionsReducer from '../core/redux/slices/smartTransactions';
-import transactionSimulationMetricsReducer from '../core/redux/slices/transactionMetrics';
+import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 
 /**
  * Infer state from a reducer
@@ -75,8 +75,8 @@ export interface RootState {
   rpcEvents: any;
   accounts: any;
   inpageProvider: StateFromReducer<typeof inpageProviderReducer>;
-  transactionSimulationMetrics: StateFromReducer<
-    typeof transactionSimulationMetricsReducer
+  transactionMetrics: StateFromReducer<
+    typeof transactionMetricsReducer
   >;
 }
 
@@ -110,7 +110,7 @@ const rootReducer = combineReducers<RootState, any>({
   rpcEvents: rpcEventReducer,
   accounts: accountsReducer,
   inpageProvider: inpageProviderReducer,
-  transactionSimulationMetrics: transactionSimulationMetricsReducer,
+  transactionMetrics: transactionMetricsReducer,
 });
 
 export default rootReducer;

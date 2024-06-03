@@ -1,9 +1,9 @@
 import reducer, {
-  updateTransactionSimulationMetric,
+  updateTransactionMetric,
   TransactionMetricsState,
 } from '.';
 
-describe('TransactionSimulationMetrics slice', () => {
+describe('TransactionMetrics slice', () => {
   // Define the initial state for your tests
   const initialState: TransactionMetricsState = {
     simulationPropertiesByTransactionId: {},
@@ -15,12 +15,12 @@ describe('TransactionSimulationMetrics slice', () => {
     });
   });
 
-  it('should handle updateTransactionSimulationMetric', () => {
+  it('should handle updateTransactionMetric', () => {
     const mockTransactionId = 'testId';
     const mockParams = { test: 'test' };
     const actual = reducer(
       initialState,
-      updateTransactionSimulationMetric({
+      updateTransactionMetric({
         transactionId: mockTransactionId,
         params: mockParams,
       }),

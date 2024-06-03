@@ -16,7 +16,7 @@ const slice = createSlice({
   name,
   initialState,
   reducers: {
-    updateTransactionSimulationMetric: (
+    updateTransactionMetric: (
       state,
       action: PayloadAction<{
         transactionId: string;
@@ -42,7 +42,7 @@ const slice = createSlice({
 const { actions, reducer } = slice;
 export default reducer;
 // Actions
-export const { updateTransactionSimulationMetric } = actions;
+export const { updateTransactionMetric } = actions;
 
 // Selectors
 export const selectTransactionSimulationMetrics = (state: RootState) =>

@@ -7,7 +7,7 @@ import { BigNumber } from 'bignumber.js';
 import { renderHook } from '@testing-library/react-hooks';
 import { useDispatch } from 'react-redux';
 
-import { updateTransactionSimulationMetric } from '../../../core/redux/slices/transactionMetrics';
+import { updateTransactionMetric } from '../../../core/redux/slices/transactionMetrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -62,8 +62,8 @@ const DISPLAY_NAME_SAVED_MOCK = {
 };
 
 describe('useSimulationMetrics', () => {
-  const updateTransactionSimulationMetricMock = jest.mocked(
-    updateTransactionSimulationMetric,
+  const updateTransactionMetricMock = jest.mocked(
+    updateTransactionMetric,
   );
 
   const useDispatchMock = jest.mocked(useDispatch);
@@ -100,8 +100,8 @@ describe('useSimulationMetrics', () => {
       transactionId: TRANSACTION_ID_MOCK,
     });
 
-    expect(updateTransactionSimulationMetricMock).toHaveBeenCalledTimes(1);
-    expect(updateTransactionSimulationMetricMock).toHaveBeenCalledWith(
+    expect(updateTransactionMetricMock).toHaveBeenCalledTimes(1);
+    expect(updateTransactionMetricMock).toHaveBeenCalledWith(
       expect.objectContaining({
         transactionId: TRANSACTION_ID_MOCK,
         params: expectedParams,
@@ -150,7 +150,7 @@ describe('useSimulationMetrics', () => {
       });
 
       expect(setLoadingCompleteMock).toHaveBeenCalledTimes(1);
-      expect(updateTransactionSimulationMetric).toHaveBeenCalledWith(
+      expect(updateTransactionMetric).toHaveBeenCalledWith(
         expect.objectContaining({
           transactionId: TRANSACTION_ID_MOCK,
           params: expect.objectContaining({
@@ -417,6 +417,6 @@ describe('useSimulationMetrics', () => {
       transactionId: TRANSACTION_ID_MOCK,
     });
 
-    expect(updateTransactionSimulationMetricMock).not.toHaveBeenCalled();
+    expect(updateTransactionMetricMock).not.toHaveBeenCalled();
   });
 });
