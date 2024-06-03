@@ -11,7 +11,7 @@ import { selectSelectedInternalAccountChecksummedAddress } from './accountsContr
 const selectAccountTrackerControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountTrackerController;
 
-export const selectAccounts = createSelector(
+export const selectAccounts = createDeepEqualSelector(
   selectAccountTrackerControllerState,
   (accountTrackerControllerState: AccountTrackerState) =>
     accountTrackerControllerState.accounts,
