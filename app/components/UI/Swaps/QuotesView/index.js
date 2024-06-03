@@ -20,7 +20,7 @@ import {
 } from '@metamask/transaction-controller';
 import { query } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { getGasLimitWithMultiplier, isValidDestinationAmount } from './utils';
+import { getEstimatedSafeGasLimit, isValidDestinationAmount } from './utils';
 
 import {
   addHexPrefix,
@@ -540,7 +540,7 @@ function SwapsQuotesView({
     }
     return (
       selectedQuoteValue?.tradeMaxGasLimit ||
-      getGasLimitWithMultiplier(
+      getEstimatedSafeGasLimit(
         selectedQuote?.gasEstimate,
         selectedQuote?.gasMultiplier,
       )?.toString(10) ||

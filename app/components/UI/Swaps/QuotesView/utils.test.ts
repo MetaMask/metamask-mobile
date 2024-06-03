@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { getGasLimitWithMultiplier, isValidDestinationAmount } from './utils';
+import { getEstimatedSafeGasLimit, isValidDestinationAmount } from './utils';
 import { Quote } from '@metamask/swaps-controller/dist/swapsInterfaces';
 
 const getQuote = (overrides: any): Quote => ({
@@ -31,9 +31,9 @@ const getQuote = (overrides: any): Quote => ({
 });
 
 describe('utils', () => {
-  describe('getGasLimitWithMultiplier', () => {
+  describe('getEstimatedSafeGasLimit', () => {
     it('multiplies gas limit by multiplier', () => {
-      const res = getGasLimitWithMultiplier('123', 2);
+      const res = getEstimatedSafeGasLimit('123', 2);
       expect(res).toEqual(new BigNumber('246'));
     });
 
@@ -62,7 +62,7 @@ describe('utils', () => {
       'returns undefined for invalid gasLimit $gasLimit and multiplier $multiplier',
       ({ gasLimit, multiplier }) => {
         // @ts-expect-error Invalid args can occur if fn consumed in JS file
-        expect(getGasLimitWithMultiplier(gasLimit, multiplier)).toBe(undefined);
+        expect(getEstimatedSafeGasLimit(gasLimit, multiplier)).toBe(undefined);
       },
     );
 
@@ -70,7 +70,7 @@ describe('utils', () => {
       jest.spyOn(BigNumber.prototype, 'times').mockImplementation(() => {
         throw new Error('Test error');
       });
-      const res = getGasLimitWithMultiplier('asd', 2);
+      const res = getEstimatedSafeGasLimit('asd', 2);
       expect(res).toEqual(undefined);
 
       // @ts-expect-error We mocked this earlier, so restore it
