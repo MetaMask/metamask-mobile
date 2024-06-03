@@ -201,7 +201,7 @@ function getSimulationResponseType(
 
   if (
     !simulationData?.nativeBalanceChange &&
-    !simulationData?.tokenBalanceChanges.length
+    !simulationData?.tokenBalanceChanges?.length
   ) {
     return SimulationResponseType.NoChanges;
   }

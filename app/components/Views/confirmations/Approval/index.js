@@ -658,9 +658,8 @@ class Approval extends PureComponent {
   };
 
   getTransactionSimulationMetrics = () => {
-    const { transactionMeta } = this.state;
-    const { getTransactionSimulationMetrics } = this.props;
-    const { id: transactionId } = transactionMeta;
+    const { getTransactionSimulationMetrics, transaction } = this.props;
+    const { id: transactionId } = transaction;
 
     const simulationMetricsByTransactionId = getTransactionSimulationMetrics();
 
