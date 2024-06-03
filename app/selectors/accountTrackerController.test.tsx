@@ -1,3 +1,4 @@
+import React from 'react';
 import { Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Store } from 'redux';
@@ -93,14 +94,14 @@ jest.mock('../core/Engine', () => ({
     } as Partial<AccountsControllerState>,
     AccountTrackerController: {
       accountsByChainId: {
-        ['0x1']: {
-          ['0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756']: { balance: '0x11' },
-          ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272']: {
+        '0x1': {
+          '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756': { balance: '0x11' },
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
             balance: '0x33',
           },
         },
-        ['0x2']: {
-          ['0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756']: { balance: '0x22' },
+        '0x2': {
+          '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756': { balance: '0x22' },
         },
       },
     } as Partial<AccountTrackerState>,
@@ -151,7 +152,7 @@ describe('selectAccountBalanceByChainId', () => {
   it("returns undefined when balance doesn't exist for chain ID", () => {
     initialState.engine.backgroundState.AccountTrackerController.accountsByChainId =
       {
-        ['0x99']: {
+        '0x99': {
           [MOCK_ADDRESS_2]: { balance: MOCK_BALANCE },
         },
       };
