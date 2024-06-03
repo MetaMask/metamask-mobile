@@ -2414,39 +2414,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
           >
-            This will delete historical MetaMetrics data associated with your wallet.
-          </Text>
-           
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#535A61",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "700",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            MetaMetrics data is anonymized usage and diagnostic data.
-          </Text>
-           
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#535A61",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 60 days. View the
+            This will delete historical
           </Text>
            
           <Text
@@ -2476,7 +2444,70 @@ exports[`SecuritySettings should render correctly 1`] = `
                 }
               }
             >
-              ConsenSys Privacy Policy.
+              MetaMetrics
+            </Text>
+          </Text>
+           
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#535A61",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            data associated with your wallet.
+          </Text>
+           
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#535A61",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 30 days. View our
+          </Text>
+           
+          <Text
+            accessibilityRole="link"
+            accessible={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "backgroundColor": "transparent",
+                "color": "#24272A",
+              }
+            }
+            suppressHighlighting={true}
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#0376C9",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Privacy Policy.
             </Text>
           </Text>
         </Text>
