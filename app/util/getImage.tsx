@@ -1,4 +1,4 @@
-import PopularList from './networks/customNetworks';
+import { PopularList } from './networks/customNetworks';
 
 const getImage = (chainId: string) => {
   const customNetworkData = PopularList.filter(
