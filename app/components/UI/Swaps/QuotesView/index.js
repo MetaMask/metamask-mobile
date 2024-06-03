@@ -739,7 +739,7 @@ function SwapsQuotesView({
 
         trackAnonymousEvent(MetaMetricsEvents.GAS_FEES_CHANGED, parameters);
       } catch (e) {
-        // @ts-expect-error
+        Logger.log(e, 'Error while updating gas fee');
       }
     },
     [
