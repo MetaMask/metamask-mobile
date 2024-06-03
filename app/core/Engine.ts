@@ -435,7 +435,6 @@ class Engine {
     });
 
     const preferencesController = new PreferencesController({
-      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
         allowedActions: [],
