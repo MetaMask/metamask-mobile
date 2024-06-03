@@ -78,7 +78,7 @@ describe('useSimulationMetrics', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let trackEventMock: jest.MockedFunction<any>;
 
-  function expectUpdateTransactionSimulationMetricCalled(
+  function expectUpdateTransactionMetricCalled(
     {
       balanceChanges,
       simulationData,
@@ -179,7 +179,7 @@ describe('useSimulationMetrics', () => {
         useDisplayNamesMock.mockReset();
         useDisplayNamesMock.mockReturnValue([]);
 
-        expectUpdateTransactionSimulationMetricCalled(
+        expectUpdateTransactionMetricCalled(
           {
             simulationData: simulationData as SimulationData,
           },
@@ -202,7 +202,7 @@ describe('useSimulationMetrics', () => {
       amount: new BigNumber(isNegative ? -1 : 1),
     };
 
-    expectUpdateTransactionSimulationMetricCalled(
+    expectUpdateTransactionMetricCalled(
       {
         balanceChanges: [balanceChange, balanceChange, balanceChange],
       },
@@ -272,7 +272,7 @@ describe('useSimulationMetrics', () => {
       [AssetType.Native],
     ],
   ])('with asset type if %s', (_, type, isNegative, property, value) => {
-    expectUpdateTransactionSimulationMetricCalled(
+    expectUpdateTransactionMetricCalled(
       {
         balanceChanges: [
           {
@@ -328,7 +328,7 @@ describe('useSimulationMetrics', () => {
         fiatAmount,
       };
 
-      expectUpdateTransactionSimulationMetricCalled(
+      expectUpdateTransactionMetricCalled(
         {
           balanceChanges: [balanceChange],
         },
@@ -356,7 +356,7 @@ describe('useSimulationMetrics', () => {
       fiatAmount: 1.23,
     };
 
-    expectUpdateTransactionSimulationMetricCalled(
+    expectUpdateTransactionMetricCalled(
       {
         balanceChanges: [balanceChange1, balanceChange2],
       },
