@@ -658,10 +658,8 @@ class Approval extends PureComponent {
   };
 
   getTransactionSimulationMetrics = () => {
-    const { getTransactionSimulationMetrics, transaction } = this.props;
+    const { simulationMetricsByTransactionId, transaction } = this.props;
     const { id: transactionId } = transaction;
-
-    const simulationMetricsByTransactionId = getTransactionSimulationMetrics();
 
     // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
     return simulationMetricsByTransactionId[transactionId]?.properties || {};
@@ -711,7 +709,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   activeTabUrl: getActiveTabUrl(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  getTransactionSimulationMetrics: selectTransactionSimulationMetrics(state),
+  simulationMetricsByTransactionId: selectTransactionSimulationMetrics(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
