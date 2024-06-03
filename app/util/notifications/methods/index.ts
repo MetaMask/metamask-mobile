@@ -28,7 +28,7 @@ import { updateNotificationStatus } from '../../../actions/notification';
 import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
 
-interface ViewOnEtherscanProps {
+export interface ViewOnEtherscanProps {
   navigation: any;
   transactionObject: {
     networkID: string;
@@ -42,7 +42,7 @@ interface ViewOnEtherscanProps {
   close?: () => void;
 }
 
-interface NotificationRowProps {
+export interface NotificationRowProps {
   row: {
     title: string;
     createdAt: string;
@@ -220,8 +220,8 @@ export function getRowDetails(
           },
           createdAt: formatDate(notification.createdAt),
           imageUrl:
-            notification.data.stake_out.image ||
-            notification.data.stake_in.image, //using the stake_in image as a fallback,
+            notification.data.stake_out?.image ||
+            notification.data.stake_in?.image, //using the stake_in image as a fallback,
           value: `${renderFromWei(notification.data.stake_out.amount)} ${
             notification.data.stake_out.symbol
           }`,
@@ -235,7 +235,9 @@ export function getRowDetails(
             : TxStatus.UNAPPROVED,
           network: {
             name: getNetwork(notification.chain_id),
-            image: notification.data.stake_in.image,
+            image:
+              notification.data.stake_out?.image ||
+              notification.data.stake_in?.image, //using the stake_in image as a fallback,
           },
           networkFee: {
             gas_price: notification.data?.network_fee.gas_price,
