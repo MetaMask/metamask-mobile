@@ -37,34 +37,43 @@ describe('utils', () => {
       expect(res).toEqual(new BigNumber('246'));
     });
 
-    it.each([
-      { gasLimit: undefined, multiplier: 2 },
-      { gasLimit: null, multiplier: 2 },
-      { gasLimit: 'asd', multiplier: 2 },
-      { gasLimit: NaN, multiplier: 2 },
-      { gasLimit: Infinity, multiplier: 2 },
-      { gasLimit: -Infinity, multiplier: 2 },
-      { gasLimit: {}, multiplier: 2 },
-      { gasLimit: [], multiplier: 2 },
+    const invalidValues = [
+      { value: undefined },
+      { value: null },
+      { value: 'asd' },
+      { value: NaN },
+      { value: Infinity },
+      { value: -Infinity },
+      { value: {} },
+      { value: [] },
+    ];
 
-      { gasLimit: '123', multiplier: undefined },
-      { gasLimit: '123', multiplier: null },
-      { gasLimit: '123', multiplier: 'asd' },
-      { gasLimit: '123', multiplier: NaN },
-      { gasLimit: '123', multiplier: Infinity },
-      { gasLimit: '123', multiplier: -Infinity },
-      { gasLimit: '123', multiplier: {} },
-      { gasLimit: '123', multiplier: [] },
-
-      { gasLimit: undefined, multiplier: undefined },
-      { gasLimit: NaN, multiplier: NaN },
-    ])(
-      'returns undefined for invalid gasLimit $gasLimit and multiplier $multiplier',
-      ({ gasLimit, multiplier }) => {
+    it.each(invalidValues)(
+      'returns undefined for invalid gasLimit $value and valid multiplier',
+      ({ value }) => {
         // @ts-expect-error Invalid args can occur if fn consumed in JS file
-        expect(getEstimatedSafeGasLimit(gasLimit, multiplier)).toBe(undefined);
+        expect(getEstimatedSafeGasLimit(value, 2)).toBe(undefined);
       },
     );
+
+    it.each(invalidValues)(
+      'returns undefined for valid gasLimit and invalid multiplier $value',
+      ({ value }) => {
+        // @ts-expect-error Invalid args can occur if fn consumed in JS file
+        expect(getEstimatedSafeGasLimit('123', value)).toBe(undefined);
+      },
+    );
+
+    invalidValues.forEach(({ value: gasLimit }) => {
+      invalidValues.forEach(({ value: multiplier }) => {
+        it(`returns undefined for invalid gasLimit ${gasLimit} and invalid multiplier ${multiplier}`, () => {
+          // @ts-expect-error Invalid args can occur if fn consumed in JS file
+          expect(getEstimatedSafeGasLimit(gasLimit, multiplier)).toBe(
+            undefined,
+          );
+        });
+      });
+    });
 
     it('returns undefined if error is thrown', () => {
       jest.spyOn(BigNumber.prototype, 'times').mockImplementation(() => {
@@ -98,7 +107,9 @@ describe('utils', () => {
     );
 
     it('return false when destinationAmount is not provided', () => {
-      const quote = {};
+      const quote = {
+        destinationAmount: undefined,
+      };
       expect(isValidDestinationAmount(getQuote(quote))).toBe(false);
     });
   });

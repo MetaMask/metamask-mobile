@@ -21,7 +21,9 @@ export const getEstimatedSafeGasLimit = (
     const gasLimitWithMultiplier = new BigNumber(gasLimit)
       .times(multiplier)
       .integerValue();
-    return gasLimitWithMultiplier.isNaN() ? undefined : gasLimitWithMultiplier;
+    return gasLimitWithMultiplier.isNaN() || !gasLimitWithMultiplier.isFinite()
+      ? undefined
+      : gasLimitWithMultiplier;
   } catch (e) {
     return undefined;
   }
