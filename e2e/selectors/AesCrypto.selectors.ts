@@ -3,18 +3,13 @@ const aesCryptoFormInputs = {
   passwordInput: 'password-input',
   saltInputForEncryptionKey: 'salt-input-for-encryption-key',
   dataInputForEncryption: 'data-input-for-encryption',
-  encryptionKeyInputForEncryption: 'encryption-key-input-for-encryption',
-  ivInputForEncryption: 'iv-input-for-encryption',
-  dataInputForDecryption: 'data-input-for-decryption',
-  encryptionKeyInputForDecryption: 'encryption-key-input-for-decryption',
-  ivInputForDecryption: 'iv-input-for-decryption',
+  passwordInputForEncryption: 'password-input-for-encryption',
+  passwordInputForDecryption: 'password-input-for-decryption',
   encryptionKeyInputForEncryptionWithKey:
     'encryption-key-input-for-encryption-with-key',
   dataInputForEncryptionWithKey: 'data-input-for-encryption-with-key',
   encryptionKeyInputForDecryptionWithKey:
     'encryption-key-input-for-decryption-with-key',
-  encryptedDataInputForDecryptionWithKey:
-    'encrypted-data-input-for-decryption-with-key',
 };
 
 const aesCryptoFormResponses = {
@@ -35,4 +30,11 @@ const aesCryptoFormButtons = {
   decryptWithKeyButton: 'decrypt-with-key-button',
 };
 
-export { aesCryptoFormInputs, aesCryptoFormResponses, aesCryptoFormButtons };
+const aesCryptoFormScrollIdentifier = 'aes-crypto-form-scroll';
+
+export {
+  aesCryptoFormInputs,
+  aesCryptoFormResponses,
+  aesCryptoFormButtons,
+  aesCryptoFormScrollIdentifier,
+};
