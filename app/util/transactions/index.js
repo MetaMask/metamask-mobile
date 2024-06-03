@@ -73,7 +73,7 @@ export const INCREASE_ALLOWANCE_SIGNATURE = '0x39509351';
 
 export const TRANSACTION_TYPES = {
   APPROVE: 'transaction_approve',
-  INCREASE_ALLOWANCE: 'transaction_increase_allowance',
+  INCREASE_ALLOWANCE: 'increaseAllowance',
   RECEIVED: 'transaction_received',
   RECEIVED_COLLECTIBLE: 'transaction_received_collectible',
   RECEIVED_TOKEN: 'transaction_received_token',
@@ -176,25 +176,30 @@ export function generateTransferData(type = undefined, opts = {}) {
 }
 
 /**
- * Generates ERC20 approve data
+ * Generates ERC20 allowance data
  *
- * @param {object} opts - Object containing spender address and value
- * @returns {String} - String containing the generated approce data
+ * @param {object} opts - Object containing spender address, value and data
+ * @param {string} opts.spender - The address of the spender
+ * @param {string} opts.value - The amount of tokens to be approved or increased
+ * @param {string} opts.data - The data of the transaction
+ * @returns {String} - String containing the generated data
  */
-export function generateApproveData(opts) {
-  if (!opts.spender || !opts.value) {
+export function generateTokenAllowanceData(opts) {
+  const { spender, value, data } = opts;
+
+  if (!spender || !value) {
     throw new Error(
-      `[transactions] 'spender' and 'value' must be defined for 'type' approve`,
+      `[transactions] 'spender' and 'value' must be defined for 'type' approve or increaseAllowance`,
     );
   }
+
+  const functionSignature = data?.substr(0, 10) ?? APPROVE_FUNCTION_SIGNATURE;
+
   return (
-    APPROVE_FUNCTION_SIGNATURE +
+    functionSignature +
     Array.prototype.map
       .call(
-        rawEncode(
-          ['address', 'uint256'],
-          [opts.spender, addHexPrefix(opts.value)],
-        ),
+        rawEncode(['address', 'uint256'], [spender, addHexPrefix(value)]),
         (x) => ('00' + x.toString(16)).slice(-2),
       )
       .join('')
@@ -1423,11 +1428,12 @@ export const generateTxWithNewTokenAllowance = (
   transaction,
 ) => {
   const uint = toTokenMinimalUnit(tokenValue, tokenDecimals);
-  const approvalData = generateApproveData({
+  const approvalData = generateTokenAllowanceData({
     spender: spenderAddress,
     value: uint.gt(UINT256_BN_MAX_VALUE)
       ? UINT256_BN_MAX_VALUE.toString(16)
       : uint.toString(16),
+    data: transaction?.data,
   });
   const newApprovalTransaction = {
     ...transaction,

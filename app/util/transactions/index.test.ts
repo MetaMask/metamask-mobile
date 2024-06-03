@@ -27,6 +27,7 @@ import {
   INCREASE_ALLOWANCE_SIGNATURE,
   TOKEN_METHOD_INCREASE_ALLOWANCE,
   getTransactionActionKey,
+  generateTokenAllowanceData,
 } from '.';
 import buildUnserializedTransaction from './optimismTransaction';
 import Engine from '../../core/Engine';
@@ -544,6 +545,30 @@ describe('Transactions utils :: generateTxWithNewTokenAllowance', () => {
       '0x0000000000000000000000000000000000000000000000000000000000000001';
     const decodedHexValue = decodeAmount(newTx.data);
     expect(expectedHexValue).toBe(decodedHexValue);
+  });
+});
+
+describe('Transaction utils :: generateTokenAllowanceData', () => {
+  it('generates the correct data for a token increase allowance transaction', () => {
+    const increaseAllowanceDataMock = `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000000000`;
+    const data = generateTokenAllowanceData({
+      spender: MOCK_ADDRESS3,
+      value: '0x1',
+      data: increaseAllowanceDataMock,
+    });
+    expect(data).toBe(
+      '0x39509351000000000000000000000000b794f5ea0ba39494ce839613fffba742795792680000000000000000000000000000000000000000000000000000000000000001',
+    );
+  });
+  it('generates the correct data for a approve transaction with a value of 0', () => {
+    const data = generateTokenAllowanceData({
+      spender: MOCK_ADDRESS3,
+      value: '0x0',
+      data: '0x095ea7b3',
+    });
+    expect(data).toBe(
+      '0x095ea7b3000000000000000000000000b794f5ea0ba39494ce839613fffba742795792680000000000000000000000000000000000000000000000000000000000000000',
+    );
   });
 });
 
