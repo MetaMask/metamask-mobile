@@ -1209,7 +1209,7 @@ class Engine {
         getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
           assetsContractController,
         ),
-        interval: 10000,
+        interval: 180000,
       }),
       new TokenRatesController({
         onTokensStateChange: (listener) => tokensController.subscribe(listener),
