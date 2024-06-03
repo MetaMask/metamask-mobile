@@ -11,4 +11,5 @@ export const ActivitiesViewSelectorsText = {
   SENT_COLLECTIBLE_MESSAGE_TEXT: enContent.transactions.sent_collectible,
   SENT_TOKENS_MESSAGE_TEXT: (unit) => getSentUnitMessage(unit),
   CONFIRM_TEXT: enContent.transaction.confirmed,
+  INCREASE_ALLOWANCE_METHOD: enContent.transactions.increase_allowance,
 };
