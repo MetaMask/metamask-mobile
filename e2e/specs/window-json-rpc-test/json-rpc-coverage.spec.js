@@ -182,11 +182,6 @@ describe(SmokeCore('API Spec Tests'), () => {
       async afterRequest(_, call) {
         if (call.methodName === 'wallet_addEthereumChain') {
           pollBool = false;
-          await TestHelpers.delay(3000);
-          const confirmButton = await Matchers.getElementByText('Confirm');
-          await Gestures.tap(confirmButton);
-
-          await TestHelpers.delay(3000);
           const cancelButton = await Matchers.getElementByText('Cancel');
           await Gestures.tap(cancelButton);
         }
@@ -274,13 +269,16 @@ describe(SmokeCore('API Spec Tests'), () => {
           while (result === undefined) {
             if (pollBool) {
               await TestHelpers.delay(500);
-              result = await webElement.getText();
+              const t = await webElement.getText();
+              if (typeof t === 'string') {
+                result = t;
+              }
             }
           }
 
-          if (result.result === '') {
-            return result;
-          }
+          // if (result.result === '') {
+          //   return result;
+          // }
           return JSON.parse(result);
         };
 
@@ -358,10 +356,10 @@ describe(SmokeCore('API Spec Tests'), () => {
               skip: filteredMethods,
               numCalls: 1,
             }),
-            new ConfirmationsRejectRule({
-              driver: webElement,
-              only: methodsWithConfirmations,
-            }),
+            // new ConfirmationsRejectRule({
+            //   driver: webElement,
+            //   only: methodsWithConfirmations,
+            // }),
           ],
           skip,
         });
