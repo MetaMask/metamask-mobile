@@ -579,6 +579,7 @@ class FixtureBuilder {
           automaticSecurityChecksEnabled: false,
           hasUserSelectedAutomaticSecurityCheckOption: true,
           isAutomaticSecurityChecksModalOpen: false,
+          dataCollectionForMarketing: false,
         },
         experimentalSettings: {
           securityAlertsEnabled: true,
