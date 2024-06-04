@@ -3,12 +3,12 @@ import reducer, { updateTransactionMetrics, TransactionMetricsState } from '.';
 describe('TransactionMetrics slice', () => {
   // Define the initial state for your tests
   const initialState: TransactionMetricsState = {
-    simulationPropertiesByTransactionId: {},
+    propertiesByTransactionId: {},
   };
 
   it('should handle initial state', () => {
     expect(reducer(undefined, { type: 'unknown' })).toEqual({
-      simulationPropertiesByTransactionId: {},
+      propertiesByTransactionId: {},
     });
   });
 
@@ -23,7 +23,7 @@ describe('TransactionMetrics slice', () => {
       }),
     );
     expect(
-      actual.simulationPropertiesByTransactionId[mockTransactionId],
+      actual.propertiesByTransactionId[mockTransactionId],
     ).toStrictEqual(mockParams);
   });
 });
