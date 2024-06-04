@@ -50,6 +50,20 @@ class Gestures {
   }
 
   /**
+   * Taps on an element found by its text. If multiple elements are found with the same text,
+   * an index can be specified to select which one to tap.
+   *
+   * @param {string} text - The text of the element to tap.
+   * @param {number} [index=0] - The index of the element to tap if multiple elements are found. Defaults to 0.
+   * @returns {Promise<void>} A promise that resolves when the tap action is completed.
+   */
+  static tapByText(text, index) {
+    return element(by.text(text))
+      .atIndex(index || 0)
+      .tap();
+  }
+
+  /**
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
