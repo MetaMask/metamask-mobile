@@ -3646,14 +3646,14 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/address-book-controller@^3.0.0":
-  version "3.1.5"
-  resolved "https://registry.yarnpkg.com/@metamask/address-book-controller/-/address-book-controller-3.1.5.tgz#3816aebf0dc25cb79cfb752c9717faa20731c892"
-  integrity sha512-QYCfHwx64pgAWLQwTwVcDSwIMOTsCOt5nvxZ79aFpmWpsCWcXUMfLWtfEjYBi3R6nCktBY2orJw/wgnFFn+6Rw==
+"@metamask/address-book-controller@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/address-book-controller/-/address-book-controller-4.0.1.tgz#78a841e97b7db0058e6796590eb07444c750d13f"
+  integrity sha512-ooQRuPP5Tm/vLvajwhZdmEoAGEx9/z2UyjvAZwY0AgEe1XK2ry6XbNHV/NH/9l559G+dwMXtM/oybt6d7yiy9Q==
   dependencies:
-    "@metamask/base-controller" "^4.0.0"
-    "@metamask/controller-utils" "^6.0.0"
-    "@metamask/utils" "^8.2.0"
+    "@metamask/base-controller" "^5.0.1"
+    "@metamask/controller-utils" "^9.0.1"
+    "@metamask/utils" "^8.3.0"
 
 "@metamask/approval-controller@^3.5.2":
   version "3.5.2"
@@ -3728,7 +3728,7 @@
     "@metamask/utils" "^8.1.0"
     immer "^9.0.6"
 
-"@metamask/base-controller@^4.0.0", "@metamask/base-controller@^4.0.1", "@metamask/base-controller@^4.1.0", "@metamask/base-controller@^4.1.1":
+"@metamask/base-controller@^4.0.1", "@metamask/base-controller@^4.1.0", "@metamask/base-controller@^4.1.1":
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-4.1.1.tgz#9b411adf4822de7382fe69d07bb6b3fc3e738923"
   integrity sha512-sJdsd/XlyOa0kRJ16qbM+xeQ8peV1yZcYumJmHCClPK09MkAlxq7EzsrahVZXUCFwcxtSucf244pbttnVqNthw==
@@ -3804,19 +3804,6 @@
     eth-ens-namehash "^2.0.8"
     ethereumjs-util "^7.0.10"
     ethjs-unit "^0.1.6"
-    fast-deep-equal "^3.1.3"
-
-"@metamask/controller-utils@^6.0.0":
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-6.1.0.tgz#12edf2e1d65f60da2d9332747cc1bd37d0ca4372"
-  integrity sha512-R5OFZhbeztXN6eZ43e3KHkmrunzClPHhJVPNqV0zk0sDG6TvEw90RyqTEG+VB4HNl4dfXmca1X4iYaiYLFwB+w==
-  dependencies:
-    "@metamask/eth-query" "^4.0.0"
-    "@metamask/ethjs-unit" "^0.2.1"
-    "@metamask/utils" "^8.2.0"
-    "@spruceid/siwe-parser" "1.1.3"
-    eth-ens-namehash "^2.0.8"
-    ethereumjs-util "^7.0.10"
     fast-deep-equal "^3.1.3"
 
 "@metamask/controller-utils@^8.0.1", "@metamask/controller-utils@^8.0.2", "@metamask/controller-utils@^8.0.4":
@@ -4129,14 +4116,6 @@
   integrity sha512-lKTQfIXOyWsbGf9QqGaA6RnLcyvEeBPk5kAs1dXfWDpWL8+9TE0PbhPDQGjfn5Z9MFWEelJ2HD251wk0jAxD2A==
   dependencies:
     promise-to-callback "^1.0.0"
-
-"@metamask/ethjs-unit@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@metamask/ethjs-unit/-/ethjs-unit-0.2.1.tgz#168d93d11ff6381c35fb44915252dbb425ebe4dd"
-  integrity sha512-4wjjaXN/yIHeZDWuExoZ/fapL9vP6+mOZJTuqsresx35zf2Rh0IAM5hbr54bhHY+9TFejCms2vTiIWatK0TzYw==
-  dependencies:
-    bn.js "4.11.6"
-    number-to-bn "1.7.0"
 
 "@metamask/ethjs-unit@^0.3.0":
   version "0.3.0"
