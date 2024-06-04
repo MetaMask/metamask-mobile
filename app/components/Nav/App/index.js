@@ -10,6 +10,7 @@ import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
+import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import ChoosePassword from '../../Views/ChoosePassword';
@@ -82,6 +83,7 @@ import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 import AccountActions from '../../../components/Views/AccountActions';
 import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
+import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
@@ -99,6 +101,7 @@ import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowD
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
 import SDKDisconnectModal from '../../../../app/components/Views/SDKDisconnectModal/SDKDisconnectModal';
 import SDKSessionModal from '../../../../app/components/Views/SDKSessionModal/SDKSessionModal';
+import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
@@ -106,6 +109,7 @@ import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSet
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
+import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -591,6 +595,10 @@ const App = ({ userLoggedIn }) => {
       />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
       <Stack.Screen
+        name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
+        component={SmartTransactionsOptInModal}
+      />
+      <Stack.Screen
         name={Routes.SHEET.ACCOUNT_SELECTOR}
         component={AccountSelector}
       />
@@ -605,6 +613,14 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
         component={SDKSessionModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.EXPERIENCE_ENHANCER}
+        component={ExperienceEnhancerModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.DATA_COLLECTION}
+        component={DataCollectionModal}
       />
       <Stack.Screen
         name={Routes.SHEET.SDK_DISCONNECT}
@@ -660,6 +676,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ETH_SIGN_FRICTION}
         component={EthSignFriction}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.FIAT_ON_TESTNETS_FRICTION}
+        component={FiatOnTestnetsFriction}
       />
       <Stack.Screen
         name={Routes.SHEET.SHOW_IPFS}

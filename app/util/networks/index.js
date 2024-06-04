@@ -37,7 +37,7 @@ const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 
 /* eslint-enable */
-import PopularList from './customNetworks';
+import { PopularList, UnpopularNetworkList } from './customNetworks';
 import { strings } from '../../../locales/i18n';
 import {
   getEtherscanAddressUrl,
@@ -54,7 +54,7 @@ import { getNonceLock } from '../../util/transaction-controller';
  * This values are used in certain places like
  * navbar and the network switcher.
  */
-const NetworkList = {
+export const NetworkList = {
   [MAINNET]: {
     name: 'Ethereum Main Network',
     shortName: 'Ethereum',
@@ -78,7 +78,7 @@ const NetworkList = {
     imageSource: lineaMainnetLogo,
   },
   [SEPOLIA]: {
-    name: 'Sepolia Test Network',
+    name: 'Sepolia',
     shortName: 'Sepolia',
     networkId: 11155111,
     chainId: toHex('11155111'),
@@ -100,7 +100,7 @@ const NetworkList = {
     imageSource: lineaTestnetLogo,
   },
   [LINEA_SEPOLIA]: {
-    name: 'Linea Sepolia Test Network',
+    name: 'Linea Sepolia',
     shortName: 'Linea Sepolia',
     networkId: 59141,
     chainId: toHex('59141'),
@@ -138,7 +138,7 @@ export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
   [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
-  [NETWORKS_CHAIN_ID.BASE]: 'Base Mainnet',
+  [NETWORKS_CHAIN_ID.BASE]: 'Base',
   [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
   [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
   [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
@@ -426,11 +426,17 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
     return defaultNetwork.imageSource;
   }
 
+  const unpopularNetwork = UnpopularNetworkList.find(
+    (networkConfig) => networkConfig.chainId === chainId,
+  );
+
   const popularNetwork = PopularList.find(
     (networkConfig) => networkConfig.chainId === chainId,
   );
-  if (popularNetwork) {
-    return popularNetwork.rpcPrefs.imageSource;
+
+  const network = unpopularNetwork || popularNetwork;
+  if (network) {
+    return network.rpcPrefs.imageSource;
   }
   return getTestNetImage(networkType);
 };
