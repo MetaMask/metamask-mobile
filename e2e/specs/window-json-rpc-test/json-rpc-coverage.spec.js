@@ -1,5 +1,5 @@
 'use strict';
-import { web } from 'detox';
+import { expect, web } from 'detox';
 import rpcCoverageTool from '@open-rpc/test-coverage';
 import { parseOpenRPCDocument } from '@open-rpc/schema-utils-js';
 import JsonSchemaFakerRule from '@open-rpc/test-coverage/build/rules/json-schema-faker-rule';
@@ -29,11 +29,9 @@ describe(SmokeCore('API Spec Tests'), () => {
   });
 
   it('should run open-rpc/test-coverage tool without any errors', async () => {
-    console.log('Running JSON-RPC Coverage Test');
     const port = 8545;
     const chainId = 1337;
 
-    console.log('parseOpenRPCDocument');
     const openrpcDocument = await parseOpenRPCDocument(
       'https://metamask.github.io/api-specs/latest/openrpc.json',
     );
@@ -41,12 +39,59 @@ describe(SmokeCore('API Spec Tests'), () => {
     const signTypedData4 = openrpcDocument.methods.find(
       (m) => m.name === 'eth_signTypedData_v4',
     );
+    const switchEthereumChain = openrpcDocument.methods.find(
+      (m) => m.name === 'wallet_switchEthereumChain',
+    );
+    switchEthereumChain.examples = [
+      {
+        name: 'wallet_switchEthereumChain',
+        description:
+          'Example of a wallet_switchEthereumChain request to sepolia',
+        params: [
+          {
+            name: 'SwitchEthereumChainParameter',
+            value: {
+              chainId: '0xaa36a7',
+            },
+          },
+        ],
+        result: {
+          name: 'wallet_switchEthereumChain',
+          value: null,
+        },
+      },
+    ];
 
     // just update address for signTypedData
     signTypedData4.examples[0].params[0].value =
       '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 
     signTypedData4.examples[0].params[1].value.domain.chainId = chainId;
+
+    const personalSign = openrpcDocument.methods.find(
+      (m) => m.name === 'personal_sign',
+    );
+
+    personalSign.examples = [
+      {
+        name: 'personalSignExample',
+        description: 'Example of a personalSign request',
+        params: [
+          {
+            name: 'data',
+            value: '0xdeadbeef',
+          },
+          {
+            name: 'address',
+            value: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+          },
+        ],
+        result: {
+          name: 'personalSignResult',
+          value: '0x1a8819e0c9bab700',
+        },
+      },
+    ];
 
     const transaction =
       openrpcDocument.components?.schemas?.TransactionInfo?.allOf?.[0];
@@ -105,37 +150,43 @@ describe(SmokeCore('API Spec Tests'), () => {
       }
 
       async beforeRequest(_, call) {
-        addToQueue({
-          name: 'beforeRequest',
-          task: async () => {
-            if (this.requiresEthAccountsPermission.includes(call.methodName)) {
-              const requestPermissionsRequest = JSON.stringify({
-                jsonrpc: '2.0',
-                method: 'wallet_requestPermissions',
-                params: [{ eth_accounts: {} }],
-              });
+        await new Promise((resolve, reject) => {
+          addToQueue({
+            name: 'beforeRequest',
+            resolve,
+            reject,
+            task: async () => {
+              if (
+                this.requiresEthAccountsPermission.includes(call.methodName)
+              ) {
+                const requestPermissionsRequest = JSON.stringify({
+                  jsonrpc: '2.0',
+                  method: 'wallet_requestPermissions',
+                  params: [{ eth_accounts: {} }],
+                });
 
-              await this.driver.runScript(`(el) => {
-                  window.ethereum.request(${requestPermissionsRequest})
-                }`);
+                await this.driver.runScript(`(el) => {
+                    window.ethereum.request(${requestPermissionsRequest})
+                  }`);
 
-              /**
-               *
-               * Screenshot Code Section
-               *
-               */
+                /**
+                 *
+                 * Screenshot Code Section
+                 *
+                 */
 
-              // Connect accounts modal
-              await Assertions.checkIfVisible(ConnectModal.container);
-              await ConnectModal.tapConnectButton();
-              await Assertions.checkIfNotVisible(ConnectModal.container);
-              await TestHelpers.delay(3000);
-            }
+                // Connect accounts modal
+                await Assertions.checkIfVisible(ConnectModal.container);
+                await ConnectModal.tapConnectButton();
+                await Assertions.checkIfNotVisible(ConnectModal.container);
+                await TestHelpers.delay(3000);
+              }
 
-            if (call.methodName === 'eth_signTypedData_v4') {
-              call.params[1] = JSON.stringify(call.params[1]);
-            }
-          },
+              if (call.methodName === 'eth_signTypedData_v4') {
+                call.params[1] = JSON.stringify(call.params[1]);
+              }
+            },
+          });
         });
       }
 
@@ -183,32 +234,48 @@ describe(SmokeCore('API Spec Tests'), () => {
       }
 
       async afterRequest(_, call) {
-        addToQueue({
-          name: 'afterRequest',
-          task: async () => {
-            if (call.methodName === 'wallet_addEthereumChain') {
-              const cancelButton = await Matchers.getElementByText('Cancel');
-              await Gestures.tap(cancelButton);
-            }
+        await new Promise((resolve, reject) => {
+          addToQueue({
+            name: 'afterRequest',
+            resolve,
+            reject,
+            task: async () => {
+              if (call.methodName === 'wallet_addEthereumChain') {
+                const cancelButton = await Matchers.getElementByText('Cancel');
+                await Gestures.tap(cancelButton);
+              }
 
-            if (call.methodName === 'wallet_switchEthereumChain') {
-              await TestHelpers.delay(3000);
-              const cancelButton = await Matchers.getElementByText('Cancel');
-              await Gestures.tap(cancelButton);
-            }
+              if (call.methodName === 'wallet_switchEthereumChain') {
+                await TestHelpers.delay(3000);
+                const cancelButton = await Matchers.getElementByText('Cancel');
+                await Gestures.tap(cancelButton);
+              }
 
-            if (call.methodName === 'eth_signTypedData_v4') {
-              await TestHelpers.delay(3000);
-              const cancelButton = await Matchers.getElementByText('Cancel');
-              await Gestures.tap(cancelButton);
-            }
+              if (call.methodName === 'wallet_requestPermissions') {
+                await TestHelpers.delay(3000);
+                const cancelButton = await Matchers.getElementByText('Cancel');
+                await Gestures.tap(cancelButton);
+              }
 
-            if (call.methodName === 'wallet_watchAsset') {
-              await TestHelpers.delay(5000);
-              const cancelButton = await Matchers.getElementByText('CANCEL');
-              await Gestures.tap(cancelButton);
-            }
-          },
+              if (call.methodName === 'personal_sign') {
+                await TestHelpers.delay(3000);
+                const cancelButton = await Matchers.getElementByText('Cancel');
+                await Gestures.tap(cancelButton);
+              }
+
+              if (call.methodName === 'eth_signTypedData_v4') {
+                await TestHelpers.delay(3000);
+                const cancelButton = await Matchers.getElementByText('Cancel');
+                await Gestures.tap(cancelButton);
+              }
+
+              if (call.methodName === 'wallet_watchAsset') {
+                await TestHelpers.delay(5000);
+                const cancelButton = await Matchers.getElementByText('CANCEL');
+                await Gestures.tap(cancelButton);
+              }
+            },
+          });
         });
         /**
          *
@@ -217,22 +284,28 @@ describe(SmokeCore('API Spec Tests'), () => {
       }
 
       async afterResponse(_, call) {
-        addToQueue({
-          name: 'afterResponse',
-          task: async () => {
-            // Revoke Permissions
-            if (this.requiresEthAccountsPermission.includes(call.methodName)) {
-              const revokePermissionRequest = JSON.stringify({
-                jsonrpc: '2.0',
-                method: 'wallet_revokePermissions',
-                params: [{ eth_accounts: {} }],
-              });
+        await new Promise((resolve, reject) => {
+          addToQueue({
+            name: 'afterResponse',
+            resolve,
+            reject,
+            task: async () => {
+              // Revoke Permissions
+              if (
+                this.requiresEthAccountsPermission.includes(call.methodName)
+              ) {
+                const revokePermissionRequest = JSON.stringify({
+                  jsonrpc: '2.0',
+                  method: 'wallet_revokePermissions',
+                  params: [{ eth_accounts: {} }],
+                });
 
-              await this.driver.runScript(`(el) => {
-                window.ethereum.request(${revokePermissionRequest})
-              }`);
-            }
-          },
+                await this.driver.runScript(`(el) => {
+                  window.ethereum.request(${revokePermissionRequest})
+                }`);
+              }
+            },
+          });
         });
       }
 
@@ -247,7 +320,6 @@ describe(SmokeCore('API Spec Tests'), () => {
       }
     }
 
-    console.log('about to run withFixtures');
     await withFixtures(
       {
         dapp: true,
@@ -257,28 +329,28 @@ describe(SmokeCore('API Spec Tests'), () => {
         restartDevice: true,
       },
       async () => {
-        console.log('about to run loginToApp');
         await loginToApp();
-        console.log('about to run TabBarComponent.tapBrowser');
         await TabBarComponent.tapBrowser();
-        console.log('about to run Browser.navigateToTestDApp');
         await Browser.navigateToTestDApp();
 
         const webElement = await web.element(by.web.id('json-rpc-response'));
         await webElement.scrollToView();
 
-        const pollResult = async () =>
-          new Promise((resolve, reject) => {
+        const pollResult = async () => {
+          let result;
+          await TestHelpers.delay(500);
+          // eslint-disable-next-line no-loop-func
+          await new Promise((resolve, reject) => {
             addToQueue({
               name: 'pollResult',
               task: async () => {
-                let result;
-                while (!result) {
-                  await TestHelpers.delay(500);
-                  const text = await webElement.getText();
-                  if (typeof text === 'string') {
-                    result = JSON.parse(text);
-                  }
+                const text = await webElement.runScript(
+                  (el) => window.JSONRPCResponse,
+                );
+                if (typeof text === 'string') {
+                  result = JSON.parse(text);
+                } else {
+                  result = text;
                 }
                 return result;
               },
@@ -286,11 +358,15 @@ describe(SmokeCore('API Spec Tests'), () => {
               reject,
             });
           });
+          if (result) {
+            return result;
+          }
+          return pollResult();
+        };
 
         const createDriverTransport = (driver) => (_, method, params) =>
           new Promise((resolve, reject) => {
             const execute = async () => {
-              console.log('adding to queue');
               await addToQueue({
                 name: 'transport',
                 task: async () => {
@@ -299,10 +375,12 @@ describe(SmokeCore('API Spec Tests'), () => {
                       window.ethereum
                         .request({ method: m, params: p })
                         .then((res) => {
-                          el.innerHTML = JSON.stringify({ result: res });
+                          window.JSONRPCResponse = JSON.stringify({
+                            result: res,
+                          });
                         })
                         .catch((err) => {
-                          el.innerHTML = JSON.stringify({
+                          window.JSONRPCResponse = JSON.stringify({
                             error: {
                               code: err.code,
                               message: err.message,
@@ -321,7 +399,18 @@ describe(SmokeCore('API Spec Tests'), () => {
             return execute();
           }).then(async () => {
             const result = await pollResult();
-            await webElement.clearText();
+            await new Promise((resolve, reject) => {
+              addToQueue({
+                name: 'clearJSONRPCResponse',
+                task: async () => {
+                  await driver.runScript((el) => {
+                    window.JSONRPCResponse = null;
+                  });
+                },
+                resolve,
+                reject,
+              });
+            });
             return result;
           });
 
@@ -361,9 +450,8 @@ describe(SmokeCore('API Spec Tests'), () => {
           'wallet_registerOnboarding',
           'eth_getEncryptionPublicKey',
         ];
-        console.log('about to run rpcCoverageTool');
 
-        await rpcCoverageTool({
+        const results = await rpcCoverageTool({
           openrpcDocument,
           transport,
           reporters: ['console-streaming', 'html'],
@@ -380,6 +468,11 @@ describe(SmokeCore('API Spec Tests'), () => {
           ],
           skip,
         });
+        const failing = results.filter((r) => !r.valid);
+        if (failing.length) {
+          console.error(failing);
+          throw new Error('Some tests failed in @open-rpc/test-coverage');
+        }
       },
     );
   });
