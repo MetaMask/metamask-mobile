@@ -19,6 +19,9 @@ export const CONNECTING_TO_A_DECEPTIVE_SITE =
 export const CONNECTING_TO_DEPRECATED_NETWORK =
   'https://support.metamask.io/hc/en-us/articles/360059213492-ETH-on-Sepolia-and-Goerli-networks-testnets';
 
+export const HOWTO_MANAGE_METAMETRICS =
+  'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings/';
+
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
 
@@ -86,3 +89,7 @@ export const ETHEREUM_LOGO =
 
 export const SIMULATION_DETALS_ARTICLE_URL =
   'https://support.metamask.io/transactions-and-gas/transactions/simulations/';
+
+export const HOW_TO_MANAGE_METRAMETRICS_SETTINGS =
+  'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings';
+
