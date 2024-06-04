@@ -419,7 +419,7 @@ describe(SmokeCore('API Spec Tests'), () => {
 
         const methodsWithConfirmations = [
           'wallet_requestPermissions',
-          'eth_requestAccounts',
+          // 'eth_requestAccounts', // mobile is missing revokePermissions to reset this to prompt and cancel
           'wallet_watchAsset',
           'personal_sign', // requires permissions for eth_accounts
           'wallet_addEthereumChain',
@@ -447,6 +447,7 @@ describe(SmokeCore('API Spec Tests'), () => {
           .map((m) => m.name);
 
         const skip = [
+          'wallet_revokePermissions', // mobile is missing revokePermissions
           'eth_coinbase',
           'wallet_registerOnboarding',
           'eth_getEncryptionPublicKey',
