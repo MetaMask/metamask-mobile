@@ -3968,7 +3968,7 @@
   dependencies:
     promise-to-callback "^1.0.0"
 
-"@metamask/ethjs-unit@0.2.1":
+"@metamask/ethjs-unit@^0.2.1":
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/@metamask/ethjs-unit/-/ethjs-unit-0.2.1.tgz#168d93d11ff6381c35fb44915252dbb425ebe4dd"
   integrity sha512-4wjjaXN/yIHeZDWuExoZ/fapL9vP6+mOZJTuqsresx35zf2Rh0IAM5hbr54bhHY+9TFejCms2vTiIWatK0TzYw==
