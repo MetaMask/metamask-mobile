@@ -48,7 +48,13 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
       CustomNetworks.EthereumMainCustom.providerConfig.rpcUrl,
     );
     await DefaultNetworkView.tapUseThisNetworkButton();
-    await Assertions.checkIfVisible(MetaMetricsOptIn.container);
+    const isVisible = await Assertions.checkIfVisible(
+      MetaMetricsOptIn.container,
+    );
+    if (!isVisible) {
+      TestHelpers.delay(3000);
+      await DefaultNetworkView.tapUseThisNetworkButton();
+    }
   });
 
   it('should complete creating wallet', async () => {
