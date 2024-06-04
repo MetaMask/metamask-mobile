@@ -1,11 +1,12 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { ProviderConfig, NetworkState } from '@metamask/network-controller';
+import { createDeepEqualSelector } from './util';
 
 const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
 
-export const selectProviderConfig = createSelector(
+export const selectProviderConfig = createDeepEqualSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState?.providerConfig,

@@ -37,7 +37,7 @@ const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 
 /* eslint-enable */
-import PopularList from './customNetworks';
+import { PopularList, UnpopularNetworkList } from './customNetworks';
 import { strings } from '../../../locales/i18n';
 import {
   getEtherscanAddressUrl,
@@ -54,7 +54,7 @@ import { getNonceLock } from '../../util/transaction-controller';
  * This values are used in certain places like
  * navbar and the network switcher.
  */
-const NetworkList = {
+export const NetworkList = {
   [MAINNET]: {
     name: 'Ethereum Main Network',
     shortName: 'Ethereum',
@@ -414,11 +414,17 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
     return defaultNetwork.imageSource;
   }
 
+  const unpopularNetwork = UnpopularNetworkList.find(
+    (networkConfig) => networkConfig.chainId === chainId,
+  );
+
   const popularNetwork = PopularList.find(
     (networkConfig) => networkConfig.chainId === chainId,
   );
-  if (popularNetwork) {
-    return popularNetwork.rpcPrefs.imageSource;
+
+  const network = unpopularNetwork || popularNetwork;
+  if (network) {
+    return network.rpcPrefs.imageSource;
   }
   return getTestNetImage(networkType);
 };
