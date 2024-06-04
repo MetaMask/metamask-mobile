@@ -5,6 +5,9 @@ import {
   CustomDefaultNetworkIDs,
   CustomDefaultNetworkTexts,
 } from '../../selectors/Onboarding/CustomDefaultNetwork.selectors';
+import Assertions from '../../utils/Assertions';
+import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
+import TestHelpers from '../../helpers';
 
 class DefaultNetworkView {
   get useThisNetworkButton() {
@@ -19,7 +22,14 @@ class DefaultNetworkView {
 
   async tapUseThisNetworkButton() {
     await Gestures.waitAndTap(this.useThisNetworkButton);
-    await Gestures.waitAndTap(this.useThisNetworkButton);
+    const isVisible = await Assertions.checkIfVisible(
+      MetaMetricsOptIn.container,
+    );
+    // Tap again if there is a delay
+    if (!isVisible) {
+      await TestHelpers.delay(5000);
+      await Gestures.waitAndTap(this.useThisNetworkButton);
+    }
   }
 
   async typeRpcURL(rpcURL) {
