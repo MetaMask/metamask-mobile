@@ -44,6 +44,7 @@ import {
   NFT_TAB_CONTAINER_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import RefreshTestId from './constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -330,7 +331,7 @@ const CollectibleContracts = ({
         data={collectibleContracts}
         renderItem={({ item, index }) => renderCollectibleContract(item, index)}
         keyExtractor={(_, index) => index.toString()}
-        testID="refreshControl"
+        testID={RefreshTestId}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
