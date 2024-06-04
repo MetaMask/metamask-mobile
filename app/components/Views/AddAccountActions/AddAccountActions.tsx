@@ -40,7 +40,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     try {
       setIsLoading(true);
 
-      const { addedAccountAddress } = await KeyringController.addNewAccount();
+      const addedAccountAddress = await KeyringController.addNewAccount();
       Engine.setSelectedAddress(addedAccountAddress);
       trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
     } catch (e: any) {
