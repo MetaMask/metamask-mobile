@@ -11,7 +11,7 @@ import {
   getImportTokenNavbarOptions,
   getNetworkNavbarOptions,
 } from '../../UI/Navbar';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
   selectChainId,
   selectProviderConfig,

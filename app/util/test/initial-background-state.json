@@ -126,6 +126,7 @@
     "contractBalances": {}
   },
   "TokenRatesController": {
+    "marketData":{}
   },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
