@@ -176,6 +176,27 @@ export function generateTransferData(type = undefined, opts = {}) {
 }
 
 /**
+ * Extracts the four-byte signature from Ethereum transaction data.
+ * @param {string | undefined} data The transaction data.
+ * @returns {string | undefined} The four-byte signature if data is provided, otherwise undefined.
+ */
+export function getFourByteSignature(data) {
+  return data?.substring(0, 10);
+}
+
+/**
+ * Checks if the transaction data corresponds to an "approve" or "increase allowance" function call.
+ * @param {string} data The transaction data.
+ * @returns {boolean} True if the transaction is an "approve" or "increase allowance" call, false otherwise.
+ */
+export function isApprovalTransaction(data) {
+  const fourByteSignature = getFourByteSignature(data);
+  return [APPROVE_FUNCTION_SIGNATURE, INCREASE_ALLOWANCE_SIGNATURE].includes(
+    fourByteSignature,
+  );
+}
+
+/**
  * Generates ERC20 approval data
  *
  * @param {object} opts - Object containing spender address, value and data
@@ -193,7 +214,8 @@ export function generateApprovalData(opts) {
     );
   }
 
-  const functionSignature = data?.substr(0, 10) ?? APPROVE_FUNCTION_SIGNATURE;
+  const functionSignature =
+    getFourByteSignature(data) ?? APPROVE_FUNCTION_SIGNATURE;
 
   return (
     functionSignature +
@@ -271,7 +293,7 @@ export function decodeTransferData(type, data) {
  */
 export async function getMethodData(data) {
   if (data.length < 10) return {};
-  const fourByteSignature = data.substr(0, 10);
+  const fourByteSignature = getFourByteSignature(data);
   if (fourByteSignature === TRANSFER_FUNCTION_SIGNATURE) {
     return { name: TOKEN_METHOD_TRANSFER };
   } else if (fourByteSignature === TRANSFER_FROM_FUNCTION_SIGNATURE) {
@@ -1491,7 +1513,7 @@ export const getIsSwapApproveTransaction = (data, origin, to, chainId) => {
 
   const isFromSwaps = origin === process.env.MM_FOX_CODE;
   const isApproveFunction =
-    data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE;
+    data && getFourByteSignature(data) === APPROVE_FUNCTION_SIGNATURE;
   const isSpenderSwapsContract =
     decodeApproveData(data).spenderAddress?.toLowerCase() ===
     swapsUtils.getSwapsContractAddress(chainId);

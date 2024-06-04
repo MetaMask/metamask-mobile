@@ -28,6 +28,9 @@ import {
   TOKEN_METHOD_INCREASE_ALLOWANCE,
   getTransactionActionKey,
   generateApprovalData,
+  getFourByteSignature,
+  APPROVE_FUNCTION_SIGNATURE,
+  isApprovalTransaction,
 } from '.';
 import buildUnserializedTransaction from './optimismTransaction';
 import Engine from '../../core/Engine';
@@ -999,4 +1002,59 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     const actionKey = await getTransactionActionKey(transaction, chainId);
     expect(actionKey).toBe(TOKEN_METHOD_INCREASE_ALLOWANCE);
   });
+});
+
+describe('Transactions utils :: getFourByteSignature', () => {
+  const testCases = [
+    {
+      data: '0xa9059cbb0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5',
+      expected: '0xa9059cbb',
+    },
+    {
+      data: undefined,
+      expected: undefined,
+    },
+    {
+      data: '',
+      expected: '',
+    },
+  ];
+
+  it.each(testCases)(
+    `extracts the four-byte signature from transaction data`,
+    ({ data, expected }) => {
+      expect(getFourByteSignature(data)).toBe(expected);
+    },
+  );
+});
+
+describe('Transactions utils :: isApprovalTransaction', () => {
+  const testCases: {
+    data: string;
+    expectedResult: boolean;
+    method: string;
+  }[] = [
+    {
+      data: `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5`,
+      expectedResult: true,
+      method: 'increaseAllowance',
+    },
+    {
+      data: `${APPROVE_FUNCTION_SIGNATURE}0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5`,
+      expectedResult: true,
+      method: 'approve',
+    },
+    {
+      data: '0x0a19b14a0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5',
+      expectedResult: false,
+      method: 'otherTransactionType',
+    },
+  ];
+
+  it.each(testCases)(
+    'returns $expectedResult for transaction data: $method',
+    ({ data, expectedResult }) => {
+      expect(isApprovalTransaction(data)).toBe(expectedResult);
+    },
+  );
 });

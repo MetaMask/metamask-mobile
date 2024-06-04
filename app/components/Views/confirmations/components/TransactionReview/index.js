@@ -14,10 +14,9 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   getTransactionReviewActionKey,
   getNormalizedTxState,
-  APPROVE_FUNCTION_SIGNATURE,
   decodeTransferData,
   getTicker,
-  INCREASE_ALLOWANCE_SIGNATURE,
+  isApprovalTransaction,
 } from '../../../../../util/transactions';
 import {
   weiToFiat,
@@ -304,11 +303,7 @@ class TransactionReview extends PureComponent {
     let assetAmount, conversionRate, fiatValue;
     showHexData = showHexData || data;
     const approveTransaction =
-      data &&
-      [APPROVE_FUNCTION_SIGNATURE, INCREASE_ALLOWANCE_SIGNATURE].includes(
-        data.substr(0, 10),
-      ) &&
-      (!value || isZeroValue(value));
+      isApprovalTransaction(data) && (!value || isZeroValue(value));
     const actionKey = await getTransactionReviewActionKey(transaction, chainId);
     if (approveTransaction) {
       let contract = tokenList[safeToChecksumAddress(to)];
