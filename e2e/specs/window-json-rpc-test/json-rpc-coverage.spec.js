@@ -21,6 +21,7 @@ import Gestures from '../../utils/Gestures';
 import ConnectModal from '../../pages/modals/ConnectModal';
 
 import Assertions from '../../utils/Assertions';
+import { addToQueue } from './helpers';
 
 describe(SmokeCore('API Spec Tests'), () => {
   beforeAll(async () => {
@@ -84,8 +85,6 @@ describe(SmokeCore('API Spec Tests'), () => {
     const server = mockServer(port, openrpcDocument);
     server.start();
 
-    let pollBool;
-
     class ConfirmationsRejectRule {
       constructor(options) {
         this.driver = options.driver; // Pass element for detox instead of all the driver
@@ -106,34 +105,38 @@ describe(SmokeCore('API Spec Tests'), () => {
       }
 
       async beforeRequest(_, call) {
-        if (this.requiresEthAccountsPermission.includes(call.methodName)) {
-          pollBool = false;
-          const requestPermissionsRequest = JSON.stringify({
-            jsonrpc: '2.0',
-            method: 'wallet_requestPermissions',
-            params: [{ eth_accounts: {} }],
-          });
+        addToQueue({
+          name: 'beforeRequest',
+          task: async () => {
+            if (this.requiresEthAccountsPermission.includes(call.methodName)) {
+              const requestPermissionsRequest = JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'wallet_requestPermissions',
+                params: [{ eth_accounts: {} }],
+              });
 
-          await this.driver.runScript(`(el) => {
-              window.ethereum.request(${requestPermissionsRequest})
-            }`);
+              await this.driver.runScript(`(el) => {
+                  window.ethereum.request(${requestPermissionsRequest})
+                }`);
 
-          /**
-           *
-           * Screenshot Code Section
-           *
-           */
+              /**
+               *
+               * Screenshot Code Section
+               *
+               */
 
-          // Connect accounts modal
-          await Assertions.checkIfVisible(ConnectModal.container);
-          await ConnectModal.tapConnectButton();
-          await Assertions.checkIfNotVisible(ConnectModal.container);
-          await TestHelpers.delay(3000);
-        }
+              // Connect accounts modal
+              await Assertions.checkIfVisible(ConnectModal.container);
+              await ConnectModal.tapConnectButton();
+              await Assertions.checkIfNotVisible(ConnectModal.container);
+              await TestHelpers.delay(3000);
+            }
 
-        if (call.methodName === 'eth_signTypedData_v4') {
-          call.params[1] = JSON.stringify(call.params[1]);
-        }
+            if (call.methodName === 'eth_signTypedData_v4') {
+              call.params[1] = JSON.stringify(call.params[1]);
+            }
+          },
+        });
       }
 
       // get all the confirmation calls to make and expect to pass
@@ -180,36 +183,33 @@ describe(SmokeCore('API Spec Tests'), () => {
       }
 
       async afterRequest(_, call) {
-        if (call.methodName === 'wallet_addEthereumChain') {
-          pollBool = false;
-          const cancelButton = await Matchers.getElementByText('Cancel');
-          await Gestures.tap(cancelButton);
-        }
+        addToQueue({
+          name: 'afterRequest',
+          task: async () => {
+            if (call.methodName === 'wallet_addEthereumChain') {
+              const cancelButton = await Matchers.getElementByText('Cancel');
+              await Gestures.tap(cancelButton);
+            }
 
-        if (call.methodName === 'wallet_switchEthereumChain') {
-          pollBool = false;
-          await TestHelpers.delay(3000);
-          const cancelButton = await Matchers.getElementByText('Cancel');
-          await Gestures.tap(cancelButton);
-          pollBool = true;
-        }
+            if (call.methodName === 'wallet_switchEthereumChain') {
+              await TestHelpers.delay(3000);
+              const cancelButton = await Matchers.getElementByText('Cancel');
+              await Gestures.tap(cancelButton);
+            }
 
-        if (call.methodName === 'eth_signTypedData_v4') {
-          pollBool = false;
-          await TestHelpers.delay(3000);
-          const cancelButton = await Matchers.getElementByText('Cancel');
-          await Gestures.tap(cancelButton);
-          pollBool = true;
-        }
+            if (call.methodName === 'eth_signTypedData_v4') {
+              await TestHelpers.delay(3000);
+              const cancelButton = await Matchers.getElementByText('Cancel');
+              await Gestures.tap(cancelButton);
+            }
 
-        if (call.methodName === 'wallet_watchAsset') {
-          pollBool = false;
-          await TestHelpers.delay(5000);
-          const cancelButton = await Matchers.getElementByText('CANCEL');
-          await Gestures.tap(cancelButton);
-          pollBool = true;
-        }
-
+            if (call.methodName === 'wallet_watchAsset') {
+              await TestHelpers.delay(5000);
+              const cancelButton = await Matchers.getElementByText('CANCEL');
+              await Gestures.tap(cancelButton);
+            }
+          },
+        });
         /**
          *
          * Screen shot code section
@@ -217,18 +217,23 @@ describe(SmokeCore('API Spec Tests'), () => {
       }
 
       async afterResponse(_, call) {
-        // Revoke Permissions
-        if (this.requiresEthAccountsPermission.includes(call.methodName)) {
-          const revokePermissionRequest = JSON.stringify({
-            jsonrpc: '2.0',
-            method: 'wallet_revokePermissions',
-            params: [{ eth_accounts: {} }],
-          });
+        addToQueue({
+          name: 'afterResponse',
+          task: async () => {
+            // Revoke Permissions
+            if (this.requiresEthAccountsPermission.includes(call.methodName)) {
+              const revokePermissionRequest = JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'wallet_revokePermissions',
+                params: [{ eth_accounts: {} }],
+              });
 
-          await this.driver.runScript(`(el) => {
-            window.ethereum.request(${revokePermissionRequest})
-          }`);
-        }
+              await this.driver.runScript(`(el) => {
+                window.ethereum.request(${revokePermissionRequest})
+              }`);
+            }
+          },
+        });
       }
 
       validateCall(call) {
@@ -262,51 +267,63 @@ describe(SmokeCore('API Spec Tests'), () => {
         const webElement = await web.element(by.web.id('json-rpc-response'));
         await webElement.scrollToView();
 
-        const pollResult = async () => {
-          let result;
-          pollBool = true;
+        const pollResult = async () =>
+          new Promise((resolve, reject) => {
+            addToQueue({
+              name: 'pollResult',
+              task: async () => {
+                let result;
+                while (!result) {
+                  await TestHelpers.delay(500);
+                  const text = await webElement.getText();
+                  if (typeof text === 'string') {
+                    result = JSON.parse(text);
+                  }
+                }
+                return result;
+              },
+              resolve,
+              reject,
+            });
+          });
 
-          while (result === undefined) {
-            if (pollBool) {
-              await TestHelpers.delay(500);
-              const t = await webElement.getText();
-              if (typeof t === 'string') {
-                result = t;
-              }
-            }
-          }
-
-          // if (result.result === '') {
-          //   return result;
-          // }
-          return JSON.parse(result);
-        };
-
-        const createDriverTransport = (driver) => async (_, method, params) => {
-          pollBool = false;
-          await driver.runScript(
-            (el, m, p) => {
-              window.ethereum
-                .request({ method: m, params: p })
-                .then((res) => {
-                  el.innerHTML = JSON.stringify({ result: res });
-                })
-                .catch((err) => {
-                  el.innerHTML = JSON.stringify({
-                    error: {
-                      code: err.code,
-                      message: err.message,
-                      data: err.data,
+        const createDriverTransport = (driver) => (_, method, params) =>
+          new Promise((resolve, reject) => {
+            const execute = async () => {
+              console.log('adding to queue');
+              await addToQueue({
+                name: 'transport',
+                task: async () => {
+                  await driver.runScript(
+                    (el, m, p) => {
+                      window.ethereum
+                        .request({ method: m, params: p })
+                        .then((res) => {
+                          el.innerHTML = JSON.stringify({ result: res });
+                        })
+                        .catch((err) => {
+                          el.innerHTML = JSON.stringify({
+                            error: {
+                              code: err.code,
+                              message: err.message,
+                              data: err.data,
+                            },
+                          });
+                        });
                     },
-                  });
-                });
-            },
-            [method, params],
-          );
-          const response = await pollResult();
-          pollBool = false;
-          return response;
-        };
+                    [method, params],
+                  );
+                },
+                resolve,
+                reject,
+              });
+            };
+            return execute();
+          }).then(async () => {
+            const result = await pollResult();
+            await webElement.clearText();
+            return result;
+          });
 
         const transport = await createDriverTransport(webElement);
 
@@ -356,10 +373,10 @@ describe(SmokeCore('API Spec Tests'), () => {
               skip: filteredMethods,
               numCalls: 1,
             }),
-            // new ConfirmationsRejectRule({
-            //   driver: webElement,
-            //   only: methodsWithConfirmations,
-            // }),
+            new ConfirmationsRejectRule({
+              driver: webElement,
+              only: methodsWithConfirmations,
+            }),
           ],
           skip,
         });
