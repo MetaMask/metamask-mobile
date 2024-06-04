@@ -22,8 +22,8 @@ describe('TransactionMetrics slice', () => {
         params: mockParams,
       }),
     );
-    expect(
-      actual.propertiesByTransactionId[mockTransactionId],
-    ).toStrictEqual(mockParams);
+    expect(actual.propertiesByTransactionId[mockTransactionId]).toStrictEqual(
+      mockParams,
+    );
   });
 });
