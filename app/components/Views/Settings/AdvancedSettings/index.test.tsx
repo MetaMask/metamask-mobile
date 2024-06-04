@@ -62,12 +62,15 @@ jest.mock('../../../../core/Engine', () => {
 
 describe('AdvancedSettings', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <AdvancedSettings />
-      </Provider>,
+    const container = renderWithProvider(
+      <AdvancedSettings
+        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+      />,
+      {
+        state: initialState,
+      },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(container).toMatchSnapshot();
   });
 
   it('should render eth_sign switch off by default with correct label', () => {
