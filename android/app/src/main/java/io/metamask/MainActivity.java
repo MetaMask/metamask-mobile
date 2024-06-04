@@ -66,7 +66,7 @@ public class MainActivity extends ReactActivity {
    */
 	@Override
 	protected ReactActivityDelegate createReactActivityDelegate() {
-		return new ReactActivityDelegate(this, getMainComponentName()) {
+		return new DefaultReactActivityDelegate(this, getMainComponentName(), DefaultNewArchitectureEntryPoint.getFabricEnabled()) {
 		@Override
 		protected Bundle getLaunchOptions() {
 			Bundle initialProperties = new Bundle();
