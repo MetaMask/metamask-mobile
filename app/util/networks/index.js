@@ -104,9 +104,9 @@ export const NetworkList = {
     shortName: 'Linea Sepolia',
     networkId: 59141,
     chainId: toHex('59141'),
-    color: '#61dfff',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+    color: '#61dfff',
     networkType: 'linea-sepolia',
     imageSource: lineaTestnetLogo,
   },
