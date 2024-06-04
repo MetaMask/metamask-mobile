@@ -344,15 +344,9 @@ const App = ({ userLoggedIn }) => {
         animationNameRef?.current?.play();
       }
     };
-    appTriggeredAuth()
-      .then(() => {
-        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
-
-        queueOfHandleDeeplinkFunctions.current = [];
-      })
-      .catch((error) => {
-        Logger.error(error, 'App: Error in appTriggeredAuth');
-      });
+    appTriggeredAuth().catch((error) => {
+      Logger.error(error, 'App: Error in appTriggeredAuth');
+    });
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
@@ -415,9 +409,11 @@ const App = ({ userLoggedIn }) => {
             handleDeeplink(opts);
           } else {
             queueOfHandleDeeplinkFunctions.current =
-              queueOfHandleDeeplinkFunctions.current.concat(() => {
-                handleDeeplink(opts);
-              });
+              queueOfHandleDeeplinkFunctions.current.concat([
+                () => {
+                  handleDeeplink(opts);
+                },
+              ]);
           }
         });
       }
@@ -456,7 +452,11 @@ const App = ({ userLoggedIn }) => {
         try {
           const sdkConnect = SDKConnect.getInstance();
           await sdkConnect.init({ navigation: navigator, context: 'Nav/App' });
-          await SDKConnect.getInstance().postInit();
+          await SDKConnect.getInstance().postInit(() => {
+            setTimeout(() => {
+              queueOfHandleDeeplinkFunctions.current = [];
+            }, 1000);
+          });
           sdkInit.current = true;
         } catch (err) {
           sdkInit.current = undefined;
@@ -464,9 +464,13 @@ const App = ({ userLoggedIn }) => {
         }
       }
     }
-    initSDKConnect().catch((err) => {
-      Logger.error(err, 'Error initializing SDKConnect');
-    });
+    initSDKConnect()
+      .then(() => {
+        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
+      })
+      .catch((err) => {
+        Logger.error(err, 'Error initializing SDKConnect');
+      });
   }, [navigator, onboarded, userLoggedIn]);
 
   useEffect(() => {
