@@ -130,10 +130,12 @@ export default async function migrate(stateAsync: unknown) {
 
         if (
           !Object.prototype.hasOwnProperty.call(
+            //@ts-expect-error Assets Controllers version on the version this migration was applied, this property existed
             newTokenRatesControllerState.contractExchangeRatesByChainId,
             hexChainId,
           )
         ) {
+          //@ts-expect-error Assets Controllers version on the version this migration was applied, this property existed
           newTokenRatesControllerState.contractExchangeRatesByChainId[
             hexChainId
           ] =

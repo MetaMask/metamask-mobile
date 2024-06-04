@@ -478,7 +478,6 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
-      //@ts-expect-error - Network Controller mismatch version
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -784,7 +783,6 @@ class Engine {
         preferencesController.state.isMultiAccountBalancesEnabled,
       getCurrentChainId: () =>
         toHexadecimal(networkController.state.providerConfig.chainId),
-      //@ts-expect-error - Network Controller mismatch version
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -1031,8 +1029,6 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          //@ts-expect-error This is because the network type is still missing linea-sepolia
-          // When transaction controller be updated to v^25
           listener,
         ),
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
@@ -1218,7 +1214,6 @@ class Engine {
         selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
-        //@ts-expect-error - Network Controller mismatch version
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
       }),
@@ -1460,9 +1455,6 @@ class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
     AccountTrackerController.configure({ provider });
-    //@ts-expect-error This seems to be incosistency on the core repo between the provider type
-    // AssetsContractController provider type = Provider | undefined
-    // NetworkController provider type = SafeEventEmitterProvider
     AssetsContractController.configure({ provider });
 
     SwapsController.configure({
@@ -1589,6 +1581,9 @@ class Engine {
   };
 
   resetState = async () => {
+    // eslint-disable-next-line no-console
+    console.log('ENTER RESET STATE');
+
     // Whenever we are gonna start a new wallet
     // either imported or created, we need to
     // get rid of the old data from state
@@ -1617,9 +1612,14 @@ class Engine {
       allNfts: {},
       ignoredNfts: [],
     });
+    // eslint-disable-next-line no-console
+    console.log(
+      'ENTER tokenbalances controller reset',
+      TokenBalancesController.reset,
+    );
 
     TokenBalancesController.reset();
-    TokenRatesController.update({ contractExchangeRates: {} });
+    TokenRatesController.update({ marketData: {} });
 
     TransactionController.update({
       methodData: {},

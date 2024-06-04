@@ -536,6 +536,7 @@ export default async function migrate(stateAsync: unknown) {
     ).forEach((chainId) => {
       if (!isHexString(chainId)) {
         const hexChainId = toHex(chainId);
+        //@ts-expect-error Assets Controllers version on the version this migration was applied, this property existed
         newTokenRatesControllerState.contractExchangeRatesByChainId[
           hexChainId
         ] =

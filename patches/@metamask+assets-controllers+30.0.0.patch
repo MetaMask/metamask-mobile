@@ -353,3 +353,135 @@ index 58047d9..f1290a8 100644
 \ No newline at end of file
 +//# sourceMappingURL=chunk-ZUICS5OS.mjs.map
 \ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
+index 42a321a..41e5ebd 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
+@@ -109,6 +109,7 @@ export interface NftMetadata {
+     creator?: string;
+     transactionId?: string;
+     tokenURI?: string | null;
++    error?: string;
+     collection?: Collection;
+     address?: string;
+     attributes?: Attributes;
+@@ -125,7 +126,7 @@ export interface NftConfig extends BaseConfig {
+     selectedAddress: string;
+     chainId: Hex;
+     ipfsGateway: string;
+-    openSeaEnabled: boolean;
++    displayNftMedia: boolean;
+     useIPFSSubdomains: boolean;
+     isIpfsGatewayEnabled: boolean;
+ }
+@@ -167,6 +168,10 @@ type AllowedActions = AddApprovalRequest | NetworkControllerGetNetworkClientById
+  */
+ export type NftControllerMessenger = RestrictedControllerMessenger<typeof controllerName, AllowedActions, never, AllowedActions['type'], never>;
+ export declare const getDefaultNftState: () => NftState;
++/**
++ * Changes regarding displayNftMedia, TokenURI and error nft metadata property are not on the core repo and needed to be refactor to be removed from the patch
++ * updateNftMetadata changes will be introduced on latest versions of changes of assets controllers, v^30 or next
++ */
+ /**
+  * Controller that stores assets and exposes convenience methods
+  */
+@@ -348,9 +353,10 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
+             tokenId: string;
+             standard: string | null;
+             source: string;
++            tokenURI?: string | null;
+         }) => void;
+         messenger: NftControllerMessenger;
+-    }, config?: Partial<BaseConfig>, state?: Partial<NftState>);
++    }, config?: Partial<NftConfig>, state?: Partial<NftState>);
+     private validateWatchNft;
+     private getCorrectChainId;
+     /**
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts
+index 52bb3ac..ff9a823 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts
+@@ -2,7 +2,7 @@ import { type RestrictedControllerMessenger, type ControllerGetStateAction, type
+ import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
+ import type { AssetsContractController } from './AssetsContractController';
+ import type { Token } from './TokenRatesController';
+-import type { TokensControllerStateChangeEvent } from './TokensController';
++import type { TokensControllerStateChangeEvent, TokensState } from './TokensController';
+ declare const controllerName = "TokenBalancesController";
+ /**
+  * Token balances controller options
+@@ -15,6 +15,7 @@ type TokenBalancesControllerOptions = {
+     interval?: number;
+     tokens?: Token[];
+     disabled?: boolean;
++    onTokensStateChange: (listener: (tokensState: TokensState) => void) => void;
+     getERC20BalanceOf: AssetsContractController['getERC20BalanceOf'];
+     messenger: TokenBalancesControllerMessenger;
+     state?: Partial<TokenBalancesControllerState>;
+@@ -56,11 +57,12 @@ export declare class TokenBalancesController extends BaseController<typeof contr
+      * @param options.interval - Polling interval used to fetch new token balances.
+      * @param options.tokens - List of tokens to track balances for.
+      * @param options.disabled - If set to true, all tracked tokens contract balances updates are blocked.
++     * @param options.onTokensStateChange - Allows subscribing to token controller state changes.
+      * @param options.getERC20BalanceOf - Gets the balance of the given account at the given contract address.
+      * @param options.state - Initial state to set on this controller.
+      * @param options.messenger - The controller restricted messenger.
+      */
+-    constructor({ interval, tokens, disabled, getERC20BalanceOf, messenger, state, }: TokenBalancesControllerOptions);
++    constructor({ interval, tokens, disabled, onTokensStateChange, getERC20BalanceOf, messenger, state, }: TokenBalancesControllerOptions);
+     /**
+      * Allows controller to update tracked tokens contract balances.
+      */
+@@ -79,6 +81,11 @@ export declare class TokenBalancesController extends BaseController<typeof contr
+      * Updates balances for all tokens.
+      */
+     updateBalances(): Promise<void>;
++    /**
++     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
++     * Resets to the default state
++     */
++    reset(): void;
+ }
+ export default TokenBalancesController;
+ //# sourceMappingURL=TokenBalancesController.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/TokenDetectionController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/TokenDetectionController.d.ts
+index 220d78d..795b96e 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/TokenDetectionController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/TokenDetectionController.d.ts
+@@ -6,7 +6,7 @@ import { StaticIntervalPollingController } from '@metamask/polling-controller';
+ import type { PreferencesControllerGetStateAction, PreferencesControllerStateChangeEvent } from '@metamask/preferences-controller';
+ import type { AssetsContractController } from './AssetsContractController';
+ import type { GetTokenListState, TokenListMap, TokenListStateChange } from './TokenListController';
+-import type { TokensControllerAddDetectedTokensAction, TokensControllerGetStateAction } from './TokensController';
++import type { TokensControllerAddDetectedTokensAction, TokensControllerGetStateAction, TokensState } from './TokensController';
+ /**
+  * Compare 2 given strings and return boolean
+  * eg: "foo" and "FOO" => true
+@@ -54,11 +54,12 @@ export declare class TokenDetectionController extends StaticIntervalPollingContr
+      * @param options.getBalancesInSingleCall - Gets the balances of a list of tokens for the given address.
+      * @param options.trackMetaMetricsEvent - Sets options for MetaMetrics event tracking.
+      */
+-    constructor({ selectedAddress, interval, disabled, getBalancesInSingleCall, trackMetaMetricsEvent, messenger, }: {
++    constructor({ selectedAddress, interval, disabled, getBalancesInSingleCall, getTokensState, trackMetaMetricsEvent, messenger, }: {
+         selectedAddress?: string;
+         interval?: number;
+         disabled?: boolean;
+         getBalancesInSingleCall: AssetsContractController['getBalancesInSingleCall'];
++        getTokensState: () => TokensState;
+         trackMetaMetricsEvent: (options: {
+             event: string;
+             category: string;
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/index.d.ts b/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
+index a71f4a7..df1ddc9 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
+@@ -3,7 +3,7 @@ export * from './AssetsContractController';
+ export * from './CurrencyRateController';
+ export * from './NftController';
+ export * from './NftDetectionController';
+-export type { TokenBalancesControllerMessenger, TokenBalancesControllerActions, TokenBalancesControllerGetStateAction, TokenBalancesControllerEvents, TokenBalancesControllerStateChangeEvent, } from './TokenBalancesController';
++export type { TokenBalancesControllerMessenger, TokenBalancesControllerActions, TokenBalancesControllerGetStateAction, TokenBalancesControllerEvents, TokenBalancesControllerStateChangeEvent, TokenBalancesControllerState } from './TokenBalancesController';
+ export { TokenBalancesController } from './TokenBalancesController';
+ export type { TokenDetectionControllerMessenger, TokenDetectionControllerActions, TokenDetectionControllerGetStateAction, TokenDetectionControllerEvents, TokenDetectionControllerStateChangeEvent, } from './TokenDetectionController';
+ export { TokenDetectionController } from './TokenDetectionController';
