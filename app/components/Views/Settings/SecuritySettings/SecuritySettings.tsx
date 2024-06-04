@@ -20,7 +20,10 @@ import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { setDataCollectionForMarketing } from '../../../../actions/security';
-import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../../constants/urls';
+import {
+  HOW_TO_MANAGE_METRAMETRICS_SETTINGS,
+  SIMULATION_DETALS_ARTICLE_URL,
+} from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
@@ -128,7 +131,6 @@ import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErro
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
-import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { isTransactionSimulationsFeatureEnabled } from '../../../../util/transaction-controller';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {

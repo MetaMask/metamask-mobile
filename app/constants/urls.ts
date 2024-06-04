@@ -92,4 +92,3 @@ export const SIMULATION_DETALS_ARTICLE_URL =
 
 export const HOW_TO_MANAGE_METRAMETRICS_SETTINGS =
   'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings';
-
