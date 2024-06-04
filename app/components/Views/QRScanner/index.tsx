@@ -14,6 +14,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { RNCamera } from 'react-native-camera';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
@@ -313,6 +316,9 @@ const QRScanner = () => {
           <TouchableOpacity style={styles.closeIcon} onPress={goBack}>
             <Icon name={'ios-close'} size={50} color={styles.closeIcon.color} />
           </TouchableOpacity>
+          <Text variant={TextVariant.BodyLGMedium} style={styles.overlayText}>
+            {strings('qr_scanner.label')}
+          </Text>
         </View>
         <View style={styles.overlayContainerRow}>
           <View style={styles.overlay} />

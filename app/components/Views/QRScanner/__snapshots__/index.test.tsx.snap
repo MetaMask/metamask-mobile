@@ -341,6 +341,7 @@ exports[`QrScanner should render correctly 1`] = `
                                 "color": "#FFFFFF",
                                 "marginRight": 20,
                                 "marginTop": 20,
+                                "position": "absolute",
                                 "width": 40,
                               }
                             }
@@ -366,6 +367,25 @@ exports[`QrScanner should render correctly 1`] = `
                               
                             </Text>
                           </TouchableOpacity>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "rgba(20, 22, 24, 1.0)",
+                                "fontFamily": "EuclidCircularB",
+                                "fontSize": 16,
+                                "fontWeight": "500",
+                                "height": "100%",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "paddingBottom": 28,
+                                "textAlign": "center",
+                                "textAlignVertical": "bottom",
+                              }
+                            }
+                          >
+                            Scan a QR code
+                          </Text>
                         </View>
                         <View
                           style={

@@ -23,6 +23,7 @@ const createStyles = (theme: Theme) =>
       marginRight: 20,
       width: 40,
       alignSelf: 'flex-end',
+      position: 'absolute',
       color: theme.brandColors.white['000'],
     },
     overlayContainerColumn: {
@@ -48,6 +49,14 @@ const createStyles = (theme: Theme) =>
       alignSelf: 'center',
       justifyContent: 'center',
       margin: -4,
+    },
+    overlayText: {
+      color: colors.overlayText,
+      fontFamily: 'EuclidCircularB-Regular',
+      textAlign: 'center',
+      textAlignVertical: 'bottom',
+      paddingBottom: 28,
+      height: '100%',
     },
   });
 

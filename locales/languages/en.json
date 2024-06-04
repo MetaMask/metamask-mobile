@@ -1217,7 +1217,8 @@
     "unrecognized_address_qr_code_title": "Unrecognized QR Code",
     "unrecognized_address_qr_code_desc": "Sorry, this QR code is not associated with an account address or a contract address.",
     "url_redirection_alert_title": "You are about to visit  an external link",
-    "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust."
+    "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.",
+    "label": "Scan a QR code"
   },
   "action_view": {
     "cancel": "Cancel",
@@ -1443,7 +1444,7 @@
     "yes": "Yes",
     "undefined_account": "Undefined account",
     "close_tab": "Close tab",
-    "switch_tab": "Switch tab", 
+    "switch_tab": "Switch tab",
     "protocol_alert_options": {
       "ignore": "Ignore",
       "allow": "Allow"
@@ -3048,7 +3049,7 @@
   },
   "simulation_details": {
     "failed": "There was an error loading your estimation.",
-    "incoming_heading": "You receive", 
+    "incoming_heading": "You receive",
     "no_balance_changes": "No changes predicted for your wallet",
     "outgoing_heading": "You send",
     "reverted": "This transaction is likely to fail",
