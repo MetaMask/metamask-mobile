@@ -110,6 +110,7 @@ import {
   SnapControllerActions,
   PersistedSnapControllerState,
   WebViewExecutionService,
+  SnapsRegistryMessenger,
 } from '@metamask/snaps-controllers';
 import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
 import { getSnapsWebViewPromise } from '../lib/snaps';
@@ -132,6 +133,7 @@ import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import {
   isMainnetByChainId,
   fetchEstimatedMultiLayerL1Fee,
+  isTestNet,
   deprecatedGetNetworkId,
   getDecimalChainId,
 } from '../util/networks';
@@ -207,6 +209,7 @@ import {
   AccountsController,
   AccountsControllerActions,
   AccountsControllerEvents,
+  AccountsControllerMessenger,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
@@ -465,8 +468,10 @@ class Engine {
     });
 
     const preferencesController = new PreferencesController({
+      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
+        allowedActions: [],
         allowedEvents: ['KeyringController:stateChange'],
       }),
       state: {
@@ -506,6 +511,7 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
+      //@ts-expect-error - Network Controller mismatch version
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -517,14 +523,17 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        //@ts-expect-error - Network Controller mismatch version
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
+        //@ts-expect-error Misalign types because of Base Controller version
         messenger: this.controllerMessenger.getRestricted({
           name: 'NftController',
           allowedActions: [
             `${approvalController.name}:addRequest`,
             `${networkController.name}:getNetworkClientById`,
           ],
+          allowedEvents: [],
         }),
         chainId: networkController.state.providerConfig.chainId,
 
@@ -561,23 +570,27 @@ class Engine {
         never
       >({
         name: 'LoggingController',
+        allowedActions: [],
+        allowedEvents: [],
       }),
       state: initialState.LoggingController,
     });
 
-    const accountsControllerMessenger = this.controllerMessenger.getRestricted({
-      name: 'AccountsController',
-      allowedEvents: [
-        'SnapController:stateChange',
-        'KeyringController:accountRemoved',
-        'KeyringController:stateChange',
-      ],
-      allowedActions: [
-        'KeyringController:getAccounts',
-        'KeyringController:getKeyringsByType',
-        'KeyringController:getKeyringForAccount',
-      ],
-    });
+    //@ts-expect-error Misalign types because of Base Controller version
+    const accountsControllerMessenger: AccountsControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'AccountsController',
+        allowedEvents: [
+          'SnapController:stateChange',
+          'KeyringController:accountRemoved',
+          'KeyringController:stateChange',
+        ],
+        allowedActions: [
+          'KeyringController:getAccounts',
+          'KeyringController:getKeyringsByType',
+          'KeyringController:getKeyringForAccount',
+        ],
+      });
 
     const defaultAccountsControllerState: AccountsControllerState = {
       internalAccounts: {
@@ -593,10 +606,12 @@ class Engine {
     const tokensController = new TokensController({
       chainId: networkController.state.providerConfig.chainId,
       config: {
+        //@ts-expect-error - Network Controller mismatch version
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
         selectedAddress: preferencesController.state.selectedAddress,
       },
+      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [`${approvalController.name}:addRequest`],
@@ -614,15 +629,19 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
+      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokenListController',
+        allowedActions: [],
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
     const currencyRateController = new CurrencyRateController({
+      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'CurrencyRateController',
         allowedActions: [`${networkController.name}:getNetworkClientById`],
+        allowedEvents: [],
       }),
       state: initialState.CurrencyRateController,
     });
@@ -630,6 +649,7 @@ class Engine {
       networkController.state.selectedNetworkClientId,
     );
     const gasFeeController = new GasFeeController({
+      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
@@ -668,6 +688,7 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'PhishingController',
         allowedActions: [],
+        allowedEvents: [],
       }),
     });
     phishingController.maybeUpdateState();
@@ -688,8 +709,11 @@ class Engine {
         preferencesController,
       ),
       encryptor,
+      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
+        allowedActions: [],
+        allowedEvents: [],
       }),
       state: initialKeyringState || initialState.KeyringController,
       // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
@@ -799,12 +823,11 @@ class Engine {
         preferencesController.state.isMultiAccountBalancesEnabled,
       getCurrentChainId: () =>
         toHexadecimal(networkController.state.providerConfig.chainId),
+      //@ts-expect-error - Network Controller mismatch version
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
     const permissionController = new PermissionController({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
@@ -818,6 +841,7 @@ class Engine {
           `SubjectMetadataController:getSubjectMetadata`,
           ///: END:ONLY_INCLUDE_IF
         ],
+        allowedEvents: [],
       }),
       state: initialState.PermissionController,
       caveatSpecifications: getCaveatSpecifications({
@@ -872,6 +896,7 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
         allowedActions: [`${permissionController.name}:hasPermissions`],
+        allowedEvents: [],
       }),
       state: initialState.SubjectMetadataController || {},
       subjectCacheLimit: 100,
@@ -916,12 +941,13 @@ class Engine {
 
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
-
-    const snapsRegistryMessenger = this.controllerMessenger.getRestricted({
-      name: 'SnapsRegistry',
-      allowedEvents: [],
-      allowedActions: [],
-    });
+    //@ts-expect-error Misalign types because of Base Controller version
+    const snapsRegistryMessenger: SnapsRegistryMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'SnapsRegistry',
+        allowedEvents: [],
+        allowedActions: [],
+      });
     const snapsRegistry = new JsonSnapsRegistry({
       state: initialState.SnapsRegistry,
       messenger: snapsRegistryMessenger,
@@ -936,8 +962,11 @@ class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
+      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
+        allowedActions: [],
+        allowedEvents: [],
       }),
       setupSnapProvider: setupSnapProvider.bind(this),
       getWebView: () => getSnapsWebViewPromise,
@@ -1188,7 +1217,6 @@ class Engine {
           this.transactionController.confirmExternalTransaction.bind(
             this.transactionController,
           ),
-        // @ts-expect-error this fine, STX controller has been downgraded to network controller v15
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         getNonceLock: this.transactionController.getNonceLock.bind(
@@ -1228,6 +1256,7 @@ class Engine {
       tokensController,
       tokenListController,
       new TokenDetectionController({
+        //@ts-expect-error Misalign types because of Base Controller version
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
@@ -1282,6 +1311,7 @@ class Engine {
         addNft: nftController.addNft.bind(nftController),
         getNftApi: nftController.getNftApi.bind(nftController),
         getNftState: () => nftController.state,
+        //@ts-expect-error - Network Controller mismatch version
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
       }),
@@ -1290,6 +1320,7 @@ class Engine {
       phishingController,
       preferencesController,
       new TokenBalancesController({
+        //@ts-expect-error Misalign types because of Base Controller version
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: ['PreferencesController:getState'],
@@ -1300,7 +1331,7 @@ class Engine {
         getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
           assetsContractController,
         ),
-        interval: 10000,
+        interval: 180000,
       }),
       new TokenRatesController({
         onTokensStateChange: (listener) => tokensController.subscribe(listener),
@@ -1316,6 +1347,7 @@ class Engine {
         selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
+        //@ts-expect-error - Network Controller mismatch version
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
       }),
@@ -1366,6 +1398,7 @@ class Engine {
             `${keyringController.name}:signTypedMessage`,
             `${loggingController.name}:add`,
           ],
+          allowedEvents: [],
         }),
         isEthSignEnabled: () =>
           Boolean(
@@ -1391,6 +1424,7 @@ class Engine {
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted({
           name: 'PPOMController',
+          allowedActions: [],
           allowedEvents: [`${networkController.name}:stateChange`],
         }),
         onPreferencesChange: (listener) =>
@@ -1423,6 +1457,7 @@ class Engine {
     for (const controller of controllers) {
       if (
         hasProperty(initialState, controller.name) &&
+        //@ts-expect-error Misalign types because of Base Controller version
         controller.subscribe !== undefined
       ) {
         // The following type error can be addressed by passing initial state into controller constructors instead
@@ -1560,6 +1595,9 @@ class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
     AccountTrackerController.configure({ provider });
+    //@ts-expect-error This seems to be incosistency on the core repo between the provider type
+    // AssetsContractController provider type = Provider | undefined
+    // NetworkController provider type = SafeEventEmitterProvider
     AssetsContractController.configure({ provider });
 
     SwapsController.configure({
@@ -1588,25 +1626,28 @@ class Engine {
     } = this.context;
     const { selectedAddress } = PreferencesController.state;
     const { currentCurrency } = CurrencyRateController.state;
-    const networkProvider = NetworkController.state.providerConfig;
-    const conversionRate =
-      CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
-        ?.conversionRate ?? 0;
-    const { accountsByChainId } = AccountTrackerController.state;
+    const { chainId, ticker } = NetworkController.state.providerConfig;
+    const {
+      settings: { showFiatOnTestnets },
+    } = store.getState();
 
+    if (isTestNet(chainId) && !showFiatOnTestnets) {
+      return { ethFiat: 0, tokenFiat: 0 };
+    }
+
+    const conversionRate =
+      CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
+      0;
+
+    const { accountsByChainId } = AccountTrackerController.state;
     const { tokens } = TokensController.state;
+
     let ethFiat = 0;
     let tokenFiat = 0;
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-    if (
-      accountsByChainId?.[toHexadecimal(networkProvider.chainId)]?.[
-        selectedAddress
-      ]
-    ) {
+    if (accountsByChainId?.[toHexadecimal(chainId)]?.[selectedAddress]) {
       ethFiat = weiToFiatNumber(
-        accountsByChainId[toHexadecimal(networkProvider.chainId)][
-          selectedAddress
-        ].balance,
+        accountsByChainId[toHexadecimal(chainId)][selectedAddress].balance,
         conversionRate,
         decimalsToShow,
       );

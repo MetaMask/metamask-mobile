@@ -11,11 +11,11 @@ import { fontStyles } from '../../../styles/common';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
 import { selectProviderConfig } from '../../../selectors/networkController';
-import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import {
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
-} from '../../../util/networks';
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../selectors/networkInfos';
+import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
@@ -126,19 +126,9 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     return false;
   }, [isTokenDetectionEnabled, isTokenDetectionSupported]);
 
-  const networkImageSource = useMemo(
-    () =>
-      getNetworkImageSource({
-        networkType: providerConfig.type,
-        chainId: providerConfig.chainId,
-      }),
-    [providerConfig],
-  );
+  const networkImageSource = useSelector(selectNetworkImageSource);
 
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
+  const networkName = useSelector(selectNetworkName);
 
   return (
     <View style={styles.wrapper}>

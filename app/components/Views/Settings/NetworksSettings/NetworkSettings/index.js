@@ -34,7 +34,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import PopularList from '../../../../../util/networks/customNetworks';
+import { PopularList } from '../../../../../util/networks/customNetworks';
 import WarningMessage from '../../../confirmations/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import {
@@ -630,15 +630,19 @@ class NetworkSettings extends PureComponent {
       const isRPCDifferent = url.href !== prevRPCURL;
       if ((editable || isCustomMainnet) && isRPCDifferent) {
         // Only remove from frequent list if RPC URL is different.
-        const [prevNetworkConfigurationId] = Object.entries(
+        const foundNetworkConfiguration = Object.entries(
           this.props.networkConfigurations,
         ).find(
           ([, networkConfiguration]) =>
             networkConfiguration.rpcUrl === prevRPCURL,
         );
-        NetworkController.removeNetworkConfiguration(
-          prevNetworkConfigurationId,
-        );
+
+        if (foundNetworkConfiguration) {
+          const [prevNetworkConfigurationId] = foundNetworkConfiguration;
+          NetworkController.removeNetworkConfiguration(
+            prevNetworkConfigurationId,
+          );
+        }
       }
 
       const analyticsParamsAdd = {
@@ -646,6 +650,7 @@ class NetworkSettings extends PureComponent {
         source: 'Custom network form',
         symbol: ticker,
       };
+
       metrics.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
       this.props.showNetworkOnboardingAction({
         networkUrl,

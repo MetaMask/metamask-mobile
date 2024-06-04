@@ -69,7 +69,24 @@ exports[`BasicFunctionality should render correctly 1`] = `
       }
     }
   >
-    Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.
+    MetaMask offers basic features like token details and gas settings through internet services. When you use internet services, your IP address is shared, in this case with MetaMask. This is just like when you visit any website. MetaMask uses this data temporarily and never sells your data. You can use a VPN or turn off these services, but it may affect your MetaMask experience. Read our 
+    <Text
+      accessibilityRole="text"
+      onPress={[Function]}
+      style={
+        {
+          "color": "#0376C9",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Privacy policy
+    </Text>
+     to learn more.
   </Text>
 </View>
 `;
