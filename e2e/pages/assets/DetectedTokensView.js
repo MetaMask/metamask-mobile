@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { DetectedTokensSelectorIDs } from '../../selectors/assets/DetectedTokensView.selectors';
+import { DetectedTokensSelectorIDs } from '../../selectors/wallet/DetectedTokensView.selectors';
 import Matchers from '../../utils/Matchers';
 
 class DetectedTokensView {
