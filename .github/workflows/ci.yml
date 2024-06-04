@@ -174,10 +174,10 @@ jobs:
     name: Check workflows
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download actionlint
         id: download-actionlint
-        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/51803be108613182daa27af760ae117916b53e3f/scripts/download-actionlint.bash) 1.6.23
+        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
         shell: bash
       - name: Check workflow files
         run: ${{ steps.download-actionlint.outputs.executable }} -color
