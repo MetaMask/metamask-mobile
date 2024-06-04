@@ -10,6 +10,7 @@ import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
+import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import ChoosePassword from '../../Views/ChoosePassword';
@@ -100,6 +101,7 @@ import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowD
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
 import SDKDisconnectModal from '../../../../app/components/Views/SDKDisconnectModal/SDKDisconnectModal';
 import SDKSessionModal from '../../../../app/components/Views/SDKSessionModal/SDKSessionModal';
+import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
@@ -611,6 +613,14 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
         component={SDKSessionModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.EXPERIENCE_ENHANCER}
+        component={ExperienceEnhancerModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.DATA_COLLECTION}
+        component={DataCollectionModal}
       />
       <Stack.Screen
         name={Routes.SHEET.SDK_DISCONNECT}
