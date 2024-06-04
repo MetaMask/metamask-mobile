@@ -420,22 +420,7 @@ exports[`QrScanner should render correctly 1`] = `
                               "flexBasis": 0,
                             }
                           }
-                        >
-                          <Text
-                            style={
-                              {
-                                "color": "#FFFFFF",
-                                "flex": 1,
-                                "fontSize": 17,
-                                "justifyContent": "center",
-                                "marginTop": 100,
-                                "textAlign": "center",
-                              }
-                            }
-                          >
-                            scanning...
-                          </Text>
-                        </View>
+                        />
                       </RCTSafeAreaView>
                     </View>
                   </View>

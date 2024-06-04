@@ -11,7 +11,6 @@ import {
   Image,
   InteractionManager,
   SafeAreaView,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -320,9 +319,7 @@ const QRScanner = () => {
           <Image source={frameImage} style={styles.frame} />
           <View style={styles.overlay} />
         </View>
-        <View style={styles.overlay}>
-          <Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>
-        </View>
+        <View style={styles.overlay} />
       </SafeAreaView>
     </View>
   );

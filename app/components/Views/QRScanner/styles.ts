@@ -49,14 +49,6 @@ const createStyles = (theme: Theme) =>
       justifyContent: 'center',
       margin: -4,
     },
-    text: {
-      flex: 1,
-      fontSize: 17,
-      color: theme.brandColors.white['000'],
-      textAlign: 'center',
-      justifyContent: 'center',
-      marginTop: 100,
-    },
   });
 
 export default createStyles;
