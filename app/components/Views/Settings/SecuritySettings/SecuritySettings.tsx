@@ -126,6 +126,7 @@ import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFun
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
+import { isTransactionSimulationsFeatureEnabled } from '../../../../util/transaction-controller';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -1095,7 +1096,8 @@ const Settings: React.FC = () => {
         {renderMultiAccountBalancesSection()}
         {renderShowIncomingTransactions()}
         {renderHistoryModal()}
-        {renderUseTransactionSimulations()}
+        {isTransactionSimulationsFeatureEnabled() &&
+          renderUseTransactionSimulations()}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
