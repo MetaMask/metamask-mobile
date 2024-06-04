@@ -62,9 +62,7 @@ const DISPLAY_NAME_SAVED_MOCK = {
 };
 
 describe('useSimulationMetrics', () => {
-  const updateTransactionMetricsMock = jest.mocked(
-    updateTransactionMetrics,
-  );
+  const updateTransactionMetricsMock = jest.mocked(updateTransactionMetrics);
 
   const useDispatchMock = jest.mocked(useDispatch);
   const useStateMock = jest.mocked(useState);

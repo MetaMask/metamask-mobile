@@ -1,7 +1,4 @@
-import reducer, {
-  updateTransactionMetrics,
-  TransactionMetricsState,
-} from '.';
+import reducer, { updateTransactionMetrics, TransactionMetricsState } from '.';
 
 describe('TransactionMetrics slice', () => {
   // Define the initial state for your tests

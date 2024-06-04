@@ -75,9 +75,7 @@ export interface RootState {
   rpcEvents: any;
   accounts: any;
   inpageProvider: StateFromReducer<typeof inpageProviderReducer>;
-  transactionMetrics: StateFromReducer<
-    typeof transactionMetricsReducer
-  >;
+  transactionMetrics: StateFromReducer<typeof transactionMetricsReducer>;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the

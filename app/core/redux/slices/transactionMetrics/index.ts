@@ -25,9 +25,7 @@ const slice = createSlice({
     ) => {
       const { transactionId, params } = action.payload;
 
-      if (
-        state.propertiesByTransactionId[transactionId] === undefined
-      ) {
+      if (state.propertiesByTransactionId[transactionId] === undefined) {
         state.propertiesByTransactionId[transactionId] = {};
       }
 

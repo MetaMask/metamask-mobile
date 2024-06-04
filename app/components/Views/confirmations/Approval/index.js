@@ -125,9 +125,9 @@ class Approval extends PureComponent {
     shouldUseSmartTransaction: PropTypes.bool,
 
     /**
-     * Function to get transaction simulation metrics
+     * Object containing the simulation metrics for the transaction
      */
-    getTransactionSimulationMetrics: PropTypes.func,
+    simulationMetricsByTransactionId: PropTypes.object,
   };
 
   state = {

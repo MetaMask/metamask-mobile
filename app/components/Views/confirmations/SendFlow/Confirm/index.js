@@ -248,9 +248,9 @@ class Confirm extends PureComponent {
     shouldUseSmartTransaction: PropTypes.bool,
 
     /**
-     * Function to get transaction simulation metrics
+     * Object containing transaction simulation metrics
      */
-    getTransactionSimulationMetrics: PropTypes.func,
+    simulationMetricsByTransactionId: PropTypes.object,
   };
 
   state = {
