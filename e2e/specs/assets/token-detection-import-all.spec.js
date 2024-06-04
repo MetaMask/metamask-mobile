@@ -2,7 +2,7 @@
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import { SmokeCore } from '../../tags';
 import WalletView from '../../pages/WalletView';
-import DetectedTokensView from '../../pages/assets/DetectedTokensView';
+import DetectedTokensView from '../../pages/wallet/DetectedTokensView';
 import Assertions from '../../utils/Assertions';
 
 describe(SmokeCore('Import all tokens detected'), () => {
