@@ -883,6 +883,7 @@ enum DESCRIPTION {
   WALLET_QR_SCANNER = 'QR scanner',
   WALLET_COPIED_ADDRESS = 'Copied Address',
   WALLET_ADD_COLLECTIBLES = 'Add Collectibles',
+  WALLET_REMOVED = 'Account removed',
   // Transactions
   TRANSACTIONS_CONFIRM_STARTED = 'Confirm Started',
   TRANSACTIONS_EDIT_TRANSACTION = 'Edit Transaction',
@@ -1132,6 +1133,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.WALLET_VIEW,
     ACTIONS.WALLET_VIEW,
     DESCRIPTION.WALLET_ADD_COLLECTIBLES,
+  ),
+  WALLET_REMOVED: generateOpt(
+    EVENT_NAME.WALLET_VIEW,
+    ACTIONS.WALLET_VIEW,
+    DESCRIPTION.WALLET_REMOVED,
   ),
   // Transactions
   TRANSACTIONS_CONFIRM_STARTED: generateOpt(

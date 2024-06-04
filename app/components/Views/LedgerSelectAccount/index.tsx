@@ -141,6 +141,11 @@ const LedgerSelectAccount = ({ navigation }: ILedgerSelectAccountProps) => {
         Logger.log('Error: Connecting QR hardware wallet', err);
       }
       setBlockingModalVisible(false);
+
+      trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
+        device_type: 'Ledger',
+        //TODO Do we need to add address here?
+      });
       navigation.pop(2);
     },
     [KeyringController, navigation],

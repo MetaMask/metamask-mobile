@@ -171,6 +171,10 @@ const AccountActions = () => {
       await Controller.KeyringController.removeAccount(selectedAddress);
       await removeAccountsFromPermissions([selectedAddress]);
       const newAccounts = await Controller.KeyringController.getAccounts();
+      trackEvent(MetaMetricsEvents.WALLET_REMOVED, {
+        accountType: kr.type,
+        address: selectedAddress,
+      });
 
       // setSelectedAddress to the initial account
       Engine.setSelectedAddress(newAccounts[0]);
