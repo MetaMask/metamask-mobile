@@ -17,6 +17,7 @@ export interface DeeplinkUrlParams {
   message?: string;
   originatorInfo?: string;
   request?: string;
+  account?: string; // This is the format => "address@chainId"
 }
 
 function extractURLParams(url: string) {
