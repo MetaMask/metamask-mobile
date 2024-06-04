@@ -18,6 +18,11 @@ class AddAddressModal {
       ? Matchers.getElementByLabel(AddAddressModalSelectorsIDs.SAVE_BUTTON)
       : Matchers.getElementByID(AddAddressModalSelectorsIDs.SAVE_BUTTON);
   }
+  get cancelButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(AddAddressModalSelectorsIDs.CANCEL_BUTTON)
+      : Matchers.getElementByID(AddAddressModalSelectorsIDs.CANCEL_BUTTON);
+  }
 
   get title() {
     return Matchers.getElementByID(AddAddressModalSelectorsIDs.TITLE);
@@ -29,6 +34,9 @@ class AddAddressModal {
 
   async tapSaveButton() {
     await Gestures.waitAndTap(this.saveButton);
+  }
+  async tapCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
   }
 
   async tapTitle() {

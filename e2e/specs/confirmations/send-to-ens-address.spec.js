@@ -63,7 +63,10 @@ describe(SmokeConfirmations('Send ETH'), () => {
     // After inputting an ENS address, it takes a few seconds to resolve, upon resolving, the keyboard expands again
     try {
       await AddAddressModal.tapCancelButton();
-    } catch {}
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log(`Save address modal did not appear: ${e}`);
+    }
     await SendView.tapNextButton();
 
     await AmountView.typeInTransactionAmount(AMOUNT);
