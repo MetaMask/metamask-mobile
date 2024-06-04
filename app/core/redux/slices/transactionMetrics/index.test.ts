@@ -1,5 +1,5 @@
 import reducer, {
-  updateTransactionMetric,
+  updateTransactionMetrics,
   TransactionMetricsState,
 } from '.';
 
@@ -15,12 +15,12 @@ describe('TransactionMetrics slice', () => {
     });
   });
 
-  it('should handle updateTransactionMetric', () => {
+  it('should handle updateTransactionMetrics', () => {
     const mockTransactionId = 'testId';
     const mockParams = { test: 'test' };
     const actual = reducer(
       initialState,
-      updateTransactionMetric({
+      updateTransactionMetrics({
         transactionId: mockTransactionId,
         params: mockParams,
       }),

@@ -7,7 +7,7 @@ import {
 
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { updateTransactionMetric } from '../../../core/redux/slices/transactionMetrics';
+import { updateTransactionMetrics } from '../../../core/redux/slices/transactionMetrics';
 import {
   UseDisplayNameRequest,
   UseDisplayNameResponse,
@@ -110,7 +110,7 @@ export function useSimulationMetrics({
       return;
     }
 
-    dispatch(updateTransactionMetric({ transactionId, params }));
+    dispatch(updateTransactionMetrics({ transactionId, params }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldSkipMetrics, transactionId, JSON.stringify(params), dispatch]);
 }

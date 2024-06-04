@@ -7,7 +7,7 @@ import { BigNumber } from 'bignumber.js';
 import { renderHook } from '@testing-library/react-hooks';
 import { useDispatch } from 'react-redux';
 
-import { updateTransactionMetric } from '../../../core/redux/slices/transactionMetrics';
+import { updateTransactionMetrics } from '../../../core/redux/slices/transactionMetrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -62,8 +62,8 @@ const DISPLAY_NAME_SAVED_MOCK = {
 };
 
 describe('useSimulationMetrics', () => {
-  const updateTransactionMetricMock = jest.mocked(
-    updateTransactionMetric,
+  const updateTransactionMetricsMock = jest.mocked(
+    updateTransactionMetrics,
   );
 
   const useDispatchMock = jest.mocked(useDispatch);
@@ -78,7 +78,7 @@ describe('useSimulationMetrics', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let trackEventMock: jest.MockedFunction<any>;
 
-  function expectUpdateTransactionMetricCalled(
+  function expectUpdateTransactionMetricsCalled(
     {
       balanceChanges,
       simulationData,
@@ -100,8 +100,8 @@ describe('useSimulationMetrics', () => {
       transactionId: TRANSACTION_ID_MOCK,
     });
 
-    expect(updateTransactionMetricMock).toHaveBeenCalledTimes(1);
-    expect(updateTransactionMetricMock).toHaveBeenCalledWith(
+    expect(updateTransactionMetricsMock).toHaveBeenCalledTimes(1);
+    expect(updateTransactionMetricsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         transactionId: TRANSACTION_ID_MOCK,
         params: expectedParams,
@@ -150,7 +150,7 @@ describe('useSimulationMetrics', () => {
       });
 
       expect(setLoadingCompleteMock).toHaveBeenCalledTimes(1);
-      expect(updateTransactionMetric).toHaveBeenCalledWith(
+      expect(updateTransactionMetrics).toHaveBeenCalledWith(
         expect.objectContaining({
           transactionId: TRANSACTION_ID_MOCK,
           params: expect.objectContaining({
@@ -179,7 +179,7 @@ describe('useSimulationMetrics', () => {
         useDisplayNamesMock.mockReset();
         useDisplayNamesMock.mockReturnValue([]);
 
-        expectUpdateTransactionMetricCalled(
+        expectUpdateTransactionMetricsCalled(
           {
             simulationData: simulationData as SimulationData,
           },
@@ -202,7 +202,7 @@ describe('useSimulationMetrics', () => {
       amount: new BigNumber(isNegative ? -1 : 1),
     };
 
-    expectUpdateTransactionMetricCalled(
+    expectUpdateTransactionMetricsCalled(
       {
         balanceChanges: [balanceChange, balanceChange, balanceChange],
       },
@@ -272,7 +272,7 @@ describe('useSimulationMetrics', () => {
       [AssetType.Native],
     ],
   ])('with asset type if %s', (_, type, isNegative, property, value) => {
-    expectUpdateTransactionMetricCalled(
+    expectUpdateTransactionMetricsCalled(
       {
         balanceChanges: [
           {
@@ -328,7 +328,7 @@ describe('useSimulationMetrics', () => {
         fiatAmount,
       };
 
-      expectUpdateTransactionMetricCalled(
+      expectUpdateTransactionMetricsCalled(
         {
           balanceChanges: [balanceChange],
         },
@@ -356,7 +356,7 @@ describe('useSimulationMetrics', () => {
       fiatAmount: 1.23,
     };
 
-    expectUpdateTransactionMetricCalled(
+    expectUpdateTransactionMetricsCalled(
       {
         balanceChanges: [balanceChange1, balanceChange2],
       },
@@ -417,6 +417,6 @@ describe('useSimulationMetrics', () => {
       transactionId: TRANSACTION_ID_MOCK,
     });
 
-    expect(updateTransactionMetricMock).not.toHaveBeenCalled();
+    expect(updateTransactionMetricsMock).not.toHaveBeenCalled();
   });
 });

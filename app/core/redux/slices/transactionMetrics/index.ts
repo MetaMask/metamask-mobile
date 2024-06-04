@@ -3,11 +3,11 @@ import { RootState } from '../../../../reducers';
 import { merge } from 'lodash';
 
 export interface TransactionMetricsState {
-  simulationPropertiesByTransactionId: Record<string, any>;
+  propertiesByTransactionId: Record<string, any>;
 }
 
 export const initialState: TransactionMetricsState = {
-  simulationPropertiesByTransactionId: {},
+  propertiesByTransactionId: {},
 };
 
 const name = 'transactionMetrics';
@@ -16,7 +16,7 @@ const slice = createSlice({
   name,
   initialState,
   reducers: {
-    updateTransactionMetric: (
+    updateTransactionMetrics: (
       state,
       action: PayloadAction<{
         transactionId: string;
@@ -26,13 +26,13 @@ const slice = createSlice({
       const { transactionId, params } = action.payload;
 
       if (
-        state.simulationPropertiesByTransactionId[transactionId] === undefined
+        state.propertiesByTransactionId[transactionId] === undefined
       ) {
-        state.simulationPropertiesByTransactionId[transactionId] = {};
+        state.propertiesByTransactionId[transactionId] = {};
       }
 
-      state.simulationPropertiesByTransactionId[transactionId] = merge(
-        state.simulationPropertiesByTransactionId[transactionId],
+      state.propertiesByTransactionId[transactionId] = merge(
+        state.propertiesByTransactionId[transactionId],
         params,
       );
     },
@@ -42,8 +42,8 @@ const slice = createSlice({
 const { actions, reducer } = slice;
 export default reducer;
 // Actions
-export const { updateTransactionMetric } = actions;
+export const { updateTransactionMetrics } = actions;
 
 // Selectors
 export const selectTransactionSimulationMetrics = (state: RootState) =>
-  state[name].simulationPropertiesByTransactionId;
+  state[name].propertiesByTransactionId;
