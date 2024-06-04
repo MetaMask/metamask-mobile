@@ -22,6 +22,7 @@ import ConnectModal from '../../pages/modals/ConnectModal';
 
 import Assertions from '../../utils/Assertions';
 import { addToQueue } from './helpers';
+import ExamplesRule from '@open-rpc/test-coverage/build/rules/examples-rule';
 
 describe(SmokeCore('API Spec Tests'), () => {
   beforeAll(async () => {
@@ -460,6 +461,10 @@ describe(SmokeCore('API Spec Tests'), () => {
               only: [],
               skip: filteredMethods,
               numCalls: 1,
+            }),
+            new ExamplesRule({
+              only: [],
+              skip: filteredMethods,
             }),
             new ConfirmationsRejectRule({
               driver: webElement,

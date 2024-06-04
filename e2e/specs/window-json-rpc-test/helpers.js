@@ -5,12 +5,9 @@ export const processQueue = async () => {
   if (isProcessing || taskQueue.length === 0) return;
 
   isProcessing = true;
-  const { task, resolve, reject, name } = taskQueue.shift();
-
+  const { task, resolve, reject } = taskQueue.shift();
   try {
-    console.log('about to run task', name);
     const result = await task();
-    console.log('task', name, result);
     resolve(result);
   } catch (error) {
     reject(error);
