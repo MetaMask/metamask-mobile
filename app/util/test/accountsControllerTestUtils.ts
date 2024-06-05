@@ -60,15 +60,13 @@ export const internalAccount2 = createMockInternalAccount(
   'Account 2',
 );
 
-const internalAcccountsAccounts = {
-  [expectedUuid]: internalAccount1,
-  [expectedUuid2]: internalAccount2,
-};
-
 // used as a default mock for other tests
 export const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
   internalAccounts: {
-    accounts: internalAcccountsAccounts,
+    accounts: {
+      [expectedUuid]: internalAccount1,
+      [expectedUuid2]: internalAccount2,
+    },
     selectedAccount: expectedUuid2,
   },
 };
