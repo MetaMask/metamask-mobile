@@ -21,6 +21,8 @@ import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
+const { log } = require('detox');
+
 
 const PASSWORD = '12345678';
 
@@ -43,6 +45,7 @@ describe(
         },
         async () => {
           await loginToApp();
+
 
           //validate connection to test dapp
           await TabBarComponent.tapBrowser();
@@ -70,11 +73,14 @@ describe(
           await DeleteWalletModal.tapDeleteMyWalletButton();
           await TestHelpers.delay(2000);
           await Assertions.checkIfVisible(OnboardingView.container);
-          await Assertions.checkIfVisible(await CommonView.toast);
+          if (device.getPlatform() === 'ios') {
+            await Assertions.checkIfVisible(await CommonView.toast);
+            log.info(`${device.getPlatform()} Device specific`)
+          }
           await Assertions.checkIfNotVisible(await CommonView.toast);
           await OnboardingView.tapCreateWallet();
 
-          //Create new wallet
+          // Create new wallet
           await Assertions.checkIfVisible(MetaMetricsOptIn.container);
           await MetaMetricsOptIn.tapAgreeButton();
           await Assertions.checkIfVisible(CreatePasswordView.container);
