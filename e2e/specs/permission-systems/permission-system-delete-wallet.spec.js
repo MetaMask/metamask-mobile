@@ -21,7 +21,6 @@ import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
-const { log } = require('detox');
 
 const PASSWORD = '12345678';
 
@@ -73,7 +72,6 @@ describe(
           await Assertions.checkIfVisible(OnboardingView.container);
           if (device.getPlatform() === 'ios') {
             await Assertions.checkIfVisible(await CommonView.toast);
-            log.info(`${device.getPlatform()} Device specific`);
           }
           await Assertions.checkIfNotVisible(await CommonView.toast);
           await OnboardingView.tapCreateWallet();
