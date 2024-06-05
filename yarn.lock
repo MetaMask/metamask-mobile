@@ -4489,15 +4489,7 @@
     fast-json-stable-stringify "^2.1.0"
     uuid "^8.3.2"
 
-"@metamask/post-message-stream@8.0.0", "@metamask/post-message-stream@^8.0.0":
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/post-message-stream/-/post-message-stream-8.0.0.tgz#101a54c2a4029879691ce83065638493d7822f48"
-  integrity sha512-Bk5LQRxD2IJMJWKY8Yuy+86gracExv2jpjHVWm5Ek7njtdzS0Z10ABpC+yekc8vsRaJ6+xgr64wLHWbYNUqEyg==
-  dependencies:
-    "@metamask/utils" "^8.1.0"
-    readable-stream "3.6.2"
-
-"@metamask/post-message-stream@^8.1.0":
+"@metamask/post-message-stream@^8.0.0", "@metamask/post-message-stream@^8.1.0":
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/post-message-stream/-/post-message-stream-8.1.0.tgz#1139c6411b127b14a7fda43a95d1d33f4affef02"
   integrity sha512-3qnep25SRFLg51wZCez1AqwL/ahJdjyOkAs8Wk0zZHUuTHZ4h0ZtehidX904cHx4QM3STWA1pTRI7ygtkzkN0Q==
