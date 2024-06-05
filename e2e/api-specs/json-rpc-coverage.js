@@ -1,5 +1,5 @@
 'use strict';
-import { web, device } from 'detox';
+import { web } from 'detox';
 import detox from 'detox/internals';
 import rpcCoverageTool from '@open-rpc/test-coverage';
 import { parseOpenRPCDocument } from '@open-rpc/schema-utils-js';
@@ -29,7 +29,6 @@ const port = 8545;
 const chainId = 1337;
 
 const main = async () => {
-
   const openrpcDocument = await parseOpenRPCDocument(
     'https://metamask.github.io/api-specs/latest/openrpc.json',
   );
@@ -43,8 +42,7 @@ const main = async () => {
   switchEthereumChain.examples = [
     {
       name: 'wallet_switchEthereumChain',
-      description:
-        'Example of a wallet_switchEthereumChain request to sepolia',
+      description: 'Example of a wallet_switchEthereumChain request to sepolia',
       params: [
         {
           name: 'SwitchEthereumChainParameter',
@@ -154,9 +152,7 @@ const main = async () => {
           resolve,
           reject,
           task: async () => {
-            if (
-              this.requiresEthAccountsPermission.includes(call.methodName)
-            ) {
+            if (this.requiresEthAccountsPermission.includes(call.methodName)) {
               const requestPermissionsRequest = JSON.stringify({
                 jsonrpc: '2.0',
                 method: 'wallet_requestPermissions',
@@ -289,9 +285,7 @@ const main = async () => {
           reject,
           task: async () => {
             // Revoke Permissions
-            if (
-              this.requiresEthAccountsPermission.includes(call.methodName)
-            ) {
+            if (this.requiresEthAccountsPermission.includes(call.methodName)) {
               const revokePermissionRequest = JSON.stringify({
                 jsonrpc: '2.0',
                 method: 'wallet_revokePermissions',
