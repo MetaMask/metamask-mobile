@@ -120,7 +120,7 @@ import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartT
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/TransactionConfirmView.selectors.js';
-import { selectTransactionSimulationMetrics } from '../../../../../core/redux/slices/transactionMetrics';
+import { selectTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -250,7 +250,7 @@ class Confirm extends PureComponent {
     /**
      * Object containing transaction simulation metrics
      */
-    simulationMetricsByTransactionId: PropTypes.object,
+    transactionMetrics: PropTypes.object,
   };
 
   state = {
@@ -892,7 +892,7 @@ class Confirm extends PureComponent {
                 {
                   ...this.getAnalyticsParams(),
                   ...getBlockaidTransactionMetricsParams(transaction),
-                  ...this.getTransactionSimulationMetrics(),
+                  ...this.getTransactionMetrics(),
                 },
               ),
             type: 'signTransaction',
@@ -931,7 +931,7 @@ class Confirm extends PureComponent {
           {
             ...this.getAnalyticsParams(transactionMeta),
             ...getBlockaidTransactionMetricsParams(transaction),
-            ...this.getTransactionSimulationMetrics(),
+            ...this.getTransactionMetrics(),
           },
         );
         stopGasPolling();
@@ -1209,13 +1209,13 @@ class Confirm extends PureComponent {
     await updateTransaction(updatedTx);
   }
 
-  getTransactionSimulationMetrics = () => {
+  getTransactionMetrics = () => {
     const { transactionMeta } = this.state;
-    const { simulationMetricsByTransactionId } = this.props;
+    const { transactionMetrics } = this.props;
     const { id: transactionId } = transactionMeta;
 
     // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
-    return simulationMetricsByTransactionId[transactionId]?.properties || {};
+    return transactionMetrics[transactionId]?.properties || {};
   };
 
   render = () => {
@@ -1463,7 +1463,7 @@ const mapStateToProps = (state) => ({
     getRampNetworks(state),
   ),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  simulationMetricsByTransactionId: selectTransactionSimulationMetrics(state),
+  transactionMetrics: selectTransactionMetrics(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

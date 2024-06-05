@@ -51,5 +51,5 @@ export default reducer;
 export const { updateTransactionMetrics } = actions;
 
 // Selectors
-export const selectTransactionSimulationMetrics = (state: RootState) =>
+export const selectTransactionMetrics = (state: RootState) =>
   state[name].metricsByTransactionId;
