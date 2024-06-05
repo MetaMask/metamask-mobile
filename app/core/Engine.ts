@@ -190,7 +190,7 @@ import {
   AccountsControllerEvents,
   AccountsControllerMessenger,
   AccountsControllerState,
-} from '@metamask-previews/accounts-controller';
+} from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {

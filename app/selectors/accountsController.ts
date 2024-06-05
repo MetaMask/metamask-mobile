@@ -1,4 +1,4 @@
-import { AccountsControllerState } from '@metamask-previews/accounts-controller';
+import { AccountsControllerState } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
