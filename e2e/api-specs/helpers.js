@@ -20,4 +20,4 @@ export const processQueue = async () => {
 export const addToQueue = ({ task, resolve, reject, name }) => {
   taskQueue.push({ task, resolve, reject, name });
   return processQueue();
-}
+};

@@ -8,6 +8,7 @@ import path from 'path';
 import createStaticServer from '../create-static-server';
 import { getFixturesServerPort, getLocalTestDappPort } from './utils';
 import Utilities from '../utils/Utilities';
+import { device } from 'detox';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 

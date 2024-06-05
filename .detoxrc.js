@@ -10,7 +10,7 @@ module.exports = {
     },
     retries: 1,
   },
-  
+
   artifacts: {
     rootDir: "./artifacts/screenshots",
     plugins: {
@@ -23,8 +23,17 @@ module.exports = {
         }
       },
     },
-  }, 
+  },
   configurations: {
+    'ios.sim.apiSpecs': {
+      device: 'ios.simulator',
+      app: 'ios.debug',
+      testRunner: {
+        args: {
+          "$0": "node e2e/api-specs/run-api-spec-tests.js",
+        }
+      }
+    },
     'ios.sim.debug': {
       device: 'ios.simulator',
       app: 'ios.debug',
