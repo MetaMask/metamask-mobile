@@ -532,7 +532,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ]
                 }
                 testID="turn-on-remember-me"
-                thumbTintColor="#FFFFFF"
+                thumbTintColor="#ffffff"
                 tintColor="#D6D9DC"
                 value={true}
               />
@@ -684,7 +684,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             ]
           }
           testID="security-alerts-toggle"
-          thumbTintColor="#FFFFFF"
+          thumbTintColor="#ffffff"
           tintColor="#D6D9DC"
           value={true}
         />
@@ -799,7 +799,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   },
                 ]
               }
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={false}
             />
@@ -1345,7 +1345,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="display-use-safe-list-validation"
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -1465,7 +1465,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="security-settings-multi-account-balances-switch"
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -1670,7 +1670,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                       ],
                     ]
                   }
-                  thumbTintColor="#FFFFFF"
+                  thumbTintColor="#ffffff"
                   tintColor="#D6D9DC"
                   value={true}
                 />
@@ -1811,7 +1811,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                       ],
                     ]
                   }
-                  thumbTintColor="#FFFFFF"
+                  thumbTintColor="#ffffff"
                   tintColor="#D6D9DC"
                   value={true}
                 />
@@ -1928,7 +1928,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="display-nft-toggle"
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -2013,7 +2013,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ],
                 ]
               }
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={false}
             />
@@ -2098,7 +2098,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ],
                 ]
               }
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -2239,7 +2239,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                     ],
                   ]
                 }
-                thumbTintColor="#FFFFFF"
+                thumbTintColor="#ffffff"
                 tintColor="#D6D9DC"
                 value={false}
               />
@@ -2342,7 +2342,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="metametrics-switch"
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={false}
             />
@@ -2459,7 +2459,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="data-collection-switch"
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={false}
             />
