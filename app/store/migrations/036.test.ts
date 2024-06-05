@@ -57,7 +57,7 @@ async function expectedInternalAccount(
     id: await addressToUUID(address),
     metadata: {
       name: nickname,
-      importTime: 123,
+      importTime: Date.now(),
       keyring: {
         type: 'HD Key Tree',
       },

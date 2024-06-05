@@ -13,6 +13,7 @@ export interface Identity {
   name: string;
   address: string;
   lastSelected?: number;
+  importTime?: number;
 }
 
 export default async function migrate(stateAsync: unknown) {
@@ -115,7 +116,7 @@ async function createInternalAccountsForAccountsController(
       options: {},
       metadata: {
         name: identity.name,
-        importTime: 123,
+        importTime: identity.importTime ?? Date.now(),
         lastSelected: identity.lastSelected ?? undefined,
         keyring: {
           // This is default HD Key Tree type because the keyring is encrypted
