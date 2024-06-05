@@ -800,7 +800,7 @@ const Settings: React.FC = () => {
             onPress={() => {
               Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
               MetaMetrics.getInstance().trackEvent(
-                { category: 'EXTERNAL_LINK_CLICKED' },
+                MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
                 {
                   location: 'app_settings',
                   text: strings('app_settings.simulation_details_learn_more'),
