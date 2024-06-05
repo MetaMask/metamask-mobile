@@ -50,7 +50,9 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await Assertions.checkIfNotVisible(NetworkEducationModal.container);
 
         //Tap send Icon
+        await TestHelpers.delay(2000);
         await TabBarComponent.tapActions();
+        await TestHelpers.delay(2000);
         await WalletActionsModal.tapSendButton();
 
         await SendView.inputAddress(VALID_ADDRESS);
