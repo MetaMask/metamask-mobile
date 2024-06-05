@@ -277,7 +277,7 @@ index 45e07b8..096baf1 100644
      private getCorrectChainId;
      /**
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 0873ccd..e06d80c 100644
+index 0873ccd..63fe60c 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -285,7 +285,7 @@ index 0873ccd..e06d80c 100644
  };
  Object.defineProperty(exports, "__esModule", { value: true });
 -exports.NftController = exports.getDefaultNftState = exports.OpenSeaV2ChainIds = void 0;
-+exports.NftController = exports.getDefaultNftState = void 0;
++exports.NftController = exports.RATE_LIMIT_NFT_INTERVAL = exports.getDefaultNftState = void 0;
  const address_1 = require("@ethersproject/address");
  const base_controller_1 = require("@metamask/base-controller");
  const controller_utils_1 = require("@metamask/controller-utils");
@@ -300,10 +300,12 @@ index 0873ccd..e06d80c 100644
  const ALL_NFTS_STATE_KEY = 'allNfts';
  const ALL_NFTS_CONTRACTS_STATE_KEY = 'allNftContracts';
  /**
-@@ -42,6 +38,10 @@ const getDefaultNftState = () => {
+@@ -42,6 +38,12 @@ const getDefaultNftState = () => {
      };
  };
  exports.getDefaultNftState = getDefaultNftState;
++const RATE_LIMIT_NFT_UPDATE_DELAY = 600; // 10 mins
++exports.RATE_LIMIT_NFT_INTERVAL = RATE_LIMIT_NFT_UPDATE_DELAY * 1000;
 +/**
 + * Changes regarding displayNftMedia, TokenURI and error nft metadata property are not on the core repo and needed to be refactor to be removed from the patch
 + * updateNftMetadata changes will be introduced on latest versions of changes of assets controllers, v^30 or next
@@ -311,7 +313,15 @@ index 0873ccd..e06d80c 100644
  /**
   * Controller that stores assets and exposes convenience methods
   */
-@@ -81,7 +81,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -69,6 +71,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
+     constructor({ chainId: initialChainId, onPreferencesStateChange, onNetworkStateChange, getERC721AssetName, getERC721AssetSymbol, getERC721TokenURI, getERC721OwnerOf, getERC1155BalanceOf, getERC1155TokenURI, getNetworkClientById, onNftAdded, messenger, }, config, state) {
+         super(config, state);
+         this.mutex = new async_mutex_1.Mutex();
++        this.lastNftRefreshTime = 0;
+         /**
+          * EventEmitter instance used to listen to specific EIP747 events
+          */
+@@ -81,7 +84,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
              selectedAddress: '',
              chainId: initialChainId,
              ipfsGateway: controller_utils_1.IPFS_DEFAULT_GATEWAY_URL,
@@ -320,12 +330,16 @@ index 0873ccd..e06d80c 100644
              useIPFSSubdomains: true,
              isIpfsGatewayEnabled: true,
          };
-@@ -96,11 +96,11 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -96,11 +99,15 @@ class NftController extends base_controller_1.BaseControllerV1 {
          this.getNetworkClientById = getNetworkClientById;
          this.onNftAdded = onNftAdded;
          this.messagingSystem = messenger;
 -        onPreferencesStateChange(({ selectedAddress, ipfsGateway, openSeaEnabled, isIpfsGatewayEnabled, }) => {
 +        onPreferencesStateChange(({ selectedAddress, ipfsGateway, displayNftMedia, isIpfsGatewayEnabled, }) => {
++            const { selectedAddress: previouslySelectedAddress } = this.config;
++            if (selectedAddress !== previouslySelectedAddress) {
++                this.lastNftRefreshTime = 0
++            }
              this.configure({
                  selectedAddress,
                  ipfsGateway,
@@ -334,7 +348,7 @@ index 0873ccd..e06d80c 100644
                  isIpfsGatewayEnabled,
              });
          });
-@@ -109,14 +109,8 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -109,14 +116,8 @@ class NftController extends base_controller_1.BaseControllerV1 {
              this.configure({ chainId });
          });
      }
@@ -351,7 +365,7 @@ index 0873ccd..e06d80c 100644
      }
      /**
       * Helper method to update nested state for allNfts and allNftContracts.
-@@ -137,38 +131,49 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -137,38 +138,49 @@ class NftController extends base_controller_1.BaseControllerV1 {
          });
      }
      /**
@@ -412,7 +426,7 @@ index 0873ccd..e06d80c 100644
              return nftMetadata;
          });
      }
-@@ -182,10 +187,20 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -182,10 +194,20 @@ class NftController extends base_controller_1.BaseControllerV1 {
       */
      getNftInformationFromTokenURI(contractAddress, tokenId, networkClientId) {
          return __awaiter(this, void 0, void 0, function* () {
@@ -434,7 +448,7 @@ index 0873ccd..e06d80c 100644
              const hasIpfsTokenURI = tokenURI.startsWith('ipfs://');
              if (hasIpfsTokenURI && !isIpfsGatewayEnabled) {
                  return {
-@@ -197,8 +212,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -197,8 +219,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
                      tokenURI: tokenURI !== null && tokenURI !== void 0 ? tokenURI : null,
                  };
              }
@@ -444,7 +458,7 @@ index 0873ccd..e06d80c 100644
                  return {
                      image: null,
                      name: null,
-@@ -234,6 +248,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -234,6 +255,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
                      standard: standard || null,
                      favorite: false,
                      tokenURI: tokenURI !== null && tokenURI !== void 0 ? tokenURI : null,
@@ -452,7 +466,7 @@ index 0873ccd..e06d80c 100644
                  };
              }
          });
-@@ -287,60 +302,29 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -287,60 +309,29 @@ class NftController extends base_controller_1.BaseControllerV1 {
       * @returns Promise resolving to the current NFT name and image.
       */
      getNftInformation(contractAddress, tokenId, networkClientId) {
@@ -523,11 +537,11 @@ index 0873ccd..e06d80c 100644
 +                    error: 'Both import failed',
 +                };
 +            }
-+            return Object.assign(Object.assign({}, nftApiMetadata), { name: (_d = (_c = blockchainMetadata === null || blockchainMetadata === void 0 ? void 0 : blockchainMetadata.name) !== null && _c !== void 0 ? _c : nftApiMetadata === null || nftApiMetadata === void 0 ? void 0 : nftApiMetadata.name) !== null && _d !== void 0 ? _d : null, description: (_f = (_e = blockchainMetadata === null || blockchainMetadata === void 0 ? void 0 : blockchainMetadata.description) !== null && _e !== void 0 ? _e : nftApiMetadata === null || nftApiMetadata === void 0 ? void 0 : nftApiMetadata.description) !== null && _f !== void 0 ? _f : null, image: (_h = (_g = blockchainMetadata === null || blockchainMetadata === void 0 ? void 0 : blockchainMetadata.image) !== null && _g !== void 0 ? _g : nftApiMetadata === null || nftApiMetadata === void 0 ? void 0 : nftApiMetadata.image) !== null && _h !== void 0 ? _h : null, standard: (_k = (_j = blockchainMetadata === null || blockchainMetadata === void 0 ? void 0 : blockchainMetadata.standard) !== null && _j !== void 0 ? _j : nftApiMetadata === null || nftApiMetadata === void 0 ? void 0 : nftApiMetadata.standard) !== null && _k !== void 0 ? _k : null, tokenURI: (_l = blockchainMetadata === null || blockchainMetadata === void 0 ? void 0 : blockchainMetadata.tokenURI) !== null && _l !== void 0 ? _l : null });
++            return Object.assign(Object.assign({}, nftApiMetadata), { name: (_d = (_c = blockchainMetadata === null || blockchainMetadata === void 0 ? void 0 : blockchainMetadata.name) !== null && _c !== void 0 ? _c : nftApiMetadata === null || nftApiMetadata === void 0 ? void 0 : nftApiMetadata.name) !== null && _d !== void 0 ? _d : null, description: (_f = (_e = blockchainMetadata === null || blockchainMetadata === void 0 ? void 0 : blockchainMetadata.description) !== null && _e !== void 0 ? _e : nftApiMetadata === null || nftApiMetadata === void 0 ? void 0 : nftApiMetadata.description) !== null && _f !== void 0 ? _f : null, image: (_h = (_g = nftApiMetadata === null || nftApiMetadata === void 0 ? void 0 : nftApiMetadata.image) !== null && _g !== void 0 ? _g : blockchainMetadata === null || blockchainMetadata === void 0 ? void 0 : blockchainMetadata.image) !== null && _h !== void 0 ? _h : null, standard: (_k = (_j = blockchainMetadata === null || blockchainMetadata === void 0 ? void 0 : blockchainMetadata.standard) !== null && _j !== void 0 ? _j : nftApiMetadata === null || nftApiMetadata === void 0 ? void 0 : nftApiMetadata.standard) !== null && _k !== void 0 ? _k : null, tokenURI: (_l = blockchainMetadata === null || blockchainMetadata === void 0 ? void 0 : blockchainMetadata.tokenURI) !== null && _l !== void 0 ? _l : null });
          });
      }
      /**
-@@ -364,25 +348,20 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -364,25 +355,20 @@ class NftController extends base_controller_1.BaseControllerV1 {
          });
      }
      /**
@@ -561,7 +575,7 @@ index 0873ccd..e06d80c 100644
              }
              /* istanbul ignore next */
              return {
-@@ -449,6 +428,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -449,6 +435,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
                          tokenId: tokenId.toString(),
                          standard: nftMetadata.standard,
                          source,
@@ -569,7 +583,7 @@ index 0873ccd..e06d80c 100644
                      });
                  }
                  return newNfts;
-@@ -464,11 +444,12 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -464,11 +451,12 @@ class NftController extends base_controller_1.BaseControllerV1 {
       * @param options - options.
       * @param options.tokenAddress - Hex address of the NFT contract.
       * @param options.userAddress - The address of the account where the NFT is being added.
@@ -583,7 +597,7 @@ index 0873ccd..e06d80c 100644
          var _a;
          return __awaiter(this, void 0, void 0, function* () {
              const releaseLock = yield this.mutex.acquire();
-@@ -485,8 +466,9 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -485,8 +473,9 @@ class NftController extends base_controller_1.BaseControllerV1 {
                  }
                  // this doesn't work currently for detection if the user switches networks while the detection is processing
                  // will be fixed once detection uses networkClientIds
@@ -595,7 +609,7 @@ index 0873ccd..e06d80c 100644
                  // If the nft is auto-detected we want some valid metadata to be present
                  if (source === constants_1.Source.Detected &&
                      'address' in contractInformation &&
-@@ -501,8 +483,8 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -501,8 +490,8 @@ class NftController extends base_controller_1.BaseControllerV1 {
                      return nftContracts;
                  }
                  /* istanbul ignore next */
@@ -606,7 +620,7 @@ index 0873ccd..e06d80c 100644
                  const newNftContracts = [...nftContracts, newEntry];
                  this.updateNestedNftState(newNftContracts, ALL_NFTS_CONTRACTS_STATE_KEY, {
                      chainId,
-@@ -568,6 +550,49 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -568,6 +557,61 @@ class NftController extends base_controller_1.BaseControllerV1 {
              chainId,
          });
      }
@@ -621,42 +635,54 @@ index 0873ccd..e06d80c 100644
 +    updateNftMetadata({ nfts, userAddress = this.config.selectedAddress, networkClientId, }) {
 +        var _a;
 +        return __awaiter(this, void 0, void 0, function* () {
-+            const chainId = this.getCorrectChainId({ networkClientId });
-+            const nftsWithChecksumAdr = nfts.map((nft) => {
-+                return Object.assign(Object.assign({}, nft), { address: (0, controller_utils_1.toChecksumHexAddress)(nft.address) });
-+            });
-+            const nftMetadataResults = yield Promise.allSettled(nftsWithChecksumAdr.map((nft) => __awaiter(this, void 0, void 0, function* () {
-+                const resMetadata = yield this.getNftInformation(nft.address, nft.tokenId, networkClientId);
-+                return {
-+                    nft,
-+                    newMetadata: resMetadata,
-+                };
-+            })));
-+            const successfulNewFetchedNfts = nftMetadataResults.filter((result) => result.status === 'fulfilled');
-+            // We want to avoid updating the state if the state and fetched nft info are the same
-+            const nftsWithDifferentMetadata = [];
-+            const { allNfts } = this.state;
-+            const stateNfts = ((_a = allNfts[userAddress]) === null || _a === void 0 ? void 0 : _a[chainId]) || [];
-+            successfulNewFetchedNfts.forEach((singleNft) => {
-+                const existingEntry = stateNfts.find((nft) => nft.address.toLowerCase() ===
-+                    singleNft.value.nft.address.toLowerCase() &&
-+                    nft.tokenId === singleNft.value.nft.tokenId);
-+                if (existingEntry) {
-+                    const differentMetadata = (0, assetsUtil_1.compareNftMetadata)(singleNft.value.newMetadata, existingEntry);
-+                    if (differentMetadata) {
-+                        nftsWithDifferentMetadata.push(singleNft);
-+                    }
++            const releaseLock = yield this.mutex.acquire();
++            try {
++                const time = Date.now();
++                const timeSinceLastNftUpdateRequest = time - this.lastNftRefreshTime;
++                if (timeSinceLastNftUpdateRequest < exports.RATE_LIMIT_NFT_INTERVAL) {
++                    return;
 +                }
-+            });
-+            if (nftsWithDifferentMetadata.length !== 0) {
-+                nftsWithDifferentMetadata.forEach((elm) => this.updateNft(elm.value.nft, elm.value.newMetadata, userAddress, chainId));
++                const chainId = this.getCorrectChainId({ networkClientId });
++                const nftsWithChecksumAdr = nfts.map((nft) => {
++                    return Object.assign(Object.assign({}, nft), { address: (0, controller_utils_1.toChecksumHexAddress)(nft.address) });
++                });
++                const nftMetadataResults = yield Promise.allSettled(nftsWithChecksumAdr.map((nft) => __awaiter(this, void 0, void 0, function* () {
++                    const resMetadata = yield this.getNftInformation(nft.address, nft.tokenId, networkClientId);
++                    return {
++                        nft,
++                        newMetadata: resMetadata,
++                    };
++                })));
++                this.lastNftRefreshTime = Date.now();
++                const successfulNewFetchedNfts = nftMetadataResults.filter((result) => result.status === 'fulfilled');
++                // We want to avoid updating the state if the state and fetched nft info are the same
++                const nftsWithDifferentMetadata = [];
++                const { allNfts } = this.state;
++                const stateNfts = ((_a = allNfts[userAddress]) === null || _a === void 0 ? void 0 : _a[chainId]) || [];
++                successfulNewFetchedNfts.forEach((singleNft) => {
++                    const existingEntry = stateNfts.find((nft) => nft.address.toLowerCase() ===
++                        singleNft.value.nft.address.toLowerCase() &&
++                        nft.tokenId === singleNft.value.nft.tokenId);
++                    if (existingEntry) {
++                        const differentMetadata = (0, assetsUtil_1.compareNftMetadata)(singleNft.value.newMetadata, existingEntry);
++                        if (differentMetadata) {
++                            nftsWithDifferentMetadata.push(singleNft);
++                        }
++                    }
++                });
++                if (nftsWithDifferentMetadata.length !== 0) {
++                    nftsWithDifferentMetadata.forEach((elm) => this.updateNft(elm.value.nft, elm.value.newMetadata, userAddress, chainId));
++                }
++            }
++            finally {
++                releaseLock();
 +            }
 +        });
 +    }
      /**
       * Removes an NFT contract to the stored NFT contracts list.
       *
-@@ -763,15 +788,16 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -763,15 +807,16 @@ class NftController extends base_controller_1.BaseControllerV1 {
          return __awaiter(this, void 0, void 0, function* () {
              tokenAddress = (0, controller_utils_1.toChecksumHexAddress)(tokenAddress);
              const chainId = this.getCorrectChainId({ networkClientId });

@@ -406,6 +406,7 @@ class AdvancedSettings extends PureComponent {
         <KeyboardAwareScrollView
           style={styles.wrapper}
           resetScrollToCoords={{ x: 0, y: 0 }}
+          testID={AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW}
           ref={this.scrollView}
         >
           <View
@@ -449,6 +450,46 @@ class AdvancedSettings extends PureComponent {
                 style={styles.accessory}
               />
             </View>
+
+            <View style={styles.setting}>
+              <View style={styles.titleContainer}>
+                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                  {strings('app_settings.smart_transactions_opt_in_heading')}
+                </Text>
+                <View style={styles.toggle}>
+                  <Switch
+                    value={smartTransactionsOptInStatus}
+                    onValueChange={this.toggleSmartTransactionsOptInStatus}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={theme.brandColors.white['000']}
+                    style={styles.switch}
+                    ios_backgroundColor={colors.border.muted}
+                    accessibilityLabel={strings(
+                      'app_settings.smart_transactions_opt_in_heading',
+                    )}
+                  />
+                </View>
+              </View>
+
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.smart_transactions_opt_in_desc')}{' '}
+                <Text
+                  color={TextColor.Primary}
+                  link
+                  onPress={this.openLinkAboutStx}
+                >
+                  {strings('app_settings.smart_transactions_learn_more')}
+                </Text>
+              </Text>
+            </View>
+
             <View style={styles.setting}>
               <View style={styles.titleContainer}>
                 <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
@@ -614,45 +655,6 @@ class AdvancedSettings extends PureComponent {
                 label={strings('app_settings.state_logs_button')}
                 style={styles.accessory}
               />
-            </View>
-
-            <View style={styles.setting}>
-              <View style={styles.titleContainer}>
-                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-                  {strings('app_settings.smart_transactions_opt_in_heading')}
-                </Text>
-                <View style={styles.toggle}>
-                  <Switch
-                    value={smartTransactionsOptInStatus}
-                    onValueChange={this.toggleSmartTransactionsOptInStatus}
-                    trackColor={{
-                      true: colors.primary.default,
-                      false: colors.border.muted,
-                    }}
-                    thumbColor={theme.brandColors.white['000']}
-                    style={styles.switch}
-                    ios_backgroundColor={colors.border.muted}
-                    accessibilityLabel={strings(
-                      'app_settings.smart_transactions_opt_in_heading',
-                    )}
-                  />
-                </View>
-              </View>
-
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.desc}
-              >
-                {strings('app_settings.smart_transactions_opt_in_desc')}{' '}
-                <Text
-                  color={TextColor.Primary}
-                  link
-                  onPress={this.openLinkAboutStx}
-                >
-                  {strings('app_settings.smart_transactions_learn_more')}
-                </Text>
-              </Text>
             </View>
           </View>
         </KeyboardAwareScrollView>
