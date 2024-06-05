@@ -138,7 +138,7 @@ export async function importAccountFromPrivateKey(private_key) {
   if (pkey.length === 66 && pkey.substr(0, 2) === '0x') {
     pkey = pkey.substr(2);
   }
-  const { importedAccountAddress } =
+  const importedAccountAddress =
     await KeyringController.importAccountWithStrategy('privateKey', [pkey]);
   const checksummedAddress = safeToChecksumAddress(importedAccountAddress);
   return Engine.setSelectedAddress(checksummedAddress);
