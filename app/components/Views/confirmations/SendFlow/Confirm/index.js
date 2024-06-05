@@ -248,9 +248,9 @@ class Confirm extends PureComponent {
     shouldUseSmartTransaction: PropTypes.bool,
 
     /**
-     * Object containing transaction simulation metrics
+     * Object containing transaction metrics by id
      */
-    transactionMetrics: PropTypes.object,
+    transactionMetricsById: PropTypes.object,
   };
 
   state = {
@@ -1211,11 +1211,11 @@ class Confirm extends PureComponent {
 
   getTransactionMetrics = () => {
     const { transactionMeta } = this.state;
-    const { transactionMetrics } = this.props;
+    const { transactionMetricsById } = this.props;
     const { id: transactionId } = transactionMeta;
 
     // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
-    return transactionMetrics[transactionId]?.properties || {};
+    return transactionMetricsById[transactionId]?.properties || {};
   };
 
   render = () => {
@@ -1463,7 +1463,7 @@ const mapStateToProps = (state) => ({
     getRampNetworks(state),
   ),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  transactionMetrics: selectTransactionMetrics(state),
+  transactionMetricsById: selectTransactionMetrics(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
