@@ -1,6 +1,5 @@
 import TestHelpers from '../../helpers';
 import { AdvancedViewSelectorsIDs } from '../../selectors/Settings/AdvancedView.selectors';
-import { SettingsViewSelectorsIDs } from '../../selectors/Settings/SettingsView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
@@ -25,11 +24,15 @@ export default class AdvancedSettingsView {
   }
 
   static get scrollViewIdentifier() {
-    return Matchers.getIdentifier(SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID);
+    return Matchers.getIdentifier(
+      AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW,
+    );
   }
 
   static get showFiatOnTestnetsToggle() {
-    return Matchers.getElementByID(AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS);
+    return Matchers.getElementByID(
+      AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS,
+    );
   }
 
   static async tapShowFiatOnTestnetsSwitch() {

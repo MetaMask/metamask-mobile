@@ -406,6 +406,7 @@ class AdvancedSettings extends PureComponent {
         <KeyboardAwareScrollView
           style={styles.wrapper}
           resetScrollToCoords={{ x: 0, y: 0 }}
+          testID={AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW}
           ref={this.scrollView}
         >
           <View
