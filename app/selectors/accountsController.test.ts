@@ -59,7 +59,7 @@ describe('Accounts Controller Selectors', () => {
       });
     });
     it('throws an error if the selected account ID does not exist', () => {
-      const invalidState: AccountsControllerState = {
+      const invalidState = {
         internalAccounts: {
           accounts: {
             [expectedUuid]: internalAccount1,

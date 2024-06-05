@@ -59,13 +59,15 @@ export const internalAccount2 = createMockInternalAccount(
   'Account 2',
 );
 
+const internalAcccountsAccounts = {
+  [expectedUuid]: internalAccount1,
+  [expectedUuid2]: internalAccount2,
+};
+
 // used as a default mock for other tests
-export const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
+export const MOCK_ACCOUNTS_CONTROLLER_STATE = {
   internalAccounts: {
-    accounts: {
-      [expectedUuid]: internalAccount1,
-      [expectedUuid2]: internalAccount2,
-    },
+    accounts: internalAcccountsAccounts,
     selectedAccount: expectedUuid2,
   },
 };
@@ -73,7 +75,7 @@ export const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
 export function createMockAccountsControllerState(
   addresses: string[],
   selectedAddress?: string,
-): AccountsControllerState {
+) {
   if (addresses.length === 0) {
     throw new Error('At least one address is required');
   }
