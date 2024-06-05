@@ -114,6 +114,9 @@ describe(SmokeCore('Start Exploring'), () => {
     // Ensure step 6 is shown correctly
     await Assertions.checkIfVisible(OnboardingWizardModal.stepSixContainer);
     await OnboardingWizardModal.tapGotItButton();
+    // Ensure step 7 is shown correctly
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepSevenContainer);
+    await OnboardingWizardModal.tapGotItButton();
     // Check that we are on the Browser page
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(2500);

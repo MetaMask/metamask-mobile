@@ -1,47 +1,58 @@
-import { isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
+import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 
+/**
+ * Migration to remove metadata from Permissioned accounts
+ *
+ * @param state Persisted Redux state
+ * @returns
+ */
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 40)) {
     return state;
   }
 
-  if (!isObject(state.engine.backgroundState.TransactionController)) {
+  const permissionControllerState =
+    state.engine.backgroundState.PermissionController;
+
+  if (!isObject(permissionControllerState)) {
     captureException(
       new Error(
-        `Migration 40: Invalid TransactionController state: '${state.engine.backgroundState.TransactionController}'`,
+        `Migration 40: Invalid PermissionController state error: '${JSON.stringify(
+          permissionControllerState,
+        )}'`,
       ),
     );
     return state;
   }
 
-  const transactionControllerState =
-    state.engine.backgroundState.TransactionController;
-
-  if (!Array.isArray(transactionControllerState.transactions)) {
-    captureException(
-      new Error(
-        `Migration 40: Missing transactions property from TransactionController: '${typeof state
-          .engine.backgroundState.TransactionController}'`,
-      ),
-    );
-    return state;
+  if (
+    hasProperty(permissionControllerState, 'subjects') &&
+    isObject(permissionControllerState.subjects)
+  ) {
+    for (const origin in permissionControllerState.subjects) {
+      const subject = permissionControllerState.subjects[origin];
+      if (isObject(subject) && hasProperty(subject, 'permissions')) {
+        const permissions = subject.permissions;
+        if (isObject(permissions) && hasProperty(permissions, 'eth_accounts')) {
+          const ethAccounts = permissions.eth_accounts;
+          if (
+            isObject(ethAccounts) &&
+            hasProperty(ethAccounts, 'caveats') &&
+            Array.isArray(ethAccounts.caveats)
+          ) {
+            ethAccounts.caveats = ethAccounts.caveats.map((caveat) => ({
+              ...caveat,
+              value: caveat.value.map(
+                ({ address }: { address: string }) => address,
+              ),
+            }));
+          }
+        }
+      }
+    }
   }
-  transactionControllerState.transactions.forEach((transaction: any) => {
-    if (transaction.rawTransaction) {
-      transaction.rawTx = transaction.rawTransaction;
-      delete transaction.rawTransaction;
-    }
-    if (transaction.transactionHash) {
-      transaction.hash = transaction.transactionHash;
-      delete transaction.transactionHash;
-    }
-    if (transaction.transaction) {
-      transaction.txParams = transaction.transaction;
-      delete transaction.transaction;
-    }
-  });
 
   return state;
 }
