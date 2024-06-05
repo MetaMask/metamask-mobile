@@ -19,24 +19,29 @@ index 0000000..b867ea9
 +* Run "yarn patch:assets <core-directory>" in the mobile repo
 +* If you have changes also add them to the branch: patch/mobile-assets-controllers-26
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index ee99eb2..a447b70 100644
+index ee99eb2..9b38f16 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-@@ -69,8 +69,12 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
+@@ -69,17 +69,28 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
                      : [this.getSelectedAddress()];
                  const accountsForChain = Object.assign({}, accountsByChainId[chainId]);
                  for (const address of accountsToUpdate) {
+-                    accountsForChain[address] = {
+-                        balance: (0, controller_utils_1.BNToHex)(yield this.getBalanceFromChain(address, ethQuery)),
+-                    };
 +                    /**
 +                     * IMPORTANT NOTE ABOUT THIS PATCH
 +                     * This patch can be removed once Assets Controller is updated to v^27
 +                     */
-                     accountsForChain[address] = {
--                        balance: (0, controller_utils_1.BNToHex)(yield this.getBalanceFromChain(address, ethQuery)),
-+                        balance: yield this.getBalanceFromChain(address, ethQuery),
-                     };
++                    const balance = yield this.getBalanceFromChain(address, ethQuery);
++                    if(balance){
++                        accountsForChain[address] = {
++                            balance,
++                        };
++                    }
                  }
                  this.update(Object.assign(Object.assign({}, (chainId === this.getCurrentChainId() && {
-@@ -78,8 +82,12 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
+                     accounts: accountsForChain,
                  })), { accountsByChainId: Object.assign(Object.assign({}, this.state.accountsByChainId), { [chainId]: accountsForChain }) }));
              }
              catch (err) {
@@ -50,6 +55,58 @@ index ee99eb2..a447b70 100644
              }
          });
          this.defaultConfig = {
+@@ -99,6 +110,7 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
+         this.getCurrentChainId = getCurrentChainId;
+         this.getNetworkClientById = getNetworkClientById;
+         onPreferencesStateChange(() => {
++            console.log('ENTER on preferences state change');
+             this.refresh();
+         });
+         this.poll();
+@@ -110,6 +122,7 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
+         if (!accountsByChainId[newChainId]) {
+             accountsByChainId[newChainId] = {};
+             existing.forEach((address) => {
++                console.log('ENTER balance 0x0 here');
+                 accountsByChainId[newChainId][address] = { balance: '0x0' };
+             });
+         }
+@@ -117,10 +130,14 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
+         const newAddresses = addresses.filter((address) => !existing.includes(address));
+         const oldAddresses = existing.filter((address) => !addresses.includes(address));
+         newAddresses.forEach((address) => {
++            console.log('ENTER balance 0x0 here 2');
++
+             accounts[address] = { balance: '0x0' };
+         });
+         Object.keys(accountsByChainId).forEach((chainId) => {
+             newAddresses.forEach((address) => {
++                console.log('ENTER balance 0x0 here 3');
++
+                 accountsByChainId[chainId][address] = {
+                     balance: '0x0',
+                 };
+@@ -158,6 +175,8 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
+         return __awaiter(this, void 0, void 0, function* () {
+             interval && this.configure({ interval }, false, false);
+             this.handle && clearTimeout(this.handle);
++            console.log('ENTER poll');
++
+             yield this.refresh();
+             this.handle = setTimeout(() => {
+                 this.poll(this.config.interval);
+@@ -183,10 +202,9 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
+      */
+     getBalanceFromChain(address, ethQuery) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            return yield (0, controller_utils_1.safelyExecuteWithTimeout)(() => __awaiter(this, void 0, void 0, function* () {
+                 (0, utils_1.assert)(ethQuery, 'Provider not set.');
+                 return yield (0, controller_utils_1.query)(ethQuery, 'getBalance', [address]);
+-            }));
++
+         });
+     }
+     /**
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
 index 45e07b8..096baf1 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
