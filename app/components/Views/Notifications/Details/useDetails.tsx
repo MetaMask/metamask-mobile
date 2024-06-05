@@ -165,8 +165,16 @@ const useDetails = ({
         </Pressable>
       </View>
     ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [copyToClipboard, notification, theme],
+    [
+      copyToClipboard,
+      styles.badgeWrapper,
+      styles.boxLeft,
+      styles.copyIconRight,
+      styles.copyTextBtn,
+      styles.rightSection,
+      styles.row,
+      theme,
+    ],
   );
 
   const renderNetwork = useCallback(
@@ -345,8 +353,7 @@ const useDetails = ({
 
   const renderStakeProvider = useCallback(
     (type, stake_in) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      //@ts-expect-error most of this types will be refactored to be using sharedlibrary ones.
       const stakingProvider = STAKING_PROVIDER_MAP[type];
 
       return (

@@ -12,6 +12,7 @@ import Text, {
 
 import { FeatureAnnouncementRawNotification } from '../../../../util/notifications';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { TypeLinkFields } from '../../../../util/notifications/types/featureAnnouncement/TypeLink';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const PLACEHOLDER_IMG_URI = require('../../../../images/no-image-placeholder.jpeg');
@@ -23,14 +24,14 @@ const renderAnnouncementsDetails = (
 ) => {
   const handleCTAPress = () => {
     // TODO: Currently handling CTAs with external links only. For now, we aren't handling deeplinks.
-    const { link } = notification.data;
+    const { link } = notification.data as unknown as {
+      link: TypeLinkFields['fields'];
+    };
     if (!link) return;
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        url: link?.linkUrl,
+        url: link.linkUrl,
       },
     });
   };
@@ -55,8 +56,11 @@ const renderAnnouncementsDetails = (
         <Button
           variant={ButtonVariants.Secondary}
           label={
-            (notification.data?.link as unknown as { linkText?: string })
-              ?.linkText
+            (
+              notification.data?.link as unknown as {
+                linkText: TypeLinkFields['fields']['linkText'];
+              }
+            )?.linkText
             // TODO: Handle CTAs with external links only. For now, we aren't handleing deeplinks.
             // (notification.data?.action as { actionText?: string })?.actionText
           }

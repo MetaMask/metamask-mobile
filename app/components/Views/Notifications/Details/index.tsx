@@ -96,9 +96,11 @@ export default NotificationsDetails;
 
 NotificationsDetails.navigationOptions = ({
   route,
+  theme,
   navigation,
 }: {
   route: any;
+  theme: any;
   navigation: any;
 }) => ({
   headerLeft: () => (
@@ -106,8 +108,7 @@ NotificationsDetails.navigationOptions = ({
       <Icon
         name={IconName.ArrowLeft}
         size={IconSize.Md}
-        // eslint-disable-next-line react-native/no-inline-styles
-        style={{ marginHorizontal: 20 }}
+        style={createStyles(theme).icon}
       />
     </TouchableOpacity>
   ),
