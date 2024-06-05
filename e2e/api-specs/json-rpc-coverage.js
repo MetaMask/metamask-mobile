@@ -469,11 +469,15 @@ const main = async () => {
         skip,
       });
       const failing = results.filter((r) => !r.valid);
-      if (failing.length) {
-        console.error(failing);
-        throw new Error('Some tests failed in @open-rpc/test-coverage');
-      }
-      process.exit(failing.length ? 1 : 0);
+      await detox.cleanup();
+
+      // wait 1s to allow for cleanup
+      await new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve();
+        }, 1000);
+      });
+      process.exit(failing.length > 0 ? 1 : 0);
     },
   );
 };
