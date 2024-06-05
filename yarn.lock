@@ -4590,7 +4590,7 @@
     readable-stream "^3.6.2"
     webextension-polyfill "^0.10.0"
 
-"@metamask/providers@^16.0.0", "@metamask/providers@^16.1.0":
+"@metamask/providers@^16.0.0":
   version "16.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-16.1.0.tgz#7da593d17c541580fa3beab8d9d8a9b9ce19ea07"
   integrity sha512-znVCvux30+3SaUwcUGaSf+pUckzT5ukPRpcBmy+muBLC0yaWnBcvDqGfcsw6CBIenUdFrVoAFa8B6jsuCY/a+g==
@@ -4894,6 +4894,18 @@
   dependencies:
     "@metamask/key-tree" "^9.0.0"
     "@metamask/providers" "^16.0.0"
+    "@metamask/rpc-errors" "^6.2.1"
+    "@metamask/utils" "^8.3.0"
+    fast-xml-parser "^4.3.4"
+    superstruct "^1.0.3"
+
+"@metamask/snaps-sdk@^4.2.0", "@metamask/snaps-sdk@^4.4.1":
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-4.4.1.tgz#90603a6c83eeb27334e7192a77e7abd6a01d1f53"
+  integrity sha512-SNtkyIOYdaadFKPSpnGfNu7dXHiTXogHusQdmIHkqidWQaFTIEnKuViePTPgBCdx17/nwu/ZBEhq0AlugRsZ6w==
+  dependencies:
+    "@metamask/key-tree" "^9.1.1"
+    "@metamask/providers" "^17.0.0"
     "@metamask/rpc-errors" "^6.2.1"
     "@metamask/utils" "^8.3.0"
     fast-xml-parser "^4.3.4"
@@ -17271,9 +17283,6 @@ find-up@^1.0.0:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/find-up/-/find-up-1.1.2.tgz#6b2e9822b1a2ce0a60ab64d610eccad53cb24d0f"
   integrity sha1-ay6YIrGizgpgq2TWEOzK1TyyTQ8=
-  dependencies:
-    path-exists "^2.0.0"
-    pinkie-promise "^2.0.0"
 
 find-up@^3.0.0:
   version "3.0.0"
