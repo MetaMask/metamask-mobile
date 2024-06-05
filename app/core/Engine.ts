@@ -714,8 +714,6 @@ class Engine {
       ...buildSnapRestrictedMethodSpecifications(
         Object.keys(ExcludedSnapPermissions),
         {
-          encrypt: encryptor.encrypt.bind(encryptor),
-          decrypt: encryptor.decrypt.bind(encryptor),
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           clearSnapState: this.controllerMessenger.call.bind(
@@ -998,6 +996,8 @@ class Engine {
         }),
       //@ts-expect-error types need to be aligned with snaps-controllers
       preinstalledSnaps: PREINSTALLED_SNAPS,
+      encryptor,
+      getMnemonic: getPrimaryKeyringMnemonic.bind(this),
     });
     ///: END:ONLY_INCLUDE_IF
 
