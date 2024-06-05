@@ -115,6 +115,7 @@ async function createInternalAccountsForAccountsController(
       options: {},
       metadata: {
         name: identity.name,
+        importTime: 123,
         lastSelected: identity.lastSelected ?? undefined,
         keyring: {
           // This is default HD Key Tree type because the keyring is encrypted

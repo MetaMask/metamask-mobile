@@ -1,3 +1,4 @@
+import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { Hex, isValidChecksumAddress } from '@metamask/utils';
 import DefaultPreference from 'react-native-default-preference';
@@ -58,7 +59,7 @@ describe('Accounts Controller Selectors', () => {
       });
     });
     it('throws an error if the selected account ID does not exist', () => {
-      const invalidState = {
+      const invalidState: AccountsControllerState = {
         internalAccounts: {
           accounts: {
             [expectedUuid]: internalAccount1,
