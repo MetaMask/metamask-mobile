@@ -14,7 +14,10 @@ describe('TransactionMetrics slice', () => {
 
   it('should handle updateTransactionMetrics', () => {
     const mockTransactionId = 'testId';
-    const mockParams = { test: 'test' };
+    const mockParams = {
+      properties: { test: 'test' },
+      sensitiveProperties: { test: 'test' },
+    };
     const actual = reducer(
       initialState,
       updateTransactionMetrics({
