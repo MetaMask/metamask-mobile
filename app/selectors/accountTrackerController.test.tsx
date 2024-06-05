@@ -11,7 +11,7 @@ import {
 } from '@testing-library/react-native/build/matches';
 import { AccountTrackerState } from '@metamask/assets-controllers';
 import { NetworkController } from '@metamask/network-controller';
-import { AccountsControllerState } from '@metamask/accounts-controller';
+import { AccountsControllerState } from '@metamask-previews/accounts-controller';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1,

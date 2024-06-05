@@ -1,4 +1,4 @@
-import { AccountsControllerState } from '@metamask/accounts-controller';
+import { AccountsControllerState } from '@metamask-previews/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { Hex, isValidChecksumAddress } from '@metamask/utils';
 import DefaultPreference from 'react-native-default-preference';

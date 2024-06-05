@@ -136,7 +136,7 @@
     "@keystonehq/metamask-airgapped-keyring": "^0.13.1",
     "@keystonehq/ur-decoder": "^0.12.2",
     "@ledgerhq/react-native-hw-transport-ble": "^6.32.3",
-    "@metamask/accounts-controller": "^11.0.0",
+    "@metamask-previews/accounts-controller": "16.0.0-preview-d4720493",
     "@metamask/address-book-controller": "^4.0.1",
     "@metamask/approval-controller": "^3.5.2",
     "@metamask/assets-controllers": "^26.0.0",
