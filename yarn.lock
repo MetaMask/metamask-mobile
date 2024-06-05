@@ -3889,6 +3889,11 @@
   resolved "https://registry.yarnpkg.com/@metamask/eslint-config/-/eslint-config-9.0.0.tgz#22d4911b705f7e4e566efbdda0e37912da33e30f"
   integrity sha512-mWlLGQKjXXFOj9EtDClKSoTLeQuPW2kM1w3EpUMf4goYAQ+kLXCCa8pEff6h8ApWAnjhYmXydA1znQ2J4XvD+A==
 
+"@metamask/eslint-plugin-design-tokens@^1.0.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eslint-plugin-design-tokens/-/eslint-plugin-design-tokens-1.1.0.tgz#c9d4471f04f62bfb307aa261d11b7a674eb27961"
+  integrity sha512-33BJTEl96wXrkNdydNgTnfz3C0XP6/FdYbKzNnM8wT3XeVOkF/EOt8oiY8X4stXlNKDJtKyQchxENgZwS8sl9w==
+
 "@metamask/eth-hd-keyring@^7.0.1":
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-7.0.1.tgz#799006d8fd57c5580dc5843f74a7343eeb2985f3"
@@ -4231,6 +4236,17 @@
     superstruct "^1.0.3"
     uuid "^9.0.0"
 
+"@metamask/keyring-api@^6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-6.0.0.tgz#c8f876ddc256106458a8041910038f9dbdb3b13b"
+  integrity sha512-yba04Q/l3RHK6xlYrcNQoH8482qsf4j/MDzb+3ti8nkmaDrYnFbgJ+hYO2DLhoBLLrJWcdSwYJ8WATzC7YL4bg==
+  dependencies:
+    "@metamask/snaps-sdk" "^4.0.0"
+    "@metamask/utils" "^8.3.0"
+    "@types/uuid" "^9.0.1"
+    superstruct "^1.0.3"
+    uuid "^9.0.0"
+
 "@metamask/keyring-controller@^13.0.0":
   version "13.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-13.0.0.tgz#6552f95dc2c19003f1c5f4e8f48ac221d8a1c063"
@@ -4269,6 +4285,25 @@
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
 
+"@metamask/keyring-controller@^16.0.0":
+  version "16.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-16.0.0.tgz#36530a5cbc311d496ef66701c66daf779a769fca"
+  integrity sha512-XzyxRXj/Sxo6fB3kSmPmFaiFV1JF2lSMUJlSvKd6pbmqvnNCXi21LXTLDruVTnyBEsqkDQ8ld2IxFggBOpqrAg==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
+    "@keystonehq/metamask-airgapped-keyring" "^0.13.1"
+    "@metamask/base-controller" "^5.0.2"
+    "@metamask/browser-passworder" "^4.3.0"
+    "@metamask/eth-hd-keyring" "^7.0.1"
+    "@metamask/eth-sig-util" "^7.0.1"
+    "@metamask/eth-simple-keyring" "^6.0.1"
+    "@metamask/keyring-api" "^6.0.0"
+    "@metamask/message-manager" "^8.0.2"
+    "@metamask/utils" "^8.3.0"
+    async-mutex "^0.2.6"
+    ethereumjs-wallet "^1.0.1"
+    immer "^9.0.6"
+
 "@metamask/logging-controller@^3.0.0", "@metamask/logging-controller@^3.0.1":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/logging-controller/-/logging-controller-3.0.1.tgz#11c2b127bc2d7d4b753e2d757b0c09bf2742bf0a"
@@ -4291,7 +4326,7 @@
     jsonschema "^1.2.4"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^8.0.1":
+"@metamask/message-manager@^8.0.1", "@metamask/message-manager@^8.0.2":
   version "8.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-8.0.2.tgz#84720f0fe9e0c02cc97b76f0bc8f3d5b0a25f731"
   integrity sha512-6o0FRWzmOv5ClYv9QfSJI6LtUJaQokwhVROTV2gLsuoAns8a9NuiHmXZrBh1tdjYifXPoPh74nqim4XBBT+GQQ==
@@ -4818,6 +4853,18 @@
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-3.2.0.tgz#66d60869697a479a3484adc9532d82c3b568fc19"
   integrity sha512-Xfsc6seyucs7TP2JLXoKYrWm5FbrttdHnMOTfuzTb4T+qmdmoc3wdw83RAGjRFiOOaHGFc6JJSCdP33fBmw4Hg==
+  dependencies:
+    "@metamask/key-tree" "^9.0.0"
+    "@metamask/providers" "^16.0.0"
+    "@metamask/rpc-errors" "^6.2.1"
+    "@metamask/utils" "^8.3.0"
+    fast-xml-parser "^4.3.4"
+    superstruct "^1.0.3"
+
+"@metamask/snaps-sdk@^4.0.0":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-4.0.1.tgz#dc627bf2a83cabc1da0affa48ac442251832e3a4"
+  integrity sha512-5XypS6zbCRRrWpOb8cpahJUtMee4r0Mv9ReLuXu1yVothJFbEQIUyJDNkTQ4zqKBJSVObAjBjuQN1fmde6wtrw==
   dependencies:
     "@metamask/key-tree" "^9.0.0"
     "@metamask/providers" "^16.0.0"

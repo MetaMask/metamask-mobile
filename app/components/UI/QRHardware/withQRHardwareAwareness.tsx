@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, ComponentClass } from 'react';
+import React, { useState, useEffect, ComponentClass } from 'react';
 import Engine from '../../../core/Engine';
 import { IQRState } from './types';
 
@@ -10,7 +10,6 @@ const withQRHardwareAwareness = (
   }>,
 ) => {
   const QRHardwareAwareness = (props: any) => {
-    const keyringState: any = useRef();
     const [QRState, SetQRState] = useState<IQRState>({
       sync: {
         reading: false,
@@ -23,15 +22,20 @@ const withQRHardwareAwareness = (
     };
 
     useEffect(() => {
-      const { KeyringController } = Engine.context as any;
-      KeyringController.getQRKeyringState().then((store: any) => {
-        keyringState.current = store;
-        keyringState.current.subscribe(subscribeKeyringState);
-      });
+      // This ensures that a QR keyring gets created if it doesn't already exist.
+      // This is intentionally not awaited (the subscription still gets setup correctly if called
+      // before the keyring is created).
+      // TODO: Stop automatically creating keyrings
+      Engine.context.KeyringController.getOrAddQRKeyring();
+      Engine.controllerMessenger.subscribe(
+        'KeyringController:qrKeyringStateChange',
+        subscribeKeyringState,
+      );
       return () => {
-        if (keyringState.current) {
-          keyringState.current.unsubscribe(subscribeKeyringState);
-        }
+        Engine.controllerMessenger.unsubscribe(
+          'KeyringController:qrKeyringStateChange',
+          subscribeKeyringState,
+        );
       };
     }, []);
 
