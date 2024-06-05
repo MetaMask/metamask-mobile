@@ -102,7 +102,7 @@ import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 import { ConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
-import { getLedgerKeyring } from '../../../../../core/Ledger/Ledger';
+import { getDeviceId } from '../../../../../core/Ledger/Ledger';
 import {
   getBlockaidTransactionMetricsParams,
   isBlockaidFeatureEnabled,
@@ -870,13 +870,13 @@ class Confirm extends PureComponent {
       ]);
 
       if (isLedgerAccount) {
-        const ledgerKeyring = await getLedgerKeyring();
+        const deviceId = await getDeviceId();
         this.setState({ transactionConfirmed: false });
         // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
         this.props.navigation.navigate(
           ...createLedgerTransactionModalNavDetails({
             transactionId: transactionMeta.id,
-            deviceId: ledgerKeyring.deviceId,
+            deviceId,
             onConfirmationComplete: async (approve) =>
               await this.onLedgerConfirmation(
                 approve,

@@ -4,7 +4,7 @@ import { toHex } from '@metamask/controller-utils';
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
-const PopularList = [
+export const PopularList = [
   {
     chainId: toHex('43114'),
     nickname: 'Avalanche Mainnet C-Chain',
@@ -98,4 +98,34 @@ const PopularList = [
   },
 ];
 
-export default PopularList;
+/**
+ * List of popularList will change in the future, removing networks from the list will lead to users not
+ * seeing the logo of the network anymore.
+ * We can keep this new list updated with any network removed from the popular list so we keep returning the logo of the network.
+ */
+export const UnpopularNetworkList = [
+  {
+    chainId: toHex('250'),
+    nickname: 'Fantom Opera',
+    rpcUrl: 'https://rpc.ftm.tools/',
+    ticker: 'FTM',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://ftmscan.com',
+      imageUrl: 'FTM',
+      imageSource: require('../../images/fantom.png'),
+    },
+  },
+  {
+    chainId: toHex('1666600000'),
+    nickname: 'Harmony Mainnet Shard 0',
+    rpcUrl: 'https://api.harmony.one/',
+    ticker: 'ONE',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://basescan.org',
+      imageUrl: 'BASE',
+      imageSource: require('../../images/base.png'),
+    },
+  },
+];
