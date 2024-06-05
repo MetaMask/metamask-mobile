@@ -20,6 +20,10 @@ index bfbfe66..e9c8232 100644
 +     * Controls whether smart transactions are opted into
 +     */
 +    smartTransactionsOptInStatus: boolean;
++    /**
++     * Controls whether transaction simulations are opted into
++     */
++    useTransactionSimulations: boolean;
  };
  declare const name = "PreferencesController";
  export declare type PreferencesControllerGetStateAction = ControllerGetStateAction<typeof name, PreferencesState>;
@@ -53,6 +57,12 @@ index bfbfe66..e9c8232 100644
 +     * @param smartTransactionsOptInStatus - true to opt into smart transactions
 +     */
 +    setSmartTransactionsOptInStatus(smartTransactionsOptInStatus: boolean): void;
++    /**
++     * A setter for the user to opt into transaction simulations
++     *
++     * @param useTransactionSimulations - true to opt into transaction simulations
++     */
++    setUseTransactionSimulations(useTransactionSimulations: boolean): void;
  }
  export default PreferencesController;
  //# sourceMappingURL=PreferencesController.d.ts.map
@@ -75,6 +85,7 @@ index 228cd90..ac62b59 100644
      useNftDetection: { persist: true, anonymous: true },
      useTokenDetection: { persist: true, anonymous: true },
 +    smartTransactionsOptInStatus: { persist: true, anonymous: true },
++    useTransactionSimulations: { persist: true, anonymous: true },
  };
  const name = 'PreferencesController';
  /**
@@ -101,6 +112,7 @@ index 228cd90..ac62b59 100644
          useTokenDetection: true,
 +        useSafeChainsListValidation: true,
 +        smartTransactionsOptInStatus: false,
++        useTransactionSimulations: true,
      };
  }
  exports.getDefaultPreferencesState = getDefaultPreferencesState;
@@ -165,6 +177,16 @@ index 228cd90..ac62b59 100644
 +    setSmartTransactionsOptInStatus(smartTransactionsOptInStatus) {
 +        this.update((state) => {
 +            state.smartTransactionsOptInStatus = smartTransactionsOptInStatus;
++        });
++    }
++    /**
++     * A setter for the user to opt into transaction simulations
++     *
++     * @param useTransactionSimulations - true to opt into transaction simulations
++     */
++    setUseTransactionSimulations(useTransactionSimulations) {
++        this.update((state) => {
++            state.useTransactionSimulations = useTransactionSimulations;
 +        });
 +    }
  }
