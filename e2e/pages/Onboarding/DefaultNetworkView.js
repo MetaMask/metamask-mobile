@@ -19,7 +19,6 @@ class DefaultNetworkView {
 
   async tapUseThisNetworkButton() {
     await Gestures.waitAndTap(this.useThisNetworkButton);
-    await Gestures.waitAndTap(this.useThisNetworkButton);
   }
 
   async typeRpcURL(rpcURL) {
