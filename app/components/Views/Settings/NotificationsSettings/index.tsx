@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
 import React, { FC, useEffect } from 'react';
-import { Pressable, ScrollView, Switch, View } from 'react-native';
+import { Pressable, ScrollView, Switch, View, Linking } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { camelCase } from 'lodash';
 
@@ -36,6 +36,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../../constants/urls';
 
 /**
  * TODO: Discuss the granularity of the notifications settings.
@@ -132,6 +133,10 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     [colors],
   );
 
+  const goToLearnMore = () => {
+    Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+  };
+
   const MainNotificationSettings: FC = () => (
     <>
       <Pressable
@@ -157,6 +162,13 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       <View style={styles.setting}>
         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
           {strings('app_settings.allow_notifications_desc')}
+          <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Info}
+          onPress={goToLearnMore}
+        >
+          {strings('notifications.activation_card.learn_more')}
+        </Text>
         </Text>
       </View>
     </>
