@@ -51,7 +51,7 @@ const CaveatFactories = Object.freeze({
  * PermissionController.
  *
  * @param {{
- * getInternalAccounts: () => import('@metamask/keyring-api').InternalAccount[],
+ * getInternalAccounts: () => import('@metamask/accounts-controller').InternalAccountTypes[],
  * }} options - Options bag.
  */
 export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
@@ -86,7 +86,7 @@ export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
  *
  * @param {{
  *   getAllAccounts: () => Promise<string[]>,
- *   getInternalAccounts: () => import('@metamask/keyring-api').InternalAccount[],
+ *   getInternalAccounts: () => import('@metamask/accounts-controller').InternalAccountTypes[],
  *   captureKeyringTypesWithMissingIdentities: (internalAccounts?: import('@metamask/keyring-api').InternalAccount[], accounts?: string[]) => void,
  * }} options - Options bag.
  * @param options.getAllAccounts - A function that returns all Ethereum accounts
