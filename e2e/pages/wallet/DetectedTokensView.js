@@ -9,9 +9,7 @@ class DetectedTokensView {
   get importButton() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(DetectedTokensSelectorIDs.IMPORT_BUTTON_ID)
-      : Matchers.getElementByLabel(
-          DetectedTokensSelectorTexts.IMPORT_BUTTON_TEXT,
-        );
+      : Matchers.getElementByLabel(DetectedTokensSelectorIDs.IMPORT_BUTTON_ID);
   }
 
   async tapImport() {
