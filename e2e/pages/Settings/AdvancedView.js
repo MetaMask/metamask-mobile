@@ -1,5 +1,8 @@
 import TestHelpers from '../../helpers';
 import { AdvancedViewSelectorsIDs } from '../../selectors/Settings/AdvancedView.selectors';
+import { SettingsViewSelectorsIDs } from '../../selectors/Settings/SettingsView.selectors';
+import Gestures from '../../utils/Gestures';
+import Matchers from '../../utils/Matchers';
 
 export default class AdvancedSettingsView {
   static async tapEthSignSwitch() {
@@ -21,9 +24,24 @@ export default class AdvancedSettingsView {
     }
   }
 
+  static get scrollViewIdentifier() {
+    return Matchers.getIdentifier(SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID);
+  }
+
+  static get showFiatOnTestnetsToggle() {
+    return Matchers.getElementByID(AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS);
+  }
+
   static async tapShowFiatOnTestnetsSwitch() {
     await TestHelpers.waitAndTap(
       AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS,
+    );
+  }
+
+  static async scrollToShowFiatOnTestnetsToggle() {
+    await Gestures.scrollToElement(
+      this.showFiatOnTestnetsToggle,
+      this.scrollViewIdentifier,
     );
   }
 }
