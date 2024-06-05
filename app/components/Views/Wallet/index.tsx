@@ -8,7 +8,7 @@ import {
   Linking,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
-import { connect, useSelector } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
@@ -70,6 +70,8 @@ import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
+import { selectUseNftDetection } from '../../../selectors/preferencesController';
+import { setNftAutoDetectionModalOpen } from '../../../actions/security';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -126,6 +128,7 @@ const Wallet = ({
   const { trackEvent } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
+  const dispatch = useDispatch();
 
   /**
    * Object containing the balance of the current selected account
@@ -246,6 +249,10 @@ const Wallet = ({
   const networkName = useSelector(selectNetworkName);
 
   const networkImageSource = useSelector(selectNetworkImageSource);
+  const useNftDetection = useSelector(selectUseNftDetection);
+  const isNFTAutoDetectionModalOpened = useSelector(
+    (state: any) => state.security.isNFTAutoDetectionModalOpened,
+  );
 
   /**
    * Callback to trigger when pressing the navigation title.
@@ -258,6 +265,19 @@ const Wallet = ({
       chain_id: getDecimalChainId(providerConfig.chainId),
     });
   }, [navigate, providerConfig.chainId, trackEvent]);
+
+  const checkNftAutoDetectionModal = () => {
+    if (!useNftDetection && !isNFTAutoDetectionModalOpened) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.NFT_AUTO_DETECTION_MODAL,
+      });
+      dispatch(setNftAutoDetectionModalOpen(true));
+    }
+  };
+
+  useEffect(() => {
+    checkNftAutoDetectionModal();
+  });
 
   /**
    * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
@@ -328,13 +348,9 @@ const Wallet = ({
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const {
-          TokenDetectionController,
-          NftDetectionController,
-          AccountTrackerController,
-        } = Engine.context as any;
+        const { TokenDetectionController, AccountTrackerController } =
+          Engine.context as any;
         TokenDetectionController.detectTokens();
-        NftDetectionController.detectNfts();
         AccountTrackerController.refresh();
       });
     },
@@ -388,6 +404,9 @@ const Wallet = ({
         trackEvent(MetaMetricsEvents.WALLET_TOKENS);
       } else {
         trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
+        // Call detect nfts
+        const { NftDetectionController } = Engine.context as any;
+        NftDetectionController.detectNfts();
       }
     },
     [trackEvent],

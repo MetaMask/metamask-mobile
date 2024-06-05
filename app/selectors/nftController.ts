@@ -14,3 +14,8 @@ export const selectAllNfts = createSelector(
   selectNftControllerState,
   (nftControllerState: NftState) => nftControllerState.allNfts,
 );
+
+export const selectIsNftFetchingInProgress = createSelector(
+  selectNftControllerState,
+  (nftControllerState: NftState) => nftControllerState.isNftFetchingInProgress,
+);
