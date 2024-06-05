@@ -3819,7 +3819,7 @@
     eth-ens-namehash "^2.0.8"
     fast-deep-equal "^3.1.3"
 
-"@metamask/controller-utils@^9.0.1", "@metamask/controller-utils@^9.0.2", "@metamask/controller-utils@^9.1.0":
+"@metamask/controller-utils@^9.0.1", "@metamask/controller-utils@^9.1.0":
   version "9.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-9.1.0.tgz#436ff37d339df3f4b0f31458881c6f1b1002c945"
   integrity sha512-17XQhyhR1bC7NjQHJF2KhxStVeoFW8liQ/Z526cI3uVcKOgYRxxDwBiRGs+xzv9XAm7f1W73W83wnb8fcBxlxg==
@@ -3958,22 +3958,7 @@
     pify "^3.0.0"
     safe-stable-stringify "^2.3.2"
 
-"@metamask/eth-json-rpc-middleware@^12.1.0":
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-middleware/-/eth-json-rpc-middleware-12.1.0.tgz#237f018a1a3c99297fcb5a8263b6c669379b168c"
-  integrity sha512-fTr9xqBeb6TnblGYr89DikrEVdRQj+lj2mrGK56nbnLfHsA1awpFn5RxR38o8ml6DD9OsEo13au5UpqQyUEbIQ==
-  dependencies:
-    "@metamask/eth-json-rpc-provider" "^2.1.0"
-    "@metamask/eth-sig-util" "^7.0.0"
-    "@metamask/json-rpc-engine" "^7.1.1"
-    "@metamask/rpc-errors" "^6.0.0"
-    "@metamask/utils" "^8.1.0"
-    eth-block-tracker "^8.0.0"
-    klona "^2.0.6"
-    pify "^5.0.0"
-    safe-stable-stringify "^2.4.3"
-
-"@metamask/eth-json-rpc-middleware@^12.1.1":
+"@metamask/eth-json-rpc-middleware@^12.1.0", "@metamask/eth-json-rpc-middleware@^12.1.1":
   version "12.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-middleware/-/eth-json-rpc-middleware-12.1.1.tgz#5b6a19386f420211cb554c637f0927b76dc3167a"
   integrity sha512-6N5y5CIo3mjJlD3oUaCPsAR5KGkxzt2pL+nQaRKwZ0Z0HtXIu0dIKf4awtfzJDNNQGhlPG5Im+kG1oxkh0FkSQ==
@@ -4006,7 +3991,7 @@
     "@metamask/safe-event-emitter" "^3.0.0"
     "@metamask/utils" "^8.3.0"
 
-"@metamask/eth-json-rpc-provider@^3.0.1", "@metamask/eth-json-rpc-provider@^3.0.2":
+"@metamask/eth-json-rpc-provider@^3.0.2":
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-provider/-/eth-json-rpc-provider-3.0.2.tgz#42e544d227285fe56336e2301961a6283dcfadad"
   integrity sha512-ma5bYjKa71bSw5+iibEnIiY25s8wkDnTljrqOnGw5MkTEU4PQDiKnK9YjxfUZSasx2BPEsp1OW2NS+pnrRMO4Q==
@@ -4406,27 +4391,7 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^18.1.0":
-  version "18.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-18.1.0.tgz#422e90c3fe10fa2d708313b2876ed07cfa4a16a0"
-  integrity sha512-J8dVhGTLPBaPAfgGLKZRnh4qE6vf0+ViRzdnSPmAM3WO+6Dn69GLB+ccGTqPNWCz93+NwHvXDrzhED9qSZV1rQ==
-  dependencies:
-    "@metamask/base-controller" "^5.0.1"
-    "@metamask/controller-utils" "^9.0.2"
-    "@metamask/eth-json-rpc-infura" "^9.1.0"
-    "@metamask/eth-json-rpc-middleware" "^12.1.0"
-    "@metamask/eth-json-rpc-provider" "^3.0.1"
-    "@metamask/eth-query" "^4.0.0"
-    "@metamask/json-rpc-engine" "^8.0.1"
-    "@metamask/rpc-errors" "^6.2.1"
-    "@metamask/swappable-obj-proxy" "^2.2.0"
-    "@metamask/utils" "^8.3.0"
-    async-mutex "^0.2.6"
-    eth-block-tracker "^8.0.0"
-    immer "^9.0.6"
-    uuid "^8.3.2"
-
-"@metamask/network-controller@^18.1.2":
+"@metamask/network-controller@^18.1.0", "@metamask/network-controller@^18.1.2":
   version "18.1.3"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-18.1.3.tgz#0aa7dbaf06c7ccf1f381a151d13850eb32d197b0"
   integrity sha512-B79qGwhdNcmGtYOQWMZXKVSt88dowyP4Nf979QEX0opYe6Z4eZMZnGBezdl74cAcezEiDE1ro6X8UahB11IOTg==
