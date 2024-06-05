@@ -1,3 +1,5 @@
+/* eslint-disable @metamask/design-tokens/color-no-hex*/
+
 /**
  * Common styles and variables
  */
