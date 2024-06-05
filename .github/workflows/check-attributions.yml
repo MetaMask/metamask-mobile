@@ -2,9 +2,9 @@ name: Check Attributions
 
 on:
   push:
-    branches: v*
+    branches: release/*
   pull_request:
-    branches: v*
+    branches: release/*
     types:
       - opened
       - reopened
