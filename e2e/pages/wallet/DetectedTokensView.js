@@ -1,16 +1,23 @@
-import { DetectedTokensSelectorIDs } from '../../selectors/wallet/DetectedTokensView.selectors';
+import {
+  DetectedTokensSelectorIDs,
+  DetectedTokensSelectorTexts,
+} from '../../selectors/wallet/DetectedTokensView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
 class DetectedTokensView {
   get importButton() {
-    return Matchers.getElementByID(DetectedTokensSelectorIDs.IMPORT_BUTTON_ID);
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(DetectedTokensSelectorIDs.IMPORT_BUTTON_ID)
+      : Matchers.getElementByLabel(
+          DetectedTokensSelectorTexts.IMPORT_BUTTON_TEXT,
+        );
   }
 
   async tapImport() {
     //TODO: import button is dynamic and we should use regex to tap button text
     // await Gestures.tapTextBeginingWith('Import');
-    await Gestures.tapByText('Import (1)');
+    await Gestures.waitAndTap(this.importButton);
   }
 }
 
