@@ -43,6 +43,7 @@ describe('Accounts Controller Selectors', () => {
         options: {},
         metadata: {
           name: 'Account 2',
+          importTime: 1684232000456,
           keyring: {
             type: 'HD Key Tree',
           },
@@ -97,7 +98,11 @@ describe('Accounts Controller Selectors', () => {
         {
           address: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
           id: expectedUuid,
-          metadata: { name: 'Account 1', keyring: { type: 'HD Key Tree' } },
+          metadata: {
+            name: 'Account 1',
+            importTime: 1684232000456,
+            keyring: { type: 'HD Key Tree' },
+          },
           options: {},
           methods: [
             'personal_sign',
@@ -112,7 +117,11 @@ describe('Accounts Controller Selectors', () => {
         {
           address: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
           id: expectedUuid2,
-          metadata: { name: 'Account 2', keyring: { type: 'HD Key Tree' } },
+          metadata: {
+            name: 'Account 2',
+            importTime: 1684232000456,
+            keyring: { type: 'HD Key Tree' },
+          },
           options: {},
           methods: [
             'personal_sign',
