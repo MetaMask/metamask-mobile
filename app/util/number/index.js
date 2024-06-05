@@ -312,17 +312,22 @@ export function fiatNumberToTokenMinimalUnit(
 export function renderFromWei(value, decimalsToShow = 5) {
   let renderWei = '0';
   // avoid undefined
-  if (value) {
-    const wei = fromWei(value);
-    const weiNumber = parseFloat(wei);
-    if (weiNumber < 0.00001 && weiNumber > 0) {
-      renderWei = '< 0.00001';
-    } else {
-      const base = Math.pow(10, decimalsToShow);
-      renderWei = (Math.round(weiNumber * base) / base).toString();
+  // This function can throw an error if value is "NaN", so wrap in try/catch
+  try {
+    if (value) {
+      const wei = fromWei(value);
+      const weiNumber = parseFloat(wei);
+      if (weiNumber < 0.00001 && weiNumber > 0) {
+        renderWei = '< 0.00001';
+      } else {
+        const base = Math.pow(10, decimalsToShow);
+        renderWei = (Math.round(weiNumber * base) / base).toString();
+      }
     }
+    return renderWei;
+  } catch (e) {
+    return renderWei;
   }
-  return renderWei;
 }
 
 /**
