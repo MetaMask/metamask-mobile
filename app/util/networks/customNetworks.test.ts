@@ -1,4 +1,4 @@
-import PopularList from './customNetworks';
+import { PopularList } from './customNetworks';
 import { toHex } from '@metamask/controller-utils';
 
 describe('popularNetwork', () => {
