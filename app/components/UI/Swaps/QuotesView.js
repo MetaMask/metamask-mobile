@@ -586,6 +586,9 @@ function SwapsQuotesView({
     const ethAmountBN = isSwapsNativeAsset(sourceToken)
       ? sourceBN
       : new BigNumber(0);
+
+    // accounts[selectedAddress].balance might be undefined
+    // BigNumber(undefined) returns "NaN", which causes missingEthBalance to be "NaN" downstream
     const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
     const gasBN = toWei(selectedQuoteValue?.maxEthFee || '0');
     const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
@@ -1674,6 +1677,12 @@ function SwapsQuotesView({
     hasEnoughTokenBalance &&
     hasEnoughEthBalance;
 
+  const shouldShowNeedMoreAlert =
+    (!isSwapsNativeAsset(sourceToken) && !hasEnoughTokenBalance) ||
+    (isSwapsNativeAsset(sourceToken) &&
+      !hasEnoughEthBalance &&
+      missingEthBalance?.isNaN() === false);
+
   return (
     <ScreenView
       contentContainerStyle={styles.screen}
@@ -1682,7 +1691,7 @@ function SwapsQuotesView({
       scrollEnabled={!isSwiping}
     >
       <View style={styles.topBar}>
-        {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
+        {shouldShowNeedMoreAlert && (
           <View style={styles.alertBar}>
             <Alert small type={AlertType.Info}>
               {`${strings('swaps.you_need')} `}
