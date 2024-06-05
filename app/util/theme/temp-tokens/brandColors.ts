@@ -1,6 +1,7 @@
 /*eslint no-useless-computed-key: "error"*/
 /* eslint-disable no-useless-computed-key */
 /* eslint-disable import/prefer-default-export */
+/* eslint-disable @metamask/design-tokens/color-no-hex*/
 
 import { BrandColors } from './brandColors.types';
 
