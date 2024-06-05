@@ -121,6 +121,139 @@ describe('handleMetaMaskProtocol', () => {
     });
   });
 
+  describe('when params.comm is "deeplinking"', () => {
+    beforeEach(() => {
+      url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}`;
+      params.comm = 'deeplinking';
+      params.channelId = 'test-channel-id';
+      params.pubkey = 'test-pubkey';
+      params.originatorInfo = 'test-originator-info';
+      params.request = 'test-request';
+    });
+
+    it('should throw an error if params.scheme is not defined', () => {
+      params.scheme = undefined;
+
+      expect(() => {
+        handleMetaMaskDeeplink({
+          instance,
+          handled,
+          params,
+          url,
+          origin,
+          wcURL,
+        });
+      }).toThrow('DeepLinkManager failed to connect - Invalid scheme');
+    });
+
+    it('should call handleConnection if params.scheme is defined', () => {
+      const mockHandleConnection = jest.fn();
+      mockSDKConnectGetInstance.mockImplementation(() => ({
+        state: {
+          deeplinkingService: {
+            handleConnection: mockHandleConnection,
+          },
+        },
+      }));
+
+      params.scheme = 'test-scheme';
+
+      handleMetaMaskDeeplink({
+        instance,
+        handled,
+        params,
+        url,
+        origin,
+        wcURL,
+      });
+
+      expect(mockHandleConnection).toHaveBeenCalledWith({
+        channelId: params.channelId,
+        url,
+        scheme: params.scheme,
+        dappPublicKey: params.pubkey,
+        originatorInfo: params.originatorInfo,
+        request: params.request,
+      });
+    });
+  });
+
+  describe('when url starts with ${PREFIXES.METAMASK}${ACTIONS.MMSDK}', () => {
+    beforeEach(() => {
+      url = `${PREFIXES.METAMASK}${ACTIONS.MMSDK}`;
+      params.channelId = 'test-channel-id';
+      params.pubkey = 'test-pubkey';
+      params.account = 'test-account';
+    });
+
+    it('should throw an error if params.message is not defined', () => {
+      params.message = undefined;
+
+      expect(() => {
+        handleMetaMaskDeeplink({
+          instance,
+          handled,
+          params,
+          url,
+          origin,
+          wcURL,
+        });
+      }).toThrow(
+        'DeepLinkManager: deeplinkingService failed to handleMessage - Invalid message',
+      );
+    });
+
+    it('should throw an error if params.scheme is not defined', () => {
+      params.message = 'test-message';
+      params.scheme = undefined;
+
+      expect(() => {
+        handleMetaMaskDeeplink({
+          instance,
+          handled,
+          params,
+          url,
+          origin,
+          wcURL,
+        });
+      }).toThrow(
+        'DeepLinkManager: deeplinkingService failed to handleMessage - Invalid scheme',
+      );
+    });
+
+    it('should call handleMessage if params.message and params.scheme are defined', () => {
+      const mockHandleMessage = jest.fn();
+      mockSDKConnectGetInstance.mockImplementation(() => ({
+        state: {
+          deeplinkingService: {
+            handleMessage: mockHandleMessage,
+          },
+        },
+      }));
+
+      params.message = 'test-message';
+      params.scheme = 'test-scheme';
+
+      handleMetaMaskDeeplink({
+        instance,
+        handled,
+        params,
+        url,
+        origin,
+        wcURL,
+      });
+
+      expect(mockHandleMessage).toHaveBeenCalledWith({
+        channelId: params.channelId,
+        url,
+        message: params.message,
+        dappPublicKey: params.pubkey,
+        scheme: params.scheme,
+        account: params.account ?? '@',
+      });
+    });
+  });
+
   describe('when url starts with ${PREFIXES.METAMASK}${ACTIONS.CONNECT}', () => {
     beforeEach(() => {
       url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}`;
