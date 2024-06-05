@@ -2,10 +2,10 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
 import { merge } from 'lodash';
 
-type TransactionMetrics = {  
-  properties: Record<string, any>;  
-  sensitiveProperties: Record<string, any>;  
-};  
+interface TransactionMetrics {
+  properties: Record<string, any>;
+  sensitiveProperties: Record<string, any>;
+}
 
 export interface TransactionMetricsState {
   metricsByTransactionId: Record<string, TransactionMetrics>;
@@ -25,13 +25,16 @@ const slice = createSlice({
       state,
       action: PayloadAction<{
         transactionId: string;
-        params: any;
+        params: TransactionMetrics;
       }>,
     ) => {
       const { transactionId, params } = action.payload;
 
       if (state.metricsByTransactionId[transactionId] === undefined) {
-        state.metricsByTransactionId[transactionId] = {};
+        state.metricsByTransactionId[transactionId] = {
+          properties: {},
+          sensitiveProperties: {},
+        };
       }
 
       state.metricsByTransactionId[transactionId] = merge(
