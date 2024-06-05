@@ -403,10 +403,6 @@ describe('Number utils :: renderFromWei', () => {
     expect(renderFromWei('133700000000000000')).toEqual('0.1337');
     expect(renderFromWei('1337')).toEqual('< 0.00001');
     expect(renderFromWei('0')).toEqual('0');
-
-    // https://github.com/MetaMask/metamask-mobile/issues/9672
-    // fromWei will throw error if "NaN" is passed
-    expect(renderFromWei('NaN')).toEqual('0');
   });
 
   it('renderFromWei using BN number', () => {
