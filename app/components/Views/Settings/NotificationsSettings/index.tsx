@@ -163,12 +163,12 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
           {strings('app_settings.allow_notifications_desc')}
           <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Info}
-          onPress={goToLearnMore}
-        >
-          {strings('notifications.activation_card.learn_more')}
-        </Text>
+            variant={TextVariant.BodyMD}
+            color={TextColor.Info}
+            onPress={goToLearnMore}
+          >
+            {strings('notifications.activation_card.learn_more')}
+          </Text>
         </Text>
       </View>
     </>
