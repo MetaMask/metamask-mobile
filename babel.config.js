@@ -3,8 +3,9 @@ module.exports = {
   ignore: [/ses\.cjs/],
   presets: ['module:metro-react-native-babel-preset'],
   plugins: [
-    'transform-inline-environment-variables',
-    'react-native-reanimated/plugin',
+    ['transform-inline-environment-variables', { loose: true }],
+    ['react-native-reanimated/plugin', { loose: true }],
+    ['@babel/plugin-transform-private-methods', { loose: true }],
   ],
   env: {
     production: {
