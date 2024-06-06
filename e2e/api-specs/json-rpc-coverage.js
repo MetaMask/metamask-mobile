@@ -6,7 +6,6 @@ import { parseOpenRPCDocument } from '@open-rpc/schema-utils-js';
 import JsonSchemaFakerRule from '@open-rpc/test-coverage/build/rules/json-schema-faker-rule';
 import HtmlReporter from '@open-rpc/test-coverage/build/reporters/html-reporter';
 
-import TestHelpers from '../helpers';
 import Browser from '../pages/Browser/BrowserView';
 // eslint-disable-next-line import/no-commonjs
 const mockServer = require('@open-rpc/mock-server/build/index').default;
@@ -18,9 +17,9 @@ import {
 } from '../fixtures/fixture-helper';
 import { loginToApp } from '../viewHelper';
 
-import { addToQueue } from './helpers';
 import ExamplesRule from '@open-rpc/test-coverage/build/rules/examples-rule';
 import ConfirmationsRejectRule from './ConfirmationsRejectionRule';
+import { createDriverTransport } from './helpers';
 
 const port = 8545;
 const chainId = 1337;
@@ -137,85 +136,6 @@ const main = async () => {
       await Browser.navigateToTestDApp();
 
       const webElement = await web.element(by.web.tag('body'));
-
-      const pollResult = async () => {
-        let result;
-        await TestHelpers.delay(500);
-        // eslint-disable-next-line no-loop-func
-        await new Promise((resolve, reject) => {
-          addToQueue({
-            name: 'pollResult',
-            task: async () => {
-              const text = await webElement.runScript(
-                (el) => window.JSONRPCResponse,
-              );
-              if (typeof text === 'string') {
-                result = JSON.parse(text);
-              } else {
-                result = text;
-              }
-              return result;
-            },
-            resolve,
-            reject,
-          });
-        });
-        if (result) {
-          return result;
-        }
-        return pollResult();
-      };
-
-      const createDriverTransport = (driver) => (_, method, params) =>
-        new Promise((resolve, reject) => {
-          const execute = async () => {
-            await addToQueue({
-              name: 'transport',
-              task: async () => {
-                await driver.runScript(
-                  (el, m, p) => {
-                    window.ethereum
-                      .request({ method: m, params: p })
-                      .then((res) => {
-                        window.JSONRPCResponse = JSON.stringify({
-                          result: res,
-                        });
-                      })
-                      .catch((err) => {
-                        window.JSONRPCResponse = JSON.stringify({
-                          error: {
-                            code: err.code,
-                            message: err.message,
-                            data: err.data,
-                          },
-                        });
-                      });
-                  },
-                  [method, params],
-                );
-              },
-              resolve,
-              reject,
-            });
-          };
-          return execute();
-        }).then(async () => {
-          const result = await pollResult();
-          await new Promise((resolve, reject) => {
-            addToQueue({
-              name: 'clearJSONRPCResponse',
-              task: async () => {
-                await driver.runScript((el) => {
-                  window.JSONRPCResponse = null;
-                });
-              },
-              resolve,
-              reject,
-            });
-          });
-          return result;
-        });
-
       const transport = await createDriverTransport(webElement);
 
       const methodsWithConfirmations = [
