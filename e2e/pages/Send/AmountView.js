@@ -24,7 +24,7 @@ class AmountView {
   async typeInTransactionAmount(amount) {
     device.getPlatform() === 'android'
       ? await Gestures.typeTextAndHideKeyboard(this.amountInputField, amount)
-      : await Gestures.typeTextAndHideKeyboard(this.amountInputField, amount);
+      : await Gestures.replaceTextInField(this.amountInputField, amount);
   }
 
   async tapCurrencySwitch() {
