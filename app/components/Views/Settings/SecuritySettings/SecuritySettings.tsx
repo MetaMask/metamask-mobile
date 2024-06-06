@@ -813,7 +813,7 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     ),
-    [colors, styles, useTransactionSimulations, theme.brandColors.white],
+    [colors, styles, useTransactionSimulations, theme.brandColors.white000],
   );
 
   const renderAutoDetectNft = useCallback(
