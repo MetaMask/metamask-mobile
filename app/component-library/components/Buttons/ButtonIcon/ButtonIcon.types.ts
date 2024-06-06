@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { PressableProps } from 'react-native';
+import { TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
 import { IconName, IconSize, IconColor } from '../../Icons/Icon';
@@ -23,7 +23,7 @@ export type IconSizeByButtonIconSize = {
 /**
  * ButtonIcon component props.
  */
-export interface ButtonIconProps extends PressableProps {
+export interface ButtonIconProps extends TouchableOpacityProps {
   /**
    * Icon name of the icon that will be displayed.
    */

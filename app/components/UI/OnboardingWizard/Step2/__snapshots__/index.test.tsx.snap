@@ -79,37 +79,19 @@ exports[`Step2 should render correctly 1`] = `
             }
           }
         >
-          <View
+          <TouchableOpacity
             accessibilityRole="button"
             accessibilityState={
               {
-                "busy": undefined,
-                "checked": undefined,
                 "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
               }
             }
             accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+            activeOpacity={1}
+            disabled={false}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -135,7 +117,7 @@ exports[`Step2 should render correctly 1`] = `
               }
               width={20}
             />
-          </View>
+          </TouchableOpacity>
           <Text
             style={
               {
@@ -149,37 +131,19 @@ exports[`Step2 should render correctly 1`] = `
           >
             Your accounts
           </Text>
-          <View
+          <TouchableOpacity
             accessibilityRole="button"
             accessibilityState={
               {
-                "busy": undefined,
-                "checked": undefined,
                 "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
               }
             }
             accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+            activeOpacity={1}
+            disabled={false}
+            onPress={[MockFunction]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -204,7 +168,7 @@ exports[`Step2 should render correctly 1`] = `
               }
               width={20}
             />
-          </View>
+          </TouchableOpacity>
         </View>
         <View
           style={
