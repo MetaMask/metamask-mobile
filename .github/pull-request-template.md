@@ -35,8 +35,7 @@ Fixes:
 
 ## **Pre-merge author checklist**
 
-- [ ] I've read [MetaMask Contributor Docs](https://github.com/MetaMask/contributor-docs/blob/main/docs/pull-requests.md)
-- [ ] I’ve followed [MetaMask Coding Standards](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/CODING_GUIDELINES.md).
+- [ ] I’ve followed [MetaMask Contributor Docs](https://github.com/MetaMask/contributor-docs/blob/main/docs/pull-requests.md) and [MetaMask Mobile Coding Standards](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/CODING_GUIDELINES.md).
 - [ ] I've completed the PR template to the best of my ability
 - [ ] I’ve included tests if applicable
 - [ ] I’ve documented my code using [JSDoc](https://jsdoc.app/) format if applicable
