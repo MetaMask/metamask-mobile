@@ -490,7 +490,7 @@ workflows:
       - android_e2e_test
   run_ios_api_specs:
     after_run:
-      - ios_e2e_test
+      - ios_api_specs
   run_tag_smoke_core_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
@@ -1467,6 +1467,8 @@ meta:
     stack: osx-xcode-15.0.x
     machine_type_id: g2-m1-max.5core
 trigger_map:
+  - push_branch: e2e-e2e-json-rpc-coverage-tool
+    pipeline: run_ios_api_specs
   - push_branch: release/*
     pipeline: release_e2e_pipeline
   - push_branch: main
