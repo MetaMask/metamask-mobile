@@ -372,7 +372,7 @@ exports[`QrScanner should render correctly 1`] = `
                             style={
                               {
                                 "color": "rgba(20, 22, 24, 1.0)",
-                                "fontFamily": "EuclidCircularB",
+                                "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 16,
                                 "fontWeight": "500",
                                 "height": "100%",
