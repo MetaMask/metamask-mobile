@@ -111,12 +111,6 @@ exports[`BannerAlert should render BannerAlert 1`] = `
     }
   >
     <TouchableOpacity
-      accessibilityRole="button"
-      accessibilityState={
-        {
-          "disabled": false,
-        }
-      }
       accessible={true}
       activeOpacity={1}
       disabled={false}
@@ -136,7 +130,6 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       testID="banner-close-button-icon"
     >
       <SvgMock
-        accessibilityLabel="icon-Close"
         color="#24272A"
         height={16}
         name="Close"

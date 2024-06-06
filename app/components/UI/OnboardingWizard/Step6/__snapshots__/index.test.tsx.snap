@@ -50,12 +50,6 @@ exports[`Step6 should render correctly 1`] = `
           }
         >
           <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "disabled": false,
-              }
-            }
             accessible={true}
             activeOpacity={1}
             disabled={false}
@@ -75,7 +69,6 @@ exports[`Step6 should render correctly 1`] = `
             testID="onboarding-wizard-back-button"
           >
             <SvgMock
-              accessibilityLabel="icon-Arrow2Left"
               color="#FFFFFF"
               height={20}
               name="Arrow2Left"
@@ -102,12 +95,6 @@ exports[`Step6 should render correctly 1`] = `
             Exploring web3
           </Text>
           <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "disabled": false,
-              }
-            }
             accessible={true}
             activeOpacity={1}
             disabled={false}
@@ -126,7 +113,6 @@ exports[`Step6 should render correctly 1`] = `
             }
           >
             <SvgMock
-              accessibilityLabel="icon-Close"
               color="#FFFFFF"
               height={20}
               name="Close"

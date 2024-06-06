@@ -117,12 +117,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
               }
             >
               <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityState={
-                  {
-                    "disabled": false,
-                  }
-                }
                 accessible={true}
                 activeOpacity={1}
                 disabled={false}
@@ -143,7 +137,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  accessibilityLabel="icon-ArrowLeft"
                   color="#24272A"
                   height={24}
                   name="ArrowLeft"
@@ -1223,12 +1216,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
               }
             >
               <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityState={
-                  {
-                    "disabled": false,
-                  }
-                }
                 accessible={true}
                 activeOpacity={1}
                 disabled={false}
@@ -1249,7 +1236,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  accessibilityLabel="icon-ArrowLeft"
                   color="#24272A"
                   height={24}
                   name="ArrowLeft"
@@ -1953,12 +1939,6 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
               }
             >
               <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityState={
-                  {
-                    "disabled": false,
-                  }
-                }
                 accessible={true}
                 activeOpacity={1}
                 disabled={false}
@@ -1979,7 +1959,6 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  accessibilityLabel="icon-ArrowLeft"
                   color="#24272A"
                   height={24}
                   name="ArrowLeft"
@@ -2506,12 +2485,6 @@ exports[`Settings Region renders correctly when region is set 1`] = `
               }
             >
               <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityState={
-                  {
-                    "disabled": false,
-                  }
-                }
                 accessible={true}
                 activeOpacity={1}
                 disabled={false}
@@ -2532,7 +2505,6 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  accessibilityLabel="icon-ArrowLeft"
                   color="#24272A"
                   height={24}
                   name="ArrowLeft"
@@ -3098,12 +3070,6 @@ exports[`Settings renders correctly 1`] = `
               }
             >
               <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityState={
-                  {
-                    "disabled": false,
-                  }
-                }
                 accessible={true}
                 activeOpacity={1}
                 disabled={false}
@@ -3124,7 +3090,6 @@ exports[`Settings renders correctly 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  accessibilityLabel="icon-ArrowLeft"
                   color="#24272A"
                   height={24}
                   name="ArrowLeft"
@@ -3690,12 +3655,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
               }
             >
               <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityState={
-                  {
-                    "disabled": false,
-                  }
-                }
                 accessible={true}
                 activeOpacity={1}
                 disabled={false}
@@ -3716,7 +3675,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  accessibilityLabel="icon-ArrowLeft"
                   color="#24272A"
                   height={24}
                   name="ArrowLeft"

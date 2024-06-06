@@ -61,15 +61,12 @@ const ButtonIcon = ({
       accessible
       activeOpacity={1}
       disabled={isDisabled}
-      accessibilityRole="button"
-      accessibilityState={{ disabled: isDisabled }}
       {...props}
     >
       <Icon
         name={iconName}
         size={ICONSIZE_BY_BUTTONICONSIZE[size]}
         color={iconColor}
-        accessibilityLabel={`icon-${iconName}`}
       />
     </TouchableOpacity>
   );

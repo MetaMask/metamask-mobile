@@ -2,12 +2,6 @@
 
 exports[`ButtonIcon should render correctly 1`] = `
 <TouchableOpacity
-  accessibilityRole="button"
-  accessibilityState={
-    {
-      "disabled": false,
-    }
-  }
   accessible={true}
   activeOpacity={1}
   disabled={false}
@@ -26,7 +20,6 @@ exports[`ButtonIcon should render correctly 1`] = `
   }
 >
   <SvgMock
-    accessibilityLabel="icon-Add"
     color="#24272A"
     height={16}
     name="Add"

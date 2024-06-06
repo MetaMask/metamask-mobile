@@ -117,12 +117,6 @@ exports[`AppInformation should render correctly 1`] = `
               }
             >
               <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityState={
-                  {
-                    "disabled": false,
-                  }
-                }
                 accessible={true}
                 activeOpacity={1}
                 disabled={false}
@@ -143,7 +137,6 @@ exports[`AppInformation should render correctly 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  accessibilityLabel="icon-ArrowLeft"
                   color="#24272A"
                   height={24}
                   name="ArrowLeft"

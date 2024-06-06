@@ -318,12 +318,6 @@ exports[`WalletAccount renders correctly 1`] = `
       </RNGestureHandlerButton>
     </View>
     <TouchableOpacity
-      accessibilityRole="button"
-      accessibilityState={
-        {
-          "disabled": false,
-        }
-      }
       accessible={true}
       activeOpacity={1}
       disabled={false}
@@ -343,7 +337,6 @@ exports[`WalletAccount renders correctly 1`] = `
       testID="main-wallet-account-actions"
     >
       <SvgMock
-        accessibilityLabel="icon-MoreHorizontal"
         color="#24272A"
         height={16}
         name="MoreHorizontal"

@@ -1956,12 +1956,6 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                 onLayout={[Function]}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessibilityState={
-                                    {
-                                      "disabled": false,
-                                    }
-                                  }
                                   accessible={true}
                                   activeOpacity={1}
                                   disabled={false}
@@ -1980,7 +1974,6 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    accessibilityLabel="icon-Close"
                                     color="#24272A"
                                     height={16}
                                     name="Close"
@@ -3455,12 +3448,6 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                 onLayout={[Function]}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessibilityState={
-                                    {
-                                      "disabled": false,
-                                    }
-                                  }
                                   accessible={true}
                                   activeOpacity={1}
                                   disabled={false}
@@ -3479,7 +3466,6 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                   }
                                 >
                                   <SvgMock
-                                    accessibilityLabel="icon-Close"
                                     color="#24272A"
                                     height={16}
                                     name="Close"

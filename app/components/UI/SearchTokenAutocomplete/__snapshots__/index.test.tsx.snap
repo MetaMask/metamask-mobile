@@ -408,12 +408,6 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                   }
                                 >
                                   <TouchableOpacity
-                                    accessibilityRole="button"
-                                    accessibilityState={
-                                      {
-                                        "disabled": false,
-                                      }
-                                    }
                                     accessible={true}
                                     activeOpacity={1}
                                     disabled={false}
@@ -432,7 +426,6 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                     }
                                   >
                                     <SvgMock
-                                      accessibilityLabel="icon-Close"
                                       color="#24272A"
                                       height={16}
                                       name="Close"
