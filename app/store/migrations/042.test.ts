@@ -34,19 +34,6 @@ const oldState = {
   },
 };
 
-const expectedNewState = {
-  engine: {
-    backgroundState: {
-      AccountsController: {
-        internalAccounts: {
-          ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-          selectedAccount: {},
-        },
-      },
-    },
-  },
-};
-
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
