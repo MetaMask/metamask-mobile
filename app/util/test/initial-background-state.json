@@ -205,7 +205,8 @@
     "gasFeeEstimates": {},
     "estimatedGasFeeTimeBounds": {},
     "gasEstimateType": "none",
-    "gasFeeEstimatesByChainId": {}
+    "gasFeeEstimatesByChainId": {},
+    "nonRPCGasFeeApisDisabled": false
   },
   "ApprovalController": {
     "pendingApprovals": {},
