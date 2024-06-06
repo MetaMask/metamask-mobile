@@ -18,11 +18,14 @@ const styleSheet = StyleSheet.create({
     marginVertical: 16,
     marginHorizontal: 16,
   },
-  networkGroupTitleContainer: {
-    margin: 16,
+  addtionalNetworksContainer: {
+    marginHorizontal: 16,
   },
   networkCell: {
     alignItems: 'center',
+  },
+  titleContainer: {
+    margin: 16,
   },
 });
 
