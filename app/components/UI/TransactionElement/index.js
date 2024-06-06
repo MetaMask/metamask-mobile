@@ -298,6 +298,7 @@ class TransactionElement extends PureComponent {
         break;
       case TRANSACTION_TYPES.APPROVE:
       case TRANSACTION_TYPES.INCREASE_ALLOWANCE:
+      case TRANSACTION_TYPES.SET_APPROVAL_FOR_ALL:
         icon = isFailedTransaction
           ? transactionIconApproveFailed
           : transactionIconApprove;

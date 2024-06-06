@@ -31,6 +31,8 @@ import {
   getFourByteSignature,
   APPROVE_FUNCTION_SIGNATURE,
   isApprovalTransaction,
+  SET_APPROVAL_FOR_ALL_SIGNATURE,
+  TOKEN_METHOD_SET_APPROVAL_FOR_ALL,
 } from '.';
 import buildUnserializedTransaction from './optimismTransaction';
 import Engine from '../../core/Engine';
@@ -293,6 +295,7 @@ describe('Transactions utils :: getMethodData', () => {
     const randomData = '0x987654321000000000';
     const transferFromData = '0x23b872dd0000000000000000000000000000';
     const increaseAllowanceDataMock = `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000000000`;
+    const setApprovalForAllDataMock = `${SET_APPROVAL_FOR_ALL_SIGNATURE}0000000000000000000000000000`;
     const firstMethodData = await getMethodData(transferData);
     const secondMethodData = await getMethodData(contractData);
     const thirdMethodData = await getMethodData(transferFromData);
@@ -300,12 +303,18 @@ describe('Transactions utils :: getMethodData', () => {
     const increaseAllowanceMethodData = await getMethodData(
       increaseAllowanceDataMock,
     );
+    const setApprovalForAllMethodData = await getMethodData(
+      setApprovalForAllDataMock,
+    );
     expect(firstMethodData.name).toEqual(TOKEN_METHOD_TRANSFER);
     expect(secondMethodData.name).toEqual(CONTRACT_METHOD_DEPLOY);
     expect(thirdMethodData.name).toEqual(TOKEN_METHOD_TRANSFER_FROM);
     expect(fourthMethodData).toEqual({});
     expect(increaseAllowanceMethodData.name).toEqual(
       TOKEN_METHOD_INCREASE_ALLOWANCE,
+    );
+    expect(setApprovalForAllMethodData.name).toEqual(
+      TOKEN_METHOD_SET_APPROVAL_FOR_ALL,
     );
   });
 });
@@ -1043,6 +1052,11 @@ describe('Transactions utils :: isApprovalTransaction', () => {
       data: `${APPROVE_FUNCTION_SIGNATURE}0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5`,
       expectedResult: true,
       method: 'approve',
+    },
+    {
+      data: `${SET_APPROVAL_FOR_ALL_SIGNATURE}0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5`,
+      expectedResult: true,
+      method: 'decreaseAllowance',
     },
     {
       data: '0x0a19b14a0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5',
