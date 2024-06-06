@@ -580,7 +580,7 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const NotificationsModeView = () => (
+const NotificationsModeView = (props) => (
   <Stack.Navigator>
     <Stack.Screen
       name={Routes.NOTIFICATIONS.VIEW}
