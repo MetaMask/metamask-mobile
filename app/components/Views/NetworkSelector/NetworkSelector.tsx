@@ -249,13 +249,23 @@ const NetworkSelector = () => {
     </View>
   );
 
+  const renderTitle = (title: String) => (
+    <View style={styles.switchContainer}>
+      <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>
+        {strings(title)}
+      </Text>
+    </View>
+  );
+
   return (
     <BottomSheet ref={sheetRef}>
       <SheetHeader title={strings('networks.select_network')} />
       <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
+        {renderTitle('networks.enabled_networks')}
         {renderMainnet()}
         {renderLineaMainnet()}
         {renderRpcNetworks()}
+        {renderTitle('networks.additional_networks')}
         {renderTestNetworksSwitch()}
         {showTestNetworks && renderOtherNetworks()}
       </ScrollView>
