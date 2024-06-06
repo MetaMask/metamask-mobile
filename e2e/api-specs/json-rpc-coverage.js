@@ -20,6 +20,7 @@ import { loginToApp } from '../viewHelper';
 import ExamplesRule from '@open-rpc/test-coverage/build/rules/examples-rule';
 import ConfirmationsRejectRule from './ConfirmationsRejectionRule';
 import { createDriverTransport } from './helpers';
+import { BrowserViewSelectorsIDs } from '../selectors/Browser/BrowserView.selectors';
 
 const port = 8545;
 const chainId = 1337;
@@ -135,7 +136,8 @@ const main = async () => {
       await TabBarComponent.tapBrowser();
       await Browser.navigateToTestDApp();
 
-      const webElement = await web.element(by.web.tag('body'));
+      const myWebView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
+      const webElement = await myWebView.element(by.web.tag('body'));
       const transport = await createDriverTransport(webElement);
 
       const methodsWithConfirmations = [
