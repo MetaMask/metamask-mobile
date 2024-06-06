@@ -6,6 +6,7 @@ import {
   Linking,
   ImageBackground,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import AsyncStorage from '../../../store/async-storage-wrapper';
@@ -31,6 +32,7 @@ import backgroundImage from '../../../images/smart-transactions-opt-in-bg.png';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { useDispatch } from 'react-redux';
 import { updateOptInModalAppVersionSeen } from '../../../core/redux/slices/smartTransactions';
+import Routes from '../../../constants/navigation/Routes';
 
 const MODAL_MARGIN = 24;
 const MODAL_PADDING = 24;
@@ -137,6 +139,7 @@ const SmartTransactionsOptInModal = () => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const dispatch = useDispatch();
+  const navigation = useNavigation();
 
   const styles = createStyles(colors);
 
@@ -165,7 +168,9 @@ const SmartTransactionsOptInModal = () => {
     });
 
     hasOptedIn.current = false;
-    dismissModal();
+    navigation.navigate(Routes.SETTINGS_VIEW, {
+      screen: Routes.SETTINGS.ADVANCED_SETTINGS,
+    });
   };
 
   const handleDismiss = async () => {
