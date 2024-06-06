@@ -24,10 +24,7 @@ import Engine from '../../../core/Engine';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import {
   doENSReverseLookup,
   isDefaultAccountName,
@@ -38,6 +35,8 @@ import { useTheme } from '../../../util/theme';
 import styleSheet from './EditAccountName.styles';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const EditAccountName = () => {
   const { colors } = useTheme();
@@ -48,7 +47,7 @@ const EditAccountName = () => {
   const [ens, setEns] = useState<string>();
 
   const selectedAddress = useSelector(selectSelectedAddress);
-  const identities = useSelector(selectIdentities);
+  const internalAccounts = useSelector(selectInternalAccounts);
 
   const chainId = useSelector(selectChainId);
 
@@ -74,9 +73,15 @@ const EditAccountName = () => {
   }, [updateNavBar]);
 
   useEffect(() => {
-    const name = identities[selectedAddress].name;
+    const checksummedAddress = toChecksumHexAddress(selectedAddress);
+    const selectedAccount = internalAccounts.find(
+      (account) => account.address === checksummedAddress.toLowerCase(),
+    );
+
+    if (!selectedAccount) return;
+    const name = selectedAccount?.metadata.name;
     setAccountName(isDefaultAccountName(name) && ens ? ens : name);
-  }, [selectedAddress, identities, ens]);
+  }, [selectedAddress, internalAccounts, ens]);
 
   const onChangeName = (name: string) => {
     setAccountName(name);
