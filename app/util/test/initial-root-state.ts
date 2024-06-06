@@ -4,6 +4,7 @@ import { initialState as initialFiatOrdersState } from '../../reducers/fiatOrder
 import { initialState as initialSecurityState } from '../../reducers/security';
 import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
 import { initialState as initialSmartTransactions } from '../../core/redux/slices/smartTransactions';
+import { initialState as transactionMetrics } from '../../core/redux/slices/transactionMetrics';
 import initialBackgroundState from './initial-background-state.json';
 
 // Cast as unknown since there are still mock variables that do not correspond with the existing types
@@ -42,6 +43,7 @@ const initialRootState: RootState = {
   rpcEvents: undefined,
   accounts: undefined,
   inpageProvider: initialInpageProvider,
+  transactionMetrics,
 };
 
 export default initialRootState;

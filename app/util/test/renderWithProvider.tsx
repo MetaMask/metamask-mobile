@@ -43,7 +43,7 @@ export default function renderWithProvider(
     return <InnerProvider>{children}</InnerProvider>;
   };
 
-  return render(component, { wrapper: AllProviders });
+  return { ...render(component, { wrapper: AllProviders }), store };
 }
 
 export function renderScreen(
