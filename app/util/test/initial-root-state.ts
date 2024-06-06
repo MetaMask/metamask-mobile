@@ -4,6 +4,7 @@ import { initialState as initialFiatOrdersState } from '../../reducers/fiatOrder
 import { initialState as initialSecurityState } from '../../reducers/security';
 import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
 import { initialState as initialSmartTransactions } from '../../core/redux/slices/smartTransactions';
+import { initialState as transactionMetrics } from '../../core/redux/slices/transactionMetrics';
 import initialBackgroundState from './initial-background-state.json';
 
 // Cast because TypeScript is incorrectly inferring the type of this JSON object
@@ -41,6 +42,7 @@ const initialRootState: RootState = {
   rpcEvents: undefined,
   accounts: undefined,
   inpageProvider: initialInpageProvider,
+  transactionMetrics,
 };
 
 export default initialRootState;
