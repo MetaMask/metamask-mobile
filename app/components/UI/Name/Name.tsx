@@ -1,21 +1,21 @@
 /* eslint-disable react/prop-types */
-
 import React from 'react';
+import { TextProps, View } from 'react-native';
+
+import { useStyles } from '../../../component-library/hooks';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { NameProperties, NameType } from './Name.types';
-import { TextProps, View } from 'react-native';
-import useDisplayName, {
-  DisplayNameVariant,
-} from '../../hooks/DisplayName/useDisplayName';
-import { useStyles } from '../../../component-library/hooks';
-import styleSheet from './Name.styles';
-import Identicon from '../Identicon';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { renderShortAddress } from '../../../util/address';
+import useDisplayName, {
+  DisplayNameVariant,
+} from '../../hooks/DisplayName/useDisplayName';
+import Identicon from '../Identicon';
+import { NameProperties, NameType } from './Name.types';
+import styleSheet from './Name.styles';
 
 const NameLabel: React.FC<{
   displayNameVariant: DisplayNameVariant;
@@ -41,7 +41,7 @@ const UnknownEthereumAddress: React.FC<{ address: string }> = ({ address }) => {
     <View style={styles.base}>
       <Icon name={IconName.Question} />
       <NameLabel displayNameVariant={displayNameVariant} ellipsizeMode="middle">
-        {toChecksumAddress(address)}
+        {renderShortAddress(address, 5)}
       </NameLabel>
     </View>
   );

@@ -123,6 +123,9 @@ const initialState = {
           chainId: '0x1',
         },
       },
+      NftController: {
+        allNftContracts: {},
+      },
       TokenRatesController: {
         contractExchangeRates: {},
       },
