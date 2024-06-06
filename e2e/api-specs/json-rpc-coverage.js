@@ -130,10 +130,7 @@ const main = async () => {
     constructor(options) {
       this.driver = options.driver; // Pass element for detox instead of all the driver
       this.only = options.only;
-      this.rejectButtonInsteadOfCancel = [
-        'personal_sign',
-        'eth_signTypedData_v4',
-      ];
+      this.allCapsCancel = ['wallet_watchAsset'];
       this.requiresEthAccountsPermission = [
         'personal_sign',
         'eth_signTypedData_v4',
@@ -176,6 +173,8 @@ const main = async () => {
               await TestHelpers.delay(3000);
             }
 
+            // we need this because mobile doesnt support just raw json signTypedData, it requires a stringified version
+            // it was fixed and should get it in @metamask/message-manager@7.0.1
             if (call.methodName === 'eth_signTypedData_v4') {
               call.params[1] = JSON.stringify(call.params[1]);
             }
@@ -234,40 +233,14 @@ const main = async () => {
           resolve,
           reject,
           task: async () => {
-            if (call.methodName === 'wallet_addEthereumChain') {
-              const cancelButton = await Matchers.getElementByText('Cancel');
-              await Gestures.tap(cancelButton);
+            let cancelButton;
+            await TestHelpers.delay(1000);
+            if (this.allCapsCancel.includes(call.methodName)) {
+              cancelButton = await Matchers.getElementByText('CANCEL');
+            } else {
+              cancelButton = await Matchers.getElementByText('Cancel');
             }
-
-            if (call.methodName === 'wallet_switchEthereumChain') {
-              await TestHelpers.delay(3000);
-              const cancelButton = await Matchers.getElementByText('Cancel');
-              await Gestures.tap(cancelButton);
-            }
-
-            if (call.methodName === 'wallet_requestPermissions') {
-              await TestHelpers.delay(3000);
-              const cancelButton = await Matchers.getElementByText('Cancel');
-              await Gestures.tap(cancelButton);
-            }
-
-            if (call.methodName === 'personal_sign') {
-              await TestHelpers.delay(3000);
-              const cancelButton = await Matchers.getElementByText('Cancel');
-              await Gestures.tap(cancelButton);
-            }
-
-            if (call.methodName === 'eth_signTypedData_v4') {
-              await TestHelpers.delay(3000);
-              const cancelButton = await Matchers.getElementByText('Cancel');
-              await Gestures.tap(cancelButton);
-            }
-
-            if (call.methodName === 'wallet_watchAsset') {
-              await TestHelpers.delay(5000);
-              const cancelButton = await Matchers.getElementByText('CANCEL');
-              await Gestures.tap(cancelButton);
-            }
+            await Gestures.tap(cancelButton);
           },
         });
       });
@@ -325,8 +298,7 @@ const main = async () => {
       await TabBarComponent.tapBrowser();
       await Browser.navigateToTestDApp();
 
-      const webElement = await web.element(by.web.id('json-rpc-response'));
-      await webElement.scrollToView();
+      const webElement = await web.element(by.web.tag('body'));
 
       const pollResult = async () => {
         let result;
