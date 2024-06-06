@@ -19,6 +19,7 @@ import {
 
 const ButtonIcon = ({
   iconName,
+  onPress,
   onPressIn,
   onPressOut,
   style,
@@ -54,8 +55,9 @@ const ButtonIcon = ({
   return (
     <TouchableOpacity
       style={styles.base}
-      onPressIn={triggerOnPressedIn}
-      onPressOut={triggerOnPressedOut}
+      onPress={!isDisabled ? onPress : undefined}
+      onPressIn={!isDisabled ? triggerOnPressedIn : undefined}
+      onPressOut={!isDisabled ? triggerOnPressedOut : undefined}
       accessible
       activeOpacity={1}
       disabled={isDisabled}
