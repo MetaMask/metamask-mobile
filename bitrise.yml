@@ -1467,7 +1467,7 @@ meta:
     stack: osx-xcode-15.0.x
     machine_type_id: g2-m1-max.5core
 trigger_map:
-  - push_branch: e2e-e2e-json-rpc-coverage-tool
+  - push_branch: e2e-json-rpc-coverage-tool
     pipeline: run_ios_api_specs
   - push_branch: release/*
     pipeline: release_e2e_pipeline
