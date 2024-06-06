@@ -1,6 +1,5 @@
 import {
   DetectedTokensSelectorIDs,
-  DetectedTokensSelectorTexts,
 } from '../../selectors/wallet/DetectedTokensView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
