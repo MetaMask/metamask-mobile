@@ -28,7 +28,7 @@ import { protectWalletModalVisible } from '../../../../actions/user';
 import { createStyles } from './styles';
 
 import renderAnnouncementsDetails from './Announcements';
-import renderTXDetails from './TX';
+import renderOnChainDetails from './OnChain';
 import Header from './Header';
 
 interface Props {
@@ -79,8 +79,8 @@ const NotificationsDetails = ({ navigation, route }: Props) => {
   return (
     <ScrollView contentContainerStyle={styles.contentContainerWrapper}>
       {notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
-        ? renderAnnouncementsDetails(notification, styles, navigation)
-        : renderTXDetails({
+        ? renderAnnouncementsDetails({ notification, styles, navigation })
+        : renderOnChainDetails({
             notification,
             styles,
             theme,

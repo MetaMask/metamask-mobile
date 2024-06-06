@@ -165,8 +165,8 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
   if (value === '.') {
     throw new Error(
       '[number] while converting number ' +
-        tokenValue +
-        ' to token minimal util, invalid value',
+      tokenValue +
+      ' to token minimal util, invalid value',
     );
   }
   // Split it into a whole and fractional part
@@ -174,8 +174,8 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
   if (comps.length > 2) {
     throw new Error(
       '[number] while converting number ' +
-        tokenValue +
-        ' to token minimal util,  too many decimal points',
+      tokenValue +
+      ' to token minimal util,  too many decimal points',
     );
   }
   let whole = comps[0],
@@ -189,8 +189,8 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
   if (fraction.length > decimals) {
     throw new Error(
       '[number] while converting number ' +
-        tokenValue +
-        ' to token minimal util, too many decimal places',
+      tokenValue +
+      ' to token minimal util, too many decimal places',
     );
   }
   while (fraction.length < decimals) {
@@ -611,7 +611,7 @@ export function fastSplit(value, divider = '.') {
  * Calculates fiat balance of an asset
  *
  * @param {number|string} balance - Number corresponding to a balance of an asset
- * @param {number|null} conversionRate - ETH to current currency conversion rate
+ * @param {number|null|undefined} conversionRate - ETH to current currency conversion rate
  * @param {number|undefined} exchangeRate - Asset to ETH conversion rate
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
@@ -626,6 +626,7 @@ export function balanceToFiat(
     balance === undefined ||
     balance === null ||
     exchangeRate === undefined ||
+    conversionRate === undefined ||
     exchangeRate === 0
   ) {
     return undefined;

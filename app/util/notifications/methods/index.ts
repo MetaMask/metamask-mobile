@@ -1,7 +1,6 @@
 import { Alert } from 'react-native';
 import { utils as ethersUtils } from 'ethers';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
-import { getBlockExplorerTxUrl } from '../../../util/networks';
 import {
   IconColor,
   IconName,
@@ -142,34 +141,6 @@ export function formatDate(createdAt: Date) {
     month: 'short',
     day: 'numeric',
   });
-}
-
-export function viewOnEtherscan(props: ViewOnEtherscanProps, state: any) {
-  const {
-    navigation,
-    transactionObject: { networkID },
-    transactionDetails: { transactionHash },
-    providerConfig: { type },
-    close,
-  } = props;
-  const { rpcBlockExplorer } = state;
-  try {
-    const { url, title } = getBlockExplorerTxUrl(
-      type,
-      transactionHash,
-      rpcBlockExplorer,
-    );
-    navigation.push('Webview', {
-      screen: 'SimpleWebview',
-      params: { url, title },
-    });
-    close?.();
-  } catch (e: any) {
-    Logger.error(e, {
-      message: `can't get a block explorer link for network `,
-      networkID,
-    });
-  }
 }
 
 export function getNetwork(chain_id: HalRawNotification['chain_id']) {
@@ -642,42 +613,56 @@ export const requestPushNotificationsPermission = async () => {
   }
 };
 
-export function hasNetworkFeeFields(
+function hasNetworkFeeFields(
   notification: HalRawNotification,
 ): notification is HalRawNotificationsWithNetworkFields {
   return 'network_fee' in notification.data;
 }
 
-export const fetchTxReceipt = async (transactionHash: string) => {
-  const { TransactionController } = Engine.context;
-  return {
-    receipt: await TransactionController.getTxReceipt(transactionHash),
-    tx: await TransactionController.getTx(transactionHash),
-  };
-};
+async function fetchTxDetails(tx_hash: string) {
+  const { TransactionController } = Engine.context as any;
 
-const fetchTxDetails = async (transactionHash: string) => {
-  const { TransactionController } = Engine.context;
-  const receipt = await query(
-    TransactionController.ethQuery,
-    'getTransactionReceipt',
-    [transactionHash],
-  );
-  const transaction = await query(
-    TransactionController.ethQuery,
-    'getTransactionByHash',
-    [transactionHash],
-  );
+  try {
+    const receipt = await query(
+      TransactionController.ethQuery,
+      'getTransactionReceipt',
+      [tx_hash],
+    );
 
-  const block = await query(TransactionController.ethQuery, 'getBlockByHash', [
-    transactionHash,
-  ]);
-  return {
-    receipt,
-    transaction,
-    block,
-  };
-};
+    if (!receipt) {
+      throw new Error('Transaction receipt not found');
+    }
+
+    const block = await query(
+      TransactionController.ethQuery,
+      'getBlockByHash',
+      [receipt.blockHash, false],
+    );
+
+    if (!block) {
+      throw new Error('Transaction block not found');
+    }
+
+    const transaction = await query(
+      TransactionController.ethQuery,
+      'eth_getTransactionByHash',
+      [receipt.blockHash],
+    );
+
+    if (!transaction) {
+      throw new Error('Transaction not found');
+    }
+
+    return {
+      receipt,
+      transaction,
+      block,
+    };
+  } catch (error) {
+    console.error('Error fetching transaction details:', error);
+    throw error;
+  }
+}
 
 export const getNetworkFees = async (notification: HalRawNotification) => {
   if (!hasNetworkFeeFields(notification)) {

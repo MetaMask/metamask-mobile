@@ -3,25 +3,31 @@ import { Image, View } from 'react-native';
 
 import Button, {
   ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+} from '../../../../../component-library/components/Buttons/Button';
 
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Texts/Text';
 
-import { FeatureAnnouncementRawNotification } from '../../../../util/notifications';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { TypeLinkFields } from '../../../../util/notifications/types/featureAnnouncement/TypeLink';
+import { FeatureAnnouncementRawNotification } from '../../../../../util/notifications';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { TypeLinkFields } from '../../../../../util/notifications/types/featureAnnouncement/TypeLink';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-const PLACEHOLDER_IMG_URI = require('../../../../images/no-image-placeholder.jpeg');
+const PLACEHOLDER_IMG_URI = require('../../../../../images/no-image-placeholder.jpeg');
 
-const renderAnnouncementsDetails = (
-  notification: FeatureAnnouncementRawNotification,
-  styles: Record<string, any>,
-  navigation: any,
-) => {
+interface Props {
+  notification: FeatureAnnouncementRawNotification;
+  styles: Record<string, any>;
+  navigation: any;
+}
+
+const AnnouncementsDetails: React.FC<Props> = ({
+  notification,
+  styles,
+  navigation,
+}: Props) => {
   const handleCTAPress = () => {
     // TODO: Currently handling CTAs with external links only. For now, we aren't handling deeplinks.
     const { link } = notification.data as unknown as {
@@ -73,4 +79,4 @@ const renderAnnouncementsDetails = (
   );
 };
 
-export default renderAnnouncementsDetails;
+export default AnnouncementsDetails;

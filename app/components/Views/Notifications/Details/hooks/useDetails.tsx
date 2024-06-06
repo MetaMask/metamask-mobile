@@ -4,50 +4,48 @@ import { useSelector } from 'react-redux';
 
 import Badge, {
   BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
-import RemoteImage from '../../../Base/RemoteImage';
+} from '../../../../../component-library/components/Badges/Badge';
+import RemoteImage from '../../../../Base/RemoteImage';
 import NftFallbackImage from '../../../../../docs/assets/nft-fallback.png';
 import Avatar, {
   AvatarAccountType,
   AvatarSize,
   AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
-import EthereumAddress from '../../../UI/EthereumAddress';
+} from '../../../../../component-library/components/Avatars/Avatar';
+import EthereumAddress from '../../../../UI/EthereumAddress';
 
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Texts/Text';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+} from '../../../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
 
-import { balanceToFiat } from '../../../../util/number';
+import { balanceToFiat } from '../../../../../util/number';
 
 import {
   TRIGGER_TYPES,
   TxStatus,
   returnAvatarProps,
-  HalRawNotification,
   STAKING_PROVIDER_MAP,
-} from '../../../../util/notifications';
+} from '../../../../../util/notifications';
 
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import { createStyles } from './styles';
-import { Theme } from '../../../../util/theme/models';
-import NotificationBadge from './Badge';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+} from '../../../../../component-library/components/Icons/Icon';
+import { createStyles } from '../styles';
+import { Theme } from '../../../../../util/theme/models';
+import NotificationBadge from '../Badge';
+import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
+import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 
 interface useDetailsProps {
-  notification: HalRawNotification;
   theme: Theme;
   accountAvatarType?: AvatarAccountType;
   navigation: any;
@@ -55,7 +53,6 @@ interface useDetailsProps {
 }
 
 const useDetails = ({
-  notification,
   theme,
   accountAvatarType,
   navigation,
@@ -488,11 +485,11 @@ const useDetails = ({
 
       return (
         <>
-          {renderAddress({
+          {/* {renderAddress({
             key: 'from',
             address: from, // TODO: change from and to to request_id ???
             actionType: type,
-          })}
+          })} */}
           {renderAsset({
             type,
             title: strings('notifications.swap'),
@@ -511,7 +508,7 @@ const useDetails = ({
         </>
       );
     },
-    [renderAddress, renderAsset, renderNetwork, renderRate, renderStatus],
+    [renderAsset, renderNetwork, renderRate, renderStatus],
   );
 
   return {

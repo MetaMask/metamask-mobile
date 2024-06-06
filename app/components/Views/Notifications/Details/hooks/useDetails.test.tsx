@@ -3,10 +3,10 @@ import useDetails from './useDetails';
 import {
   HalRawNotification,
   TRIGGER_TYPES,
-} from '../../../../util/notifications';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
-import { mockTheme } from '../../../../util/theme';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+} from '../../../../../util/notifications';
+import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
+import { mockTheme } from '../../../../../util/theme';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

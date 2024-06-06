@@ -4,9 +4,9 @@ import { View } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../util/theme';
-import { createStyles } from './styles';
+} from '../../../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../../../util/theme';
+import { createStyles } from '../styles';
 
 const Header = ({ title, subtitle }: { title: string; subtitle: string }) => {
   const theme = useTheme();

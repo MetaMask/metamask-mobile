@@ -1,8 +1,9 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
+import { useSelector } from 'react-redux';
 
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 
 import {
   getRowDetails,
@@ -10,20 +11,26 @@ import {
   HalRawNotificationsWithNetworkFields,
   Notification,
   TRIGGER_TYPES,
-} from '../../../../util/notifications';
+} from '../../../../../util/notifications';
 
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
-import { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet';
+import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
+import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Button, {
   ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+} from '../../../../../component-library/components/Buttons/Button';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
-import { Theme } from '../../../../util/theme/models';
-import useDetails from './useDetails';
-import NetworkFee from './NetworkFee';
+import { Theme } from '../../../../../util/theme/models';
+import useDetails from '../hooks/useDetails';
+import NetworkFee from '../NetworkFee';
+import {
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../../../selectors/networkController';
 
-interface TXDetailsProps {
+import useBlockExplorer from '../../../../../components/UI/Swaps/utils/useBlockExplorer.js';
+
+interface OnChainDetailsProps {
   notification: HalRawNotification;
   styles: Record<string, any>;
   theme: Theme;
@@ -32,17 +39,24 @@ interface TXDetailsProps {
   copyToClipboard: (type: string, selectedString?: string) => Promise<void>;
 }
 
-const TXDetails = ({
+const OnChainDetails = ({
   notification,
   styles,
   theme,
   accountAvatarType,
   navigation,
   copyToClipboard,
-}: TXDetailsProps) => {
+}: OnChainDetailsProps) => {
   const [notificationDetails, setNotificationDetails] =
     useState<Record<string, any>>();
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  const providerConfig = useSelector(selectProviderConfig);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
+
+  const handleExplorerLinkPress = useCallback((url: string) => {
+    Linking.openURL(url);
+  }, []);
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -53,7 +67,6 @@ const TXDetails = ({
     renderStakeReadyToBeWithdrawn,
     renderSwap,
   } = useDetails({
-    notification,
     theme,
     accountAvatarType,
     navigation,
@@ -114,12 +127,13 @@ const TXDetails = ({
         variant={ButtonVariants.Secondary}
         label={strings('transactions.view_on_etherscan')}
         style={styles.ctaBtn}
-        // eslint-disable-next-line no-console
-        onPress={() => console.log('View on etherscan')}
+        onPress={() =>
+          handleExplorerLinkPress(explorer.tx(notification.tx_hash))
+        }
         endIconName={IconName.Arrow2Upright}
       />
     </View>
   );
 };
 
-export default TXDetails;
+export default OnChainDetails;
