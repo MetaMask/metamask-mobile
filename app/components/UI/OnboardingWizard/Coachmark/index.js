@@ -12,6 +12,7 @@ import ButtonIcon from '../../../../component-library/components/Buttons/ButtonI
 import {
   IconName,
   IconSize,
+  IconColor,
 } from '../../../../component-library/components/Icons/Icon';
 import { typography } from '@metamask/design-tokens';
 import {
@@ -383,7 +384,6 @@ export default class Coachmark extends PureComponent {
     } = this.props;
     const style = this.props.style || {};
     const coachmarkStyle = this.props.coachmarkStyle || {};
-    const colors = this.context.colors || mockTheme.colors;
     const styles = this.getStyles();
 
     return (
@@ -400,7 +400,7 @@ export default class Coachmark extends PureComponent {
                 iconName={IconName.Arrow2Left}
                 size={IconSize.Sm}
                 onPress={this.onBack}
-                iconColorOverride={colors.primary.inverse}
+                iconColor={IconColor.Inverse}
                 testID={OnboardingWizardModalSelectorsIDs.BACK_BUTTON}
               />
             ) : (
@@ -411,7 +411,7 @@ export default class Coachmark extends PureComponent {
               iconName={IconName.Close}
               size={IconSize.Sm}
               onPress={onClose}
-              iconColorOverride={colors.primary.inverse}
+              iconColor={IconColor.Inverse}
             />
           </View>
           {content}
