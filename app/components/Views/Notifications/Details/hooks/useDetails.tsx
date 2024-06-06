@@ -6,7 +6,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import RemoteImage from '../../../../Base/RemoteImage';
-import NftFallbackImage from '../../../../../docs/assets/nft-fallback.png';
+import NftFallbackImage from '../../../../../../docs/assets/nft-fallback.png';
 import Avatar, {
   AvatarAccountType,
   AvatarSize,
