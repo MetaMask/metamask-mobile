@@ -10,10 +10,33 @@ import {
   internalAccount2,
 } from '../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../reducers';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
+
+const mockChecksummedInternalAcc1 = toChecksumHexAddress(
+  internalAccount1.address,
+);
+const mockChecksummedInternalAcc2 = toChecksumHexAddress(
+  internalAccount2.address,
+);
 
 const oldState = {
   engine: {
     backgroundState: {
+      PreferencesController: {
+        identities: {
+          [mockChecksummedInternalAcc1]: {
+            address: mockChecksummedInternalAcc1,
+            name: 'Internal Account 1',
+            //Fake time for testing
+            importTime: 123,
+          },
+          [mockChecksummedInternalAcc2]: {
+            address: mockChecksummedInternalAcc2,
+            name: 'Internal Account 2',
+            //No importTime set for the test the default Date.now
+          },
+        },
+      },
       AccountsController: {
         internalAccounts: {
           accounts: {
@@ -92,13 +115,27 @@ describe('Migration #42', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            AccountsController: { internalAccounts: { accounts: null } },
+            PreferencesController: null,
+            AccountsController: { internalAccounts: { accounts: {} } },
           },
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 42: Invalid AccountsController internalAccounts accounts state error: 'null'",
-      scenario: 'AccountsController internalAccounts accounts state is invalid',
+        "FATAL ERROR: Migration 42: Invalid PreferencesController state error: 'null'",
+      scenario: 'PreferencesController state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            PreferencesController: { identities: null },
+            AccountsController: { internalAccounts: { accounts: {} } },
+          },
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 42: Invalid PreferencesController identities state error: 'null'",
+      scenario: 'PreferencesController identities state is invalid',
     },
   ];
 
@@ -114,7 +151,7 @@ describe('Migration #42', () => {
     });
   }
 
-  it('should add importTime variable if it is not already defined', () => {
+  it('should add importTime from identities or default to the current date', () => {
     // Mocked Date.now since jest is not aware of date.
     jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-01-01').getTime());
     const newState: Partial<RootState> = migration(
@@ -124,11 +161,28 @@ describe('Migration #42', () => {
     Object.keys(
       newState.engine!.backgroundState.AccountsController.internalAccounts
         .accounts,
-    ).map((accountId) =>
+    ).map((accountId) => {
       expect(
         newState.engine!.backgroundState.AccountsController.internalAccounts
           .accounts[accountId].metadata.importTime,
-      ).toBeDefined(),
-    );
+      ).toBeDefined();
+
+      Object.values(
+        newState.engine!.backgroundState.PreferencesController.identities,
+      ).map((identity) => {
+        if (
+          identity.importTime &&
+          toChecksumHexAddress(
+            newState.engine!.backgroundState.AccountsController.internalAccounts
+              .accounts[accountId].address,
+          ) === identity.address
+        ) {
+          expect(
+            newState.engine!.backgroundState.AccountsController.internalAccounts
+              .accounts[accountId].metadata.importTime,
+          ).toStrictEqual(identity.importTime);
+        }
+      });
+    });
   });
 });
