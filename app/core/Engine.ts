@@ -389,7 +389,7 @@ class Engine {
   /**
    * Object that runs and manages the execution of Snaps
    */
-  snapExecutionService: typeof WebViewExecutionService;
+  snapExecutionService: WebViewExecutionService;
 
   ///: END:ONLY_INCLUDE_IF
 
