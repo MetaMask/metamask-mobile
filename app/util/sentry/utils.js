@@ -92,8 +92,8 @@ function removeDeviceName(report) {
  * @param {*} report - the error event
  */
 function removeSES(report) {
-  if (report.exception && report.exception.values) {
-    const stacktraceFrames = report.exception.values[0].stacktrace.frames;
+  const stacktraceFrames = report?.exception?.values[0]?.stacktrace?.frames;
+  if (stacktraceFrames) {
     const filteredFrames = stacktraceFrames.filter(
       (frame) => frame.filename !== 'app:///ses.cjs',
     );
