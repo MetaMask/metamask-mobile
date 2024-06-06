@@ -1,0 +1,134 @@
+diff --git a/node_modules/@metamask/keyring-controller/.PATCH.txt b/node_modules/@metamask/keyring-controller/.PATCH.txt
+new file mode 100644
+index 0000000..d4ec678
+--- /dev/null
++++ b/node_modules/@metamask/keyring-controller/.PATCH.txt
+@@ -0,0 +1,8 @@
++Patch for @metamask/keyring-controller v16.0.0
++
++The method `#addQRKeyring` has been updated to fix the extension issue 23804, The intial code added
++a empty accounts as argument when creating a new QR keyring. cause the new Keystone MetamaskKeyring
++default properties all are undefined during deserialise() process. Please refer to PR 23903 for
++detail.
++
++This patch can be found on the core branch `keyring-controller-v16-patch`
+diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.js b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
+index 5b557f5..ff65f14 100644
+--- a/node_modules/@metamask/keyring-controller/dist/KeyringController.js
++++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
+@@ -7,7 +7,7 @@
+ 
+ 
+ 
+-var _chunk2GJQ6KDWjs = require('./chunk-2GJQ6KDW.js');
++var _chunkEGSSQX6Ljs = require('./chunk-EGSSQX6L.js');
+ require('./chunk-ZGV2QNCG.js');
+ 
+ 
+@@ -18,5 +18,5 @@ require('./chunk-ZGV2QNCG.js');
+ 
+ 
+ 
+-exports.AccountImportStrategy = _chunk2GJQ6KDWjs.AccountImportStrategy; exports.KeyringController = _chunk2GJQ6KDWjs.KeyringController; exports.KeyringTypes = _chunk2GJQ6KDWjs.KeyringTypes; exports.SignTypedDataVersion = _chunk2GJQ6KDWjs.SignTypedDataVersion; exports.default = _chunk2GJQ6KDWjs.KeyringController_default; exports.getDefaultKeyringState = _chunk2GJQ6KDWjs.getDefaultKeyringState; exports.isCustodyKeyring = _chunk2GJQ6KDWjs.isCustodyKeyring; exports.keyringBuilderFactory = _chunk2GJQ6KDWjs.keyringBuilderFactory;
++exports.AccountImportStrategy = _chunkEGSSQX6Ljs.AccountImportStrategy; exports.KeyringController = _chunkEGSSQX6Ljs.KeyringController; exports.KeyringTypes = _chunkEGSSQX6Ljs.KeyringTypes; exports.SignTypedDataVersion = _chunkEGSSQX6Ljs.SignTypedDataVersion; exports.default = _chunkEGSSQX6Ljs.KeyringController_default; exports.getDefaultKeyringState = _chunkEGSSQX6Ljs.getDefaultKeyringState; exports.isCustodyKeyring = _chunkEGSSQX6Ljs.isCustodyKeyring; exports.keyringBuilderFactory = _chunkEGSSQX6Ljs.keyringBuilderFactory;
+ //# sourceMappingURL=KeyringController.js.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.mjs b/node_modules/@metamask/keyring-controller/dist/KeyringController.mjs
+index 6d75e83..f45940f 100644
+--- a/node_modules/@metamask/keyring-controller/dist/KeyringController.mjs
++++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.mjs
+@@ -7,7 +7,7 @@ import {
+   getDefaultKeyringState,
+   isCustodyKeyring,
+   keyringBuilderFactory
+-} from "./chunk-USAGXPFN.mjs";
++} from "./chunk-MQVFNKTH.mjs";
+ import "./chunk-4OE2G6WW.mjs";
+ export {
+   AccountImportStrategy,
+diff --git a/node_modules/@metamask/keyring-controller/dist/chunk-2GJQ6KDW.js b/node_modules/@metamask/keyring-controller/dist/chunk-EGSSQX6L.js
+similarity index 99%
+rename from node_modules/@metamask/keyring-controller/dist/chunk-2GJQ6KDW.js
+rename to node_modules/@metamask/keyring-controller/dist/chunk-EGSSQX6L.js
+index 81fdecf..3844651 100644
+--- a/node_modules/@metamask/keyring-controller/dist/chunk-2GJQ6KDW.js
++++ b/node_modules/@metamask/keyring-controller/dist/chunk-EGSSQX6L.js
+@@ -1113,9 +1113,7 @@ getKeyringBuilderForType_fn = function(type) {
+ _addQRKeyring = new WeakSet();
+ addQRKeyring_fn = async function() {
+   _chunkZGV2QNCGjs.__privateMethod.call(void 0, this, _assertControllerMutexIsLocked, assertControllerMutexIsLocked_fn).call(this);
+-  return await _chunkZGV2QNCGjs.__privateMethod.call(void 0, this, _newKeyring, newKeyring_fn).call(this, "QR Hardware Wallet Device" /* qr */, {
+-    accounts: []
+-  });
++  return await _chunkZGV2QNCGjs.__privateMethod.call(void 0, this, _newKeyring, newKeyring_fn).call(this, "QR Hardware Wallet Device" /* qr */);
+ };
+ _subscribeToQRKeyringEvents = new WeakSet();
+ subscribeToQRKeyringEvents_fn = function(qrKeyring) {
+@@ -1465,4 +1463,4 @@ var KeyringController_default = KeyringController;
+ 
+ 
+ exports.KeyringTypes = KeyringTypes; exports.isCustodyKeyring = isCustodyKeyring; exports.AccountImportStrategy = AccountImportStrategy; exports.SignTypedDataVersion = SignTypedDataVersion; exports.keyringBuilderFactory = keyringBuilderFactory; exports.getDefaultKeyringState = getDefaultKeyringState; exports.KeyringController = KeyringController; exports.KeyringController_default = KeyringController_default;
+-//# sourceMappingURL=chunk-2GJQ6KDW.js.map
+\ No newline at end of file
++//# sourceMappingURL=chunk-EGSSQX6L.js.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/keyring-controller/dist/chunk-USAGXPFN.mjs b/node_modules/@metamask/keyring-controller/dist/chunk-MQVFNKTH.mjs
+similarity index 99%
+rename from node_modules/@metamask/keyring-controller/dist/chunk-USAGXPFN.mjs
+rename to node_modules/@metamask/keyring-controller/dist/chunk-MQVFNKTH.mjs
+index 0cf6255..6b769d8 100644
+--- a/node_modules/@metamask/keyring-controller/dist/chunk-USAGXPFN.mjs
++++ b/node_modules/@metamask/keyring-controller/dist/chunk-MQVFNKTH.mjs
+@@ -1113,9 +1113,7 @@ getKeyringBuilderForType_fn = function(type) {
+ _addQRKeyring = new WeakSet();
+ addQRKeyring_fn = async function() {
+   __privateMethod(this, _assertControllerMutexIsLocked, assertControllerMutexIsLocked_fn).call(this);
+-  return await __privateMethod(this, _newKeyring, newKeyring_fn).call(this, "QR Hardware Wallet Device" /* qr */, {
+-    accounts: []
+-  });
++  return await __privateMethod(this, _newKeyring, newKeyring_fn).call(this, "QR Hardware Wallet Device" /* qr */);
+ };
+ _subscribeToQRKeyringEvents = new WeakSet();
+ subscribeToQRKeyringEvents_fn = function(qrKeyring) {
+@@ -1465,4 +1463,4 @@ export {
+   KeyringController,
+   KeyringController_default
+ };
+-//# sourceMappingURL=chunk-USAGXPFN.mjs.map
+\ No newline at end of file
++//# sourceMappingURL=chunk-MQVFNKTH.mjs.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/keyring-controller/dist/index.js b/node_modules/@metamask/keyring-controller/dist/index.js
+index 35b2a0f..655541f 100644
+--- a/node_modules/@metamask/keyring-controller/dist/index.js
++++ b/node_modules/@metamask/keyring-controller/dist/index.js
+@@ -6,7 +6,7 @@
+ 
+ 
+ 
+-var _chunk2GJQ6KDWjs = require('./chunk-2GJQ6KDW.js');
++var _chunkEGSSQX6Ljs = require('./chunk-EGSSQX6L.js');
+ require('./chunk-ZGV2QNCG.js');
+ 
+ 
+@@ -16,5 +16,5 @@ require('./chunk-ZGV2QNCG.js');
+ 
+ 
+ 
+-exports.AccountImportStrategy = _chunk2GJQ6KDWjs.AccountImportStrategy; exports.KeyringController = _chunk2GJQ6KDWjs.KeyringController; exports.KeyringTypes = _chunk2GJQ6KDWjs.KeyringTypes; exports.SignTypedDataVersion = _chunk2GJQ6KDWjs.SignTypedDataVersion; exports.getDefaultKeyringState = _chunk2GJQ6KDWjs.getDefaultKeyringState; exports.isCustodyKeyring = _chunk2GJQ6KDWjs.isCustodyKeyring; exports.keyringBuilderFactory = _chunk2GJQ6KDWjs.keyringBuilderFactory;
++exports.AccountImportStrategy = _chunkEGSSQX6Ljs.AccountImportStrategy; exports.KeyringController = _chunkEGSSQX6Ljs.KeyringController; exports.KeyringTypes = _chunkEGSSQX6Ljs.KeyringTypes; exports.SignTypedDataVersion = _chunkEGSSQX6Ljs.SignTypedDataVersion; exports.getDefaultKeyringState = _chunkEGSSQX6Ljs.getDefaultKeyringState; exports.isCustodyKeyring = _chunkEGSSQX6Ljs.isCustodyKeyring; exports.keyringBuilderFactory = _chunkEGSSQX6Ljs.keyringBuilderFactory;
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/keyring-controller/dist/index.mjs b/node_modules/@metamask/keyring-controller/dist/index.mjs
+index ba28e4a..443b073 100644
+--- a/node_modules/@metamask/keyring-controller/dist/index.mjs
++++ b/node_modules/@metamask/keyring-controller/dist/index.mjs
+@@ -6,7 +6,7 @@ import {
+   getDefaultKeyringState,
+   isCustodyKeyring,
+   keyringBuilderFactory
+-} from "./chunk-USAGXPFN.mjs";
++} from "./chunk-MQVFNKTH.mjs";
+ import "./chunk-4OE2G6WW.mjs";
+ export {
+   AccountImportStrategy,

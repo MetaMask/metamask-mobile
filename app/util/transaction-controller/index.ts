@@ -89,3 +89,7 @@ export function wipeTransactions(
   const { TransactionController } = Engine.context;
   return TransactionController.wipeTransactions(...args);
 }
+
+export function isTransactionSimulationsFeatureEnabled() {
+  return process.env.MM_TRANSACTION_SIMULATIONS_ENABLED === 'true';
+}

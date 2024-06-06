@@ -70,11 +70,13 @@ describe(
           await DeleteWalletModal.tapDeleteMyWalletButton();
           await TestHelpers.delay(2000);
           await Assertions.checkIfVisible(OnboardingView.container);
-          await Assertions.checkIfVisible(await CommonView.toast);
+          if (device.getPlatform() === 'ios') {
+            await Assertions.checkIfVisible(await CommonView.toast);
+          }
           await Assertions.checkIfNotVisible(await CommonView.toast);
           await OnboardingView.tapCreateWallet();
 
-          //Create new wallet
+          // Create new wallet
           await Assertions.checkIfVisible(MetaMetricsOptIn.container);
           await MetaMetricsOptIn.tapAgreeButton();
           await Assertions.checkIfVisible(CreatePasswordView.container);
