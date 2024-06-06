@@ -23,7 +23,7 @@ import { createDriverTransport } from './helpers';
 import { BrowserViewSelectorsIDs } from '../selectors/Browser/BrowserView.selectors';
 
 const port = 8545;
-const chainId = 1337;
+const chainId = 1338;
 
 const main = async () => {
   const openrpcDocument = await parseOpenRPCDocument(
@@ -51,6 +51,22 @@ const main = async () => {
       result: {
         name: 'wallet_switchEthereumChain',
         value: null,
+      },
+    },
+  ];
+
+  const chainIdMethod = openrpcDocument.methods.find(
+    (m) => m.name === 'eth_chainId',
+  );
+
+  chainIdMethod.examples = [
+    {
+      name: 'chainIdExample',
+      description: 'Example of a chainId request',
+      params: [],
+      result: {
+        name: 'chainIdResult',
+        value: `0x${chainId.toString(16)}`,
       },
     },
   ];
