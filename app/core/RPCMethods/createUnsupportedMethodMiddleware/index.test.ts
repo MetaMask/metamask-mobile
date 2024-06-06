@@ -2,10 +2,6 @@ import { jsonrpc2 } from '@metamask/utils';
 import { UNSUPPORTED_RPC_METHODS } from '../utils';
 import createUnsupportedMethodMiddleware from '.';
 
-jest.mock('../utils', () => ({
-  UNSUPPORTED_RPC_METHODS: new Set(['dummy_rpc_method']),
-}));
-
 describe('createUnsupportedMethodMiddleware', () => {
   const getMockRequest = (method: string) => ({
     jsonrpc: jsonrpc2,
