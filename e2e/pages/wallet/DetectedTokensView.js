@@ -13,8 +13,6 @@ class DetectedTokensView {
   }
 
   async tapImport() {
-    //TODO: import button is dynamic and we should use regex to tap button text
-    // await Gestures.tapTextBeginingWith('Import');
     await Gestures.waitAndTap(this.importButton);
   }
 }
