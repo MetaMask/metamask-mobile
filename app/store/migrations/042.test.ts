@@ -2,56 +2,29 @@ import migration from './042';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
-import {
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
-  expectedUuid,
-  expectedUuid2,
-  internalAccount1,
-  internalAccount2,
-} from '../../util/test/accountsControllerTestUtils';
-import { RootState } from '../../reducers';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
-
-const mockChecksummedInternalAcc1 = toChecksumHexAddress(
-  internalAccount1.address,
-);
-const mockChecksummedInternalAcc2 = toChecksumHexAddress(
-  internalAccount2.address,
-);
 
 const oldState = {
   engine: {
     backgroundState: {
-      PreferencesController: {
-        identities: {
-          [mockChecksummedInternalAcc1]: {
-            address: mockChecksummedInternalAcc1,
-            name: 'Internal Account 1',
-            //Fake time for testing
-            importTime: 123,
-          },
-          [mockChecksummedInternalAcc2]: {
-            address: mockChecksummedInternalAcc2,
-            name: 'Internal Account 2',
-            //No importTime set for the test the default Date.now
-          },
-        },
+      GasFeeController: {
+        gasFeeEstimates: {},
+        estimatedGasFeeTimeBounds: {},
+        gasEstimateType: 'none',
+        gasFeeEstimatesByChainId: {},
       },
-      AccountsController: {
-        internalAccounts: {
-          accounts: {
-            //importTime variable didn't exist on the old state
-            [expectedUuid]: {
-              ...internalAccount1,
-              metadata: { ...internalAccount1.metadata, importTime: undefined },
-            },
-            [expectedUuid2]: {
-              ...internalAccount2,
-              metadata: { ...internalAccount2.metadata, importTime: undefined },
-            },
-          },
-          selectedAccount: {},
-        },
+    },
+  },
+};
+
+const expectedNewState = {
+  engine: {
+    backgroundState: {
+      GasFeeController: {
+        gasFeeEstimates: {},
+        estimatedGasFeeTimeBounds: {},
+        gasEstimateType: 'none',
+        gasFeeEstimatesByChainId: {},
+        nonRPCGasFeeApisDisabled: false,
       },
     },
   },
@@ -91,57 +64,19 @@ describe('Migration #42', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            AccountsController: null,
+            GasFeeController: null,
           },
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 42: Invalid AccountsController state error: 'null'",
-      scenario: 'AccountsController state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            AccountsController: { internalAccounts: null },
-          },
-        },
-      }),
-      errorMessage:
-        "FATAL ERROR: Migration 42: Invalid AccountsController internalAccounts state error: 'null'",
-      scenario: 'AccountsController internalAccounts state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            PreferencesController: null,
-            AccountsController: { internalAccounts: { accounts: {} } },
-          },
-        },
-      }),
-      errorMessage:
-        "FATAL ERROR: Migration 42: Invalid PreferencesController state error: 'null'",
-      scenario: 'PreferencesController state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            PreferencesController: { identities: null },
-            AccountsController: { internalAccounts: { accounts: {} } },
-          },
-        },
-      }),
-      errorMessage:
-        "FATAL ERROR: Migration 42: Invalid PreferencesController identities state error: 'null'",
-      scenario: 'PreferencesController identities state is invalid',
+        "FATAL ERROR: Migration 42: Invalid GasFeeController state error: 'null'",
+      scenario: 'GasFeeController state is invalid',
     },
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, () => {
-      const newState = migration(state);
+    it(`should capture exception if ${scenario}`, async () => {
+      const newState = await migration(state);
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
@@ -151,38 +86,13 @@ describe('Migration #42', () => {
     });
   }
 
-  it('should add importTime from identities or default to the current date', () => {
-    // Mocked Date.now since jest is not aware of date.
-    jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-01-01').getTime());
-    const newState: Partial<RootState> = migration(
-      oldState,
-    ) as Partial<RootState>;
+  it('should contain new property nonRPCGasFeeApisDisabled = false in GasFeeController state ', async () => {
+    const newState = await migration(oldState);
+    expect(newState).toStrictEqual(expectedNewState);
 
-    Object.keys(
-      newState.engine!.backgroundState.AccountsController.internalAccounts
-        .accounts,
-    ).map((accountId) => {
-      expect(
-        newState.engine!.backgroundState.AccountsController.internalAccounts
-          .accounts[accountId].metadata.importTime,
-      ).toBeDefined();
-
-      Object.values(
-        newState.engine!.backgroundState.PreferencesController.identities,
-      ).map((identity) => {
-        if (
-          identity.importTime &&
-          toChecksumHexAddress(
-            newState.engine!.backgroundState.AccountsController.internalAccounts
-              .accounts[accountId].address,
-          ) === identity.address
-        ) {
-          expect(
-            newState.engine!.backgroundState.AccountsController.internalAccounts
-              .accounts[accountId].metadata.importTime,
-          ).toStrictEqual(identity.importTime);
-        }
-      });
-    });
+    expect(
+      // @ts-expect-error: ignore for testing purposes: new state is type unknown
+      newState.engine.backgroundState.GasFeeController.nonRPCGasFeeApisDisabled,
+    ).toEqual(false);
   });
 });

@@ -1,0 +1,187 @@
+import migration from './043';
+import { merge } from 'lodash';
+import initialRootState from '../../util/test/initial-root-state';
+import { captureException } from '@sentry/react-native';
+import {
+  expectedUuid,
+  expectedUuid2,
+  internalAccount1,
+  internalAccount2,
+} from '../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../reducers';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
+
+const mockChecksummedInternalAcc1 = toChecksumHexAddress(
+  internalAccount1.address,
+);
+const mockChecksummedInternalAcc2 = toChecksumHexAddress(
+  internalAccount2.address,
+);
+
+const oldState = {
+  engine: {
+    backgroundState: {
+      PreferencesController: {
+        identities: {
+          [mockChecksummedInternalAcc1]: {
+            address: mockChecksummedInternalAcc1,
+            name: 'Internal Account 1',
+            //Fake time for testing
+            importTime: 123,
+          },
+          [mockChecksummedInternalAcc2]: {
+            address: mockChecksummedInternalAcc2,
+            name: 'Internal Account 2',
+            //No importTime set for the test the default Date.now
+          },
+        },
+      },
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            //importTime variable didn't exist on the old state
+            [expectedUuid]: {
+              ...internalAccount1,
+              metadata: { ...internalAccount1.metadata, importTime: undefined },
+            },
+            [expectedUuid2]: {
+              ...internalAccount2,
+              metadata: { ...internalAccount2.metadata, importTime: undefined },
+            },
+          },
+          selectedAccount: {},
+        },
+      },
+    },
+  },
+};
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+const mockedCaptureException = jest.mocked(captureException);
+
+describe('Migration #43', () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    jest.resetAllMocks();
+  });
+
+  const invalidStates = [
+    {
+      state: merge({}, initialRootState, {
+        engine: null,
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 43: Invalid engine state error: 'object'",
+      scenario: 'engine state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: null,
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 43: Invalid engine backgroundState error: 'object'",
+      scenario: 'backgroundState is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AccountsController: null,
+          },
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 43: Invalid AccountsController state error: 'null'",
+      scenario: 'AccountsController state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AccountsController: { internalAccounts: null },
+          },
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 43: Invalid AccountsController internalAccounts state error: 'null'",
+      scenario: 'AccountsController internalAccounts state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            PreferencesController: null,
+            AccountsController: { internalAccounts: { accounts: {} } },
+          },
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 43: Invalid PreferencesController state error: 'null'",
+      scenario: 'PreferencesController state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            PreferencesController: { identities: null },
+            AccountsController: { internalAccounts: { accounts: {} } },
+          },
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 43: Invalid PreferencesController identities state error: 'null'",
+      scenario: 'PreferencesController identities state is invalid',
+    },
+  ];
+
+  for (const { errorMessage, scenario, state } of invalidStates) {
+    it(`should capture exception if ${scenario}`, () => {
+      const newState = migration(state);
+
+      expect(newState).toStrictEqual(state);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        errorMessage,
+      );
+    });
+  }
+
+  it('should add importTime from identities or default to the current date', () => {
+    // Mocked Date.now since jest is not aware of date.
+    jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-01-01').getTime());
+    const newState: Partial<RootState> = migration(
+      oldState,
+    ) as Partial<RootState>;
+
+    Object.keys(
+      newState.engine!.backgroundState.AccountsController.internalAccounts
+        .accounts,
+    ).map((accountId) => {
+      expect(
+        newState.engine!.backgroundState.AccountsController.internalAccounts
+          .accounts[accountId].metadata.importTime,
+      ).toBeDefined();
+
+      Object.values(
+        newState.engine!.backgroundState.PreferencesController.identities,
+      ).map((identity) => {
+        if (
+          identity.importTime &&
+          toChecksumHexAddress(
+            newState.engine!.backgroundState.AccountsController.internalAccounts
+              .accounts[accountId].address,
+          ) === identity.address
+        ) {
+          expect(
+            newState.engine!.backgroundState.AccountsController.internalAccounts
+              .accounts[accountId].metadata.importTime,
+          ).toStrictEqual(identity.importTime);
+        }
+      });
+    });
+  });
+});
