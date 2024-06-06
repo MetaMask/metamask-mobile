@@ -274,11 +274,19 @@ const SettingsFlow = () => (
       name={Routes.RAMP.ACTIVATION_KEY_FORM}
       component={RampActivationKeyForm}
     />
-    <Stack.Screen
-      name="AesCryptoTestForm"
-      component={AesCryptoTestForm}
-      options={AesCryptoTestForm.navigationOptions}
-    />
+    {/**
+     * @dev This screen is only for testing purposes for the AES crypto module and
+     * it should not be included in production builds.
+     *
+     * @see AesCryptoTestForm
+     */}
+    {__DEV__ && (
+      <Stack.Screen
+        name="AesCryptoTestForm"
+        component={AesCryptoTestForm}
+        options={AesCryptoTestForm.navigationOptions}
+      />
+    )}
     <Stack.Screen
       name="ExperimentalSettings"
       component={ExperimentalSettings}
