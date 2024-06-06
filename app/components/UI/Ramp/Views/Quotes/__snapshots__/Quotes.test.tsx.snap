@@ -1955,13 +1955,37 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
+                                <View
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
                                   accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
@@ -1974,6 +1998,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                   }
                                 >
                                   <SvgMock
+                                    accessibilityLabel="icon-Close"
                                     color="#24272A"
                                     height={16}
                                     name="Close"
@@ -1985,7 +2010,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                     }
                                     width={16}
                                   />
-                                </TouchableOpacity>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -3447,13 +3472,37 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
+                                <View
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
                                   accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
@@ -3466,6 +3515,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                   }
                                 >
                                   <SvgMock
+                                    accessibilityLabel="icon-Close"
                                     color="#24272A"
                                     height={16}
                                     name="Close"
@@ -3477,7 +3527,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                     }
                                     width={16}
                                   />
-                                </TouchableOpacity>
+                                </View>
                               </View>
                             </View>
                           </View>
