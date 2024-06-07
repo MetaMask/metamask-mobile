@@ -2,7 +2,7 @@
 import { ProviderConfig } from '@metamask/network-controller';
 import { useNavigation } from '@react-navigation/native';
 import images from 'images/image-icons';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Switch, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -56,10 +56,13 @@ import { updateIncomingTransactions } from '../../../util/transaction-controller
 
 // Internal dependencies
 import { TESTNET_TICKER_SYMBOLS } from '@metamask/controller-utils';
+import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import styles from './NetworkSelector.styles';
 
 const NetworkSelector = () => {
+  const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
+  const [popularNetwork, setPopularNetwork] = useState(undefined);
   const { navigate } = useNavigation();
   const theme = useTheme();
   const { trackEvent } = useMetrics();
@@ -128,6 +131,17 @@ const NetworkSelector = () => {
         to_network: nickname,
       });
     }
+  };
+
+  // TODO: type the any below to import { Network } from './CustomNetwork.types';
+  const showNetworkModal = (networkConfiguration: any) => {
+    setShowPopularNetworkModal(true);
+    setPopularNetwork({
+      ...networkConfiguration,
+      formattedRpcUrl: networkConfiguration.warning
+        ? null
+        : hideKeyFromUrl(networkConfiguration.rpcUrl),
+    });
   };
 
   const renderMainnet = () => {
@@ -253,13 +267,11 @@ const NetworkSelector = () => {
   const renderAdditonalNetworks = () => (
     <View style={styles.addtionalNetworksContainer}>
       <CustomNetwork
-        isNetworkModalVisible={false}
+        isNetworkModalVisible={showPopularNetworkModal}
         closeNetworkModal={() => {}}
-        selectedNetwork={
-          undefined /*{ ...selectedNetwork, chainId: toHex(chainId) }*/
-        }
+        selectedNetwork={popularNetwork}
         toggleWarningModal={undefined}
-        showNetworkModal={() => {}}
+        showNetworkModal={showNetworkModal}
         switchTab={undefined}
         shouldNetworkSwitchPopToWallet={false}
       />
