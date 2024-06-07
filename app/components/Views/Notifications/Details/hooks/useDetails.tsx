@@ -482,14 +482,9 @@ const useDetails = ({
     (notificationDetails) => {
       const { type, status, tx_hash, token_in, token_out, rate, network } =
         notificationDetails as Record<string, any>;
-
+      // TODO: on next change from API we need to use render the account involved on the swap.
       return (
         <>
-          {/* {renderAddress({
-            key: 'from',
-            address: from, // TODO: change from and to to request_id ???
-            actionType: type,
-          })} */}
           {renderAsset({
             type,
             title: strings('notifications.swap'),

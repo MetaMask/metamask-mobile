@@ -27,7 +27,14 @@ function NotificationBadge({
   imageUrl,
 }: NotificationBadgeProps) {
   const customStyles = () => {
-    if (notificationType.toLowerCase().includes('erc721' || 'erc1155')) {
+    if (
+      [
+        TRIGGER_TYPES.ERC1155_RECEIVED,
+        TRIGGER_TYPES.ERC1155_SENT,
+        TRIGGER_TYPES.ERC721_RECEIVED,
+        TRIGGER_TYPES.ERC721_SENT,
+      ].includes(notificationType)
+    ) {
       return {
         style: styles.nftLogo,
         placeholderStyle: styles.nftPlaceholder,
