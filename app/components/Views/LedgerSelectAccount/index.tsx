@@ -21,7 +21,6 @@ import ledgerDeviceDarkImage from 'images/ledger-device-dark.png';
 import {
   forgetLedger,
   getLedgerAccountsByPage,
-  getLedgerKeyring,
 } from '../../../core/Ledger/Ledger';
 import LedgerConnect from '../LedgerConnect';
 import { setReloadAccounts } from '../../../actions/accounts';
@@ -132,10 +131,10 @@ const LedgerSelectAccount = ({ navigation }: ILedgerSelectAccountProps) => {
   const onUnlock = useCallback(
     async (accountIndexes: number[]) => {
       setBlockingModalVisible(true);
-      const keyring = await getLedgerKeyring();
+
       try {
         for (const index of accountIndexes) {
-          await KeyringController.unlockLedgerWalletAccount(index, keyring);
+          await KeyringController.unlockLedgerWalletAccount(index);
         }
       } catch (err) {
         Logger.log('Error: Connecting QR hardware wallet', err);
@@ -148,7 +147,7 @@ const LedgerSelectAccount = ({ navigation }: ILedgerSelectAccountProps) => {
       });
       navigation.pop(2);
     },
-    [KeyringController, navigation],
+    [KeyringController, navigation, trackEvent],
   );
 
   const onForget = useCallback(async () => {

@@ -5,15 +5,10 @@ import {
   closeRunningAppOnLedger,
   forgetLedger,
   ledgerSignTypedMessage,
-  unlockLedgerDefaultAccount,
   getDeviceId,
-  withLedgerKeyring,
 } from './Ledger';
 import Engine from '../../core/Engine';
-import {
-  KeyringTypes,
-  SignTypedDataVersion,
-} from '@metamask/keyring-controller';
+import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 
 jest.mock('../../core/Engine', () => ({

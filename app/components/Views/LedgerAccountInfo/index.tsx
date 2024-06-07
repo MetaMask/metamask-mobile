@@ -15,7 +15,7 @@ import { strings } from '../../../../locales/i18n';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
-import { forgetLedger, getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import { forgetLedger, withLedgerKeyring } from '../../../core/Ledger/Ledger';
 import Device from '../../../util/device';
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { findBlockExplorerForRpc } from '../../../util/networks';
@@ -106,13 +106,14 @@ const LedgerAccountInfo = () => {
 
   useEffect(() => {
     const getAccount = async () => {
-      const ledgerKeyring = await getLedgerKeyring();
-      const accounts = await ledgerKeyring.getAccounts();
+      const accounts = await withLedgerKeyring(
+        async (keyring: any) => await keyring.getAccounts(),
+      );
 
       setAccount(accounts[0]);
     };
 
-    getAccount();
+    getAccount().then();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

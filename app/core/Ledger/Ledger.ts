@@ -1,8 +1,11 @@
-import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../Engine';
+import {
+  LedgerKeyring,
+  LedgerMobileBridge,
+} from '@metamask/eth-ledger-bridge-keyring';
 
 /**
  * Perform an operation with the Ledger keyring.
@@ -43,8 +46,11 @@ export const connectLedgerHardware = async (
 ): Promise<string> => {
   const appAndVersion = await withLedgerKeyring(
     async (keyring: LedgerKeyring) => {
-      keyring.setTransport(transport as unknown as any, deviceId);
-      return await keyring.getAppAndVersion();
+      keyring.setHdPath("m/44'/60'/0'/0");
+      keyring.setDeviceId(deviceId);
+      const bridge = keyring.bridge as LedgerMobileBridge;
+      await bridge.updateTransportMethod(transport);
+      return await bridge.getAppNameAndVersion();
     },
   );
 
@@ -52,35 +58,12 @@ export const connectLedgerHardware = async (
 };
 
 /**
- * Retrieve the first account from the Ledger device.
- * @param isAccountImportReq - Whether we need to import a ledger account by calling addNewAccountForKeyring
- * @returns The default (first) account on the device
- */
-export const unlockLedgerDefaultAccount = async (
-  isAccountImportReq: boolean,
-): Promise<{
-  address: string;
-  balance: string;
-}> => {
-  const address = await withLedgerKeyring(async (keyring: LedgerKeyring) => {
-    if (isAccountImportReq) {
-      await keyring.addAccounts(1);
-    }
-    return await keyring.getDefaultAccount();
-  });
-
-  return {
-    address,
-    balance: `0x0`,
-  };
-};
-
-/**
  * Automatically opens the Ethereum app on the Ledger device.
  */
 export const openEthereumAppOnLedger = async (): Promise<void> => {
   await withLedgerKeyring(async (keyring: LedgerKeyring) => {
-    await keyring.openEthApp();
+    const bridge = keyring.bridge as LedgerMobileBridge;
+    await bridge.openEthApp();
   });
 };
 
@@ -89,7 +72,8 @@ export const openEthereumAppOnLedger = async (): Promise<void> => {
  */
 export const closeRunningAppOnLedger = async (): Promise<void> => {
   await withLedgerKeyring(async (keyring: LedgerKeyring) => {
-    await keyring.quitApp();
+    const bridge = keyring.bridge as LedgerMobileBridge;
+    await bridge.closeApps();
   });
 };
 
@@ -98,7 +82,7 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  */
 export const forgetLedger = async (): Promise<void> => {
   await withLedgerKeyring(async (keyring: LedgerKeyring) => {
-    await keyring.forgetDevice();
+    keyring.forgetDevice();
   });
 };
 
@@ -108,25 +92,29 @@ export const forgetLedger = async (): Promise<void> => {
  * @returns The DeviceId
  */
 export const getDeviceId = async (): Promise<string> =>
-  await withLedgerKeyring(async (keyring: LedgerKeyring) => keyring.getDeviceId());
-};
+  await withLedgerKeyring(async (keyring: LedgerKeyring) =>
+    keyring.getDeviceId(),
+  );
 
+/**
+ * Unlock Ledger Accounts by page
+ * @param page - The page number to unlock
+ */
 export const getLedgerAccountsByPage = async (
   page: number,
 ): Promise<{ balance: string; address: string; index: number }[]> => {
   try {
-    const keyring = await getLedgerKeyring();
-    let accounts;
-    switch (page) {
-      case -1:
-        accounts = await keyring.getPreviousPage();
-        break;
-      case 1:
-        accounts = await keyring.getNextPage();
-        break;
-      default:
-        accounts = await keyring.getFirstPage();
-    }
+    const accounts = await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+      switch (page) {
+        case -1:
+          return await keyring.getPreviousPage();
+        case 1:
+          return await keyring.getNextPage();
+        default:
+          return await keyring.getFirstPage();
+      }
+    });
+
     return accounts.map((account) => ({
       ...account,
       balance: '0x0',
