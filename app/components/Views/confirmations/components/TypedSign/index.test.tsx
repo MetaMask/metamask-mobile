@@ -31,9 +31,7 @@ jest.mock('../../../../../core/Engine', () => ({
         keyrings: [],
       },
       getAccountKeyringType: jest.fn(() => Promise.resolve({ data: {} })),
-      getQRKeyringState: jest.fn(() =>
-        Promise.resolve({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
-      ),
+      getOrAddQRKeyring: jest.fn(),
     },
     SignatureController: {
       hub: {
@@ -41,6 +39,9 @@ jest.mock('../../../../../core/Engine', () => ({
         removeListener: jest.fn(),
       },
     },
+  },
+  controllerMessenger: {
+    subscribe: jest.fn(),
   },
 }));
 
