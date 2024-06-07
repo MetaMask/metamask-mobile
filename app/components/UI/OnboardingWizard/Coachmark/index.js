@@ -8,10 +8,11 @@ import {
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
-import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconName,
-  IconSize,
   IconColor,
 } from '../../../../component-library/components/Icons/Icon';
 import { typography } from '@metamask/design-tokens';
@@ -398,7 +399,7 @@ export default class Coachmark extends PureComponent {
             {currentStep ? (
               <ButtonIcon
                 iconName={IconName.Arrow2Left}
-                size={IconSize.Sm}
+                size={ButtonIconSizes.Sm}
                 onPress={this.onBack}
                 iconColor={IconColor.Inverse}
                 testID={OnboardingWizardModalSelectorsIDs.BACK_BUTTON}
@@ -409,7 +410,7 @@ export default class Coachmark extends PureComponent {
             <Text style={styles.title}>{title}</Text>
             <ButtonIcon
               iconName={IconName.Close}
-              size={IconSize.Sm}
+              size={ButtonIconSizes.Sm}
               onPress={onClose}
               iconColor={IconColor.Inverse}
             />
