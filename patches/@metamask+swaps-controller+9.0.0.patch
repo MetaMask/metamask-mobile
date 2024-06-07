@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/swaps-controller/dist/SwapsController.js b/node_modules/@metamask/swaps-controller/dist/SwapsController.js
+index fee999b..4b06391 100644
+--- a/node_modules/@metamask/swaps-controller/dist/SwapsController.js
++++ b/node_modules/@metamask/swaps-controller/dist/SwapsController.js
+@@ -530,7 +530,7 @@ class SwapsController extends base_controller_1.BaseControllerV1 {
+     set provider(provider) {
+         if (provider) {
+             this.ethQuery = new eth_query_1.default(provider);
+-            this.web3 = new web3_1.Web3(provider);
++            this.web3 = new web3_1(provider);
+         }
+     }
+     set chainId(chainId) {
