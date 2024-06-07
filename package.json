@@ -149,7 +149,7 @@
     "@metamask/design-tokens": "^2.0.0",
     "@metamask/eth-sig-util": "^7.0.2",
     "@metamask/etherscan-link": "^2.0.0",
-    "@metamask/gas-fee-controller": "^13.0.0",
+    "@metamask/gas-fee-controller": "^15.1.2",
     "@metamask/key-tree": "^9.0.0",
     "@metamask/keyring-api": "^4.0.0",
     "@metamask/keyring-controller": "^16.0.0",
