@@ -1,4 +1,4 @@
-import useWatchedNFTName from './useWatchedNFTName';
+import { useWatchedNFTName } from './useWatchedNFTName';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 
 const KNOWN_NFT_ADDRESS_CHECKSUMMED =

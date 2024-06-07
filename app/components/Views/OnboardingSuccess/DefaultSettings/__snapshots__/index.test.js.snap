@@ -93,7 +93,7 @@ exports[`DefaultSettings should render correctly 1`] = `
               },
             ]
           }
-          thumbTintColor="#FFFFFF"
+          thumbTintColor="#ffffff"
           tintColor="#D6D9DC"
           value={false}
         />

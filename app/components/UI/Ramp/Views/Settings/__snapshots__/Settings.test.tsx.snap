@@ -699,7 +699,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                             },
                                           ]
                                         }
-                                        thumbTintColor="#FFFFFF"
+                                        thumbTintColor="#ffffff"
                                         tintColor="#D6D9DC"
                                         value={true}
                                       />
@@ -885,7 +885,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                             },
                                           ]
                                         }
-                                        thumbTintColor="#FFFFFF"
+                                        thumbTintColor="#ffffff"
                                         tintColor="#D6D9DC"
                                         value={false}
                                       />
@@ -4269,7 +4269,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                             },
                                           ]
                                         }
-                                        thumbTintColor="#FFFFFF"
+                                        thumbTintColor="#ffffff"
                                         tintColor="#D6D9DC"
                                         value={true}
                                       />
@@ -4455,7 +4455,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                             },
                                           ]
                                         }
-                                        thumbTintColor="#FFFFFF"
+                                        thumbTintColor="#ffffff"
                                         tintColor="#D6D9DC"
                                         value={false}
                                       />
