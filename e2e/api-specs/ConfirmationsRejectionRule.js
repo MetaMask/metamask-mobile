@@ -6,6 +6,7 @@ import Gestures from '../utils/Gestures';
 import ConnectModal from '../pages/modals/ConnectModal';
 
 import Assertions from '../utils/Assertions';
+import { SigningModalSelectorsIDs } from '../selectors/Modals/SigningModal.selectors';
 
 export default class ConfirmationsRejectRule {
   constructor(options) {
@@ -115,11 +116,11 @@ export default class ConfirmationsRejectRule {
           let cancelButton;
           await TestHelpers.delay(3000);
           if (this.allCapsCancel.includes(call.methodName)) {
-            cancelButton = await Matchers.getElementByText('CANCEL');
+            await TestHelpers.waitAndTap(SigningModalSelectorsIDs.CANCEL_BUTTON);
           } else {
             cancelButton = await Matchers.getElementByText('Cancel');
+            await Gestures.waitAndTap(cancelButton);
           }
-          await Gestures.waitAndTap(cancelButton);
         },
       });
     });
