@@ -4,9 +4,15 @@ import TestHelpers from '../helpers';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 import ConnectModal from '../pages/modals/ConnectModal';
+import fs from "fs";
 
 import Assertions from '../utils/Assertions';
 import { SigningModalSelectorsIDs } from '../selectors/Modals/SigningModal.selectors';
+
+const getBase64FromPath = async (path) => {
+  const data = await fs.promises.readFile(path);
+  return new Buffer(data).toString('base64');
+}
 
 export default class ConfirmationsRejectRule {
   constructor(options) {
@@ -107,6 +113,9 @@ export default class ConfirmationsRejectRule {
   }
 
   async afterRequest(_, call) {
+    const imagePath = await this.driver.takeScreenshot('opened general section');
+    const image = await getBase64FromPath(imagePath);
+    call.attachments = [{ name: 'before after request', data: image, type: 'image/png' }];
     await new Promise((resolve, reject) => {
       addToQueue({
         name: 'afterRequest',
