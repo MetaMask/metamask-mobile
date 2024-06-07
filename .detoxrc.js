@@ -32,7 +32,8 @@ module.exports = {
         args: {
           "$0": "node e2e/api-specs/run-api-spec-tests.js",
         }
-      }
+      },
+      artifacts: true
     },
     'ios.sim.debug': {
       device: 'ios.simulator',
