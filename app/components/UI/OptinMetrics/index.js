@@ -8,6 +8,7 @@ import {
   BackHandler,
   Alert,
   InteractionManager,
+  TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -594,7 +595,15 @@ class OptinMetrics extends PureComponent {
                 : this.renderLegacyAction(action, i),
             )}
             {isPastPrivacyPolicyDate ? (
-              <View style={styles.checkbox}>
+              <TouchableOpacity
+                style={styles.checkbox}
+                onPress={() =>
+                  setDataCollectionForMarketing(
+                    !isDataCollectionForMarketingEnabled,
+                  )
+                }
+                activeOpacity={1}
+              >
                 <Checkbox
                   isChecked={isDataCollectionForMarketingEnabled}
                   accessibilityRole={'checkbox'}
@@ -608,7 +617,7 @@ class OptinMetrics extends PureComponent {
                 <Text style={styles.content}>
                   {strings('privacy_policy.checkbox')}
                 </Text>
-              </View>
+              </TouchableOpacity>
             ) : null}
             {this.renderPrivacyPolicy()}
           </View>
