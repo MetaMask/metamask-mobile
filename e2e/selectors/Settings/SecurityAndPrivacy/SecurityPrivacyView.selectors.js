@@ -4,11 +4,13 @@ export const SecurityPrivacyViewSelectorsIDs = {
   CHANGE_PASSWORD_CONTAINER: 'change-password-section',
   CHANGE_PASSWORD_BUTTON: 'change-password-button',
   METAMETRICS_SWITCH: 'metametrics-switch',
+  DATA_COLLECTION_SWITCH: 'data-collection-switch',
   REVEAL_SEED_BUTTON: 'reveal-seed-button',
   SECURITY_SETTINGS_SCROLL: 'security-settings-scrollview',
   INCOMING_TRANSACTIONS: 'incoming-transactions-section',
   BIOMETRICS_TOGGLE: 'biometrics-option',
   DEVICE_PASSCODE_TOGGLE: 'DevicePasscodeOption',
+  REMEMBER_ME_TOGGLE: 'turn-on-remember-me',
 };
 
 export const SecurityPrivacyViewSelectorsText = {

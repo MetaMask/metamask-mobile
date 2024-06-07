@@ -9,9 +9,8 @@ import {
 import { throttle } from 'lodash';
 import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
-import { lightTheme, darkTheme } from '@metamask/design-tokens';
+import { lightTheme, darkTheme, brandColor } from '@metamask/design-tokens';
 import Device from '../device';
-import brandColors from './temp-tokens/brandColors';
 
 /**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
@@ -22,7 +21,7 @@ export const mockTheme = {
   themeAppearance: 'light' as AppThemeKey.light,
   typography: lightTheme.typography,
   shadows: lightTheme.shadows,
-  brandColors,
+  brandColors: brandColor,
 };
 
 export const ThemeContext = React.createContext<any>(undefined);
@@ -111,6 +110,7 @@ export const useAppTheme = (): Theme => {
   let colors: Theme['colors'];
   let typography: Theme['typography'];
   let shadows: Theme['shadows'];
+  const brandColors = brandColor;
 
   const setDarkStatusBar = () => {
     StatusBar.setBarStyle('light-content', true);

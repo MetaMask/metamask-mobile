@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.js b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
-index fc649ea..1767a63 100644
+index fc649ea..9f3aa85 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 +++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 @@ -576,6 +576,18 @@ class KeyringController extends base_controller_1.BaseController {
@@ -21,36 +21,7 @@ index fc649ea..1767a63 100644
              let vault;
              let newEncryptionKey;
              if (__classPrivateFieldGet(this, _KeyringController_cacheEncryptionKey, "f")) {
-@@ -1043,6 +1055,28 @@ class KeyringController extends base_controller_1.BaseController {
-             }
-         });
-     }
-+
-+  /**
-+   +   * This Patch is generated to support the multiple accounts support for ledger devices,
-+   +   * The reason to create this is to access the #keyring private method is not possible from the outside.
-+   +   * To add multiple accounts support for ledger Hardware wallet
-+   +   *
-+   +   * @param index - Index of the account to unlock
-+   +   * @param keyring - Keyring instance to unlock
-+   +   * @return {*} - Promise resolving to the current state
-+   +   */
-+   unlockLedgerWalletAccount(index, keyring) {
-+        return __awaiter(this, void 0, void 0, function* () {
-+          keyring.setAccountToUnlock(index);
-+          // QRKeyring is not yet compatible with Keyring from
-+          // @metamask/utils, but we can use the `addNewAccount` method
-+          // as it internally calls `addAccounts` from on the keyring instance,
-+          // which is supported by QRKeyring API.
-+          yield this.addNewAccountForKeyring(keyring);
-+          yield this.persistAllKeyrings();
-+        });
-+   }
-+
-     unlockQRHardwareWalletAccount(index) {
-         return __awaiter(this, void 0, void 0, function* () {
-             const keyring = yield this.getOrAddQRKeyring();
-@@ -1091,10 +1125,17 @@ _KeyringController_keyringBuilders = new WeakMap(), _KeyringController_keyrings
+@@ -1091,10 +1103,17 @@ _KeyringController_keyringBuilders = new WeakMap(), _KeyringController_keyrings
      return __classPrivateFieldGet(this, _KeyringController_keyringBuilders, "f").find((keyringBuilder) => keyringBuilder.type === type);
  }, _KeyringController_addQRKeyring = function _KeyringController_addQRKeyring() {
      return __awaiter(this, void 0, void 0, function* () {

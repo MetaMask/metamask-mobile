@@ -16,6 +16,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { withLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import { fontStyles } from '../../../../styles/common';
 import {
   mockTheme,
@@ -24,6 +25,7 @@ import {
 } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
+import type LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 
 const createStyle = (colors: any) =>
   StyleSheet.create({
@@ -104,6 +106,10 @@ const SelectHardwareWallet = () => {
   };
 
   const navigateToConnectLedger = async () => {
+    const accounts = await withLedgerKeyring(async (keyring: LedgerKeyring) =>
+      keyring.getAccounts(),
+    );
+
     trackEvent(MetaMetricsEvents.CONNECT_LEDGER, {
       device_type: 'Ledger',
     });

@@ -1424,7 +1424,7 @@ export const BrowserTab = (props) => {
    */
   const renderOnboardingWizard = () => {
     const { wizardStep } = props;
-    if ([6].includes(wizardStep)) {
+    if ([7].includes(wizardStep)) {
       if (!wizardScrollAdjusted.current) {
         setTimeout(() => {
           reload();
@@ -1504,7 +1504,15 @@ export const BrowserTab = (props) => {
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <>
               <WebView
-                originWhitelist={['*']}
+                originWhitelist={[
+                  'https://',
+                  'http://',
+                  'metamask://',
+                  'dapp://',
+                  'wc://',
+                  'ethereum://',
+                  'file://',
+                ]}
                 decelerationRate={'normal'}
                 ref={webviewRef}
                 renderError={() => (

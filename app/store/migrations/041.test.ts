@@ -6,30 +6,9 @@ import { captureException } from '@sentry/react-native';
 const oldState = {
   engine: {
     backgroundState: {
-      PermissionController: {
-        subjects: {
-          'app.uniswap.org': {
-            origin: 'app.uniswap.org',
-            permissions: {
-              eth_accounts: {
-                id: 'ukrFhz7_z1gbog3mWNIoA',
-                parentCapability: 'eth_accounts',
-                invoker: 'app.uniswap.org',
-                caveats: [
-                  {
-                    type: 'restrictReturnedAccounts',
-                    value: [
-                      {
-                        address: '0x04B09A749Bc6a1C111de308694Ba1Cd74A698523',
-                        lastUsed: 1714709418122,
-                      },
-                    ],
-                  },
-                ],
-                date: 1714709418138,
-              },
-            },
-          },
+      TokenBalancesController: {
+        contractBalances: {
+          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x5',
         },
       },
     },
@@ -39,26 +18,8 @@ const oldState = {
 const expectedNewState = {
   engine: {
     backgroundState: {
-      PermissionController: {
-        subjects: {
-          'app.uniswap.org': {
-            origin: 'app.uniswap.org',
-            permissions: {
-              eth_accounts: {
-                id: 'ukrFhz7_z1gbog3mWNIoA',
-                parentCapability: 'eth_accounts',
-                invoker: 'app.uniswap.org',
-                caveats: [
-                  {
-                    type: 'restrictReturnedAccounts',
-                    value: ['0x04B09A749Bc6a1C111de308694Ba1Cd74A698523'],
-                  },
-                ],
-                date: 1714709418138,
-              },
-            },
-          },
-        },
+      TokenBalancesController: {
+        contractBalances: {},
       },
     },
   },
@@ -98,13 +59,13 @@ describe('Migration #41', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            PermissionController: null,
+            TokenBalancesController: null,
           },
         },
       }),
       errorMessage:
-        "Migration 41: Invalid PermissionController state error: 'null'",
-      scenario: 'PermissionController state is invalid',
+        "FATAL ERROR: Migration 41: Invalid TokenBalancesController state error: 'null'",
+      scenario: 'TokenBalancesController state is invalid',
     },
   ];
 
@@ -120,7 +81,7 @@ describe('Migration #41', () => {
     });
   }
 
-  it('should update caveat values to resemble an array of addresses', async () => {
+  it('should reset TokenBalanceController contract balances to empty object', async () => {
     const newState = await migration(oldState);
     expect(newState).toStrictEqual(expectedNewState);
   });
