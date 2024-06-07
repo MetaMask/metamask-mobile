@@ -1878,7 +1878,7 @@ index 0721a72..0000000
 -{"version":3,"file":"transaction-type.d.ts","sourceRoot":"","sources":["../src/transaction-type.ts"],"names":[],"mappings":"AAGA,OAAO,KAAK,QAAQ,MAAM,qBAAqB,CAAC;AAGhD,OAAO,KAAK,EAAE,0BAA0B,EAAE,iBAAiB,EAAE,MAAM,SAAS,CAAC;AAG7E,eAAO,MAAM,kBAAkB,qCAAqC,CAAC;AAMrE;;;;;;;;GAQG;AACH,wBAAsB,wBAAwB,CAC5C,QAAQ,EAAE,iBAAiB,EAC3B,QAAQ,EAAE,QAAQ,GACjB,OAAO,CAAC,0BAA0B,CAAC,CAiCrC"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/transaction-type.js b/node_modules/@metamask/transaction-controller/dist/transaction-type.js
-index 6497fd0..3eb01fe 100644
+index 6497fd0..147adc8 100644
 --- a/node_modules/@metamask/transaction-controller/dist/transaction-type.js
 +++ b/node_modules/@metamask/transaction-controller/dist/transaction-type.js
 @@ -18,6 +18,7 @@ exports.ESTIMATE_GAS_ERROR = 'eth_estimateGas rpc method error';
@@ -1889,16 +1889,14 @@ index 6497fd0..3eb01fe 100644
  /**
   * Determines the type of the transaction by analyzing the txParams.
   * It will never return TRANSACTION_TYPE_CANCEL or TRANSACTION_TYPE_RETRY as these
-@@ -46,7 +47,8 @@ function determineTransactionType(txParams, ethQuery) {
+@@ -46,6 +47,7 @@ function determineTransactionType(txParams, ethQuery) {
              types_1.TransactionType.tokenMethodTransfer,
              types_1.TransactionType.tokenMethodTransferFrom,
              types_1.TransactionType.tokenMethodSafeTransferFrom,
--        ].find((methodName) => methodName.toLowerCase() === (name === null || name === void 0 ? void 0 : name.toLowerCase()));
 +            types_1.TransactionType.tokenMethodIncreaseAllowance,
-+        ].find((methodName) => methodName.toLowerCase() === name.toLowerCase());
+         ].find((methodName) => methodName.toLowerCase() === (name === null || name === void 0 ? void 0 : name.toLowerCase()));
          if (data && tokenMethodName && !hasValue) {
              return { type: tokenMethodName, getCodeResponse: resultCode };
-         }
 @@ -87,6 +89,12 @@ function parseStandardTokenTransactionData(data) {
      catch (_c) {
          // ignore and return undefined

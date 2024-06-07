@@ -46,10 +46,9 @@ describe(SmokeConfirmations('ERC721 token'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: nftsAddress,
         });
-        // Set approval for all NFT
 
-        await TestDApp.tapNFTTransferButton();
-        // await TestDApp.tapNFTSetApprovalForAllButton();
+        // Set approval for all NFTs
+        await TestDApp.tapNFTSetApprovalForAllButton();
         await TestHelpers.delay(3000);
 
         await TestDApp.tapConfirmButton();
@@ -57,9 +56,12 @@ describe(SmokeConfirmations('ERC721 token'), () => {
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
 
-        // Assert collectible is sent
+        // Assert that the ERC721 activity is an set approve for all and it is confirmed
         await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.SENT_COLLECTIBLE_MESSAGE_TEXT,
+          ActivitiesViewSelectorsText.SET_APPROVAL_FOR_ALL_METHOD,
+        );
+        await Assertions.checkIfTextIsDisplayed(
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
         );
       },
     );

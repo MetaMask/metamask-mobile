@@ -132,7 +132,7 @@ class TestDApp {
   }
 
   async tapNFTSetApprovalForAllButton() {
-    await this.tapButton(this.nftTransferFromTokensButton);
+    await this.tapButton(this.nftSetApprovalForAllButton);
   }
 
   async tapConfirmButton() {

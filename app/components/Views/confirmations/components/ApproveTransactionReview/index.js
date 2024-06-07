@@ -107,7 +107,7 @@ const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 let intervalIdForEstimatedL1Fee;
 
 const {
-  ASSET: { ERC721, ERC1155, ERC20 },
+  ASSET: { ERC20 },
 } = TransactionTypes;
 
 /**
@@ -346,15 +346,8 @@ class ApproveTransactionReview extends PureComponent {
       setTransactionObject,
       tokenList,
       tokenAllowanceState,
-      ticker,
     } = this.props;
     const { AssetsContractController } = Engine.context;
-    console.log(
-      'componentDidMount >>>> ',
-      tokenAllowanceState,
-      ticker,
-      transaction,
-    );
 
     let host;
 
@@ -365,7 +358,6 @@ class ApproveTransactionReview extends PureComponent {
     } else {
       host = getHost(origin);
     }
-    console.log('componentDidMount 2 >>>> ');
 
     let tokenSymbol,
       tokenDecimals,
@@ -376,14 +368,9 @@ class ApproveTransactionReview extends PureComponent {
 
     const { spenderAddress, encodedAmount: encodedHexAmount } =
       decodeApproveData(data);
-    console.log('componentDidMount 3 >>>> ', spenderAddress, encodedHexAmount);
     const encodedDecimalAmount = hexToBN(encodedHexAmount).toString();
-    console.log('componentDidMount 4 >>>> ');
-
-    console.log('componentDidMount 5 >>>> ');
 
     const contract = tokenList[safeToChecksumAddress(to)];
-    console.log('checking contract >>>> ', contract);
     if (tokenAllowanceState) {
       const {
         tokenSymbol: symbol,
@@ -402,7 +389,6 @@ class ApproveTransactionReview extends PureComponent {
     } else if (!contract) {
       try {
         const result = await getTokenDetails(to, from, encodedDecimalAmount);
-        console.log('getTokenDetails >>>> ', result);
 
         const { standard, name, decimals, symbol } = result;
 
@@ -427,11 +413,9 @@ class ApproveTransactionReview extends PureComponent {
         tokenDecimals = 18;
       }
     } else {
-      console.log('falling on else >>>>>');
       tokenSymbol = contract.symbol;
       tokenDecimals = contract.decimals;
     }
-    console.log('componentDidMount 6 >>>>');
 
     const approveAmount = fromTokenMinimalUnit(
       hexToBN(encodedHexAmount),
@@ -442,7 +426,6 @@ class ApproveTransactionReview extends PureComponent {
     const { name: method } = await getMethodData(data);
     const minTokenAllowance = minimumTokenAllowance(tokenDecimals);
 
-    console.log('get method >>>>', method);
     const approvalData = generateApprovalData({
       spender: spenderAddress,
       value: isNonFungibleTokenStandard(tokenStandard) ? encodedHexAmount : '0',
@@ -783,7 +766,6 @@ class ApproveTransactionReview extends PureComponent {
         tokenBalance,
         tokenImage,
       },
-      token,
       tokenSpendValue,
       fetchingUpdateDone,
       isReadyToApprove,
@@ -820,8 +802,6 @@ class ApproveTransactionReview extends PureComponent {
 
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(chainId);
-
-    console.log('approveTransactionreview >>>> ', tokenStandard, token, method);
 
     const originIsDeeplink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -866,7 +846,6 @@ class ApproveTransactionReview extends PureComponent {
     const isMethodSetApprovalForAll =
       method === TOKEN_METHOD_SET_APPROVAL_FOR_ALL;
 
-    console.log('approveTransactionreview 2 >>>> ', isERC2OToken);
     return (
       <>
         <View style={styles.section}>
