@@ -113,7 +113,6 @@ export interface MarketingNotificationData {
   routeProps?: string;
 }
 
-
 export const STAKING_PROVIDER_MAP: Record<
   | 'lido_stake_completed'
   | 'rocketpool_stake_completed'
@@ -147,4 +146,3 @@ export enum NotificationsKindTypes {
   transaction = 'transaction',
   announcements = 'announcements',
 }
-
