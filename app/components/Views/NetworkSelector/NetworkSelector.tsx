@@ -5,7 +5,6 @@ import images from 'images/image-icons';
 import React, { useRef, useState } from 'react';
 import { Linking, Switch, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-
 // External dependencies.
 import { useSelector } from 'react-redux';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
@@ -293,7 +292,7 @@ const NetworkSelector = () => {
     </View>
   );
 
-  const renderTitle = (title: String) => (
+  const renderTitle = (title: string) => (
     <View style={styles.switchContainer}>
       <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>
         {strings(title)}
