@@ -2,10 +2,10 @@
 import React, { useRef } from 'react';
 
 // External dependencies
-import SDKFeedback from '../../../components/UI/SDKFeedback';
+import SDKFeedback from '../../../UI/SDKFeedback';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
+} from '../../../../component-library/components/BottomSheets/BottomSheet';
 
 const SDKLoadingModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);

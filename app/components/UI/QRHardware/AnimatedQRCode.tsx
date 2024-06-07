@@ -20,7 +20,7 @@ const createStyles = (theme: Theme) =>
     wrapper: {
       width: 300,
       height: 300,
-      backgroundColor: theme.brandColors.white['000'],
+      backgroundColor: theme.brandColors.white000,
       alignItems: 'center',
       justifyContent: 'center',
     },

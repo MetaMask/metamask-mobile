@@ -52,7 +52,7 @@ exports[`BlockaidSettings should render correctly 1`] = `
         ]
       }
       testID="security-alerts-toggle"
-      thumbTintColor="#FFFFFF"
+      thumbTintColor="#ffffff"
       tintColor="#D6D9DC"
       value={true}
     />

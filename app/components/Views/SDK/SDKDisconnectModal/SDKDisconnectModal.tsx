@@ -7,22 +7,22 @@ import type { ThemeTypography } from '@metamask/design-tokens/dist/types/js/typo
 import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
-import BottomSheetHeader from '../../../../app/component-library/components/BottomSheets/BottomSheetHeader';
+import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonVariants,
-} from '../../../../app/component-library/components/Buttons/Button';
+} from '../../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
-} from '../../../../app/component-library/components/Texts/Text';
-import { removePermittedAccounts } from '../../../../app/core/Permissions';
-import SDKConnect from '../../../../app/core/SDKConnect/SDKConnect';
-import DevLogger from '../../../../app/core/SDKConnect/utils/DevLogger';
-import { useTheme } from '../../../../app/util/theme';
-import { strings } from '../../../../locales/i18n';
+} from '../../../../component-library/components/Texts/Text';
+import { removePermittedAccounts } from '../../../../core/Permissions';
+import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { useTheme } from '../../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
-import Routes from '../../../../app/constants/navigation/Routes';
+} from '../../../../component-library/components/BottomSheets/BottomSheet';
+import Routes from '../../../../constants/navigation/Routes';
 
 const createStyles = (
   _colors: ThemeColors,

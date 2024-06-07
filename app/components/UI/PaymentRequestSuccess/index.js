@@ -154,7 +154,7 @@ const createStyles = (theme) =>
     qrCodeWrapper: {
       marginVertical: 8,
       padding: 8,
-      backgroundColor: theme.brandColors.white['000'],
+      backgroundColor: theme.brandColors.white000,
     },
   });
 

@@ -238,7 +238,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                     ],
                   ]
                 }
-                thumbTintColor="#FFFFFF"
+                thumbTintColor="#ffffff"
                 tintColor="#D6D9DC"
                 value={false}
               />
@@ -342,7 +342,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                     ],
                   ]
                 }
-                thumbTintColor="#FFFFFF"
+                thumbTintColor="#ffffff"
                 tintColor="#D6D9DC"
                 value={true}
               />
@@ -447,7 +447,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                   ]
                 }
                 testID="eth-sign-switch"
-                thumbTintColor="#FFFFFF"
+                thumbTintColor="#ffffff"
                 tintColor="#D6D9DC"
                 value={false}
               />
@@ -533,7 +533,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                     ],
                   ]
                 }
-                thumbTintColor="#FFFFFF"
+                thumbTintColor="#ffffff"
                 tintColor="#D6D9DC"
                 value={false}
               />
@@ -620,7 +620,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                     ],
                   ]
                 }
-                thumbTintColor="#FFFFFF"
+                thumbTintColor="#ffffff"
                 tintColor="#D6D9DC"
                 value={true}
               />
@@ -707,7 +707,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                   ]
                 }
                 testID="show-fiat-on-testnets"
-                thumbTintColor="#FFFFFF"
+                thumbTintColor="#ffffff"
                 tintColor="#D6D9DC"
                 value={false}
               />

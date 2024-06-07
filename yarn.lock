@@ -4185,23 +4185,6 @@
     is-hex-prefixed "1.0.0"
     strip-hex-prefix "1.0.0"
 
-"@metamask/gas-fee-controller@^13.0.0":
-  version "13.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-13.0.2.tgz#d8c0efeab91492f9ce96f7eca834bb9bd17fbb62"
-  integrity sha512-uhjxUToLbON0kUSZUvkDbavM/oGbNHhMV3U76Qf2GCevENiYgZhKNBnUn+KOL1Us8YD2yho2D7G28L+KZa00Wg==
-  dependencies:
-    "@metamask/base-controller" "^4.1.1"
-    "@metamask/controller-utils" "^8.0.4"
-    "@metamask/eth-query" "^4.0.0"
-    "@metamask/ethjs-unit" "^0.3.0"
-    "@metamask/network-controller" "^17.2.1"
-    "@metamask/polling-controller" "^5.0.1"
-    "@metamask/utils" "^8.3.0"
-    "@types/bn.js" "^5.1.5"
-    "@types/uuid" "^8.3.0"
-    bn.js "^5.2.1"
-    uuid "^8.3.2"
-
 "@metamask/gas-fee-controller@^15.1.2":
   version "15.1.2"
   resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-15.1.2.tgz#cb8d85906efa1ff42a159ec023287ff31a63e45b"

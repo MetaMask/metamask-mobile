@@ -1113,7 +1113,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     ]
                                   }
                                   testID="test-network-switch-id"
-                                  thumbTintColor="#FFFFFF"
+                                  thumbTintColor="#ffffff"
                                   tintColor="#D6D9DC"
                                   value={false}
                                 />

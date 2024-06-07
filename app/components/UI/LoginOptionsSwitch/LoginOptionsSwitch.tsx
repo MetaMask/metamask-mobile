@@ -66,7 +66,7 @@ const LoginOptionsSwitch = ({
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={theme.brandColors.white['000']}
+          thumbColor={theme.brandColors.white000}
           ios_backgroundColor={colors.border.muted}
           testID={LoginOptionsSwitchSelectorsIDs.BIOMETRICS_SWITCH}
         />
@@ -86,7 +86,7 @@ const LoginOptionsSwitch = ({
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={theme.brandColors.white['000']}
+          thumbColor={theme.brandColors.white000}
           ios_backgroundColor={colors.border.muted}
           {...generateTestId(Platform, LOGIN_WITH_REMEMBER_ME_SWITCH)}
         />

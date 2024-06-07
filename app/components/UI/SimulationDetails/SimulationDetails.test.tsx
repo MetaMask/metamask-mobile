@@ -60,6 +60,7 @@ jest.mock('../../hooks/useStyles', () => ({
 jest.mock('../AnimatedSpinner');
 jest.mock('./BalanceChangeList/BalanceChangeList', () => 'BalanceChangeList');
 jest.mock('./useBalanceChanges');
+jest.mock('./useSimulationMetrics');
 
 describe('SimulationDetails', () => {
   const useBalanceChangesMock = jest.mocked(useBalanceChanges);

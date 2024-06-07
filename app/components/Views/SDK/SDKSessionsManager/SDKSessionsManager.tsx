@@ -2,8 +2,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useCallback, useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
+import { useTheme } from '../../../../util/theme';
 
 import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 import type { ThemeTypography } from '@metamask/design-tokens/dist/types/js/typography';
@@ -11,18 +11,18 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Button, {
   ButtonVariants,
-} from '../../../../app/component-library/components/Buttons/Button';
+} from '../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../../app/component-library/components/Icons/Icon';
+} from '../../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
-} from '../../../../app/component-library/components/Texts/Text';
-import Routes from '../../../../app/constants/navigation/Routes';
-import { RootState } from '../../../../app/reducers';
-import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
-import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
+} from '../../../../component-library/components/Texts/Text';
+import Routes from '../../../../constants/navigation/Routes';
+import { RootState } from '../../../../reducers';
+import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SDKSessionItem from './SDKSessionItem';
 
 interface SDKSessionsManagerProps {
