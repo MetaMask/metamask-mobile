@@ -104,7 +104,10 @@ class Matchers {
    * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
    */
   static async getElementByXPath(webviewID, xpath) {
-    const myWebView = web(by.id(webviewID));
+    const myWebView =
+      device.getPlatform() === 'ios'
+        ? web(by.id(webviewID))
+        : web(by.type('android.webkit.WebView'));
     return myWebView.element(by.web.xpath(xpath)).atIndex(0);
   }
   /**
