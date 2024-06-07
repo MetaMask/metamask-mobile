@@ -26,13 +26,11 @@ export const addToQueue = ({ task, resolve, reject, name }) => {
 const pollResult = async (driver) => {
   let result;
   await TestHelpers.delay(500);
-  console.log('poll result driver', driver)
   // eslint-disable-next-line no-loop-func
   await new Promise((resolve, reject) => {
     addToQueue({
       name: 'pollResult',
       task: async () => {
-        console.log('poll result 2 driver', driver)
         const text = await driver.runScript((el) => window.JSONRPCResponse);
         if (typeof text === 'string') {
           result = JSON.parse(text);
@@ -85,7 +83,6 @@ export const createDriverTransport = (driver) => (_, method, params) =>
     };
     return execute();
   }).then(async () => {
-    console.log('about to call pollREsult with driver', driver);
     const result = await pollResult(driver);
     await new Promise((resolve, reject) => {
       addToQueue({
