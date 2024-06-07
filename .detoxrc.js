@@ -31,6 +31,19 @@ module.exports = {
       testRunner: {
         args: {
           "$0": "node e2e/api-specs/run-api-spec-tests.js",
+        },
+        artifacts: {
+          rootDir: "./artifacts/screenshots",
+          plugins: {
+            screenshot: {
+              shouldTakeAutomaticSnapshots: true,
+              keepOnlyFailedTestsArtifacts: true,
+              takeWhen: {
+                testStart: false,
+                testDone: false,
+              }
+            },
+          },
         }
       },
     },
