@@ -23,42 +23,59 @@ class TestDApp {
   }
 
   get DappConnectButton() {
-    return Matchers.getElementByWebID(TestDappSelectorsWebIDs.CONNECT_BUTTON);
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.CONNECT_BUTTON,
+    );
   }
 
   get ApproveButton() {
     return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.APPROVE_TOKENS_BUTTON_ID,
     );
   }
   // This taps on the transfer tokens button under the "SEND TOKENS section"
   get erc20TransferTokensButton() {
     return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID,
     );
   }
   get ethSignButton() {
-    return Matchers.getElementByWebID(TestDappSelectorsWebIDs.ETH_SIGN);
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ETH_SIGN,
+    );
   }
   get personalSignButton() {
-    return Matchers.getElementByWebID(TestDappSelectorsWebIDs.PERSONAL_SIGN);
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.PERSONAL_SIGN,
+    );
   }
   get signTypedDataButton() {
-    return Matchers.getElementByWebID(TestDappSelectorsWebIDs.SIGN_TYPE_DATA);
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SIGN_TYPE_DATA,
+    );
   }
   get signTypedDataV3Button() {
     return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3,
     );
   }
   get signTypedDataV4Button() {
     return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4,
     );
   }
   // This taps on the transfer tokens button under the "SEND TOKENS section"
   get nftTransferFromTokensButton() {
     return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.NFT_TRANSFER_FROM_BUTTON_ID,
     );
   }
@@ -102,6 +119,7 @@ class TestDApp {
   }
 
   async tapButton(elementId) {
+    await Gestures.scrollToWebViewPort(elementId);
     await Gestures.tapWebElement(elementId);
   }
 
