@@ -3,7 +3,7 @@ import { ProviderConfig } from '@metamask/network-controller';
 import { useNavigation } from '@react-navigation/native';
 import images from 'images/image-icons';
 import React, { useRef, useState } from 'react';
-import { Switch, View } from 'react-native';
+import { Linking, Switch, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
 // External dependencies.
@@ -56,17 +56,20 @@ import { updateIncomingTransactions } from '../../../util/transaction-controller
 
 // Internal dependencies
 import { TESTNET_TICKER_SYMBOLS } from '@metamask/controller-utils';
+import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
-import styles from './NetworkSelector.styles';
+import createStyles from './NetworkSelector.styles';
 
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
   const [popularNetwork, setPopularNetwork] = useState(undefined);
+  const [showWarningModal, setShowWarningModal] = useState(false);
   const { navigate } = useNavigation();
   const theme = useTheme();
   const { trackEvent } = useMetrics();
   const { colors } = theme;
+  const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
 
@@ -147,6 +150,13 @@ const NetworkSelector = () => {
   const onCancel = () => {
     setShowPopularNetworkModal(false);
     setPopularNetwork(undefined);
+  };
+
+  const toggleWarningModal = () => {
+    setShowWarningModal(!showWarningModal);
+  };
+  const goToLearnMore = () => {
+    Linking.openURL(strings('networks.learn_more_url'));
   };
 
   const renderMainnet = () => {
@@ -275,7 +285,7 @@ const NetworkSelector = () => {
         isNetworkModalVisible={showPopularNetworkModal}
         closeNetworkModal={onCancel}
         selectedNetwork={popularNetwork}
-        toggleWarningModal={undefined}
+        toggleWarningModal={toggleWarningModal}
         showNetworkModal={showNetworkModal}
         switchTab={undefined}
         shouldNetworkSwitchPopToWallet={false}
@@ -314,6 +324,23 @@ const NetworkSelector = () => {
         style={styles.addNetworkButton}
         testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
       />
+      {showWarningModal ? (
+        <InfoModal
+          isVisible={showWarningModal}
+          title={strings('networks.network_warning_title')}
+          body={
+            <Text>
+              <Text style={styles.desc}>
+                {strings('networks.network_warning_desc')}
+              </Text>{' '}
+              <Text style={[styles.blueText]} onPress={goToLearnMore}>
+                {strings('networks.learn_more')}
+              </Text>
+            </Text>
+          }
+          toggleModal={toggleWarningModal}
+        />
+      ) : null}
     </BottomSheet>
   );
 };
