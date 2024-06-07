@@ -318,13 +318,10 @@ class OptinMetrics extends PureComponent {
     InteractionManager.runAfterInteractions(async () => {
       // add traits to user for identification
 
+      // trait indicating if user opts in for data collection for marketing
       let dataCollectionForMarketingTraits;
       if (this.props.isDataCollectionForMarketingEnabled) {
-        dataCollectionForMarketingTraits = {
-          has_marketing_consent: Boolean(
-            this.props.setDataCollectionForMarketing,
-          ),
-        };
+        dataCollectionForMarketingTraits = { has_marketing_consent: true };
       }
 
       // consolidate device and user settings traits
@@ -357,7 +354,7 @@ class OptinMetrics extends PureComponent {
 
       this.props.clearOnboardingEvents();
 
-      // track event for user opting in
+      // track event for user opting in on metrics and data collection for marketing
       metrics.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
         ...dataCollectionForMarketingTraits,
         is_metrics_opted_in: true,
