@@ -88,7 +88,7 @@ const CustomNetwork = ({
                 }
               />
             </View>
-            <CustomText bold>{networkConfiguration.nickname}</CustomText>
+            <CustomText>{networkConfiguration.nickname}</CustomText>
           </View>
           <View style={styles.popularWrapper}>
             {toggleWarningModal && networkConfiguration.warning ? (

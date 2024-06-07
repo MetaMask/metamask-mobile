@@ -11,7 +11,7 @@ const createStyles = () =>
     popularNetworkImage: {
       width: 20,
       height: 20,
-      marginRight: 10,
+      marginRight: 20,
       borderRadius: 10,
     },
     popularWrapper: {

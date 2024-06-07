@@ -9,7 +9,10 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
 import { strings } from '../../../../locales/i18n';
-import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -168,6 +171,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: mainnetName,
           imageSource: images.ETHEREUM,
+          size: AvatarSize.Sm,
         }}
         isSelected={
           chainId === providerConfig.chainId && !providerConfig.rpcUrl
@@ -188,6 +192,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: lineaMainnetName,
           imageSource: images['LINEA-MAINNET'],
+          size: AvatarSize.Sm,
         }}
         isSelected={chainId === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
@@ -212,6 +217,7 @@ const NetworkSelector = () => {
               variant: AvatarVariant.Network,
               name,
               imageSource: image,
+              size: AvatarSize.Sm,
             }}
             isSelected={Boolean(
               chainId === providerConfig.chainId && providerConfig.rpcUrl,
@@ -238,6 +244,7 @@ const NetworkSelector = () => {
             variant: AvatarVariant.Network,
             name,
             imageSource,
+            size: AvatarSize.Sm,
           }}
           isSelected={chainId === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
