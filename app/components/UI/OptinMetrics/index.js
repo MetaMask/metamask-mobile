@@ -321,7 +321,6 @@ class OptinMetrics extends PureComponent {
       let dataCollectionForMarketingTraits;
       if (this.props.isDataCollectionForMarketingEnabled) {
         dataCollectionForMarketingTraits = {
-          is_metrics_opted_in: true,
           has_marketing_consent: Boolean(
             this.props.setDataCollectionForMarketing,
           ),
@@ -331,6 +330,7 @@ class OptinMetrics extends PureComponent {
       // consolidate device and user settings traits
       const consolidatedTraits = {
         ...dataCollectionForMarketingTraits,
+        is_metrics_opted_in: true,
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
       };
@@ -360,6 +360,7 @@ class OptinMetrics extends PureComponent {
       // track event for user opting in
       metrics.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
         ...dataCollectionForMarketingTraits,
+        is_metrics_opted_in: true,
         location: 'onboarding_metametrics',
         updated_after_onboarding: false,
       });
