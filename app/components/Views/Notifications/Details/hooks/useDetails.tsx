@@ -45,7 +45,7 @@ import NotificationBadge from '../Badge';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 
-interface useDetailsProps {
+interface UseDetailsProps {
   theme: Theme;
   accountAvatarType?: AvatarAccountType;
   navigation: any;
@@ -57,7 +57,7 @@ const useDetails = ({
   accountAvatarType,
   navigation,
   copyToClipboard,
-}: useDetailsProps) => {
+}: UseDetailsProps) => {
   const ADD = 'add';
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);

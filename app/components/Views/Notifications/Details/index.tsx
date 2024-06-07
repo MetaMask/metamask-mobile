@@ -6,6 +6,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
+  Notification,
   TRIGGER_TYPES,
   formatDate,
   formatNotificationTitle,
@@ -33,7 +34,11 @@ import Header from './Header';
 
 interface Props {
   navigation: any;
-  route: any;
+  route: {
+    params: {
+      notification: Notification;
+    };
+  };
 }
 
 const NotificationsDetails = ({ navigation, route }: Props) => {
