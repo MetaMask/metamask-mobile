@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationsView matches snapshot 1`] = `null`;
+
+exports[`NotificationsView matches snapshot without notifications 1`] = `null`;
