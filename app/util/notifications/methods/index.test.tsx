@@ -22,12 +22,12 @@ describe('formatDate', () => {
 
   it('returns formatted date as "May 8" if the date is earlier this year but not yesterday', () => {
     const earlierThisYear = new Date('2024-05-08T12:00:00Z');
-    expect(formatDate(earlierThisYear)).toBe('8/05');
+    expect(formatDate(earlierThisYear)).toBe('May 8');
   });
 
   it('returns formatted date with year if the date is from a previous year', () => {
     const lastYear = new Date('2023-12-25T12:00:00Z');
-    expect(formatDate(lastYear)).toBe('25/12');
+    expect(formatDate(lastYear)).toBe('Dec 25');
   });
 
   it('removes the first word and returns the rest in lowercase', () => {
@@ -150,7 +150,7 @@ describe('getRowDetails', () => {
           name: 'Ethereum',
         },
       },
-      createdAt: '30/12',
+      createdAt: 'Dec 30',
       imageUrl: ETHEREUM_LOGO,
       value: '< 0.00001 ETH',
     };
@@ -189,7 +189,7 @@ describe('getRowDetails', () => {
           name: 'Ethereum',
         },
       },
-      createdAt: '31/12',
+      createdAt: 'Dec 31',
       imageUrl: ETHEREUM_LOGO,
       value: '< 0.00001 ETH',
     };
@@ -222,7 +222,7 @@ describe('getRowDetails', () => {
           name: 'Ethereum',
         },
       },
-      createdAt: '31/12',
+      createdAt: 'Dec 31',
       value: '1.5 ETH',
     };
 
@@ -259,7 +259,7 @@ describe('getRowDetails', () => {
           name: 'ArtCollection',
         },
       },
-      createdAt: '31/12',
+      createdAt: 'Dec 31',
       imageUrl: ETHEREUM_LOGO,
       value: '#1234',
     };
