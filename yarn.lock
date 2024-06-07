@@ -4654,6 +4654,14 @@
     eslint-plugin-n "^16.6.2"
     json-rpc-random-id "^1.0.1"
 
+"@metamask/preferences-controller@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-11.0.0.tgz#56a74c932d4577fe7c97eb3ace4d8bc3219b6b1b"
+  integrity sha512-ntHdjUuEB5cRoCc3GaQb5pzStvmi3BuvgIhwgEwLiogiBAQlbRJR6wczbp0qpGDyIkdWB2DDl/xi/s4bBtKDxw==
+  dependencies:
+    "@metamask/base-controller" "^5.0.2"
+    "@metamask/controller-utils" "^9.1.0"
+
 "@metamask/preferences-controller@^8.0.0":
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-8.0.0.tgz#097b1f83c17b56d06a3aee6ceeb55bbb8e93f04f"
