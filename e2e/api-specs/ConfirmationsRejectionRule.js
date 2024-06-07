@@ -1,3 +1,4 @@
+import { device } from "detox";
 import { addToQueue } from './helpers';
 import paramsToObj from '@open-rpc/test-coverage/build/utils/params-to-obj';
 import TestHelpers from '../helpers';
@@ -11,7 +12,7 @@ import { SigningModalSelectorsIDs } from '../selectors/Modals/SigningModal.selec
 
 const getBase64FromPath = async (path) => {
   const data = await fs.promises.readFile(path);
-  return new Buffer(data).toString('base64');
+  return data.toString('base64');
 }
 
 export default class ConfirmationsRejectRule {
@@ -113,9 +114,10 @@ export default class ConfirmationsRejectRule {
   }
 
   async afterRequest(_, call) {
-    const imagePath = await this.driver.takeScreenshot('opened general section');
+    const imagePath = await device.takeScreenshot('afterRequest');
     const image = await getBase64FromPath(imagePath);
-    call.attachments = [{ name: 'before after request', data: image, type: 'image/png' }];
+    call.attachments = call.attachments || [];
+    call.attachments.push({ data: `data:image/png;base64,${image}`, image, type: 'image' });
     await new Promise((resolve, reject) => {
       addToQueue({
         name: 'afterRequest',
