@@ -60,7 +60,8 @@ describe('Migration #43', () => {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 43: Invalid engine state error: 'object'",
+      errorMessage:
+        "FATAL ERROR: Migration 43: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -70,7 +71,7 @@ describe('Migration #43', () => {
         },
       }),
       errorMessage:
-        "Migration 43: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 43: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -82,7 +83,7 @@ describe('Migration #43', () => {
         },
       }),
       errorMessage:
-        "Migration 43: Invalid NetworkController state error: 'object'",
+        "FATAL ERROR: Migration 43: Invalid NetworkController state error: 'object'",
       scenario: 'NetworkController state is invalid',
     },
     {
@@ -94,7 +95,7 @@ describe('Migration #43', () => {
         },
       }),
       errorMessage:
-        "Migration 43: NetworkController providerConfig chainId not found: 'null'",
+        "FATAL ERROR: Migration 43: NetworkController providerConfig chainId not found: 'null'",
       scenario: 'chainId is invalid',
     },
   ];
