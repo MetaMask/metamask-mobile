@@ -10,6 +10,7 @@ import {
 } from '../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../reducers';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { Identity } from './036';
 
 const mockChecksummedInternalAcc1 = toChecksumHexAddress(
   internalAccount1.address,
@@ -156,30 +157,41 @@ describe('Migration #43', () => {
     const newState: Partial<RootState> = migration(
       oldState,
     ) as Partial<RootState>;
-
+    if (!newState.engine) {
+      expect(true).toBeFalsy();
+      return;
+    }
     Object.keys(
-      newState.engine!.backgroundState.AccountsController.internalAccounts
+      newState.engine.backgroundState.AccountsController.internalAccounts
         .accounts,
-    ).map((accountId) => {
+    ).forEach((accountId) => {
+      if (!newState.engine) {
+        expect(true).toBeFalsy();
+        return;
+      }
       expect(
-        newState.engine!.backgroundState.AccountsController.internalAccounts
+        newState.engine.backgroundState.AccountsController.internalAccounts
           .accounts[accountId].metadata.importTime,
       ).toBeDefined();
 
       Object.values(
-        newState.engine!.backgroundState.PreferencesController.identities,
-      ).map((identity) => {
+        newState.engine.backgroundState.PreferencesController.identities,
+      ).forEach((identity) => {
+        if (!newState.engine) {
+          expect(true).toBeFalsy();
+          return;
+        }
         if (
-          identity.importTime &&
+          (identity as Identity).importTime &&
           toChecksumHexAddress(
-            newState.engine!.backgroundState.AccountsController.internalAccounts
+            newState.engine.backgroundState.AccountsController.internalAccounts
               .accounts[accountId].address,
-          ) === identity.address
+          ) === (identity as Identity).address
         ) {
           expect(
-            newState.engine!.backgroundState.AccountsController.internalAccounts
+            newState.engine.backgroundState.AccountsController.internalAccounts
               .accounts[accountId].metadata.importTime,
-          ).toStrictEqual(identity.importTime);
+          ).toStrictEqual((identity as Identity).importTime);
         }
       });
     });

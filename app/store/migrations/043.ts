@@ -86,7 +86,7 @@ export default function migrate(state: unknown) {
         !accountsControllerState.internalAccounts.accounts[accountId].metadata
           .importTime
       ) {
-        Object.keys(preferencesControllerState.identities).map(
+        Object.keys(preferencesControllerState.identities).forEach(
           (identityAddress) => {
             if (
               toChecksumHexAddress(identityAddress) ===
