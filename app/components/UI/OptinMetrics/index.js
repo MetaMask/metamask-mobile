@@ -318,10 +318,21 @@ class OptinMetrics extends PureComponent {
     InteractionManager.runAfterInteractions(async () => {
       // add traits to user for identification
       // consolidate device and user settings traits
+      const marketingEnabledTraits = {
+        is_metrics_opted_in: true,
+        has_marketing_consent: Boolean(
+          this.props.setDataCollectionForMarketing,
+        ),
+      };
+
       const consolidatedTraits = {
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
+        ...(this.props.isDataCollectionForMarketingEnabled
+          ? marketingEnabledTraits
+          : {}),
       };
+
       await metrics.addTraitsToUser(consolidatedTraits);
 
       // track onboarding events that were stored before user opted in
@@ -346,16 +357,8 @@ class OptinMetrics extends PureComponent {
       this.props.clearOnboardingEvents();
 
       if (this.props.isDataCollectionForMarketingEnabled) {
-        const traits = {
-          is_metrics_opted_in: true,
-          has_marketing_consent: Boolean(
-            this.props.setDataCollectionForMarketing,
-          ),
-        };
-
-        metrics.addTraitsToUser(traits);
         metrics.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-          ...traits,
+          ...marketingEnabledTraits,
           location: 'onboarding_metametrics',
         });
       }
