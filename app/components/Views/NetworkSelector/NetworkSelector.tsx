@@ -144,6 +144,11 @@ const NetworkSelector = () => {
     });
   };
 
+  const onCancel = () => {
+    setShowPopularNetworkModal(false);
+    setPopularNetwork(undefined);
+  };
+
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
     return (
@@ -268,7 +273,7 @@ const NetworkSelector = () => {
     <View style={styles.addtionalNetworksContainer}>
       <CustomNetwork
         isNetworkModalVisible={showPopularNetworkModal}
-        closeNetworkModal={() => {}}
+        closeNetworkModal={onCancel}
         selectedNetwork={popularNetwork}
         toggleWarningModal={undefined}
         showNetworkModal={showNetworkModal}
