@@ -158,7 +158,6 @@
     "@metamask/key-tree": "^9.0.0",
     "@metamask/keyring-api": "^4.0.0",
     "@metamask/keyring-controller": "^16.0.0",
-    "@metamask/network-controller": "^18.1.0",
     "@metamask/logging-controller": "^3.0.0",
     "@metamask/message-signing-snap": "^0.3.3",
     "@metamask/network-controller": "^18.1.0",

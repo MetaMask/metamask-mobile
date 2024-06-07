@@ -114,17 +114,17 @@ export default class ConfirmationsRejectRule {
   }
 
   async afterRequest(_, call) {
-    await TestHelpers.delay(3000);
-    const imagePath = await device.takeScreenshot(`afterRequest-${this.getTitle()}`);
-    const image = await getBase64FromPath(imagePath);
-    call.attachments = call.attachments || [];
-    call.attachments.push({ data: `data:image/png;base64,${image}`, image, type: 'image' });
     await new Promise((resolve, reject) => {
       addToQueue({
         name: 'afterRequest',
         resolve,
         reject,
         task: async () => {
+          await TestHelpers.delay(3000);
+          const imagePath = await device.takeScreenshot(`afterRequest-${this.getTitle()}`);
+          const image = await getBase64FromPath(imagePath);
+          call.attachments = call.attachments || [];
+          call.attachments.push({ data: `data:image/png;base64,${image}`, image, type: 'image' });
           let cancelButton;
           await TestHelpers.delay(3000);
           if (this.allCapsCancel.includes(call.methodName)) {
