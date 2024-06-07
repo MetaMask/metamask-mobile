@@ -154,7 +154,7 @@ const main = async () => {
 
       const myWebView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
       const webElement = await myWebView.element(by.web.tag('body'));
-      const transport = await createDriverTransport(webElement);
+      const transport = createDriverTransport(webElement);
 
       const methodsWithConfirmations = [
         'wallet_requestPermissions',
