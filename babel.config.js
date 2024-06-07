@@ -9,10 +9,8 @@ module.exports = {
   overrides: [
     {
       test: './node_modules/marked',
-      plugins: [
-        ["@babel/plugin-transform-private-methods", { "loose": true }]
-      ]
-    }
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
   ],
   env: {
     production: {

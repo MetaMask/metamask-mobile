@@ -38,9 +38,10 @@ const snapMethodMiddlewareBuilder = (
       origin,
     ),
     invokeSnap: engineContext.PermissionController.executeRestrictedMethod.bind(
-      engineContext.PermissionController, 
-      origin, 
-      RestrictedMethods.wallet_snap),
+      engineContext.PermissionController,
+      origin,
+      RestrictedMethods.wallet_snap,
+    ),
   });
 
 export default snapMethodMiddlewareBuilder;
