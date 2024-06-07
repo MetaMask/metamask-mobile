@@ -113,13 +113,13 @@ export default class ConfirmationsRejectRule {
         reject,
         task: async () => {
           let cancelButton;
-          await TestHelpers.delay(1000);
+          await TestHelpers.delay(3000);
           if (this.allCapsCancel.includes(call.methodName)) {
             cancelButton = await Matchers.getElementByText('CANCEL');
           } else {
             cancelButton = await Matchers.getElementByText('Cancel');
           }
-          await Gestures.tap(cancelButton);
+          await Gestures.waitAndTap(cancelButton);
         },
       });
     });
