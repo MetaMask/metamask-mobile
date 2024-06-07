@@ -7,8 +7,8 @@ import { View } from 'react-native';
 // External dependencies.
 import Text, { TextVariant } from '../../Texts/Text';
 import Button, { ButtonVariants } from '../../Buttons/Button';
-import ButtonIcon, { ButtonIconVariants } from '../../Buttons/ButtonIcon';
-import { IconName } from '../../Icons/Icon';
+import ButtonIcon from '../../Buttons/ButtonIcon';
+import { IconName, IconColor } from '../../Icons/Icon';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
@@ -33,7 +33,7 @@ const SheetHeader = ({
         {onBack && (
           <ButtonIcon
             testID={SHEET_HEADER_BACK_BUTTON_ID}
-            variant={ButtonIconVariants.Secondary}
+            iconColor={IconColor.Default}
             onPress={onBack}
             iconName={IconName.ArrowLeft}
           />
@@ -46,7 +46,6 @@ const SheetHeader = ({
             variant={ButtonVariants.Link}
             testID={SHEET_HEADER_ACTION_BUTTON_ID}
             onPress={actionButtonOptions.onPress}
-            textVariant={TextVariant.BodyMD}
             label={actionButtonOptions.label}
           />
         )}
