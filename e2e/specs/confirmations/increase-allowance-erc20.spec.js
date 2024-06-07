@@ -67,6 +67,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
+
         // Assert that the ERC20 activity is an increase allowance and it is confirmed
         await Assertions.checkIfTextIsDisplayed(
           ActivitiesViewSelectorsText.INCREASE_ALLOWANCE_METHOD,
