@@ -243,6 +243,7 @@ type GlobalActions =
   | GetCurrencyRateState
   | GetGasFeeState
   | GetTokenListState
+  | KeyringControllerActions
   | NetworkControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
@@ -259,6 +260,7 @@ type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
   | GasFeeStateChange
+  | KeyringControllerEvents
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
@@ -616,26 +618,20 @@ class Engine {
       networkController.state.selectedNetworkClientId,
     );
     const gasFeeController = new GasFeeController({
-      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
           `${networkController.name}:getNetworkClientById`,
           `${networkController.name}:getEIP1559Compatibility`,
+          `${networkController.name}:getState`,
         ],
         allowedEvents: [AppConstants.NETWORK_DID_CHANGE_EVENT],
       }),
       getProvider: () =>
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         networkController.getProviderAndBlockTracker().provider,
-      onNetworkDidChange: (listener) =>
-        this.controllerMessenger.subscribe(
-          AppConstants.NETWORK_DID_CHANGE_EVENT,
-          listener,
-        ),
       getCurrentNetworkEIP1559Compatibility: async () =>
         (await networkController.getEIP1559Compatibility()) ?? false,
-      getChainId: () => networkController.state.providerConfig.chainId,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
         const chainId = networkController.state.providerConfig.chainId;
         return (
@@ -645,10 +641,7 @@ class Engine {
         );
       },
       clientId: AppConstants.SWAPS.CLIENT_ID,
-      legacyAPIEndpoint:
-        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
-      EIP1559APIEndpoint:
-        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
+      infuraAPIKey: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
     });
 
     const phishingController = new PhishingController({
@@ -676,7 +669,6 @@ class Engine {
         preferencesController,
       ),
       encryptor,
-      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
         allowedActions: [],
@@ -1329,7 +1321,7 @@ class Engine {
     for (const controller of controllers) {
       if (
         hasProperty(initialState, controller.name) &&
-        //@ts-expect-error Misalign types because of Base Controller version
+        hasProperty(controller, 'subscribe') &&
         controller.subscribe !== undefined
       ) {
         // The following type error can be addressed by passing initial state into controller constructors instead

@@ -173,7 +173,7 @@ class FixtureBuilder {
               networkConfigurations: {
                 networkId1: {
                   rpcUrl: `http://localhost:${getGanachePort()}`,
-                  chainId: '1337',
+                  chainId: '1338',
                   ticker: 'ETH',
                   nickname: 'Localhost',
                 },
@@ -348,6 +348,7 @@ class FixtureBuilder {
               estimatedGasFeeTimeBounds: {},
               gasEstimateType: 'none',
               gasFeeEstimatesByChainId: {},
+              nonRPCGasFeeApisDisabled: false,
             },
             TokenDetectionController: {},
             NftDetectionController: {},
@@ -536,7 +537,7 @@ class FixtureBuilder {
             },
             {
               active: true,
-              chainId: 1337,
+              chainId: 1338,
               chainName: 'Localhost',
               shortName: 'Localhost',
               nativeTokenSupported: true,
@@ -678,7 +679,7 @@ class FixtureBuilder {
       isCustomNetwork: true,
       providerConfig: {
         type: 'rpc',
-        chainId: '0x539',
+        chainId: '0x53a',
         rpcUrl: `http://localhost:${getGanachePort()}`,
         nickname: 'Localhost',
         ticker: 'ETH',
