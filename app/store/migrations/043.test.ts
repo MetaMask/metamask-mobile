@@ -172,7 +172,7 @@ describe('Migration #43', () => {
       expect(
         newState.engine.backgroundState.AccountsController.internalAccounts
           .accounts[accountId].metadata.importTime,
-      ).toBeDefined();
+      ).toEqual(expect.any(Number));
 
       Object.values(
         newState.engine.backgroundState.PreferencesController.identities,
