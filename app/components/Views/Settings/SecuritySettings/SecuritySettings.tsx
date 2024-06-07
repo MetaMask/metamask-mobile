@@ -471,6 +471,7 @@ const Settings: React.FC = () => {
       const consolidatedTraits = {
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
+        is_metrics_opted_in: true,
       };
       await enable();
       setAnalyticsEnabled(true);
@@ -478,7 +479,7 @@ const Settings: React.FC = () => {
       InteractionManager.runAfterInteractions(async () => {
         await addTraitsToUser(consolidatedTraits);
         trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-          analytics_option_selected: 'Metrics Opt in',
+          is_metrics_opted_in: true,
           updated_after_onboarding: true,
         });
       });
@@ -492,16 +493,6 @@ const Settings: React.FC = () => {
         strings('app_settings.metametrics_opt_out'),
         strings('app_settings.metametrics_restart_required'),
       );
-
-      const traits = {
-        is_metrics_opted_in: false,
-        has_marketing_consent: false,
-      };
-      addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        ...traits,
-        location: 'settings',
-      });
     }
   };
 
@@ -515,15 +506,18 @@ const Settings: React.FC = () => {
         screen: Routes.SHEET.DATA_COLLECTION,
       });
 
-      const traits = {
-        is_metrics_opted_in: true,
-        has_marketing_consent: false,
-      };
-      addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        ...traits,
-        location: 'settings',
-      });
+      if (analyticsEnabled) {
+        InteractionManager.runAfterInteractions(async () => {
+          const traits = {
+            has_marketing_consent: false,
+          };
+          await addTraitsToUser(traits);
+          trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+            ...traits,
+            location: 'settings',
+          });
+        });
+      }
     }
     dispatch(setDataCollectionForMarketing(value));
   };
