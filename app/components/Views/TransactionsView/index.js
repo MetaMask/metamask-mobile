@@ -32,7 +32,7 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
 import { selectPendingSmartTransactionsBySender } from '../../../selectors/smartTransactionsController';
