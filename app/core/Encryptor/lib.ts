@@ -38,8 +38,12 @@ class AesEncryptionLibrary implements EncryptionLibrary {
     // See: https://www.npmjs.com/package/react-native-aes-crypto#example
     await Aes.randomKey(size);
 
-  encrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
-    await Aes.encrypt(data, key, iv);
+  encrypt = async (
+    data: string,
+    key: string,
+    iv: unknown,
+    algorithm: string,
+  ): Promise<string> => await Aes.encrypt(data, key, iv, algorithm);
 
   decrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
     await Aes.decrypt(data, key, iv);
