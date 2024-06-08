@@ -60,7 +60,7 @@ const createStyles = (theme) =>
     qrWrapper: {
       margin: 8,
       padding: 8,
-      backgroundColor: theme.brandColors.white000,
+      backgroundColor: theme.brandColors.white,
     },
     addressWrapper: {
       flexDirection: 'row',

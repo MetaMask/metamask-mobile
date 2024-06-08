@@ -11,7 +11,11 @@ import Text, {
 import Icon, {
   IconName,
   IconSize,
+  IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -118,7 +122,7 @@ function ActivationKeys() {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white000}
+              thumbColor={theme.brandColors.white}
               ios_backgroundColor={colors.border.muted}
               disabled={isLoadingKeys}
             />
@@ -142,9 +146,7 @@ function ActivationKeys() {
             </Text>
           </ListItemColumn>
           <ListItemColumn>
-            <TouchableOpacity
-              accessible
-              accessibilityRole="button"
+            <ButtonIcon
               accessibilityLabel="Edit Activation Key"
               disabled={isLoadingKeys}
               onPress={() =>
@@ -155,35 +157,21 @@ function ActivationKeys() {
                 )
               }
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-            >
-              <Icon
-                name={IconName.Edit}
-                size={IconSize.Lg}
-                color={
-                  isLoadingKeys
-                    ? colors.primary.disabled
-                    : colors.primary.default
-                }
-              />
-            </TouchableOpacity>
+              iconName={IconName.Edit}
+              iconColor={IconColor.Primary}
+              size={ButtonIconSizes.Lg}
+            />
           </ListItemColumn>
           <ListItemColumn>
-            <TouchableOpacity
-              accessible
-              accessibilityRole="button"
+            <ButtonIcon
               accessibilityLabel="Delete Activation Key"
               disabled={isLoadingKeys}
               onPress={() => removeActivationKey(activationKey.key)}
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-            >
-              <Icon
-                name={IconName.Trash}
-                size={IconSize.Lg}
-                color={
-                  isLoadingKeys ? colors.error.disabled : colors.error.default
-                }
-              />
-            </TouchableOpacity>
+              iconName={IconName.Trash}
+              iconColor={IconColor.Error}
+              size={ButtonIconSizes.Lg}
+            />
           </ListItemColumn>
         </ListItem>
       ))}
