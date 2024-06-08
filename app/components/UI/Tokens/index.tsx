@@ -98,7 +98,7 @@ import { selectUseTokenDetection } from '../../../selectors/preferencesControlle
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import useIsOriginalNativeTokenSymbol from '../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import ButtonIcon, {
-  ButtonIconVariants,
+  ButtonIconSizes,
 } from '../../../../app/component-library/components/Buttons/ButtonIcon';
 import Box from '../../UI/Ramp/components/Box';
 import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
@@ -172,9 +172,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           onPressIn={() => {
             setShowScamWarningModal(true);
           }}
-          variant={ButtonIconVariants.Primary}
-          size={IconSize.Lg}
-          iconColorOverride={IconColor.Error}
+          iconColor={IconColor.Error}
+          size={ButtonIconSizes.Lg}
         />
       );
     }
