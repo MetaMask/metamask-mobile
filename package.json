@@ -488,7 +488,6 @@
     "wdio-cucumberjs-json-reporter": "^4.4.3",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
-    "xhr2": "^0.2.1",
     "xml2js": "^0.5.0",
     "yarn-deduplicate": "^6.0.2"
   },
