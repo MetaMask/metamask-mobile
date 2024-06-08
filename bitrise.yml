@@ -138,6 +138,8 @@ stages:
     workflows:
       - ios_run_regression_tests: {}
       - android_run_regression_tests: {}
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_accounts_ios: {}
