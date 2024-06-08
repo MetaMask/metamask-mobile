@@ -12,6 +12,10 @@ import {
   interruptBiometrics,
 } from '../../actions/user';
 import Routes from '../../constants/navigation/Routes';
+// eslint-disable-next-line @typescript-eslint/no-shadow
+import { XMLHttpRequest } from 'xhr2';
+globalThis.XMLHttpRequest = XMLHttpRequest;
+global.XMLHttpRequest = XMLHttpRequest;
 import {
   biometricsStateMachine,
   authStateMachine,

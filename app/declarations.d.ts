@@ -8,6 +8,7 @@ declare module 'react-native-fade-in-image';
 
 declare module 'react-native-minimizer';
 
+declare module 'xhr2';
 declare module 'react-native-scrollable-tab-view/DefaultTabBar' {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

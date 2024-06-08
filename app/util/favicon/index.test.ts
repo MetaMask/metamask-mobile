@@ -7,6 +7,10 @@ import {
 import { storeFavicon } from '../../actions/browser';
 
 jest.mock('../../store', () => {
+  if (!globalThis.XMLHttpRequest) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    globalThis.XMLHttpRequest = require('xhr2');
+  }
   const actual = jest.requireActual('../../store');
   return {
     ...actual,
