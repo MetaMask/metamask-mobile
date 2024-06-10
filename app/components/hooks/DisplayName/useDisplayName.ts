@@ -1,8 +1,21 @@
 import { Hex } from '@metamask/utils';
 import { NameType } from '../../UI/Name/Name.types';
-import { useFirstPartyContractName } from './useFirstPartyContractName';
-import useWatchedNFTName from './useWatchedNFTName';
-import { useTokenListName } from './useTokenListName';
+import { useFirstPartyContractNames } from './useFirstPartyContractName';
+import { useWatchedNFTNames } from './useWatchedNFTName';
+import { useTokenListEntries } from './useTokenListEntry';
+
+export interface UseDisplayNameRequest {
+  value: string;
+  type: NameType;
+  chainId?: Hex;
+  preferContractSymbol?: boolean;
+}
+
+export interface UseDisplayNameResponse {
+  name: string | null | undefined;
+  contractDisplayName?: string;
+  variant: DisplayNameVariant;
+}
 
 /**
  * Indicate the source and nature of a display name for a given address.
@@ -51,32 +64,42 @@ const useDisplayName: (
   type: NameType,
   value: string,
   chainId?: Hex,
-) => DisplayName = (_type, value, chainId) => {
-  const normalizedValue = value.toLowerCase();
+  preferContractSymbol?: boolean,
+) => UseDisplayNameResponse = (type, value, chainId, preferContractSymbol) =>
+  useDisplayNames([{ value, type, chainId, preferContractSymbol }])[0];
 
-  const watchedNftName = useWatchedNFTName(normalizedValue);
-  const firstPartyContractName = useFirstPartyContractName(
-    normalizedValue,
-    chainId,
-  );
-  const tokenListName = useTokenListName(
-    normalizedValue,
-    NameType.EthereumAddress,
-  );
+export function useDisplayNames(
+  requests: UseDisplayNameRequest[],
+): UseDisplayNameResponse[] {
+  const firstPartyContractNames = useFirstPartyContractNames(requests);
+  const watchedNftNames = useWatchedNFTNames(requests);
+  const tokenListNames = useTokenListEntries(requests);
 
-  const recognizedName =
-    watchedNftName || firstPartyContractName || tokenListName;
+  return requests.map(({ preferContractSymbol }, index) => {
+    const watchedNftName = watchedNftNames[index];
+    const firstPartyContractName = firstPartyContractNames[index];
+    const tokenListName = tokenListNames[index];
+    const contractDisplayName =
+      preferContractSymbol && tokenListName?.symbol
+        ? tokenListName.symbol
+        : tokenListName?.name;
 
-  if (recognizedName) {
+    const recognizedName =
+      watchedNftName || firstPartyContractName || contractDisplayName;
+
+    if (recognizedName) {
+      return {
+        variant: DisplayNameVariant.Recognized,
+        contractDisplayName,
+        name: recognizedName,
+      };
+    }
+
     return {
-      variant: DisplayNameVariant.Recognized,
-      name: recognizedName,
+      variant: DisplayNameVariant.Unknown,
+      name: null,
     };
-  }
-
-  return {
-    variant: DisplayNameVariant.Unknown,
-  };
-};
+  });
+}
 
 export default useDisplayName;
