@@ -18,10 +18,10 @@
     }
   },
   "AccountsController": {
-    "internalAccounts": {
-      "accounts": {},
-      "selectedAccount": ""
-    }
+     "internalAccounts": {
+       "accounts": {},
+       "selectedAccount": ""
+     }
   },
   "AddressBookController": {
     "addressBook": {}
@@ -56,8 +56,8 @@
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {
-      "ETH": {
-        "conversionDate": 0,
+      "ETH":{
+        "conversionDate":0,
         "conversionRate": 0,
         "usdConversionRate": null
       }
@@ -71,7 +71,7 @@
       "ticker": "ETH"
     },
     "networksMetadata": {
-      "mainnet": { "EIPS": {}, "status": "unknown" }
+      "mainnet":{  "EIPS": {},"status": "unknown"}
     },
     "selectedNetworkClientId": "mainnet"
   },
@@ -120,8 +120,7 @@
       "0x64": true
     },
     "isIpfsGatewayEnabled": true,
-    "smartTransactionsOptInStatus": false,
-    "useTransactionSimulations": true
+    "smartTransactionsOptInStatus": false 
   },
   "TokenBalancesController": {
     "contractBalances": {}
@@ -204,8 +203,7 @@
     "gasFeeEstimates": {},
     "estimatedGasFeeTimeBounds": {},
     "gasEstimateType": "none",
-    "gasFeeEstimatesByChainId": {},
-    "nonRPCGasFeeApisDisabled": false
+    "gasFeeEstimatesByChainId": {}
   },
   "ApprovalController": {
     "pendingApprovals": {},

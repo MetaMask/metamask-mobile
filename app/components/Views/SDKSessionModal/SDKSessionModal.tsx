@@ -8,31 +8,31 @@ import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
+import { AvatarVariant } from '../../../../app/component-library/components/Avatars/Avatar';
 import Button, {
   ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+} from '../../../../app/component-library/components/Buttons/Button';
 import Cell, {
   CellVariant,
-} from '../../../../component-library/components/Cells/Cell';
-import TagUrl from '../../../../component-library/components/Tags/TagUrl';
-import { useAccounts } from '../../../hooks/useAccounts';
-import Routes from '../../../../constants/navigation/Routes';
+} from '../../../../app/component-library/components/Cells/Cell';
+import TagUrl from '../../../../app/component-library/components/Tags/TagUrl';
+import { useAccounts } from '../../../../app/components/hooks/useAccounts';
+import Routes from '../../../../app/constants/navigation/Routes';
 import {
   getPermittedAccounts,
   getPermittedAccountsByHostname,
-} from '../../../../core/Permissions';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+} from '../../../../app/core/Permissions';
+import DevLogger from '../../../../app/core/SDKConnect/utils/DevLogger';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+} from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
+} from '../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../util/theme';
+import { strings } from '../../../../locales/i18n';
 
 const createStyles = (
   _colors: ThemeColors,

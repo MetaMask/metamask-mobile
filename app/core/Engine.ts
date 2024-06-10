@@ -109,10 +109,9 @@ import {
   SnapControllerEvents,
   SnapControllerActions,
   PersistedSnapControllerState,
+  WebViewExecutionService,
   SnapsRegistryMessenger,
 } from '@metamask/snaps-controllers';
-
-import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
 import { getSnapsWebViewPromise } from '../lib/snaps';
 import {
@@ -438,6 +437,7 @@ class Engine {
     });
 
     const preferencesController = new PreferencesController({
+      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
         allowedActions: [],
@@ -473,7 +473,6 @@ class Engine {
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
-      //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
       onPreferencesStateChange,
       onNetworkDidChange: (listener) =>
         this.controllerMessenger.subscribe(
@@ -486,7 +485,6 @@ class Engine {
     });
     const nftController = new NftController(
       {
-        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
         onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -613,20 +611,26 @@ class Engine {
       networkController.state.selectedNetworkClientId,
     );
     const gasFeeController = new GasFeeController({
+      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
           `${networkController.name}:getNetworkClientById`,
           `${networkController.name}:getEIP1559Compatibility`,
-          `${networkController.name}:getState`,
         ],
         allowedEvents: [AppConstants.NETWORK_DID_CHANGE_EVENT],
       }),
       getProvider: () =>
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         networkController.getProviderAndBlockTracker().provider,
+      onNetworkDidChange: (listener) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.NETWORK_DID_CHANGE_EVENT,
+          listener,
+        ),
       getCurrentNetworkEIP1559Compatibility: async () =>
         (await networkController.getEIP1559Compatibility()) ?? false,
+      getChainId: () => networkController.state.providerConfig.chainId,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
         const chainId = networkController.state.providerConfig.chainId;
         return (
@@ -636,7 +640,10 @@ class Engine {
         );
       },
       clientId: AppConstants.SWAPS.CLIENT_ID,
-      infuraAPIKey: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+      legacyAPIEndpoint:
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
+      EIP1559APIEndpoint:
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
 
     const phishingController = new PhishingController({
@@ -699,6 +706,8 @@ class Engine {
       ...buildSnapRestrictedMethodSpecifications(
         Object.keys(ExcludedSnapPermissions),
         {
+          encrypt: encryptor.encrypt.bind(encryptor),
+          decrypt: encryptor.decrypt.bind(encryptor),
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           clearSnapState: this.controllerMessenger.call.bind(
@@ -768,7 +777,6 @@ class Engine {
     });
     ///: END:ONLY_INCLUDE_IF
     const accountTrackerController = new AccountTrackerController({
-      //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
       onPreferencesStateChange,
       getIdentities: () => preferencesController.state.identities,
       getSelectedAddress: () => accountsController.getSelectedAccount().address,
@@ -893,6 +901,7 @@ class Engine {
 
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
+    //@ts-expect-error Misalign types because of Base Controller version
     const snapsRegistryMessenger: SnapsRegistryMessenger =
       this.controllerMessenger.getRestricted({
         name: 'SnapsRegistry',
@@ -903,6 +912,7 @@ class Engine {
       state: initialState.SnapsRegistry,
       messenger: snapsRegistryMessenger,
       refetchOnAllowlistMiss: requireAllowlist,
+      failOnUnavailableRegistry: requireAllowlist,
       url: {
         registry: 'https://acl.execution.metamask.io/latest/registry.json',
         signature: 'https://acl.execution.metamask.io/latest/signature.json',
@@ -912,6 +922,7 @@ class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
+      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
         allowedActions: [],
@@ -981,9 +992,6 @@ class Engine {
         }),
       //@ts-expect-error types need to be aligned with snaps-controllers
       preinstalledSnaps: PREINSTALLED_SNAPS,
-      //@ts-expect-error types need to be aligned between new encryptor and snaps-controllers
-      encryptor,
-      getMnemonic: getPrimaryKeyringMnemonic.bind(this),
     });
     ///: END:ONLY_INCLUDE_IF
 
@@ -1161,7 +1169,6 @@ class Engine {
       }),
       new NftDetectionController({
         onNftsStateChange: (listener) => nftController.subscribe(listener),
-        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
         onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -1201,7 +1208,7 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
+
         onPreferencesStateChange,
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,
@@ -1215,6 +1222,7 @@ class Engine {
       this.smartTransactionsController,
       new SwapsController(
         {
+          // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
           fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
           // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
           fetchEstimatedMultiLayerL1Fee,
@@ -1236,7 +1244,6 @@ class Engine {
             swapsUtils.OPTIMISM_CHAIN_ID,
             swapsUtils.ZKSYNC_ERA_CHAIN_ID,
             swapsUtils.LINEA_CHAIN_ID,
-            swapsUtils.BASE_CHAIN_ID,
           ],
         },
       ),

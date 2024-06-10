@@ -1,10 +1,10 @@
 // External dependencies.
-import { HeaderBaseProps } from '../../HeaderBase/HeaderBase.types';
+import { HeaderProps } from '../../HeaderBase/Header.types';
 
 /**
  * BottomSheetHeader component props.
  */
-export interface BottomSheetHeaderProps extends HeaderBaseProps {
+export interface BottomSheetHeaderProps extends HeaderProps {
   /**
    * Optional function to trigger when pressing the back button.
    */

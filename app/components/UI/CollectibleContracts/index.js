@@ -44,7 +44,6 @@ import {
   NFT_TAB_CONTAINER_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import RefreshTestId from './constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -198,7 +197,7 @@ const CollectibleContracts = ({
     const updatableCollectibles = collectibles.filter((single) =>
       shouldUpdateCollectibleMetadata(single),
     );
-    if (updatableCollectibles.length !== 0 && !useNftDetection) {
+    if (updatableCollectibles.length !== 0) {
       updateAllCollectibleMetadata(updatableCollectibles);
     }
   }, [
@@ -206,8 +205,34 @@ const CollectibleContracts = ({
     updateAllCollectibleMetadata,
     isIpfsGatewayEnabled,
     displayNftMedia,
-    useNftDetection,
   ]);
+
+  /*   const updateCollectibleMetadata = useCallback(
+    async (collectible) => {
+      const { NftController } = Engine.context;
+      const { address, tokenId } = collectible;
+
+      const isIgnored = isCollectibleIgnored(collectible);
+
+      if (!isIgnored) {
+        if (String(tokenId).includes('e+')) {
+          removeFavoriteCollectible(selectedAddress, chainId, collectible);
+        } else {
+          await NftController.addNft(address, String(tokenId));
+        }
+      }
+    },
+    [chainId, removeFavoriteCollectible, selectedAddress, isCollectibleIgnored],
+  );
+
+  useEffect(() => {
+    // TO DO: Move this fix to the controllers layer
+    collectibles.forEach((collectible) => {
+      if (shouldUpdateCollectibleMetadata(collectible)) {
+        updateCollectibleMetadata(collectible);
+      }
+    });
+  }, [collectibles, updateCollectibleMetadata]); */
 
   const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);
@@ -331,7 +356,6 @@ const CollectibleContracts = ({
         data={collectibleContracts}
         renderItem={({ item, index }) => renderCollectibleContract(item, index)}
         keyExtractor={(_, index) => index.toString()}
-        testID={RefreshTestId}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}

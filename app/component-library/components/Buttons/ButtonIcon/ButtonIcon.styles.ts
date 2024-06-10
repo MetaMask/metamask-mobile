@@ -29,7 +29,7 @@ const styleSheet = (params: {
         width: Number(size),
         borderRadius: 8,
         ...(pressed && {
-          backgroundColor: theme.colors.background.pressed,
+          backgroundColor: theme.colors.background.defaultPressed,
         }),
         opacity: isDisabled ? 0.5 : 1,
       } as ViewStyle,

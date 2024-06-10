@@ -217,7 +217,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       testID="banner-close-button-icon"
     >
       <SvgMock
-        color="#24272A"
+        color="#0376C9"
         height={16}
         name="Close"
         style={

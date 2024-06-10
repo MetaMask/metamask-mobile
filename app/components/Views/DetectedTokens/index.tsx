@@ -25,7 +25,6 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/DetectedTokensView.selectors';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -239,7 +238,6 @@ const DetectedTokens = () => {
           containerStyle={styles.fill}
           type={'confirm'}
           disabled={importTokenCount <= 0}
-          testID={DetectedTokensSelectorIDs.IMPORT_BUTTON_ID}
         >
           {strings('detected_tokens.import_cta', {
             tokenCount: importTokenCount,

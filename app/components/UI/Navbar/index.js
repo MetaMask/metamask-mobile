@@ -37,18 +37,18 @@ import Routes from '../../../constants/navigation/Routes';
 
 import ButtonIcon, {
   ButtonIconSizes,
+  ButtonIconVariants,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconName,
   IconSize,
-  IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import {
   default as MorphText,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
@@ -90,8 +90,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Device.isAndroid() ? 22 : 18,
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
-  notificationButton: {
-    marginRight: 4,
+  infoButton: {
+    paddingRight: Device.isAndroid() ? 0 : 18,
+
+    marginTop: 5,
   },
   disabled: {
     opacity: 0.3,
@@ -1000,19 +1002,20 @@ export function getWalletNavbarOptions(
       <View style={styles.leftButtonContainer}>
         {isNotificationsFeatureEnabled() && (
           <ButtonIcon
-            iconColor={IconColor.Primary}
+            variant={ButtonIconVariants.Primary}
             onPress={handleNotificationOnPress}
             iconName={IconName.Notification}
+            style={styles.infoButton}
             size={IconSize.Xl}
             testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-            style={styles.notificationButton}
           />
         )}
 
         <ButtonIcon
-          iconColor={IconColor.Primary}
+          variant={ButtonIconVariants.Primary}
           onPress={openQRScanner}
           iconName={IconName.Scan}
+          style={styles.infoButton}
           size={IconSize.Xl}
           testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
         />
@@ -1082,7 +1085,7 @@ export function getImportTokenNavbarOptions(
       >
         <ButtonIcon
           iconName={IconName.Close}
-          iconColor={IconColor.Default}
+          variant={ButtonIconVariants.Secondary}
           size={ButtonIconSizes.Lg}
           onPress={
             onClose

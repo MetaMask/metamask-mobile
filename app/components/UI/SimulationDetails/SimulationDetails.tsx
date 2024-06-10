@@ -22,12 +22,10 @@ import AnimatedSpinner, { SpinnerSize } from '../AnimatedSpinner';
 import useBalanceChanges from './useBalanceChanges';
 import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
 import styleSheet from './SimulationDetails.styles';
-import { useSimulationMetrics } from './useSimulationMetrics';
 
 export interface SimulationDetailsProps {
   simulationData?: SimulationData;
   transactionId: string;
-  enableMetrics: boolean;
 }
 
 /**
@@ -141,20 +139,10 @@ const SimulationDetailsLayout: React.FC<{
  */
 export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   simulationData,
-  enableMetrics = false,
-  transactionId,
 }: SimulationDetailsProps) => {
   const { styles } = useStyles(styleSheet, {});
   const balanceChangesResult = useBalanceChanges(simulationData);
   const loading = !simulationData || balanceChangesResult.pending;
-
-  useSimulationMetrics({
-    enableMetrics,
-    balanceChanges: balanceChangesResult.value,
-    loading,
-    simulationData,
-    transactionId,
-  });
 
   if (loading) {
     return (

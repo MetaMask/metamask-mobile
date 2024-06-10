@@ -373,7 +373,13 @@ class WalletConnect2Session {
     let method = requestEvent.params.request.method;
     const chainId = parseInt(requestEvent.params.chainId);
 
-    const methodParams = requestEvent.params.request.params as any;
+    const beforeMethodParams = requestEvent.params.request.params as any;
+    // Replace blockExplorerUrls with blockExplorerUrl
+    const methodParams = {
+      ...beforeMethodParams,
+      // blockExplorerUrl: beforeMethodParams.blockExplorerUrls,
+      // test: 'test',
+    };
 
     DevLogger.log(
       `WalletConnect2Session::handleRequest chainId=${chainId} method=${method}`,

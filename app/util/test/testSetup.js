@@ -20,7 +20,10 @@ jest.mock('react-native', () => {
   return originalModule;
 });
 
-jest.mock('../../lib/snaps/preinstalled-snaps');
+jest.mock('../../lib/snaps/preinstalled-snaps', () =>
+  // eslint-disable-next-line no-console
+  console.log("do nothing since we aren't testing the pre installed snaps"),
+);
 
 const mockFs = {
   CachesDirectoryPath: jest.fn(),

@@ -2,21 +2,19 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 
+// External dependencies.
+import { IconName } from '../../Icons/Icon';
+
 // Internal dependencies.
 import ButtonIcon from './ButtonIcon';
-import {
-  DEFAULT_BUTTONICON_SIZE,
-  DEFAULT_BUTTONICON_ICONCOLOR,
-  DEFAULT_BUTTONICON_ICONNAME,
-} from './ButtonIcon.constants';
+import { ButtonIconVariants } from './ButtonIcon.types';
 
 describe('ButtonIcon', () => {
   it('should render correctly', () => {
     const { toJSON } = render(
       <ButtonIcon
-        iconColor={DEFAULT_BUTTONICON_ICONCOLOR}
-        iconName={DEFAULT_BUTTONICON_ICONNAME}
-        size={DEFAULT_BUTTONICON_SIZE}
+        variant={ButtonIconVariants.Primary}
+        iconName={IconName.AddSquare}
         onPress={jest.fn}
       />,
     );

@@ -9,56 +9,6 @@ import {
 import { TRIGGER_TYPES, Notification } from '../../../util/notifications';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 
-const NOTIFICATIONS = [
-  {
-    id: '1',
-    createdAt: new Date('2023-01-01'),
-    isRead: false,
-    type: TRIGGER_TYPES.ETH_SENT,
-    data: {
-      kind: 'eth_sent',
-      network_fee: {
-        gas_price: '0.003',
-        native_token_price_in_usd: '3.700',
-      },
-      from: '0xABC123',
-      to: '0xDEF456',
-      amount: { usd: '0.000', eth: '1.5' },
-    },
-  } as Notification,
-  {
-    id: '2',
-    createdAt: new Date('2023-01-01'),
-    isRead: false,
-    type: TRIGGER_TYPES.ETH_SENT,
-    data: {
-      kind: 'eth_sent',
-      network_fee: {
-        gas_price: '0.003',
-        native_token_price_in_usd: '3.700',
-      },
-      from: '0xABC123',
-      to: '0xDEF456',
-      amount: { usd: '0.000', eth: '1.5' },
-    },
-  } as Notification,
-  {
-    id: '3',
-    createdAt: new Date('2023-01-01'),
-    isRead: false,
-    type: TRIGGER_TYPES.ETH_SENT,
-    data: {
-      kind: 'eth_sent',
-      network_fee: {
-        gas_price: '0.003',
-        native_token_price_in_usd: '3.700',
-      },
-      from: '0xABC123',
-      to: '0xDEF456',
-      amount: { usd: '0.000', eth: '1.5' },
-    },
-  } as Notification,
-];
 describe('formatDate', () => {
   const realDateNow = Date.now.bind(global.Date);
 
@@ -127,13 +77,13 @@ describe('getNotificationBadge', () => {
     expect(getNotificationBadge(triggerType)).toBe(expectedIcon);
   });
 
-  it('returns default icon for unknown trigger types', () => {
+  test('returns default icon for unknown trigger types', () => {
     expect(getNotificationBadge('UNKNOWN_TRIGGER')).toBe(IconName.Sparkle);
   });
 });
 
 describe('sortNotifications', () => {
-  it('sorts notifications by createdAt in descending order', () => {
+  test('sorts notifications by createdAt in descending order', () => {
     const notifications: Notification[] = [
       { id: '1', createdAt: new Date('2023-01-01') },
       { id: '3', createdAt: new Date('2023-01-03') },
@@ -147,19 +97,23 @@ describe('sortNotifications', () => {
     ]);
   });
 
-  it('handles empty array without error', () => {
+  test('handles empty array without error', () => {
     expect(sortNotifications([])).toEqual([]);
   });
 
-  it('handles array with single element', () => {
+  test('handles array with single element', () => {
     const singleNotification: Notification[] = [
       { id: '1', createdAt: new Date('2023-01-01') },
     ];
     expect(sortNotifications(singleNotification)).toEqual(singleNotification);
   });
 
-  it('is stable for notifications with the same createdAt', () => {
-    const notifications: Notification[] = NOTIFICATIONS;
+  test('is stable for notifications with the same createdAt', () => {
+    const notifications: Notification[] = [
+      { id: '1', createdAt: new Date('2023-01-01') },
+      { id: '2', createdAt: new Date('2023-01-01') },
+      { id: '3', createdAt: new Date('2023-01-01') },
+    ];
     const sortedNotifications = sortNotifications(notifications);
     expect(sortedNotifications).toEqual(notifications);
   });
@@ -178,7 +132,7 @@ describe('getRowDetails', () => {
           amount: '1000000',
         },
       },
-    } as Notification;
+    };
 
     const expected: NotificationRowProps = {
       row: {
@@ -216,7 +170,7 @@ describe('getRowDetails', () => {
           amount: '500000',
         },
       },
-    } as Notification;
+    };
 
     const expected: NotificationRowProps = {
       row: {
@@ -248,7 +202,7 @@ describe('getRowDetails', () => {
           eth: '1.5',
         },
       },
-    } as Notification;
+    };
 
     const expected: NotificationRowProps = {
       row: {
@@ -284,7 +238,7 @@ describe('getRowDetails', () => {
           image: 'nft_image_url',
         },
       },
-    } as Notification;
+    };
 
     const expected: NotificationRowProps = {
       row: {

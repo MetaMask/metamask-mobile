@@ -44,7 +44,7 @@ const createStyles = (theme) =>
     },
     qrCode: {
       padding: 8,
-      backgroundColor: theme.brandColors.white000,
+      backgroundColor: theme.brandColors.white['000'],
     },
     addressWrapper: {
       alignItems: 'center',

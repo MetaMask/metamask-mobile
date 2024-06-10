@@ -52,7 +52,6 @@ import { updateTransaction } from '../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
-import { selectTransactionMetrics } from '../../../../core/redux/slices/transactionMetrics';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -123,11 +122,6 @@ class Approval extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
-
-    /**
-     * Object containing transaction metrics by id
-     */
-    transactionMetricsById: PropTypes.object,
   };
 
   state = {
@@ -390,7 +384,6 @@ class Approval extends PureComponent {
       {
         ...this.getAnalyticsParams(),
         ...this.getBlockaidMetricsParams(),
-        ...this.getTransactionMetrics(),
       },
     );
   };
@@ -521,10 +514,11 @@ class Approval extends PureComponent {
             transactionId: transaction.id,
             deviceId,
             onConfirmationComplete: (approve) =>
-              this.onLedgerConfirmation(approve, transaction.id, {
-                ...this.getAnalyticsParams({ gasEstimateType, gasSelected }),
-                ...this.getTransactionMetrics(),
-              }),
+              this.onLedgerConfirmation(
+                approve,
+                transaction.id,
+                this.getAnalyticsParams({ gasEstimateType, gasSelected }),
+              ),
             type: 'signTransaction',
           }),
         );
@@ -569,7 +563,6 @@ class Approval extends PureComponent {
           gasSelected,
         }),
         ...this.getBlockaidMetricsParams(),
-        ...this.getTransactionMetrics(),
       },
     );
     this.setState({ transactionConfirmed: false });
@@ -657,14 +650,6 @@ class Approval extends PureComponent {
     return transactionToSend;
   };
 
-  getTransactionMetrics = () => {
-    const { transactionMetricsById, transaction } = this.props;
-    const { id: transactionId } = transaction;
-
-    // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
-    return transactionMetricsById[transactionId]?.properties || {};
-  };
-
   render = () => {
     const { dappTransactionModalVisible } = this.props;
     const { mode, transactionConfirmed } = this.state;
@@ -709,7 +694,6 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   activeTabUrl: getActiveTabUrl(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  transactionMetricsById: selectTransactionMetrics(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -4,7 +4,6 @@ import {
   RequestedPermissions,
   SubjectType,
 } from '@metamask/permission-controller';
-import { RestrictedMethods } from '../Permissions/constants';
 
 // Snaps middleware
 /*
@@ -36,11 +35,6 @@ const snapMethodMiddlewareBuilder = (
       controllerMessenger,
       'SnapController:install',
       origin,
-    ),
-    invokeSnap: engineContext.PermissionController.executeRestrictedMethod.bind(
-      engineContext.PermissionController,
-      origin,
-      RestrictedMethods.wallet_snap,
     ),
   });
 
