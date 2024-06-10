@@ -138,6 +138,7 @@ describe('CollectibleContracts', () => {
                 ],
               },
             },
+            isNftFetchingInProgress: {},
           },
         },
       },
@@ -234,6 +235,7 @@ describe('CollectibleContracts', () => {
                 '1': [],
               },
             },
+            isNftFetchingInProgress: {},
           },
         },
       },
@@ -355,6 +357,7 @@ describe('CollectibleContracts', () => {
                 '1': [],
               },
             },
+            isNftFetchingInProgress: {},
           },
           NftDetectionController: {
             detectNfts: jest.fn(),
