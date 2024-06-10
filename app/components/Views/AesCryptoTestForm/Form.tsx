@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, SafeAreaView } from 'react-native';
+import { View, SafeAreaView, Keyboard } from 'react-native';
 
 import Text, {
   TextVariant,
@@ -54,6 +54,7 @@ const TestForm = ({
   const executeTest = useCallback(async () => {
     const response = (await callback(args)) as string;
     setResult(response);
+    Keyboard.dismiss();
   }, [callback, args]);
 
   return (
