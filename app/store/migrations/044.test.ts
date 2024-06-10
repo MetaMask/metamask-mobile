@@ -1,4 +1,4 @@
-import migration from './043';
+import migration from './044';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
@@ -62,7 +62,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #43', () => {
+describe('Migration #44', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -74,7 +74,7 @@ describe('Migration #43', () => {
         engine: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 43: Invalid engine state error: 'object'",
+        "FATAL ERROR: Migration 44: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -84,7 +84,7 @@ describe('Migration #43', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 43: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 44: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -96,7 +96,7 @@ describe('Migration #43', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 43: Invalid AccountsController state error: 'null'",
+        "FATAL ERROR: Migration 44: Invalid AccountsController state error: 'null'",
       scenario: 'AccountsController state is invalid',
     },
     {
@@ -108,7 +108,7 @@ describe('Migration #43', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 43: Invalid AccountsController internalAccounts state error: 'null'",
+        "FATAL ERROR: Migration 44: Invalid AccountsController internalAccounts state error: 'null'",
       scenario: 'AccountsController internalAccounts state is invalid',
     },
     {
@@ -121,7 +121,7 @@ describe('Migration #43', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 43: Invalid PreferencesController state error: 'null'",
+        "FATAL ERROR: Migration 44: Invalid PreferencesController state error: 'null'",
       scenario: 'PreferencesController state is invalid',
     },
     {
@@ -134,7 +134,7 @@ describe('Migration #43', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 43: Invalid PreferencesController identities state error: 'null'",
+        "FATAL ERROR: Migration 44: Invalid PreferencesController identities state error: 'null'",
       scenario: 'PreferencesController identities state is invalid',
     },
   ];
