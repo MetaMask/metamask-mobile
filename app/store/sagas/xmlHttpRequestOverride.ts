@@ -1,7 +1,14 @@
 import AppConstants from '../../../app/core/AppConstants';
 
-const originalSend = globalThis.XMLHttpRequest.prototype.send;
-const originalOpen = globalThis.XMLHttpRequest.prototype.open;
+if (process.env.JEST_WORKER_ID !== undefined) {
+  // monkeypatch for Jest
+  // TODO: mock properly in tests
+  // eslint-disable-next-line @typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires
+  global.XMLHttpRequest = require('xhr2').XMLHttpRequest;
+}
+
+const originalSend = global.XMLHttpRequest.prototype.send;
+const originalOpen = global.XMLHttpRequest.prototype.open;
 
 export function overrideXMLHttpRequest() {
   // Store the URL of the current request - only valid under assumption of no new requests being initiated between `open` and `send` of one
@@ -22,7 +29,7 @@ export function overrideXMLHttpRequest() {
     );
 
   // Override the 'open' method to capture the request URL
-  globalThis.XMLHttpRequest.prototype.open = function (
+  global.XMLHttpRequest.prototype.open = function (
     method: string,
     url: string | URL,
     async?: boolean,
@@ -40,7 +47,7 @@ export function overrideXMLHttpRequest() {
   };
 
   // Override the 'send' method to implement the blocking logic
-  globalThis.XMLHttpRequest.prototype.send = function (...args: any[]) {
+  global.XMLHttpRequest.prototype.send = function (...args: any[]) {
     // Check if the current request should be blocked
     if (shouldBlockRequest(currentUrl)) {
       handleError(); // Trigger an error callback or handle the blocked request as needed
@@ -52,6 +59,6 @@ export function overrideXMLHttpRequest() {
 }
 
 export function restoreXMLHttpRequest() {
-  globalThis.XMLHttpRequest.prototype.open = originalOpen;
-  globalThis.XMLHttpRequest.prototype.send = originalSend;
+  global.XMLHttpRequest.prototype.open = originalOpen;
+  global.XMLHttpRequest.prototype.send = originalSend;
 }
