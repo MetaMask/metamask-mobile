@@ -6,6 +6,7 @@ import {
 } from '../../selectors/nftController';
 import { selectSelectedAddress } from '../../selectors/preferencesController';
 import { compareTokenIds } from '../../util/tokens';
+import { createDeepEqualSelector } from '../../selectors/util';
 
 const favoritesSelector = (state) => state.collectibles.favorites;
 
@@ -17,7 +18,7 @@ export const collectibleContractsSelector = createSelector(
     allNftContracts[address]?.[chainId] || [],
 );
 
-export const collectiblesSelector = createSelector(
+export const collectiblesSelector = createDeepEqualSelector(
   selectSelectedAddress,
   selectChainId,
   selectAllNfts,

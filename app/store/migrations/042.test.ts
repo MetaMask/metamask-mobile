@@ -6,9 +6,11 @@ import { captureException } from '@sentry/react-native';
 const oldState = {
   engine: {
     backgroundState: {
-      TokenRatesController: {
-        contractExchangeRates: {},
-        contractExchangeRatesByChainId: {},
+      GasFeeController: {
+        gasFeeEstimates: {},
+        estimatedGasFeeTimeBounds: {},
+        gasEstimateType: 'none',
+        gasFeeEstimatesByChainId: {},
       },
     },
   },
@@ -17,7 +19,13 @@ const oldState = {
 const expectedNewState = {
   engine: {
     backgroundState: {
-      TokenRatesController: {},
+      GasFeeController: {
+        gasFeeEstimates: {},
+        estimatedGasFeeTimeBounds: {},
+        gasEstimateType: 'none',
+        gasFeeEstimatesByChainId: {},
+        nonRPCGasFeeApisDisabled: false,
+      },
     },
   },
 };
@@ -56,13 +64,13 @@ describe('Migration #42', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            TokenRatesController: null,
+            GasFeeController: null,
           },
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 42: Invalid TokenRatesController state error: 'null'",
-      scenario: 'TokenRatesController state is invalid',
+        "FATAL ERROR: Migration 42: Invalid GasFeeController state error: 'null'",
+      scenario: 'GasFeeController state is invalid',
     },
   ];
 
@@ -78,8 +86,13 @@ describe('Migration #42', () => {
     });
   }
 
-  it('should remove TokenRatesController contractExchangeRates and contractExchangeRatesByChainId properties', async () => {
+  it('should contain new property nonRPCGasFeeApisDisabled = false in GasFeeController state ', async () => {
     const newState = await migration(oldState);
     expect(newState).toStrictEqual(expectedNewState);
+
+    expect(
+      // @ts-expect-error: ignore for testing purposes: new state is type unknown
+      newState.engine.backgroundState.GasFeeController.nonRPCGasFeeApisDisabled,
+    ).toEqual(false);
   });
 });

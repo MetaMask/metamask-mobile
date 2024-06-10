@@ -3,7 +3,7 @@ import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 
 /**
- * Migration to remove contractExchangeRates and contractExchangeRatesByChainId from the state of TokenRatesController
+ * Migration to update state of GasFeeController
  *
  * @param state Persisted Redux state
  * @returns
@@ -13,22 +13,20 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  const tokenRatesControllerState =
-    state.engine.backgroundState.TokenRatesController;
+  const gasFeeControllerState = state.engine.backgroundState.GasFeeController;
 
-  if (!isObject(tokenRatesControllerState)) {
+  if (!isObject(gasFeeControllerState)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 42: Invalid TokenRatesController state error: '${JSON.stringify(
-          tokenRatesControllerState,
+        `FATAL ERROR: Migration 42: Invalid GasFeeController state error: '${JSON.stringify(
+          gasFeeControllerState,
         )}'`,
       ),
     );
     return state;
   }
 
-  delete tokenRatesControllerState.contractExchangeRates;
-  delete tokenRatesControllerState.contractExchangeRatesByChainId;
+  gasFeeControllerState.nonRPCGasFeeApisDisabled = false;
 
   return state;
 }
