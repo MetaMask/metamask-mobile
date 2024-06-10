@@ -162,11 +162,7 @@ describe('Migration #036', () => {
         },
         selectedAddress: MOCK_ADDRESS,
       });
-      console.log('OLD STATE:', oldState)
-      // why does this always have preferencesController
       const newState = await migrate(oldState);
-      console.log(newState)
-
       const expectedUUID = await addressToUUID(MOCK_ADDRESS);
       const resultInternalAccount = await expectedInternalAccount(
         MOCK_ADDRESS,
