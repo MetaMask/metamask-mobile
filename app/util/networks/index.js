@@ -564,3 +564,6 @@ export const deprecatedGetNetworkId = async () => {
     });
   });
 };
+
+export const isNotificationsFeatureEnabled = () =>
+  process.env.MM_NETWORK_UI_REDESIGN_ENABLED === 'true';
