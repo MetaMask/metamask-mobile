@@ -532,7 +532,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ]
                 }
                 testID="turn-on-remember-me"
-                thumbTintColor="#FFFFFF"
+                thumbTintColor="#ffffff"
                 tintColor="#D6D9DC"
                 value={true}
               />
@@ -684,7 +684,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             ]
           }
           testID="security-alerts-toggle"
-          thumbTintColor="#FFFFFF"
+          thumbTintColor="#ffffff"
           tintColor="#D6D9DC"
           value={true}
         />
@@ -799,7 +799,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   },
                 ]
               }
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={false}
             />
@@ -1345,7 +1345,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="display-use-safe-list-validation"
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -1465,7 +1465,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="security-settings-multi-account-balances-switch"
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -1670,7 +1670,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                       ],
                     ]
                   }
-                  thumbTintColor="#FFFFFF"
+                  thumbTintColor="#ffffff"
                   tintColor="#D6D9DC"
                   value={true}
                 />
@@ -1811,7 +1811,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                       ],
                     ]
                   }
-                  thumbTintColor="#FFFFFF"
+                  thumbTintColor="#ffffff"
                   tintColor="#D6D9DC"
                   value={true}
                 />
@@ -1849,6 +1849,120 @@ exports[`SecuritySettings should render correctly 1`] = `
         transparent={true}
         visible={false}
       />
+      <View
+        style={
+          {
+            "marginTop": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#24272A",
+                "flex": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Estimate balance changes
+          </Text>
+          <View
+            style={
+              {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#0376C9"
+              style={
+                [
+                  {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  [
+                    {
+                      "alignSelf": "flex-start",
+                    },
+                    {
+                      "backgroundColor": "#D6D9DC",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              thumbTintColor="#ffffff"
+              tintColor="#D6D9DC"
+              value={true}
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#535A61",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. 
+          <Text
+            accessibilityRole="link"
+            accessible={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "backgroundColor": "transparent",
+                "color": "#24272A",
+              }
+            }
+            suppressHighlighting={true}
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#0376C9",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Learn more.
+            </Text>
+          </Text>
+        </Text>
+      </View>
       <Text
         accessibilityRole="text"
         style={
@@ -1928,7 +2042,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="display-nft-toggle"
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -2013,7 +2127,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ],
                 ]
               }
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={false}
             />
@@ -2098,7 +2212,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ],
                 ]
               }
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -2239,7 +2353,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                     ],
                   ]
                 }
-                thumbTintColor="#FFFFFF"
+                thumbTintColor="#ffffff"
                 tintColor="#D6D9DC"
                 value={false}
               />
@@ -2342,7 +2456,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="metametrics-switch"
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={false}
             />
@@ -2459,7 +2573,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="data-collection-switch"
-              thumbTintColor="#FFFFFF"
+              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={false}
             />
