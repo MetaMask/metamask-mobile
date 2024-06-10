@@ -18,7 +18,7 @@ import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 import { TabBarSelectorIDs } from '../../e2e/selectors/TabBar.selectors';
 
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
-import { WalletViewSelectorsIDs } from "../../e2e/selectors/WalletView.selectors";
+import { WalletViewSelectorsIDs } from "../../e2e/selectors/wallet/WalletView.selectors";
 
 class WalletMainScreen {
   get noThanks() {
