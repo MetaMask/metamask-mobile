@@ -199,7 +199,6 @@ const main = async () => {
         }
       }
 
-      openrpcDocument.methods = openrpcDocument.methods.reverse();
       const results = await rpcCoverageTool({
         openrpcDocument,
         transport,
