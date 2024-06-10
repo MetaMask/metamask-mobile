@@ -221,7 +221,7 @@ const main = async () => {
             only: methodsWithConfirmations,
           }),
         ],
-        skip,
+        only: ['wallet_watchAsset'],
       });
       const failing = results.filter((r) => !r.valid);
       await detox.cleanup();
