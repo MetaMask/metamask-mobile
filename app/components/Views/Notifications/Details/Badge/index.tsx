@@ -48,16 +48,25 @@ function NotificationBadge({
 
   return (
     <BadgeWrapper
+      testID={'badge-wrapper'}
       badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
       badgeElement={
-        <Badge variant={BadgeVariant.Network} imageSource={badgeImageSource} />
+        <Badge
+          testID={'badge-element'}
+          variant={BadgeVariant.Network}
+          imageSource={badgeImageSource}
+        />
       }
       style={styles.badgeWrapper}
     >
       {notificationType.toLowerCase().includes('eth') ? (
-        <NetworkMainAssetLogo style={styles.ethLogo} />
+        <NetworkMainAssetLogo
+          testID={'network-main-asset-badge'}
+          style={styles.ethLogo}
+        />
       ) : (
         <AvatarToken
+          testID={'avatar-asset-badge'}
           variant={AvatarVariant.Token}
           imageSource={{ uri: imageUrl }}
           size={AvatarSize.Md}
