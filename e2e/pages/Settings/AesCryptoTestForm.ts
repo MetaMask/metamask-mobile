@@ -161,8 +161,10 @@ class AesCryptoTestForm {
       salt,
     );
     await Gestures.waitAndTap(this.generateEncryptionKeyButton);
-    
-    const responseFieldAtts = await (await this.generateEncryptionKeyResponse).getAttributes();
+
+    const responseFieldAtts = await (
+      await this.generateEncryptionKeyResponse
+    ).getAttributes();
 
     // @ts-expect-error - the label property does exist in this object.
     return responseFieldAtts.label;
