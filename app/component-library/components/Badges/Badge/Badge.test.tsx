@@ -12,6 +12,7 @@ import Badge from './Badge';
 import {
   BADGE_BADGENETWORK_TEST_ID,
   BADGE_BADGESTATUS_TEST_ID,
+  BADGE_BADGENOTIFICATIONS_TEST_ID,
 } from './Badge.constants';
 
 describe('Badge', () => {
@@ -33,6 +34,20 @@ describe('Badge', () => {
     expect(wrapper).toMatchSnapshot();
     const contentElement = wrapper.findWhere(
       (node) => node.prop('testID') === BADGE_BADGESTATUS_TEST_ID,
+    );
+    expect(contentElement.exists()).toBe(true);
+  });
+
+  it('should render badge notifications given the badge notification variant', () => {
+    const wrapper = shallow(
+      <Badge
+        {...SAMPLE_BADGESTATUS_PROPS}
+        variant={BadgeVariant.NotificationsKinds}
+      />,
+    );
+    expect(wrapper).toMatchSnapshot();
+    const contentElement = wrapper.findWhere(
+      (node) => node.prop('testID') === BADGE_BADGENOTIFICATIONS_TEST_ID,
     );
     expect(contentElement.exists()).toBe(true);
   });

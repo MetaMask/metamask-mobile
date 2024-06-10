@@ -1,11 +1,12 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
+import { render } from '@testing-library/react-native';
+
 import NotificationBadge from '.';
 import { createStyles } from '../styles';
 import { mockTheme } from '../../../../../util/theme';
 import { TRIGGER_TYPES } from '../../../../../util/notifications';
-import { render } from '@testing-library/react-native';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 
 jest.mock('@react-navigation/native');
@@ -45,7 +46,7 @@ describe('NotificationBadge', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders NetworkMainAssetLogo for ETH notification types', () => {
+  it('should renders NetworkMainAssetLogo for ETH notification types', () => {
     const { getByTestId } = render(
       <Provider store={store}>
         <NotificationBadge
@@ -57,7 +58,7 @@ describe('NotificationBadge', () => {
     expect(getByTestId('network-main-asset-badge')).toBeTruthy();
   });
 
-  it('renders AvatarToken for NFT notification types', () => {
+  it('should renders AvatarToken for NFT notification types', () => {
     const { getByTestId } = render(
       <Provider store={store}>
         <NotificationBadge
@@ -69,7 +70,7 @@ describe('NotificationBadge', () => {
     expect(getByTestId('avatar-asset-badge')).toBeTruthy();
   });
 
-  it('renders AvatarToken for non-ETH and non-NFT notification types', () => {
+  it('should renders AvatarToken for non-ETH and non-NFT notification types', () => {
     const { getByTestId } = render(
       <Provider store={store}>
         <NotificationBadge

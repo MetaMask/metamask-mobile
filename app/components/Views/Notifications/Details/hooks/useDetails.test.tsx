@@ -68,7 +68,6 @@ describe('useDetails', () => {
   it('should return renderNFT, renderTransfer, renderStake, renderStakeReadyToBeWithdrawn and renderSwap functions', () => {
     const { result } = renderHookWithProvider(() =>
       useDetails({
-        notification,
         theme: mockTheme,
         accountAvatarType: AvatarAccountType.JazzIcon,
         navigation: {},

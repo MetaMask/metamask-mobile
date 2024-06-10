@@ -11,6 +11,7 @@ export interface BadgeNotificationsProps
    * Required prop to provide the icon to be used by the notification badge.
    */
   iconName: IconName;
+  testID: string;
 }
 
 /**

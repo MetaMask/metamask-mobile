@@ -1,7 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AnnouncementsDetails matches snapshot 1`] = `null`;
-
 exports[`AnnouncementsDetails should renders correctly 1`] = `
 <View
   style={

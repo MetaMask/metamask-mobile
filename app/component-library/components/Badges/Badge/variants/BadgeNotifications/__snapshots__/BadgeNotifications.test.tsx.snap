@@ -17,7 +17,6 @@ exports[`BadgeNotifications - snapshots should render badge notifications correc
       "opacity": 0,
     }
   }
-  testID="badge-notifications"
 >
   <SvgMock
     color="#FFFFFF"

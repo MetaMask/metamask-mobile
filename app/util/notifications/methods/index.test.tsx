@@ -3,10 +3,21 @@ import {
   formatNotificationTitle,
   getNotificationBadge,
   sortNotifications,
+  returnAvatarProps,
   getRowDetails,
+  getNetwork,
+  TxStatus,
 } from '.';
-import { TRIGGER_TYPES, Notification } from '../../../util/notifications';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import {
+  TRIGGER_TYPES,
+  Notification,
+  ChainId,
+} from '../../../util/notifications';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import { mockTheme } from '../../../util/theme';
 import { ETHEREUM_LOGO } from '../../../constants/urls';
 
 const NOTIFICATIONS = [
@@ -59,6 +70,7 @@ const NOTIFICATIONS = [
     },
   } as Notification,
 ];
+
 describe('formatDate', () => {
   const realDateNow = Date.now.bind(global.Date);
 
@@ -311,5 +323,72 @@ describe('getRowDetails', () => {
     };
 
     expect(getRowDetails(notification).row).toEqual(expected);
+  });
+});
+
+describe('getNetwork', () => {
+  it('should return the correct network for a valid chain_id', () => {
+    const chainId = 1;
+    const result = getNetwork(chainId);
+    expect(result).toBe(ChainId.ETHEREUM);
+  });
+
+  it('should return undefined for an invalid chain_id', () => {
+    const chainId = 2;
+    const result = getNetwork(chainId);
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('returnAvatarProps', () => {
+  it('should return correct props for CONFIRMED and APPROVED statuses', () => {
+    const expectedProps = {
+      name: IconName.Check,
+      backgroundColor: mockTheme.colors.success.muted,
+      iconColor: IconColor.Success,
+    };
+    expect(returnAvatarProps(TxStatus.CONFIRMED, mockTheme)).toEqual(
+      expectedProps,
+    );
+    expect(returnAvatarProps(TxStatus.APPROVED, mockTheme)).toEqual(
+      expectedProps,
+    );
+  });
+
+  it('should return correct props for UNAPPROVED, CANCELLED, FAILED, and REJECTED statuses', () => {
+    const expectedProps = {
+      name: IconName.Close,
+      backgroundColor: mockTheme.colors.error.muted,
+      iconColor: IconColor.Error,
+    };
+    expect(returnAvatarProps(TxStatus.UNAPPROVED, mockTheme)).toEqual(
+      expectedProps,
+    );
+    expect(returnAvatarProps(TxStatus.CANCELLED, mockTheme)).toEqual(
+      expectedProps,
+    );
+    expect(returnAvatarProps(TxStatus.FAILED, mockTheme)).toEqual(
+      expectedProps,
+    );
+    expect(returnAvatarProps(TxStatus.REJECTED, mockTheme)).toEqual(
+      expectedProps,
+    );
+  });
+
+  it('should return correct props for PENDING, SUBMITTED, and SIGNED statuses', () => {
+    const expectedProps = {
+      name: IconName.Clock,
+      backgroundColor: mockTheme.colors.warning.muted,
+      iconColor: IconColor.Warning,
+    };
+    expect(returnAvatarProps(TxStatus.PENDING, mockTheme)).toEqual(
+      expectedProps,
+    );
+    expect(returnAvatarProps(TxStatus.SUBMITTED, mockTheme)).toEqual(
+      expectedProps,
+    );
+    expect(returnAvatarProps(TxStatus.SIGNED, mockTheme)).toEqual(
+      expectedProps,
+    );
   });
 });
