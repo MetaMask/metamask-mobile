@@ -28,7 +28,7 @@ import { SubjectType } from '@metamask/permission-controller';
 
 const createFilterMiddleware = require('@metamask/eth-json-rpc-filters');
 const createSubscriptionManager = require('@metamask/eth-json-rpc-filters/subscriptionManager');
-const { providerAsMiddleware } = require('@metamask/eth-json-rpc-middleware');
+import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 const pump = require('pump');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;

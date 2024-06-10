@@ -21,10 +21,10 @@ import { getAllNetworks } from '../../util/networks';
 import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 
-const ObjectMultiplex = require('@metamask/object-multiplex');
-const createFilterMiddleware = require('@metamask/eth-json-rpc-filters');
-const createSubscriptionManager = require('@metamask/eth-json-rpc-filters/subscriptionManager');
-const { providerAsMiddleware } = require('@metamask/eth-json-rpc-middleware');
+import  ObjectMultiplex from '@metamask/object-multiplex';
+import  createFilterMiddleware from '@metamask/eth-json-rpc-filters';
+import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
+import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 const pump = require('pump');
 
 interface ISnapBridgeProps {
