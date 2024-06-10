@@ -1,9 +1,11 @@
 import React from 'react';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { Provider } from 'react-redux';
+import configureMockStore from 'redux-mock-store';
+import { render } from '@testing-library/react-native';
 
 import AnnouncementsDetails from '.';
 import { createStyles } from '../styles';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MOCK_NOTIFICATIONS from '../../../../../components/UI/Notification/__mocks__/mock_notifications';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import { mockTheme } from '../../../../../util/theme';
@@ -26,6 +28,9 @@ const mockInitialState = {
 jest.mock('@react-navigation/native');
 
 describe('AnnouncementsDetails', () => {
+  const mockStore = configureMockStore();
+  const store = mockStore(mockInitialState);
+
   let navigation: NavigationProp<ParamListBase>;
   let styles: Record<string, any>;
   beforeEach(() => {
@@ -35,18 +40,17 @@ describe('AnnouncementsDetails', () => {
     styles = createStyles(mockTheme);
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
-      <AnnouncementsDetails
-        styles={styles}
-        navigation={navigation}
-        notification={
-          MOCK_NOTIFICATIONS[0] as FeatureAnnouncementRawNotification
-        }
-      />,
-      {
-        state: mockInitialState,
-      },
+  it('should renders correctly', () => {
+    const { toJSON } = render(
+      <Provider store={store}>
+        <AnnouncementsDetails
+          styles={styles}
+          navigation={navigation}
+          notification={
+            MOCK_NOTIFICATIONS[0] as FeatureAnnouncementRawNotification
+          }
+        />
+      </Provider>,
     );
     expect(toJSON()).toMatchSnapshot();
   });

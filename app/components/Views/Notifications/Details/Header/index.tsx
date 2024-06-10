@@ -7,17 +7,35 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { createStyles } from '../styles';
+import { NotificationsDetailViewSelectorsIDs } from '../../constants';
 
 const Header = ({ title, subtitle }: { title: string; subtitle: string }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
 
   return (
-    <View testID={'notification-details-header'} style={styles.header}>
-      <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
+    <View
+      testID={
+        NotificationsDetailViewSelectorsIDs.NOTIFICATIONS_HEADER_CONTAINER_ID
+      }
+      style={styles.header}
+    >
+      <Text
+        testID={
+          NotificationsDetailViewSelectorsIDs.NOTIFICATIONS_HEADER_TITLE_ID
+        }
+        variant={TextVariant.BodyLGMedium}
+        color={TextColor.Default}
+      >
         {title}
       </Text>
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text
+        testID={
+          NotificationsDetailViewSelectorsIDs.NOTIFICATIONS_HEADER_SUBTITLE_ID
+        }
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+      >
         {subtitle}
       </Text>
     </View>
