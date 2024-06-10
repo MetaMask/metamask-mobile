@@ -1641,6 +1641,8 @@
     "add_network": "add more networks manually.",
     "select_network": "Select a network",
     "show_test_networks": "Show test networks",
+    "enabled_networks": "Enabled networks",
+    "additional_networks": "Additional networks",
     "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
     "network_deprecated_title": "This network is deprecated",
     "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."

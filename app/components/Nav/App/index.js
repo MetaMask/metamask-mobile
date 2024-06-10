@@ -85,7 +85,8 @@ import AccountActions from '../../../components/Views/AccountActions';
 import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
-import NetworkSelector from '../../../components/Views/NetworkSelector';
+import NetworkSelector from '../../../components/Views/NetworkSelector//NetworkSelector';
+import NetworkSelectorWithUiRedesign from '../../../components/Views/NetworkSelector/NewNetworkSelector/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
@@ -110,6 +111,7 @@ import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
+import { isNetworkUiRedesignEnabled } from '../../../util/networks';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -636,7 +638,11 @@ const App = ({ userLoggedIn }) => {
       />
       <Stack.Screen
         name={Routes.SHEET.NETWORK_SELECTOR}
-        component={NetworkSelector}
+        component={
+          isNetworkUiRedesignEnabled()
+            ? NetworkSelectorWithUiRedesign
+            : NetworkSelector
+        }
       />
       <Stack.Screen
         name={Routes.SHEET.BASIC_FUNCTIONALITY}
