@@ -1,0 +1,23 @@
+diff --git a/node_modules/@metamask/swaps-controller/dist/SwapsController.js b/node_modules/@metamask/swaps-controller/dist/SwapsController.js
+index fee999b..f6e2d75 100644
+--- a/node_modules/@metamask/swaps-controller/dist/SwapsController.js
++++ b/node_modules/@metamask/swaps-controller/dist/SwapsController.js
+@@ -11,7 +11,8 @@ const gas_fee_controller_1 = require("@metamask/gas-fee-controller");
+ const async_mutex_1 = require("async-mutex");
+ const bignumber_js_1 = require("bignumber.js");
+ const human_standard_token_abi_1 = __importDefault(require("human-standard-token-abi"));
+-const web3_1 = require("web3");
++const web3 = require("web3");
++const Web3 = web3.Web3 === undefined ? web3 : web3.Web3;
+ const swapsUtil_1 = require("./swapsUtil");
+ // Functions to determine type of the return value from GasFeeController
+ /**
+@@ -530,7 +531,7 @@ class SwapsController extends base_controller_1.BaseControllerV1 {
+     set provider(provider) {
+         if (provider) {
+             this.ethQuery = new eth_query_1.default(provider);
+-            this.web3 = new web3_1.Web3(provider);
++            this.web3 = new Web3(provider);
+         }
+     }
+     set chainId(chainId) {
