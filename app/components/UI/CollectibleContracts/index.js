@@ -46,7 +46,7 @@ import {
   NFT_TAB_CONTAINER_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import RefreshTestId from './constants';
+import { RefreshTestId, SpinnerTestId } from './constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -226,7 +226,11 @@ const CollectibleContracts = ({
     () => (
       <View style={styles.footer} key={'collectible-contracts-footer'}>
         {isNftFetchingInProgress?.isFetchingInProgress ? (
-          <ActivityIndicator size="large" style={styles.spinner} />
+          <ActivityIndicator
+            size="large"
+            style={styles.spinner}
+            testID={SpinnerTestId}
+          />
         ) : null}
 
         <Text style={styles.emptyText}>

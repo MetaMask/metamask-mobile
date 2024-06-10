@@ -523,4 +523,138 @@ describe('CollectibleContracts', () => {
     expect(spyOnUpdateNftMetadata).toHaveBeenCalledTimes(0);
     expect(spyOnDetectNfts).toHaveBeenCalledTimes(1);
   });
+
+  it('Should show spinner if nfts are still being fetched', async () => {
+    const CURRENT_ACCOUNT = '0x1a';
+    const mockState = {
+      collectibles: {
+        favorites: {},
+      },
+      engine: {
+        backgroundState: {
+          ...initialBackgroundState,
+          NetworkController: {
+            network: '1',
+            providerConfig: {
+              ticker: 'ETH',
+              type: 'mainnet',
+              chainId: '1',
+            },
+          },
+          AccountTrackerController: {
+            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+          },
+          PreferencesController: {
+            useNftDetection: true,
+            displayNftMedia: true,
+            selectedAddress: CURRENT_ACCOUNT,
+            identities: {
+              [CURRENT_ACCOUNT]: {
+                address: CURRENT_ACCOUNT,
+                name: 'Account 1',
+              },
+            },
+          },
+          NftController: {
+            addNft: jest.fn(),
+            updateNftMetadata: jest.fn(),
+            allNfts: {
+              [CURRENT_ACCOUNT]: {
+                '1': [],
+              },
+            },
+            allNftContracts: {
+              [CURRENT_ACCOUNT]: {
+                '1': [],
+              },
+            },
+            isNftFetchingInProgress: {
+              isFetchingInProgress: true,
+            },
+          },
+          NftDetectionController: {
+            detectNfts: jest.fn(),
+          },
+        },
+      },
+    };
+
+    jest
+      .spyOn(allSelectors, 'isNftFetchingInProgressSelector')
+      .mockReturnValueOnce({
+        isFetchingInProgress: true,
+      });
+
+    const { queryByTestId } = renderWithProvider(<CollectibleContracts />, {
+      state: mockState,
+    });
+
+    const spinner = queryByTestId('spinner');
+    expect(spinner).not.toBeNull();
+  });
+
+  it('Should not show spinner if nfts are not still being fetched', async () => {
+    const CURRENT_ACCOUNT = '0x1a';
+    const mockState = {
+      collectibles: {
+        favorites: {},
+      },
+      engine: {
+        backgroundState: {
+          ...initialBackgroundState,
+          NetworkController: {
+            network: '1',
+            providerConfig: {
+              ticker: 'ETH',
+              type: 'mainnet',
+              chainId: '1',
+            },
+          },
+          AccountTrackerController: {
+            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+          },
+          PreferencesController: {
+            useNftDetection: true,
+            displayNftMedia: true,
+            selectedAddress: CURRENT_ACCOUNT,
+            identities: {
+              [CURRENT_ACCOUNT]: {
+                address: CURRENT_ACCOUNT,
+                name: 'Account 1',
+              },
+            },
+          },
+          NftController: {
+            addNft: jest.fn(),
+            updateNftMetadata: jest.fn(),
+            allNfts: {
+              [CURRENT_ACCOUNT]: {
+                '1': [],
+              },
+            },
+            allNftContracts: {
+              [CURRENT_ACCOUNT]: {
+                '1': [],
+              },
+            },
+            isNftFetchingInProgress: {},
+          },
+          NftDetectionController: {
+            detectNfts: jest.fn(),
+          },
+        },
+      },
+    };
+
+    jest
+      .spyOn(allSelectors, 'isNftFetchingInProgressSelector')
+      .mockReturnValueOnce({});
+
+    const { queryByTestId } = renderWithProvider(<CollectibleContracts />, {
+      state: mockState,
+    });
+
+    const spinner = queryByTestId('spinner');
+    expect(spinner).toBeNull();
+  });
 });
