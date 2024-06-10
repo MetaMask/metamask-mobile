@@ -5,6 +5,7 @@ import rpcCoverageTool from '@open-rpc/test-coverage';
 import { parseOpenRPCDocument } from '@open-rpc/schema-utils-js';
 import JsonSchemaFakerRule from '@open-rpc/test-coverage/build/rules/json-schema-faker-rule';
 import HtmlReporter from '@open-rpc/test-coverage/build/reporters/html-reporter';
+import ConsoleStreamingReporter from '@open-rpc/test-coverage/build/reporters/console-streaming';
 
 import Browser from '../pages/Browser/BrowserView';
 // eslint-disable-next-line import/no-commonjs
@@ -191,6 +192,12 @@ const main = async () => {
         'wallet_registerOnboarding',
         'eth_getEncryptionPublicKey',
       ];
+
+      class VerboseConsoleReporter extends ConsoleStreamingReporter {
+        onTestBegin(options, call) {
+          console.log('onTestBegin', options, call);
+        }
+      }
 
       const results = await rpcCoverageTool({
         openrpcDocument,

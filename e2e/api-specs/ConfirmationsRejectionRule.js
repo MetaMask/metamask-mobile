@@ -32,6 +32,7 @@ export default class ConfirmationsRejectRule {
   }
 
   async beforeRequest(_, call) {
+    const startTime = Date.now();
     await new Promise((resolve, reject) => {
       addToQueue({
         name: 'beforeRequest',
@@ -69,6 +70,7 @@ export default class ConfirmationsRejectRule {
           }
         },
       });
+      console.log('beforeRequest', Date.now() - startTime);
     });
   }
 
@@ -114,6 +116,7 @@ export default class ConfirmationsRejectRule {
   }
 
   async afterRequest(_, call) {
+    const startTime = Date.now();
     await new Promise((resolve, reject) => {
       addToQueue({
         name: 'afterRequest',
@@ -136,6 +139,7 @@ export default class ConfirmationsRejectRule {
         },
       });
     });
+    console.log('afterRequest', Date.now() - startTime);
     /**
      *
      * Screen shot code section
@@ -143,6 +147,7 @@ export default class ConfirmationsRejectRule {
   }
 
   async afterResponse(_, call) {
+    const startTime = Date.now();
     await new Promise((resolve, reject) => {
       addToQueue({
         name: 'afterResponse',
@@ -164,6 +169,7 @@ export default class ConfirmationsRejectRule {
         },
       });
     });
+    console.log('afterResponse', Date.now() - startTime);
   }
 
   validateCall(call) {

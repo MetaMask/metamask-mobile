@@ -6,9 +6,12 @@ export const processQueue = async () => {
   if (isProcessing || taskQueue.length === 0) return;
 
   isProcessing = true;
-  const { task, resolve, reject } = taskQueue.shift();
+  const { task, resolve, reject, name } = taskQueue.shift();
   try {
+    console.log('processing', name);
+    const startTime = Date.now();
     const result = await task();
+    console.log('processed', name, Date.now() - startTime, 'ms');
     resolve(result);
   } catch (error) {
     reject(error);
@@ -49,8 +52,10 @@ const pollResult = async (driver) => {
   return pollResult(driver);
 };
 
-export const createDriverTransport = (driver) => (_, method, params) =>
-  new Promise((resolve, reject) => {
+export const createDriverTransport = (driver) => (_, method, params) => {
+  console.log('starting transport call', method, params)
+  const startTime = Date.now();
+  return new Promise((resolve, reject) => {
     const execute = async () => {
       await addToQueue({
         name: 'transport',
@@ -96,5 +101,7 @@ export const createDriverTransport = (driver) => (_, method, params) =>
         reject,
       });
     });
+    console.log('transport execution time', Date.now() - startTime, 'ms', method, params);
     return result;
   });
+}
