@@ -80,7 +80,6 @@ import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
-import { Notification } from '../../../util/notifications';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
