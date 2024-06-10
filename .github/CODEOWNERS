@@ -33,7 +33,7 @@ app/components/Views/Notifications   @MetaMask/notifications @MetaMask/mobile-pl
 app/components/Views/Settings/NotificationsSettings @MetaMask/notifications  @MetaMask/mobile-platform
 app/components/UI/Notifications @MetaMask/notifications  @MetaMask/mobile-platform
 app/core/Engine.ts  @MetaMask/mobile-platform
-app/core/Engine.test.js  @MetaMask/notifications  @MetaMask/mobile-platform
+app/core/Engine.test.js  @MetaMask/mobile-platform
 app/components/Nav  @MetaMask/notifications  @MetaMask/mobile-platform
 app/store @MetaMask/notifications  @MetaMask/mobile-platform
 app/reducers/notification  @MetaMask/notifications  @MetaMask/mobile-platform
