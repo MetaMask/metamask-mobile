@@ -1182,6 +1182,15 @@
     "account_copied_to_clipboard": "Public address copied to clipboard",
     "share_public_key": "Sharing my public key: "
   },
+  "enable_nft-auto-detection": {
+    "title": "Enable NFT autodetection",
+    "description": "Allow MetaMask to detect and display your NFTs with autodetection. You’ll be able to:",
+    "immediateAccess": "Immediately access your NFTs",
+    "navigate": "Effortlessly navigate your digital assets",
+    "dive": "Dive straight into using your NFTs",
+    "allow": "Allow",
+    "notRightNow": "Not right now"
+  },
   "detected_tokens": {
     "title": "{{tokenCount}} new token found",
     "title_plural": "{{tokenCount}} new tokens found",

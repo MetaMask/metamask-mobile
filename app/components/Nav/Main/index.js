@@ -84,6 +84,7 @@ import {
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
+import { useEnableNFTAutoDetection } from '../../../components/hooks/EnableNFTAutodetection';
 
 const Stack = createStackNavigator();
 
@@ -116,6 +117,7 @@ const Main = (props) => {
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
   useEnableAutomaticSecurityChecks();
+  //useEnableNFTAutoDetection(); TODO fix this
   useMinimumVersions();
 
   useEffect(() => {
