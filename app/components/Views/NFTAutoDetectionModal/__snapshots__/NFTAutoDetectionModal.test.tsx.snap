@@ -461,7 +461,9 @@ exports[`NFT Auto detection modal should render correctly 1`] = `
                               }
                             />
                           </View>
-                          <View>
+                          <View
+                            testID="nft-detection-modal"
+                          >
                             <View
                               style={
                                 {
