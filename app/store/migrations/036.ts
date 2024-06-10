@@ -17,6 +17,7 @@ export interface Identity {
 
 export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;
+  console.log("STATE:", state)
   if (!isObject(state)) {
     captureException(
       new Error(`Migration 36: Invalid root state: '${typeof state}'`),
