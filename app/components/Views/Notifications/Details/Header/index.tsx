@@ -13,7 +13,7 @@ const Header = ({ title, subtitle }: { title: string; subtitle: string }) => {
   const styles = createStyles(theme);
 
   return (
-    <View style={styles.header}>
+    <View testID={'notification-details-header'} style={styles.header}>
       <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
         {title}
       </Text>

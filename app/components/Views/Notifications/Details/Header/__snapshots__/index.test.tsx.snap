@@ -1,3 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Header matches snapshot 1`] = `null`;
+exports[`Header renders title and subtitle with correct variants and colors 1`] = `null`;
+
+exports[`Header should render correctly 1`] = `null`;
