@@ -2,9 +2,25 @@ import AppConstants from '../../../app/core/AppConstants';
 
 if (process.env.JEST_WORKER_ID !== undefined) {
   // monkeypatch for Jest
-  // TODO: mock properly in tests
+  // TODO: mock properly in test setup; ideally without xhr2
   // eslint-disable-next-line @typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires
-  global.XMLHttpRequest = require('xhr2').XMLHttpRequest;
+  const { XMLHttpRequest: _XMLHttpRequest } = require('xhr2');
+  class FakeXMLHttpRequest extends _XMLHttpRequest {
+    url?: string;
+    status?: number;
+    responseText?: string;
+    open(_method: string, url: string) {
+      this.url = url;
+    }
+
+    send() {
+      this.status = 200;
+      this.responseText = '';
+      this.onload();
+    }
+  }
+
+  global.XMLHttpRequest = FakeXMLHttpRequest as any;
 }
 
 const originalSend = global.XMLHttpRequest.prototype.send;
