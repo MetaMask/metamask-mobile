@@ -32,7 +32,7 @@ app/components/UI/Swaps              @MetaMask/swaps-engineers @MetaMask/mobile-
 app/components/Views/Notifications   @MetaMask/notifications @MetaMask/mobile-platform
 app/components/Views/Settings/NotificationsSettings @MetaMask/notifications  @MetaMask/mobile-platform
 app/components/UI/Notifications @MetaMask/notifications  @MetaMask/mobile-platform
-app/core/Engine.ts  @MetaMask/notifications  @MetaMask/mobile-platform
+app/core/Engine.ts  @MetaMask/mobile-platform
 app/core/Engine.test.js  @MetaMask/notifications  @MetaMask/mobile-platform
 app/components/Nav  @MetaMask/notifications  @MetaMask/mobile-platform
 app/store @MetaMask/notifications  @MetaMask/mobile-platform
