@@ -69,7 +69,7 @@ const NFTAutoDetectionModal = () => {
         </View>
         <View style={styles.buttonsContainer}>
           <Button
-            testID='allow'
+            testID="allow"
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
@@ -79,7 +79,7 @@ const NFTAutoDetectionModal = () => {
           <View style={styles.spacer} />
 
           <Button
-            testID='cancel'
+            testID="cancel"
             variant={ButtonVariants.Link}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
