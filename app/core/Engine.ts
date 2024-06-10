@@ -1430,7 +1430,6 @@ class Engine {
 
   startPolling() {
     const {
-      NftDetectionController,
       TokenDetectionController,
       TokenListController,
       TransactionController,
@@ -1438,7 +1437,6 @@ class Engine {
     } = this.context;
 
     TokenListController.start();
-    NftDetectionController.start();
     TokenDetectionController.start();
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
