@@ -1,9 +1,11 @@
 import { NativeModules } from 'react-native';
 import {
-  ENCRYPTION_LIBRARY,
   KDF_ALGORITHM,
-  LEGACY_DERIVATION_OPTIONS,
+  SHA_ALGORITHM,
+  CIPHER_ALGORITHM,
+  ENCRYPTION_LIBRARY,
   SHA256_DIGEST_LENGTH,
+  LEGACY_DERIVATION_OPTIONS,
 } from './constants';
 import { EncryptionLibrary, KeyDerivationOptions } from './types';
 
@@ -29,7 +31,9 @@ class AesEncryptionLibrary implements EncryptionLibrary {
       password,
       salt,
       opts.params.iterations,
+      // We're passing a digest of 256 bits but using it with SHA512
       SHA256_DIGEST_LENGTH,
+      SHA_ALGORITHM.sha512,
     );
   };
 
@@ -42,11 +46,15 @@ class AesEncryptionLibrary implements EncryptionLibrary {
     data: string,
     key: string,
     iv: unknown,
-    algorithm: string,
+    algorithm: CIPHER_ALGORITHM,
   ): Promise<string> => await Aes.encrypt(data, key, iv, algorithm);
 
-  decrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
-    await Aes.decrypt(data, key, iv);
+  decrypt = async (
+    data: string,
+    key: string,
+    iv: unknown,
+    algorithm: CIPHER_ALGORITHM,
+  ): Promise<string> => await Aes.decrypt(data, key, iv, algorithm);
 }
 
 class AesForkedEncryptionLibrary implements EncryptionLibrary {
