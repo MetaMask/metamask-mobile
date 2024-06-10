@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-import React, { useRef, useCallback } from 'react';
+import React, { useRef } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -18,40 +18,25 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectChainId } from '../../../selectors/networkController';
-import { useSelector } from 'react-redux';
 
 const NFTAutoDetectionModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const walletImage = require('../../../images/wallet-alpha.png'); // eslint-disable-line
   const navigation = useNavigation();
-  const chainId = useSelector(selectChainId);
-  const { trackEvent } = useMetrics();
-  const enableNftDetectionAndDismissModal = useCallback(
-    (value: boolean) => {
-      if (value) {
-        const { PreferencesController } = Engine.context;
-        PreferencesController.setUseNftDetection(true);
-        trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE, {
-          chainId,
-        });
-      } else {
-        trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_DISABLE, {
-          chainId,
-        });
-      }
+  const dismissModal = (): void => {
+    if (sheetRef?.current) {
+      sheetRef.current.onCloseBottomSheet();
+    } else {
+      navigation.goBack();
+    }
+  };
 
-      if (sheetRef?.current) {
-        sheetRef.current.onCloseBottomSheet();
-      } else {
-        navigation.goBack();
-      }
-    },
-    [chainId, trackEvent, navigation],
-  );
+  const enableNftDetectionAndDismissModal = (): void => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setUseNftDetection(true);
+    dismissModal();
+  };
 
   return (
     <BottomSheet ref={sheetRef}>
@@ -73,7 +58,7 @@ const NFTAutoDetectionModal = () => {
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label={strings('enable_nft-auto-detection.allow')}
-            onPress={() => enableNftDetectionAndDismissModal(true)}
+            onPress={enableNftDetectionAndDismissModal}
           />
           <View style={styles.spacer} />
 
@@ -82,7 +67,8 @@ const NFTAutoDetectionModal = () => {
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label={strings('enable_nft-auto-detection.notRightNow')}
-            onPress={() => enableNftDetectionAndDismissModal(false)}
+            onPress={dismissModal}
+            //onPress={() => sheetRef.current?.onCloseBottomSheet()}
           />
         </View>
       </View>
