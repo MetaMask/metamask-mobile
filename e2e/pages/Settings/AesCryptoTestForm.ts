@@ -107,6 +107,14 @@ class AesCryptoTestForm {
     return Matchers.getElementByID(aesCryptoFormButtons.decryptWithKeyButton);
   }
 
+  async scrollUpToGenerateEncryptionKey() {
+    await Gestures.scrollToElement(
+      this.generateEncryptionKeyPasswordInput,
+      this.scrollViewIdentifier,
+      'up',
+    );
+  }
+
   async scrollToEncrypt() {
     await Gestures.scrollToElement(
       this.encryptButton,
@@ -153,7 +161,11 @@ class AesCryptoTestForm {
       salt,
     );
     await Gestures.waitAndTap(this.generateEncryptionKeyButton);
-    // return await this.generateEncryptionKeyResponse.getText();
+    
+    const responseFieldAtts = await (await this.generateEncryptionKeyResponse).getAttributes();
+
+    // @ts-expect-error - the label property does exist in this object.
+    return responseFieldAtts.label;
   }
 
   async encrypt(data: string, encryptionKey: string) {
@@ -185,7 +197,7 @@ class AesCryptoTestForm {
     await Gestures.waitAndTap(this.encryptWithKeyButton);
   }
 
-  async decryptedWithKey(encryptionKey: string) {
+  async decryptWithKey(encryptionKey: string) {
     await this.scrollToDecryptWithKey();
     await Gestures.typeTextAndHideKeyboard(
       this.decryptWithKeyEncryptionKeyInput,

@@ -73,8 +73,16 @@ const TestForm = ({
           />
         </View>
       ))}
-      <Text variant={TextVariant.BodyMDBold}>Response</Text>
-      <ClipboardText text={result} styles={styles} testID={responseTestId} />
+      {result && (
+        <>
+          <Text variant={TextVariant.BodyMDBold}>Response</Text>
+          <ClipboardText
+            text={result}
+            styles={styles}
+            testID={responseTestId}
+          />
+        </>
+      )}
       <Button
         variant={ButtonVariants.Primary}
         onPress={executeTest}
