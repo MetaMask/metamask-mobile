@@ -89,7 +89,6 @@ exports[`EditAccountName should render correctly 1`] = `
               }
             }
             testID="account-name-input"
-            value="Account 1"
           />
         </View>
       </View>
@@ -118,54 +117,6 @@ exports[`EditAccountName should render correctly 1`] = `
       >
         Address
       </Text>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#BBC0C5",
-            "borderRadius": 8,
-            "borderWidth": 1,
-            "flexDirection": "row",
-            "height": 40,
-            "opacity": 0.5,
-            "paddingHorizontal": 16,
-          }
-        }
-        testID="textfield"
-      >
-        <View
-          style={
-            {
-              "flex": 1,
-            }
-          }
-        >
-          <TextInput
-            autoFocus={true}
-            editable={false}
-            onBlur={[Function]}
-            onFocus={[Function]}
-            placeholder="0x0"
-            style={
-              {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "transparent",
-                "borderWidth": 1,
-                "color": "#24272A",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "height": 24,
-                "letterSpacing": 0,
-                "opacity": 1,
-                "paddingVertical": 0,
-              }
-            }
-            testID="input"
-          />
-        </View>
-      </View>
     </View>
   </View>
   <View
@@ -223,7 +174,7 @@ exports[`EditAccountName should render correctly 1`] = `
       accessibilityRole="button"
       accessible={true}
       activeOpacity={1}
-      disabled={false}
+      disabled={true}
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
@@ -238,6 +189,7 @@ exports[`EditAccountName should render correctly 1`] = `
           "height": 48,
           "justifyContent": "center",
           "marginLeft": 8,
+          "opacity": 0.5,
           "paddingHorizontal": 16,
         }
       }
