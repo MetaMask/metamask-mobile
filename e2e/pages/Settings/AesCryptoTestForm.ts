@@ -8,103 +8,111 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
 class AesCryptoTestForm {
+  withOsCondition(identifier: string) {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(identifier)
+      : Matchers.getElementByLabel(identifier);
+  }
+
   get scrollViewIdentifier() {
     return Matchers.getIdentifier(aesCryptoFormScrollIdentifier);
   }
 
   // Generate salt getters
   get generateSaltBytesCountInput() {
-    return Matchers.getElementByID(aesCryptoFormInputs.saltBytesCountInput);
+    return this.withOsCondition(aesCryptoFormInputs.saltBytesCountInput);
   }
   get generateSaltResponse() {
-    return Matchers.getElementByID(aesCryptoFormResponses.saltResponse);
+    return this.withOsCondition(aesCryptoFormResponses.saltResponse);
   }
   get generateSaltButton() {
-    return Matchers.getElementByID(aesCryptoFormButtons.generateSaltButton);
+    return this.withOsCondition(aesCryptoFormButtons.generateSaltButton);
   }
 
   // Generate encryption key from password getters
   get generateEncryptionKeyPasswordInput() {
-    return Matchers.getElementByID(aesCryptoFormInputs.passwordInput);
+    return this.withOsCondition(aesCryptoFormInputs.passwordInput);
   }
   get generateEncryptionKeySaltInput() {
-    return Matchers.getElementByID(
-      aesCryptoFormInputs.saltInputForEncryptionKey,
-    );
+    return this.withOsCondition(aesCryptoFormInputs.saltInputForEncryptionKey);
   }
   get generateEncryptionKeyResponse() {
-    return Matchers.getElementByID(
+    return this.withOsCondition(
       aesCryptoFormResponses.generateEncryptionKeyResponse,
     );
   }
   get generateEncryptionKeyButton() {
-    return Matchers.getElementByID(
+    return this.withOsCondition(
       aesCryptoFormButtons.generateEncryptionKeyButton,
     );
   }
 
   // Encrypt getters
   get encryptDataInput() {
-    return Matchers.getElementByID(aesCryptoFormInputs.dataInputForEncryption);
+    return this.withOsCondition(aesCryptoFormInputs.dataInputForEncryption);
   }
   get encryptPasswordInput() {
-    return Matchers.getElementByID(
-      aesCryptoFormInputs.passwordInputForEncryption,
-    );
+    return this.withOsCondition(aesCryptoFormInputs.passwordInputForEncryption);
   }
   get encryptResponse() {
-    return Matchers.getElementByID(aesCryptoFormResponses.encryptionResponse);
+    return this.withOsCondition(aesCryptoFormResponses.encryptionResponse);
   }
   get encryptButton() {
-    return Matchers.getElementByID(aesCryptoFormButtons.encryptButton);
+    return this.withOsCondition(aesCryptoFormButtons.encryptButton);
   }
 
   // Decrypt getters
   get decryptPasswordInput() {
-    return Matchers.getElementByID(
-      aesCryptoFormInputs.passwordInputForDecryption,
-    );
+    return this.withOsCondition(aesCryptoFormInputs.passwordInputForDecryption);
   }
   get decryptResponse() {
-    return Matchers.getElementByID(aesCryptoFormResponses.decryptionResponse);
+    return this.withOsCondition(aesCryptoFormResponses.decryptionResponse);
   }
   get decryptButton() {
-    return Matchers.getElementByID(aesCryptoFormButtons.decryptButton);
+    return this.withOsCondition(aesCryptoFormButtons.decryptButton);
   }
 
   // Encrypt with key getters
   get encryptWithKeyEncryptionKeyInput() {
-    return Matchers.getElementByID(
+    return this.withOsCondition(
       aesCryptoFormInputs.encryptionKeyInputForEncryptionWithKey,
     );
   }
   get encryptWithKeyDataInput() {
-    return Matchers.getElementByID(
+    return this.withOsCondition(
       aesCryptoFormInputs.dataInputForEncryptionWithKey,
     );
   }
   get encryptWithKeyResponse() {
-    return Matchers.getElementByID(
+    return this.withOsCondition(
       aesCryptoFormResponses.encryptionWithKeyResponse,
     );
   }
   get encryptWithKeyButton() {
-    return Matchers.getElementByID(aesCryptoFormButtons.encryptWithKeyButton);
+    return this.withOsCondition(aesCryptoFormButtons.encryptWithKeyButton);
   }
 
   // Decrypt with key getters
   get decryptWithKeyEncryptionKeyInput() {
-    return Matchers.getElementByID(
+    return this.withOsCondition(
       aesCryptoFormInputs.encryptionKeyInputForDecryptionWithKey,
     );
   }
   get decryptWithKeyResponse() {
-    return Matchers.getElementByID(
+    return this.withOsCondition(
       aesCryptoFormResponses.decryptionWithKeyResponse,
     );
   }
   get decryptWithKeyButton() {
-    return Matchers.getElementByID(aesCryptoFormButtons.decryptWithKeyButton);
+    return this.withOsCondition(aesCryptoFormButtons.decryptWithKeyButton);
+  }
+
+  async scrollUpToGenerateSalt() {
+    await Gestures.scrollToElement(
+      this.generateSaltBytesCountInput,
+      this.scrollViewIdentifier,
+      'up',
+    );
   }
 
   async scrollUpToGenerateSalt() {
