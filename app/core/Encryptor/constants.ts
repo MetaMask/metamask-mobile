@@ -18,9 +18,26 @@ export enum KeyDerivationIteration {
 }
 
 /**
+ * Supported SHA algorithms in react-native-aes v3.0.2
+ */
+export enum SHA_ALGORITHM {
+  sha1 = 'sha1',
+  sha256 = 'sha256',
+  sha512 = 'sha512',
+}
+
+/**
+ * Supported cipher algorithms in react-native-aes v3.0.2
+ */
+export enum CIPHER_ALGORITHM {
+  cbc = 'aes-cbc-pkcs7padding',
+  ctr = 'aes-ctr-pkcs5padding',
+}
+
+/**
  * Used as a "tag" to identify the underlying encryption library.
  *
- * When no tag is speficied, this means our "forked" encryption library has been used.
+ * When no tag is specified, this means our "forked" encryption library has been used.
  */
 export const ENCRYPTION_LIBRARY = {
   original: 'original',
