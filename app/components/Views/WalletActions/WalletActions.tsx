@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useRef } from 'react';
-import { View, Platform } from 'react-native';
+import { View } from 'react-native';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
