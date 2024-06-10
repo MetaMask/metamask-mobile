@@ -195,7 +195,7 @@ const main = async () => {
 
       class VerboseConsoleReporter extends ConsoleStreamingReporter {
         onTestBegin(options, call) {
-          console.log('onTestBegin', options, call);
+          console.log('onTestBegin', call.methodName, call.params);
         }
       }
 
@@ -203,7 +203,7 @@ const main = async () => {
         openrpcDocument,
         transport,
         reporters: [
-          'console-streaming',
+          new VerboseConsoleReporter(),
           new HtmlReporter({ autoOpen: !process.env.CI }),
         ],
         rules: [
