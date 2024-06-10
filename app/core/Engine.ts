@@ -1229,7 +1229,6 @@ class Engine {
       this.smartTransactionsController,
       new SwapsController(
         {
-          // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
           fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
           // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
           fetchEstimatedMultiLayerL1Fee,
@@ -1251,6 +1250,7 @@ class Engine {
             swapsUtils.OPTIMISM_CHAIN_ID,
             swapsUtils.ZKSYNC_ERA_CHAIN_ID,
             swapsUtils.LINEA_CHAIN_ID,
+            swapsUtils.BASE_CHAIN_ID,
           ],
         },
       ),
