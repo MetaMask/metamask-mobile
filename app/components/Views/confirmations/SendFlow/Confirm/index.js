@@ -120,6 +120,7 @@ import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartT
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/TransactionConfirmView.selectors.js';
+import { selectTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -245,6 +246,11 @@ class Confirm extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
+
+    /**
+     * Object containing transaction metrics by id
+     */
+    transactionMetricsById: PropTypes.object,
   };
 
   state = {
@@ -886,6 +892,7 @@ class Confirm extends PureComponent {
                 {
                   ...this.getAnalyticsParams(),
                   ...getBlockaidTransactionMetricsParams(transaction),
+                  ...this.getTransactionMetrics(),
                 },
               ),
             type: 'signTransaction',
@@ -924,6 +931,7 @@ class Confirm extends PureComponent {
           {
             ...this.getAnalyticsParams(transactionMeta),
             ...getBlockaidTransactionMetricsParams(transaction),
+            ...this.getTransactionMetrics(),
           },
         );
         stopGasPolling();
@@ -1201,6 +1209,15 @@ class Confirm extends PureComponent {
     await updateTransaction(updatedTx);
   }
 
+  getTransactionMetrics = () => {
+    const { transactionMeta } = this.state;
+    const { transactionMetricsById } = this.props;
+    const { id: transactionId } = transactionMeta;
+
+    // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
+    return transactionMetricsById[transactionId]?.properties || {};
+  };
+
   render = () => {
     const { selectedAsset, paymentRequest } = this.props.transactionState;
     const {
@@ -1446,6 +1463,7 @@ const mapStateToProps = (state) => ({
     getRampNetworks(state),
   ),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  transactionMetricsById: selectTransactionMetrics(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
