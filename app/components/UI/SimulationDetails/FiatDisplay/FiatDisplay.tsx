@@ -9,6 +9,7 @@ import Text, {
 import { strings } from '../../../../../locales/i18n';
 import useFiatFormatter from './useFiatFormatter';
 import { FIAT_UNAVAILABLE, FiatAmount } from '../types';
+import useHideFiatForTestnet from '../../../hooks/useHideFiatForTestnet';
 
 const styleSheet = () =>
   StyleSheet.create({
@@ -48,8 +49,13 @@ export function calculateTotalFiat(fiatAmounts: FiatAmount[]): number {
 export const IndividualFiatDisplay: React.FC<{ fiatAmount: FiatAmount }> = ({
   fiatAmount,
 }) => {
+  const hideFiatForTestnet = useHideFiatForTestnet();
   const { styles } = useStyles(styleSheet, {});
   const fiatFormatter = useFiatFormatter();
+
+  if (hideFiatForTestnet) {
+    return null;
+  }
 
   if (fiatAmount === FIAT_UNAVAILABLE) {
     return <FiatNotAvailableDisplay />;
@@ -72,9 +78,14 @@ export const IndividualFiatDisplay: React.FC<{ fiatAmount: FiatAmount }> = ({
 export const TotalFiatDisplay: React.FC<{
   fiatAmounts: FiatAmount[];
 }> = ({ fiatAmounts }) => {
+  const hideFiatForTestnet = useHideFiatForTestnet();
   const { styles } = useStyles(styleSheet, {});
   const fiatFormatter = useFiatFormatter();
   const totalFiat = calculateTotalFiat(fiatAmounts);
+
+  if (hideFiatForTestnet) {
+    return null;
+  }
 
   return totalFiat === 0 ? (
     <FiatNotAvailableDisplay />
