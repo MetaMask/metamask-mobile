@@ -330,7 +330,7 @@ describe('getNetwork', () => {
   it('should return the correct network for a valid chain_id', () => {
     const chainId = 1;
     const result = getNetwork(chainId);
-    expect(result).toBe(ChainId.ETHEREUM);
+    expect(result).toBe('ETHEREUM');
   });
 
   it('should return undefined for an invalid chain_id', () => {
