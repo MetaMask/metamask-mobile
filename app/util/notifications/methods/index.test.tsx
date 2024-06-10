@@ -8,11 +8,7 @@ import {
   getNetwork,
   TxStatus,
 } from '.';
-import {
-  TRIGGER_TYPES,
-  Notification,
-  ChainId,
-} from '../../../util/notifications';
+import { TRIGGER_TYPES, Notification } from '../../../util/notifications';
 import {
   IconColor,
   IconName,
