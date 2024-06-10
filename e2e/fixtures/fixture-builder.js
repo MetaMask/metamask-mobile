@@ -214,7 +214,7 @@ class FixtureBuilder {
               lostIdentities: {},
               selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
               useTokenDetection: true,
-              useNftDetection: false,
+              useNftDetection: true,
               displayNftMedia: true,
               useSafeChainsListValidation: false,
               isMultiAccountBalancesEnabled: true,
@@ -710,6 +710,14 @@ class FixtureBuilder {
   }
 
   withPreferencesController(data) {
+    merge(
+      this.fixture.state.engine.backgroundState.PreferencesController,
+      data,
+    );
+    return this;
+  }
+
+  withNftDetection(data) {
     merge(
       this.fixture.state.engine.backgroundState.PreferencesController,
       data,

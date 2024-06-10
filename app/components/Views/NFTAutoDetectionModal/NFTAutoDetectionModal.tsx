@@ -10,6 +10,7 @@ import styleSheet from './NFTAutoDetectionModal.styles';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text';
 import { View, Image } from 'react-native';
+import { NftDetectionModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NftDetectionModal.selectors';
 
 import Button, {
   ButtonSize,
@@ -56,7 +57,7 @@ const NFTAutoDetectionModal = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <SheetHeader title={strings('enable_nft-auto-detection.title')} />
-      <View>
+      <View testID={NftDetectionModalSelectorsIDs.CONTAINER}>
         <View style={styles.container}>
           <Image source={walletImage} style={styles.image} />
         </View>
@@ -69,7 +70,7 @@ const NFTAutoDetectionModal = () => {
         </View>
         <View style={styles.buttonsContainer}>
           <Button
-            testID="allow"
+            testID={NftDetectionModalSelectorsIDs.ALLOW_BUTTON}
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
@@ -79,7 +80,7 @@ const NFTAutoDetectionModal = () => {
           <View style={styles.spacer} />
 
           <Button
-            testID="cancel"
+            testID={NftDetectionModalSelectorsIDs.CANCEL_BUTTON}
             variant={ButtonVariants.Link}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
