@@ -7,7 +7,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { createStyles } from '../styles';
-import { NotificationsDetailViewSelectorsIDs } from '../../constants';
+import NotificationsDetailViewSelectorsIDs from '../../constants';
 
 const Header = ({ title, subtitle }: { title: string; subtitle: string }) => {
   const theme = useTheme();
