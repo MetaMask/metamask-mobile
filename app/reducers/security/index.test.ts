@@ -9,6 +9,7 @@ describe('securityReducer', () => {
     hasUserSelectedAutomaticSecurityCheckOption: false,
     isAutomaticSecurityChecksModalOpen: false,
     dataCollectionForMarketing: null,
+    isNFTAutoDetectionModalOpened: false,
   };
 
   it('should set allowLoginWithRememberMe to true', () => {
