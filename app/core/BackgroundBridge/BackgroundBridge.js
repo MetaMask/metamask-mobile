@@ -22,6 +22,7 @@ import {
   selectProviderConfig,
 } from '../../selectors/networkController';
 import { store } from '../../store';
+import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
@@ -29,7 +30,6 @@ import { SubjectType } from '@metamask/permission-controller';
 
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
-const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
 const pump = require('pump');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
