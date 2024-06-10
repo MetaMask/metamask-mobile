@@ -68,7 +68,7 @@ const createStyles = (colors, brandColors) =>
       width: 32,
       height: 32,
       borderRadius: 16,
-      backgroundColor: brandColors.yellow['500'],
+      backgroundColor: brandColors.yellow500,
     },
   });
 
