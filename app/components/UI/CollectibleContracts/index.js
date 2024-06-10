@@ -225,7 +225,7 @@ const CollectibleContracts = ({
   const renderFooter = useCallback(
     () => (
       <View style={styles.footer} key={'collectible-contracts-footer'}>
-        {isNftFetchingInProgress.isFetchingInProgress ? (
+        {isNftFetchingInProgress?.isFetchingInProgress ? (
           <ActivityIndicator size="large" style={styles.spinner} />
         ) : null}
 
