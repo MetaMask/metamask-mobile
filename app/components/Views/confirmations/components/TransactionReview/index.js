@@ -58,6 +58,7 @@ import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionB
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { SDKConnect } from '../../../../../core/SDKConnect/SDKConnect';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -511,6 +512,11 @@ class TransactionReview extends PureComponent {
       multiLayerL1FeeTotal,
     } = this.state;
     const url = this.getUrlFromBrowser();
+
+    const sdkConnections = SDKConnect.getInstance().getConnections();
+
+    const currentConnection = sdkConnections[origin ?? ''];
+
     const styles = this.getStyles();
 
     return (
@@ -528,6 +534,10 @@ class TransactionReview extends PureComponent {
               url={url}
               from={from}
               asset={transaction?.selectedAsset}
+              sdkDappMetadata={{
+                url: currentConnection?.originatorInfo?.url,
+                icon: currentConnection?.originatorInfo?.icon,
+              }}
             />
           )}
           <View style={styles.actionViewWrapper}>

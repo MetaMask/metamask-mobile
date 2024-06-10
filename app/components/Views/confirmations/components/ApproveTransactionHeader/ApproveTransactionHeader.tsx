@@ -35,6 +35,7 @@ const ApproveTransactionHeader = ({
   from,
   origin,
   url,
+  sdkDappMetadata,
   currentEnsName,
   asset,
   dontWatchAsset,
@@ -127,8 +128,12 @@ const ApproveTransactionHeader = ({
       {origin && !isOriginDeepLink ? (
         <TagUrl
           testID={APPROVE_TRANSACTION_ORIGIN_PILL}
-          imageSource={faviconSource}
-          label={domainTitle}
+          imageSource={
+            sdkDappMetadata?.icon
+              ? { uri: sdkDappMetadata?.icon }
+              : faviconSource
+          }
+          label={sdkDappMetadata?.url ?? domainTitle}
           style={styles.tagUrl}
         />
       ) : null}
