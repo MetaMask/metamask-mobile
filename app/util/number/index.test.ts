@@ -578,7 +578,7 @@ describe('Number utils :: balanceToFiat', () => {
   });
 
   it('should returns undefined if balanceToFiat conversionRate is undefined', () => {
-    expect(balanceToFiat(0.1, undefined, 0.1, 'usd')).toBeFalsy();
+    expect(balanceToFiat(0.1, undefined, 0.1, 'usd')).toEqual(undefined);
   });
 });
 
