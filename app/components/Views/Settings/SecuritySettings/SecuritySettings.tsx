@@ -496,27 +496,32 @@ const Settings: React.FC = () => {
     }
   };
 
+  const addMarketingConsentToTraits = (marketingOptIn: boolean) => {
+    InteractionManager.runAfterInteractions(async () => {
+      const traits = {
+        has_marketing_consent: marketingOptIn,
+      };
+      await addTraitsToUser(traits);
+      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        ...traits,
+        location: 'settings',
+      });
+    });
+  };
+
   const toggleDataCollectionForMarketing = async (value: boolean) => {
     if (value) {
       if (!analyticsEnabled) {
-        toggleMetricsOptIn(true);
+        await toggleMetricsOptIn(true);
       }
+      addMarketingConsentToTraits(value);
     } else {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.DATA_COLLECTION,
       });
 
       if (analyticsEnabled) {
-        InteractionManager.runAfterInteractions(async () => {
-          const traits = {
-            has_marketing_consent: false,
-          };
-          await addTraitsToUser(traits);
-          trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-            ...traits,
-            location: 'settings',
-          });
-        });
+        addMarketingConsentToTraits(value);
       }
     }
     dispatch(setDataCollectionForMarketing(value));
