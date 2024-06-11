@@ -50,9 +50,25 @@ describe(SmokeAccounts('AES Crypto'), () => {
     await SettingsView.scrollToAesCryptoButton();
     await SettingsView.tapAesCryptoTestForm();
 
-    await AesCryptoTestForm.generateSalt(SALT_BYTES_COUNT.toString());
+    let currentSalt;
+    let previousSalt;
 
+    // First it validates that the first salt is create correctly
+    currentSalt = await AesCryptoTestForm.generateSalt(
+      SALT_BYTES_COUNT.toString(),
+    );
     await expect(await AesCryptoTestForm.generateSaltResponse).toExist();
+
+    // Then it validates that the next salts are different
+    for (let count = 0; count < 5; count++) {
+      previousSalt = currentSalt;
+      currentSalt = await AesCryptoTestForm.generateSalt(
+        SALT_BYTES_COUNT.toString(),
+      );
+      await expect(
+        await AesCryptoTestForm.generateSaltResponse,
+      ).not.toHaveLabel(previousSalt);
+    }
   });
 
   it('encrypts and decrypts using password', async () => {
