@@ -38,8 +38,8 @@ const CellBase = ({
       <Avatar
         style={styles.avatar}
         testID={CellModalSelectorsIDs.BASE_AVATAR}
-        size={DEFAULT_CELLBASE_AVATAR_SIZE}
         {...avatarProps}
+        size={DEFAULT_CELLBASE_AVATAR_SIZE}
       />
       <View style={styles.cellBaseInfo}>
         <Text
