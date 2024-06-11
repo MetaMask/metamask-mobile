@@ -766,6 +766,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     >
                                       <TouchableOpacity
                                         accessibilityLabel="Edit Activation Key"
+                                        accessibilityRole="button"
                                         accessible={true}
                                         activeOpacity={1}
                                         disabled={true}
@@ -824,6 +825,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     >
                                       <TouchableOpacity
                                         accessibilityLabel="Delete Activation Key"
+                                        accessibilityRole="button"
                                         accessible={true}
                                         activeOpacity={1}
                                         disabled={true}
@@ -976,6 +978,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     >
                                       <TouchableOpacity
                                         accessibilityLabel="Edit Activation Key"
+                                        accessibilityRole="button"
                                         accessible={true}
                                         activeOpacity={1}
                                         disabled={true}
@@ -1034,6 +1037,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     >
                                       <TouchableOpacity
                                         accessibilityLabel="Delete Activation Key"
+                                        accessibilityRole="button"
                                         accessible={true}
                                         activeOpacity={1}
                                         disabled={true}
@@ -4349,6 +4353,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     >
                                       <TouchableOpacity
                                         accessibilityLabel="Edit Activation Key"
+                                        accessibilityRole="button"
                                         accessible={true}
                                         activeOpacity={1}
                                         disabled={false}
@@ -4407,6 +4412,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     >
                                       <TouchableOpacity
                                         accessibilityLabel="Delete Activation Key"
+                                        accessibilityRole="button"
                                         accessible={true}
                                         activeOpacity={1}
                                         disabled={false}
@@ -4559,6 +4565,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     >
                                       <TouchableOpacity
                                         accessibilityLabel="Edit Activation Key"
+                                        accessibilityRole="button"
                                         accessible={true}
                                         activeOpacity={1}
                                         disabled={false}
@@ -4617,6 +4624,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     >
                                       <TouchableOpacity
                                         accessibilityLabel="Delete Activation Key"
+                                        accessibilityRole="button"
                                         accessible={true}
                                         activeOpacity={1}
                                         disabled={false}

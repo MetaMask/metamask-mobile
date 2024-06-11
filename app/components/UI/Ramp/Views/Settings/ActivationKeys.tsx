@@ -148,6 +148,7 @@ function ActivationKeys() {
           <ListItemColumn>
             <ButtonIcon
               accessibilityLabel="Edit Activation Key"
+              accessibilityRole="button"
               disabled={isLoadingKeys}
               onPress={() =>
                 handleEditPress(
@@ -164,6 +165,7 @@ function ActivationKeys() {
           </ListItemColumn>
           <ListItemColumn>
             <ButtonIcon
+              accessibilityRole="button"
               accessibilityLabel="Delete Activation Key"
               disabled={isLoadingKeys}
               onPress={() => removeActivationKey(activationKey.key)}
