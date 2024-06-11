@@ -492,10 +492,10 @@ similarity index 100%
 rename from node_modules/@metamask/assets-controllers/dist/chunk-MHN7CJCZ.mjs.map
 rename to node_modules/@metamask/assets-controllers/dist/chunk-HFJC7WCX.mjs.map
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-46UZDIXW.mjs b/node_modules/@metamask/assets-controllers/dist/chunk-I44BWCJJ.mjs
-similarity index 97%
+similarity index 93%
 rename from node_modules/@metamask/assets-controllers/dist/chunk-46UZDIXW.mjs
 rename to node_modules/@metamask/assets-controllers/dist/chunk-I44BWCJJ.mjs
-index ef9295d..d2f9090 100644
+index ef9295d..4feabce 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-46UZDIXW.mjs
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-I44BWCJJ.mjs
 @@ -82,7 +82,7 @@ var NftController = class extends BaseControllerV1 {
@@ -588,7 +588,7 @@ index ef9295d..d2f9090 100644
        };
      }
    }
-@@ -345,10 +361,21 @@ var NftController = class extends BaseControllerV1 {
+@@ -345,15 +361,26 @@ var NftController = class extends BaseControllerV1 {
            networkClientId
          )
        ),
@@ -611,6 +611,12 @@ index ef9295d..d2f9090 100644
      return {
        ...nftApiMetadata,
        name: blockchainMetadata?.name ?? nftApiMetadata?.name ?? null,
+       description: blockchainMetadata?.description ?? nftApiMetadata?.description ?? null,
+-      image: blockchainMetadata?.image ?? nftApiMetadata?.image ?? null,
++      image: nftApiMetadata?.image ?? blockchainMetadata?.image ?? null,
+       standard: blockchainMetadata?.standard ?? nftApiMetadata?.standard ?? null,
+       tokenURI: blockchainMetadata?.tokenURI ?? null
+     };
 @@ -472,7 +499,8 @@ var NftController = class extends BaseControllerV1 {
            symbol: nftContract.symbol,
            tokenId: tokenId.toString(),
@@ -621,13 +627,109 @@ index ef9295d..d2f9090 100644
          });
        }
        return newNfts;
-@@ -1202,4 +1230,4 @@ export {
+@@ -863,55 +891,52 @@ var NftController = class extends BaseControllerV1 {
+     userAddress = this.config.selectedAddress,
+     networkClientId
+   }) {
+-    const chainId = this.getCorrectChainId({ networkClientId });
+-    const nftsWithChecksumAdr = nfts.map((nft) => {
+-      return {
+-        ...nft,
+-        address: toChecksumHexAddress(nft.address)
+-      };
+-    });
+-    const nftMetadataResults = await Promise.allSettled(
+-      nftsWithChecksumAdr.map(async (nft) => {
+-        const resMetadata = await this.getNftInformation(
+-          nft.address,
+-          nft.tokenId,
+-          networkClientId
+-        );
++    const releaseLock = await this.mutex.acquire();
++    try {
++      const chainId = this.getCorrectChainId({ networkClientId });
++      const nftsWithChecksumAdr = nfts.map((nft) => {
+         return {
+-          nft,
+-          newMetadata: resMetadata
++          ...nft,
++          address: toChecksumHexAddress(nft.address)
+         };
+-      })
+-    );
+-    const successfulNewFetchedNfts = nftMetadataResults.filter(
+-      (result) => result.status === "fulfilled"
+-    );
+-    const nftsWithDifferentMetadata = [];
+-    const { allNfts } = this.state;
+-    const stateNfts = allNfts[userAddress]?.[chainId] || [];
+-    successfulNewFetchedNfts.forEach((singleNft) => {
+-      const existingEntry = stateNfts.find(
+-        (nft) => nft.address.toLowerCase() === singleNft.value.nft.address.toLowerCase() && nft.tokenId === singleNft.value.nft.tokenId
++      });
++      const nftMetadataResults = await Promise.all(
++        nftsWithChecksumAdr.map(async (nft) => {
++          const resMetadata = await this.getNftInformation(
++            nft.address,
++            nft.tokenId,
++            networkClientId
++          );
++          return {
++            nft,
++            newMetadata: resMetadata
++          };
++        })
+       );
+-      if (existingEntry) {
+-        const differentMetadata = compareNftMetadata(
+-          singleNft.value.newMetadata,
+-          existingEntry
++      const nftsWithDifferentMetadata = [];
++      const { allNfts } = this.state;
++      const stateNfts = allNfts[userAddress]?.[chainId] || [];
++      nftMetadataResults.forEach((singleNft) => {
++        const existingEntry = stateNfts.find(
++          (nft) => nft.address.toLowerCase() === singleNft.nft.address.toLowerCase() && nft.tokenId === singleNft.nft.tokenId
+         );
+-        if (differentMetadata) {
+-          nftsWithDifferentMetadata.push(singleNft);
++        if (existingEntry) {
++          const differentMetadata = compareNftMetadata(
++            singleNft.newMetadata,
++            existingEntry
++          );
++          if (differentMetadata) {
++            nftsWithDifferentMetadata.push(singleNft);
++          }
+         }
++      });
++      if (nftsWithDifferentMetadata.length !== 0) {
++        nftsWithDifferentMetadata.forEach(
++          (elm) => this.updateNft(elm.nft, elm.newMetadata, userAddress, chainId)
++        );
+       }
+-    });
+-    if (nftsWithDifferentMetadata.length !== 0) {
+-      nftsWithDifferentMetadata.forEach(
+-        (elm) => this.updateNft(
+-          elm.value.nft,
+-          elm.value.newMetadata,
+-          userAddress,
+-          chainId
+-        )
+-      );
++    } finally {
++      releaseLock();
+     }
+   }
+   /**
+@@ -1202,4 +1227,4 @@ export {
    NftController,
    NftController_default
  };
 -//# sourceMappingURL=chunk-46UZDIXW.mjs.map
 \ No newline at end of file
-+//# sourceMappingURL=chunk-I44BWCJJ.mjs.map
++//# sourceMappingURL=chunk-7VBVHUBP.mjs.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-I44BWCJJ.mjs.map b/node_modules/@metamask/assets-controllers/dist/chunk-I44BWCJJ.mjs.map
 new file mode 100644
