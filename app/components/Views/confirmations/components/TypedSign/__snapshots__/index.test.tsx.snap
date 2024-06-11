@@ -5,7 +5,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
   style={
     [
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "borderTopLeftRadius": 20,
         "borderTopRightRadius": 20,
         "minHeight": "90%",
@@ -100,7 +100,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
             <Text
               style={
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 20,
                   "fontWeight": "600",
@@ -139,8 +139,8 @@ exports[`TypedSign onConfirm signs message 1`] = `
                     {
                       "alignItems": "center",
                       "alignSelf": "center",
-                      "backgroundColor": "#FFFFFF",
-                      "borderColor": "#BBC0C5",
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#bbc0c5",
                       "borderRadius": 99,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -155,7 +155,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                   <View
                     style={
                       {
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#ffffff",
                         "borderRadius": 16,
                         "height": 24,
                         "marginRight": 8,
@@ -182,7 +182,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "flexShrink": 1,
                         "fontFamily": "Euclid Circular B",
                         "fontSize": 14,
@@ -198,8 +198,8 @@ exports[`TypedSign onConfirm signs message 1`] = `
                 <TouchableOpacity
                   style={
                     {
-                      "backgroundColor": "#FFFFFF",
-                      "borderColor": "#BBC0C5",
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#bbc0c5",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -243,7 +243,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                           <View
                             style={
                               {
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "borderRadius": 16,
                                 "height": 32,
                                 "overflow": "hidden",
@@ -306,14 +306,14 @@ exports[`TypedSign onConfirm signs message 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#FFFFFF",
-                                  "borderColor": "#FFFFFF",
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#ffffff",
                                   "borderRadius": 16,
                                   "borderWidth": 2,
                                   "height": 32,
                                   "justifyContent": "center",
                                   "overflow": "hidden",
-                                  "shadowColor": "#0000001A",
+                                  "shadowColor": "#0000001a",
                                   "shadowOffset": {
                                     "height": 2,
                                     "width": 0,
@@ -356,7 +356,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#24272A",
+                              "color": "#141618",
                               "fontFamily": "Euclid Circular B",
                               "fontSize": 12,
                               "fontWeight": "400",
@@ -380,7 +380,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#24272A",
+                                "color": "#141618",
                                 "fontFamily": "Euclid Circular B",
                                 "fontSize": 14,
                                 "fontWeight": "700",
@@ -399,7 +399,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#24272A",
+                            "color": "#141618",
                             "fontFamily": "Euclid Circular B",
                             "fontSize": 12,
                             "fontWeight": "400",
@@ -415,7 +415,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#24272A",
+                            "color": "#141618",
                             "fontFamily": "Euclid Circular B",
                             "fontSize": 14,
                             "fontWeight": "700",
@@ -436,7 +436,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
               style={
                 {
                   "alignSelf": "center",
-                  "borderColor": "#BBC0C5",
+                  "borderColor": "#bbc0c5",
                   "borderRadius": 10,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -452,7 +452,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                     [
                       {
                         "alignContent": "center",
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#ffffff",
                         "borderRadius": 27,
                         "height": 54,
                         "justifyContent": "center",
@@ -471,7 +471,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                     style={
                       [
                         {
-                          "color": "#24272A",
+                          "color": "#141618",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 24,
                           "fontWeight": "400",
@@ -497,7 +497,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 16,
                       "fontWeight": "600",
@@ -549,8 +549,8 @@ exports[`TypedSign onConfirm signs message 1`] = `
                     "padding": 15,
                   },
                   {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#0376C9",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#0376c9",
                     "borderWidth": 1,
                   },
                   [
@@ -585,7 +585,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                       "textAlign": "center",
                     },
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                     },
                     undefined,
                   ],
@@ -611,8 +611,8 @@ exports[`TypedSign onConfirm signs message 1`] = `
                     "padding": 15,
                   },
                   {
-                    "backgroundColor": "#0376C9",
-                    "borderColor": "#0376C9",
+                    "backgroundColor": "#0376c9",
+                    "borderColor": "#0376c9",
                     "borderWidth": 1,
                   },
                   [
@@ -649,7 +649,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                       "textAlign": "center",
                     },
                     {
-                      "color": "#FFFFFF",
+                      "color": "#ffffff",
                     },
                     undefined,
                   ],
@@ -672,7 +672,7 @@ exports[`TypedSign onReject rejects message 1`] = `
   style={
     [
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "borderTopLeftRadius": 20,
         "borderTopRightRadius": 20,
         "minHeight": "90%",
@@ -767,7 +767,7 @@ exports[`TypedSign onReject rejects message 1`] = `
             <Text
               style={
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 20,
                   "fontWeight": "600",
@@ -806,8 +806,8 @@ exports[`TypedSign onReject rejects message 1`] = `
                     {
                       "alignItems": "center",
                       "alignSelf": "center",
-                      "backgroundColor": "#FFFFFF",
-                      "borderColor": "#BBC0C5",
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#bbc0c5",
                       "borderRadius": 99,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -822,7 +822,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                   <View
                     style={
                       {
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#ffffff",
                         "borderRadius": 16,
                         "height": 24,
                         "marginRight": 8,
@@ -849,7 +849,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "flexShrink": 1,
                         "fontFamily": "Euclid Circular B",
                         "fontSize": 14,
@@ -865,8 +865,8 @@ exports[`TypedSign onReject rejects message 1`] = `
                 <TouchableOpacity
                   style={
                     {
-                      "backgroundColor": "#FFFFFF",
-                      "borderColor": "#BBC0C5",
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#bbc0c5",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -910,7 +910,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                           <View
                             style={
                               {
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "borderRadius": 16,
                                 "height": 32,
                                 "overflow": "hidden",
@@ -973,14 +973,14 @@ exports[`TypedSign onReject rejects message 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#FFFFFF",
-                                  "borderColor": "#FFFFFF",
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#ffffff",
                                   "borderRadius": 16,
                                   "borderWidth": 2,
                                   "height": 32,
                                   "justifyContent": "center",
                                   "overflow": "hidden",
-                                  "shadowColor": "#0000001A",
+                                  "shadowColor": "#0000001a",
                                   "shadowOffset": {
                                     "height": 2,
                                     "width": 0,
@@ -1023,7 +1023,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#24272A",
+                              "color": "#141618",
                               "fontFamily": "Euclid Circular B",
                               "fontSize": 12,
                               "fontWeight": "400",
@@ -1047,7 +1047,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#24272A",
+                                "color": "#141618",
                                 "fontFamily": "Euclid Circular B",
                                 "fontSize": 14,
                                 "fontWeight": "700",
@@ -1066,7 +1066,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#24272A",
+                            "color": "#141618",
                             "fontFamily": "Euclid Circular B",
                             "fontSize": 12,
                             "fontWeight": "400",
@@ -1082,7 +1082,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#24272A",
+                            "color": "#141618",
                             "fontFamily": "Euclid Circular B",
                             "fontSize": 14,
                             "fontWeight": "700",
@@ -1103,7 +1103,7 @@ exports[`TypedSign onReject rejects message 1`] = `
               style={
                 {
                   "alignSelf": "center",
-                  "borderColor": "#BBC0C5",
+                  "borderColor": "#bbc0c5",
                   "borderRadius": 10,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -1119,7 +1119,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                     [
                       {
                         "alignContent": "center",
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#ffffff",
                         "borderRadius": 27,
                         "height": 54,
                         "justifyContent": "center",
@@ -1138,7 +1138,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                     style={
                       [
                         {
-                          "color": "#24272A",
+                          "color": "#141618",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 24,
                           "fontWeight": "400",
@@ -1164,7 +1164,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 16,
                       "fontWeight": "600",
@@ -1216,8 +1216,8 @@ exports[`TypedSign onReject rejects message 1`] = `
                     "padding": 15,
                   },
                   {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#0376C9",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#0376c9",
                     "borderWidth": 1,
                   },
                   [
@@ -1252,7 +1252,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                       "textAlign": "center",
                     },
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                     },
                     undefined,
                   ],
@@ -1278,8 +1278,8 @@ exports[`TypedSign onReject rejects message 1`] = `
                     "padding": 15,
                   },
                   {
-                    "backgroundColor": "#0376C9",
-                    "borderColor": "#0376C9",
+                    "backgroundColor": "#0376c9",
+                    "borderColor": "#0376c9",
                     "borderWidth": 1,
                   },
                   [
@@ -1316,7 +1316,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                       "textAlign": "center",
                     },
                     {
-                      "color": "#FFFFFF",
+                      "color": "#ffffff",
                     },
                     undefined,
                   ],

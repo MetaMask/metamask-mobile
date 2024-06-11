@@ -54,7 +54,7 @@ exports[`NetworksSettings should render correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -137,7 +137,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -168,7 +168,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -178,7 +178,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -371,7 +371,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                     <View
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                           "marginBottom": 24,
                           "paddingHorizontal": 24,
@@ -384,10 +384,10 @@ exports[`NetworksSettings should render correctly 1`] = `
                         style={
                           {
                             "alignItems": "center",
-                            "borderColor": "#BBC0C5",
+                            "borderColor": "#bbc0c5",
                             "borderRadius": 5,
                             "borderWidth": 1,
-                            "color": "#24272A",
+                            "color": "#141618",
                             "flexDirection": "row",
                             "paddingHorizontal": 10,
                             "paddingVertical": 10,
@@ -399,7 +399,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                           style={
                             [
                               {
-                                "color": "#24272A",
+                                "color": "#141618",
                                 "fontSize": 20,
                               },
                               undefined,
@@ -417,10 +417,10 @@ exports[`NetworksSettings should render correctly 1`] = `
                         <TextInput
                           onChangeText={[Function]}
                           placeholder="Search for previously added network"
-                          placeholderTextColor="#24272A"
+                          placeholderTextColor="#141618"
                           style={
                             {
-                              "color": "#24272A",
+                              "color": "#141618",
                               "flex": 1,
                               "fontFamily": "EuclidCircularB-Regular",
                               "fontSize": 14,
@@ -437,7 +437,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                           <Text
                             style={
                               {
-                                "color": "#24272A",
+                                "color": "#141618",
                                 "fontFamily": "EuclidCircularB-Bold",
                                 "fontSize": 14,
                                 "fontWeight": "600",
@@ -488,7 +488,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -504,7 +504,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontSize": 20,
                                     },
                                     {
@@ -564,7 +564,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -580,7 +580,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontSize": 20,
                                     },
                                     {
@@ -602,7 +602,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                           <Text
                             style={
                               {
-                                "color": "#24272A",
+                                "color": "#141618",
                                 "fontFamily": "EuclidCircularB-Bold",
                                 "fontSize": 14,
                                 "fontWeight": "600",
@@ -646,7 +646,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -660,7 +660,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontSize": 20,
                                       },
                                       {
@@ -714,7 +714,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -728,7 +728,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontSize": 20,
                                       },
                                       {
@@ -764,7 +764,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 "padding": 15,
                               },
                               {
-                                "backgroundColor": "#0376C9",
+                                "backgroundColor": "#0376c9",
                                 "minHeight": 50,
                               },
                               undefined,
@@ -792,7 +792,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   "textAlign": "center",
                                 },
                                 {
-                                  "color": "#FFFFFF",
+                                  "color": "#ffffff",
                                 },
                                 undefined,
                               ],

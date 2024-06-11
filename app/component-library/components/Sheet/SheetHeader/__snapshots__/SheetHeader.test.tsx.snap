@@ -5,7 +5,7 @@ exports[`SheetHeader should render correctly 1`] = `
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flexDirection": "row",
       "height": 32,
       "justifyContent": "space-between",

@@ -21,7 +21,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     <Text
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 18,
           "fontWeight": "700",
@@ -35,7 +35,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     <Text
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -62,8 +62,8 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     <View
       style={
         {
-          "backgroundColor": "#D7384719",
-          "borderLeftColor": "#D73847",
+          "backgroundColor": "#d738471a",
+          "borderLeftColor": "#d73847",
           "borderLeftWidth": 4,
           "borderRadius": 4,
           "flexDirection": "row",
@@ -82,7 +82,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
       <Text
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "flex": 1,
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -131,7 +131,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         onPress={[Function]}
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",

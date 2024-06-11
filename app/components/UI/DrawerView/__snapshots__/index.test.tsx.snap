@@ -4,7 +4,7 @@ exports[`DrawerView should render correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flex": 1,
       "width": 315,
     }
@@ -20,7 +20,7 @@ exports[`DrawerView should render correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#F2F4F6",
+            "backgroundColor": "#f2f4f6",
             "flexDirection": "column",
             "height": 110,
             "paddingBottom": 0,
@@ -69,7 +69,7 @@ exports[`DrawerView should render correctly 1`] = `
               {
                 "height": 18,
                 "marginTop": 4,
-                "tintColor": "#24272A",
+                "tintColor": "#141618",
                 "width": 90,
               }
             }
@@ -79,7 +79,7 @@ exports[`DrawerView should render correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#F2F4F6",
+            "backgroundColor": "#f2f4f6",
             "flex": 1,
           }
         }
@@ -87,7 +87,7 @@ exports[`DrawerView should render correctly 1`] = `
         <View
           style={
             {
-              "borderBottomColor": "#D6D9DC",
+              "borderBottomColor": "#bbc0c566",
               "borderBottomWidth": 1,
               "padding": 17,
             }
@@ -107,7 +107,7 @@ exports[`DrawerView should render correctly 1`] = `
             <View
               style={
                 {
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 96,
                   "borderWidth": 2,
                   "padding": 2,
@@ -117,7 +117,7 @@ exports[`DrawerView should render correctly 1`] = `
               <View
                 placeholderStyle={
                   {
-                    "backgroundColor": "#F2F4F6",
+                    "backgroundColor": "#f2f4f6",
                   }
                 }
                 useNativeDriver={true}
@@ -165,7 +165,7 @@ exports[`DrawerView should render correctly 1`] = `
                           "backgroundColor": "#eee",
                         },
                         {
-                          "backgroundColor": "#F2F4F6",
+                          "backgroundColor": "#f2f4f6",
                         },
                       ]
                     }
@@ -190,7 +190,7 @@ exports[`DrawerView should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 20,
                     "fontWeight": "400",
@@ -210,7 +210,7 @@ exports[`DrawerView should render correctly 1`] = `
                       "fontSize": 24,
                     },
                     {
-                      "color": "#6A737D",
+                      "color": "#6a737d",
                       "fontSize": 18,
                       "marginLeft": 7,
                       "marginTop": 3,
@@ -231,7 +231,7 @@ exports[`DrawerView should render correctly 1`] = `
             <Text
               style={
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -246,7 +246,7 @@ exports[`DrawerView should render correctly 1`] = `
               numberOfLines={1}
               style={
                 {
-                  "color": "#535A61",
+                  "color": "#6a737d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 12,
                   "fontWeight": "400",
@@ -263,7 +263,7 @@ exports[`DrawerView should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "borderBottomColor": "#D6D9DC",
+            "borderBottomColor": "#bbc0c566",
             "borderBottomWidth": 1,
             "flexDirection": "row",
             "justifyContent": "center",
@@ -285,8 +285,8 @@ exports[`DrawerView should render correctly 1`] = `
                   "padding": 15,
                 },
                 {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#0376C9",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#0376c9",
                   "borderWidth": 1,
                   "padding": 8,
                 },
@@ -324,7 +324,7 @@ exports[`DrawerView should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 22,
                   },
                   {
@@ -344,7 +344,7 @@ exports[`DrawerView should render correctly 1`] = `
             <Text
               style={
                 {
-                  "color": "#0376C9",
+                  "color": "#0376c9",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 27.857142857142858,
                   "fontWeight": "400",
@@ -370,8 +370,8 @@ exports[`DrawerView should render correctly 1`] = `
                   "padding": 15,
                 },
                 {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#0376C9",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#0376c9",
                   "borderWidth": 1,
                   "padding": 8,
                 },
@@ -409,7 +409,7 @@ exports[`DrawerView should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 22,
                   },
                   [
@@ -438,7 +438,7 @@ exports[`DrawerView should render correctly 1`] = `
             <Text
               style={
                 {
-                  "color": "#0376C9",
+                  "color": "#0376c9",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 27.857142857142858,
                   "fontWeight": "400",
@@ -458,7 +458,7 @@ exports[`DrawerView should render correctly 1`] = `
           style={
             [
               {
-                "borderColor": "#D6D9DC",
+                "borderColor": "#bbc0c566",
                 "borderTopWidth": 1,
                 "paddingVertical": 10,
               },
@@ -487,7 +487,7 @@ exports[`DrawerView should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#6A737D",
+                    "color": "#6a737d",
                     "fontSize": 24,
                   },
                   undefined,
@@ -507,7 +507,7 @@ exports[`DrawerView should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "flex": 1,
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 16,
@@ -542,7 +542,7 @@ exports[`DrawerView should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#6A737D",
+                    "color": "#6a737d",
                     "fontSize": 24,
                   },
                   undefined,
@@ -562,7 +562,7 @@ exports[`DrawerView should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "flex": 1,
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 16,
@@ -583,7 +583,7 @@ exports[`DrawerView should render correctly 1`] = `
           style={
             [
               {
-                "borderColor": "#D6D9DC",
+                "borderColor": "#bbc0c566",
                 "borderTopWidth": 1,
                 "paddingVertical": 10,
               },
@@ -610,7 +610,7 @@ exports[`DrawerView should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#6A737D",
+                    "color": "#6a737d",
                     "fontSize": 24,
                   },
                   undefined,
@@ -630,7 +630,7 @@ exports[`DrawerView should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "flex": 1,
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 16,
@@ -665,7 +665,7 @@ exports[`DrawerView should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#6A737D",
+                    "color": "#6a737d",
                     "fontSize": 24,
                   },
                   undefined,
@@ -685,7 +685,7 @@ exports[`DrawerView should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "flex": 1,
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 16,
@@ -720,7 +720,7 @@ exports[`DrawerView should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#6A737D",
+                    "color": "#6a737d",
                     "fontSize": 24,
                   },
                   undefined,
@@ -740,7 +740,7 @@ exports[`DrawerView should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "flex": 1,
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 16,

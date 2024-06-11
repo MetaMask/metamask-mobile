@@ -9,7 +9,7 @@ exports[`NotificationContent renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#535A61",
+          "color": "#6a737d",
           "fontFamily": "Euclid Circular B",
           "fontSize": 12,
           "fontWeight": "400",
@@ -24,7 +24,7 @@ exports[`NotificationContent renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#BBC0C5",
+          "color": "#9fa6ae",
           "fontFamily": "Euclid Circular B",
           "fontSize": 12,
           "fontWeight": "400",
@@ -43,7 +43,7 @@ exports[`NotificationContent renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -58,7 +58,7 @@ exports[`NotificationContent renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",

@@ -24,7 +24,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
         style={
           [
             {
-              "borderColor": "#BBC0C5",
+              "borderColor": "#bbc0c5",
               "borderRadius": 8,
               "borderWidth": 1.5,
               "padding": 16,
@@ -60,7 +60,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 30,
                     "fontWeight": "400",
@@ -91,7 +91,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                   undefined,
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontSize": 15,
                     },
                     undefined,
@@ -103,7 +103,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#F2F4F6",
+                      "backgroundColor": "#f2f4f6",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -143,7 +143,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#F2F4F6",
+                    "backgroundColor": "#f2f4f6",
                     "borderRadius": 30,
                     "padding": 14,
                   },
@@ -193,7 +193,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#F2F4F6",
+                    "backgroundColor": "#f2f4f6",
                     "borderRadius": 30,
                     "padding": 14,
                   },
@@ -232,7 +232,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#F2F4F6",
+                    "backgroundColor": "#f2f4f6",
                     "borderRadius": 30,
                     "padding": 14,
                   },
@@ -284,7 +284,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
         style={
           [
             {
-              "borderColor": "#BBC0C5",
+              "borderColor": "#bbc0c5",
               "borderRadius": 8,
               "borderWidth": 1.5,
               "padding": 16,
@@ -320,7 +320,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 30,
                     "fontWeight": "400",
@@ -351,7 +351,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                   undefined,
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontSize": 15,
                     },
                     undefined,
@@ -363,7 +363,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#F2F4F6",
+                      "backgroundColor": "#f2f4f6",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -403,7 +403,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#F2F4F6",
+                    "backgroundColor": "#f2f4f6",
                     "borderRadius": 30,
                     "padding": 14,
                   },
@@ -451,7 +451,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
         style={
           [
             {
-              "borderColor": "#BBC0C5",
+              "borderColor": "#bbc0c5",
               "borderRadius": 8,
               "borderWidth": 1.5,
               "padding": 16,
@@ -487,7 +487,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 30,
                     "fontWeight": "400",
@@ -518,7 +518,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                   undefined,
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontSize": 15,
                     },
                     undefined,
@@ -530,7 +530,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#F2F4F6",
+                      "backgroundColor": "#f2f4f6",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -570,7 +570,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#F2F4F6",
+                    "backgroundColor": "#f2f4f6",
                     "borderRadius": 30,
                     "padding": 14,
                   },
@@ -655,7 +655,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -731,7 +731,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -768,7 +768,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -807,7 +807,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -850,7 +850,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -1106,15 +1106,15 @@ exports[`Quotes renders animation on first fetching 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
-                                "borderColor": "#D6D9DC",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#bbc0c566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001A",
+                                "shadowColor": "#0000001a",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -1144,7 +1144,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#D6D9DC",
+                                  "backgroundColor": "#bbc0c566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -1174,7 +1174,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 30,
                                       "fontWeight": "400",
@@ -1205,7 +1205,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                     undefined,
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "600",
@@ -1225,7 +1225,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#0376C919",
+                                    "backgroundColor": "#0376c91a",
                                     "borderRadius": 3,
                                     "height": 3,
                                     "marginVertical": 15,
@@ -1236,7 +1236,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                   style={
                                     [
                                       {
-                                        "backgroundColor": "#0376C9",
+                                        "backgroundColor": "#0376c9",
                                         "borderRadius": 3,
                                         "flex": 1,
                                         "height": 3,
@@ -1263,7 +1263,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                   style={
                                     [
                                       {
-                                        "backgroundColor": "#FFFFFF",
+                                        "backgroundColor": "#ffffff",
                                         "flex": 1,
                                       },
                                       {
@@ -1316,7 +1316,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                           },
                                           [
                                             {
-                                              "backgroundColor": "#FFFFFF",
+                                              "backgroundColor": "#ffffff",
                                               "flex": 1,
                                             },
                                             undefined,
@@ -1399,7 +1399,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -1475,7 +1475,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -1512,7 +1512,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1551,7 +1551,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -1594,7 +1594,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -1850,15 +1850,15 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
-                                "borderColor": "#D6D9DC",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#bbc0c566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001A",
+                                "shadowColor": "#0000001a",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -1888,7 +1888,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#D6D9DC",
+                                  "backgroundColor": "#bbc0c566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -1900,7 +1900,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
                                 "padding": 16,
                               }
@@ -1931,7 +1931,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
                                     "fontWeight": "700",
@@ -1974,7 +1974,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    color="#24272A"
+                                    color="#141618"
                                     height={16}
                                     name="Close"
                                     style={
@@ -1994,7 +1994,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "center",
-                                "backgroundColor": "#F2F4F6",
+                                "backgroundColor": "#f2f4f6",
                                 "borderRadius": 20,
                                 "flexDirection": "row",
                                 "marginBottom": 8,
@@ -2007,7 +2007,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 30,
                                     "fontWeight": "400",
@@ -2026,7 +2026,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                   },
                                   undefined,
                                   undefined,
@@ -2050,7 +2050,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 30,
                                       "fontWeight": "400",
@@ -2070,7 +2070,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                     undefined,
                                     undefined,
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                     },
                                     undefined,
                                     undefined,
@@ -2147,14 +2147,14 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#BBC0C5",
+                                              "borderColor": "#bbc0c5",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             undefined,
                                             {
-                                              "borderColor": "#0376C9",
+                                              "borderColor": "#0376c9",
                                             },
                                             undefined,
                                           ]
@@ -2218,7 +2218,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                         "fontSize": 12,
                                                       },
                                                       {
-                                                        "color": "#6A737D",
+                                                        "color": "#6a737d",
                                                         "marginLeft": 8,
                                                       },
                                                       {
@@ -2275,7 +2275,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#24272A",
+                                                      "color": "#141618",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 30,
                                                       "fontWeight": "400",
@@ -2295,7 +2295,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "color": "#24272A",
+                                                      "color": "#141618",
                                                     },
                                                     undefined,
                                                     undefined,
@@ -2335,7 +2335,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#24272A",
+                                                      "color": "#141618",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 30,
                                                       "fontWeight": "400",
@@ -2354,7 +2354,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "color": "#24272A",
+                                                      "color": "#141618",
                                                     },
                                                     undefined,
                                                     undefined,
@@ -2416,7 +2416,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                       "padding": 15,
                                                     },
                                                     {
-                                                      "backgroundColor": "#0376C9",
+                                                      "backgroundColor": "#0376c9",
                                                     },
                                                     undefined,
                                                   ],
@@ -2442,7 +2442,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                         "textAlign": "center",
                                                       },
                                                       {
-                                                        "color": "#FFFFFF",
+                                                        "color": "#ffffff",
                                                       },
                                                       undefined,
                                                     ],
@@ -2490,7 +2490,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#BBC0C5",
+                                              "borderColor": "#bbc0c5",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -2558,7 +2558,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                         "fontSize": 12,
                                                       },
                                                       {
-                                                        "color": "#6A737D",
+                                                        "color": "#6a737d",
                                                         "marginLeft": 8,
                                                       },
                                                       {
@@ -2615,7 +2615,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#24272A",
+                                                      "color": "#141618",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 30,
                                                       "fontWeight": "400",
@@ -2635,7 +2635,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "color": "#24272A",
+                                                      "color": "#141618",
                                                     },
                                                     undefined,
                                                     undefined,
@@ -2675,7 +2675,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#24272A",
+                                                      "color": "#141618",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 30,
                                                       "fontWeight": "400",
@@ -2694,7 +2694,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "color": "#24272A",
+                                                      "color": "#141618",
                                                     },
                                                     undefined,
                                                     undefined,
@@ -2756,7 +2756,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                       "padding": 15,
                                                     },
                                                     {
-                                                      "backgroundColor": "#0376C9",
+                                                      "backgroundColor": "#0376c9",
                                                     },
                                                     undefined,
                                                   ],
@@ -2782,7 +2782,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                         "textAlign": "center",
                                                       },
                                                       {
-                                                        "color": "#FFFFFF",
+                                                        "color": "#ffffff",
                                                       },
                                                       undefined,
                                                     ],
@@ -2805,7 +2805,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                           <View
                             style={
                               {
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flexDirection": "column",
                                 "paddingHorizontal": 8,
                                 "paddingVertical": 4,
@@ -2910,7 +2910,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -2986,7 +2986,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -3023,7 +3023,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -3062,7 +3062,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -3105,7 +3105,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -3361,8 +3361,8 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
-                                "borderColor": "#D6D9DC",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#bbc0c566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
@@ -3370,7 +3370,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001A",
+                                "shadowColor": "#0000001a",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -3392,7 +3392,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
                                 "padding": 16,
                               }
@@ -3423,7 +3423,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
                                     "fontWeight": "700",
@@ -3466,7 +3466,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                   }
                                 >
                                   <SvgMock
-                                    color="#24272A"
+                                    color="#141618"
                                     height={16}
                                     name="Close"
                                     style={
@@ -3492,7 +3492,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                               style={
                                 [
                                   {
-                                    "backgroundColor": "#FFFFFF",
+                                    "backgroundColor": "#ffffff",
                                     "flex": 1,
                                   },
                                   undefined,
@@ -3515,7 +3515,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "center",
-                                      "backgroundColor": "#F2F4F6",
+                                      "backgroundColor": "#f2f4f6",
                                       "borderRadius": 20,
                                       "flexDirection": "row",
                                       "marginBottom": 8,
@@ -3528,7 +3528,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                     style={
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 30,
                                           "fontWeight": "400",
@@ -3547,7 +3547,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                         undefined,
                                         undefined,
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                         },
                                         undefined,
                                         undefined,
@@ -3571,7 +3571,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -3591,7 +3591,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                           },
                                           undefined,
                                           undefined,
@@ -3637,7 +3637,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                     style={
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 30,
                                           "fontWeight": "400",
@@ -3652,7 +3652,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                         undefined,
                                         undefined,
                                         {
-                                          "color": "#535A61",
+                                          "color": "#6a737d",
                                         },
                                         undefined,
                                         undefined,
@@ -3720,7 +3720,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                   style={
                                     [
                                       {
-                                        "backgroundColor": "#BBC0C5",
+                                        "backgroundColor": "#bbc0c5",
                                         "height": 1,
                                         "width": "100%",
                                       },
@@ -3779,14 +3779,14 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                               style={
                                                 [
                                                   {
-                                                    "borderColor": "#BBC0C5",
+                                                    "borderColor": "#bbc0c5",
                                                     "borderRadius": 8,
                                                     "borderWidth": 1.5,
                                                     "padding": 16,
                                                   },
                                                   undefined,
                                                   {
-                                                    "borderColor": "#0376C9",
+                                                    "borderColor": "#0376c9",
                                                   },
                                                   undefined,
                                                 ]
@@ -3850,7 +3850,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                               "fontSize": 12,
                                                             },
                                                             {
-                                                              "color": "#6A737D",
+                                                              "color": "#6a737d",
                                                               "marginLeft": 8,
                                                             },
                                                             {
@@ -3907,7 +3907,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                       style={
                                                         [
                                                           {
-                                                            "color": "#24272A",
+                                                            "color": "#141618",
                                                             "fontFamily": "EuclidCircularB-Regular",
                                                             "fontSize": 30,
                                                             "fontWeight": "400",
@@ -3927,7 +3927,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                           undefined,
                                                           undefined,
                                                           {
-                                                            "color": "#24272A",
+                                                            "color": "#141618",
                                                           },
                                                           undefined,
                                                           undefined,
@@ -3967,7 +3967,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                       style={
                                                         [
                                                           {
-                                                            "color": "#24272A",
+                                                            "color": "#141618",
                                                             "fontFamily": "EuclidCircularB-Regular",
                                                             "fontSize": 30,
                                                             "fontWeight": "400",
@@ -3986,7 +3986,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                           undefined,
                                                           undefined,
                                                           {
-                                                            "color": "#24272A",
+                                                            "color": "#141618",
                                                           },
                                                           undefined,
                                                           undefined,
@@ -4048,7 +4048,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                             "padding": 15,
                                                           },
                                                           {
-                                                            "backgroundColor": "#0376C9",
+                                                            "backgroundColor": "#0376c9",
                                                           },
                                                           undefined,
                                                         ],
@@ -4074,7 +4074,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                               "textAlign": "center",
                                                             },
                                                             {
-                                                              "color": "#FFFFFF",
+                                                              "color": "#ffffff",
                                                             },
                                                             undefined,
                                                           ],
@@ -4122,7 +4122,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                               style={
                                                 [
                                                   {
-                                                    "borderColor": "#BBC0C5",
+                                                    "borderColor": "#bbc0c5",
                                                     "borderRadius": 8,
                                                     "borderWidth": 1.5,
                                                     "padding": 16,
@@ -4190,7 +4190,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                               "fontSize": 12,
                                                             },
                                                             {
-                                                              "color": "#6A737D",
+                                                              "color": "#6a737d",
                                                               "marginLeft": 8,
                                                             },
                                                             {
@@ -4247,7 +4247,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                       style={
                                                         [
                                                           {
-                                                            "color": "#24272A",
+                                                            "color": "#141618",
                                                             "fontFamily": "EuclidCircularB-Regular",
                                                             "fontSize": 30,
                                                             "fontWeight": "400",
@@ -4267,7 +4267,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                           undefined,
                                                           undefined,
                                                           {
-                                                            "color": "#24272A",
+                                                            "color": "#141618",
                                                           },
                                                           undefined,
                                                           undefined,
@@ -4307,7 +4307,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                       style={
                                                         [
                                                           {
-                                                            "color": "#24272A",
+                                                            "color": "#141618",
                                                             "fontFamily": "EuclidCircularB-Regular",
                                                             "fontSize": 30,
                                                             "fontWeight": "400",
@@ -4326,7 +4326,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                           undefined,
                                                           undefined,
                                                           {
-                                                            "color": "#24272A",
+                                                            "color": "#141618",
                                                           },
                                                           undefined,
                                                           undefined,
@@ -4388,7 +4388,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                             "padding": 15,
                                                           },
                                                           {
-                                                            "backgroundColor": "#0376C9",
+                                                            "backgroundColor": "#0376c9",
                                                           },
                                                           undefined,
                                                         ],
@@ -4414,7 +4414,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                               "textAlign": "center",
                                                             },
                                                             {
-                                                              "color": "#FFFFFF",
+                                                              "color": "#ffffff",
                                                             },
                                                             undefined,
                                                           ],
@@ -4447,7 +4447,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -4490,7 +4490,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                               style={
                                                 [
                                                   {
-                                                    "borderColor": "#BBC0C5",
+                                                    "borderColor": "#bbc0c5",
                                                     "borderRadius": 8,
                                                     "borderWidth": 1.5,
                                                     "padding": 16,
@@ -4558,7 +4558,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                               "fontSize": 12,
                                                             },
                                                             {
-                                                              "color": "#6A737D",
+                                                              "color": "#6a737d",
                                                               "marginLeft": 8,
                                                             },
                                                             {
@@ -4615,7 +4615,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                       style={
                                                         [
                                                           {
-                                                            "color": "#24272A",
+                                                            "color": "#141618",
                                                             "fontFamily": "EuclidCircularB-Regular",
                                                             "fontSize": 30,
                                                             "fontWeight": "400",
@@ -4635,7 +4635,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                           undefined,
                                                           undefined,
                                                           {
-                                                            "color": "#24272A",
+                                                            "color": "#141618",
                                                           },
                                                           undefined,
                                                           undefined,
@@ -4675,7 +4675,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                       style={
                                                         [
                                                           {
-                                                            "color": "#24272A",
+                                                            "color": "#141618",
                                                             "fontFamily": "EuclidCircularB-Regular",
                                                             "fontSize": 30,
                                                             "fontWeight": "400",
@@ -4694,7 +4694,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                           undefined,
                                                           undefined,
                                                           {
-                                                            "color": "#24272A",
+                                                            "color": "#141618",
                                                           },
                                                           undefined,
                                                           undefined,
@@ -4756,7 +4756,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                             "padding": 15,
                                                           },
                                                           {
-                                                            "backgroundColor": "#0376C9",
+                                                            "backgroundColor": "#0376c9",
                                                           },
                                                           undefined,
                                                         ],
@@ -4782,7 +4782,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                               "textAlign": "center",
                                                             },
                                                             {
-                                                              "color": "#FFFFFF",
+                                                              "color": "#ffffff",
                                                             },
                                                             undefined,
                                                           ],
@@ -4874,7 +4874,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -4950,7 +4950,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -4987,7 +4987,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -5026,7 +5026,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -5069,7 +5069,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -5325,15 +5325,15 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
-                                "borderColor": "#D6D9DC",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#bbc0c566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001A",
+                                "shadowColor": "#0000001a",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -5363,7 +5363,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#D6D9DC",
+                                  "backgroundColor": "#bbc0c566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -5375,7 +5375,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": undefined,
                                 "justifyContent": "center",
                               }
@@ -5412,7 +5412,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#D73847",
+                                          "color": "#d73847",
                                         },
                                       ],
                                       {
@@ -5438,7 +5438,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -5469,7 +5469,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                       undefined,
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
@@ -5498,7 +5498,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -5513,7 +5513,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                       },
                                       undefined,
                                       undefined,
@@ -5559,7 +5559,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376C9",
+                                          "backgroundColor": "#0376c9",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -5586,7 +5586,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                             "textAlign": "center",
                                           },
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                           },
                                           undefined,
                                         ],
@@ -5669,7 +5669,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -5745,7 +5745,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -5782,7 +5782,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -5821,7 +5821,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -5864,7 +5864,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -6120,15 +6120,15 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
-                                "borderColor": "#D6D9DC",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#bbc0c566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001A",
+                                "shadowColor": "#0000001a",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -6158,7 +6158,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#D6D9DC",
+                                  "backgroundColor": "#bbc0c566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -6170,7 +6170,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": undefined,
                                 "justifyContent": "center",
                               }
@@ -6207,7 +6207,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#D73847",
+                                          "color": "#d73847",
                                         },
                                       ],
                                       {
@@ -6233,7 +6233,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -6264,7 +6264,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                       undefined,
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
@@ -6293,7 +6293,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -6308,7 +6308,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                       },
                                       undefined,
                                       undefined,
@@ -6354,7 +6354,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376C9",
+                                          "backgroundColor": "#0376c9",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -6381,7 +6381,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                             "textAlign": "center",
                                           },
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                           },
                                           undefined,
                                         ],
@@ -6464,7 +6464,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -6540,7 +6540,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -6577,7 +6577,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -6616,7 +6616,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -6659,7 +6659,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -6915,15 +6915,15 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
-                                "borderColor": "#D6D9DC",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#bbc0c566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001A",
+                                "shadowColor": "#0000001a",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -6953,7 +6953,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#D6D9DC",
+                                  "backgroundColor": "#bbc0c566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -6965,7 +6965,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": undefined,
                                 "justifyContent": "center",
                               }
@@ -7002,7 +7002,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#D73847",
+                                          "color": "#d73847",
                                         },
                                       ],
                                       {
@@ -7028,7 +7028,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -7059,7 +7059,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                       undefined,
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
@@ -7088,7 +7088,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -7103,7 +7103,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                       },
                                       undefined,
                                       undefined,
@@ -7149,7 +7149,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376C9",
+                                          "backgroundColor": "#0376c9",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -7176,7 +7176,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                             "textAlign": "center",
                                           },
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                           },
                                           undefined,
                                         ],
@@ -7259,7 +7259,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -7335,7 +7335,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -7372,7 +7372,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -7411,7 +7411,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -7454,7 +7454,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -7710,15 +7710,15 @@ exports[`Quotes renders quotes expired screen 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
-                                "borderColor": "#D6D9DC",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#bbc0c566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001A",
+                                "shadowColor": "#0000001a",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -7748,7 +7748,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#D6D9DC",
+                                  "backgroundColor": "#bbc0c566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -7760,7 +7760,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": undefined,
                                 "justifyContent": "center",
                               }
@@ -7797,7 +7797,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#0376C9",
+                                          "color": "#0376c9",
                                         },
                                       ],
                                       {
@@ -7823,7 +7823,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -7854,7 +7854,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                       undefined,
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
@@ -7883,7 +7883,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -7898,7 +7898,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                       },
                                       undefined,
                                       undefined,
@@ -7944,7 +7944,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376C9",
+                                          "backgroundColor": "#0376c9",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -7971,7 +7971,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                             "textAlign": "center",
                                           },
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                           },
                                           undefined,
                                         ],
@@ -8006,7 +8006,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8019,7 +8019,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -8038,7 +8038,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#24272A",
+          "color": "#141618",
         },
         undefined,
         undefined,
@@ -8062,7 +8062,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -8082,7 +8082,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#24272A",
+            "color": "#141618",
           },
           undefined,
           undefined,
@@ -8119,7 +8119,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8132,7 +8132,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -8151,7 +8151,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#24272A",
+          "color": "#141618",
         },
         undefined,
         undefined,
@@ -8175,7 +8175,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -8195,7 +8195,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#24272A",
+            "color": "#141618",
           },
           undefined,
           undefined,
@@ -8232,7 +8232,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8245,7 +8245,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -8264,7 +8264,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#24272A",
+          "color": "#141618",
         },
         undefined,
         undefined,
@@ -8288,7 +8288,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -8308,7 +8308,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#24272A",
+            "color": "#141618",
           },
           undefined,
           undefined,
@@ -8345,7 +8345,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8358,7 +8358,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -8377,7 +8377,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#24272A",
+          "color": "#141618",
         },
         undefined,
         undefined,
@@ -8401,7 +8401,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -8421,7 +8421,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#24272A",
+            "color": "#141618",
           },
           undefined,
           undefined,
@@ -8458,7 +8458,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8471,7 +8471,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -8490,7 +8490,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#24272A",
+          "color": "#141618",
         },
         undefined,
         undefined,
@@ -8514,7 +8514,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -8534,7 +8534,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#24272A",
+            "color": "#141618",
           },
           undefined,
           undefined,
@@ -8571,7 +8571,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8587,7 +8587,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     style={
       [
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -8632,7 +8632,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8648,7 +8648,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     style={
       [
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -8693,7 +8693,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8709,7 +8709,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     style={
       [
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -8754,7 +8754,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -8770,7 +8770,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     style={
       [
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",

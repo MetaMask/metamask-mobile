@@ -16,7 +16,7 @@ exports[`BadgeWrapper should render BadgeWrapper correctly 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "borderRadius": 12,
           "height": 24,
           "justifyContent": "center",

@@ -5,8 +5,8 @@ exports[`TextField should render default settings correctly 1`] = `
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
-      "borderColor": "#BBC0C5",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#bbc0c5",
       "borderRadius": 8,
       "borderWidth": 1,
       "flexDirection": "row",

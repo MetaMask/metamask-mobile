@@ -12,7 +12,7 @@ exports[`ButtonPrimary render matches latest snapshot 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#0376C9",
+      "backgroundColor": "#0376c9",
       "borderRadius": 20,
       "flexDirection": "row",
       "height": 40,
@@ -22,7 +22,7 @@ exports[`ButtonPrimary render matches latest snapshot 1`] = `
   }
 >
   <SvgMock
-    color="#FFFFFF"
+    color="#ffffff"
     height={16}
     name="Bank"
     style={
@@ -38,7 +38,7 @@ exports[`ButtonPrimary render matches latest snapshot 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#FFFFFF",
+        "color": "#ffffff",
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
         "fontWeight": "400",

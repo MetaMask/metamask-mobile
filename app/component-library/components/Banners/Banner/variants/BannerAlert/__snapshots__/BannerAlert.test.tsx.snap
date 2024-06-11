@@ -4,8 +4,8 @@ exports[`BannerAlert should render BannerAlert 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#0376C919",
-      "borderColor": "#0376C9",
+      "backgroundColor": "#0376c91a",
+      "borderColor": "#0376c9",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -23,7 +23,7 @@ exports[`BannerAlert should render BannerAlert 1`] = `
     }
   >
     <SvgMock
-      color="#0376C9"
+      color="#0376c9"
       height={24}
       name="Info"
       style={
@@ -46,7 +46,7 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "500",
@@ -61,7 +61,7 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -81,7 +81,7 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       style={
         {
           "backgroundColor": "transparent",
-          "color": "#24272A",
+          "color": "#141618",
         }
       }
       suppressHighlighting={true}
@@ -90,7 +90,7 @@ exports[`BannerAlert should render BannerAlert 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376C9",
+            "color": "#0376c9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -130,7 +130,7 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       testID="banner-close-button-icon"
     >
       <SvgMock
-        color="#24272A"
+        color="#141618"
         height={16}
         name="Close"
         style={

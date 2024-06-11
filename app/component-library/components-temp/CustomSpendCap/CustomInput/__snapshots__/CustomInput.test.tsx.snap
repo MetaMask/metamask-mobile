@@ -5,7 +5,7 @@ exports[`CustomInput should render correctly 1`] = `
   style={
     [
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "borderRadius": 8,
         "flexDirection": "row",
         "justifyContent": "space-between",
@@ -33,7 +33,7 @@ exports[`CustomInput should render correctly 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "flexGrow": 1,
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -55,7 +55,7 @@ exports[`CustomInput should render correctly 1`] = `
     onPress={[Function]}
     style={
       {
-        "color": "#535A61",
+        "color": "#6a737d",
       }
     }
     testID="custom-spend-cap-max-test-id"

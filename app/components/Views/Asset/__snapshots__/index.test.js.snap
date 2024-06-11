@@ -4,7 +4,7 @@ exports[`Asset should render correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flex": 1,
     }
   }
@@ -12,7 +12,7 @@ exports[`Asset should render correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "flex": 1,
       }
     }
@@ -40,7 +40,7 @@ exports[`Asset should render correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "elevation": 2,
         "flexDirection": "row",
         "justifyContent": "center",
@@ -68,7 +68,7 @@ exports[`Asset should render correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#0376C9",
+          "backgroundColor": "#0376c9",
           "borderRadius": 24,
           "flexBasis": "50%",
           "flexDirection": "row",
@@ -87,7 +87,7 @@ exports[`Asset should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#FFFFFF",
+            "color": "#ffffff",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",

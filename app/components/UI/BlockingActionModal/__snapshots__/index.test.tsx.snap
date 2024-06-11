@@ -51,7 +51,7 @@ exports[`BlockingActionModal should render correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "center",
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "borderRadius": 6,
         "justifyContent": "center",
         "minHeight": 200,

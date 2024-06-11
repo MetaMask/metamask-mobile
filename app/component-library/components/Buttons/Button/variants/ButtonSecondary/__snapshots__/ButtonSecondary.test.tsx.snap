@@ -13,7 +13,7 @@ exports[`ButtonSecondary should render correctly 1`] = `
       "alignItems": "center",
       "alignSelf": "flex-start",
       "backgroundColor": "transparent",
-      "borderColor": "#0376C9",
+      "borderColor": "#0376c9",
       "borderRadius": 20,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -24,7 +24,7 @@ exports[`ButtonSecondary should render correctly 1`] = `
   }
 >
   <SvgMock
-    color="#0376C9"
+    color="#0376c9"
     height={16}
     name="Bank"
     style={
@@ -40,7 +40,7 @@ exports[`ButtonSecondary should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#0376C9",
+        "color": "#0376c9",
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
         "fontWeight": "400",

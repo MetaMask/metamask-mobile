@@ -54,7 +54,7 @@ exports[`Regions View renders correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -144,7 +144,7 @@ exports[`Regions View renders correctly 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -183,7 +183,7 @@ exports[`Regions View renders correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -226,7 +226,7 @@ exports[`Regions View renders correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -425,7 +425,7 @@ exports[`Regions View renders correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -447,7 +447,7 @@ exports[`Regions View renders correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -460,14 +460,14 @@ exports[`Regions View renders correctly 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                 },
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                 },
                                 undefined,
                                 undefined,
@@ -494,7 +494,7 @@ exports[`Regions View renders correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -509,7 +509,7 @@ exports[`Regions View renders correctly 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#535A61",
+                                  "color": "#6a737d",
                                 },
                                 undefined,
                                 undefined,
@@ -573,7 +573,7 @@ exports[`Regions View renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#BBC0C5",
+                                        "borderColor": "#bbc0c5",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -609,7 +609,7 @@ exports[`Regions View renders correctly 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
                                               "fontWeight": "400",
@@ -663,7 +663,7 @@ exports[`Regions View renders correctly 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontSize": 15,
                                             },
                                             undefined,
@@ -712,7 +712,7 @@ exports[`Regions View renders correctly 1`] = `
                                         "padding": 15,
                                       },
                                       {
-                                        "backgroundColor": "#0376C9",
+                                        "backgroundColor": "#0376c9",
                                         "minHeight": 50,
                                       },
                                       undefined,
@@ -743,7 +743,7 @@ exports[`Regions View renders correctly 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#FFFFFF",
+                                          "color": "#ffffff",
                                         },
                                         undefined,
                                       ],
@@ -884,7 +884,7 @@ exports[`Regions View renders correctly while loading 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -974,7 +974,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1013,7 +1013,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -1056,7 +1056,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -1255,7 +1255,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -1287,7 +1287,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                               style={
                                 [
                                   {
-                                    "backgroundColor": "#F2F4F6",
+                                    "backgroundColor": "#f2f4f6",
                                     "borderRadius": 30,
                                     "padding": 14,
                                   },
@@ -1318,7 +1318,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                               style={
                                 [
                                   {
-                                    "backgroundColor": "#F2F4F6",
+                                    "backgroundColor": "#f2f4f6",
                                     "borderRadius": 30,
                                     "padding": 14,
                                   },
@@ -1347,7 +1347,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                               style={
                                 [
                                   {
-                                    "backgroundColor": "#F2F4F6",
+                                    "backgroundColor": "#f2f4f6",
                                     "borderRadius": 30,
                                     "padding": 14,
                                   },
@@ -1384,7 +1384,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#BBC0C5",
+                                      "borderColor": "#bbc0c5",
                                       "borderRadius": 8,
                                       "borderWidth": 1.5,
                                       "padding": 16,
@@ -1399,7 +1399,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                                   style={
                                     [
                                       {
-                                        "backgroundColor": "#F2F4F6",
+                                        "backgroundColor": "#f2f4f6",
                                         "borderRadius": 30,
                                         "padding": 14,
                                       },
@@ -1496,7 +1496,7 @@ exports[`Regions View renders correctly with error 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -1586,7 +1586,7 @@ exports[`Regions View renders correctly with error 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1625,7 +1625,7 @@ exports[`Regions View renders correctly with error 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -1668,7 +1668,7 @@ exports[`Regions View renders correctly with error 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -1867,7 +1867,7 @@ exports[`Regions View renders correctly with error 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -1888,7 +1888,7 @@ exports[`Regions View renders correctly with error 1`] = `
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                                 "justifyContent": "center",
                               }
@@ -1925,7 +1925,7 @@ exports[`Regions View renders correctly with error 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#D73847",
+                                          "color": "#d73847",
                                         },
                                       ],
                                       {
@@ -1951,7 +1951,7 @@ exports[`Regions View renders correctly with error 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -1982,7 +1982,7 @@ exports[`Regions View renders correctly with error 1`] = `
                                       undefined,
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
@@ -2011,7 +2011,7 @@ exports[`Regions View renders correctly with error 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -2026,7 +2026,7 @@ exports[`Regions View renders correctly with error 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                       },
                                       undefined,
                                       undefined,
@@ -2072,7 +2072,7 @@ exports[`Regions View renders correctly with error 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376C9",
+                                          "backgroundColor": "#0376c9",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -2099,7 +2099,7 @@ exports[`Regions View renders correctly with error 1`] = `
                                             "textAlign": "center",
                                           },
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                           },
                                           undefined,
                                         ],
@@ -2182,7 +2182,7 @@ exports[`Regions View renders correctly with no data 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -2272,7 +2272,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -2311,7 +2311,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -2354,7 +2354,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -2553,7 +2553,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -2585,7 +2585,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                               style={
                                 [
                                   {
-                                    "backgroundColor": "#F2F4F6",
+                                    "backgroundColor": "#f2f4f6",
                                     "borderRadius": 30,
                                     "padding": 14,
                                   },
@@ -2616,7 +2616,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                               style={
                                 [
                                   {
-                                    "backgroundColor": "#F2F4F6",
+                                    "backgroundColor": "#f2f4f6",
                                     "borderRadius": 30,
                                     "padding": 14,
                                   },
@@ -2645,7 +2645,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                               style={
                                 [
                                   {
-                                    "backgroundColor": "#F2F4F6",
+                                    "backgroundColor": "#f2f4f6",
                                     "borderRadius": 30,
                                     "padding": 14,
                                   },
@@ -2682,7 +2682,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#BBC0C5",
+                                      "borderColor": "#bbc0c5",
                                       "borderRadius": 8,
                                       "borderWidth": 1.5,
                                       "padding": 16,
@@ -2697,7 +2697,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                                   style={
                                     [
                                       {
-                                        "backgroundColor": "#F2F4F6",
+                                        "backgroundColor": "#f2f4f6",
                                         "borderRadius": 30,
                                         "padding": 14,
                                       },
@@ -2794,7 +2794,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -2884,7 +2884,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -2923,7 +2923,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -2966,7 +2966,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -3165,7 +3165,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -3186,7 +3186,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                                 "justifyContent": "center",
                               }
@@ -3223,7 +3223,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#D73847",
+                                          "color": "#d73847",
                                         },
                                       ],
                                       {
@@ -3249,7 +3249,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -3280,7 +3280,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                       undefined,
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
@@ -3309,7 +3309,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -3324,7 +3324,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                       },
                                       undefined,
                                       undefined,
@@ -3370,7 +3370,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376C9",
+                                          "backgroundColor": "#0376c9",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -3397,7 +3397,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                             "textAlign": "center",
                                           },
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                           },
                                           undefined,
                                         ],
@@ -3480,7 +3480,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -3570,7 +3570,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -3609,7 +3609,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -3652,7 +3652,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -3851,7 +3851,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -3873,7 +3873,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -3886,14 +3886,14 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                 },
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                 },
                                 undefined,
                                 undefined,
@@ -3920,7 +3920,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -3935,7 +3935,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#535A61",
+                                  "color": "#6a737d",
                                 },
                                 undefined,
                                 undefined,
@@ -3999,7 +3999,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#BBC0C5",
+                                        "borderColor": "#bbc0c5",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -4035,7 +4035,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
                                               "fontWeight": "400",
@@ -4092,7 +4092,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontSize": 15,
                                             },
                                             undefined,
@@ -4142,7 +4142,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                         "padding": 15,
                                       },
                                       {
-                                        "backgroundColor": "#0376C9",
+                                        "backgroundColor": "#0376c9",
                                         "minHeight": 50,
                                       },
                                       undefined,
@@ -4169,7 +4169,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#FFFFFF",
+                                          "color": "#ffffff",
                                         },
                                         undefined,
                                       ],
@@ -4308,7 +4308,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -4398,7 +4398,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -4437,7 +4437,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -4480,7 +4480,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -4679,7 +4679,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -4701,7 +4701,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -4714,14 +4714,14 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                 },
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                 },
                                 undefined,
                                 undefined,
@@ -4748,7 +4748,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -4763,7 +4763,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#535A61",
+                                  "color": "#6a737d",
                                 },
                                 undefined,
                                 undefined,
@@ -4827,7 +4827,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#BBC0C5",
+                                        "borderColor": "#bbc0c5",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -4863,7 +4863,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
                                               "fontWeight": "400",
@@ -4917,7 +4917,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontSize": 15,
                                             },
                                             undefined,
@@ -4966,7 +4966,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                         "padding": 15,
                                       },
                                       {
-                                        "backgroundColor": "#0376C9",
+                                        "backgroundColor": "#0376c9",
                                         "minHeight": 50,
                                       },
                                       undefined,
@@ -4997,7 +4997,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#FFFFFF",
+                                          "color": "#ffffff",
                                         },
                                         undefined,
                                       ],
@@ -5168,7 +5168,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#BBC0C5",
+                                        "borderColor": "#bbc0c5",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -5176,7 +5176,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "backgroundColor": "#FFFFFF",
+                                        "backgroundColor": "#ffffff",
                                         "borderWidth": 0,
                                         "paddingBottom": 20,
                                         "paddingHorizontal": 20,
@@ -5197,7 +5197,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontSize": 17,
                                           },
                                           undefined,
@@ -5224,7 +5224,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -5244,7 +5244,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                           },
                                           undefined,
                                           undefined,
@@ -5270,7 +5270,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -5281,14 +5281,14 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                           },
                                           undefined,
                                           undefined,
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                           },
                                           undefined,
                                           undefined,
@@ -5320,7 +5320,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
                                               "fontWeight": "400",
@@ -5365,7 +5365,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
                                               "fontWeight": "400",
@@ -5377,7 +5377,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#0376C9",
+                                              "color": "#0376c9",
                                             },
                                             undefined,
                                             undefined,
@@ -5512,7 +5512,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -5602,7 +5602,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -5641,7 +5641,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -5684,7 +5684,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -5883,7 +5883,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -5905,7 +5905,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                             style={
                               [
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -5918,14 +5918,14 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                 },
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                 },
                                 undefined,
                                 undefined,
@@ -5952,7 +5952,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                             style={
                               [
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -5967,7 +5967,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#535A61",
+                                  "color": "#6a737d",
                                 },
                                 undefined,
                                 undefined,
@@ -6031,7 +6031,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#BBC0C5",
+                                        "borderColor": "#bbc0c5",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -6067,7 +6067,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
                                               "fontWeight": "400",
@@ -6121,7 +6121,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontSize": 15,
                                             },
                                             undefined,
@@ -6170,7 +6170,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                         "padding": 15,
                                       },
                                       {
-                                        "backgroundColor": "#0376C9",
+                                        "backgroundColor": "#0376c9",
                                         "minHeight": 50,
                                       },
                                       undefined,
@@ -6201,7 +6201,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#FFFFFF",
+                                          "color": "#ffffff",
                                         },
                                         undefined,
                                       ],
@@ -6372,7 +6372,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#BBC0C5",
+                                        "borderColor": "#bbc0c5",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -6380,7 +6380,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "backgroundColor": "#FFFFFF",
+                                        "backgroundColor": "#ffffff",
                                         "borderWidth": 0,
                                         "paddingBottom": 20,
                                         "paddingHorizontal": 20,
@@ -6401,7 +6401,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontSize": 17,
                                           },
                                           undefined,
@@ -6428,7 +6428,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -6448,7 +6448,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                           },
                                           undefined,
                                           undefined,
@@ -6474,7 +6474,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -6485,14 +6485,14 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                           },
                                           undefined,
                                           undefined,
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                           },
                                           undefined,
                                           undefined,
@@ -6524,7 +6524,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
                                               "fontWeight": "400",
@@ -6569,7 +6569,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
                                               "fontWeight": "400",
@@ -6581,7 +6581,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#0376C9",
+                                              "color": "#0376c9",
                                             },
                                             undefined,
                                             undefined,
@@ -6716,7 +6716,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -6806,7 +6806,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -6845,7 +6845,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -6888,7 +6888,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -7087,7 +7087,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -7109,7 +7109,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -7122,14 +7122,14 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                 },
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                 },
                                 undefined,
                                 undefined,
@@ -7156,7 +7156,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -7171,7 +7171,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#535A61",
+                                  "color": "#6a737d",
                                 },
                                 undefined,
                                 undefined,
@@ -7235,7 +7235,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#BBC0C5",
+                                        "borderColor": "#bbc0c5",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -7271,7 +7271,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
                                               "fontWeight": "400",
@@ -7325,7 +7325,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontSize": 15,
                                             },
                                             undefined,
@@ -7374,7 +7374,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                         "padding": 15,
                                       },
                                       {
-                                        "backgroundColor": "#0376C9",
+                                        "backgroundColor": "#0376c9",
                                         "minHeight": 50,
                                       },
                                       undefined,
@@ -7405,7 +7405,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#FFFFFF",
+                                          "color": "#ffffff",
                                         },
                                         undefined,
                                       ],
@@ -7601,7 +7601,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                               <RCTSafeAreaView
                                 style={
                                   {
-                                    "backgroundColor": "#FFFFFF",
+                                    "backgroundColor": "#ffffff",
                                     "borderTopLeftRadius": 10,
                                     "borderTopRightRadius": 10,
                                     "flex": 0.75,
@@ -7614,7 +7614,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                       {
                                         "alignItems": "center",
                                         "borderBottomWidth": 0.5,
-                                        "borderColor": "#D6D9DC",
+                                        "borderColor": "#bbc0c566",
                                         "height": 33,
                                         "justifyContent": "center",
                                         "width": "100%",
@@ -7626,7 +7626,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                   <View
                                     style={
                                       {
-                                        "backgroundColor": "#BBC0C5",
+                                        "backgroundColor": "#bbc0c5",
                                         "borderRadius": 4,
                                         "height": 5,
                                         "width": 48,
@@ -7645,7 +7645,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                     style={
                                       [
                                         {
-                                          "backgroundColor": "#FFFFFF",
+                                          "backgroundColor": "#ffffff",
                                           "flex": 1,
                                         },
                                         undefined,
@@ -7667,7 +7667,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
                                               "fontWeight": "400",
@@ -7683,14 +7683,14 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             },
                                             undefined,
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                             },
                                             undefined,
                                             undefined,
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                             },
                                             undefined,
                                             undefined,
@@ -7717,7 +7717,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
                                               "fontWeight": "400",
@@ -7732,7 +7732,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#535A61",
+                                              "color": "#6a737d",
                                             },
                                             undefined,
                                             undefined,
@@ -7785,7 +7785,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "borderColor": "#BBC0C5",
+                                            "borderColor": "#bbc0c5",
                                             "borderRadius": 5,
                                             "borderWidth": 1,
                                             "flexDirection": "row",
@@ -7805,7 +7805,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                 "fontSize": 20,
                                               },
                                               {
-                                                "color": "#6A737D",
+                                                "color": "#6a737d",
                                                 "marginHorizontal": 8,
                                               },
                                               {
@@ -7822,10 +7822,10 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                         <TextInput
                                           onChangeText={[Function]}
                                           placeholder="Search by country"
-                                          placeholderTextColor="#BBC0C5"
+                                          placeholderTextColor="#9fa6ae"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "flex": 1,
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontWeight": "400",
@@ -7994,7 +7994,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                               style={
                                                                 [
                                                                   {
-                                                                    "color": "#24272A",
+                                                                    "color": "#141618",
                                                                     "fontFamily": "EuclidCircularB-Regular",
                                                                     "fontSize": 30,
                                                                     "fontWeight": "400",
@@ -8035,7 +8035,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                               style={
                                                                 [
                                                                   {
-                                                                    "color": "#24272A",
+                                                                    "color": "#141618",
                                                                     "fontFamily": "EuclidCircularB-Regular",
                                                                     "fontSize": 30,
                                                                     "fontWeight": "400",
@@ -8046,14 +8046,14 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                                   false,
                                                                   undefined,
                                                                   {
-                                                                    "color": "#24272A",
+                                                                    "color": "#141618",
                                                                   },
                                                                   undefined,
                                                                   undefined,
                                                                   undefined,
                                                                   undefined,
                                                                   {
-                                                                    "color": "#24272A",
+                                                                    "color": "#141618",
                                                                   },
                                                                   undefined,
                                                                   undefined,
@@ -8083,7 +8083,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                 <View
                                                   style={
                                                     {
-                                                      "backgroundColor": "#D6D9DC",
+                                                      "backgroundColor": "#bbc0c566",
                                                       "height": 1,
                                                       "width": "100%",
                                                     }
@@ -8153,7 +8153,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                             style={
                                                               [
                                                                 {
-                                                                  "color": "#24272A",
+                                                                  "color": "#141618",
                                                                   "fontFamily": "EuclidCircularB-Regular",
                                                                   "fontSize": 30,
                                                                   "fontWeight": "400",
@@ -8194,7 +8194,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                             style={
                                                               [
                                                                 {
-                                                                  "color": "#24272A",
+                                                                  "color": "#141618",
                                                                   "fontFamily": "EuclidCircularB-Regular",
                                                                   "fontSize": 30,
                                                                   "fontWeight": "400",
@@ -8205,14 +8205,14 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                                 false,
                                                                 undefined,
                                                                 {
-                                                                  "color": "#24272A",
+                                                                  "color": "#141618",
                                                                 },
                                                                 undefined,
                                                                 undefined,
                                                                 undefined,
                                                                 undefined,
                                                                 {
-                                                                  "color": "#24272A",
+                                                                  "color": "#141618",
                                                                 },
                                                                 undefined,
                                                                 undefined,
@@ -8251,7 +8251,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                               <View
                                                 style={
                                                   {
-                                                    "backgroundColor": "#D6D9DC",
+                                                    "backgroundColor": "#bbc0c566",
                                                     "height": 1,
                                                     "width": "100%",
                                                   }

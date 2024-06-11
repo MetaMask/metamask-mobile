@@ -54,7 +54,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -144,7 +144,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -174,7 +174,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                         },
                         {
                           "backgroundColor": "transparent",
-                          "borderColor": "#BBC0C5",
+                          "borderColor": "#bbc0c5",
                           "borderWidth": 1,
                         },
                       ]
@@ -185,7 +185,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -228,7 +228,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -427,7 +427,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -442,12 +442,12 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376C9",
+                                  "#0376c9",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#24272A"
+                              tintColor="#141618"
                             />
                           }
                         >
@@ -478,7 +478,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -562,7 +562,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -593,7 +593,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -644,7 +644,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -670,7 +670,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -716,7 +716,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -747,7 +747,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -798,7 +798,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -824,7 +824,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -939,7 +939,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                     <View
                                       style={
                                         {
-                                          "backgroundColor": "#FFFFFF",
+                                          "backgroundColor": "#ffffff",
                                           "borderRadius": 10,
                                           "maxHeight": "80%",
                                           "padding": 4,
@@ -960,7 +960,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           <View
                                             style={
                                               {
-                                                "backgroundColor": "#D6D9DC",
+                                                "backgroundColor": "#bbc0c566",
                                                 "borderRadius": 2,
                                                 "height": 4,
                                                 "width": 40,
@@ -971,7 +971,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#FFFFFF",
+                                              "backgroundColor": "#ffffff",
                                               "maxHeight": "85%",
                                               "paddingBottom": 20,
                                               "paddingHorizontal": 0,
@@ -985,7 +985,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                               style={
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#FFFFFF",
+                                                  "backgroundColor": "#ffffff",
                                                   "flexDirection": "row",
                                                   "padding": 16,
                                                 }
@@ -1016,7 +1016,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#24272A",
+                                                      "color": "#141618",
                                                       "fontFamily": "Euclid Circular B",
                                                       "fontSize": 18,
                                                       "fontWeight": "700",
@@ -1046,7 +1046,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                               onGestureHandlerStateChange={[Function]}
                                               style={
                                                 {
-                                                  "backgroundColor": "#FFFFFF",
+                                                  "backgroundColor": "#ffffff",
                                                   "paddingHorizontal": 16,
                                                 }
                                               }
@@ -1058,7 +1058,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     {
                                                       "alignItems": "center",
                                                       "alignSelf": "center",
-                                                      "backgroundColor": "#F2F4F6",
+                                                      "backgroundColor": "#f2f4f6",
                                                       "borderRadius": 16,
                                                       "flexDirection": "row",
                                                       "height": 32,
@@ -1071,7 +1071,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     style={
                                                       {
                                                         "alignItems": "center",
-                                                        "backgroundColor": "#F2F4F6",
+                                                        "backgroundColor": "#f2f4f6",
                                                         "borderRadius": 8,
                                                         "borderWidth": 1,
                                                         "height": 16,
@@ -1085,7 +1085,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#24272A",
+                                                          "color": "#141618",
                                                           "fontFamily": "Euclid Circular B",
                                                           "fontSize": 10,
                                                           "fontWeight": "400",
@@ -1102,7 +1102,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     numberOfLines={1}
                                                     style={
                                                       {
-                                                        "color": "#24272A",
+                                                        "color": "#141618",
                                                         "flexShrink": 1,
                                                         "fontFamily": "Euclid Circular B",
                                                         "fontSize": 14,
@@ -1121,7 +1121,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#24272A",
+                                                      "color": "#141618",
                                                       "fontFamily": "Euclid Circular B",
                                                       "fontSize": 14,
                                                       "fontWeight": "400",
@@ -1138,7 +1138,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     onPress={[Function]}
                                                     style={
                                                       {
-                                                        "color": "#24272A",
+                                                        "color": "#141618",
                                                         "fontFamily": "Euclid Circular B",
                                                         "fontSize": 14,
                                                         "fontWeight": "400",
@@ -1159,7 +1159,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   style={
                                                     [
                                                       {
-                                                        "borderColor": "#BBC0C5",
+                                                        "borderColor": "#bbc0c5",
                                                         "borderRadius": 10,
                                                         "borderWidth": 1,
                                                         "marginVertical": 16,
@@ -1174,7 +1174,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#24272A",
+                                                          "color": "#141618",
                                                           "fontFamily": "Euclid Circular B",
                                                           "fontSize": 14,
                                                           "fontWeight": "700",
@@ -1189,7 +1189,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#24272A",
+                                                          "color": "#141618",
                                                           "fontFamily": "Euclid Circular B",
                                                           "fontSize": 14,
                                                           "fontWeight": "400",
@@ -1205,7 +1205,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#24272A",
+                                                          "color": "#141618",
                                                           "fontFamily": "Euclid Circular B",
                                                           "fontSize": 14,
                                                           "fontWeight": "700",
@@ -1220,7 +1220,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#24272A",
+                                                          "color": "#141618",
                                                           "fontFamily": "Euclid Circular B",
                                                           "fontSize": 14,
                                                           "fontWeight": "400",
@@ -1236,7 +1236,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#24272A",
+                                                          "color": "#141618",
                                                           "fontFamily": "Euclid Circular B",
                                                           "fontSize": 14,
                                                           "fontWeight": "700",
@@ -1251,7 +1251,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#24272A",
+                                                          "color": "#141618",
                                                           "fontFamily": "Euclid Circular B",
                                                           "fontSize": 14,
                                                           "fontWeight": "400",
@@ -1280,7 +1280,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#0376C9",
+                                                            "color": "#0376c9",
                                                             "fontFamily": "Euclid Circular B",
                                                             "fontSize": 14,
                                                             "fontWeight": "400",
@@ -1310,7 +1310,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                         testID="accordionheader-arrow-icon-animation"
                                                       >
                                                         <SvgMock
-                                                          color="#0376C9"
+                                                          color="#0376c9"
                                                           height={16}
                                                           name="ArrowDown"
                                                           style={
@@ -1331,7 +1331,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                             <View
                                               style={
                                                 {
-                                                  "backgroundColor": "#FFFFFF",
+                                                  "backgroundColor": "#ffffff",
                                                   "flexDirection": "row",
                                                   "paddingHorizontal": 8,
                                                   "paddingVertical": 4,
@@ -1351,7 +1351,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     "alignItems": "center",
                                                     "alignSelf": "flex-start",
                                                     "backgroundColor": "transparent",
-                                                    "borderColor": "#0376C9",
+                                                    "borderColor": "#0376c9",
                                                     "borderRadius": 24,
                                                     "borderWidth": 1,
                                                     "flex": 1,
@@ -1368,7 +1368,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#0376C9",
+                                                      "color": "#0376c9",
                                                       "fontFamily": "Euclid Circular B",
                                                       "fontSize": 14,
                                                       "fontWeight": "400",
@@ -1391,7 +1391,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   {
                                                     "alignItems": "center",
                                                     "alignSelf": "flex-start",
-                                                    "backgroundColor": "#0376C9",
+                                                    "backgroundColor": "#0376c9",
                                                     "borderRadius": 24,
                                                     "flex": 1,
                                                     "flexDirection": "row",
@@ -1409,7 +1409,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#FFFFFF",
+                                                      "color": "#ffffff",
                                                       "fontFamily": "Euclid Circular B",
                                                       "fontSize": 14,
                                                       "fontWeight": "400",
@@ -1461,7 +1461,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -1492,7 +1492,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -1543,7 +1543,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -1569,7 +1569,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -1615,7 +1615,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -1648,7 +1648,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -1699,7 +1699,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -1725,7 +1725,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -1810,7 +1810,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -1900,7 +1900,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1930,7 +1930,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                         },
                         {
                           "backgroundColor": "transparent",
-                          "borderColor": "#BBC0C5",
+                          "borderColor": "#bbc0c5",
                           "borderWidth": 1,
                         },
                       ]
@@ -1941,7 +1941,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -1984,7 +1984,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -2183,7 +2183,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -2198,12 +2198,12 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376C9",
+                                  "#0376c9",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#24272A"
+                              tintColor="#141618"
                             />
                           }
                         >
@@ -2234,7 +2234,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -2318,7 +2318,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -2349,7 +2349,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -2400,7 +2400,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -2426,7 +2426,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -2472,7 +2472,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -2503,7 +2503,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -2554,7 +2554,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -2580,7 +2580,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -2626,7 +2626,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -2657,7 +2657,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -2708,7 +2708,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -2734,7 +2734,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -2780,7 +2780,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -2813,7 +2813,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -2864,7 +2864,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -2890,7 +2890,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -2975,7 +2975,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -3065,7 +3065,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -3095,7 +3095,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                         },
                         {
                           "backgroundColor": "transparent",
-                          "borderColor": "#BBC0C5",
+                          "borderColor": "#bbc0c5",
                           "borderWidth": 1,
                         },
                       ]
@@ -3106,7 +3106,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -3149,7 +3149,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -3348,7 +3348,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -3363,12 +3363,12 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376C9",
+                                  "#0376c9",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#24272A"
+                              tintColor="#141618"
                             />
                           }
                         >
@@ -3399,7 +3399,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -3483,7 +3483,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -3514,7 +3514,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -3565,7 +3565,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -3591,7 +3591,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -3637,7 +3637,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -3668,7 +3668,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -3719,7 +3719,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -3745,7 +3745,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -3791,7 +3791,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -3822,7 +3822,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -3873,7 +3873,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -3899,7 +3899,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -3945,7 +3945,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -3978,7 +3978,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -4029,7 +4029,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -4055,7 +4055,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -4140,7 +4140,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -4230,7 +4230,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -4260,7 +4260,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                         },
                         {
                           "backgroundColor": "transparent",
-                          "borderColor": "#BBC0C5",
+                          "borderColor": "#bbc0c5",
                           "borderWidth": 1,
                         },
                       ]
@@ -4271,7 +4271,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -4314,7 +4314,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -4513,7 +4513,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -4528,12 +4528,12 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376C9",
+                                  "#0376c9",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#24272A"
+                              tintColor="#141618"
                             />
                           }
                         >
@@ -4564,7 +4564,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -4648,7 +4648,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -4679,7 +4679,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -4730,7 +4730,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -4756,7 +4756,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -4802,7 +4802,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -4833,7 +4833,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -4884,7 +4884,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -4910,7 +4910,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -4956,7 +4956,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -4987,7 +4987,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -5038,7 +5038,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -5064,7 +5064,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -5110,7 +5110,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 12,
                                             "height": 24,
                                             "justifyContent": "center",
@@ -5143,7 +5143,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -5194,7 +5194,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 30,
                                             "fontWeight": "400",
@@ -5220,7 +5220,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                           },
                                           undefined,
                                           undefined,
@@ -5305,7 +5305,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -5395,7 +5395,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -5425,7 +5425,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                         },
                         {
                           "backgroundColor": "transparent",
-                          "borderColor": "#BBC0C5",
+                          "borderColor": "#bbc0c5",
                           "borderWidth": 1,
                         },
                       ]
@@ -5436,7 +5436,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -5479,7 +5479,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -5678,7 +5678,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -5693,12 +5693,12 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376C9",
+                                  "#0376c9",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={true}
-                              tintColor="#24272A"
+                              tintColor="#141618"
                             />
                           }
                         >
@@ -5729,7 +5729,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -5819,7 +5819,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -5858,7 +5858,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -5921,7 +5921,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -5960,7 +5960,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -6023,7 +6023,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -6062,7 +6062,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -6125,7 +6125,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -6164,7 +6164,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -6227,7 +6227,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -6266,7 +6266,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -6329,7 +6329,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -6368,7 +6368,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -6431,7 +6431,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -6470,7 +6470,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -6568,7 +6568,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -6658,7 +6658,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -6688,7 +6688,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                         },
                         {
                           "backgroundColor": "transparent",
-                          "borderColor": "#BBC0C5",
+                          "borderColor": "#bbc0c5",
                           "borderWidth": 1,
                         },
                       ]
@@ -6699,7 +6699,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -6742,7 +6742,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -6941,7 +6941,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -6956,12 +6956,12 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376C9",
+                                  "#0376c9",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={true}
-                              tintColor="#24272A"
+                              tintColor="#141618"
                             />
                           }
                         >
@@ -6992,7 +6992,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -7082,7 +7082,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7121,7 +7121,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7184,7 +7184,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7223,7 +7223,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7286,7 +7286,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7325,7 +7325,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7388,7 +7388,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7427,7 +7427,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7490,7 +7490,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7529,7 +7529,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7592,7 +7592,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7631,7 +7631,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7694,7 +7694,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7733,7 +7733,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#F2F4F6",
+                                              "backgroundColor": "#f2f4f6",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7831,7 +7831,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -7921,7 +7921,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -7951,7 +7951,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                         },
                         {
                           "backgroundColor": "transparent",
-                          "borderColor": "#BBC0C5",
+                          "borderColor": "#bbc0c5",
                           "borderWidth": 1,
                         },
                       ]
@@ -7962,7 +7962,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -8005,7 +8005,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -8204,7 +8204,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -8225,7 +8225,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                                 "justifyContent": "center",
                               }
@@ -8262,7 +8262,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#D73847",
+                                          "color": "#d73847",
                                         },
                                       ],
                                       {
@@ -8288,7 +8288,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -8319,7 +8319,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                       undefined,
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
@@ -8348,7 +8348,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -8363,7 +8363,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                       },
                                       undefined,
                                       undefined,
@@ -8409,7 +8409,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376C9",
+                                          "backgroundColor": "#0376c9",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -8436,7 +8436,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                             "textAlign": "center",
                                           },
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                           },
                                           undefined,
                                         ],
@@ -8519,7 +8519,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -8609,7 +8609,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -8639,7 +8639,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                         },
                         {
                           "backgroundColor": "transparent",
-                          "borderColor": "#BBC0C5",
+                          "borderColor": "#bbc0c5",
                           "borderWidth": 1,
                         },
                       ]
@@ -8650,7 +8650,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -8693,7 +8693,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -8892,7 +8892,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -8913,7 +8913,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                                 "justifyContent": "center",
                               }
@@ -8950,7 +8950,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#D73847",
+                                          "color": "#d73847",
                                         },
                                       ],
                                       {
@@ -8976,7 +8976,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -9007,7 +9007,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                       undefined,
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
@@ -9036,7 +9036,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -9051,7 +9051,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                       },
                                       undefined,
                                       undefined,
@@ -9097,7 +9097,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376C9",
+                                          "backgroundColor": "#0376c9",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -9124,7 +9124,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                             "textAlign": "center",
                                           },
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                           },
                                           undefined,
                                         ],
@@ -9207,7 +9207,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -9297,7 +9297,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -9327,7 +9327,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                         },
                         {
                           "backgroundColor": "transparent",
-                          "borderColor": "#BBC0C5",
+                          "borderColor": "#bbc0c5",
                           "borderWidth": 1,
                         },
                       ]
@@ -9338,7 +9338,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -9381,7 +9381,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -9580,7 +9580,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -9601,7 +9601,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                                 "justifyContent": "center",
                               }
@@ -9638,7 +9638,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#D73847",
+                                          "color": "#d73847",
                                         },
                                       ],
                                       {
@@ -9664,7 +9664,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -9695,7 +9695,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                       undefined,
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
@@ -9724,7 +9724,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -9739,7 +9739,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                       },
                                       undefined,
                                       undefined,
@@ -9785,7 +9785,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376C9",
+                                          "backgroundColor": "#0376c9",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -9812,7 +9812,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                             "textAlign": "center",
                                           },
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                           },
                                           undefined,
                                         ],

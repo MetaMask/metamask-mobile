@@ -17,8 +17,8 @@ exports[`TransactionReview should match snapshot 1`] = `
       <TouchableOpacity
         style={
           {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#BBC0C5",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bbc0c5",
             "borderRadius": 4,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -62,7 +62,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                 <View
                   style={
                     {
-                      "backgroundColor": "#FFFFFF",
+                      "backgroundColor": "#ffffff",
                       "borderRadius": 16,
                       "height": 32,
                       "overflow": "hidden",
@@ -241,14 +241,14 @@ exports[`TransactionReview should match snapshot 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#FFFFFF",
-                        "borderColor": "#FFFFFF",
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#ffffff",
                         "borderRadius": 16,
                         "borderWidth": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "overflow": "hidden",
-                        "shadowColor": "#0000001A",
+                        "shadowColor": "#0000001a",
                         "shadowOffset": {
                           "height": 2,
                           "width": 0,
@@ -289,7 +289,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
                     "fontWeight": "400",
@@ -313,7 +313,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "700",
@@ -330,7 +330,7 @@ exports[`TransactionReview should match snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 12,
                   "fontWeight": "400",
@@ -346,7 +346,7 @@ exports[`TransactionReview should match snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
                   "fontWeight": "700",
@@ -435,7 +435,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                         style={
                           {
                             "alignItems": "center",
-                            "backgroundColor": "#FFFFFF",
+                            "backgroundColor": "#ffffff",
                             "padding": 24,
                             "paddingBottom": 16,
                             "paddingTop": 12,
@@ -447,10 +447,10 @@ exports[`TransactionReview should match snapshot 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "borderColor": "#BBC0C5",
+                              "borderColor": "#bbc0c5",
                               "borderRadius": 12,
                               "borderWidth": 1,
-                              "color": "#24272A",
+                              "color": "#141618",
                               "fontFamily": "EuclidCircularB-Regular",
                               "fontSize": 10,
                               "fontWeight": "400",
@@ -465,7 +465,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                         <Text
                           style={
                             {
-                              "color": "#24272A",
+                              "color": "#141618",
                               "fontFamily": "EuclidCircularB-Regular",
                               "fontSize": 44,
                               "fontWeight": "400",
@@ -515,7 +515,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
@@ -531,7 +531,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                             style={
                               [
                                 {
-                                  "borderColor": "#BBC0C5",
+                                  "borderColor": "#bbc0c5",
                                   "borderRadius": 8,
                                   "borderWidth": 1,
                                   "flex": 1,
@@ -542,7 +542,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                   "padding": 10,
                                 },
                                 {
-                                  "borderColor": "#BBC0C5",
+                                  "borderColor": "#bbc0c5",
                                 },
                               ]
                             }
@@ -558,7 +558,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                               <View
                                 placeholderStyle={
                                   {
-                                    "backgroundColor": "#F2F4F6",
+                                    "backgroundColor": "#f2f4f6",
                                   }
                                 }
                                 useNativeDriver={true}
@@ -606,7 +606,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                           "backgroundColor": "#eee",
                                         },
                                         {
-                                          "backgroundColor": "#F2F4F6",
+                                          "backgroundColor": "#f2f4f6",
                                         },
                                       ]
                                     }
@@ -641,7 +641,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -657,7 +657,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#535A61",
+                                    "color": "#6a737d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 12,
                                     "fontWeight": "400",
@@ -698,7 +698,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
@@ -724,7 +724,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                   "paddingHorizontal": 10,
                                 },
                                 {
-                                  "borderColor": "#BBC0C5",
+                                  "borderColor": "#bbc0c5",
                                 },
                               ]
                             }
@@ -742,7 +742,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                               <View
                                 placeholderStyle={
                                   {
-                                    "backgroundColor": "#F2F4F6",
+                                    "backgroundColor": "#f2f4f6",
                                   }
                                 }
                                 useNativeDriver={true}
@@ -790,7 +790,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                           "backgroundColor": "#eee",
                                         },
                                         {
-                                          "backgroundColor": "#F2F4F6",
+                                          "backgroundColor": "#f2f4f6",
                                         },
                                       ]
                                     }
@@ -832,7 +832,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                       numberOfLines={1}
                                       style={
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -856,7 +856,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                       numberOfLines={1}
                                       style={
                                         {
-                                          "color": "#535A61",
+                                          "color": "#6a737d",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 12,
                                           "fontWeight": "400",
@@ -879,7 +879,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#1C8234",
+                                              "color": "#1c8234",
                                               "fontSize": 15,
                                             },
                                             undefined,
@@ -943,7 +943,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                         style={
                           [
                             {
-                              "borderColor": "#D6D9DC",
+                              "borderColor": "#bbc0c566",
                               "borderRadius": 8,
                               "borderWidth": 1,
                               "padding": 16,
@@ -994,7 +994,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 30,
                                       "fontWeight": "400",
@@ -1014,7 +1014,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                     false,
                                     undefined,
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                     },
                                     undefined,
                                     undefined,
@@ -1060,7 +1060,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                           "fontSize": 13,
                                         },
                                         {
-                                          "color": "#BBC0C5",
+                                          "color": "#9fa6ae",
                                         },
                                         {
                                           "fontFamily": "Material Design Icons",
@@ -1222,7 +1222,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                             style={
                               [
                                 {
-                                  "borderBottomColor": "#D6D9DC",
+                                  "borderBottomColor": "#bbc0c566",
                                   "borderBottomWidth": 1,
                                   "marginVertical": 6,
                                 },
@@ -1255,7 +1255,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 30,
                                       "fontWeight": "400",
@@ -1275,7 +1275,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                     undefined,
                                     undefined,
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                     },
                                     undefined,
                                     undefined,
@@ -1501,7 +1501,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                             style={
                               {
                                 "alignSelf": "center",
-                                "color": "#0376C9",
+                                "color": "#0376c9",
                                 "fontFamily": "EuclidCircularB-Bold",
                                 "fontSize": 12,
                                 "fontWeight": "600",
@@ -1542,8 +1542,8 @@ exports[`TransactionReview should match snapshot 1`] = `
                         "padding": 15,
                       },
                       {
-                        "backgroundColor": "#FFFFFF",
-                        "borderColor": "#535A61",
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#6a737d",
                         "borderWidth": 1,
                       },
                       [
@@ -1578,7 +1578,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                           "textAlign": "center",
                         },
                         {
-                          "color": "#535A61",
+                          "color": "#6a737d",
                         },
                         undefined,
                       ],
@@ -1603,7 +1603,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                         "padding": 15,
                       },
                       {
-                        "backgroundColor": "#0376C9",
+                        "backgroundColor": "#0376c9",
                         "minHeight": 50,
                       },
                       [
@@ -1640,7 +1640,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                           "textAlign": "center",
                         },
                         {
-                          "color": "#FFFFFF",
+                          "color": "#ffffff",
                         },
                         undefined,
                       ],
@@ -1700,7 +1700,7 @@ exports[`TransactionReview should match snapshot 1`] = `
             style={
               [
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontSize": 24,
                 },
                 undefined,
@@ -1720,7 +1720,7 @@ exports[`TransactionReview should match snapshot 1`] = `
           style={
             {
               "alignSelf": "center",
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 14,
               "fontWeight": "600",
@@ -1734,7 +1734,7 @@ exports[`TransactionReview should match snapshot 1`] = `
           style={
             [
               {
-                "color": "#FFFFFF",
+                "color": "#ffffff",
                 "fontSize": 24,
               },
               undefined,
@@ -1753,7 +1753,7 @@ exports[`TransactionReview should match snapshot 1`] = `
       <Text
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -1767,7 +1767,7 @@ exports[`TransactionReview should match snapshot 1`] = `
       <View
         style={
           {
-            "borderColor": "#BBC0C5",
+            "borderColor": "#bbc0c5",
             "borderRadius": 8,
             "borderWidth": 1,
             "flex": 1,
@@ -1779,7 +1779,7 @@ exports[`TransactionReview should match snapshot 1`] = `
           style={
             [
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -1822,8 +1822,8 @@ exports[`TransactionReview should match snapshot 1`] = `
                 <Text
                   style={
                     {
-                      "backgroundColor": "#FFFFFF",
-                      "color": "#24272A",
+                      "backgroundColor": "#ffffff",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",

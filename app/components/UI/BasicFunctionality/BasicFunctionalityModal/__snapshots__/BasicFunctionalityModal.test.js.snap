@@ -69,15 +69,15 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
       style={
         [
           {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#D6D9DC",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bbc0c566",
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
             "maxHeight": 1334,
             "overflow": "hidden",
             "paddingBottom": 0,
-            "shadowColor": "#0000001A",
+            "shadowColor": "#0000001a",
             "shadowOffset": {
               "height": 2,
               "width": 0,
@@ -107,7 +107,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#D6D9DC",
+              "backgroundColor": "#bbc0c566",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -125,7 +125,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
         }
       >
         <SvgMock
-          color="#D73847"
+          color="#d73847"
           height={32}
           name="Danger"
           style={
@@ -142,7 +142,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 18,
               "fontWeight": "700",
@@ -159,7 +159,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
           style={
             {
               "alignSelf": "flex-start",
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -196,8 +196,8 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#24272A",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#141618",
                   "borderRadius": 4,
                   "borderWidth": 2,
                   "height": 20,
@@ -217,7 +217,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -250,7 +250,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 24,
                   "borderWidth": 1,
                   "flex": 1,
@@ -266,7 +266,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -297,7 +297,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#D73847",
+                  "backgroundColor": "#d73847",
                   "borderRadius": 24,
                   "flex": 1,
                   "flexDirection": "row",
@@ -313,7 +313,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#FFFFFF",
+                    "color": "#ffffff",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",

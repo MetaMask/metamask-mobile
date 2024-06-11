@@ -329,10 +329,10 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "borderColor": "#BBC0C5",
+                                      "borderColor": "#bbc0c5",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "flex": 1,
                                       "flexDirection": "row",
                                       "justifyContent": "center",
@@ -346,13 +346,13 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                 <View
                                   style={
                                     {
-                                      "color": "#6A737D",
+                                      "color": "#6a737d",
                                       "paddingLeft": 20,
                                     }
                                   }
                                 >
                                   <SvgMock
-                                    color="#24272A"
+                                    color="#141618"
                                     height={16}
                                     name="Search"
                                     style={
@@ -367,8 +367,8 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                 <View
                                   style={
                                     {
-                                      "borderColor": "#0260A4",
-                                      "color": "#6A737D",
+                                      "borderColor": "#0260a4",
+                                      "color": "#6a737d",
                                       "paddingHorizontal": 12,
                                       "paddingVertical": 12,
                                       "width": "80%",
@@ -381,11 +381,11 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
                                     placeholder="Search Tokens"
-                                    placeholderTextColor="#BBC0C5"
+                                    placeholderTextColor="#9fa6ae"
                                     style={
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontWeight": "400",
                                         },
@@ -402,7 +402,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                 <View
                                   style={
                                     {
-                                      "color": "#6A737D",
+                                      "color": "#6a737d",
                                       "paddingRight": 20,
                                     }
                                   }
@@ -426,7 +426,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                     }
                                   >
                                     <SvgMock
-                                      color="#24272A"
+                                      color="#141618"
                                       height={16}
                                       name="Close"
                                       style={
@@ -470,7 +470,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "stretch",
-                              "backgroundColor": "#0376C9",
+                              "backgroundColor": "#0376c9",
                               "borderRadius": 24,
                               "flexDirection": "row",
                               "height": 48,
@@ -486,7 +486,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#FFFFFF",
+                                "color": "#ffffff",
                                 "fontFamily": "Euclid Circular B",
                                 "fontSize": 14,
                                 "fontWeight": "400",
