@@ -2,7 +2,14 @@
 
 ## Current Main Branch
 
-## 7.24.0 - May 29, 2024
+## 7.24.1 - Jun 13, 2024
+### Added
+- [#9687](https://github.com/MetaMask/metamask-mobile/pull/9687): feat: adds "data collection for marketing" toggles
+
+### Fixed
+- [#9943](https://github.com/MetaMask/metamask-mobile/pull/9943): fix: duplicate accounts
+
+## 7.24.0 - Jun 11, 2024
 ### Added
 - [#9767](https://github.com/MetaMask/metamask-mobile/pull/9767): feat: push Privacy policy date to 2024 Jun 18 12:00 UTC (#9767)
 - [#9707](https://github.com/MetaMask/metamask-mobile/pull/9707): feat: adds strings for the opt in toggles (#9707)
