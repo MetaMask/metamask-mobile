@@ -1,4 +1,6 @@
 import TestHelpers from '../helpers';
+import {v4 as uuid} from "uuid";
+
 export const taskQueue = [];
 let isProcessing = false;
 
@@ -26,7 +28,7 @@ export const addToQueue = ({ task, resolve, reject, name }) => {
   return processQueue();
 };
 
-const pollResult = async (driver) => {
+const pollResult = async (driver, generatedKey) => {
   let result;
   // eslint-disable-next-line no-loop-func
   await new Promise((resolve, reject) => {
@@ -34,16 +36,16 @@ const pollResult = async (driver) => {
       name: 'pollResult',
       task: async () => {
         await TestHelpers.delay(500);
-        const text = await driver.runScript((el) => window.JSONRPCResponse);
+        const text = await driver.runScript((el, g) => window[g], [generatedKey]);
         if (typeof text === 'string') {
           result = JSON.parse(text);
         } else {
           result = text;
         }
         if (result) {
-          await driver.runScript((el) => {
-            window.JSONRPCResponse = null;
-          });
+          await driver.runScript((el, g) => {
+            delete window[g];
+          }, [generatedKey]);
         }
         return result;
       },
@@ -59,6 +61,7 @@ const pollResult = async (driver) => {
 
 export const createDriverTransport = (driver) => (_, method, params) => {
   console.log('starting transport call', method, params)
+  const generatedKey = uuid();
   const startTime = Date.now();
   return new Promise((resolve, reject) => {
     const execute = async () => {
@@ -66,16 +69,16 @@ export const createDriverTransport = (driver) => (_, method, params) => {
         name: 'transport',
         task: async () => {
           await driver.runScript(
-            (el, m, p) => {
+            (el, m, p, g) => {
               window.ethereum
                 .request({ method: m, params: p })
                 .then((res) => {
-                  window.JSONRPCResponse = JSON.stringify({
+                  window[g] = JSON.stringify({
                     result: res,
                   });
                 })
                 .catch((err) => {
-                  window.JSONRPCResponse = JSON.stringify({
+                  window[g] = JSON.stringify({
                     error: {
                       code: err.code,
                       message: err.message,
@@ -84,7 +87,7 @@ export const createDriverTransport = (driver) => (_, method, params) => {
                   });
                 });
             },
-            [method, params],
+            [method, params, generatedKey],
           );
         },
         resolve,
@@ -93,7 +96,7 @@ export const createDriverTransport = (driver) => (_, method, params) => {
     };
     return execute();
   }).then(async () => {
-    const result = await pollResult(driver);
+    const result = await pollResult(driver, generatedKey);
     console.log('transport execution time', Date.now() - startTime, 'ms', method, params);
     return result;
   });
