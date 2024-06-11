@@ -1,46 +1,25 @@
 // Third party dependencies.
-import { ProviderConfig } from '@metamask/network-controller';
-import { useNavigation } from '@react-navigation/native';
-import images from 'images/image-icons';
 import React, { useRef, useState } from 'react';
 import { Linking, Switch, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import images from 'images/image-icons';
+import { useNavigation } from '@react-navigation/native';
+import { ProviderConfig } from '@metamask/network-controller';
+
 // External dependencies.
-import { useSelector } from 'react-redux';
-import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
-import { strings } from '../../../../locales/i18n';
+import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import Cell, {
+  CellVariant,
+} from '../../../component-library/components/Cells/Cell';
 import {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
+import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
-import Button from '../../../component-library/components/Buttons/Button/Button';
-import Cell, {
-  CellVariant,
-} from '../../../component-library/components/Cells/Cell';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import Text from '../../../component-library/components/Texts/Text/Text';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import Routes from '../../../constants/navigation/Routes';
-import {
-  LINEA_MAINNET,
-  LINEA_SEPOLIA,
-  MAINNET,
-  SEPOLIA,
-} from '../../../constants/network';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import Engine from '../../../core/Engine';
+import { useSelector } from 'react-redux';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -50,19 +29,41 @@ import Networks, {
   compareRpcUrls,
   getAllNetworks,
   getDecimalChainId,
+  isTestNet,
   getNetworkImageSource,
   isNetworkUiRedesignEnabled,
-  isTestNet,
 } from '../../../util/networks';
+import {
+  LINEA_MAINNET,
+  LINEA_SEPOLIA,
+  MAINNET,
+  SEPOLIA,
+} from '../../../constants/network';
+import Button from '../../../component-library/components/Buttons/Button/Button';
+import {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Routes from '../../../constants/navigation/Routes';
+import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
 import { useTheme } from '../../../util/theme';
+import Text from '../../../component-library/components/Texts/Text/Text';
+import {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 // Internal dependencies
+import createStyles from './NetworkSelector.styles';
 import { TESTNET_TICKER_SYMBOLS } from '@metamask/controller-utils';
 import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
-import createStyles from './NetworkSelector.styles';
 
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
