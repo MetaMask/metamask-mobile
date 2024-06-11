@@ -58,13 +58,7 @@ const mockInitialState = {
               type: 'eip155:eoa',
             },
           },
-        },
-        selectedAccount: '30313233-3435-4637-b839-383736353430',
-      },
-      PreferencesController: {
-        selectedAddress: '0x0',
-        identities: {
-          '0x0': { name: 'Account 1', address: '0x0' },
+          selectedAccount: '30313233-3435-4637-b839-383736353430',
         },
       },
     },
@@ -141,6 +135,6 @@ describe('EditAccountName', () => {
     const saveButton = getByTestId('save-button');
     fireEvent.changeText(input, 'New Name');
     fireEvent.press(saveButton);
-    // expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalled();
   });
 });
