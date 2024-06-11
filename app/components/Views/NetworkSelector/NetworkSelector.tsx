@@ -51,6 +51,7 @@ import Networks, {
   getAllNetworks,
   getDecimalChainId,
   getNetworkImageSource,
+  isNetworkUiRedesignEnabled,
   isTestNet,
 } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
@@ -311,12 +312,13 @@ const NetworkSelector = () => {
     <BottomSheet ref={sheetRef}>
       <SheetHeader title={strings('networks.select_network')} />
       <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
-        {renderTitle('networks.enabled_networks')}
+        {isNetworkUiRedesignEnabled && renderTitle('networks.enabled_networks')}
         {renderMainnet()}
         {renderLineaMainnet()}
         {renderRpcNetworks()}
-        {renderTitle('networks.additional_networks')}
-        {renderAdditonalNetworks()}
+        {isNetworkUiRedesignEnabled &&
+          renderTitle('networks.additional_networks')}
+        {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
         {renderTestNetworksSwitch()}
         {showTestNetworks && renderOtherNetworks()}
       </ScrollView>
