@@ -155,38 +155,6 @@ const AesCryptoTestForm = () => {
           styles={{ ...styles }}
         />
         <TestForm
-          title="Encrypt"
-          buttonLabel="Encrypt"
-          textFields={[
-            {
-              placeholder: 'Data',
-              testId: aesCryptoFormInputs.dataInputForEncryption,
-            },
-            {
-              placeholder: 'Password',
-              testId: aesCryptoFormInputs.passwordInputForEncryption,
-            },
-          ]}
-          callback={encrypt}
-          callbackTestId={aesCryptoFormButtons.encryptButton}
-          responseTestId={aesCryptoFormResponses.encryptionResponse}
-          styles={{ ...styles }}
-        />
-        <TestForm
-          title="Decrypt"
-          buttonLabel="Decrypt"
-          textFields={[
-            {
-              placeholder: 'Password',
-              testId: aesCryptoFormInputs.passwordInputForDecryption,
-            },
-          ]}
-          callback={decrypt}
-          callbackTestId={aesCryptoFormButtons.decryptButton}
-          responseTestId={aesCryptoFormResponses.decryptionResponse}
-          styles={{ ...styles }}
-        />
-        <TestForm
           title="Encrypt with key"
           buttonLabel="Encrypt"
           textFields={[
@@ -218,6 +186,38 @@ const AesCryptoTestForm = () => {
           callback={decryptWithKey}
           callbackTestId={aesCryptoFormButtons.decryptWithKeyButton}
           responseTestId={aesCryptoFormResponses.decryptionWithKeyResponse}
+          styles={{ ...styles }}
+        />
+        <TestForm
+          title="Encrypt"
+          buttonLabel="Encrypt"
+          textFields={[
+            {
+              placeholder: 'Data',
+              testId: aesCryptoFormInputs.dataInputForEncryption,
+            },
+            {
+              placeholder: 'Password',
+              testId: aesCryptoFormInputs.passwordInputForEncryption,
+            },
+          ]}
+          callback={encrypt}
+          callbackTestId={aesCryptoFormButtons.encryptButton}
+          responseTestId={aesCryptoFormResponses.encryptionResponse}
+          styles={{ ...styles }}
+        />
+        <TestForm
+          title="Decrypt"
+          buttonLabel="Decrypt"
+          textFields={[
+            {
+              placeholder: 'Password',
+              testId: aesCryptoFormInputs.passwordInputForDecryption,
+            },
+          ]}
+          callback={decrypt}
+          callbackTestId={aesCryptoFormButtons.decryptButton}
+          responseTestId={aesCryptoFormResponses.decryptionResponse}
           styles={{ ...styles }}
         />
       </SafeAreaView>
