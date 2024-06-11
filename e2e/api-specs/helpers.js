@@ -40,6 +40,11 @@ const pollResult = async (driver) => {
         } else {
           result = text;
         }
+        if (result) {
+          await driver.runScript((el) => {
+            window.JSONRPCResponse = null;
+          });
+        }
         return result;
       },
       resolve,
@@ -89,18 +94,6 @@ export const createDriverTransport = (driver) => (_, method, params) => {
     return execute();
   }).then(async () => {
     const result = await pollResult(driver);
-    await new Promise((resolve, reject) => {
-      addToQueue({
-        name: 'clearJSONRPCResponse',
-        task: async () => {
-          await driver.runScript((el) => {
-            window.JSONRPCResponse = null;
-          });
-        },
-        resolve,
-        reject,
-      });
-    });
     console.log('transport execution time', Date.now() - startTime, 'ms', method, params);
     return result;
   });
