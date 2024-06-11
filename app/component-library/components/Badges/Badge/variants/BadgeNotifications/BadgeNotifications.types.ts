@@ -12,9 +12,9 @@ export interface BadgeNotificationsProps
    */
   iconName: IconName;
   /**
-   * Required prop to provide testID to be used by the notification badge unit tests.
+   * Optional prop to provide testID to be used by the notification badge unit tests.
    */
-  testID: string;
+  testID?: string;
 }
 
 /**
