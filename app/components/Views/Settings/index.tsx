@@ -17,6 +17,7 @@ import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/Sn
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import { isTest } from '../../../util/test/utils';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -237,11 +238,21 @@ const Settings = () => {
         onPress={onPressExperimental}
         testID={SettingsViewSelectorsIDs.EXPERIMENTAL}
       />
-      <SettingsDrawer
-        title={strings('app_settings.aes_crypto_test_form_title')}
-        onPress={onPressAesCryptoTestForm}
-        testID={SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM}
-      />
+      {
+        /**
+         * This drawer is only visible in test mode.
+         * It is used to test the AES crypto functions.
+         *
+         * If this is shown in production, it is a bug.
+         */
+        isTest && (
+          <SettingsDrawer
+            title={strings('app_settings.aes_crypto_test_form_title')}
+            onPress={onPressAesCryptoTestForm}
+            testID={SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM}
+          />
+        )
+      }
       <SettingsDrawer
         title={aboutMetaMaskTitle}
         onPress={onPressInfo}
