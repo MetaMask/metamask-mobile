@@ -158,6 +158,13 @@ class AesCryptoTestForm {
       saltBytesCount,
     );
     await Gestures.waitAndTap(this.generateSaltButton);
+
+    const responseFieldAtts = await (
+      await this.generateSaltResponse
+    ).getAttributes();
+
+    // @ts-expect-error - the label property does exist in this object.
+    return responseFieldAtts.label;
   }
 
   async generateEncryptionKey(password: string, salt: string) {
