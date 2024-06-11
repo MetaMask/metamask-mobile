@@ -76,10 +76,10 @@ class Matchers {
   /**
    * Get Native WebView instance by elementId
    *
-   *  Because Android Webview might have more that one WebView instance present on the main activity, the correct element
-   *  is select based on its parent element id.
-   *  @param {string} elementId The web ID of the browser webview
-   *  @returns {Detox.WebViewElement} WebView element
+   * Because Android Webview might have more that one WebView instance present on the main activity, the correct element
+   * is select based on its parent element id.
+   * @param {string} elementId The web ID of the browser webview
+   * @returns {Detox.WebViewElement} WebView element
    */
   static getWebViewByID(elementId) {
     return device.getPlatform() === 'ios'
@@ -90,8 +90,8 @@ class Matchers {
   /**
    * Get element by web ID.
    *
-   * * @param {string} webviewID - The web ID of the inner element to locate within the webview
-   *  @param {string} innerID - The web ID of the browser webview
+   * @param {string} webviewID - The web ID of the inner element to locate within the webview
+   * @param {string} innerID - The web ID of the browser webview
    * @return {Promise<Detox.IndexableWebElement>} Resolves to the located element
    */
   static async getElementByWebID(webviewID, innerID) {
