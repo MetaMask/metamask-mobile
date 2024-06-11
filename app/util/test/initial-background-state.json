@@ -44,7 +44,6 @@
   "NftDetectionController": {},
   "PPOMController": {
     "storageMetadata": [],
-    "versionFileETag": "",
     "versionInfo": []
   },
 
@@ -264,7 +263,8 @@
     "gasFeeEstimates": {},
     "estimatedGasFeeTimeBounds": {},
     "gasEstimateType": "none",
-    "gasFeeEstimatesByChainId": {}
+    "gasFeeEstimatesByChainId": {},
+    "nonRPCGasFeeApisDisabled": false
   },
   "ApprovalController": {
     "pendingApprovals": {},
