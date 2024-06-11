@@ -5,7 +5,6 @@ import {
   CustomDefaultNetworkIDs,
   CustomDefaultNetworkTexts,
 } from '../../selectors/Onboarding/CustomDefaultNetwork.selectors';
-
 class DefaultNetworkView {
   get useThisNetworkButton() {
     return device.getPlatform() === 'ios'
