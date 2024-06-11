@@ -42,7 +42,7 @@ const pollResult = async (driver, generatedKey) => {
         } else {
           result = text;
         }
-        if (result) {
+        if (result !== undefined) {
           await driver.runScript((el, g) => {
             delete window[g];
           }, [generatedKey]);
@@ -53,7 +53,7 @@ const pollResult = async (driver, generatedKey) => {
       reject,
     });
   });
-  if (result) {
+  if (result !== undefined) {
     return result;
   }
   return pollResult(driver);
