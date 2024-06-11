@@ -10,31 +10,6 @@ export default async function migrate(stateAsync: unknown) {
   if (!ensureValidState(state, 41)) {
     return state;
   }
-  if (!isObject(state)) {
-    captureException(
-      new Error(`Migration 41: Invalid root state: '${typeof state}'`),
-    );
-    return state;
-  }
-
-  if (!isObject(state.engine)) {
-    captureException(
-      new Error(
-        `Migration 41: Invalid root engine state: '${typeof state.engine}'`,
-      ),
-    );
-    return state;
-  }
-
-  if (!isObject(state.engine.backgroundState)) {
-    captureException(
-      new Error(
-        `Migration 41: Invalid root engine backgroundState: '${typeof state
-          .engine.backgroundState}'`,
-      ),
-    );
-    return state;
-  }
 
   if (!isObject(state.engine.backgroundState.AccountsController)) {
     captureException(
