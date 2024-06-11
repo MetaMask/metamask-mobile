@@ -1,4 +1,4 @@
-import { web, log } from 'detox';
+import { web } from 'detox';
 
 /**
  * Utility class for matching (locating) UI elements
@@ -74,6 +74,17 @@ class Matchers {
   }
 
   /**
+   *
+   * TODO: add method comment
+   *
+   */
+  static getWebViewByID(elementId) {
+    return device.getPlatform() === 'ios'
+      ? web(by.id(elementId))
+      : web(by.type('android.webkit.WebView').withAncestor(by.id(elementId)));
+  }
+
+  /**
    * Get element by web ID.
    *
    * * @param {string} webviewID - The web ID of the inner element to locate within the webview
@@ -81,7 +92,7 @@ class Matchers {
    * @return {Promise<Detox.IndexableWebElement>} Resolves to the located element
    */
   static async getElementByWebID(webviewID, innerID) {
-    const myWebView = web(by.id(webviewID));
+    const myWebView = this.getWebViewByID(webviewID);
     return myWebView.element(by.web.id(innerID));
   }
 
@@ -104,13 +115,8 @@ class Matchers {
    * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
    */
   static async getElementByXPath(webviewID, xpath) {
-    const myWebView =
-      device.getPlatform() === 'ios'
-        ? web(by.id(webviewID))
-        : web(by.type('android.webkit.WebView').withAncestor(by.id(webviewID)));
-    const returnElement = myWebView.element(by.web.xpath(xpath));
-    log.info('returnElement', returnElement);
-    return returnElement;
+    const myWebView = this.getWebViewByID(webviewID);
+    return myWebView.element(by.web.xpath(xpath));
   }
   /**
    * Get element by href.
