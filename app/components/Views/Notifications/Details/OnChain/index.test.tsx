@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 
 import OnChainDetails from '.';
 import { createStyles } from '../styles';
@@ -56,7 +56,7 @@ describe('OnChainDetails', () => {
     styles = createStyles(mockTheme);
   });
 
-  it('should renders properly', () => {
+  it('should renders correctly', () => {
     const { toJSON } = render(
       <Provider store={store}>
         <OnChainDetails
@@ -85,7 +85,6 @@ describe('OnChainDetails', () => {
         />
       </Provider>,
     );
-
     expect(getByText('Liquid staked Ether 2.0')).toBeTruthy();
   });
 });
