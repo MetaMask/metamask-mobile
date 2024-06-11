@@ -62,37 +62,9 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
-  console.log(
-    'Migration 36 started with old state PreferencesController',
-    JSON.stringify(state.engine.backgroundState.PreferencesController),
-  );
-  console.log(
-    'Migration 36 started with old state KeyringController',
-    JSON.stringify(state.engine.backgroundState.KeyringController),
-  );
-  console.log(
-    'Migration 36 started with old state AccountTrackerController',
-    JSON.stringify(state.engine.backgroundState.AccountTrackerController),
-  );
   createDefaultAccountsController(state);
   createInternalAccountsForAccountsController(state);
   createSelectedAccountForAccountsController(state);
-  console.log(
-    'Migration 36 complete with new state PreferencesController',
-    JSON.stringify(state.engine.backgroundState.PreferencesController),
-  );
-  console.log(
-    'Migration 36 complete with new state KeyringController',
-    JSON.stringify(state.engine.backgroundState.KeyringController),
-  );
-  console.log(
-    'Migration 36 complete with new state AccountTrackerController',
-    JSON.stringify(state.engine.backgroundState.AccountTrackerController),
-  );
-  console.log(
-    'Migration 36 complete with new state AccountsController',
-    JSON.stringify(state.engine.backgroundState.AccountsController),
-  );
   return state;
 }
 

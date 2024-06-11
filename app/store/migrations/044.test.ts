@@ -2,6 +2,7 @@ import migrate from './044';
 import { captureException } from '@sentry/react-native';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { EthMethod } from '@metamask/keyring-api';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -28,12 +29,12 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
           },
         },
         methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
+          EthMethod.PersonalSign,
+          EthMethod.Sign,
+          EthMethod.SignTransaction,
+          EthMethod.SignTypedDataV1,
+          EthMethod.SignTypedDataV3,
+          EthMethod.SignTypedDataV4,
         ],
         type: 'eip155:eoa',
       },
@@ -48,12 +49,12 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
           },
         },
         methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
+          EthMethod.PersonalSign,
+          EthMethod.Sign,
+          EthMethod.SignTransaction,
+          EthMethod.SignTypedDataV1,
+          EthMethod.SignTypedDataV3,
+          EthMethod.SignTypedDataV4,
         ],
         type: 'eip155:eoa',
       },
@@ -68,12 +69,12 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
           },
         },
         methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
+          EthMethod.PersonalSign,
+          EthMethod.Sign,
+          EthMethod.SignTransaction,
+          EthMethod.SignTypedDataV1,
+          EthMethod.SignTypedDataV3,
+          EthMethod.SignTypedDataV4,
         ],
         type: 'eip155:eoa',
       },
@@ -88,12 +89,12 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
           },
         },
         methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
+          EthMethod.PersonalSign,
+          EthMethod.Sign,
+          EthMethod.SignTransaction,
+          EthMethod.SignTypedDataV1,
+          EthMethod.SignTypedDataV3,
+          EthMethod.SignTypedDataV4,
         ],
         type: 'eip155:eoa',
       },
@@ -108,12 +109,12 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
           },
         },
         methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
+          EthMethod.PersonalSign,
+          EthMethod.Sign,
+          EthMethod.SignTransaction,
+          EthMethod.SignTypedDataV1,
+          EthMethod.SignTypedDataV3,
+          EthMethod.SignTypedDataV4,
         ],
         type: 'eip155:eoa',
       },
@@ -122,12 +123,12 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
         address: MOCK_LOWERCASE_ADDRESS_1,
         options: {},
         methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
+          EthMethod.PersonalSign,
+          EthMethod.Sign,
+          EthMethod.SignTransaction,
+          EthMethod.SignTypedDataV1,
+          EthMethod.SignTypedDataV3,
+          EthMethod.SignTypedDataV4,
         ],
         type: 'eip155:eoa',
         metadata: {
@@ -143,12 +144,12 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
         address: MOCK_LOWERCASE_ADDRESS_2,
         options: {},
         methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
+          EthMethod.PersonalSign,
+          EthMethod.Sign,
+          EthMethod.SignTransaction,
+          EthMethod.SignTypedDataV1,
+          EthMethod.SignTypedDataV3,
+          EthMethod.SignTypedDataV4,
         ],
         type: 'eip155:eoa',
         metadata: {
@@ -164,12 +165,12 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
         address: MOCK_LOWERCASE_ADDRESS_3,
         options: {},
         methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
+          EthMethod.PersonalSign,
+          EthMethod.Sign,
+          EthMethod.SignTransaction,
+          EthMethod.SignTypedDataV1,
+          EthMethod.SignTypedDataV3,
+          EthMethod.SignTypedDataV4,
         ],
         type: 'eip155:eoa',
         metadata: {
@@ -185,12 +186,12 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
         address: MOCK_LOWERCASE_ADDRESS_4,
         options: {},
         methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
+          EthMethod.PersonalSign,
+          EthMethod.Sign,
+          EthMethod.SignTransaction,
+          EthMethod.SignTypedDataV1,
+          EthMethod.SignTypedDataV3,
+          EthMethod.SignTypedDataV4,
         ],
         type: 'eip155:eoa',
         metadata: {
@@ -206,12 +207,12 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
         address: MOCK_LOWERCASE_ADDRESS_5,
         options: {},
         methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
+          EthMethod.PersonalSign,
+          EthMethod.Sign,
+          EthMethod.SignTransaction,
+          EthMethod.SignTypedDataV1,
+          EthMethod.SignTypedDataV3,
+          EthMethod.SignTypedDataV4,
         ],
         type: 'eip155:eoa',
         metadata: {
@@ -227,7 +228,7 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
   },
 };
 
-describe('Migration #041', () => {
+describe('Migration #044', () => {
   beforeEach(() => {
     mockedCaptureException.mockReset();
   });
@@ -246,7 +247,7 @@ describe('Migration #041', () => {
           .accounts,
       ).length,
     ).toBe(10);
-    const newState = migrate(oldState);
+    const newState = migrate(oldState) as typeof oldState;
     expect(
       Object.keys(
         newState.engine.backgroundState.AccountsController.internalAccounts
@@ -269,12 +270,12 @@ describe('Migration #041', () => {
                     lastSelected: 1718130576952,
                   },
                   methods: [
-                    'personal_sign',
-                    'eth_sign',
-                    'eth_signTransaction',
-                    'eth_signTypedData_v1',
-                    'eth_signTypedData_v3',
-                    'eth_signTypedData_v4',
+                    EthMethod.PersonalSign,
+                    EthMethod.Sign,
+                    EthMethod.SignTransaction,
+                    EthMethod.SignTypedDataV1,
+                    EthMethod.SignTypedDataV3,
+                    EthMethod.SignTypedDataV4,
                   ],
                   type: 'eip155:eoa',
                 },
@@ -288,12 +289,12 @@ describe('Migration #041', () => {
                     lastSelected: 1718130576953,
                   },
                   methods: [
-                    'personal_sign',
-                    'eth_sign',
-                    'eth_signTransaction',
-                    'eth_signTypedData_v1',
-                    'eth_signTypedData_v3',
-                    'eth_signTypedData_v4',
+                    EthMethod.PersonalSign,
+                    EthMethod.Sign,
+                    EthMethod.SignTransaction,
+                    EthMethod.SignTypedDataV1,
+                    EthMethod.SignTypedDataV3,
+                    EthMethod.SignTypedDataV4,
                   ],
                   type: 'eip155:eoa',
                 },
@@ -307,12 +308,12 @@ describe('Migration #041', () => {
                     lastSelected: 1718130576954,
                   },
                   methods: [
-                    'personal_sign',
-                    'eth_sign',
-                    'eth_signTransaction',
-                    'eth_signTypedData_v1',
-                    'eth_signTypedData_v3',
-                    'eth_signTypedData_v4',
+                    EthMethod.PersonalSign,
+                    EthMethod.Sign,
+                    EthMethod.SignTransaction,
+                    EthMethod.SignTypedDataV1,
+                    EthMethod.SignTypedDataV3,
+                    EthMethod.SignTypedDataV4,
                   ],
                   type: 'eip155:eoa',
                 },
@@ -326,12 +327,12 @@ describe('Migration #041', () => {
                     lastSelected: 1718130576955,
                   },
                   methods: [
-                    'personal_sign',
-                    'eth_sign',
-                    'eth_signTransaction',
-                    'eth_signTypedData_v1',
-                    'eth_signTypedData_v3',
-                    'eth_signTypedData_v4',
+                    EthMethod.PersonalSign,
+                    EthMethod.Sign,
+                    EthMethod.SignTransaction,
+                    EthMethod.SignTypedDataV1,
+                    EthMethod.SignTypedDataV3,
+                    EthMethod.SignTypedDataV4,
                   ],
                   type: 'eip155:eoa',
                 },
@@ -345,12 +346,12 @@ describe('Migration #041', () => {
                     lastSelected: 1718130576956,
                   },
                   methods: [
-                    'personal_sign',
-                    'eth_sign',
-                    'eth_signTransaction',
-                    'eth_signTypedData_v1',
-                    'eth_signTypedData_v3',
-                    'eth_signTypedData_v4',
+                    EthMethod.PersonalSign,
+                    EthMethod.Sign,
+                    EthMethod.SignTransaction,
+                    EthMethod.SignTypedDataV1,
+                    EthMethod.SignTypedDataV3,
+                    EthMethod.SignTypedDataV4,
                   ],
                   type: 'eip155:eoa',
                 },
@@ -368,7 +369,140 @@ describe('Migration #041', () => {
     expect(newState).toStrictEqual({});
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-      `FATAL ERROR: Migration 41: Invalid engine state error: 'undefined'`,
+      `FATAL ERROR: Migration 44: Invalid engine state error: 'undefined'`,
     );
+  });
+
+  it('should capture exception if AccountsController data does not exist', () => {
+    const oldState = {
+      engine: {
+        backgroundState: {},
+      },
+    };
+    const newState = migrate(oldState);
+    expect(newState).toStrictEqual({
+      engine: {
+        backgroundState: {},
+      },
+    });
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      "Migration 44: Invalid AccountsController state: 'undefined'",
+    );
+  });
+
+  it('should capture exception if AccountsController.internalAccounts data does not exist', () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          AccountsController: {},
+        },
+      },
+    };
+    const newState = migrate(oldState);
+    expect(newState).toStrictEqual({
+      engine: {
+        backgroundState: {
+          AccountsController: {},
+        },
+      },
+    });
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      "Migration 44: Missing internalAccounts property from AccountsController: 'object'",
+    );
+  });
+
+  it('should handle cases with no duplicates correctly', () => {
+    const uniqueState: AccountsControllerState = {
+      internalAccounts: {
+        accounts: {
+          unique1: {
+            address: MOCK_LOWERCASE_ADDRESS_1,
+            id: 'unique1',
+            options: {},
+            metadata: {
+              name: 'Unique Account 1',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            methods: [
+              EthMethod.PersonalSign,
+              EthMethod.Sign,
+              EthMethod.SignTransaction,
+              EthMethod.SignTypedDataV1,
+              EthMethod.SignTypedDataV3,
+              EthMethod.SignTypedDataV4,
+            ],
+            type: 'eip155:eoa',
+          },
+          unique2: {
+            address: MOCK_LOWERCASE_ADDRESS_2,
+            id: 'unique2',
+            options: {},
+            metadata: {
+              name: 'Unique Account 2',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            methods: [
+              EthMethod.PersonalSign,
+              EthMethod.Sign,
+              EthMethod.SignTransaction,
+              EthMethod.SignTypedDataV1,
+              EthMethod.SignTypedDataV3,
+              EthMethod.SignTypedDataV4,
+            ],
+            type: 'eip155:eoa',
+          },
+        },
+        selectedAccount: 'unique1',
+      },
+    };
+
+    const testState = {
+      engine: {
+        backgroundState: {
+          AccountsController: uniqueState,
+        },
+      },
+    };
+    expect(
+      Object.keys(
+        testState.engine.backgroundState.AccountsController.internalAccounts
+          .accounts,
+      ).length,
+    ).toBe(2);
+
+    const newState = migrate(testState) as typeof testState;
+
+    expect(
+      Object.keys(
+        newState.engine.backgroundState.AccountsController.internalAccounts
+          .accounts,
+      ).length,
+    ).toBe(2);
+    expect(newState).toStrictEqual(testState);
+  });
+
+  it('should update selected account to lowercase version if it was checksummed', () => {
+    const testState = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+            selectedAccount: '3b61f8b2-9a9a-4954-b8da-f829b9092ee7',
+          },
+        },
+      },
+    };
+    const newState = migrate(testState) as typeof testState;
+
+    expect(
+      newState.engine.backgroundState.AccountsController.internalAccounts
+        .selectedAccount,
+    ).toBe('36303635-3364-4438-a465-343237356466');
   });
 });

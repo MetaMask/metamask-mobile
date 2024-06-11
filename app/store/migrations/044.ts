@@ -5,14 +5,14 @@ import { AccountsControllerState } from '@metamask/accounts-controller';
 import { InternalAccount } from '@metamask/keyring-api';
 
 export default function migrate(state: unknown) {
-  if (!ensureValidState(state, 41)) {
+  if (!ensureValidState(state, 44)) {
     return state;
   }
 
   if (!isObject(state.engine.backgroundState.AccountsController)) {
     captureException(
       new Error(
-        `Migration 41: Invalid AccountsController state: '${typeof state.engine
+        `Migration 44: Invalid AccountsController state: '${typeof state.engine
           .backgroundState.AccountsController}'`,
       ),
     );
@@ -27,22 +27,13 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `Migration 41: Missing internalAccounts property from AccountsController: '${typeof state
+        `Migration 44: Missing internalAccounts property from AccountsController: '${typeof state
           .engine.backgroundState.AccountsController}'`,
       ),
     );
     return state;
   }
-  console.log(
-    'Migration 41 complete with old state AccountsController',
-    JSON.stringify(state.engine.backgroundState.AccountsController),
-  );
   mergeInternalAccounts(state);
-
-  console.log(
-    'Migration 41 complete with new state AccountsController',
-    JSON.stringify(state.engine.backgroundState.AccountsController),
-  );
 
   return state;
 }
