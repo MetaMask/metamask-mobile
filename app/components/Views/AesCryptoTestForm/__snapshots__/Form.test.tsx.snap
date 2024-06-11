@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TestForm renders correctly 1`] = `
+<RCTSafeAreaView>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#24272A",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 16,
+        "fontWeight": "700",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    random title
+  </Text>
+  <View>
+    <TextInput
+      autoComplete="off"
+      autoCorrect={false}
+      autoFocus={false}
+      onChangeText={[Function]}
+      placeholder="random placeholder"
+      testID="random-test-id"
+    />
+  </View>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={1}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "alignSelf": "flex-start",
+        "backgroundColor": "#0376C9",
+        "borderRadius": 20,
+        "flexDirection": "row",
+        "height": 40,
+        "justifyContent": "center",
+        "paddingHorizontal": 16,
+      }
+    }
+    testID="random-callback-test-id"
+    variant="Primary"
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#FFFFFF",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      random button label
+    </Text>
+  </TouchableOpacity>
+</RCTSafeAreaView>
+`;
