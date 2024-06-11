@@ -165,6 +165,7 @@ class AesCryptoTestForm {
   }
 
   async generateEncryptionKey(password: string, salt: string) {
+    await this.scrollUpToGenerateEncryptionKey();
     await Gestures.typeTextAndHideKeyboard(
       this.generateEncryptionKeyPasswordInput,
       password,
