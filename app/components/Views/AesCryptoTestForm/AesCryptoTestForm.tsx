@@ -123,11 +123,11 @@ const AesCryptoTestForm = () => {
     <ScrollView testID={aesCryptoFormScrollIdentifier}>
       <SafeAreaView style={styles.container}>
         <TestForm
-          title="Generate salt"
-          buttonLabel="Generate"
+          title={strings('aes_crypto_test_form.generate_random_salt')}
+          buttonLabel={strings('aes_crypto_test_form.generate')}
           textFields={[
             {
-              placeholder: 'Salt bytes count',
+              placeholder: strings('aes_crypto_test_form.salt_bytes_count'),
               testId: aesCryptoFormInputs.saltBytesCountInput,
             },
           ]}
@@ -137,15 +137,15 @@ const AesCryptoTestForm = () => {
           styles={{ ...styles }}
         />
         <TestForm
-          title="Generate encryption key from password"
-          buttonLabel="Generate"
+          title={strings('aes_crypto_test_form.generate_encryption_key')}
+          buttonLabel={strings('aes_crypto_test_form.generate')}
           textFields={[
             {
-              placeholder: 'Password',
+              placeholder: strings('aes_crypto_test_form.password'),
               testId: aesCryptoFormInputs.passwordInput,
             },
             {
-              placeholder: 'Salt',
+              placeholder: strings('aes_crypto_test_form.salt'),
               testId: aesCryptoFormInputs.saltInputForEncryptionKey,
             },
           ]}
@@ -155,16 +155,16 @@ const AesCryptoTestForm = () => {
           styles={{ ...styles }}
         />
         <TestForm
-          title="Encrypt with key"
-          buttonLabel="Encrypt"
+          title={strings('aes_crypto_test_form.encrypt_with_key')}
+          buttonLabel={strings('aes_crypto_test_form.encrypt')}
           textFields={[
             {
-              placeholder: 'Encryption Key',
+              placeholder: strings('aes_crypto_test_form.encryption_key'),
               testId:
                 aesCryptoFormInputs.encryptionKeyInputForEncryptionWithKey,
             },
             {
-              placeholder: 'Data',
+              placeholder: strings('aes_crypto_test_form.data'),
               testId: aesCryptoFormInputs.dataInputForEncryptionWithKey,
             },
           ]}
@@ -174,8 +174,8 @@ const AesCryptoTestForm = () => {
           styles={{ ...styles }}
         />
         <TestForm
-          title="Decrypt with key"
-          buttonLabel="Decrypt"
+          title={strings('aes_crypto_test_form.decrypt_with_key')}
+          buttonLabel={strings('aes_crypto_test_form.decrypt')}
           textFields={[
             {
               placeholder: 'Encryption Key',
@@ -189,15 +189,15 @@ const AesCryptoTestForm = () => {
           styles={{ ...styles }}
         />
         <TestForm
-          title="Encrypt"
-          buttonLabel="Encrypt"
+          title={strings('aes_crypto_test_form.encrypt')}
+          buttonLabel={strings('aes_crypto_test_form.encrypt')}
           textFields={[
             {
-              placeholder: 'Data',
+              placeholder: strings('aes_crypto_test_form.data'),
               testId: aesCryptoFormInputs.dataInputForEncryption,
             },
             {
-              placeholder: 'Password',
+              placeholder: strings('aes_crypto_test_form.password'),
               testId: aesCryptoFormInputs.passwordInputForEncryption,
             },
           ]}
@@ -207,11 +207,11 @@ const AesCryptoTestForm = () => {
           styles={{ ...styles }}
         />
         <TestForm
-          title="Decrypt"
-          buttonLabel="Decrypt"
+          title={strings('aes_crypto_test_form.decrypt')}
+          buttonLabel={strings('aes_crypto_test_form.decrypt')}
           textFields={[
             {
-              placeholder: 'Password',
+              placeholder: strings('aes_crypto_test_form.password'),
               testId: aesCryptoFormInputs.passwordInputForDecryption,
             },
           ]}
