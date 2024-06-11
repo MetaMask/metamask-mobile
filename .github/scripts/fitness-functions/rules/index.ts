@@ -1,9 +1,15 @@
+import { preventJavaScriptFileAdditions } from './javascript-additions';
 import { preventCodeBlocksRule } from './prevent-code-blocks';
 
 const RULES: IRule[] = [
   {
     name: 'Check for blacklisted code blocks',
     fn: preventCodeBlocksRule,
+    docURL: '[WIP] No documentation exists for this rule yet.',
+  },
+  {
+    name: 'Check for js or jsx file being added',
+    fn: preventJavaScriptFileAdditions,
     docURL: '[WIP] No documentation exists for this rule yet.',
   },
 ];
@@ -32,5 +38,5 @@ function runFitnessFunctionRule(rule: IRule, diff: string): void {
   }
 }
 
-export { RULES, runFitnessFunctionRule };
+export { RULES, runFitnessFunctionRule, preventJavaScriptFileAdditions };
 export type { IRule };
