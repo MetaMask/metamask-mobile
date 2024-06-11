@@ -16,8 +16,9 @@ export const storePrivacyPolicyShownDate = (timestamp: number) => ({
   payload: timestamp,
 });
 
-export const storePrivacyPolicyClickedOrClosed = () => ({
+export const storePrivacyPolicyClickedOrClosed = (value = true) => ({
   type: ACTIONS.STORE_PRIVACY_POLICY_CLICKED_OR_CLOSED,
+  payload: value,
 });
 
 export const shouldShowNewPrivacyToastSelector = (
@@ -42,6 +43,10 @@ export const shouldShowNewPrivacyToastSelector = (
       (isRecent && !newPrivacyPolicyToastClickedOrClosed))
   );
 };
+
+export const getNewPrivacyPolicyToastClickedOrClosedStatus = (
+  state: RootState,
+): boolean => state.legalNotices.newPrivacyPolicyToastClickedOrClosed;
 
 export interface LegalNoticesAction extends Action {
   newPrivacyPolicyToastShownDate: boolean;
@@ -69,7 +74,7 @@ const legalNoticesReducer = (
     }
 
     case ACTIONS.STORE_PRIVACY_POLICY_CLICKED_OR_CLOSED: {
-      return { ...state, newPrivacyPolicyToastClickedOrClosed: true };
+      return { ...state, newPrivacyPolicyToastClickedOrClosed: action.payload };
     }
 
     default:

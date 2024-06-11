@@ -21,6 +21,7 @@ import {
   shouldShowNewPrivacyToastSelector,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
+  getNewPrivacyPolicyToastClickedOrClosedStatus,
 } from '../../../reducers/legalNotices';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import {
@@ -118,6 +119,7 @@ const Wallet = ({
   storePrivacyPolicyShownDate,
   shouldShowNewPrivacyToast,
   storePrivacyPolicyClickedOrClosed,
+  newPrivacyPolicyToastClickedOrClosedStatus,
 }: any) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
@@ -194,6 +196,18 @@ const Wallet = ({
     isDataCollectionForMarketingEnabled,
     isParticipatingInMetaMetrics,
     navigate,
+  ]);
+
+  useEffect(() => {
+    if (
+      newPrivacyPolicyToastClickedOrClosedStatus &&
+      !isPastPrivacyPolicyDate
+    ) {
+      storePrivacyPolicyClickedOrClosed(false);
+    }
+  }, [
+    newPrivacyPolicyToastClickedOrClosedStatus,
+    storePrivacyPolicyClickedOrClosed,
   ]);
 
   useEffect(() => {
@@ -520,13 +534,15 @@ const Wallet = ({
 
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
+  newPrivacyPolicyToastClickedOrClosedStatus:
+    getNewPrivacyPolicyToastClickedOrClosedStatus(state),
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
   storePrivacyPolicyShownDate: () =>
     dispatch(storePrivacyPolicyShownDateAction(Date.now())),
-  storePrivacyPolicyClickedOrClosed: () =>
-    dispatch(storePrivacyPolicyClickedOrClosedAction()),
+  storePrivacyPolicyClickedOrClosed: (value: boolean) =>
+    dispatch(storePrivacyPolicyClickedOrClosedAction(value)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Wallet);
