@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, SafeAreaView } from 'react-native';
+import { View, SafeAreaView, Keyboard, TextInput } from 'react-native';
 
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
+// import TextField, {
+//   TextFieldSize,
+// } from '../../../component-library/components/Form/TextField';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -54,6 +54,7 @@ const TestForm = ({
   const executeTest = useCallback(async () => {
     const response = (await callback(args)) as string;
     setResult(response);
+    Keyboard.dismiss();
   }, [callback, args]);
 
   return (
@@ -63,13 +64,14 @@ const TestForm = ({
       </Text>
       {textFields.map((textField, index) => (
         <View key={index} style={styles.input}>
-          <TextField
-            size={TextFieldSize.Sm}
+          <TextInput
             autoCorrect={false}
             autoComplete={'off'}
             placeholder={textField.placeholder}
             onChangeText={(value: string) => handleInputChange(index, value)}
             testID={textField.testId}
+            autoFocus={false}
+            style={styles.textInput}
           />
         </View>
       ))}

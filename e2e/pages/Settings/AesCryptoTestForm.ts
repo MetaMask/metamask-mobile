@@ -107,6 +107,14 @@ class AesCryptoTestForm {
     return Matchers.getElementByID(aesCryptoFormButtons.decryptWithKeyButton);
   }
 
+  async scrollUpToGenerateSalt() {
+    await Gestures.scrollToElement(
+      this.generateSaltBytesCountInput,
+      this.scrollViewIdentifier,
+      'up',
+    );
+  }
+
   async scrollUpToGenerateEncryptionKey() {
     await Gestures.scrollToElement(
       this.generateEncryptionKeyPasswordInput,
@@ -144,6 +152,7 @@ class AesCryptoTestForm {
   }
 
   async generateSalt(saltBytesCount: string) {
+    await this.scrollUpToGenerateSalt();
     await Gestures.typeTextAndHideKeyboard(
       this.generateSaltBytesCountInput,
       saltBytesCount,
@@ -152,6 +161,7 @@ class AesCryptoTestForm {
   }
 
   async generateEncryptionKey(password: string, salt: string) {
+    await this.scrollUpToGenerateEncryptionKey();
     await Gestures.typeTextAndHideKeyboard(
       this.generateEncryptionKeyPasswordInput,
       password,
