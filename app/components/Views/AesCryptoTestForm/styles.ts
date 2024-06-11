@@ -1,5 +1,7 @@
 import { StyleSheet } from 'react-native';
 
+import Device from '../../../util/device';
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -24,6 +26,13 @@ const createStyles = (colors: any) =>
       paddingHorizontal: 10,
       backgroundColor: colors.background.alternative,
       borderRadius: 15,
+    },
+    textInput: {
+      borderColor: colors.background.alternative,
+      borderWidth: 2,
+      borderRadius: 50,
+      paddingHorizontal: Device.isAndroid() ? 20 : 10,
+      paddingVertical: Device.isAndroid() ? 0 : 10,
     },
   });
 
