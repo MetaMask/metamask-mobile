@@ -5,10 +5,7 @@ import {
 } from '@metamask/keyring-api';
 import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
-import { v4 as uuid } from 'uuid';
-import { NativeModules } from 'react-native';
 import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
-const Aes = NativeModules.Aes;
 
 export interface Identity {
   name: string;
@@ -16,8 +13,7 @@ export interface Identity {
   lastSelected?: number;
 }
 
-export default async function migrate(stateAsync: unknown) {
-  const state = await stateAsync;
+export default function migrate(state: unknown) {
   if (!isObject(state)) {
     captureException(
       new Error(`Migration 36: Invalid root state: '${typeof state}'`),
@@ -79,7 +75,7 @@ export default async function migrate(stateAsync: unknown) {
     JSON.stringify(state.engine.backgroundState.AccountTrackerController),
   );
   createDefaultAccountsController(state);
-  await createInternalAccountsForAccountsController(state);
+  createInternalAccountsForAccountsController(state);
   createSelectedAccountForAccountsController(state);
   console.log(
     'Migration 36 complete with new state PreferencesController',
@@ -109,7 +105,7 @@ function createDefaultAccountsController(state: Record<string, any>) {
   };
 }
 
-async function createInternalAccountsForAccountsController(
+function createInternalAccountsForAccountsController(
   state: Record<string, any>,
 ) {
   const identities: {

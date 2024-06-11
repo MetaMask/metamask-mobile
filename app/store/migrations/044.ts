@@ -4,9 +4,7 @@ import { ensureValidState } from './util';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { InternalAccount } from '@metamask/keyring-api';
 
-export default async function migrate(stateAsync: unknown) {
-  const state = await stateAsync;
-
+export default function migrate(state: unknown) {
   if (!ensureValidState(state, 41)) {
     return state;
   }

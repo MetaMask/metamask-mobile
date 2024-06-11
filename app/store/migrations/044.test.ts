@@ -225,7 +225,7 @@ describe('Migration #041', () => {
     mockedCaptureException.mockReset();
   });
 
-  it('should merge duplicate accounts and update selected account correctly', async () => {
+  it('should merge duplicate accounts and update selected account correctly', () => {
     const testState = {
       engine: {
         backgroundState: {
@@ -233,7 +233,7 @@ describe('Migration #041', () => {
         },
       },
     };
-    const newState = await migrate(testState);
+    const newState = migrate(testState);
     expect(
       Object.keys(
         newState.engine.backgroundState.AccountsController.internalAccounts
@@ -350,8 +350,8 @@ describe('Migration #041', () => {
     });
   });
 
-  it('should capture exception if state is invalid', async () => {
-    const newState = await migrate({});
+  it('should capture exception if state is invalid', () => {
+    const newState = migrate({});
     expect(newState).toStrictEqual({});
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toBe(
