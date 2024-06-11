@@ -160,7 +160,7 @@ const main = async () => {
       const methodsWithConfirmations = [
         'wallet_requestPermissions',
         // 'eth_requestAccounts', // mobile is missing revokePermissions to reset this to prompt and cancel
-        'wallet_watchAsset',
+        // 'wallet_watchAsset', // ran into some issues with watchAsset on mobile in CI
         'personal_sign', // requires permissions for eth_accounts
         'wallet_addEthereumChain',
         'eth_signTypedData_v4', // requires permissions for eth_accounts
