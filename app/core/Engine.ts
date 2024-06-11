@@ -580,7 +580,10 @@ class Engine {
       },
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
-        allowedActions: [`${approvalController.name}:addRequest`],
+        allowedActions: [
+          `${approvalController.name}:addRequest`,
+          'NetworkController:getNetworkClientById',
+        ],
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
