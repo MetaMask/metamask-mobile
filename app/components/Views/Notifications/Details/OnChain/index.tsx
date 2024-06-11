@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -47,8 +47,6 @@ const OnChainDetails = ({
   navigation,
   copyToClipboard,
 }: OnChainDetailsProps) => {
-  const [notificationDetails, setNotificationDetails] =
-    useState<Record<string, any>>();
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -59,6 +57,10 @@ const OnChainDetails = ({
   }, []);
 
   const sheetRef = useRef<BottomSheetRef>(null);
+
+  const notificationDetails = getRowDetails(
+    notification as Notification,
+  )?.details;
 
   const {
     renderNFT,
@@ -72,12 +74,6 @@ const OnChainDetails = ({
     navigation,
     copyToClipboard,
   });
-
-  useEffect(() => {
-    setNotificationDetails(
-      getRowDetails(notification as Notification)?.details || {},
-    );
-  }, [notification]);
 
   const renderNotificationDetails = useCallback(() => {
     switch (notification.type) {

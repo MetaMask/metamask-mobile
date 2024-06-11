@@ -197,6 +197,7 @@ export function getRowDetails(
           }`,
         },
         details: {
+          type: notification.type,
           stake_in: notification.data.stake_in,
           stake_out: notification.data.stake_out,
           tx_hash: notification.tx_hash,

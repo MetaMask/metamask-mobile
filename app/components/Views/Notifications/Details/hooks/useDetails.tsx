@@ -75,9 +75,8 @@ const useDetails = ({
       actionType: TRIGGER_TYPES;
     }) => {
       const showsAddContact =
-        (actionType.includes('received') && key === 'from') ||
-        (actionType.includes('sent') && key === 'to');
-
+        (actionType?.includes('received') && key === 'from') ||
+        (actionType?.includes('sent') && key === 'to');
       return (
         <View style={styles.row}>
           <Avatar
@@ -236,7 +235,7 @@ const useDetails = ({
   );
 
   const renderAsset = useCallback(
-    ({ type, title, token, network }) => {
+    (type, title, token, network) => {
       const exchangeRate =
         token.address && contractExchangeRates[token.address];
       const balanceFiat = token
@@ -334,12 +333,7 @@ const useDetails = ({
             address: to,
             actionType: type,
           })}
-          {renderAsset({
-            type,
-            title: strings('transaction.asset'),
-            token,
-            network,
-          })}
+          {renderAsset(type, strings('transaction.asset'), token, network)}
           {renderStatus(status, tx_hash)}
           {renderNetwork(network)}
         </>
@@ -352,7 +346,6 @@ const useDetails = ({
     (type, stake_in) => {
       //@ts-expect-error most of this types will be refactored to be using sharedlibrary ones.
       const stakingProvider = STAKING_PROVIDER_MAP[type];
-
       return (
         <View style={styles.row}>
           <RemoteImage
@@ -382,9 +375,8 @@ const useDetails = ({
     (notificationDetails) => {
       const { type, status, tx_hash, stake_in, stake_out, network } =
         notificationDetails as Record<string, any>;
-
       const unstakingInProgress =
-        type.indexOf(TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED) > -1;
+        type?.indexOf(TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED) > -1;
 
       if (unstakingInProgress) {
         return;
@@ -400,18 +392,18 @@ const useDetails = ({
             address: from,
             actionType: type,
           })} */}
-          {renderAsset({
+          {renderAsset(
             type,
-            title: strings('notifications.staked'),
+            strings('notifications.staked'),
             stake_in,
             network,
-          })}
-          {renderAsset({
+          )}
+          {renderAsset(
             type,
-            title: strings('notifications.received'),
+            strings('notifications.received'),
             stake_out,
             network,
-          })}
+          )}
           {renderStatus(status, tx_hash)}
           {renderStakeProvider(type, stake_in)}
         </>
@@ -436,12 +428,12 @@ const useDetails = ({
             actionType: type,
           })} */}
           {renderStatus(status, tx_hash)}
-          {renderAsset({
+          {renderAsset(
             type,
-            title: strings('notifications.unstaking_requested'),
+            strings('notifications.unstaking_requested'),
             staked_eth,
             network,
-          })}
+          )}
           {renderStakeProvider(type, staked_eth)}
         </>
       );
@@ -485,18 +477,8 @@ const useDetails = ({
       // TODO: on next change from API we need to use render the account involved on the swap.
       return (
         <>
-          {renderAsset({
-            type,
-            title: strings('notifications.swap'),
-            token_in,
-            network,
-          })}
-          {renderAsset({
-            type,
-            title: strings('notifications.to'),
-            token_out,
-            network,
-          })}
+          {renderAsset(type, strings('notifications.swap'), token_in, network)}
+          {renderAsset(type, strings('notifications.to'), token_out, network)}
           {renderStatus(status, tx_hash)}
           {renderRate(rate)}
           {renderNetwork(network)}
