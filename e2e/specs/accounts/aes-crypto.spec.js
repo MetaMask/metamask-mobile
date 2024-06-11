@@ -53,13 +53,13 @@ describe(SmokeAccounts('AES Crypto'), () => {
     let currentSalt;
     let previousSalt;
 
-    // First it validates that the first salt is create correctly
+    // Validate that the first generated salt is created correctly
     currentSalt = await AesCryptoTestForm.generateSalt(
       SALT_BYTES_COUNT.toString(),
     );
     await expect(await AesCryptoTestForm.generateSaltResponse).toExist();
 
-    // Then it validates that the next salts are different
+    // Validate that subsequent salts are different from the previous ones
     for (let count = 0; count < 5; count++) {
       previousSalt = currentSalt;
       currentSalt = await AesCryptoTestForm.generateSalt(
