@@ -68,6 +68,11 @@ describe('Ledger core', () => {
     mockKeyringController.signTypedMessage.mockResolvedValue('signature');
   });
 
+  const mockUpdateIdentities = jest.fn();
+  Engine.context.PreferencesController = {
+    updateIdentities: mockUpdateIdentities,
+  };
+
   describe('addLedgerKeyring', () => {
     it('should call addNewKeyring from keyring controller', async () => {
       addLedgerKeyring();
@@ -172,9 +177,14 @@ describe('Ledger core', () => {
     it('should call keyring.forgetDevice', async () => {
       await forgetLedger();
       expect(ledgerKeyring.forgetDevice).toHaveBeenCalled();
-      expect(
-        MockEngine.context.KeyringController.persistAllKeyrings,
-      ).toHaveBeenCalled();
+      expect(ledgerKeyring.mockGetAccounts).toHaveBeenCalled();
+      expect(ledgerKeyring.mockPersistAllKeyrings).toHaveBeenCalled();
+      ledgerKeyring.mockGetAccounts.mockReturnValue([
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+      ]);
+      expect(mockUpdateIdentities).toBeCalledWith([
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+      ]);
     });
   });
 

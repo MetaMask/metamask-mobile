@@ -96,12 +96,13 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  * Forgets the ledger keyring's previous device specific state.
  */
 export const forgetLedger = async (): Promise<void> => {
-  const { KeyringController } = Engine.context;
+  const { KeyringController, PreferencesController } = Engine.context;
 
   const keyring = await getLedgerKeyring();
   keyring.forgetDevice();
 
   await KeyringController.persistAllKeyrings();
+  PreferencesController.updateIdentities(await KeyringController.getAccounts());
 };
 
 /**

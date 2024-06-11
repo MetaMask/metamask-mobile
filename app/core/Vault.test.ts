@@ -13,6 +13,9 @@ jest.mock('./Engine', () => ({
       persistAllKeyrings: jest.fn(),
       getAccounts: jest.fn().mockReturnValue(['account']),
     },
+    PreferencesController: {
+      updateIdentities: jest.fn(),
+    },
   },
 }));
 const MockEngine = jest.mocked(Engine);
@@ -66,7 +69,7 @@ describe('Vault', () => {
 
   describe('restoreLedgerKeyring', () => {
     it('should restore ledger keyring if it exists', async () => {
-      const { KeyringController } = MockEngine.context;
+      const { KeyringController, PreferencesController } = Engine.context;
 
       const mockSerialisedKeyring = jest.fn();
       const mockDeserializedKeyring = jest.fn();
@@ -79,6 +82,8 @@ describe('Vault', () => {
       expect(getLedgerKeyring).toHaveBeenCalled();
       expect(mockDeserializedKeyring).toHaveBeenCalled();
       expect(KeyringController.persistAllKeyrings).toHaveBeenCalled();
+      expect(KeyringController.getAccounts).toHaveBeenCalled();
+      expect(PreferencesController.updateIdentities).toHaveBeenCalled();
     });
 
     it('should not restore ledger keyring if it does not exist', async () => {

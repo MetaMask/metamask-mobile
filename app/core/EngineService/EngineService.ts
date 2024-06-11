@@ -55,10 +55,7 @@ class EngineService {
         name: 'PhishingController',
         key: `${engine.context.PhishingController.name}:maybeUpdateState`,
       },
-      {
-        name: 'PreferencesController',
-        key: `${engine.context.PreferencesController.name}:stateChange`,
-      },
+      { name: 'PreferencesController' },
       { name: 'TokenBalancesController' },
       { name: 'TokenRatesController' },
       { name: 'TransactionController' },
