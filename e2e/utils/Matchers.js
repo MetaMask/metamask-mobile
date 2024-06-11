@@ -74,9 +74,12 @@ class Matchers {
   }
 
   /**
+   * Get Native WebView instance by elementId
    *
-   * TODO: add method comment
-   *
+   *  Because Android Webview might have more that one WebView instance present on the main activity, the correct element
+   *  is select based on its parent element id.
+   *  @param {string} elementId The web ID of the browser webview
+   *  @returns {Detox.WebViewElement} WebView element
    */
   static getWebViewByID(elementId) {
     return device.getPlatform() === 'ios'
