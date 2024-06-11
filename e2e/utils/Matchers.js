@@ -74,18 +74,29 @@ class Matchers {
   }
 
   /**
+   * Get Native WebView instance by elementId
+   *
+   * Because Android Webview might have more that one WebView instance present on the main activity, the correct element
+   * is select based on its parent element id.
+   * @param {string} elementId The web ID of the browser webview
+   * @returns {Detox.WebViewElement} WebView element
+   */
+  static getWebViewByID(elementId) {
+    return device.getPlatform() === 'ios'
+      ? web(by.id(elementId))
+      : web(by.type('android.webkit.WebView').withAncestor(by.id(elementId)));
+  }
+
+  /**
    * Get element by web ID.
    *
-   *  @param {string} innerID - The web ID of the browser webview
+   * @param {string} webviewID - The web ID of the inner element to locate within the webview
+   * @param {string} innerID - The web ID of the browser webview
    * @return {Promise<Detox.IndexableWebElement>} Resolves to the located element
    */
-  static async getElementByWebID(innerID) {
-    if ((await device.getPlatform()) === 'android') {
-      return web.element(by.web.id(innerID));
-    } else if ((await device.getPlatform()) === 'ios') {
-      const myWebView = web(by.id('browser-webview'));
-      return myWebView.element(by.web.id(innerID));
-    }
+  static async getElementByWebID(webviewID, innerID) {
+    const myWebView = this.getWebViewByID(webviewID);
+    return myWebView.element(by.web.id(innerID));
   }
 
   /**
@@ -95,8 +106,9 @@ class Matchers {
    * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
    */
 
-  static async getElementByCSS(selector) {
-    return web.element(by.web.cssSelector(selector));
+  static async getElementByCSS(webviewID, selector) {
+    const myWebView = web(by.id(webviewID));
+    return myWebView.element(by.web.cssSelector(selector)).atIndex(0);
   }
 
   /**
@@ -105,16 +117,19 @@ class Matchers {
    * @param {string} xpath - XPath expression to locate the element
    * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
    */
-  static async getElementByXPath(xpath) {
-    return web.element(by.web.xpath(xpath)).atIndex(0);
+  static async getElementByXPath(webviewID, xpath) {
+    const myWebView = this.getWebViewByID(webviewID);
+    return myWebView.element(by.web.xpath(xpath));
   }
   /**
    * Get element by href.
+   * @param {string} webviewID - The web ID of the browser webview
    * @param {string} xpath - XPath expression to locate the element
    * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
    */
-  static async getElementByHref(url) {
-    return web.element(by.web.href(url)).atIndex(0);
+  static async getElementByHref(webviewID, url) {
+    const myWebView = web(by.id(webviewID));
+    return myWebView.element(by.web.href(url)).atIndex(0);
   }
 
   /**
