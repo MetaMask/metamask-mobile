@@ -10,8 +10,12 @@ const { getDefaultConfig } = require('metro-config');
 
 module.exports = (async () => {
   const {
-    resolver: { sourceExts, assetExts },
+    resolver: { sourceExts: defaultSourceExts, assetExts },
   } = await getDefaultConfig();
+  const exts = [...defaultSourceExts, 'svg', 'cjs'];
+  const sourceExts = process.env.IS_TEST
+    ? ['mock.ts', 'mock.js', ...exts]
+    : exts;
   return {
     transformer: {
       getTransformOptions: async () => ({
@@ -33,7 +37,8 @@ module.exports = (async () => {
     },
     resolver: {
       assetExts: assetExts.filter((ext) => ext !== 'svg'),
-      sourceExts: [...sourceExts, 'svg', 'cjs'],
+      // sourceExts: [...sourceExts, 'svg', 'cjs'],
+      sourceExts,
       resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
     },
     maxWorkers: 2,

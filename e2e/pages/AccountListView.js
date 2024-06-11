@@ -21,6 +21,12 @@ export default class AccountListView {
     await TestHelpers.tapByText(AccountListViewSelectorsText.IMPORT_ACCOUNT);
   }
 
+  static async tapAddHardwareWalletButton() {
+    await TestHelpers.tapByText(
+      AccountListViewSelectorsText.ADD_HARDWARE_WALLET,
+    );
+  }
+
   static async tapCreateAccountButton() {
     await TestHelpers.tapByText(AccountListViewSelectorsText.CREATE_ACCOUNT);
   }

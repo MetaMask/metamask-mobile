@@ -5,11 +5,13 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import {
   Image,
+  Platform,
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
+import type LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 import { strings } from '../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -25,7 +27,11 @@ import {
 } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
-import type LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import {
+  LEDGER_BUTTON,
+  QR_BASED_BUTTON,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/SelectHardwareWalletView.testIds';
 
 const createStyle = (colors: any) =>
   StyleSheet.create({
@@ -126,15 +132,23 @@ const SelectHardwareWallet = () => {
     }
   };
 
-  const renderHardwareButton = (image: any, onPress: any) => (
-    <TouchableOpacity onPress={onPress} style={styles.hardwareButton}>
+  const renderHardwareButton = (image: any, onPress: any, testId?: string) => (
+    <TouchableOpacity
+      onPress={onPress}
+      style={styles.hardwareButton}
+      {...(testId && generateTestId(Platform, testId))}
+    >
       <Image style={styles.image} source={image} resizeMode={'contain'} />
     </TouchableOpacity>
   );
 
   const LedgerButton = () => {
     const ledgerLogo = useAssetFromTheme(ledgerLogoLight, ledgerLogoDark);
-    return renderHardwareButton(ledgerLogo, navigateToConnectLedger);
+    return renderHardwareButton(
+      ledgerLogo,
+      navigateToConnectLedger,
+      LEDGER_BUTTON,
+    );
   };
 
   const QRButton = () => {
@@ -142,7 +156,11 @@ const SelectHardwareWallet = () => {
       qrHardwareLogoLight,
       qrHardwareLogoDark,
     );
-    return renderHardwareButton(qrHardwareLogo, navigateToConnectQRWallet);
+    return renderHardwareButton(
+      qrHardwareLogo,
+      navigateToConnectQRWallet,
+      QR_BASED_BUTTON,
+    );
   };
 
   return (

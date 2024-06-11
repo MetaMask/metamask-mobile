@@ -61,9 +61,19 @@ const useBluetoothDevices = (
   }, [hasBluetoothPermissions, bluetoothOn]);
 
   return {
-    deviceScanError,
+    deviceScanError: true,
     devices: Object.values(devices),
   };
 };
 
 export default useBluetoothDevices;
+
+// export default () => ({
+//   deviceScanError: false,
+//   devices: [
+//     {
+//       id: 'foo',
+//       name: 'bar',
+//     },
+//   ],
+// });

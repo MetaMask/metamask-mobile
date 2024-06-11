@@ -5,4 +5,5 @@ export const AccountListViewSelectorsText = {
   REMOVE_IMPORTED_ACCOUNT: enContent.accounts.yes_remove_it,
   IMPORT_ACCOUNT: enContent.account_actions.import_account,
   CREATE_ACCOUNT: enContent.account_actions.add_new_account,
+  ADD_HARDWARE_WALLET: enContent.account_actions.add_hardware_wallet,
 };
