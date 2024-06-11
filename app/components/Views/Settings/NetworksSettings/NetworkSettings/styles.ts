@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { isNetworkUiRedesignEnabled } from '../../../../../util/networks';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -12,7 +11,7 @@ const createStyles = () =>
     popularNetworkImage: {
       width: 20,
       height: 20,
-      marginRight: isNetworkUiRedesignEnabled ? 20 : 10,
+      marginRight: 10,
       borderRadius: 10,
     },
     popularWrapper: {
