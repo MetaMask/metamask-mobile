@@ -417,6 +417,7 @@ describe('getRpcMethodMiddleware', () => {
       permissionController.createPermissionMiddleware({
         origin: hostMock,
       });
+    // @ts-expect-error JsonRpcId (number | string | void) doesn't match PS middleware's id, which is (string | number | null)
     engine.push(permissionMiddleware);
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
     engine.push(middleware);
