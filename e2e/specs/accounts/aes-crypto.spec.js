@@ -1,5 +1,6 @@
 import { SmokeAccounts } from '../../tags';
 import TestHelpers from '../../helpers';
+import Assertions from '../../utils/Assertions';
 
 import TabBarComponent from '../../pages/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -57,7 +58,7 @@ describe(SmokeAccounts('AES Crypto'), () => {
     currentSalt = await AesCryptoTestForm.generateSalt(
       SALT_BYTES_COUNT.toString(),
     );
-    await expect(await AesCryptoTestForm.generateSaltResponse).toExist();
+    await Assertions.checkIfVisible(AesCryptoTestForm.generateSaltResponse);
 
     // Validate that subsequent salts are different from the previous ones
     for (let count = 0; count < 5; count++) {
@@ -65,9 +66,10 @@ describe(SmokeAccounts('AES Crypto'), () => {
       currentSalt = await AesCryptoTestForm.generateSalt(
         SALT_BYTES_COUNT.toString(),
       );
-      await expect(
-        await AesCryptoTestForm.generateSaltResponse,
-      ).not.toHaveLabel(previousSalt);
+      await Assertions.checkIfElementDoesNotHaveLabel(
+        AesCryptoTestForm.generateSaltResponse,
+        previousSalt,
+      );
     }
   });
 
@@ -75,14 +77,16 @@ describe(SmokeAccounts('AES Crypto'), () => {
     // encrypt and decrypt with password first piece of data
     await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_ONE, PASSWORD_ONE);
     await AesCryptoTestForm.decrypt(PASSWORD_ONE);
-    await expect(await AesCryptoTestForm.decryptResponse).toHaveLabel(
+    await Assertions.checkIfElementHasLabel(
+      AesCryptoTestForm.decryptResponse,
       DATA_TO_ENCRYPT_ONE,
     );
 
     // encrypt and decrypt with password second piece of data
     await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_TWO, PASSWORD_TWO);
     await AesCryptoTestForm.decrypt(PASSWORD_TWO);
-    await expect(await AesCryptoTestForm.decryptResponse).toHaveLabel(
+    await Assertions.checkIfElementHasLabel(
+      AesCryptoTestForm.decryptResponse,
       DATA_TO_ENCRYPT_TWO,
     );
   });
@@ -100,7 +104,8 @@ describe(SmokeAccounts('AES Crypto'), () => {
     // encrypt and decrypt with password first piece of data
     await AesCryptoTestForm.encryptWithKey(encryptionKey, DATA_TO_ENCRYPT_ONE);
     await AesCryptoTestForm.decryptWithKey(encryptionKey);
-    await expect(await AesCryptoTestForm.decryptWithKeyResponse).toHaveLabel(
+    await Assertions.checkIfElementHasLabel(
+      AesCryptoTestForm.decryptWithKeyResponse,
       DATA_TO_ENCRYPT_ONE,
     );
 
@@ -113,7 +118,8 @@ describe(SmokeAccounts('AES Crypto'), () => {
     );
     await AesCryptoTestForm.encryptWithKey(encryptionKey, DATA_TO_ENCRYPT_TWO);
     await AesCryptoTestForm.decryptWithKey(encryptionKey);
-    await expect(await AesCryptoTestForm.decryptWithKeyResponse).toHaveLabel(
+    await Assertions.checkIfElementHasLabel(
+      AesCryptoTestForm.decryptWithKeyResponse,
       DATA_TO_ENCRYPT_TWO,
     );
   });
