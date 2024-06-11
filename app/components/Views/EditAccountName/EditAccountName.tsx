@@ -95,10 +95,8 @@ const EditAccountName = () => {
       selectedInternalAccount?.address
     ) {
       Engine.setAccountLabel(selectedInternalAccount?.address, accountName);
-      console.log('Account name updated', accountName);
       navigate('WalletView');
 
-      console.log('after Account name updated', accountName);
       try {
         const analyticsProperties = async () => {
           const accountType = getAddressAccountType(
