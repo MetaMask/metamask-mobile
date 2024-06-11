@@ -22,7 +22,6 @@ import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
 } from '../../../selectors/accountsController';
-import Engine from '../../../core/Engine';
 
 // Internal dependencies
 import {
@@ -52,20 +51,6 @@ const useAccounts = ({
   const ticker = useSelector(selectTicker);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-
-  console.log(
-    'Accounts/ accounts controller',
-    JSON.stringify(Engine.context.AccountsController.state, null, 2),
-  );
-  console.log(
-    'Accounts/ preferences controller',
-    JSON.stringify(Engine.context.PreferencesController.state, null, 2),
-  );
-
-  console.log(
-    'Accounts/ keyring controller',
-    JSON.stringify(Engine.context.KeyringController.state, null, 2),
-  );
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,

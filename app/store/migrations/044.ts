@@ -1,7 +1,10 @@
 import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
-import { AccountsControllerState } from '@metamask/accounts-controller';
+import {
+  AccountsControllerState,
+  getUUIDFromAddressOfNormalAccount,
+} from '@metamask/accounts-controller';
 import { InternalAccount } from '@metamask/keyring-api';
 
 export default function migrate(state: unknown) {
@@ -34,7 +37,6 @@ export default function migrate(state: unknown) {
     return state;
   }
   mergeInternalAccounts(state);
-
   return state;
 }
 
@@ -44,10 +46,13 @@ function mergeInternalAccounts(state: Record<string, any>) {
   const internalAccounts = accountsController.internalAccounts.accounts;
   const selectedAccount = accountsController.internalAccounts.selectedAccount;
 
+  const selectedAddress =
+    internalAccounts[selectedAccount]?.address.toLowerCase();
+
   const mergedAccounts: Record<string, InternalAccount> = {};
   const addressMap: Record<string, string> = {};
 
-  for (const [id, account] of Object.entries(internalAccounts)) {
+  for (const [, account] of Object.entries(internalAccounts)) {
     const lowerCaseAddress = account.address.toLowerCase();
     if (addressMap[lowerCaseAddress]) {
       const existingAccount = mergedAccounts[addressMap[lowerCaseAddress]];
@@ -60,17 +65,17 @@ function mergeInternalAccounts(state: Record<string, any>) {
         new Set([...existingAccount.methods, ...account.methods]),
       );
     } else {
-      addressMap[lowerCaseAddress] = id;
-      mergedAccounts[id] = {
+      const newId = getUUIDFromAddressOfNormalAccount(lowerCaseAddress);
+      addressMap[lowerCaseAddress] = newId;
+      mergedAccounts[newId] = {
         ...account,
         address: lowerCaseAddress,
+        id: newId,
       };
     }
   }
 
-  const selectedAddress =
-    internalAccounts[selectedAccount].address.toLowerCase();
-  const newSelectedAccount = addressMap[selectedAddress];
+  const newSelectedAccount = addressMap[selectedAddress] || selectedAccount;
 
   accountsController.internalAccounts.accounts = mergedAccounts;
   accountsController.internalAccounts.selectedAccount = newSelectedAccount;
