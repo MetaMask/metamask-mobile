@@ -89,7 +89,7 @@ const CustomNetwork = ({
                 }
               />
             </View>
-            <CustomText bold={isNetworkUiRedesignEnabled ? false : true}>
+            <CustomText bold={!isNetworkUiRedesignEnabled}>
               {networkConfiguration.nickname}
             </CustomText>
           </View>
