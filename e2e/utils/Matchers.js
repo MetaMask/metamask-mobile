@@ -108,7 +108,7 @@ class Matchers {
       device.getPlatform() === 'ios'
         ? web(by.id(webviewID))
         : web(by.type('android.webkit.WebView').withAncestor(by.id(webviewID)));
-    return myWebView.element(by.web.xpath(xpath)).atIndex(0);
+    return myWebView.element(by.web.xpath(xpath));
   }
   /**
    * Get element by href.
