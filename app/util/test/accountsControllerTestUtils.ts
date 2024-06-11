@@ -1,16 +1,8 @@
-import { v4 as uuidV4 } from 'uuid';
 import { EthMethod, InternalAccount } from '@metamask/keyring-api';
-import { AccountsControllerState } from '@metamask/accounts-controller';
-
-export function createMockUuidFromAddress(address: string): string {
-  const fakeShaFromAddress = Array.from(
-    { length: 16 },
-    (_, i) => address.charCodeAt(i) || 0,
-  );
-  return uuidV4({
-    random: fakeShaFromAddress,
-  });
-}
+import {
+  AccountsControllerState,
+  getUUIDFromAddressOfNormalAccount,
+} from '@metamask/accounts-controller';
 
 export function createMockInternalAccount(
   address: string,
@@ -18,7 +10,7 @@ export function createMockInternalAccount(
 ): InternalAccount {
   return {
     address,
-    id: createMockUuidFromAddress(address),
+    id: getUUIDFromAddressOfNormalAccount(address),
     metadata: {
       name: nickname,
       keyring: {
@@ -43,10 +35,10 @@ export const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 export const MOCK_ADDRESS_2 = '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756';
 
 // Convert the addresses to lower case to test the edge case between lowercase vs checksummed addresses.
-export const expectedUuid = createMockUuidFromAddress(
+export const expectedUuid = getUUIDFromAddressOfNormalAccount(
   MOCK_ADDRESS_1.toLowerCase(),
 );
-export const expectedUuid2 = createMockUuidFromAddress(
+export const expectedUuid2 = getUUIDFromAddressOfNormalAccount(
   MOCK_ADDRESS_2.toLowerCase(),
 );
 
@@ -80,7 +72,7 @@ export function createMockAccountsControllerState(
 
   const accounts: { [uuid: string]: InternalAccount } = {};
   addresses.forEach((address, index) => {
-    const uuid = createMockUuidFromAddress(address.toLowerCase());
+    const uuid = getUUIDFromAddressOfNormalAccount(address.toLowerCase());
     accounts[uuid] = createMockInternalAccount(
       address.toLowerCase(),
       `Account ${index + 1}`,
@@ -89,8 +81,8 @@ export function createMockAccountsControllerState(
 
   const selectedAccount =
     selectedAddress && addresses.includes(selectedAddress)
-      ? createMockUuidFromAddress(selectedAddress.toLowerCase())
-      : createMockUuidFromAddress(addresses[0].toLowerCase());
+      ? getUUIDFromAddressOfNormalAccount(selectedAddress.toLowerCase())
+      : getUUIDFromAddressOfNormalAccount(addresses[0].toLowerCase());
 
   return {
     internalAccounts: {
