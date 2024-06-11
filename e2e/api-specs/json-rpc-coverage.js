@@ -72,6 +72,22 @@ const main = async () => {
     },
   ];
 
+  const blockNumber = openrpcDocument.methods.find(
+    (m) => m.name === 'eth_blockNumber',
+  );
+
+  blockNumber.examples = [
+    {
+      name: 'blockNumberExample',
+      description: 'Example of a blockNumber request',
+      params: [],
+      result: {
+        name: 'blockNumberResult',
+        value: '0x1',
+      },
+    },
+  ];
+
   // just update address for signTypedData
   signTypedData4.examples[0].params[0].value =
     '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
