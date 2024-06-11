@@ -122,110 +122,104 @@ const AesCryptoTestForm = () => {
   return (
     <ScrollView testID={aesCryptoFormScrollIdentifier}>
       <SafeAreaView style={styles.container}>
-        {encryptor && (
-          <>
-            <TestForm
-              title="Generate salt"
-              buttonLabel="Generate"
-              textFields={[
-                {
-                  placeholder: 'Salt bytes count',
-                  testId: aesCryptoFormInputs.saltBytesCountInput,
-                },
-              ]}
-              callback={generateSalt}
-              callbackTestId={aesCryptoFormButtons.generateSaltButton}
-              responseTestId={aesCryptoFormResponses.saltResponse}
-              styles={{ ...styles }}
-            />
-            <TestForm
-              title="Generate encryption key from password"
-              buttonLabel="Generate"
-              textFields={[
-                {
-                  placeholder: 'Password',
-                  testId: aesCryptoFormInputs.passwordInput,
-                },
-                {
-                  placeholder: 'Salt',
-                  testId: aesCryptoFormInputs.saltInputForEncryptionKey,
-                },
-              ]}
-              callback={generateEncryptionKey}
-              callbackTestId={aesCryptoFormButtons.generateEncryptionKeyButton}
-              responseTestId={
-                aesCryptoFormResponses.generateEncryptionKeyResponse
-              }
-              styles={{ ...styles }}
-            />
-            <TestForm
-              title="Encrypt"
-              buttonLabel="Encrypt"
-              textFields={[
-                {
-                  placeholder: 'Data',
-                  testId: aesCryptoFormInputs.dataInputForEncryption,
-                },
-                {
-                  placeholder: 'Password',
-                  testId: aesCryptoFormInputs.passwordInputForEncryption,
-                },
-              ]}
-              callback={encrypt}
-              callbackTestId={aesCryptoFormButtons.encryptButton}
-              responseTestId={aesCryptoFormResponses.encryptionResponse}
-              styles={{ ...styles }}
-            />
-            <TestForm
-              title="Decrypt"
-              buttonLabel="Decrypt"
-              textFields={[
-                {
-                  placeholder: 'Password',
-                  testId: aesCryptoFormInputs.passwordInputForDecryption,
-                },
-              ]}
-              callback={decrypt}
-              callbackTestId={aesCryptoFormButtons.decryptButton}
-              responseTestId={aesCryptoFormResponses.decryptionResponse}
-              styles={{ ...styles }}
-            />
-            <TestForm
-              title="Encrypt with key"
-              buttonLabel="Encrypt"
-              textFields={[
-                {
-                  placeholder: 'Encryption Key',
-                  testId:
-                    aesCryptoFormInputs.encryptionKeyInputForEncryptionWithKey,
-                },
-                {
-                  placeholder: 'Data',
-                  testId: aesCryptoFormInputs.dataInputForEncryptionWithKey,
-                },
-              ]}
-              callback={encryptWithKey}
-              callbackTestId={aesCryptoFormButtons.encryptWithKeyButton}
-              responseTestId={aesCryptoFormResponses.encryptionWithKeyResponse}
-              styles={{ ...styles }}
-            />
-            <TestForm
-              title="Decrypt with key"
-              buttonLabel="Decrypt"
-              textFields={[
-                {
-                  placeholder: 'Encryption Key',
-                  testId:
-                    aesCryptoFormInputs.encryptionKeyInputForDecryptionWithKey,
-                },
-              ]}
-              callback={decryptWithKey}
-              callbackTestId={aesCryptoFormButtons.decryptWithKeyButton}
-              responseTestId={aesCryptoFormResponses.decryptionWithKeyResponse}
-              styles={{ ...styles }}
-            />
-          </>
-        )}
+        <TestForm
+          title="Generate salt"
+          buttonLabel="Generate"
+          textFields={[
+            {
+              placeholder: 'Salt bytes count',
+              testId: aesCryptoFormInputs.saltBytesCountInput,
+            },
+          ]}
+          callback={generateSalt}
+          callbackTestId={aesCryptoFormButtons.generateSaltButton}
+          responseTestId={aesCryptoFormResponses.saltResponse}
+          styles={{ ...styles }}
+        />
+        <TestForm
+          title="Generate encryption key from password"
+          buttonLabel="Generate"
+          textFields={[
+            {
+              placeholder: 'Password',
+              testId: aesCryptoFormInputs.passwordInput,
+            },
+            {
+              placeholder: 'Salt',
+              testId: aesCryptoFormInputs.saltInputForEncryptionKey,
+            },
+          ]}
+          callback={generateEncryptionKey}
+          callbackTestId={aesCryptoFormButtons.generateEncryptionKeyButton}
+          responseTestId={aesCryptoFormResponses.generateEncryptionKeyResponse}
+          styles={{ ...styles }}
+        />
+        <TestForm
+          title="Encrypt"
+          buttonLabel="Encrypt"
+          textFields={[
+            {
+              placeholder: 'Data',
+              testId: aesCryptoFormInputs.dataInputForEncryption,
+            },
+            {
+              placeholder: 'Password',
+              testId: aesCryptoFormInputs.passwordInputForEncryption,
+            },
+          ]}
+          callback={encrypt}
+          callbackTestId={aesCryptoFormButtons.encryptButton}
+          responseTestId={aesCryptoFormResponses.encryptionResponse}
+          styles={{ ...styles }}
+        />
+        <TestForm
+          title="Decrypt"
+          buttonLabel="Decrypt"
+          textFields={[
+            {
+              placeholder: 'Password',
+              testId: aesCryptoFormInputs.passwordInputForDecryption,
+            },
+          ]}
+          callback={decrypt}
+          callbackTestId={aesCryptoFormButtons.decryptButton}
+          responseTestId={aesCryptoFormResponses.decryptionResponse}
+          styles={{ ...styles }}
+        />
+        <TestForm
+          title="Encrypt with key"
+          buttonLabel="Encrypt"
+          textFields={[
+            {
+              placeholder: 'Encryption Key',
+              testId:
+                aesCryptoFormInputs.encryptionKeyInputForEncryptionWithKey,
+            },
+            {
+              placeholder: 'Data',
+              testId: aesCryptoFormInputs.dataInputForEncryptionWithKey,
+            },
+          ]}
+          callback={encryptWithKey}
+          callbackTestId={aesCryptoFormButtons.encryptWithKeyButton}
+          responseTestId={aesCryptoFormResponses.encryptionWithKeyResponse}
+          styles={{ ...styles }}
+        />
+        <TestForm
+          title="Decrypt with key"
+          buttonLabel="Decrypt"
+          textFields={[
+            {
+              placeholder: 'Encryption Key',
+              testId:
+                aesCryptoFormInputs.encryptionKeyInputForDecryptionWithKey,
+            },
+          ]}
+          callback={decryptWithKey}
+          callbackTestId={aesCryptoFormButtons.decryptWithKeyButton}
+          responseTestId={aesCryptoFormResponses.decryptionWithKeyResponse}
+          styles={{ ...styles }}
+        />
       </SafeAreaView>
     </ScrollView>
   );
