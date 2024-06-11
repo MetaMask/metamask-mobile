@@ -7,6 +7,7 @@ import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { v4 as uuid } from 'uuid';
 import { NativeModules } from 'react-native';
+import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
 const Aes = NativeModules.Aes;
 
 export interface Identity {
@@ -72,13 +73,6 @@ export default async function migrate(stateAsync: unknown) {
   return state;
 }
 
-export const sha256FromAddress = async (
-  address: string,
-): Promise<ArrayLike<number>> => {
-  const sha256: string = await Aes.sha256(address);
-  return Buffer.from(sha256).slice(0, 16);
-};
-
 function createDefaultAccountsController(state: Record<string, any>) {
   state.engine.backgroundState.AccountsController = {
     internalAccounts: {
@@ -105,9 +99,8 @@ async function createInternalAccountsForAccountsController(
   const accounts: Record<string, InternalAccount> = {};
 
   for (const identity of Object.values(identities)) {
-    const expectedId = uuid({
-      random: await sha256FromAddress(identity.address),
-    });
+    const lowerCaseAddress = identity.address.toLocaleLowerCase();
+    const expectedId = getUUIDFromAddressOfNormalAccount(lowerCaseAddress);
 
     accounts[expectedId] = {
       address: identity.address,

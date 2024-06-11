@@ -1,7 +1,7 @@
-import { v4 as uuid } from 'uuid';
 import { EthMethod, InternalAccount } from '@metamask/keyring-api';
-import migrate, { sha256FromAddress, Identity } from './036';
+import migrate, { Identity } from './036';
 import { captureException } from '@sentry/react-native';
+import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -12,9 +12,7 @@ const MOCK_ADDRESS = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
 
 async function addressToUUID(address: string): Promise<string> {
-  return uuid({
-    random: await sha256FromAddress(address),
-  });
+  return getUUIDFromAddressOfNormalAccount(address);
 }
 
 interface Identities {
