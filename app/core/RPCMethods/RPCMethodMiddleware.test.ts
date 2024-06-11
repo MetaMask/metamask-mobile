@@ -1036,7 +1036,7 @@ describe('getRpcMethodMiddleware', () => {
         params: [mockTransactionParameters],
       };
       const expectedError = rpcErrors.internal('Internal JSON-RPC error.');
-      const expectedErrorCauseMessage = 'Failed to add transaction';
+      const expectedErrorCauseMessage = 'Failed to process transaction';
 
       const response = await callMiddleware({ middleware, request });
 
