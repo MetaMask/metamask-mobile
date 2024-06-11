@@ -9,7 +9,9 @@ import Gestures from '../../utils/Gestures';
 
 class AesCryptoTestForm {
   withOsCondition(identifier: string) {
-    return device.getPlatform() === 'ios' ? Matchers.getElementByID(identifier) : Matchers.getElementByLabel(identifier);
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(identifier)
+      : Matchers.getElementByLabel(identifier);
   }
 
   get scrollViewIdentifier() {
@@ -32,9 +34,7 @@ class AesCryptoTestForm {
     return this.withOsCondition(aesCryptoFormInputs.passwordInput);
   }
   get generateEncryptionKeySaltInput() {
-    return this.withOsCondition(
-      aesCryptoFormInputs.saltInputForEncryptionKey,
-    );
+    return this.withOsCondition(aesCryptoFormInputs.saltInputForEncryptionKey);
   }
   get generateEncryptionKeyResponse() {
     return this.withOsCondition(
@@ -52,9 +52,7 @@ class AesCryptoTestForm {
     return this.withOsCondition(aesCryptoFormInputs.dataInputForEncryption);
   }
   get encryptPasswordInput() {
-    return this.withOsCondition(
-      aesCryptoFormInputs.passwordInputForEncryption,
-    );
+    return this.withOsCondition(aesCryptoFormInputs.passwordInputForEncryption);
   }
   get encryptResponse() {
     return this.withOsCondition(aesCryptoFormResponses.encryptionResponse);
@@ -65,9 +63,7 @@ class AesCryptoTestForm {
 
   // Decrypt getters
   get decryptPasswordInput() {
-    return this.withOsCondition(
-      aesCryptoFormInputs.passwordInputForDecryption,
-    );
+    return this.withOsCondition(aesCryptoFormInputs.passwordInputForDecryption);
   }
   get decryptResponse() {
     return this.withOsCondition(aesCryptoFormResponses.decryptionResponse);
@@ -156,7 +152,7 @@ class AesCryptoTestForm {
   }
 
   async generateSalt(saltBytesCount: string) {
-    await this.scrollUpToGenerateSalt()
+    await this.scrollUpToGenerateSalt();
     await Gestures.typeTextAndHideKeyboard(
       this.generateSaltBytesCountInput,
       saltBytesCount,
