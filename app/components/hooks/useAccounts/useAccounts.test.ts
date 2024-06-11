@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumAddress } from 'ethereumjs-util';
 import useAccounts from './useAccounts';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
 
@@ -41,7 +41,7 @@ const MOCK_STORE_STATE = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
         accounts: {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SDKSessionAccountListItem from './SDKSessionAccountListItem';
 
@@ -8,7 +8,7 @@ const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {

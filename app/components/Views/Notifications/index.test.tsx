@@ -4,7 +4,7 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsView from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import MOCK_NOTIFICATIONS from '../../../components/UI/Notification/__mocks__/mock_notifications';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockInitialState = {
   settings: {
@@ -15,7 +15,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
     },
   },
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 import BlockaidSettings from './BlockaidSettings';
 
@@ -11,7 +11,7 @@ const initialState = {
   settings: { lockTime: 1000 },
   user: { passwordSet: true },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
   security: {},
 };

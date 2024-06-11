@@ -319,7 +319,7 @@ describe('CollectibleContracts', () => {
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
             network: '1',
             providerConfig: {
@@ -443,7 +443,7 @@ describe('CollectibleContracts', () => {
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
             network: '1',
             providerConfig: {

@@ -2,7 +2,7 @@ import React from 'react';
 import useFiatFormatter from './useFiatFormatter';
 
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 
 import { IndividualFiatDisplay, TotalFiatDisplay } from './FiatDisplay';
 import { FIAT_UNAVAILABLE } from '../types';
@@ -12,7 +12,7 @@ jest.mock('./useFiatFormatter');
 
 const mockInitialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 
