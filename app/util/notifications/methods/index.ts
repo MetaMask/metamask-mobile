@@ -35,7 +35,7 @@ interface ViewOnEtherscanProps {
   close?: () => void;
 }
 
-interface NotificationRowProps {
+export interface NotificationRowProps {
   row: {
     title: string;
     createdAt: string;
@@ -122,19 +122,18 @@ export function formatDate(createdAt: Date) {
   if (isYesterday) {
     return 'Yesterday';
   }
-
-  if (date.getFullYear() === now.getFullYear()) {
-    const options: Intl.DateTimeFormatOptions = {
-      month: 'short',
-      day: 'numeric',
-    };
-    return date.toLocaleDateString(undefined, options);
-  }
-
-  return date.toLocaleDateString('default', {
+  const options: Intl.DateTimeFormatOptions = {
     month: 'short',
     day: 'numeric',
-  });
+  };
+
+  const month = strings(`date.months.${date.getMonth()}`);
+  const day = date.getDate();
+  if (date.getFullYear() === now.getFullYear()) {
+    return date.toLocaleDateString('default', options);
+  }
+
+  return `${month} ${day}`;
 }
 
 export function viewOnEtherscan(props: ViewOnEtherscanProps, state: any) {
