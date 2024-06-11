@@ -191,6 +191,7 @@ const main = async () => {
         'eth_coinbase',
         'wallet_registerOnboarding',
         'eth_getEncryptionPublicKey',
+        'wallet_watchAsset'
       ];
 
       class VerboseConsoleReporter extends ConsoleStreamingReporter {
