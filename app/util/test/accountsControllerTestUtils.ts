@@ -72,7 +72,7 @@ export function createMockAccountsControllerState(
 
   const accounts: { [uuid: string]: InternalAccount } = {};
   addresses.forEach((address, index) => {
-    const uuid = getUUIDFromAddressOfNormalAccount(address.toLowerCase());
+    const uuid = getUUIDFromAddressOfNormalAccount(address);
     accounts[uuid] = createMockInternalAccount(
       address.toLowerCase(),
       `Account ${index + 1}`,
@@ -81,8 +81,8 @@ export function createMockAccountsControllerState(
 
   const selectedAccount =
     selectedAddress && addresses.includes(selectedAddress)
-      ? getUUIDFromAddressOfNormalAccount(selectedAddress.toLowerCase())
-      : getUUIDFromAddressOfNormalAccount(addresses[0].toLowerCase());
+      ? getUUIDFromAddressOfNormalAccount(selectedAddress)
+      : getUUIDFromAddressOfNormalAccount(addresses[0]);
 
   return {
     internalAccounts: {

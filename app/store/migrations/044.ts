@@ -33,7 +33,10 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
-
+  console.log(
+    'Migration 41 complete with old state AccountsController',
+    JSON.stringify(state.engine.backgroundState.AccountsController),
+  );
   mergeInternalAccounts(state);
 
   console.log(
