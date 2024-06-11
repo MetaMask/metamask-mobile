@@ -1,4 +1,4 @@
-import { web } from 'detox';
+import { web, log } from 'detox';
 
 /**
  * Utility class for matching (locating) UI elements
@@ -108,7 +108,9 @@ class Matchers {
       device.getPlatform() === 'ios'
         ? web(by.id(webviewID))
         : web(by.type('android.webkit.WebView').withAncestor(by.id(webviewID)));
-    return myWebView.element(by.web.xpath(xpath));
+    const returnElement = myWebView.element(by.web.xpath(xpath));
+    log.info('returnElement', returnElement);
+    return returnElement;
   }
   /**
    * Get element by href.
