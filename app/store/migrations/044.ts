@@ -64,8 +64,9 @@ function mergeInternalAccounts(state: ValidState) {
 
   for (const [, account] of Object.entries(internalAccounts)) {
     const lowerCaseAddress = account.address.toLowerCase();
-    if (addressMap[lowerCaseAddress]) {
-      const existingAccount = mergedAccounts[addressMap[lowerCaseAddress]];
+    const accountID = addressMap[lowerCaseAddress];
+    if (accountID) {
+      const existingAccount = mergedAccounts[accountID];
       existingAccount.metadata = {
         ...existingAccount.metadata,
         ...account.metadata,
