@@ -4,6 +4,7 @@ import { ActivityIndicator, Button, View } from 'react-native';
 // import Model from './model';
 import { useGLTF, useAnimations } from '@react-three/drei/native';
 import { useFrame } from '@react-three/fiber/native';
+import { MathUtils } from 'three';
 import { useAnimatedSensor, SensorType } from 'react-native-reanimated';
 
 // const modelPath = require('./mazda.glb');
@@ -52,10 +53,41 @@ function Model(props) {
     let { x, y, z } = animatedSensor.sensor.value;
     x = ~~(x * 100) / 5000;
     y = ~~(y * 100) / 5000;
-    // console.log('x', x, y, z);
-    // ref.current.rotation.y += y; //0.01; // Adjust the speed as needed
-    // ref.current.rotation.x += x;
-    // ref.current.rotation.z += z;
+
+    // Threshold for when to start rotating back to the original position
+    const threshold = 0.001;
+    const recoveryFactor = 3;
+    const startingX = 0;
+    const startingY = 0;
+
+    if (Math.abs(x) < threshold && Math.abs(y) < threshold) {
+      // Interpolate back to original position if sensor values are very small
+      ref.current.rotation.x = MathUtils.lerp(
+        ref.current.rotation.x,
+        startingX,
+        delta * recoveryFactor,
+      ); // Adjust the 5 multiplier to control the speed
+      ref.current.rotation.y = MathUtils.lerp(
+        ref.current.rotation.y,
+        startingY,
+        delta * recoveryFactor,
+      );
+    } else {
+      // Calculate the new rotation values
+      const newXRotation = ref.current.rotation.x + x;
+      const newYRotation = ref.current.rotation.y + y;
+
+      ref.current.rotation.x = MathUtils.clamp(
+        newXRotation,
+        -Math.PI / 6,
+        Math.PI / 6,
+      );
+      ref.current.rotation.y = MathUtils.clamp(
+        newYRotation,
+        -Math.PI / 6,
+        Math.PI / 6,
+      );
+    }
   });
 
   // console.warn(gltf.animations);
