@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`BadgeNotifications - snapshots should render badge notifications correctly 1`] = `
+exports[`BadgeNotifications should render badge notifications correctly 1`] = `
 <View
   onLayout={[Function]}
   style={
@@ -17,7 +17,7 @@ exports[`BadgeNotifications - snapshots should render badge notifications correc
       "opacity": 0,
     }
   }
-  testID="badge-notifications"
+  testID="transaction"
 >
   <SvgMock
     color="#FFFFFF"
