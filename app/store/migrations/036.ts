@@ -6,6 +6,7 @@ import {
 import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 export interface Identity {
   name: string;
@@ -108,7 +109,7 @@ function createInternalAccountsForAccountsController(
           // This is default HD Key Tree type because the keyring is encrypted
           // during migration, the type will get updated when the during the
           // initial updateAccounts call.
-          type: 'HD Key Tree',
+          type: KeyringTypes.hd,
         },
       },
       methods: [
