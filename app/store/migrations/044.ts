@@ -75,7 +75,10 @@ function mergeInternalAccounts(state: Record<string, any>) {
     }
   }
 
-  const newSelectedAccount = addressMap[selectedAddress] || selectedAccount;
+  const newSelectedAccount =
+    addressMap[selectedAddress] ||
+    Object.keys(mergedAccounts)[0] || // Default to the first account in the list
+    selectedAccount;
 
   accountsController.internalAccounts.accounts = mergedAccounts;
   accountsController.internalAccounts.selectedAccount = newSelectedAccount;

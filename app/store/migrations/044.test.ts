@@ -532,4 +532,37 @@ describe('Migration #044', () => {
         .selectedAccount,
     ).toBe(expectedId5);
   });
+  it('should set the selected account to the first account if the previous selected account cannot be found', () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            ...createMockAccountsControllerState(),
+            selectedAccount: 'non_existent_id',
+          },
+        },
+      },
+    };
+
+    expect(
+      Object.keys(
+        oldState.engine.backgroundState.AccountsController.internalAccounts
+          .accounts,
+      ).length,
+    ).toBe(10);
+
+    const newState = migrate(oldState) as typeof oldState;
+
+    expect(
+      Object.keys(
+        newState.engine.backgroundState.AccountsController.internalAccounts
+          .accounts,
+      ).length,
+    ).toBe(5);
+
+    expect(
+      newState.engine.backgroundState.AccountsController.internalAccounts
+        .selectedAccount,
+    ).toBe(expectedId1);
+  });
 });
