@@ -7,6 +7,18 @@ import { Theme } from '../../../../util/theme/models';
 // Internal dependencies.
 import { TextColor, TextVariant } from './Text.types';
 
+type FontWeight =
+  | '100'
+  | '200'
+  | '300'
+  | '400'
+  | '500'
+  | '600'
+  | '700'
+  | '800'
+  | '900';
+type FontStyle = 'normal' | 'italic';
+
 /**
  * Style sheet function for Text component.
  *
@@ -18,6 +30,30 @@ import { TextColor, TextVariant } from './Text.types';
 const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { theme, vars } = params;
   const { variant, style, color } = vars;
+
+  // Create a utility function to map fontWeight to the corresponding font family
+  const getFontFamily = (
+    fontWeight: FontWeight = '400',
+    fontStyle: FontStyle = 'normal',
+  ): string => {
+    const weightMap: { [key in FontWeight]: string } = {
+      '100': 'Regular',
+      '200': 'Regular',
+      '300': 'Regular',
+      '400': 'Regular',
+      '500': 'Medium',
+      '600': 'Medium',
+      '700': 'Bold',
+      '800': 'Bold',
+      '900': 'Bold',
+    };
+
+    const styleSuffix = fontStyle === 'italic' ? 'Italic' : '';
+
+    const fontSuffix = weightMap[fontWeight];
+
+    return `EuclidCircularB-${fontSuffix}${styleSuffix}`;
+  };
 
   let textColor;
   switch (color) {
@@ -57,13 +93,18 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
     default:
       textColor = theme.colors.text.default;
   }
+  const variantObject = theme.typography[variant as TextVariant];
+  const fontObject = {
+    ...variantObject,
+    color: textColor,
+    fontFamily: getFontFamily(
+      variantObject.fontWeight as FontWeight,
+      style?.fontStyle,
+    ),
+  };
 
   return StyleSheet.create({
-    base: Object.assign(
-      { color: textColor },
-      theme.typography[variant as TextVariant],
-      style,
-    ) as TextStyle,
+    base: Object.assign(fontObject, style) as TextStyle,
   });
 };
 
