@@ -1181,8 +1181,6 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
         getOpenSeaApiKey: () => nftController.openSeaApiKey,
         addNft: nftController.addNft.bind(nftController),
-        updateNftFetchingProgressStatus:
-          nftController.updateNftFetchingProgressStatus.bind(nftController),
         getNftApi: nftController.getNftApi.bind(nftController),
         getNftState: () => nftController.state,
         //@ts-expect-error - Network Controller mismatch version

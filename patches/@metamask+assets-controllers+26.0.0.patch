@@ -56,7 +56,7 @@ index ee99eb2..c786b6c 100644
          });
          this.defaultConfig = {
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
-index 45e07b8..98e9226 100644
+index 45e07b8..096baf1 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
 @@ -8,7 +8,7 @@ import type { Hex } from '@metamask/utils';
@@ -173,7 +173,7 @@ index 45e07b8..98e9226 100644
  }
  /**
   * @type NftConfig
-@@ -190,10 +130,14 @@ export interface NftConfig extends BaseConfig {
+@@ -190,7 +130,7 @@ export interface NftConfig extends BaseConfig {
      selectedAddress: string;
      chainId: Hex;
      ipfsGateway: string;
@@ -182,26 +182,7 @@ index 45e07b8..98e9226 100644
      useIPFSSubdomains: boolean;
      isIpfsGatewayEnabled: boolean;
  }
-+
-+export type NftFetchStatus = {
-+   isFetchingInProgress: boolean;
-+};
- /**
-  * @type NftState
-  *
-@@ -214,6 +158,11 @@ export interface NftState extends BaseState {
-         };
-     };
-     ignoredNfts: Nft[];
-+    isNftFetchingInProgress: {
-+        [key: string]: {
-+                [chainId: Hex]: NftFetchStatus;
-+        };
-+    };
- }
- interface NftAsset {
-     address: string;
-@@ -232,18 +181,17 @@ declare type AllowedActions = AddApprovalRequest;
+@@ -232,18 +172,17 @@ declare type AllowedActions = AddApprovalRequest;
   */
  export declare type NftControllerMessenger = RestrictedControllerMessenger<typeof controllerName, AllowedActions, never, AllowedActions['type'], never>;
  export declare const getDefaultNftState: () => NftState;
@@ -225,7 +206,7 @@ index 45e07b8..98e9226 100644
      /**
       * Helper method to update nested state for allNfts and allNftContracts.
       *
-@@ -255,7 +203,7 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
+@@ -255,7 +194,7 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
       */
      private updateNestedNftState;
      /**
@@ -234,7 +215,7 @@ index 45e07b8..98e9226 100644
       *
       * @param contractAddress - Hex address of the NFT contract.
       * @param tokenId - The NFT identifier.
-@@ -289,13 +237,6 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
+@@ -289,13 +228,6 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
       * @returns Promise resolving to the current NFT name and image.
       */
      private getNftInformation;
@@ -248,7 +229,7 @@ index 45e07b8..98e9226 100644
      /**
       * Request NFT contract information from the contract itself.
       *
-@@ -305,9 +246,10 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
+@@ -305,9 +237,10 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
       */
      private getNftContractInformationFromContract;
      /**
@@ -260,7 +241,7 @@ index 45e07b8..98e9226 100644
       * @param networkClientId - The networkClientId that can be used to identify the network client to use for this request.
       * @returns Promise resolving to the NFT contract name, image and description.
       */
-@@ -331,6 +273,7 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
+@@ -331,6 +264,7 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
       * @param options - options.
       * @param options.tokenAddress - Hex address of the NFT contract.
       * @param options.userAddress - The address of the account where the NFT is being added.
@@ -268,7 +249,7 @@ index 45e07b8..98e9226 100644
       * @param options.networkClientId - The networkClientId that can be used to identify the network client to use for this request.
       * @param options.source - Whether the NFT was detected, added manually or suggested by a dapp.
       * @returns Promise resolving to the current NFT contracts list.
-@@ -356,6 +299,19 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
+@@ -356,6 +290,19 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
       * @param options.userAddress - The address of the account where the NFT is being removed.
       */
      private removeIndividualNft;
@@ -288,7 +269,7 @@ index 45e07b8..98e9226 100644
      /**
       * Removes an NFT contract to the stored NFT contracts list.
       *
-@@ -423,9 +379,10 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
+@@ -423,9 +370,10 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
              tokenId: string;
              standard: string | null;
              source: string;
@@ -300,26 +281,8 @@ index 45e07b8..98e9226 100644
      private validateWatchNft;
      private getCorrectChainId;
      /**
-@@ -499,6 +456,17 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
-         source?: Source;
-         networkClientId?: NetworkClientId;
-     }): Promise<void>;
-+    /**
-+     * Update Nft fetching status for a selectedAddress on a specific chain
-+     * @param newValue - fetching status to set in state
-+     * @param passedConfig - Object containing selectedAddress and chainId
-+     * @param passedConfig.userAddress - the address passed through the detectNfts function
-+     * @param passedConfig.networkClientId - the networkClientId passed through the detectNfts function
-+     */
-+    updateNftFetchingProgressStatus(newValue: boolean, { userAddress, networkClientId, }?: {
-+        networkClientId?: NetworkClientId;
-+        userAddress?: string;
-+    }): void;
-     /**
-      * Removes an NFT from the stored token list.
-      *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 0873ccd..d9697bd 100644
+index 0873ccd..9359c9a 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -331,7 +294,7 @@ index 0873ccd..d9697bd 100644
  const address_1 = require("@ethersproject/address");
  const base_controller_1 = require("@metamask/base-controller");
  const controller_utils_1 = require("@metamask/controller-utils");
-@@ -24,12 +24,9 @@ const events_1 = require("events");
+@@ -24,10 +24,6 @@ const events_1 = require("events");
  const uuid_1 = require("uuid");
  const assetsUtil_1 = require("./assetsUtil");
  const constants_1 = require("./constants");
@@ -341,15 +304,8 @@ index 0873ccd..d9697bd 100644
 -})(OpenSeaV2ChainIds = exports.OpenSeaV2ChainIds || (exports.OpenSeaV2ChainIds = {}));
  const ALL_NFTS_STATE_KEY = 'allNfts';
  const ALL_NFTS_CONTRACTS_STATE_KEY = 'allNftContracts';
-+const IS_NFTS_FETCHING_IN_PROGRESS_KEY = 'isNftFetchingInProgress';
  /**
-  * The name of the {@link NftController}.
-  */
-@@ -39,9 +36,14 @@ const getDefaultNftState = () => {
-         allNftContracts: {},
-         allNfts: {},
-         ignoredNfts: [],
-+        isNftFetchingInProgress: {},
+@@ -42,6 +38,10 @@ const getDefaultNftState = () => {
      };
  };
  exports.getDefaultNftState = getDefaultNftState;
@@ -360,7 +316,7 @@ index 0873ccd..d9697bd 100644
  /**
   * Controller that stores assets and exposes convenience methods
   */
-@@ -81,7 +83,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -81,7 +81,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
              selectedAddress: '',
              chainId: initialChainId,
              ipfsGateway: controller_utils_1.IPFS_DEFAULT_GATEWAY_URL,
@@ -369,7 +325,7 @@ index 0873ccd..d9697bd 100644
              useIPFSSubdomains: true,
              isIpfsGatewayEnabled: true,
          };
-@@ -96,11 +98,11 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -96,11 +96,11 @@ class NftController extends base_controller_1.BaseControllerV1 {
          this.getNetworkClientById = getNetworkClientById;
          this.onNftAdded = onNftAdded;
          this.messagingSystem = messenger;
@@ -383,7 +339,7 @@ index 0873ccd..d9697bd 100644
                  isIpfsGatewayEnabled,
              });
          });
-@@ -109,14 +111,8 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -109,14 +109,8 @@ class NftController extends base_controller_1.BaseControllerV1 {
              this.configure({ chainId });
          });
      }
@@ -400,54 +356,11 @@ index 0873ccd..d9697bd 100644
      }
      /**
       * Helper method to update nested state for allNfts and allNftContracts.
-@@ -136,39 +132,92 @@ class NftController extends base_controller_1.BaseControllerV1 {
-             [baseStateKey]: newState,
+@@ -137,38 +131,49 @@ class NftController extends base_controller_1.BaseControllerV1 {
          });
      }
-+    /** Helper function to update the status of nft fetching for a specific address.
-+     *
-+     * @param newStatus - The new status to set in state
-+     * @param passedConfig - Object containing selectedAddress and chainId
-+     * @param passedConfig.userAddress - the address passed through the detectNfts function
-+     * @param passedConfig.chainId - the chainId passed through the detectNfts function
-+     */
-+    updateNestedNftFetchingProgressStatus(newStatus, { userAddress, chainId }) {
-+        const { [IS_NFTS_FETCHING_IN_PROGRESS_KEY]: oldState } = this.state;
-+        const addressState = oldState[userAddress];
-+        const newAddressState = {
-+            ...addressState,
-+            ...{
-+                [chainId]: {
-+                    isFetchingInProgress: newStatus,
-+                },
-+            },
-+        };
-+        const newState = {
-+            ...oldState,
-+            ...{ [userAddress]: newAddressState },
-+        };
-+        this.update({
-+            [IS_NFTS_FETCHING_IN_PROGRESS_KEY]: newState,
-+        });
-+    }
      /**
 -     * Request individual NFT information from OpenSea API.
-+     * Update Nft fetching status for a selectedAddress on a specific chain
-+     * @param newValue - fetching status to set in state
-+     * @param passedConfig - Object containing selectedAddress and chainId
-+     * @param passedConfig.userAddress - the address passed through the detectNfts function
-+     * @param passedConfig.networkClientId - the networkClientId passed through the detectNfts function
-+     */
-+    updateNftFetchingProgressStatus(newValue, { userAddress = this.config.selectedAddress, networkClientId, } = {
-+        userAddress: this.config.selectedAddress,
-+    }) {
-+        const chainId = this.getCorrectChainId({ networkClientId });
-+        this.updateNestedNftFetchingProgressStatus(newValue, {
-+            userAddress,
-+            chainId,
-+        });
-+    }
-+    /**
 +     * Request individual NFT information from NFT API.
       *
       * @param contractAddress - Hex address of the NFT contract.
@@ -504,7 +417,7 @@ index 0873ccd..d9697bd 100644
              return nftMetadata;
          });
      }
-@@ -182,10 +231,20 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -182,10 +187,20 @@ class NftController extends base_controller_1.BaseControllerV1 {
       */
      getNftInformationFromTokenURI(contractAddress, tokenId, networkClientId) {
          return __awaiter(this, void 0, void 0, function* () {
@@ -526,7 +439,7 @@ index 0873ccd..d9697bd 100644
              const hasIpfsTokenURI = tokenURI.startsWith('ipfs://');
              if (hasIpfsTokenURI && !isIpfsGatewayEnabled) {
                  return {
-@@ -197,8 +256,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -197,8 +212,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
                      tokenURI: tokenURI !== null && tokenURI !== void 0 ? tokenURI : null,
                  };
              }
@@ -536,7 +449,7 @@ index 0873ccd..d9697bd 100644
                  return {
                      image: null,
                      name: null,
-@@ -234,6 +292,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -234,6 +248,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
                      standard: standard || null,
                      favorite: false,
                      tokenURI: tokenURI !== null && tokenURI !== void 0 ? tokenURI : null,
@@ -544,7 +457,7 @@ index 0873ccd..d9697bd 100644
                  };
              }
          });
-@@ -287,60 +346,29 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -287,60 +302,29 @@ class NftController extends base_controller_1.BaseControllerV1 {
       * @returns Promise resolving to the current NFT name and image.
       */
      getNftInformation(contractAddress, tokenId, networkClientId) {
@@ -619,7 +532,7 @@ index 0873ccd..d9697bd 100644
          });
      }
      /**
-@@ -364,25 +392,20 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -364,25 +348,20 @@ class NftController extends base_controller_1.BaseControllerV1 {
          });
      }
      /**
@@ -653,7 +566,7 @@ index 0873ccd..d9697bd 100644
              }
              /* istanbul ignore next */
              return {
-@@ -449,6 +472,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -449,6 +428,7 @@ class NftController extends base_controller_1.BaseControllerV1 {
                          tokenId: tokenId.toString(),
                          standard: nftMetadata.standard,
                          source,
@@ -661,7 +574,7 @@ index 0873ccd..d9697bd 100644
                      });
                  }
                  return newNfts;
-@@ -464,11 +488,12 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -464,11 +444,12 @@ class NftController extends base_controller_1.BaseControllerV1 {
       * @param options - options.
       * @param options.tokenAddress - Hex address of the NFT contract.
       * @param options.userAddress - The address of the account where the NFT is being added.
@@ -675,7 +588,7 @@ index 0873ccd..d9697bd 100644
          var _a;
          return __awaiter(this, void 0, void 0, function* () {
              const releaseLock = yield this.mutex.acquire();
-@@ -485,8 +510,9 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -485,8 +466,9 @@ class NftController extends base_controller_1.BaseControllerV1 {
                  }
                  // this doesn't work currently for detection if the user switches networks while the detection is processing
                  // will be fixed once detection uses networkClientIds
@@ -687,7 +600,7 @@ index 0873ccd..d9697bd 100644
                  // If the nft is auto-detected we want some valid metadata to be present
                  if (source === constants_1.Source.Detected &&
                      'address' in contractInformation &&
-@@ -501,8 +527,8 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -501,8 +483,8 @@ class NftController extends base_controller_1.BaseControllerV1 {
                      return nftContracts;
                  }
                  /* istanbul ignore next */
@@ -698,7 +611,7 @@ index 0873ccd..d9697bd 100644
                  const newNftContracts = [...nftContracts, newEntry];
                  this.updateNestedNftState(newNftContracts, ALL_NFTS_CONTRACTS_STATE_KEY, {
                      chainId,
-@@ -568,6 +594,55 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -568,6 +550,55 @@ class NftController extends base_controller_1.BaseControllerV1 {
              chainId,
          });
      }
@@ -754,7 +667,7 @@ index 0873ccd..d9697bd 100644
      /**
       * Removes an NFT contract to the stored NFT contracts list.
       *
-@@ -763,15 +838,16 @@ class NftController extends base_controller_1.BaseControllerV1 {
+@@ -763,15 +794,16 @@ class NftController extends base_controller_1.BaseControllerV1 {
          return __awaiter(this, void 0, void 0, function* () {
              tokenAddress = (0, controller_utils_1.toChecksumHexAddress)(tokenAddress);
              const chainId = this.getCorrectChainId({ networkClientId });
@@ -775,7 +688,7 @@ index 0873ccd..d9697bd 100644
              const nftContract = newNftContracts.find((contract) => contract.address.toLowerCase() === tokenAddress.toLowerCase());
              // If NFT contract information, add individual NFT
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.d.ts b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.d.ts
-index d5c60db..4310991 100644
+index d5c60db..adef299 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.d.ts
 @@ -3,6 +3,7 @@ import type { NetworkClientId, NetworkController, NetworkState, NetworkClient }
@@ -983,43 +896,11 @@ index d5c60db..4310991 100644
  /**
   * Controller that passively polls on a set interval for NFT auto detection
   */
-@@ -126,6 +310,7 @@ export declare class NftDetectionController extends StaticIntervalPollingControl
-     name: string;
-     private readonly getOpenSeaApiKey;
-     private readonly addNft;
-+    private readonly updateNftFetchingProgressStatus;
-     private readonly getNftApi;
-     private readonly getNftState;
-     private readonly getNetworkClientById;
-@@ -139,13 +324,14 @@ export declare class NftDetectionController extends StaticIntervalPollingControl
-      * @param options.onNetworkStateChange - Allows subscribing to network controller state changes.
-      * @param options.getOpenSeaApiKey - Gets the OpenSea API key, if one is set.
-      * @param options.addNft - Add an NFT.
-+     * @param options.updateNftFetchingProgressStatus - Updates NFT fetching status
-      * @param options.getNftApi - Gets the URL to fetch an NFT from OpenSea.
-      * @param options.getNftState - Gets the current state of the Assets controller.
-      * @param options.getNetworkClientById - Gets the network client by ID, from the NetworkController.
-      * @param config - Initial options used to configure this controller.
-      * @param state - Initial state to set on this controller.
-      */
--    constructor({ chainId: initialChainId, getNetworkClientById, onPreferencesStateChange, onNetworkStateChange, getOpenSeaApiKey, addNft, getNftApi, getNftState, }: {
-+    constructor({ chainId: initialChainId, getNetworkClientById, onPreferencesStateChange, onNetworkStateChange, getOpenSeaApiKey, addNft, updateNftFetchingProgressStatus, getNftApi, getNftState, }: {
-         chainId: Hex;
-         getNetworkClientById: NetworkController['getNetworkClientById'];
-         onNftsStateChange: (listener: (nftsState: NftState) => void) => void;
-@@ -153,6 +339,7 @@ export declare class NftDetectionController extends StaticIntervalPollingControl
-         onNetworkStateChange: (listener: (networkState: NetworkState) => void) => void;
-         getOpenSeaApiKey: () => string | undefined;
-         addNft: NftController['addNft'];
-+        updateNftFetchingProgressStatus: NftController['updateNftFetchingProgressStatus'];
-         getNftApi: NftController['getNftApi'];
-         getNftState: () => NftState;
-     }, config?: Partial<NftDetectionConfig>, state?: Partial<BaseState>);
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
-index 24373e3..7535ddf 100644
+index 24373e3..57610f3 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
-@@ -9,13 +9,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
+@@ -9,13 +9,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
      });
  };
  Object.defineProperty(exports, "__esModule", { value: true });
@@ -1030,8 +911,8 @@ index 24373e3..7535ddf 100644
 -const assetsUtil_1 = require("./assetsUtil");
  const constants_1 = require("./constants");
 -const NftController_1 = require("./NftController");
++const utils_1 = require("@metamask/utils");
  const DEFAULT_INTERVAL = 180000;
-+const supportedNftDetectionNetworks = [controller_utils_1.ChainId.mainnet];
 +var BlockaidResultType;
 +(function (BlockaidResultType) {
 +    BlockaidResultType["Benign"] = "Benign";
@@ -1039,19 +920,20 @@ index 24373e3..7535ddf 100644
 +    BlockaidResultType["Warning"] = "Warning";
 +    BlockaidResultType["Malicious"] = "Malicious";
 +})(BlockaidResultType = exports.BlockaidResultType || (exports.BlockaidResultType = {}));
++const supportedNftDetectionNetworks= [controller_utils_1.ChainId.mainnet];
++var inProcessNftFetchingUpdates;
  /**
   * Controller that passively polls on a set interval for NFT auto detection
   */
-@@ -36,7 +42,7 @@ class NftDetectionController extends polling_controller_1.StaticIntervalPollingC
-      * @param config - Initial options used to configure this controller.
-      * @param state - Initial state to set on this controller.
-      */
--    constructor({ chainId: initialChainId, getNetworkClientById, onPreferencesStateChange, onNetworkStateChange, getOpenSeaApiKey, addNft, getNftApi, getNftState, }, config, state) {
-+    constructor({ chainId: initialChainId, getNetworkClientById, onPreferencesStateChange, onNetworkStateChange, getOpenSeaApiKey, addNft, updateNftFetchingProgressStatus, getNftApi, getNftState, }, config, state) {
-         super(config, state);
-         /**
+@@ -42,6 +50,7 @@ class NftDetectionController extends polling_controller_1.StaticIntervalPollingC
           * Name of this controller used during composition
-@@ -65,12 +71,6 @@ class NftDetectionController extends polling_controller_1.StaticIntervalPollingC
+          */
+         this.name = 'NftDetectionController';
++        this.inProcessNftFetchingUpdates= {};
+         /**
+          * Checks whether network is mainnet or not.
+          *
+@@ -65,12 +74,6 @@ class NftDetectionController extends polling_controller_1.StaticIntervalPollingC
              if (selectedAddress !== previouslySelectedAddress ||
                  !useNftDetection !== disabled) {
                  this.configure({ selectedAddress, disabled: !useNftDetection });
@@ -1064,20 +946,21 @@ index 24373e3..7535ddf 100644
              }
          });
          onNetworkStateChange(({ providerConfig }) => {
-@@ -80,42 +80,34 @@ class NftDetectionController extends polling_controller_1.StaticIntervalPollingC
-         });
-         this.getOpenSeaApiKey = getOpenSeaApiKey;
-         this.addNft = addNft;
-+        this.updateNftFetchingProgressStatus = updateNftFetchingProgressStatus;
+@@ -83,39 +86,30 @@ class NftDetectionController extends polling_controller_1.StaticIntervalPollingC
          this.getNftApi = getNftApi;
          this.setIntervalLength(this.config.interval);
      }
 -    getOwnerNftApi({ address, next, }) {
 -        return `${controller_utils_1.OPENSEA_PROXY_URL}/chain/${NftController_1.OpenSeaV2ChainIds.ethereum}/account/${address}/nfts?limit=200&next=${next !== null && next !== void 0 ? next : ''}`;
-+    getOwnerNftApi({ chainId, address, next, }) {
-+        return `${controller_utils_1.NFT_API_BASE_URL}/users/${address}/tokens?chainIds=${chainId}&limit=200&includeTopBid=true&continuation=${next !== null && next !== void 0 ? next : ''}`;
-     }
+-    }
 -    getOwnerNfts(address) {
++    getOwnerNftApi({
++        chainId,
++        address,
++        next
++      }) {
++        return `${controller_utils_1.NFT_API_BASE_URL}/users/${address}/tokens?chainIds=${chainId}&limit=50&includeTopBid=true&continuation=${next ?? ""}`;
++      }
 +    getOwnerNfts(address, chainId, cursor) {
          return __awaiter(this, void 0, void 0, function* () {
 -            let nftApiResponse;
@@ -1087,21 +970,21 @@ index 24373e3..7535ddf 100644
 -                nftApiResponse = yield (0, controller_utils_1.fetchWithErrorHandling)({
 -                    url: this.getOwnerNftApi({ address, next }),
 -                    timeout: 15000,
-+            const convertedChainId = (0, controller_utils_1.convertHexToDecimal)(chainId).toString();
-+            const url = this.getOwnerNftApi({
-+            chainId: convertedChainId,
-+            address,
-+            next: cursor,
-+            });
-+            try{
-+                const nftApiResponse = yield (0, controller_utils_1.handleFetch)(url,{
-+                    headers: {
-+                      Version: "1"
-+                    },
-                 });
+-                });
 -                if (!nftApiResponse) {
 -                    return nfts;
--                }
++            const convertedChainId = (0, controller_utils_1.convertHexToDecimal)(chainId).toString();
++            const url = this.getOwnerNftApi({
++                chainId: convertedChainId,
++                address,
++                next: cursor,
++            });
++            const nftApiResponse = yield controller_utils_1.handleFetch.call(void 0, url,
++                {
++                  headers: {
++                    Version: "1"
++                  },
+                 }
 -                const newNfts = yield Promise.all(nftApiResponse.nfts.map((nftV2) => __awaiter(this, void 0, void 0, function* () {
 -                    var _a, _b;
 -                    const nftV1 = (0, assetsUtil_1.mapOpenSeaNftV2ToV1)(nftV2);
@@ -1119,17 +1002,13 @@ index 24373e3..7535ddf 100644
 -                nfts = [...nfts, ...newNfts];
 -            } while ((next = nftApiResponse.next));
 -            return nfts;
-+                return nftApiResponse;
++              );
++            return nftApiResponse;
 +
-+            }catch(err){
-+                this.updateNftFetchingProgressStatus(false)
-+                throw err
-+
-+            }
          });
      }
      _executePoll(networkClientId, options) {
-@@ -171,41 +163,78 @@ class NftDetectionController extends polling_controller_1.StaticIntervalPollingC
+@@ -171,41 +165,77 @@ class NftDetectionController extends polling_controller_1.StaticIntervalPollingC
      detectNfts({ networkClientId, userAddress, } = { userAddress: this.config.selectedAddress }) {
          return __awaiter(this, void 0, void 0, function* () {
              /* istanbul ignore if */
@@ -1149,80 +1028,89 @@ index 24373e3..7535ddf 100644
 -                /* istanbul ignore else */
 -                const { ignoredNfts } = this.getNftState();
 -                if (ignoredNfts.length) {
-+            const { isNftFetchingInProgress } = this.getNftState();
+-                    ignored = ignoredNfts.find((c) => {
 +
-+            if (isNftFetchingInProgress[userAddress]?.[chainId].isFetchingInProgress) {
++            const updateKey = `${chainId}:${userAddress}`;
++            if (updateKey in this.inProcessNftFetchingUpdates) {
++              // This prevents redundant updates
++              // This promise is resolved after the in-progress update has finished,
++              // and state has been updated.
++              yield this.inProcessNftFetchingUpdates[updateKey];
 +              return;
 +            }
-+
++            const {
++              promise: inProgressUpdate,
++              resolve: updateSucceeded,
++              reject: updateFailed
++            } = utils_1.createDeferredPromise.call(void 0, { suppressUnhandledRejection: true });
++            
++            this.inProcessNftFetchingUpdates[updateKey] = inProgressUpdate;
 +            let next;
 +            let apiNfts= [];
 +            let resultNftApi;
-+            do {
-+                resultNftApi = yield this.getOwnerNfts(userAddress, chainId, next);
++        
++            try{
++              do {
++                resultNftApi = yield this.getOwnerNfts(userAddress, chainId, next)
 +                apiNfts = resultNftApi.tokens.filter(
 +                  (elm) =>
 +                    elm.token.isSpam === false &&
 +                    (elm.blockaidResult?.result_type
 +                     ? elm.blockaidResult?.result_type === BlockaidResultType.Benign
 +                    : true),
-+                 );
++                );
 +                const addNftPromises = apiNfts.map((nft) => __awaiter(this, void 0, void 0, function* () {
-+                  const {
-+                    tokenId: token_id,
-+                    contract,
-+                    kind,
-+                    image: image_url,
-+                    imageSmall: image_thumbnail_url,
-+                    metadata: { imageOriginal: image_original_url } = {},
-+                    name,
-+                    description,
-+                    attributes,
-+                    topBid,
-+                    lastSale,
-+                    rarityRank,
-+                    rarityScore,
-+                    collection,
-+                    } = nft.token;
-+                
-+                  let ignored;
-+                  /* istanbul ignore else */
-+                  const { ignoredNfts } = this.getNftState();
-+                  if (ignoredNfts.length) {
-                     ignored = ignoredNfts.find((c) => {
++                    const { tokenId: token_id, contract, kind, image: image_url, imageSmall: image_thumbnail_url, metadata: { imageOriginal: image_original_url } = {}, name, description, attributes, topBid, lastSale, rarityRank, rarityScore, collection, } = nft.token;
++                    let ignored;
++                    /* istanbul ignore else */
++                    const { ignoredNfts } = this.getNftState();
++                    if (ignoredNfts.length) {
++                        ignored = ignoredNfts.find((c) => {
++                            /* istanbul ignore next */
++                            return (c.address === (0, controller_utils_1.toChecksumHexAddress)(contract) &&
++                                c.tokenId === token_id);
++                        });
++                    }
++                    /* istanbul ignore else */
++                    if (!ignored) {
                          /* istanbul ignore next */
 -                        return (c.address === (0, controller_utils_1.toChecksumHexAddress)(address) &&
-+                        return (c.address === (0, controller_utils_1.toChecksumHexAddress)(contract) &&
-                             c.tokenId === token_id);
-                     });
+-                            c.tokenId === token_id);
+-                    });
 -                }
 -                /* istanbul ignore else */
 -                if (!ignored) {
-+                  }
-+                  /* istanbul ignore else */
-+                  if (!ignored) {
-                     /* istanbul ignore next */
+-                    /* istanbul ignore next */
 -                    const nftMetadata = Object.assign({}, { name }, creator && { creator }, description && { description }, image_url && { image: image_url }, num_sales && { numberOfSales: num_sales }, background_color && { backgroundColor: background_color }, image_preview_url && { imagePreview: image_preview_url }, image_thumbnail_url && { imageThumbnail: image_thumbnail_url }, image_original_url && { imageOriginal: image_original_url }, animation_url && { animation: animation_url }, animation_original_url && {
 -                        animationOriginal: animation_original_url,
 -                    }, schema_name && { standard: schema_name }, external_link && { externalLink: external_link }, last_sale && { lastSale: last_sale });
 -                    yield this.addNft(address, token_id, {
-+                    const nftMetadata = Object.assign({}, { name }, description && { description }, image_url && { image: image_url }, image_thumbnail_url && { imageThumbnail: image_thumbnail_url }, image_original_url && { imageOriginal: image_original_url }, kind && { standard: kind.toUpperCase() }, lastSale && { lastSale }, attributes && { attributes }, topBid && { topBid }, rarityRank && { rarityRank }, rarityScore && { rarityScore }, collection && { collection });
-+                    yield this.addNft(contract, token_id, {
-                         nftMetadata,
-                         userAddress,
-                         source: constants_1.Source.Detected,
-                         networkClientId,
-                     });
-                 }
+-                        nftMetadata,
+-                        userAddress,
+-                        source: constants_1.Source.Detected,
+-                        networkClientId,
+-                    });
+-                }
 -            }));
 -            yield Promise.all(addNftPromises);
++                        const nftMetadata = Object.assign({}, { name }, description && { description }, image_url && { image: image_url }, image_thumbnail_url && { imageThumbnail: image_thumbnail_url }, image_original_url && { imageOriginal: image_original_url }, kind && { standard: kind.toUpperCase() }, lastSale && { lastSale }, attributes && { attributes }, topBid && { topBid }, rarityRank && { rarityRank }, rarityScore && { rarityScore }, collection && { collection });
++                        yield this.addNft(contract, token_id, {
++                            nftMetadata,
++                            userAddress,
++                            source: constants_1.Source.Detected,
++                            networkClientId,
++                        });
++                    }
 +                }));
 +                yield Promise.all(addNftPromises);
-+                // update status
-+                const isStillFetching = Boolean(resultNftApi.continuation);
-+                
-+                this.updateNftFetchingProgressStatus(isStillFetching);
 +              } while ((next = resultNftApi.continuation));
++              updateSucceeded();
++            } catch (error){
++              updateFailed(error);
++              throw error;
++            } finally {
++              delete this.inProcessNftFetchingUpdates[updateKey];
++            }
          });
      }
  }

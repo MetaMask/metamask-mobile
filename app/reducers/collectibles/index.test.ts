@@ -26,6 +26,7 @@ describe('collectibles reducer', () => {
       favorites: {
         [selectedAddressA]: { [ChainId.mainnet]: [collectibleA1] },
       },
+      isNftFetchingProgress: false,
     });
   });
 
@@ -52,6 +53,7 @@ describe('collectibles reducer', () => {
           [ChainId.mainnet]: [collectibleA2],
         },
       },
+      isNftFetchingProgress: false,
     });
   });
 
@@ -76,6 +78,7 @@ describe('collectibles reducer', () => {
           [ChainId.sepolia]: [collectibleA2],
         },
       },
+      isNftFetchingProgress: false,
     });
   });
 
@@ -84,6 +87,7 @@ describe('collectibles reducer', () => {
       favorites: {
         [selectedAddressA]: { [ChainId.mainnet]: [collectibleA1] },
       },
+      isNftFetchingProgress: false,
     };
     const secondState = reducer(firstState, {
       type: REMOVE_FAVORITE_COLLECTIBLE,
@@ -93,6 +97,7 @@ describe('collectibles reducer', () => {
     });
     expect(secondState).toEqual({
       favorites: { [selectedAddressA]: { [ChainId.mainnet]: [] } },
+      isNftFetchingProgress: false,
     });
   });
 
@@ -106,6 +111,7 @@ describe('collectibles reducer', () => {
           [ChainId.mainnet]: [collectibleB1, collectibleB2],
         },
       },
+      isNftFetchingProgress: false,
     };
     const secondState = reducer(firstState, {
       type: REMOVE_FAVORITE_COLLECTIBLE,
@@ -120,6 +126,7 @@ describe('collectibles reducer', () => {
         },
         [selectedAddressB]: { [ChainId.mainnet]: [collectibleB2] },
       },
+      isNftFetchingProgress: false,
     });
   });
 
@@ -131,6 +138,7 @@ describe('collectibles reducer', () => {
           [ChainId.sepolia]: [collectibleA1],
         },
       },
+      isNftFetchingProgress: false,
     };
     const secondState = reducer(firstState, {
       type: REMOVE_FAVORITE_COLLECTIBLE,
@@ -145,6 +153,7 @@ describe('collectibles reducer', () => {
           [ChainId.sepolia]: [],
         },
       },
+      isNftFetchingProgress: false,
     });
   });
 });

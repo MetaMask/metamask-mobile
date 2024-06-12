@@ -72,6 +72,10 @@ import { selectSelectedInternalAccountChecksummedAddress } from '../../../select
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import { selectUseNftDetection } from '../../../selectors/preferencesController';
 import { setNftAutoDetectionModalOpen } from '../../../actions/security';
+import {
+  hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
+  showNftFetchingLoadingIndicator as showNftFetchingLoadingIndicatorAction,
+} from '../../../reducers/collectibles';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -120,6 +124,8 @@ const Wallet = ({
   storePrivacyPolicyShownDate,
   shouldShowNewPrivacyToast,
   storePrivacyPolicyClickedOrClosed,
+  showNftFetchingLoadingIndicator,
+  hideNftFetchingLoadingIndicator,
 }: any) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
@@ -399,17 +405,23 @@ const Wallet = ({
   );
 
   const onChangeTab = useCallback(
-    (obj) => {
+    async (obj) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(MetaMetricsEvents.WALLET_TOKENS);
       } else {
         trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
         // Call detect nfts
         const { NftDetectionController } = Engine.context as any;
-        NftDetectionController.detectNfts();
+        showNftFetchingLoadingIndicator();
+        await NftDetectionController.detectNfts();
+        hideNftFetchingLoadingIndicator();
       }
     },
-    [trackEvent],
+    [
+      trackEvent,
+      hideNftFetchingLoadingIndicator,
+      showNftFetchingLoadingIndicator,
+    ],
   );
 
   const turnOnBasicFunctionality = useCallback(() => {
@@ -546,6 +558,10 @@ const mapDispatchToProps = (dispatch: any) => ({
     dispatch(storePrivacyPolicyShownDateAction(Date.now())),
   storePrivacyPolicyClickedOrClosed: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
+  showNftFetchingLoadingIndicator: () =>
+    dispatch(showNftFetchingLoadingIndicatorAction()),
+  hideNftFetchingLoadingIndicator: () =>
+    dispatch(hideNftFetchingLoadingIndicatorAction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Wallet);

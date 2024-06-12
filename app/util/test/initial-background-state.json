@@ -30,8 +30,7 @@
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
-    "ignoredNfts": [],
-    "isNftFetchingInProgress": {}
+    "ignoredNfts": []
   },
   "TokensController": {
     "tokens": [],

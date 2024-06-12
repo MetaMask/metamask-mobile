@@ -138,7 +138,6 @@ describe('CollectibleContracts', () => {
                 ],
               },
             },
-            isNftFetchingInProgress: {},
           },
         },
       },
@@ -235,7 +234,6 @@ describe('CollectibleContracts', () => {
                 '1': [],
               },
             },
-            isNftFetchingInProgress: {},
           },
         },
       },
@@ -357,7 +355,6 @@ describe('CollectibleContracts', () => {
                 '1': [],
               },
             },
-            isNftFetchingInProgress: {},
           },
           NftDetectionController: {
             detectNfts: jest.fn(),
@@ -482,7 +479,6 @@ describe('CollectibleContracts', () => {
                 '1': [],
               },
             },
-            isNftFetchingInProgress: {},
           },
           NftDetectionController: {
             detectNfts: jest.fn(),
@@ -529,6 +525,7 @@ describe('CollectibleContracts', () => {
     const mockState = {
       collectibles: {
         favorites: {},
+        isNftFetchingProgress: true,
       },
       engine: {
         backgroundState: {
@@ -568,9 +565,6 @@ describe('CollectibleContracts', () => {
                 '1': [],
               },
             },
-            isNftFetchingInProgress: {
-              isFetchingInProgress: true,
-            },
           },
           NftDetectionController: {
             detectNfts: jest.fn(),
@@ -578,13 +572,6 @@ describe('CollectibleContracts', () => {
         },
       },
     };
-
-    jest
-      .spyOn(allSelectors, 'isNftFetchingInProgressSelector')
-      .mockReturnValueOnce({
-        isFetchingInProgress: true,
-      });
-
     const { queryByTestId } = renderWithProvider(<CollectibleContracts />, {
       state: mockState,
     });
@@ -637,7 +624,6 @@ describe('CollectibleContracts', () => {
                 '1': [],
               },
             },
-            isNftFetchingInProgress: {},
           },
           NftDetectionController: {
             detectNfts: jest.fn(),
@@ -645,10 +631,6 @@ describe('CollectibleContracts', () => {
         },
       },
     };
-
-    jest
-      .spyOn(allSelectors, 'isNftFetchingInProgressSelector')
-      .mockReturnValueOnce({});
 
     const { queryByTestId } = renderWithProvider(<CollectibleContracts />, {
       state: mockState,

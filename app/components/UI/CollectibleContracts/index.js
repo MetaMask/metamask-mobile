@@ -20,7 +20,7 @@ import {
   collectibleContractsSelector,
   collectiblesSelector,
   favoritesCollectiblesSelector,
-  isNftFetchingInProgressSelector,
+  isNftFetchingProgressSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import Text from '../../Base/Text';
@@ -105,7 +105,7 @@ const CollectibleContracts = ({
   navigation,
   collectibleContracts,
   collectibles: allCollectibles,
-  isNftFetchingInProgress,
+  isNftFetchingProgress,
   favoriteCollectibles,
   removeFavoriteCollectible,
   useNftDetection,
@@ -225,7 +225,7 @@ const CollectibleContracts = ({
   const renderFooter = useCallback(
     () => (
       <View style={styles.footer} key={'collectible-contracts-footer'}>
-        {isNftFetchingInProgress?.isFetchingInProgress ? (
+        {isNftFetchingProgress ? (
           <ActivityIndicator
             size="large"
             style={styles.spinner}
@@ -247,7 +247,7 @@ const CollectibleContracts = ({
         </TouchableOpacity>
       </View>
     ),
-    [goToAddCollectible, isAddNFTEnabled, styles, isNftFetchingInProgress],
+    [goToAddCollectible, isAddNFTEnabled, styles, isNftFetchingProgress],
   );
 
   const renderCollectibleContract = useCallback(
@@ -405,17 +405,16 @@ CollectibleContracts.propTypes = {
    * Array of collectibles objects
    */
   collectibles: PropTypes.array,
-
+  /**
+   * boolean indicating if fetching status is
+   * still in progress
+   */
+  isNftFetchingProgress: PropTypes.bool,
   /**
    * Navigation object required to push
    * the Asset detail view
    */
   navigation: PropTypes.object,
-  /**
-   * NftFetching object to indicate if
-   * we are still fetching nfts in the background.
-   */
-  isNftFetchingInProgress: PropTypes.object,
   /**
    * Object of collectibles
    */
@@ -445,7 +444,7 @@ const mapStateToProps = (state) => ({
   useNftDetection: selectUseNftDetection(state),
   collectibleContracts: collectibleContractsSelector(state),
   collectibles: collectiblesSelector(state),
-  isNftFetchingInProgress: isNftFetchingInProgressSelector(state),
+  isNftFetchingProgress: isNftFetchingProgressSelector(state),
   favoriteCollectibles: favoritesCollectiblesSelector(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   displayNftMedia: selectDisplayNftMedia(state),
