@@ -61,7 +61,7 @@ function Model(props) {
   // console.warn(gltf.animations);
 
   return (
-    <group ref={group}>
+    <group ref={group} scale={5}>
       <primitive
         onClick={(e) => {
           // count++;
@@ -87,7 +87,19 @@ function Model(props) {
 export default function App() {
   return (
     <View style={{ flex: 1, backgroundColor: 'white' }}>
-      <Canvas>
+      <Canvas
+        onCreated={(state) => {
+          const gl = state.gl.getContext();
+          const pixelStorei = gl.pixelStorei.bind(gl);
+          gl.pixelStorei = (...args) => {
+            const [parameter] = args;
+            switch (parameter) {
+              case gl.UNPACK_FLIP_Y_WEBGL:
+                return pixelStorei(...args);
+            }
+          };
+        }}
+      >
         <ambientLight />
         <Suspense fallback={null}>
           <Model />
