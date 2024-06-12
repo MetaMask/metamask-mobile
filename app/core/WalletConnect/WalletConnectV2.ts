@@ -10,6 +10,7 @@ import Logger from '../../util/Logger';
 import { WalletDevice } from '@metamask/transaction-controller';
 
 import { PermissionController } from '@metamask/permission-controller';
+import { isStrictHexString, type Hex } from '@metamask/utils';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { Core } from '@walletconnect/core';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
@@ -296,7 +297,7 @@ class WalletConnect2Session {
     chainId,
     accounts,
   }: {
-    chainId: number;
+    chainId: Hex;
     accounts?: string[];
   }) => {
     try {
@@ -333,12 +334,12 @@ class WalletConnect2Session {
           return;
         }
       }
-      if (chainId === 0) {
+      if (!isStrictHexString(chainId) || chainId.toLowerCase() === '0x0') {
         DevLogger.log(
           `WC2::updateSession invalid chainId --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
         );
         // overwrite chainId with actual value.
-        const selectedChainId = parseInt(selectChainId(store.getState()));
+        const selectedChainId = selectChainId(store.getState());
         DevLogger.log(
           `WC2::updateSession overwrite invalid chain Id with selectedChainId=${selectedChainId}`,
         );
@@ -346,7 +347,7 @@ class WalletConnect2Session {
       }
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
-        chainId,
+        chainId: parseInt(chainId, 16),
         accounts,
       });
     } catch (err) {
@@ -565,13 +566,12 @@ export class WC2Manager {
           DevLogger.log(`WC2::init approvedAccounts`, approvedAccounts);
         }
 
-        const nChainId = parseInt(chainId, 16);
         DevLogger.log(
-          `WC2::init updateSession session=${sessionKey} chainId=${chainId} nChainId=${nChainId} selectedAddress=${selectedAddress}`,
+          `WC2::init updateSession session=${sessionKey} chainId=${chainId} selectedAddress=${selectedAddress}`,
           approvedAccounts,
         );
         await this.sessions[sessionKey].updateSession({
-          chainId: nChainId,
+          chainId,
           accounts: approvedAccounts,
         });
       } catch (err) {
