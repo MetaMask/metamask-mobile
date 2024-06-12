@@ -1,6 +1,6 @@
 import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
-import { ensureValidState } from './util';
+import { ValidState, ensureValidState } from './util';
 import {
   AccountsControllerState,
   getUUIDFromAddressOfNormalAccount,
@@ -50,14 +50,14 @@ function deriveAccountName(existingName: string, currentName: string): string {
     : existingName;
 }
 
-function mergeInternalAccounts(state: Record<string, any>) {
-  const accountsController: AccountsControllerState =
-    state.engine.backgroundState.AccountsController;
+function mergeInternalAccounts(state: ValidState) {
+  const accountsController: AccountsControllerState = state.engine
+    .backgroundState.AccountsController as AccountsControllerState;
   const internalAccounts = accountsController.internalAccounts.accounts;
-  const selectedAccount = accountsController.internalAccounts.selectedAccount;
+  const selectedAccountId = accountsController.internalAccounts.selectedAccount;
 
   const selectedAddress =
-    internalAccounts[selectedAccount]?.address.toLowerCase();
+    internalAccounts[selectedAccountId]?.address.toLowerCase();
 
   const mergedAccounts: Record<string, InternalAccount> = {};
   const addressMap: Record<string, string> = {};
@@ -88,11 +88,8 @@ function mergeInternalAccounts(state: Record<string, any>) {
     }
   }
 
-  const newSelectedAccount =
-    addressMap[selectedAddress] ||
-    Object.keys(mergedAccounts)[0] || // Default to the first account in the list
-    selectedAccount;
-
+  const newSelectedAccountId =
+    addressMap[selectedAddress] || Object.keys(mergedAccounts)[0]; // Default to the first account in the list
   accountsController.internalAccounts.accounts = mergedAccounts;
-  accountsController.internalAccounts.selectedAccount = newSelectedAccount;
+  accountsController.internalAccounts.selectedAccount = newSelectedAccountId;
 }
