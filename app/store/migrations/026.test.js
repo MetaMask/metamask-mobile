@@ -19,7 +19,7 @@ describe('Migration #26', () => {
           PhishingController: {
             listState: {},
           },
-          KeyringController: { vault: [] },
+          KeyringController: { vault: {} },
         },
       },
     };
@@ -29,7 +29,7 @@ describe('Migration #26', () => {
       engine: {
         backgroundState: {
           PhishingController: {},
-          KeyringController: { vault: [] },
+          KeyringController: { vault: {} },
         },
       },
     });
@@ -43,7 +43,7 @@ describe('Migration #26', () => {
             hotlistLastFetched: 1,
             stalelistLastFetched: 1,
           },
-          KeyringController: { vault: [] },
+          KeyringController: { vault: {} },
         },
       },
     };
@@ -56,7 +56,7 @@ describe('Migration #26', () => {
             hotlistLastFetched: 0,
             stalelistLastFetched: 0,
           },
-          KeyringController: { vault: [] },
+          KeyringController: { vault: {} },
         },
       },
     });
@@ -67,7 +67,7 @@ describe('Migration #26', () => {
       engine: {
         backgroundState: {
           PhishingController: {},
-          KeyringController: { vault: [] },
+          KeyringController: { vault: {} },
         },
       },
     };

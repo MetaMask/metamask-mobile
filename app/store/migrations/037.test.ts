@@ -68,7 +68,7 @@ describe('Migration #37', () => {
           NetworkController: {
             networkId: '1',
           },
-          KeyringController: { vault: [] },
+          KeyringController: { vault: {} },
         },
       },
     };
@@ -78,7 +78,7 @@ describe('Migration #37', () => {
       engine: {
         backgroundState: {
           NetworkController: {},
-          KeyringController: { vault: [] },
+          KeyringController: { vault: {} },
         },
       },
     };

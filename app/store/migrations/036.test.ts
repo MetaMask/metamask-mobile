@@ -87,7 +87,7 @@ function createMockState(
         PreferencesController: {
           ...preferenceState,
         },
-        KeyringController: { vault: [] },
+        KeyringController: { vault: {} },
       },
     },
   };
@@ -124,7 +124,7 @@ describe('Migration #036', () => {
         engine: {
           backgroundState: {
             PreferencesController: undefined,
-            KeyringController: { vault: [] },
+            KeyringController: { vault: {} },
           },
         },
       };
@@ -140,7 +140,7 @@ describe('Migration #036', () => {
         engine: {
           backgroundState: {
             PreferencesController: {},
-            KeyringController: { vault: [] },
+            KeyringController: { vault: {} },
           },
         },
       };
@@ -189,49 +189,11 @@ describe('Migration #036', () => {
               },
               selectedAddress: '0x0',
             },
-            KeyringController: { vault: [] },
+            KeyringController: { vault: {} },
           },
         },
       });
     });
-  });
-  it('should throw if state.engine.backgroundState.KeyringController.vault is not defined', async () => {
-    const expectedUUID = await addressToUUID(MOCK_ADDRESS);
-    const resultInternalAccount = await expectedInternalAccount(
-      MOCK_ADDRESS,
-      'Account 1',
-    );
-    const oldState = {
-      engine: {
-        backgroundState: {
-          AccountsController: {
-            internalAccounts: {
-              accounts: {
-                [expectedUUID]: resultInternalAccount,
-              },
-              selectedAccount: expectedUUID,
-            },
-          },
-          PreferencesController: {
-            identities: {
-              '0x0': {
-                address: '0x0',
-                lastSelected: undefined,
-                name: 'Account 1',
-              },
-            },
-            selectedAddress: '0x0',
-          },
-          KeyringController: { vault: undefined },
-        },
-      },
-    };
-    const newState = await migrate(oldState);
-    expect(newState).toStrictEqual(oldState);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-      `Migration 36: Invalid vault in KeyringController: 'undefined'`,
-    );
   });
 
   describe('createInternalAccountsForAccountsController', () => {
@@ -265,7 +227,7 @@ describe('Migration #036', () => {
               },
             },
             PreferencesController: expect.any(Object),
-            KeyringController: { vault: [] },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -295,7 +257,7 @@ describe('Migration #036', () => {
                 selectedAccount: expectedUUID,
               },
             },
-            KeyringController: { vault: [] },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -331,7 +293,7 @@ describe('Migration #036', () => {
               },
             },
             PreferencesController: expect.any(Object),
-            KeyringController: { vault: [] },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -356,7 +318,7 @@ describe('Migration #036', () => {
                 selectedAccount: '', // Expect no account to be selected
               },
             },
-            KeyringController: { vault: [] },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -382,7 +344,7 @@ describe('Migration #036', () => {
                 selectedAccount: await addressToUUID(MOCK_ADDRESS),
               },
             },
-            KeyringController: { vault: [] },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -396,7 +358,7 @@ describe('Migration #036', () => {
               identities: {},
               selectedAddress: '',
             },
-            KeyringController: { vault: [] },
+            KeyringController: { vault: {} },
           },
         },
       };
@@ -411,7 +373,7 @@ describe('Migration #036', () => {
                 selectedAccount: '',
               },
             },
-            KeyringController: { vault: [] },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -446,7 +408,7 @@ describe('Migration #036', () => {
                 },
               },
             },
-            KeyringController: { vault: [] },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -490,7 +452,7 @@ describe('Migration #036', () => {
                 selectedAccount: expectedUUID,
               },
             },
-            KeyringController: { vault: [] },
+            KeyringController: { vault: {} },
           },
         },
       });
