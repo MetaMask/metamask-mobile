@@ -6,6 +6,7 @@ import {
   getUUIDFromAddressOfNormalAccount,
 } from '@metamask/accounts-controller';
 import { InternalAccount } from '@metamask/keyring-api';
+import { isDefaultAccountName } from '../../util/ENSUtils';
 
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 44)) {
@@ -40,6 +41,15 @@ export default function migrate(state: unknown) {
   return state;
 }
 
+function deriveAccountName(existingName: string, currentName: string): string {
+  const isExistingNameDefault = isDefaultAccountName(existingName);
+  const isCurrentNameDefault = isDefaultAccountName(currentName);
+
+  return isExistingNameDefault && !isCurrentNameDefault
+    ? currentName
+    : existingName;
+}
+
 function mergeInternalAccounts(state: Record<string, any>) {
   const accountsController: AccountsControllerState =
     state.engine.backgroundState.AccountsController;
@@ -59,7 +69,10 @@ function mergeInternalAccounts(state: Record<string, any>) {
       existingAccount.metadata = {
         ...existingAccount.metadata,
         ...account.metadata,
-        name: existingAccount.metadata.name || account.metadata.name,
+        name: deriveAccountName(
+          existingAccount.metadata.name,
+          account.metadata.name,
+        ),
       };
       existingAccount.methods = Array.from(
         new Set([...existingAccount.methods, ...account.methods]),

@@ -35,7 +35,7 @@ function createMockAccountsControllerState(
           id: 'id1',
           options: {},
           metadata: {
-            name: 'Account 1',
+            name: 'Custom Account 1',
             keyring: {
               type: 'HD Key Tree',
             },
@@ -75,7 +75,7 @@ function createMockAccountsControllerState(
           id: 'id3',
           options: {},
           metadata: {
-            name: 'Account 3',
+            name: 'Custom Account 3',
             keyring: {
               type: 'HD Key Tree',
             },
@@ -278,7 +278,7 @@ describe('Migration #044', () => {
                   id: expectedId1,
                   options: {},
                   metadata: {
-                    name: 'Account 1',
+                    name: 'Custom Account 1',
                     keyring: { type: 'HD Key Tree' },
                     lastSelected: 1718130576952,
                   },
@@ -316,7 +316,7 @@ describe('Migration #044', () => {
                   id: expectedId3,
                   options: {},
                   metadata: {
-                    name: 'Account 3',
+                    name: 'Custom Account 3',
                     keyring: { type: 'HD Key Tree' },
                     lastSelected: 1718130576954,
                   },
@@ -564,5 +564,28 @@ describe('Migration #044', () => {
       newState.engine.backgroundState.AccountsController.internalAccounts
         .selectedAccount,
     ).toBe(expectedId1);
+  });
+  it('should prefer non-default account names when merging', () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          AccountsController: createMockAccountsControllerState(),
+        },
+      },
+    };
+
+    const newState = migrate(oldState) as typeof oldState;
+
+    expect(
+      Object.keys(
+        newState.engine.backgroundState.AccountsController.internalAccounts
+          .accounts,
+      ).length,
+    ).toBe(5);
+
+    expect(
+      newState.engine.backgroundState.AccountsController.internalAccounts
+        .accounts[expectedId1].metadata.name,
+    ).toBe('Custom Account 1');
   });
 });
