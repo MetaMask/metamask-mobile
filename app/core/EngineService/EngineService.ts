@@ -119,7 +119,7 @@ class EngineService {
     }
 
     engine?.datamodel?.subscribe?.(() => {
-      if (!engine.context.KeyringController.vault) {
+      if (!engine.context.KeyringController.metadata.vault) {
         Logger.message('keyringController vault missing for INIT_BG_STATE_KEY');
       }
       if (!this.engineInitialized) {
@@ -131,7 +131,7 @@ class EngineService {
     controllers.forEach((controller) => {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () => {
-        if (!engine.context.KeyringController.vault) {
+        if (!engine.context.KeyringController.metadata.vault) {
           Logger.message(
             'keyringController vault missing for UPDATE_BG_STATE_KEY',
           );

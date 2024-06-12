@@ -44,8 +44,7 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   const keyringControllerState = state.engine.backgroundState.KeyringController;
-  // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
-  if (!keyringControllerState.vault) {
+  if (!isObject(keyringControllerState)) {
     captureException(
       new Error(
         // @ts-expect-error We are not returning state not to stop the flow of Vault recovery

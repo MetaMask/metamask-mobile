@@ -1,4 +1,5 @@
 import { captureException } from '@sentry/react-native';
+import { isObject } from '@metamask/utils';
 
 /**
  * This migration is to free space of unused data in the user devices
@@ -7,8 +8,7 @@ import { captureException } from '@sentry/react-native';
  **/
 export default function migrate(state) {
   const keyringControllerState = state.engine.backgroundState.KeyringController;
-  // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
-  if (!keyringControllerState.vault) {
+  if (!isObject(keyringControllerState)) {
     captureException(
       // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
       new Error(

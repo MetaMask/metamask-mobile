@@ -39,7 +39,7 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   const keyringControllerState = state.engine.backgroundState.KeyringController;
-  if (!keyringControllerState.vault) {
+  if (!isObject(keyringControllerState)) {
     captureException(
       new Error(`Migration 35: Invalid vault in KeyringController`),
     );
