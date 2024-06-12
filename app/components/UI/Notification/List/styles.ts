@@ -124,6 +124,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       width: '100%',
       alignSelf: 'center',
     },
+    stickyButton: { alignSelf: 'center', width: '100%', zIndex: 1, bottom: 50 },
     trashIconContainer: {
       position: 'absolute',
       paddingHorizontal: 24,

@@ -11,6 +11,9 @@ import { createStyles } from './styles';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationRow } from '../Row';
+import Button, {
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
 import {
   FeatureAnnouncementRawNotification,
   HalRawNotification,
@@ -18,6 +21,7 @@ import {
   getRowDetails,
 } from '../../../../util/notifications';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
+import { NOTIFICATION_TEST_ID_TYPES } from '../Row/constants';
 
 interface NotificationsList {
   navigation: any;
@@ -46,6 +50,8 @@ const Notifications = ({
     },
     [navigation],
   );
+
+  const handleMarkAllAsRead = useCallback(() => {}, []);
 
   const renderTabBar = useCallback(
     (props) => (
@@ -129,27 +135,42 @@ const Notifications = ({
 
   const renderList = useCallback(
     (list, idx) => (
-      <FlatList
-        // This has been ts ignored due the need of extend this component to support injected tabLabel prop.
-        // eslint-disable-next-line
+      <>
+        <FlatList
+          // This has been ts ignored due the need of extend this component to support injected tabLabel prop.
+          // eslint-disable-next-line
         // @ts-ignore
-        tabLabel={strings(`notifications.list.${idx.toString()}`)}
-        keyExtractor={(_, index) => index.toString()}
-        key={combinedLists.indexOf(list)}
-        data={list}
-        ListEmptyComponent={
-          <Empty
-            testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
-          />
-        }
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => renderNotificationRow(item)}
-        initialNumToRender={10}
-        maxToRenderPerBatch={2}
-        onEndReachedThreshold={0.5}
-      />
+          tabLabel={strings(`notifications.list.${idx.toString()}`)}
+          keyExtractor={(_, index) => index.toString()}
+          key={combinedLists.indexOf(list)}
+          data={list}
+          ListEmptyComponent={
+            <Empty
+              testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
+            />
+          }
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => renderNotificationRow(item)}
+          initialNumToRender={10}
+          maxToRenderPerBatch={2}
+          onEndReachedThreshold={0.5}
+        />
+        <Button
+          testID={NOTIFICATION_TEST_ID_TYPES.NOTIFICATION_MARK_ALL_AS_READ}
+          variant={ButtonVariants.Primary}
+          label={strings('notifications.mark_all_as_read')}
+          onPress={handleMarkAllAsRead}
+          style={styles.stickyButton}
+        />
+      </>
     ),
-    [combinedLists, renderNotificationRow, styles.list],
+    [
+      combinedLists,
+      handleMarkAllAsRead,
+      renderNotificationRow,
+      styles.stickyButton,
+      styles.list,
+    ],
   );
 
   return (
