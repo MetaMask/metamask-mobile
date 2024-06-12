@@ -6,7 +6,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
   contentContainerStyle={
     {
       "alignItems": "flex-start",
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flex": 1,
       "paddingTop": 16,
     }
@@ -50,8 +50,8 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             <View
               placeholderStyle={
                 {
-                  "backgroundColor": "#F2F4F6",
-                  "borderColor": "#F2F4F6",
+                  "backgroundColor": "#f2f4f6",
+                  "borderColor": "#f2f4f6",
                   "borderRadius": 16,
                   "borderWidth": 0.5,
                   "height": 32,
@@ -60,8 +60,8 @@ exports[`NotificationsDetails should renders correctly 1`] = `
               }
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#F2F4F6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#f2f4f6",
                   "borderRadius": 16,
                   "borderWidth": 0.5,
                   "height": 32,
@@ -131,14 +131,14 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#FFFFFF",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#ffffff",
                     "borderRadius": 16,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001A",
+                    "shadowColor": "#0000001a",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -181,7 +181,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 16,
                 "fontWeight": "500",
@@ -196,7 +196,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#535A61",
+                "color": "#6a737d",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -221,7 +221,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 16,
                 "fontWeight": "500",
@@ -236,7 +236,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#535A61",
+                "color": "#6a737d",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -274,8 +274,8 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             <View
               placeholderStyle={
                 {
-                  "backgroundColor": "#F2F4F6",
-                  "borderColor": "#F2F4F6",
+                  "backgroundColor": "#f2f4f6",
+                  "borderColor": "#f2f4f6",
                   "borderRadius": 16,
                   "borderWidth": 0.5,
                   "height": 32,
@@ -284,8 +284,8 @@ exports[`NotificationsDetails should renders correctly 1`] = `
               }
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#F2F4F6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#f2f4f6",
                   "borderRadius": 16,
                   "borderWidth": 0.5,
                   "height": 32,
@@ -355,14 +355,14 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#FFFFFF",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#ffffff",
                     "borderRadius": 16,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001A",
+                    "shadowColor": "#0000001a",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -405,7 +405,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 16,
                 "fontWeight": "500",
@@ -420,7 +420,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#535A61",
+                "color": "#6a737d",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -445,7 +445,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 16,
                 "fontWeight": "500",
@@ -460,7 +460,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#535A61",
+                "color": "#6a737d",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -487,7 +487,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#1C823419",
+              "backgroundColor": "#1c82341a",
               "borderRadius": 16,
               "height": 32,
               "justifyContent": "center",
@@ -498,7 +498,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
           }
         >
           <SvgMock
-            color="#1C8234"
+            color="#1c8234"
             height={20}
             name="Check"
             style={
@@ -521,7 +521,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 16,
                 "fontWeight": "500",
@@ -536,7 +536,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#535A61",
+                "color": "#6a737d",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -599,7 +599,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             style={
               {
                 "alignSelf": "flex-start",
-                "color": "#0376C9",
+                "color": "#0376c9",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -611,7 +611,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             Transaction ID
           </Text>
           <SvgMock
-            color="#0376C9"
+            color="#0376c9"
             height={20}
             name="Copy"
             style={
@@ -639,7 +639,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
         <View
           style={
             {
-              "borderColor": "#F2F4F6",
+              "borderColor": "#f2f4f6",
               "borderRadius": 16,
               "borderWidth": 0.5,
               "height": 32,
@@ -659,7 +659,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 16,
                 "fontWeight": "500",
@@ -674,7 +674,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#535A61",
+                "color": "#6a737d",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -755,15 +755,15 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#D6D9DC",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#bbc0c566",
                   "borderTopLeftRadius": 8,
                   "borderTopRightRadius": 8,
                   "borderWidth": 1,
                   "maxHeight": 1334,
                   "overflow": "hidden",
                   "paddingBottom": 0,
-                  "shadowColor": "#0000001A",
+                  "shadowColor": "#0000001a",
                   "shadowOffset": {
                     "height": 2,
                     "width": 0,
@@ -793,7 +793,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
               <View
                 style={
                   {
-                    "backgroundColor": "#D6D9DC",
+                    "backgroundColor": "#bbc0c566",
                     "borderRadius": 2,
                     "height": 4,
                     "width": 40,
@@ -823,7 +823,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#535A61",
+                      "color": "#6a737d",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -838,7 +838,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#535A61",
+                      "color": "#6a737d",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -866,7 +866,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#535A61",
+                      "color": "#6a737d",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -881,7 +881,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#535A61",
+                      "color": "#6a737d",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -909,7 +909,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#535A61",
+                      "color": "#6a737d",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -924,7 +924,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#535A61",
+                      "color": "#6a737d",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -952,7 +952,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#535A61",
+                      "color": "#6a737d",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -967,7 +967,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#535A61",
+                      "color": "#6a737d",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -995,7 +995,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#535A61",
+                      "color": "#6a737d",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -1010,7 +1010,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#535A61",
+                      "color": "#6a737d",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -1038,8 +1038,8 @@ exports[`NotificationsDetails should renders correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "center",
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#0376C9",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#0376c9",
             "borderRadius": 20,
             "borderWidth": 1,
             "bottom": 0,
@@ -1058,7 +1058,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376C9",
+              "color": "#0376c9",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -1070,7 +1070,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
           View on Etherscan
         </Text>
         <SvgMock
-          color="#0376C9"
+          color="#0376c9"
           height={16}
           name="Arrow2Upright"
           style={

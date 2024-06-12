@@ -59,7 +59,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -90,7 +90,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -126,7 +126,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -143,7 +143,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -169,7 +169,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -200,7 +200,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -236,7 +236,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -253,7 +253,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -284,7 +284,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -306,7 +306,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
           accessible={true}
           style={
             {
-              "backgroundColor": "#0376C919",
+              "backgroundColor": "#0376c91a",
               "bottom": 0,
               "flexDirection": "row",
               "left": 0,
@@ -319,7 +319,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
           <View
             style={
               {
-                "backgroundColor": "#0376C9",
+                "backgroundColor": "#0376c9",
                 "borderRadius": 2,
                 "marginLeft": 4,
                 "marginVertical": 4,
@@ -396,7 +396,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -427,7 +427,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -579,7 +579,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -596,7 +596,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -627,7 +627,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -656,7 +656,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -687,7 +687,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -839,7 +839,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -856,7 +856,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -887,7 +887,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -909,7 +909,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
           accessible={true}
           style={
             {
-              "backgroundColor": "#0376C919",
+              "backgroundColor": "#0376c91a",
               "bottom": 0,
               "flexDirection": "row",
               "left": 0,
@@ -922,7 +922,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#0376C9",
+                "backgroundColor": "#0376c9",
                 "borderRadius": 2,
                 "marginLeft": 4,
                 "marginVertical": 4,
@@ -1000,7 +1000,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -1031,7 +1031,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -1183,7 +1183,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -1200,7 +1200,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -1240,7 +1240,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -1271,7 +1271,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -1423,7 +1423,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -1440,7 +1440,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -1535,7 +1535,7 @@ exports[`AccountSelectorList should render correctly 1`] = `
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -1566,7 +1566,7 @@ exports[`AccountSelectorList should render correctly 1`] = `
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -1718,7 +1718,7 @@ exports[`AccountSelectorList should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -1735,7 +1735,7 @@ exports[`AccountSelectorList should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -1766,7 +1766,7 @@ exports[`AccountSelectorList should render correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -1795,7 +1795,7 @@ exports[`AccountSelectorList should render correctly 1`] = `
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -1826,7 +1826,7 @@ exports[`AccountSelectorList should render correctly 1`] = `
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -1978,7 +1978,7 @@ exports[`AccountSelectorList should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -1995,7 +1995,7 @@ exports[`AccountSelectorList should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -2026,7 +2026,7 @@ exports[`AccountSelectorList should render correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -2048,7 +2048,7 @@ exports[`AccountSelectorList should render correctly 1`] = `
           accessible={true}
           style={
             {
-              "backgroundColor": "#0376C919",
+              "backgroundColor": "#0376c91a",
               "bottom": 0,
               "flexDirection": "row",
               "left": 0,
@@ -2061,7 +2061,7 @@ exports[`AccountSelectorList should render correctly 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#0376C9",
+                "backgroundColor": "#0376c9",
                 "borderRadius": 2,
                 "marginLeft": 4,
                 "marginVertical": 4,
