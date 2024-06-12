@@ -1529,6 +1529,10 @@
     "to": "To",
     "details": "Details",
     "amount": "Amount",
+    "fee": {
+      "transaction_fee_in_ether": "Transaction Fee",
+      "transaction_fee_in_usd": "Transaction Fee (USD)"
+    },
     "gas_used": "Gas Used (Units)",
     "gas_limit": "Gas Limit (Units)",
     "gas_price": "Gas Price (GWEI)",
@@ -1924,14 +1928,21 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "staked": "Staked",
+    "received": "Received",
+    "unstaked": "Unstaked",
+    "to": "To",
+    "rate": "Rate(fees included)",
+    "unstaking_requested": "Unstaking requested",
     "stake_completed": "Stake completed",
     "withdrawal_completed": "Withdrawal completed",
     "unstake_completed": "Unstake completed",
     "withdrawal_requested": "Withdrawal requested",
     "stake_ready_to_be_withdrawn": "Stake ready to be withdrawn",
     "swap_completed": "Swapped {{from}} for {{to}}",
+    "swap": "Swapped",
     "sent": "Sent to {{address}}",
-    "received": "Received from {{address}}",
+    "received_from": "Received from {{address}}",
     "nft_sent": "Sent NFT to {{address}}",
     "erc721_sent": "Sent NFT to {{address}}",
     "erc1155_sent": "Sent NFT to {{address}}",
@@ -1978,6 +1989,7 @@
     "wc_description": "Please check the application",
     "wallet": "Wallet",
     "web3": "Web3",
+    "staking_provider": "Staking Provider",
     "empty": {
       "title": "Nothing to see here",
       "message": "This is where you can find notifications once there’s activity in your wallet. "

@@ -14,6 +14,7 @@ import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import NotificationsDetails from '../../Views/Notifications/Details';
 import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
@@ -585,7 +586,8 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const NotificationsModeView = () => (
+/* eslint-disable react/prop-types */
+const NotificationsModeView = (props) => (
   <Stack.Navigator>
     <Stack.Screen
       name={Routes.NOTIFICATIONS.VIEW}
@@ -596,6 +598,12 @@ const NotificationsModeView = () => (
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
       options={NotificationsSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.NOTIFICATIONS.DETAILS}
+      component={NotificationsDetails}
+      options={NotificationsDetails.navigationOptions}
+      initialParams={{ notification: props.route.params?.notification }}
     />
     <Stack.Screen
       mode={'modal'}
