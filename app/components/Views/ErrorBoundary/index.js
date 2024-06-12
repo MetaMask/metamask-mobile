@@ -244,7 +244,7 @@ class ErrorBoundary extends Component {
   };
 
   openTicket = () => {
-    const url = 'https://metamask.zendesk.com/hc/en-us';
+    const url = 'https://support.metamask.io';
     Linking.openURL(url);
   };
 
