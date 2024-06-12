@@ -21,7 +21,6 @@ describe(SmokeConfirmations('ERC721 token'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
   beforeAll(async () => {
-    jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
 
