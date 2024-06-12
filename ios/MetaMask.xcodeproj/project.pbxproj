@@ -88,6 +88,7 @@
 		7CFB6EF0B7853F1C4E863E5E /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CC4BA1B4AFA5C6EA75133110 /* libPods-MetaMask.a */; };
 		7E08FB90F3754D47994208B4 /* Roboto-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D9A37B5BF2914CF1B49EEF80 /* Roboto-Thin.ttf */; };
 		813214A2220E40C7BBB5ED9E /* Roboto-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A783D1CD7D27456796FE2E1B /* Roboto-Bold.ttf */; };
+		82822A180618189AD09F921F /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EC5E809747B1B9A2B33C723 /* ExpoModulesProvider.swift */; };
 		887E75FB64A54509A08D6C50 /* Roboto-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E020F42F788744B3BCE17F05 /* Roboto-LightItalic.ttf */; };
 		8DEB44A7E7EF48E1B3298910 /* EuclidCircularB-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = CE0434C5FB7C4C6F9FEBDCE2 /* EuclidCircularB-Medium.otf */; };
 		B0EF7FA927BD16EA00D48B4E /* ThemeColors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */; };
@@ -249,6 +250,7 @@
 		1A00E5D287314FBFECB220E4 /* Pods-MetaMask-Flask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-Flask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask-Flask/Pods-MetaMask-Flask.release.xcconfig"; sourceTree = "<group>"; };
 		1B3D5DF5831949FE98EDCB6D /* Pods-MetaMask-Flask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-Flask.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask-Flask/Pods-MetaMask-Flask.debug.xcconfig"; sourceTree = "<group>"; };
 		1C516951C09F43CB97129B66 /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
+		1EC5E809747B1B9A2B33C723 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-MetaMask/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		278065D027394AD9B2906E38 /* libBVLinearGradient.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libBVLinearGradient.a; sourceTree = "<group>"; };
 		2D16E6891FA4F8E400B85C8A /* libReact.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libReact.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D38A4BA1190B57818AFF2BC /* Pods-MetaMask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.debug.xcconfig"; sourceTree = "<group>"; };
@@ -529,6 +531,7 @@
 				15A2E5EF2100077400A1F331 /* Recovered References */,
 				AA342D524556DBBE26F5997C /* Pods */,
 				654378AE243E2ADB00571B9C /* MetaMask-Bridging-Header.h */,
+				E1803755F651CDBCFB6BCCBC /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -543,6 +546,14 @@
 				2EF282922B0FF86900D7B4B1 /* MetaMask-Flask.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		94E39CD4279F3509AA3EF842 /* MetaMask */ = {
+			isa = PBXGroup;
+			children = (
+				1EC5E809747B1B9A2B33C723 /* ExpoModulesProvider.swift */,
+			);
+			name = MetaMask;
 			sourceTree = "<group>";
 		};
 		AA342D524556DBBE26F5997C /* Pods */ = {
@@ -574,6 +585,14 @@
 				CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */,
 			);
 			name = RCTScreenshotDetect;
+			sourceTree = "<group>";
+		};
+		E1803755F651CDBCFB6BCCBC /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				94E39CD4279F3509AA3EF842 /* MetaMask */,
+			);
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1131,6 +1150,7 @@
 				CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */,
 				CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				82822A180618189AD09F921F /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1233,7 +1253,7 @@
 					"$(SRCROOT)/../node_modules/react-native-tcp/ios/**",
 				);
 				INFOPLIST_FILE = MetaMask/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1252,6 +1272,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = MetaMask;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1296,7 +1317,7 @@
 					"$(SRCROOT)/../node_modules/react-native-tcp/ios/**",
 				);
 				INFOPLIST_FILE = MetaMask/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1315,6 +1336,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = MetaMask;
 				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask";
@@ -1376,6 +1398,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1435,6 +1458,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask";
@@ -1602,6 +1626,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.MetaMask-QA";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1668,6 +1693,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.MetaMask-QA";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Bitrise Internal Release - MetaMask-QA";

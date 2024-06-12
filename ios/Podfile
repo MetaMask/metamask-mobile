@@ -1,7 +1,8 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
 
-platform :ios, '12.4' #min_ios_version_supported
+platform :ios, '13.4' #min_ios_version_supported
 prepare_react_native_project!
 # Ensures that versions from Gemfile is respected
 ensure_bundler!
@@ -103,6 +104,14 @@ def common_target_logic
 end
 
 target 'MetaMask' do
+  use_expo_modules!
+  post_integrate do |installer|
+    begin
+      expo_patch_react_imports!(installer)
+    rescue => e
+      Pod::UI.warn e
+    end
+  end
   common_target_logic
 end
 
@@ -114,12 +123,12 @@ target 'MetaMask-Flask' do
 	common_target_logic
 end
 
-post_install do |installer|
-  react_native_post_install(
-    installer,
-    # Set `mac_catalyst_enabled` to `true` in order to apply patches
-    # necessary for Mac Catalyst builds
-    :mac_catalyst_enabled => false
-  )
-  __apply_Xcode_12_5_M1_post_install_workaround(installer)
-end
+# post_install do |installer|
+#   react_native_post_install(
+#     installer,
+#     # Set `mac_catalyst_enabled` to `true` in order to apply patches
+#     # necessary for Mac Catalyst builds
+#     :mac_catalyst_enabled => false
+#   )
+#   __apply_Xcode_12_5_M1_post_install_workaround(installer)
+# end

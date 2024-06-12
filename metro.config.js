@@ -32,8 +32,20 @@ module.exports = (async () => {
       },
     },
     resolver: {
-      assetExts: assetExts.filter((ext) => ext !== 'svg'),
-      sourceExts: [...sourceExts, 'svg', 'cjs'],
+      assetExts: [...assetExts, 'glb', 'gltf', 'png', 'jpg'].filter(
+        (ext) => ext !== 'svg',
+      ),
+      sourceExts: [
+        ...sourceExts,
+        'svg',
+        'cjs',
+        'js',
+        'jsx',
+        'json',
+        'ts',
+        'tsx',
+        'mjs',
+      ],
       resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
     },
     maxWorkers: 2,
