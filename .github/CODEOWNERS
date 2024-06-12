@@ -30,3 +30,4 @@ app/components/UI/Swaps              @MetaMask/swaps-engineers @MetaMask/mobile-
 
 # LavaMoat Team
 ses.cjs                              @leotm @legobeat
+patches/react-native+0.71.15.patch   @leotm
