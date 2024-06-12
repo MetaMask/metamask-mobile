@@ -3,8 +3,6 @@
 // Third party dependencies.
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import SliderButton from '../../../../components/UI/SliderButton';
-import Text from '../../Texts/Text';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -17,10 +15,9 @@ const Card: React.FC<CardProps> = ({ style, children, ...props }) => {
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <SliderButton
-      incompleteText={<Text>Swipe to swap</Text>}
-      completeText={<Text>Swap completed</Text>}
-    />
+    <TouchableOpacity style={styles.base} {...props}>
+      {children}
+    </TouchableOpacity>
   );
 };
 
