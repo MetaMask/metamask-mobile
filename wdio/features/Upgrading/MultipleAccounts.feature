@@ -41,4 +41,4 @@ Feature: Upgrade previous app build with current release while being connected t
 
     Examples:
       | PRIVATEKEY                                                       | AccountName |
-      | cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1 | Account 4   |
+      | cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1 | Account 3   |
