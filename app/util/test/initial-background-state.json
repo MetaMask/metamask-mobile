@@ -18,10 +18,10 @@
     }
   },
   "AccountsController": {
-     "internalAccounts": {
-       "accounts": {},
-       "selectedAccount": ""
-     }
+    "internalAccounts": {
+      "accounts": {},
+      "selectedAccount": ""
+    }
   },
   "AddressBookController": {
     "addressBook": {}
@@ -49,15 +49,14 @@
   "NftDetectionController": {},
   "PPOMController": {
     "storageMetadata": [],
-    "versionFileETag": "",
     "versionInfo": []
   },
 
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {
-      "ETH":{
-        "conversionDate":0,
+      "ETH": {
+        "conversionDate": 0,
         "conversionRate": 0,
         "usdConversionRate": null
       }
@@ -71,7 +70,7 @@
       "ticker": "ETH"
     },
     "networksMetadata": {
-      "mainnet":{  "EIPS": {},"status": "unknown"}
+      "mainnet": { "EIPS": {}, "status": "unknown" }
     },
     "selectedNetworkClientId": "mainnet"
   },
@@ -119,7 +118,9 @@
       "0x505": true,
       "0x64": true
     },
-    "isIpfsGatewayEnabled": true
+    "isIpfsGatewayEnabled": true,
+    "smartTransactionsOptInStatus": false,
+    "useTransactionSimulations": true
   },
   "TokenBalancesController": {
     "contractBalances": {}
@@ -133,6 +134,11 @@
     "methodData": {},
     "submitHistory": [],
     "transactions": []
+  },
+  "SmartTransactionsController": {
+    "smartTransactionsState": {
+      "liveness": true
+    }
   },
   "SnapController": {
     "snapStates": {},
@@ -198,7 +204,8 @@
     "gasFeeEstimates": {},
     "estimatedGasFeeTimeBounds": {},
     "gasEstimateType": "none",
-    "gasFeeEstimatesByChainId": {}
+    "gasFeeEstimatesByChainId": {},
+    "nonRPCGasFeeApisDisabled": false
   },
   "ApprovalController": {
     "pendingApprovals": {},

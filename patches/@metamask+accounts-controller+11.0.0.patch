@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/accounts-controller/dist/AccountsController.js b/node_modules/@metamask/accounts-controller/dist/AccountsController.js
+index 22b1565..82306fd 100644
+--- a/node_modules/@metamask/accounts-controller/dist/AccountsController.js
++++ b/node_modules/@metamask/accounts-controller/dist/AccountsController.js
+@@ -433,7 +433,7 @@ _AccountsController_instances = new WeakSet(), _AccountsController_generateInter
+     this.update((currentState) => {
+         currentState.internalAccounts.accounts[newAccount.id] = Object.assign(Object.assign({}, newAccount), { metadata: Object.assign(Object.assign({}, newAccount.metadata), { name: accountName, lastSelected: Date.now() }) });
+     });
+-    this.setSelectedAccount(newAccount.id);
++    // this.setSelectedAccount(newAccount.id);
+ }, _AccountsController_handleAccountRemoved = function _AccountsController_handleAccountRemoved(accountId) {
+     this.update((currentState) => {
+         delete currentState.internalAccounts.accounts[accountId];
