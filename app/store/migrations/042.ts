@@ -9,14 +9,14 @@ import { InternalAccount } from '@metamask/keyring-api';
 import { isDefaultAccountName } from '../../util/ENSUtils';
 
 export default function migrate(state: unknown) {
-  if (!ensureValidState(state, 44)) {
+  if (!ensureValidState(state, 42)) {
     return state;
   }
 
   if (!isObject(state.engine.backgroundState.AccountsController)) {
     captureException(
       new Error(
-        `Migration 44: Invalid AccountsController state: '${typeof state.engine
+        `Migration 42: Invalid AccountsController state: '${typeof state.engine
           .backgroundState.AccountsController}'`,
       ),
     );
@@ -31,7 +31,7 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `Migration 44: Missing internalAccounts property from AccountsController: '${typeof state
+        `Migration 42: Missing internalAccounts property from AccountsController: '${typeof state
           .engine.backgroundState.AccountsController}'`,
       ),
     );

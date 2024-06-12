@@ -1,4 +1,4 @@
-import migrate from './044';
+import migrate from './042';
 import { captureException } from '@sentry/react-native';
 import {
   AccountsControllerState,
@@ -241,7 +241,7 @@ function createMockAccountsControllerState(
   };
 }
 
-describe('Migration #044', () => {
+describe('Migration #042', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -382,7 +382,7 @@ describe('Migration #044', () => {
     expect(newState).toStrictEqual({});
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-      `FATAL ERROR: Migration 44: Invalid engine state error: 'undefined'`,
+      `FATAL ERROR: Migration 42: Invalid engine state error: 'undefined'`,
     );
   });
 
@@ -400,7 +400,7 @@ describe('Migration #044', () => {
     });
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-      "Migration 44: Invalid AccountsController state: 'undefined'",
+      "Migration 42: Invalid AccountsController state: 'undefined'",
     );
   });
 
@@ -422,7 +422,7 @@ describe('Migration #044', () => {
     });
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-      "Migration 44: Missing internalAccounts property from AccountsController: 'object'",
+      "Migration 42: Missing internalAccounts property from AccountsController: 'object'",
     );
   });
 
