@@ -576,6 +576,10 @@ describe('Number utils :: balanceToFiat', () => {
     expect(balanceToFiat(0.1, 0.1, 0.1, 'usd')).toEqual('$0.00');
     expect(balanceToFiat(0.0001, 0.1, 0.1, 'usd')).toEqual('$0.00');
   });
+
+  it('should returns undefined if balanceToFiat conversionRate is undefined', () => {
+    expect(balanceToFiat(0.1, undefined, 0.1, 'usd')).toEqual(undefined);
+  });
 });
 
 describe('Number utils :: addCurrencySymbol', () => {
