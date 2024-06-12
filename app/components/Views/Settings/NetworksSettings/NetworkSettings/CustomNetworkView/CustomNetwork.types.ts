@@ -59,4 +59,10 @@ export interface CustomNetworkProps {
    * List of custom networks
    */
   customNetworksList?: Network[];
+  /**
+   * If this list of networks is used in a filtered way for example when the user is using a search box to filter networks,
+   * we should take that into consideration before displaying an empty state telling the user he has already added all networks.
+   * This is the main use case for this prop.
+   */
+  shouldShowEmptyPopularList?: boolean;
 }
