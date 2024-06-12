@@ -1,23 +1,23 @@
-import { ExperienceEnhancerModalSelectorsText } from '../../selectors/Modals/ExperienceEnhancerModal.selectors';
+import { ExperienceEnhancerModalSelectorsIDs } from '../../selectors/Modals/ExperienceEnhancerModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
 class ExperienceEnhancerModal {
   get title() {
-    return Matchers.getElementByText(
-      ExperienceEnhancerModalSelectorsText.TITLE,
+    return Matchers.getElementByID(
+      ExperienceEnhancerModalSelectorsIDs.BOTTOM_SHEET,
     );
   }
 
   get iAgree() {
-    return Matchers.getElementByText(
-      ExperienceEnhancerModalSelectorsText.I_AGREE,
+    return Matchers.getElementByID(
+      ExperienceEnhancerModalSelectorsIDs.ACCEPT_BUTTON,
     );
   }
 
   get noThanks() {
-    return Matchers.getElementByText(
-      ExperienceEnhancerModalSelectorsText.NO_THANKS,
+    return Matchers.getElementByID(
+      ExperienceEnhancerModalSelectorsIDs.CANCEL_BUTTON,
     );
   }
 
