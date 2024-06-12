@@ -574,6 +574,9 @@ class Engine {
       messenger: accountsControllerMessenger,
       state: initialState.AccountsController ?? defaultAccountsControllerState,
     });
+
+    accountsController.updateAccounts();
+
     const tokensController = new TokensController({
       chainId: networkController.state.providerConfig.chainId,
       config: {
