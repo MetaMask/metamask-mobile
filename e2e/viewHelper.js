@@ -210,6 +210,8 @@ export const loginToApp = async () => {
   try {
     await WhatsNewModal.isVisible();
     await WhatsNewModal.tapCloseButton();
+    await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
+    await ExperienceEnhancerModal.tapNoThanks();
     await TestHelpers.waitAndTapText(
       enContent.privacy_policy.toast_action_button,
     );
