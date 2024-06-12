@@ -1053,12 +1053,12 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                # cp -r $BITRISE_SOURCE_DIR/wdio/reports/html/index.html $BITRISE_HTML_REPORT_DIR/
+                cp -r $BITRISE_SOURCE_DIR/wdio/reports/html/index.html $BITRISE_HTML_REPORT_DIR/
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
           inputs:
-            - deploy_path: $BITRISE_HTML_REPORT_DIR/$BITRISE_SOURCE_DIR/wdio/reports/html/index.html
+            - deploy_path: $BITRISE_HTML_REPORT_DIR
           title: Deploy test report files
     meta:
       bitrise.io:
