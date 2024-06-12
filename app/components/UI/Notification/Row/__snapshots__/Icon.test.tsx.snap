@@ -76,7 +76,7 @@ exports[`NotificationIcon matches snapshot with Wallet type 1`] = `
           "opacity": 0,
         }
       }
-      testID="badge-notifications"
+      testID="badge-badgenotifications"
     >
       <SvgMock
         color="#ffffff"

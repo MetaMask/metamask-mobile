@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.23.0",
+  "version": "7.24.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -167,7 +167,7 @@
     "@metamask/rpc-errors": "^6.2.1",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "^0.20.2",
-    "@metamask/signature-controller": "^14.0.0",
+    "@metamask/signature-controller": "^16.0.0",
     "@metamask/slip44": "3.1.0",
     "@metamask/snaps-controllers": "^8.3.1",
     "@metamask/snaps-rpc-methods": "^9.0.0",
