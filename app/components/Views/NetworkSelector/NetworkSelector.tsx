@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useRef, useState } from 'react';
-import { Linking, Switch, View } from 'react-native';
+import { Linking, Switch, TextInput, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -49,7 +49,7 @@ import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
-import { useTheme } from '../../../util/theme';
+import { useTheme, mockTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import {
   TextColor,
@@ -64,16 +64,20 @@ import { TESTNET_TICKER_SYMBOLS } from '@metamask/controller-utils';
 import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
+import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { PopularList } from '../../../util/networks/customNetworks';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
   const [popularNetwork, setPopularNetwork] = useState(undefined);
   const [showWarningModal, setShowWarningModal] = useState(false);
+  const [searchString, setSearchString] = useState('');
   const { navigate } = useNavigation();
   const theme = useTheme();
   const { trackEvent } = useMetrics();
   const { colors } = theme;
-  const styles = createStyles(colors);
+  const styles = createStyles(colors || mockTheme.colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
 
@@ -163,8 +167,23 @@ const NetworkSelector = () => {
     Linking.openURL(strings('networks.learn_more_url'));
   };
 
+  const filterNetworksByName = (networks: any[], networkName: string) => {
+    const searchResult: any = networks.filter(({ name }) =>
+      name.toLowerCase().includes(networkName.toLowerCase()),
+    );
+
+    return searchResult;
+  };
+
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
+
+    if (
+      isNetworkUiRedesignEnabled &&
+      filterNetworksByName([Networks.mainnet], searchString).length === 0
+    )
+      return null;
+
     return (
       <Cell
         variant={CellVariant.Select}
@@ -186,7 +205,10 @@ const NetworkSelector = () => {
 
   const renderLineaMainnet = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
-    return (
+
+    return isNetworkUiRedesignEnabled &&
+      filterNetworksByName([Networks['linea-mainnet']], searchString).length >
+        0 ? (
       <Cell
         variant={CellVariant.Select}
         title={lineaMainnetName}
@@ -199,7 +221,7 @@ const NetworkSelector = () => {
         isSelected={chainId === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
-    );
+    ) : null;
   };
 
   const renderRpcNetworks = () =>
@@ -207,6 +229,10 @@ const NetworkSelector = () => {
       ({ nickname, rpcUrl, chainId }) => {
         if (!chainId) return null;
         const { name } = { name: nickname || rpcUrl };
+
+        if (isNetworkUiRedesignEnabled && !name.includes(searchString))
+          return null;
+
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
@@ -236,6 +262,9 @@ const NetworkSelector = () => {
     return getOtherNetworks().map((networkType) => {
       // TODO: Provide correct types for network.
       const { name, imageSource, chainId } = (Networks as any)[networkType];
+
+      if (isNetworkUiRedesignEnabled && !name.includes(searchString))
+        return null;
 
       return (
         <Cell
@@ -287,19 +316,32 @@ const NetworkSelector = () => {
     </View>
   );
 
-  const renderAdditonalNetworks = () => (
-    <View style={styles.addtionalNetworksContainer}>
-      <CustomNetwork
-        isNetworkModalVisible={showPopularNetworkModal}
-        closeNetworkModal={onCancel}
-        selectedNetwork={popularNetwork}
-        toggleWarningModal={toggleWarningModal}
-        showNetworkModal={showNetworkModal}
-        switchTab={undefined}
-        shouldNetworkSwitchPopToWallet={false}
-      />
-    </View>
-  );
+  const renderAdditonalNetworks = () => {
+    let filteredNetworks;
+
+    if (isNetworkUiRedesignEnabled && searchString.length > 0)
+      filteredNetworks = PopularList.filter(({ nickname }) =>
+        nickname.toLowerCase().includes(searchString.toLowerCase()),
+      );
+
+    return (
+      <View style={styles.addtionalNetworksContainer}>
+        <CustomNetwork
+          isNetworkModalVisible={showPopularNetworkModal}
+          closeNetworkModal={onCancel}
+          selectedNetwork={popularNetwork}
+          toggleWarningModal={toggleWarningModal}
+          showNetworkModal={showNetworkModal}
+          switchTab={undefined}
+          shouldNetworkSwitchPopToWallet={false}
+          customNetworksList={
+            searchString.length > 0 ? filteredNetworks : undefined
+          }
+          shouldShowEmptyPopularList={false}
+        />
+      </View>
+    );
+  };
 
   const renderTitle = (title: string) => (
     <View style={styles.switchContainer}>
@@ -309,30 +351,63 @@ const NetworkSelector = () => {
     </View>
   );
 
+  const handleSearchTextChange = (text: any) => {
+    setSearchString(text);
+  };
+
+  const clearSearchInput = () => {
+    setSearchString('');
+  };
+
   return (
     <BottomSheet ref={sheetRef}>
-      <SheetHeader title={strings('networks.select_network')} />
-      <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
-        {isNetworkUiRedesignEnabled && renderTitle('networks.enabled_networks')}
-        {renderMainnet()}
-        {renderLineaMainnet()}
-        {renderRpcNetworks()}
-        {isNetworkUiRedesignEnabled &&
-          renderTitle('networks.additional_networks')}
-        {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
-        {renderTestNetworksSwitch()}
-        {showTestNetworks && renderOtherNetworks()}
-      </ScrollView>
+      <View style={styles.networkListContainer}>
+        <SheetHeader title={strings('networks.select_network')} />
+        <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
+          {isNetworkUiRedesignEnabled && (
+            <View style={styles.inputWrapper}>
+              <Icon name="ios-search" size={20} color={colors.icon.default} />
+              <TextInput
+                style={styles.input}
+                placeholder={strings('networks.search')}
+                placeholderTextColor={colors.text.default}
+                value={searchString}
+                onChangeText={handleSearchTextChange}
+                testID={NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID}
+              />
+              {searchString.length > 0 && (
+                <Icon
+                  name="ios-close"
+                  size={20}
+                  color={colors.icon.default}
+                  onPress={clearSearchInput}
+                  testID={NetworksViewSelectorsIDs.CLOSE_ICON}
+                />
+              )}
+            </View>
+          )}
+          {isNetworkUiRedesignEnabled &&
+            renderTitle('networks.enabled_networks')}
+          {renderMainnet()}
+          {renderLineaMainnet()}
+          {renderRpcNetworks()}
+          {isNetworkUiRedesignEnabled &&
+            renderTitle('networks.additional_networks')}
+          {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
+          {renderTestNetworksSwitch()}
+          {showTestNetworks && renderOtherNetworks()}
+        </ScrollView>
 
-      <Button
-        variant={ButtonVariants.Secondary}
-        label={strings('app_settings.network_add_network')}
-        onPress={goToNetworkSettings}
-        width={ButtonWidthTypes.Full}
-        size={ButtonSize.Lg}
-        style={styles.addNetworkButton}
-        testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
-      />
+        <Button
+          variant={ButtonVariants.Secondary}
+          label={strings('app_settings.network_add_network')}
+          onPress={goToNetworkSettings}
+          width={ButtonWidthTypes.Full}
+          size={ButtonSize.Lg}
+          style={styles.addNetworkButton}
+          testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
+        />
+      </View>
       {showWarningModal ? (
         <InfoModal
           isVisible={showWarningModal}
