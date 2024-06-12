@@ -12,7 +12,7 @@ export default function migrate(state) {
     captureException(
       // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
       new Error(
-        `Migration 26: Invalid vault in KeyringController: '${typeof keyringControllerState.vault}'`,
+        `Migration 26: Invalid vault in KeyringController: '${typeof keyringControllerState}'`,
       ),
     );
   }
