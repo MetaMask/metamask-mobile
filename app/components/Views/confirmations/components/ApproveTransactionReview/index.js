@@ -37,7 +37,7 @@ import {
   generateTxWithNewTokenAllowance,
   minimumTokenAllowance,
   generateApprovalData,
-  isNonFungibleTokenStandard,
+  isNFTTokenStandard,
   TOKEN_METHOD_SET_APPROVAL_FOR_ALL,
 } from '../../../../../util/transactions';
 import Avatar, {
@@ -392,7 +392,7 @@ class ApproveTransactionReview extends PureComponent {
 
         const { standard, name, decimals, symbol } = result;
 
-        if (isNonFungibleTokenStandard(standard)) {
+        if (isNFTTokenStandard(standard)) {
           tokenName = name;
           tokenSymbol = symbol;
           tokenStandard = standard;
@@ -428,7 +428,7 @@ class ApproveTransactionReview extends PureComponent {
 
     const approvalData = generateApprovalData({
       spender: spenderAddress,
-      value: isNonFungibleTokenStandard(tokenStandard) ? encodedHexAmount : '0',
+      value: isNFTTokenStandard(tokenStandard) ? encodedHexAmount : '0',
       data,
     });
 
@@ -842,7 +842,7 @@ class ApproveTransactionReview extends PureComponent {
         ? strings('transaction.next')
         : strings('transactions.approve');
 
-    const isNonFungibleToken = isNonFungibleTokenStandard(tokenStandard);
+    const isNonFungibleToken = isNFTTokenStandard(tokenStandard);
     const isMethodSetApprovalForAll =
       method === TOKEN_METHOD_SET_APPROVAL_FOR_ALL;
 

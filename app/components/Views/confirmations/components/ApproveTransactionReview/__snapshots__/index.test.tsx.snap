@@ -27,6 +27,12 @@ exports[`ApproveTransactionModal should render correctly 1`] = `
     }
   }
 >
-  <Component />
+  <Component
+    navigation={
+      {
+        "navigate": [MockFunction],
+      }
+    }
+  />
 </ContextProvider>
 `;

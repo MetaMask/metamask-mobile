@@ -81,8 +81,8 @@ export const SET_APPROVAL_FOR_ALL_SIGNATURE = '0xa22cb465';
 
 export const TRANSACTION_TYPES = {
   APPROVE: 'transaction_approve',
-  INCREASE_ALLOWANCE: 'increaseAllowance',
-  SET_APPROVAL_FOR_ALL: 'setapprovalforall',
+  INCREASE_ALLOWANCE: 'transaction_increase_allowance',
+  SET_APPROVAL_FOR_ALL: 'transaction_set_approval_for_all',
   RECEIVED: 'transaction_received',
   RECEIVED_COLLECTIBLE: 'transaction_received_collectible',
   RECEIVED_TOKEN: 'transaction_received_token',
@@ -1567,6 +1567,6 @@ export const getIsNativeTokenTransferred = (txParams) =>
  * @param {string} tokenStandard - The token standard to check.
  * @returns {boolean} - True if the token standard is ERC721 or ERC1155, otherwise false.
  */
-export function isNonFungibleTokenStandard(tokenStandard) {
-  return tokenStandard === ERC721 || tokenStandard === ERC1155;
+export function isNFTTokenStandard(tokenStandard) {
+  return [ERC721, ERC1155].includes(tokenStandard);
 }
