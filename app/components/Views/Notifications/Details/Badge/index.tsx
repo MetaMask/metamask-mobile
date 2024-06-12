@@ -16,7 +16,7 @@ import AvatarToken from '../../../../../component-library/components/Avatars/Ava
 
 interface NotificationBadgeProps {
   notificationType: TRIGGER_TYPES;
-  styles: any;
+  styles: Record<string, any>;
   badgeImageSource?: ImageSourcePropType;
   imageUrl?: string;
 }

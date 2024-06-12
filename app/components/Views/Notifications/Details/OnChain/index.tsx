@@ -2,7 +2,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { useSelector } from 'react-redux';
-
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 
 import {
@@ -35,7 +35,7 @@ interface OnChainDetailsProps {
   styles: Record<string, any>;
   theme: Theme;
   accountAvatarType?: AvatarAccountType;
-  navigation: any;
+  navigation: NavigationProp<ParamListBase>;
   copyToClipboard: (type: string, selectedString?: string) => Promise<void>;
 }
 

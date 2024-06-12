@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, View } from 'react-native';
-
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
@@ -20,7 +20,7 @@ const PLACEHOLDER_IMG_URI = require('../../../../../images/no-image-placeholder.
 interface Props {
   notification: FeatureAnnouncementRawNotification;
   styles: Record<string, any>;
-  navigation: any;
+  navigation: NavigationProp<ParamListBase>;
 }
 
 const AnnouncementsDetails: React.FC<Props> = ({

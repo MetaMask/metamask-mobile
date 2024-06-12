@@ -32,7 +32,7 @@ type NetworkFees = {
 interface NotificationModalNetworkFeeProps {
   notification: HalRawNotificationsWithNetworkFields;
   sheetRef: React.RefObject<BottomSheetRef>;
-  styles: any;
+  styles: Record<string, any>;
   onClosed: () => void;
 }
 
