@@ -34,10 +34,7 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
-jest.mock('../../lib/snaps/preinstalled-snaps', () =>
-  // eslint-disable-next-line no-console
-  console.log("do nothing since we aren't testing the pre installed snaps"),
-);
+jest.mock('../../lib/snaps/preinstalled-snaps');
 
 const mockFs = {
   CachesDirectoryPath: jest.fn(),

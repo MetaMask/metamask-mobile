@@ -8,14 +8,33 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 
-function NetworkMainAssetLogo({ chainId, ticker, style, big, biggest }) {
+function NetworkMainAssetLogo({
+  chainId,
+  ticker,
+  style,
+  big,
+  biggest,
+  testID,
+}) {
   if (chainId === ChainId.mainnet) {
     return (
-      <TokenIcon big={big} biggest={biggest} symbol={'ETH'} style={style} />
+      <TokenIcon
+        big={big}
+        biggest={biggest}
+        symbol={'ETH'}
+        style={style}
+        testID={testID}
+      />
     );
   }
   return (
-    <TokenIcon big={big} biggest={biggest} symbol={ticker} style={style} />
+    <TokenIcon
+      big={big}
+      biggest={biggest}
+      symbol={ticker}
+      style={style}
+      testID={testID}
+    />
   );
 }
 
@@ -30,6 +49,7 @@ NetworkMainAssetLogo.propTypes = {
   style: PropTypes.object,
   big: PropTypes.bool,
   biggest: PropTypes.bool,
+  testID: PropTypes.string,
 };
 
 export default connect(mapStateToProps)(NetworkMainAssetLogo);
