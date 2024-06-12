@@ -2,7 +2,6 @@ import { StyleSheet } from 'react-native';
 
 import Device from '../../../util/device';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {

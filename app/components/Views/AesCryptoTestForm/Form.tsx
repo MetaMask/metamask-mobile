@@ -4,9 +4,6 @@ import { View, SafeAreaView, Keyboard, TextInput } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-// import TextField, {
-//   TextFieldSize,
-// } from '../../../component-library/components/Form/TextField';
 import Button, {
   ButtonSize,
   ButtonVariants,
