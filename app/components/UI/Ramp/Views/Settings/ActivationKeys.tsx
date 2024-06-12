@@ -1,6 +1,6 @@
 // Third party dependencies
 import React, { useCallback } from 'react';
-import { ActivityIndicator, Switch, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Switch } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
 // External dependencies
@@ -8,9 +8,8 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+import {
   IconName,
-  IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
