@@ -18,7 +18,7 @@ import FixtureServer from '../../../fixtures/fixture-server';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeAccounts('AES Crypto'), () => {
+describe(SmokeAccounts('AES Crypto - Salt generation'), () => {
   const SALT_BYTES_COUNT = 32;
 
   beforeAll(async () => {
