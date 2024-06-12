@@ -28,6 +28,7 @@ import LoginView from './pages/LoginView';
 import { getGanachePort } from './fixtures/utils';
 import Assertions from './utils/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
+import enContent from '../locales/languages/en.json';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 
@@ -209,6 +210,9 @@ export const loginToApp = async () => {
   try {
     await Assertions.checkIfVisible(WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
+    await TestHelpers.waitAndTapText(
+      enContent.privacy_policy.toast_action_button,
+    );
   } catch {
     //
   }
