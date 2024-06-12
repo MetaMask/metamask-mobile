@@ -349,6 +349,22 @@ index b4fa939..29ff871 100644
    }
  };
  _handle = new WeakMap();
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js b/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
+index 0dc70ec..3fcb94e 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
+@@ -378,9 +378,10 @@ fetchAndMapExchangeRatesForSupportedNativeCurrency_fn = async function({
+   }
+   return Object.entries(contractNativeInformations).reduce(
+     (obj, [tokenAddress, token]) => {
++      // This is fixed on v31 of assets controllers
+       obj = {
+         ...obj,
+-        [tokenAddress.toLowerCase()]: { ...token }
++        [tokenAddress]: { ...token }
+       };
+       return obj;
+     },
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js b/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
 index 76e3362..5ab79a4 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
@@ -606,6 +622,33 @@ index 0430e5c..dee32be 100644
        }
      };
      this.defaultConfig = {
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-Y35SM7TO.mjs b/node_modules/@metamask/assets-controllers/dist/chunk-Y35SM7TO.mjs
+index 245b7b3..1d1c9c5 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-Y35SM7TO.mjs
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-Y35SM7TO.mjs
+@@ -295,7 +295,7 @@ var CodefiTokenPricesServiceV2 = class {
+       (obj, tokenAddress) => {
+         const lowercasedTokenAddress = tokenAddress.toLowerCase();
+         const marketData = addressCryptoDataMap[lowercasedTokenAddress];
+-        if (marketData === void 0) {
++        if (!marketData) {
+           return obj;
+         }
+         const { price } = marketData;
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-Z6TBQQE5.js b/node_modules/@metamask/assets-controllers/dist/chunk-Z6TBQQE5.js
+index 2f1b66f..eb28224 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-Z6TBQQE5.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-Z6TBQQE5.js
+@@ -295,7 +295,8 @@ var CodefiTokenPricesServiceV2 = class {
+       (obj, tokenAddress) => {
+         const lowercasedTokenAddress = tokenAddress.toLowerCase();
+         const marketData = addressCryptoDataMap[lowercasedTokenAddress];
+-        if (marketData === void 0) {
++        // This is fixed on v31 of assets controllers
++        if (!marketData) {
+           return obj;
+         }
+         const { price } = marketData;
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
 index 42a321a..e158cba 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
@@ -685,3 +728,16 @@ index 220d78d..795b96e 100644
          trackMetaMetricsEvent: (options: {
              event: string;
              category: string;
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/index.d.ts b/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
+index a71f4a7..df1ddc9 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
+@@ -3,7 +3,7 @@ export * from './AssetsContractController';
+ export * from './CurrencyRateController';
+ export * from './NftController';
+ export * from './NftDetectionController';
+-export type { TokenBalancesControllerMessenger, TokenBalancesControllerActions, TokenBalancesControllerGetStateAction, TokenBalancesControllerEvents, TokenBalancesControllerStateChangeEvent, } from './TokenBalancesController';
++export type { TokenBalancesControllerMessenger, TokenBalancesControllerActions, TokenBalancesControllerGetStateAction, TokenBalancesControllerEvents, TokenBalancesControllerStateChangeEvent, TokenBalancesControllerState } from './TokenBalancesController';
+ export { TokenBalancesController } from './TokenBalancesController';
+ export type { TokenDetectionControllerMessenger, TokenDetectionControllerActions, TokenDetectionControllerGetStateAction, TokenDetectionControllerEvents, TokenDetectionControllerStateChangeEvent, } from './TokenDetectionController';
+ export { TokenDetectionController } from './TokenDetectionController';

@@ -473,7 +473,6 @@ class Engine {
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
-      //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
       onPreferencesStateChange,
       onNetworkDidChange: (listener) =>
         this.controllerMessenger.subscribe(
@@ -486,7 +485,6 @@ class Engine {
     });
     const nftController = new NftController(
       {
-        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
         onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -578,6 +576,7 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
         selectedAddress: preferencesController.state.selectedAddress,
       },
+      state: initialState.TokensController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [
@@ -771,7 +770,6 @@ class Engine {
     });
     ///: END:ONLY_INCLUDE_IF
     const accountTrackerController = new AccountTrackerController({
-      //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
       onPreferencesStateChange,
       getIdentities: () => preferencesController.state.identities,
       getSelectedAddress: () => accountsController.getSelectedAccount().address,
@@ -1164,7 +1162,6 @@ class Engine {
       }),
       new NftDetectionController({
         onNftsStateChange: (listener) => nftController.subscribe(listener),
-        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
         onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -1184,13 +1181,12 @@ class Engine {
       phishingController,
       preferencesController,
       new TokenBalancesController({
-        //@ts-expect-error Misalign types because of Base Controller version
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: ['PreferencesController:getState'],
           allowedEvents: ['TokensController:stateChange'],
         }),
-        // onTokensStateChange will be removed when Tokens Controller extends Base Controller v2
+        //@ts-expect-error onTokensStateChange will be removed when Tokens Controller extends Base Controller v2
         onTokensStateChange: (listener) => tokensController.subscribe(listener),
         getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
           assetsContractController,
@@ -1204,7 +1200,6 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
         onPreferencesStateChange,
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,

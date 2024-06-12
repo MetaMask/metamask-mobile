@@ -308,7 +308,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     // When the exchange rate of a token is not found, the return is undefined
     // We fallback to the TOKEN_RATE_UNDEFINED to handle it properly
-    const exchangeRate =
+    const tokenMarketData =
       itemAddress in tokenExchangeRates
         ? tokenExchangeRates[itemAddress] || TOKEN_RATE_UNDEFINED
         : undefined;
@@ -328,13 +328,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const balanceValueFormatted = `${balance} ${asset.symbol}`;
 
-    if (!conversionRate || !exchangeRate)
+    if (!conversionRate)
       return {
         balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_BALANCE_LOADING,
         balanceValueFormatted,
       };
 
-    if (exchangeRate === TOKEN_RATE_UNDEFINED)
+    if (!tokenMarketData || tokenMarketData === TOKEN_RATE_UNDEFINED)
       return {
         balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_RATE_UNDEFINED,
         balanceValueFormatted,
@@ -342,7 +342,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const balanceFiatCalculation = Number(
       asset.balanceFiat ||
-        balanceToFiatNumber(balance, conversionRate, exchangeRate),
+        balanceToFiatNumber(balance, conversionRate, tokenMarketData.price),
     );
 
     const balanceFiat =

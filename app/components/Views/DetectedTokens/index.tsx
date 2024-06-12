@@ -151,7 +151,7 @@ const DetectedTokens = () => {
         }
       });
     },
-    [chainId, detectedTokens, ignoredTokens, trackEvent],
+    [chainId, detectedTokens, ignoredTokens, trackEvent, networkClientId],
   );
 
   const triggerIgnoreAllTokens = () => {
