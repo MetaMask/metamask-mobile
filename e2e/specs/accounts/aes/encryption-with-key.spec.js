@@ -49,7 +49,13 @@ describe(
       await SettingsView.scrollToAesCryptoButton();
       await SettingsView.tapAesCryptoTestForm();
 
+<<<<<<< HEAD
       const encryptionKey = await AesCryptoTestForm.generateEncryptionKey(
+=======
+      let encryptionKey;
+
+      encryptionKey = await AesCryptoTestForm.generateEncryptionKey(
+>>>>>>> 5f93bfcc0 (refactor: break E2E tests into different files)
         PASSWORD_ONE,
         SALT_ONE,
       );
@@ -63,6 +69,7 @@ describe(
         DATA_TO_ENCRYPT_ONE,
       );
 
+<<<<<<< HEAD
       // await AesCryptoTestForm.scrollUpToGenerateEncryptionKey();
       // encryptionKey = await AesCryptoTestForm.generateEncryptionKey(
       //   PASSWORD_TWO,
@@ -77,6 +84,22 @@ describe(
       //   AesCryptoTestForm.decryptWithKeyResponse,
       //   DATA_TO_ENCRYPT_TWO,
       // );
+=======
+      await AesCryptoTestForm.scrollUpToGenerateEncryptionKey();
+      encryptionKey = await AesCryptoTestForm.generateEncryptionKey(
+        PASSWORD_TWO,
+        SALT_TWO,
+      );
+      await AesCryptoTestForm.encryptWithKey(
+        encryptionKey,
+        DATA_TO_ENCRYPT_TWO,
+      );
+      await AesCryptoTestForm.decryptWithKey(encryptionKey);
+      await Assertions.checkIfElementHasLabel(
+        AesCryptoTestForm.decryptWithKeyResponse,
+        DATA_TO_ENCRYPT_TWO,
+      );
+>>>>>>> 5f93bfcc0 (refactor: break E2E tests into different files)
     });
   },
 );
