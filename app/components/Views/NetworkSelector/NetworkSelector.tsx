@@ -206,9 +206,14 @@ const NetworkSelector = () => {
   const renderLineaMainnet = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
 
-    return isNetworkUiRedesignEnabled &&
-      filterNetworksByName([Networks['linea-mainnet']], searchString).length >
-        0 ? (
+    if (
+      isNetworkUiRedesignEnabled &&
+      filterNetworksByName([Networks['linea-mainnet']], searchString).length ===
+        0
+    )
+      return null;
+
+    return (
       <Cell
         variant={CellVariant.Select}
         title={lineaMainnetName}
@@ -221,7 +226,7 @@ const NetworkSelector = () => {
         isSelected={chainId === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
-    ) : null;
+    );
   };
 
   const renderRpcNetworks = () =>
