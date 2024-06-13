@@ -4,7 +4,7 @@ import Gestures from '../../utils/Gestures';
 
 class ExperienceEnhancerModal {
   get container() {
-    return Matchers.getElementByText(
+    return Matchers.getElementByID(
       ExperienceEnhancerModalSelectorsText.TITLE,
     );
   }
