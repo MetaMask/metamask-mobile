@@ -134,7 +134,8 @@ export const CreateNewWallet = async () => {
     await OnboardingWizardModal.tapNoThanksButton();
     await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
 
-    await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
+    await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
+    
     await ExperienceEnhancerModal.tapNoThanks();
     await Assertions.checkIfNotVisible(ExperienceEnhancerModal.title);
   } catch {
