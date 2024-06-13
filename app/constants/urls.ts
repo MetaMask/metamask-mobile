@@ -86,6 +86,3 @@ export const GOERLI_DEPRECATED_ARTICLE =
 
 export const ETHEREUM_LOGO =
   'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg';
-
-export const HOW_TO_MANAGE_METRAMETRICS_SETTINGS =
-  'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings';

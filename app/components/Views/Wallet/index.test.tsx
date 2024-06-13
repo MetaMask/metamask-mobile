@@ -57,9 +57,6 @@ const mockInitialState = {
       '0x1': true,
     },
   },
-  security: {
-    dataCollectionForMarketing: true,
-  },
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   wizard: {
     step: 0,

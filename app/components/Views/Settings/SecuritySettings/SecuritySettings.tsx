@@ -9,7 +9,6 @@ import {
   Keyboard,
   InteractionManager,
   Platform,
-  Linking,
 } from 'react-native';
 import AsyncStorage from '../../../../store/async-storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,8 +18,6 @@ import { clearHistory } from '../../../../actions/browser';
 import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
-import { setDataCollectionForMarketing } from '../../../../actions/security';
-import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
@@ -91,7 +88,6 @@ import {
   HASH_STRING,
   HASH_TO_TEST,
   IPFS_GATEWAY_SECTION,
-  META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
   NFT_AUTO_DETECT_MODE_SECTION,
   NFT_DISPLAY_MEDIA_MODE_SECTION,
@@ -184,10 +180,6 @@ const Settings: React.FC = () => {
   const ipfsGateway = useSelector(selectIpfsGateway);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS as EtherscanNetworksType;
-
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: any) => state.security.dataCollectionForMarketing,
-  );
 
   const isMainnet = type === MAINNET;
 
@@ -476,47 +468,11 @@ const Settings: React.FC = () => {
     } else {
       await enable(false);
       setAnalyticsEnabled(false);
-      if (isDataCollectionForMarketingEnabled) {
-        dispatch(setDataCollectionForMarketing(false));
-      }
       Alert.alert(
         strings('app_settings.metametrics_opt_out'),
         strings('app_settings.metametrics_restart_required'),
       );
-
-      const traits = {
-        is_metrics_opted_in: false,
-        has_marketing_consent: false,
-      };
-      addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        ...traits,
-        location: 'settings',
-      });
     }
-  };
-
-  const toggleDataCollectionForMarketing = async (value: boolean) => {
-    if (value) {
-      if (!analyticsEnabled) {
-        toggleMetricsOptIn(true);
-      }
-    } else {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.DATA_COLLECTION,
-      });
-
-      const traits = {
-        is_metrics_opted_in: true,
-        has_marketing_consent: false,
-      };
-      addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        ...traits,
-        location: 'settings',
-      });
-    }
-    dispatch(setDataCollectionForMarketing(value));
   };
 
   const renderMetaMetricsSection = () => (
@@ -545,47 +501,7 @@ const Settings: React.FC = () => {
         color={TextColor.Alternative}
         style={styles.desc}
       >
-        {strings('app_settings.metametrics_description')}{' '}
-        <Button
-          variant={ButtonVariants.Link}
-          size={ButtonSize.Auto}
-          onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
-          label={strings('app_settings.learn_more')}
-        />
-      </Text>
-    </View>
-  );
-
-  const renderDataCollectionSection = () => (
-    <View
-      style={styles.halfSetting}
-      testID={META_METRICS_DATA_MARKETING_SECTION}
-    >
-      <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-          {strings('app_settings.data_collection_title')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={isDataCollectionForMarketingEnabled}
-            onValueChange={toggleDataCollectionForMarketing}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white['000']}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-            testID={SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH}
-          />
-        </View>
-      </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.desc}
-      >
-        {strings('app_settings.data_collection_description')}
+        {strings('app_settings.metametrics_description')}
       </Text>
     </View>
   );
@@ -1146,7 +1062,6 @@ const Settings: React.FC = () => {
           {strings('app_settings.analytics_subheading')}
         </Text>
         {renderMetaMetricsSection()}
-        {renderDataCollectionSection()}
         <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
         <DeleteWalletData />
         {renderHint()}
