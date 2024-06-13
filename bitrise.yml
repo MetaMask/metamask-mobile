@@ -207,7 +207,7 @@ workflows:
                 set -e
 
                 # Install and enable NVM
-                wget -O install-nvm.sh https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh
+                wget -O install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
                 echo "${NVM_SHA256SUM} nvm-install.sh" > nvm-install.sh.SHA256SUM
                 sha256sum -c nvm-install.sh.SHA256SUM
                 chmod +x nvm-install.sh && ./nvm-install.sh && rm ./nvm-install.sh
