@@ -14,7 +14,7 @@ import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../../../../constants/urls';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import createStyles from '../../SecuritySettings.styles';
 import { useTheme } from '../../../../../../util/theme';
 import generateDeviceAnalyticsMetaData, {
@@ -31,13 +31,17 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
-  const { trackEvent, enable, addTraitsToUser } = useMetrics();
+  const { trackEvent, enable, addTraitsToUser, isEnabled } = useMetrics();
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: any) => state.security.dataCollectionForMarketing,
   );
   const navigation = useNavigation();
+
+  useEffect(() => {
+    setAnalyticsEnabled(isEnabled());
+  }, [setAnalyticsEnabled, isEnabled]);
 
   const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
     if (metricsEnabled) {

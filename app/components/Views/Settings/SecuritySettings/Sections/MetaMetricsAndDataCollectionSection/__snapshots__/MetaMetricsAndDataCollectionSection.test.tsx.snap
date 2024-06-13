@@ -486,7 +486,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             testID="data-collection-switch"
                             thumbTintColor="#ffffff"
                             tintColor="#D6D9DC"
-                            value={false}
+                            value={true}
                           />
                         </View>
                       </View>
