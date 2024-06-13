@@ -207,7 +207,7 @@ const main = async () => {
         'eth_coinbase',
         'wallet_registerOnboarding',
         'eth_getEncryptionPublicKey',
-        'wallet_watchAsset',
+        'wallet_watchAsset'
       ];
 
       class VerboseConsoleReporter extends ConsoleStreamingReporter {
@@ -238,7 +238,7 @@ const main = async () => {
             only: methodsWithConfirmations,
           }),
         ],
-        only: ['wallet_watchAsset'],
+        skip,
       });
       const failing = results.filter((r) => !r.valid);
       await detox.cleanup();
