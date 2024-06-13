@@ -80,6 +80,8 @@ import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
+import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
+import { isTest } from '../../../util/test/utils';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -274,6 +276,21 @@ const SettingsFlow = () => (
       name={Routes.RAMP.ACTIVATION_KEY_FORM}
       component={RampActivationKeyForm}
     />
+    {
+      /**
+       * This screen should only accessed in test mode.
+       * It is used to test the AES crypto functions.
+       *
+       * If this is in production, it is a bug.
+       */
+      isTest && (
+        <Stack.Screen
+          name="AesCryptoTestForm"
+          component={AesCryptoTestForm}
+          options={AesCryptoTestForm.navigationOptions}
+        />
+      )
+    }
     <Stack.Screen
       name="ExperimentalSettings"
       component={ExperimentalSettings}
