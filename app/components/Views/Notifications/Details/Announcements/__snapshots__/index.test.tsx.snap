@@ -40,7 +40,7 @@ exports[`AnnouncementsDetails should renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#24272A",
+        "color": "#141618",
         "fontFamily": "Euclid Circular B",
         "fontSize": 16,
         "fontWeight": "500",
@@ -55,7 +55,7 @@ exports[`AnnouncementsDetails should renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#535A61",
+        "color": "#6a737d",
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
         "fontWeight": "400",
@@ -77,8 +77,8 @@ exports[`AnnouncementsDetails should renders correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "center",
-        "backgroundColor": "#FFFFFF",
-        "borderColor": "#0376C9",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#0376c9",
         "borderRadius": 20,
         "borderWidth": 1,
         "bottom": 0,
@@ -97,7 +97,7 @@ exports[`AnnouncementsDetails should renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#0376C9",
+          "color": "#0376c9",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -109,7 +109,7 @@ exports[`AnnouncementsDetails should renders correctly 1`] = `
       Learn more
     </Text>
     <SvgMock
-      color="#0376C9"
+      color="#0376c9"
       height={16}
       name="Arrow2Right"
       style={
