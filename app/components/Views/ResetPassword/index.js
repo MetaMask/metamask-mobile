@@ -53,7 +53,7 @@ import AnimatedFox from '@metamask/react-native-animated-fox';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 
 const createStyles = (colors) =>
@@ -809,7 +809,7 @@ class ResetPassword extends PureComponent {
 ResetPassword.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
