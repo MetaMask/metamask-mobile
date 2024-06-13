@@ -58,6 +58,16 @@ import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/S
 import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { generateStateLogs } from '../../../util/logs';
+import {
+  getApplicationName,
+  getBuildNumber,
+  getVersion,
+} from 'react-native-device-info';
+import RNFS from 'react-native-fs';
+// eslint-disable-next-line import/no-nodejs-modules
+import { Buffer } from 'buffer';
+import Share from 'react-native-share';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -486,6 +496,43 @@ class Login extends PureComponent {
     InteractionManager.runAfterInteractions(this.toggleDeleteModal);
   };
 
+  downloadStateLogs = async () => {
+    // eslint-disable-next-line react/prop-types
+    const { fullState } = this.props;
+    const appName = await getApplicationName();
+    const appVersion = await getVersion();
+    const buildNumber = await getBuildNumber();
+    const path =
+      RNFS.DocumentDirectoryPath +
+      `/state-logs-v${appVersion}-(${buildNumber}).json`;
+    // A not so great way to copy objects by value
+
+    try {
+      const stateLogsWithReleaseDetails = generateStateLogs({
+        ...fullState,
+        appVersion,
+        buildNumber,
+      });
+
+      let url = `data:text/plain;base64,${new Buffer(
+        stateLogsWithReleaseDetails,
+      ).toString('base64')}`;
+      // // Android accepts attachements as BASE64
+      if (Device.isIos()) {
+        await RNFS.writeFile(path, stateLogsWithReleaseDetails, 'utf8');
+        url = path;
+      }
+
+      await Share.open({
+        subject: `${appName} State logs -  v${appVersion} (${buildNumber})`,
+        title: `${appName} State logs -  v${appVersion} (${buildNumber})`,
+        url,
+      });
+    } catch (err) {
+      Logger.error(err, 'State log error');
+    }
+  };
+
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -594,6 +641,9 @@ class Login extends PureComponent {
                 >
                   {strings('login.reset_wallet')}
                 </Button>
+                <Button style={styles.goBack} onPress={this.downloadStateLogs}>
+                  Download state logs
+                </Button>
               </View>
             </View>
           </KeyboardAwareScrollView>
@@ -608,6 +658,7 @@ Login.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
+  fullState: state,
 });
 
 const mapDispatchToProps = (dispatch) => ({
