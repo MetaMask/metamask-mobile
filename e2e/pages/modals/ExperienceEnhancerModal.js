@@ -11,7 +11,7 @@ class ExperienceEnhancerModal {
 
   get iAgree() {
     return Matchers.getElementByID(
-      ExperienceEnhancerModalSelectorsText.I_AGREE,
+      ExperienceEnhancerModalSelectorsIDs.ACCEPT_BUTTON,
     );
   }
 
