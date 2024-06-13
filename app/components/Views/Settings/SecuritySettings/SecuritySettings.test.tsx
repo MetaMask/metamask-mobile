@@ -22,6 +22,7 @@ import {
 } from './SecuritySettings.constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 
 const initialState = {
   privacy: { approvedHosts: {} },
@@ -29,7 +30,10 @@ const initialState = {
   settings: { lockTime: 1000 },
   user: { passwordSet: true },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState: {
+      ...initialBackgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    },
   },
   security: {
     allowLoginWithRememberMe: true,

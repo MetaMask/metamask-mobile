@@ -5,8 +5,8 @@ exports[`ButtonBase should render correctly 1`] = `
   style={
     [
       {
-        "backgroundColor": "#FFFFFF",
-        "borderColor": "#BF5208",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#bf5208",
         "borderRadius": 8,
         "bottom": 20,
         "left": 16,
@@ -35,7 +35,7 @@ exports[`ButtonBase should render correctly 1`] = `
       primary={true}
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "lineHeight": 18,
           "paddingLeft": 4,
         }

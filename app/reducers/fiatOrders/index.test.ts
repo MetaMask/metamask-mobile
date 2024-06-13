@@ -47,6 +47,23 @@ import fiatOrderReducer, {
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
 import initialRootState from '../../util/test/initial-root-state';
+import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
+
+const MOCK_ADDRESS_1 = '0x4567';
+const MOCK_ADDRESS_2 = '0x1234';
+const MOCK_FULL_LOWERCASE_ADDRESS =
+  '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE_1 = createMockAccountsControllerState([
+  MOCK_ADDRESS_1,
+]);
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE_2 = createMockAccountsControllerState([
+  MOCK_ADDRESS_2,
+]);
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE_FULL_ADDRESS =
+  createMockAccountsControllerState([MOCK_FULL_LOWERCASE_ADDRESS]);
 
 const mockOrder1 = {
   id: 'test-id-1',
@@ -60,7 +77,7 @@ const mockOrder1 = {
   currencySymbol: '$',
   cryptocurrency: 'BTC',
   state: 'COMPLETED' as FiatOrder['state'],
-  account: '0x1234',
+  account: MOCK_ADDRESS_2,
   network: '1',
   txHash: '0x987654321',
   excludeFromPurchases: false,
@@ -88,7 +105,7 @@ const mockOrder1 = {
     network: '1',
     status: 'COMPLETED',
     orderType: 'BUY',
-    walletAddress: '0x1234',
+    walletAddress: MOCK_ADDRESS_2,
     txHash: '0x987654321',
     excludeFromPurchases: false,
   } as Order,
@@ -701,18 +718,18 @@ describe('selectors', () => {
   });
 
   describe('selectedAddressSelector', () => {
-    it('should return the selected address', () => {
+    it('should return the selected address in checksum format', () => {
       const state = merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            PreferencesController: {
-              selectedAddress: '0x12345678',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_FULL_ADDRESS,
           },
         },
       });
 
-      expect(selectedAddressSelector(state)).toBe('0x12345678');
+      expect(selectedAddressSelector(state)).toBe(
+        '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+      );
     });
   });
 
@@ -775,6 +792,11 @@ describe('selectors', () => {
   describe('getOrders', () => {
     it('should return empty array if order property is not defined', () => {
       const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
+          },
+        },
         fiatOrders: {
           orders: undefined,
         },
@@ -792,9 +814,7 @@ describe('selectors', () => {
                 chainId: '0x38',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x4567',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
           },
         },
         fiatOrders: {
@@ -803,37 +823,37 @@ describe('selectors', () => {
               ...mockOrder1,
               id: 'test-56-order-1',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-2',
               network: '56',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-1',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-2',
               network: '1',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
           ],
         },
@@ -847,9 +867,7 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
           },
         },
         fiatOrders: {
@@ -858,44 +876,44 @@ describe('selectors', () => {
               ...mockOrder1,
               id: 'test-56-order-1',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-2',
               network: '56',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-1',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-2',
               network: '1',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
               excludeFromPurchases: true,
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
           ],
         },
@@ -919,9 +937,7 @@ describe('selectors', () => {
                 chainId: toHex('11155111'),
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x4567',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
           },
         },
         fiatOrders: {
@@ -930,37 +946,37 @@ describe('selectors', () => {
               ...mockOrder1,
               id: 'test-56-order-1',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-2',
               network: '56',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-1',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-2',
               network: '1',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
           ],
         },
@@ -974,9 +990,7 @@ describe('selectors', () => {
                 chainId: '0xaa36a7',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
           },
         },
         fiatOrders: {
@@ -985,44 +999,44 @@ describe('selectors', () => {
               ...mockOrder1,
               id: 'test-56-order-1',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-2',
               network: '56',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-1',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-2',
               network: '1',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
               excludeFromPurchases: true,
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
           ],
         },
@@ -1051,9 +1065,7 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
           },
         },
         fiatOrders: {},
@@ -1073,9 +1085,7 @@ describe('selectors', () => {
                 chainId: '0x38',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x4567',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
           },
         },
         fiatOrders: {
@@ -1085,38 +1095,38 @@ describe('selectors', () => {
               state: 'PENDING',
               id: 'test-56-order-1',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-2',
               network: '56',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               state: 'PENDING',
               id: 'test-56-order-3',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-1',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-2',
               network: '1',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
           ],
         },
@@ -1130,9 +1140,7 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
           },
         },
         fiatOrders: {
@@ -1141,45 +1149,45 @@ describe('selectors', () => {
               ...mockOrder1,
               id: 'test-56-order-1',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-2',
               network: '56',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-1',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-2',
               state: 'PENDING',
               network: '1',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
               excludeFromPurchases: true,
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
           ],
         },
@@ -1205,9 +1213,7 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
           },
         },
         fiatOrders: {},
@@ -1220,6 +1226,11 @@ describe('selectors', () => {
   describe('customOrdersSelector', () => {
     it('should return empty array if custom order property is not defined', () => {
       const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
+          },
+        },
         fiatOrders: {
           customOrderIds: undefined,
         },
@@ -1237,9 +1248,7 @@ describe('selectors', () => {
                 chainId: '0x38',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x4567',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
           },
         },
         fiatOrders: {
@@ -1247,12 +1256,12 @@ describe('selectors', () => {
             {
               id: 'test-56-order-1',
               chainId: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               id: 'test-1-order-1',
               chainId: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               id: 'test-56-order-2',
@@ -1262,7 +1271,7 @@ describe('selectors', () => {
             {
               id: 'test-56-order-3',
               chainId: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
           ],
         },
@@ -1284,9 +1293,7 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
           },
         },
         fiatOrders: {},
@@ -1306,9 +1313,7 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
           },
         },
         fiatOrders: {
@@ -1317,45 +1322,45 @@ describe('selectors', () => {
               ...mockOrder1,
               id: 'test-56-order-1',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-2',
               network: '56',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-1',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-2',
               state: 'PENDING',
               network: '1',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
               excludeFromPurchases: true,
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
           ],
         },
@@ -1375,9 +1380,7 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
           },
         },
         fiatOrders: {
@@ -1386,45 +1389,45 @@ describe('selectors', () => {
               ...mockOrder1,
               id: 'test-56-order-1',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-2',
               network: '56',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-1',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-2',
               state: 'PENDING',
               network: '1',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
               excludeFromPurchases: true,
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
           ],
         },
@@ -1437,9 +1440,7 @@ describe('selectors', () => {
                 chainId: '0x38',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
-            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
           },
         },
         fiatOrders: {
@@ -1448,45 +1449,45 @@ describe('selectors', () => {
               ...mockOrder1,
               id: 'test-56-order-1',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-2',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
               network: '56',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-1',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-2',
               state: 'PENDING',
               network: '1',
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
               excludeFromPurchases: true,
-              account: '0x1234',
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
               network: '1',
-              account: '0x4567',
+              account: MOCK_ADDRESS_1,
             },
           ],
         },

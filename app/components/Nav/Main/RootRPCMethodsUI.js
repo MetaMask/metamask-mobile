@@ -58,8 +58,8 @@ import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import { getDeviceId } from '../../../core/Ledger/Ledger';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -197,8 +197,8 @@ const RootRPCMethodsUI = (props) => {
     [
       props.selectedAddress,
       props.shouldUseSmartTransaction,
-      trackEvent,
       trackAnonymousEvent,
+      trackEvent,
     ],
   );
 
@@ -251,12 +251,12 @@ const RootRPCMethodsUI = (props) => {
 
         // For Ledger Accounts we handover the signing to the confirmation flow
         if (isLedgerAccount) {
-          const ledgerKeyring = await getLedgerKeyring();
+          const deviceId = await getDeviceId();
 
           props.navigation.navigate(
             ...createLedgerTransactionModalNavDetails({
               transactionId: transactionMeta.id,
-              deviceId: ledgerKeyring.deviceId,
+              deviceId,
               // eslint-disable-next-line no-empty-function
               onConfirmationComplete: () => {},
               type: 'signTransaction',
@@ -482,7 +482,7 @@ RootRPCMethodsUI.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
   swapsTransactions:
