@@ -439,7 +439,7 @@ workflows:
     after_run:
       - run_android_appium_test
 
-  ### Seperating workflows so they run concurrently during smoke runs
+  ### Separating workflows so they run concurrently during smoke runs
   run_tag_smoke_accounts_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
