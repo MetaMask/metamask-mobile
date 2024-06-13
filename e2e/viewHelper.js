@@ -78,7 +78,8 @@ export const importWalletWithRecoveryPhrase = async () => {
 
     await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
     await ExperienceEnhancerModal.tapNoThanks();
-    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.title);
+    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.container);
+
   } catch {
     //
   }
