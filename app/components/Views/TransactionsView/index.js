@@ -28,11 +28,9 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
 import { selectPendingSmartTransactionsBySender } from '../../../selectors/smartTransactionsController';
@@ -220,7 +218,8 @@ TransactionsView.propTypes = {
 };
 
 const mapStateToProps = (state) => {
-  const selectedAddress = selectSelectedAddress(state);
+  const selectedAddress =
+    selectSelectedInternalAccountChecksummedAddress(state);
   const chainId = selectChainId(state);
 
   // Remove duplicate confirmed STX
