@@ -2456,6 +2456,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="metametrics-switch"
+              thumbTintColor="#ffffff"
               tintColor="#bbc0c566"
               value={false}
             />
@@ -2572,6 +2573,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="data-collection-switch"
+              thumbTintColor="#ffffff"
               tintColor="#bbc0c566"
               value={false}
             />
