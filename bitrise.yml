@@ -202,11 +202,13 @@ workflows:
                 #!/usr/bin/env bash
                 echo "Gems being installed with bundler gem"
                 bundle install
-                echo "Node $NODE_VERSION being installed with asdf"
+                echo "Node $NODE_VERSION being installed"
+
+                set -e
 
                 # Install and enable NVM
                 wget -O install-nvm.sh https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh
-                echo "${NVM_SHA256SUM} nvm-install.sh' > nvm-install.sh.SHA256SUM
+                echo "${NVM_SHA256SUM} nvm-install.sh" > nvm-install.sh.SHA256SUM
                 sha256sum -c nvm-install.sh.SHA256SUM
                 chmod +x nvm-install.sh && ./nvm-install.sh && rm ./nvm-install.sh
                 source $PROFILE
@@ -215,8 +217,6 @@ workflows:
 
                 envman add --key PATH --value $PATH
 
-                # using set -e earlier caused issues, so at least check if the install succeeded at the end
-                set -e
                 node --version
 
                 echo "Corepack being installed with npm"
