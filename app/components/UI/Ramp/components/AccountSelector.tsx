@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -30,23 +29,33 @@ const styles = StyleSheet.create({
 const AccountSelector = () => {
   const navigation = useNavigation();
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  const checksummedSelectedAddress = toChecksumHexAddress(
-    selectedInternalAccount.address,
-  );
 
   const openAccountSelector = () =>
     navigation.navigate(...createAccountSelectorNavDetails());
 
   return (
     <SelectorButton onPress={openAccountSelector} style={styles.selector}>
-      <Identicon diameter={15} address={checksummedSelectedAddress} />
-      <Text style={styles.accountText} primary centered numberOfLines={1}>
-        {selectedInternalAccount.metadata.name.length > 13
-          ? `${selectedInternalAccount.metadata.name.substr(0, 13)}...`
-          : selectedInternalAccount.metadata.name}{' '}
-        (
-        <EthereumAddress address={checksummedSelectedAddress} type={'short'} />)
-      </Text>
+      {selectedInternalAccount ? (
+        <>
+          <Identicon
+            diameter={15}
+            address={toChecksumHexAddress(selectedInternalAccount.address)}
+          />
+          <Text style={styles.accountText} primary centered numberOfLines={1}>
+            {selectedInternalAccount.metadata.name.length > 13
+              ? `${selectedInternalAccount.metadata.name.substr(0, 13)}...`
+              : selectedInternalAccount.metadata.name}{' '}
+            (
+            <EthereumAddress
+              address={toChecksumHexAddress(selectedInternalAccount.address)}
+              type={'short'}
+            />
+            )
+          </Text>
+        </>
+      ) : (
+        <Text style={styles.accountText}>Account is loading...</Text>
+      )}
     </SelectorButton>
   );
 };
