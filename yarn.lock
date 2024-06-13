@@ -3603,7 +3603,7 @@
     "@metamask/utils" "^8.3.0"
     nanoid "^3.1.31"
 
-"@metamask/approval-controller@^6.0.1", "@metamask/approval-controller@^6.0.2":
+"@metamask/approval-controller@^6.0.2":
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-6.0.2.tgz#2bae3c293b73e8ecaf8cbba11fbc99c61adb4367"
   integrity sha512-G5FmEwRkKJPjCh3sA6g8eoYOcmLj/Y6Kllh663fYYbt1DZHHJtkrWBuaUnbTySS0VYqbTInpcgSRzuawE1VMgw==
@@ -3761,10 +3761,10 @@
     eth-ens-namehash "^2.0.8"
     fast-deep-equal "^3.1.3"
 
-"@metamask/design-tokens@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-2.0.0.tgz#12ddc1c0343dd147c1fee442c1b23979f73d919d"
-  integrity sha512-dntpAa+8czwj1P6D00jCxgKm6axKeHvHq+4XYstcq+wj4zwV8g3NX6a1+05iNXrccX6JSNO9M+JYyqMMqsZAkA==
+"@metamask/design-tokens@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-4.0.0.tgz#3aad7e4da21c279374668e179c0b055d93aa0552"
+  integrity sha512-bpGKH06Nq6KwMRPNkQ+a/H2vNfX/ViIkpUHkx0FnkastL4+G63lcFS8Nv8mmi9zI24k3l0a2zvsSb/KsvFWTzA==
 
 "@metamask/eslint-config-typescript@^9.0.0":
   version "9.0.1"
@@ -4149,25 +4149,6 @@
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
 
-"@metamask/keyring-controller@^14.0.1":
-  version "14.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-14.0.1.tgz#019596a29a59d1b7cdc806c096bf3cba254e2657"
-  integrity sha512-lK4Zf5ek+eqstnPEQ6pwJPzj4Zt79in0atN2ttUPZi3IN/Xw5Il4nLrTQSSpcAxDwSble1hJibGTOPXAVA+lRg==
-  dependencies:
-    "@ethereumjs/util" "^8.1.0"
-    "@keystonehq/metamask-airgapped-keyring" "^0.13.1"
-    "@metamask/base-controller" "^5.0.1"
-    "@metamask/browser-passworder" "^4.3.0"
-    "@metamask/eth-hd-keyring" "^7.0.1"
-    "@metamask/eth-sig-util" "^7.0.1"
-    "@metamask/eth-simple-keyring" "^6.0.1"
-    "@metamask/keyring-api" "^3.0.0"
-    "@metamask/message-manager" "^8.0.1"
-    "@metamask/utils" "^8.3.0"
-    async-mutex "^0.2.6"
-    ethereumjs-wallet "^1.0.1"
-    immer "^9.0.6"
-
 "@metamask/keyring-controller@^16.0.0":
   version "16.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-16.0.0.tgz#36530a5cbc311d496ef66701c66daf779a769fca"
@@ -4209,7 +4190,7 @@
     jsonschema "^1.2.4"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^8.0.1", "@metamask/message-manager@^8.0.2":
+"@metamask/message-manager@^8.0.2":
   version "8.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-8.0.2.tgz#84720f0fe9e0c02cc97b76f0bc8f3d5b0a25f731"
   integrity sha512-6o0FRWzmOv5ClYv9QfSJI6LtUJaQokwhVROTV2gLsuoAns8a9NuiHmXZrBh1tdjYifXPoPh74nqim4XBBT+GQQ==
@@ -4641,17 +4622,17 @@
     utf-8-validate "^6.0.3"
     uuid "^8.3.2"
 
-"@metamask/signature-controller@^14.0.0":
-  version "14.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-14.0.1.tgz#3add95d378f7b398f29945b33b0ef4dd3503808e"
-  integrity sha512-ZBkrpRjo4KYD/bulmDk4MscgKDOGlcLHSXudHTtQRMeg+2HVXGk4ZRyvHohxkT0B4vvex2uVMXk9iyLfc2/Tgg==
+"@metamask/signature-controller@^16.0.0":
+  version "16.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-16.0.0.tgz#78c7f23d02da99d4e953eb9b4e8e2909523a3288"
+  integrity sha512-6KOzkBxqivKXexJLjcaE9bGjh2vSKO3JsOjE1KD9Mkcx8qxDJOaXft+FJSs2XhJgi5FoyjRgfhryukszl+tCIg==
   dependencies:
-    "@metamask/approval-controller" "^6.0.1"
-    "@metamask/base-controller" "^5.0.1"
-    "@metamask/controller-utils" "^9.0.1"
-    "@metamask/keyring-controller" "^14.0.1"
+    "@metamask/approval-controller" "^6.0.2"
+    "@metamask/base-controller" "^5.0.2"
+    "@metamask/controller-utils" "^9.1.0"
+    "@metamask/keyring-controller" "^16.0.0"
     "@metamask/logging-controller" "^3.0.1"
-    "@metamask/message-manager" "^8.0.1"
+    "@metamask/message-manager" "^8.0.2"
     "@metamask/rpc-errors" "^6.2.1"
     "@metamask/utils" "^8.3.0"
     lodash "^4.17.21"
