@@ -9,8 +9,6 @@ export const SDK_SECTION = 'sdk-section';
 export const CLEAR_PRIVACY_SECTION = 'clear-privacy-section';
 export const CLEAR_BROWSER_HISTORY_SECTION = 'clear-browser-history-section';
 export const META_METRICS_SECTION = 'metametrics-section';
-export const META_METRICS_DATA_MARKETING_SECTION =
-  'metametrics-data-marketing-section';
 export const DELETE_METRICS_BUTTON = 'delete-metrics-button';
 export const SECURITY_SETTINGS_DELETE_WALLET_BUTTON =
   'security-settings-delete-wallet-buttons';

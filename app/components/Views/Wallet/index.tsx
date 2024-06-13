@@ -17,7 +17,6 @@ import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import {
-  isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
@@ -163,10 +162,6 @@ const Wallet = ({
    */
   const providerConfig = useSelector(selectProviderConfig);
   const prevChainId = usePrevious(providerConfig.chainId);
-
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
-  );
   /**
    * Is basic functionality enabled
    */
@@ -174,27 +169,7 @@ const Wallet = ({
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
 
-  const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
-
-  const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
-
   const currentToast = toastRef?.current;
-
-  useEffect(() => {
-    if (
-      isDataCollectionForMarketingEnabled === null &&
-      isParticipatingInMetaMetrics &&
-      isPastPrivacyPolicyDate
-    ) {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.EXPERIENCE_ENHANCER,
-      });
-    }
-  }, [
-    isDataCollectionForMarketingEnabled,
-    isParticipatingInMetaMetrics,
-    navigate,
-  ]);
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
