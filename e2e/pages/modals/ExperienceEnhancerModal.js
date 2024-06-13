@@ -17,7 +17,7 @@ class ExperienceEnhancerModal {
 
   get noThanks() {
     return Matchers.getElementByID(
-      ExperienceEnhancerModalSelectorsText.NO_THANKS,
+      ExperienceEnhancerModalSelectorsIDs.CANCEL_BUTTON,
     );
   }
 
