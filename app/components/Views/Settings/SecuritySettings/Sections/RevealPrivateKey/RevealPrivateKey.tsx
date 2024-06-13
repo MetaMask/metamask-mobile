@@ -42,7 +42,7 @@ const RevealPrivateKey = () => {
     <View style={styles.setting} testID={testIds.section}>
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('reveal_credential.private_key_title_for_account', {
-          accountName: selectedInternalAccount.metadata.name,
+          accountName: selectedInternalAccount?.metadata.name,
         })}
       </Text>
       <Text
@@ -51,7 +51,7 @@ const RevealPrivateKey = () => {
         style={styles.desc}
       >
         {strings('reveal_credential.private_key_warning', {
-          accountName: selectedInternalAccount.metadata.name,
+          accountName: selectedInternalAccount?.metadata.name,
         })}
       </Text>
       <Button
