@@ -1,15 +1,14 @@
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
-import { NetworkState } from '@metamask/network-controller';
+import { InfuraNetworkType } from '@metamask/controller-utils';
 
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 43)) {
     return state;
   }
 
-  const networkControllerState = state.engine.backgroundState
-    .NetworkController as NetworkState;
+  const networkControllerState = state.engine.backgroundState.NetworkController;
 
   if (!isObject(networkControllerState)) {
     captureException(
@@ -45,24 +44,30 @@ export default function migrate(state: unknown) {
   }
 
   Object.entries(networkControllerState.networkConfigurations).forEach(
-    ([key, value]) => {
-      if (!value.id) {
-        value.id = key;
+    ([networkConfigurationId, networkConfiguration]) => {
+      if (isObject(networkConfiguration) && !networkConfiguration.id) {
+        networkConfiguration.id = networkConfigurationId;
       }
     },
   );
 
   if (!networkControllerState.selectedNetworkClientId) {
-    const selectedNetworkId = Object.entries(
-      networkControllerState.networkConfigurations,
-    ).find(
-      ([, value]) =>
-        value.rpcUrl === networkControllerState.providerConfig.rpcUrl,
-    )?.[0];
+    const rpcUrl = networkControllerState.providerConfig.rpcUrl;
+
+    const selectedNetworkId =
+      networkControllerState.providerConfig.id ??
+      Object.entries(networkControllerState.networkConfigurations).find(
+        ([, networkConfiguration]) =>
+          isObject(networkConfiguration) &&
+          networkConfiguration.rpcUrl === rpcUrl,
+      )?.[0];
 
     if (selectedNetworkId) {
       networkControllerState.selectedNetworkClientId = selectedNetworkId;
       networkControllerState.providerConfig.id = selectedNetworkId;
+    } else {
+      networkControllerState.selectedNetworkClientId =
+        InfuraNetworkType.mainnet;
     }
   }
 

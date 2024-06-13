@@ -388,9 +388,142 @@ describe('Migration #43', () => {
     });
   }
 
-  it('Should add selectNetworkClientId and ids to NetworkController state properties', () => {
+  it('should add selectNetworkClientId and ids to NetworkController state properties', () => {
     const newState = migrate(oldState);
 
     expect(newState).toStrictEqual(expectedState);
+  });
+  it('should add select network client id with provider config id if it is available', () => {
+    const oldState2 = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurations: {
+              'a50a052d-b0e3-48f7-b1d2-e795fb52b485': {
+                rpcUrl: 'https://developer-access-mainnet.base.org',
+                chainId: '0x2105',
+                ticker: 'ETH',
+                nickname: 'Base',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://basescan.org',
+                },
+              },
+            },
+            providerConfig: {
+              type: 'rpc',
+              ticker: 'ETH',
+              chainId: '0x2105',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://basescan.org',
+              },
+              rpcUrl: 'https://developer-access-mainnet.base.org',
+              nickname: 'Base',
+              id: 'a50a052d-b0e3-48f7-b1d2-e795fb52b596',
+            },
+          },
+        },
+      },
+    };
+    const expectedState2 = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'a50a052d-b0e3-48f7-b1d2-e795fb52b596',
+            networkConfigurations: {
+              'a50a052d-b0e3-48f7-b1d2-e795fb52b485': {
+                id: 'a50a052d-b0e3-48f7-b1d2-e795fb52b485',
+                rpcUrl: 'https://developer-access-mainnet.base.org',
+                chainId: '0x2105',
+                ticker: 'ETH',
+                nickname: 'Base',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://basescan.org',
+                },
+              },
+            },
+            providerConfig: {
+              type: 'rpc',
+              ticker: 'ETH',
+              chainId: '0x2105',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://basescan.org',
+              },
+              rpcUrl: 'https://developer-access-mainnet.base.org',
+              nickname: 'Base',
+              id: 'a50a052d-b0e3-48f7-b1d2-e795fb52b596',
+            },
+          },
+        },
+      },
+    };
+    const newState = migrate(oldState2);
+
+    expect(newState).toStrictEqual(expectedState2);
+  });
+  it('should default selected network id to mainnet if no id is found', () => {
+    const oldState3 = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurations: {
+              'a50a052d-b0e3-48f7-b1d2-e795fb52b485': {
+                rpcUrl: 'https://developer-access-mainnet.base.org',
+                chainId: '0x2105',
+                ticker: 'ETH',
+                nickname: 'Base',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://basescan.org',
+                },
+              },
+            },
+            providerConfig: {
+              type: 'rpc',
+              ticker: 'ETH',
+              chainId: '0x2105',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://basescan.org',
+              },
+              rpcUrl: 'https://not-match-rpc-url.com',
+              nickname: 'Base',
+            },
+          },
+        },
+      },
+    };
+    const expectedState3 = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networkConfigurations: {
+              'a50a052d-b0e3-48f7-b1d2-e795fb52b485': {
+                id: 'a50a052d-b0e3-48f7-b1d2-e795fb52b485',
+                rpcUrl: 'https://developer-access-mainnet.base.org',
+                chainId: '0x2105',
+                ticker: 'ETH',
+                nickname: 'Base',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://basescan.org',
+                },
+              },
+            },
+            providerConfig: {
+              type: 'rpc',
+              ticker: 'ETH',
+              chainId: '0x2105',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://basescan.org',
+              },
+              rpcUrl: 'https://not-match-rpc-url.com',
+              nickname: 'Base',
+            },
+          },
+        },
+      },
+    };
+
+    const newState = migrate(oldState3);
+
+    expect(newState).toStrictEqual(expectedState3);
   });
 });
