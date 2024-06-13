@@ -102,6 +102,9 @@ const UpdateEIP1559Tx = ({
     (updateTx) => {
       let error;
 
+      if (isNaN(updateTx.totalMaxHex)) {
+        return strings('invalid_amount');
+      }
       const updateTxCost: any = hexToBN(`0x${updateTx.totalMaxHex}`);
       const accountBalance: any = hexToBN(accounts[selectedAddress].balance);
       const isMaxFeePerGasMoreThanLegacyResult = isMaxFeePerGasMoreThanLegacy(
