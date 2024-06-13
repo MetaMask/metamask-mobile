@@ -118,7 +118,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white000}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
             testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
@@ -158,7 +158,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white000}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
             testID={SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH}
