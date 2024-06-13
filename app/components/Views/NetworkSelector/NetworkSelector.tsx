@@ -342,7 +342,7 @@ const NetworkSelector = () => {
           customNetworksList={
             searchString.length > 0 ? filteredNetworks : undefined
           }
-          shouldShowEmptyPopularList={false}
+          showCompletionMessage={false}
         />
       </View>
     );
