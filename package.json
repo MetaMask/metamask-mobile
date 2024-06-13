@@ -360,7 +360,7 @@
     "@metamask/mobile-provider": "^3.0.0",
     "@metamask/object-multiplex": "^1.1.0",
     "@metamask/providers": "^13.1.0",
-    "@metamask/test-dapp": "^8.0.0",
+    "@metamask/test-dapp": "^8.7.0",
     "@react-native-community/datetimepicker": "^7.5.0",
     "@react-native-community/eslint-config": "^2.0.0",
     "@react-native-community/slider": "^4.4.3",
