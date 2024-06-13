@@ -392,14 +392,16 @@ const NetworkSelector = () => {
             </View>
           )}
           {isNetworkUiRedesignEnabled &&
+            searchString.length === 0 &&
             renderTitle('networks.enabled_networks')}
           {renderMainnet()}
           {renderLineaMainnet()}
           {renderRpcNetworks()}
           {isNetworkUiRedesignEnabled &&
+            searchString.length === 0 &&
             renderTitle('networks.additional_networks')}
           {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
-          {renderTestNetworksSwitch()}
+          {searchString.length === 0 && renderTestNetworksSwitch()}
           {showTestNetworks && renderOtherNetworks()}
         </ScrollView>
 
