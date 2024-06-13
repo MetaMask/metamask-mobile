@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useRef, useState } from 'react';
-import { Linking, Switch, TextInput, View } from 'react-native';
+import { Linking, Switch, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -64,9 +64,9 @@ import { TESTNET_TICKER_SYMBOLS } from '@metamask/controller-utils';
 import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
-import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { NetworksSelectorSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { PopularList } from '../../../util/networks/customNetworks';
-import Icon from 'react-native-vector-icons/Ionicons';
+import NetworkSearchTextInput from './NetworkSearchTextInput';
 
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
@@ -370,25 +370,16 @@ const NetworkSelector = () => {
         <SheetHeader title={strings('networks.select_network')} />
         <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
           {isNetworkUiRedesignEnabled && (
-            <View style={styles.inputWrapper}>
-              <Icon name="ios-search" size={20} color={colors.icon.default} />
-              <TextInput
-                style={styles.input}
-                placeholder={strings('networks.search')}
-                placeholderTextColor={colors.text.default}
-                value={searchString}
-                onChangeText={handleSearchTextChange}
-                testID={NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID}
+            <View style={styles.searchContainer}>
+              <NetworkSearchTextInput
+                searchString={searchString}
+                handleSearchTextChange={handleSearchTextChange}
+                clearSearchInput={clearSearchInput}
+                testIdSearchInput={
+                  NetworksSelectorSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID
+                }
+                testIdCloseIcon={NetworksSelectorSelectorsIDs.CLOSE_ICON}
               />
-              {searchString.length > 0 && (
-                <Icon
-                  name="ios-close"
-                  size={20}
-                  color={colors.icon.default}
-                  onPress={clearSearchInput}
-                  testID={NetworksViewSelectorsIDs.CLOSE_ICON}
-                />
-              )}
             </View>
           )}
           {isNetworkUiRedesignEnabled &&
@@ -404,7 +395,6 @@ const NetworkSelector = () => {
           {searchString.length === 0 && renderTestNetworksSwitch()}
           {showTestNetworks && renderOtherNetworks()}
         </ScrollView>
-
         <Button
           variant={ButtonVariants.Secondary}
           label={strings('app_settings.network_add_network')}

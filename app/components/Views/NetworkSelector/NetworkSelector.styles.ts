@@ -95,6 +95,10 @@ const createStyles = (colors: any) =>
       fontSize: 10,
       marginTop: 4,
     },
+    searchContainer: {
+      marginLeft: 16,
+      marginRight: 16,
+    },
   });
 
 export default createStyles;
