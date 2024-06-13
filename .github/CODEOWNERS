@@ -4,7 +4,9 @@
 *                                    @MetaMask/mobile-devs
 app/component-library/               @MetaMask/design-system-engineers @MetaMask/mobile-platform
 patches/                             @MetaMask/mobile-platform
-bitrise.yml                          @MetaMask/mobile-platform
+bitrise.yml                          @metamask/supply-chain @MetaMask/mobile-platform
+yarn.lock                            @metamask/supply-chain @MetaMask/mobile-platform
+ios/Podfile.lock                     @metamask/supply-chain @MetaMask/mobile-platform
 app/components/UI/Ramp/              @MetaMask/ramp @MetaMask/mobile-platform
 app/reducers/fiatOrders/             @MetaMask/ramp @MetaMask/mobile-platform
 app/components/Views/confirmations   @MetaMask/confirmations @MetaMask/mobile-platform
@@ -29,5 +31,5 @@ app/core/Encryptor/                  @MetaMask/accounts-engineers
 app/components/UI/Swaps              @MetaMask/swaps-engineers @MetaMask/mobile-platform
 
 # LavaMoat Team
-ses.cjs                              @leotm @legobeat
-patches/react-native+0.71.15.patch   @leotm
+ses.cjs                              @metamask/supply-chain
+patches/react-native+0.*.patch       @metamask/supply-chain
