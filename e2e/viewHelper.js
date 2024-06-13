@@ -208,7 +208,7 @@ export const loginToApp = async () => {
 
   await TestHelpers.delay(2500);
   try {
-    await TestHelpers.waitAndTapByLabel(
+    await TestHelpers.waitAndTapText(
       enContent.privacy_policy.toast_action_button,
     );
     await WhatsNewModal.isVisible();
