@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useCallback } from 'react';
 import {
   Text,
   TouchableOpacity,
@@ -9,6 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import { lastEventId } from '@sentry/react-native';
+import { captureSentryFeedback } from '../../../util/sentry/utils';
 import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { fontStyles } from '../../../styles/common';
@@ -108,6 +110,40 @@ const createStyles = (colors) =>
 const Fallback = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const sentryId = props.sentryId;
+
+  const renderSentryFeedbackSection = useCallback(() => {
+    return (
+      <Text style={[styles.reportStep, styles.text]}>
+        <Icon name="bug" size={14} />
+        {'  '}
+        {strings('error_screen.submit_ticket_8')}{' '}
+        <Text
+          onPress={() =>
+            Alert.prompt(
+              'Tell us what happened',
+              'Ex. How can we reproduce this bug?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Send',
+                  onPress: (comments = '') => {
+                    // Send Sentry feedback
+                    captureSentryFeedback({ sentryId, comments });
+                    Alert.alert('Thank you for the bug report.');
+                  },
+                },
+              ],
+            )
+          }
+          style={styles.link}
+        >
+          {strings('error_screen.submit_ticket_6')}
+        </Text>{' '}
+        {strings('error_screen.submit_ticket_9')}
+      </Text>
+    );
+  }, [sentryId]);
 
   return (
     <ScrollView style={styles.content}>
@@ -157,6 +193,7 @@ const Fallback = (props) => {
             </Text>{' '}
             {strings('error_screen.submit_ticket_7')}
           </Text>
+            {renderSentryFeedbackSection()}
         </View>
         <Text style={styles.text}>
           {strings('error_screen.save_seedphrase_1')}{' '}
@@ -272,6 +309,7 @@ class ErrorBoundary extends Component {
             showExportSeedphrase={this.showExportSeedphrase}
             copyErrorToClipboard={this.copyErrorToClipboard}
             openTicket={this.openTicket}
+                sentryId={this.state.sentryId}
           />,
         )
       : this.props.children;

@@ -23,6 +23,16 @@ const ERROR_URL_ALLOWLIST = [
 export const routingInstrumentation =
   new Sentry.ReactNavigationV5Instrumentation();
 
+export const captureSentryFeedback = ({ sentryId, comments }) => {
+  const userFeedback = {
+    event_id: sentryId,
+    name: '',
+    email: '',
+    comments,
+  };
+  Sentry.captureUserFeedback(userFeedback);
+};
+
 function getProtocolFromURL(url) {
   return new URL(url).protocol;
 }
