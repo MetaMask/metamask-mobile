@@ -123,7 +123,9 @@
     "react-native-ble-plx": "3.1.2",
     "**/babel-runtime/regenerator-runtime": "^0.13.8",
     "redux-persist-filesystem-storage/react-native-blob-util": "^0.19.9",
-    "xmldom": "npm:@xmldom/xmldom@0.7.13"
+    "xmldom": "npm:@xmldom/xmldom@0.7.13",
+    "@storybook/react-native/chokidar/braces": "^3.0.3",
+    "lint-staged/micromatch/braces": "^3.0.3"
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
