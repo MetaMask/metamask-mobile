@@ -737,10 +737,10 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 yarn test:api-specs
-      - deploy-to-bitrise-io@2.2.3:
+      - script@1:
           is_always_run: true
-          is_skippable: true
-          title: Deploy test report files
+          is_skippable: false
+          title: Add tests reports to Bitrise
           inputs:
             - content: |-
                 #!/usr/bin/env bash
