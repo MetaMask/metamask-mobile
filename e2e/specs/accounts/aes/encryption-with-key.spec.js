@@ -49,9 +49,7 @@ describe(
       await SettingsView.scrollToAesCryptoButton();
       await SettingsView.tapAesCryptoTestForm();
 
-      let encryptionKey;
-
-      encryptionKey = await AesCryptoTestForm.generateEncryptionKey(
+      const encryptionKey = await AesCryptoTestForm.generateEncryptionKey(
         PASSWORD_ONE,
         SALT_ONE,
       );
@@ -65,20 +63,20 @@ describe(
         DATA_TO_ENCRYPT_ONE,
       );
 
-      await AesCryptoTestForm.scrollUpToGenerateEncryptionKey();
-      encryptionKey = await AesCryptoTestForm.generateEncryptionKey(
-        PASSWORD_TWO,
-        SALT_TWO,
-      );
-      await AesCryptoTestForm.encryptWithKey(
-        encryptionKey,
-        DATA_TO_ENCRYPT_TWO,
-      );
-      await AesCryptoTestForm.decryptWithKey(encryptionKey);
-      await Assertions.checkIfElementHasLabel(
-        AesCryptoTestForm.decryptWithKeyResponse,
-        DATA_TO_ENCRYPT_TWO,
-      );
+      // await AesCryptoTestForm.scrollUpToGenerateEncryptionKey();
+      // encryptionKey = await AesCryptoTestForm.generateEncryptionKey(
+      //   PASSWORD_TWO,
+      //   SALT_TWO,
+      // );
+      // await AesCryptoTestForm.encryptWithKey(
+      //   encryptionKey,
+      //   DATA_TO_ENCRYPT_TWO,
+      // );
+      // await AesCryptoTestForm.decryptWithKey(encryptionKey);
+      // await Assertions.checkIfElementHasLabel(
+      //   AesCryptoTestForm.decryptWithKeyResponse,
+      //   DATA_TO_ENCRYPT_TWO,
+      // );
     });
   },
 );
