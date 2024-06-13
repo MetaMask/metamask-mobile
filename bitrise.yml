@@ -428,7 +428,7 @@ workflows:
     envs:
       - PRODUCTION_APP_URL: 'bs://ba40e5b7b4210a06c659b5c6818a3efec2624513' # Last production's QA build
       - PRODUCTION_BUILD_VERSION_NAME: 7.24.1
-      - PRODUCTION_BUILD_VERSION_NUMBER: 1336
+      - PRODUCTION_BUILD_VERSION_NUMBER: 1340
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_VERSION_NAME ($PRODUCTION_BUILD_VERSION_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
@@ -1347,13 +1347,13 @@ app:
       VERSION_NAME: 7.24.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1336
+      VERSION_NUMBER: 1340
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.24.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1336
+      FLASK_VERSION_NUMBER: 1340
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
