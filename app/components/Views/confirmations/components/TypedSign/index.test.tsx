@@ -13,6 +13,7 @@ import initialBackgroundState from '../../../../../util/test/initial-background-
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetrics } from '../../../../../core/Analytics';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 
 jest.mock('../../../../../core/Analytics/MetaMetrics');
 
@@ -31,9 +32,7 @@ jest.mock('../../../../../core/Engine', () => ({
         keyrings: [],
       },
       getAccountKeyringType: jest.fn(() => Promise.resolve({ data: {} })),
-      getQRKeyringState: jest.fn(() =>
-        Promise.resolve({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
-      ),
+      getOrAddQRKeyring: jest.fn(),
     },
     SignatureController: {
       hub: {
@@ -41,6 +40,9 @@ jest.mock('../../../../../core/Engine', () => ({
         removeListener: jest.fn(),
       },
     },
+  },
+  controllerMessenger: {
+    subscribe: jest.fn(),
   },
 }));
 
@@ -64,6 +66,7 @@ const initialState = {
   engine: {
     backgroundState: {
       ...initialBackgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
   signatureRequest: {

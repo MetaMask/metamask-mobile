@@ -99,11 +99,12 @@ import { selectUseTokenDetection } from '../../../selectors/preferencesControlle
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import useIsOriginalNativeTokenSymbol from '../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import ButtonIcon, {
-  ButtonIconVariants,
+  ButtonIconSizes,
 } from '../../../../app/component-library/components/Buttons/ButtonIcon';
 import Box from '../../UI/Ramp/components/Box';
 import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
 import { isPortfolioUrl } from '../../../../app/util/url';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -172,9 +173,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           onPressIn={() => {
             setShowScamWarningModal(true);
           }}
-          variant={ButtonIconVariants.Primary}
-          size={IconSize.Lg}
-          iconColorOverride={IconColor.Error}
+          iconColor={IconColor.Error}
+          size={ButtonIconSizes.Lg}
         />
       );
     }
@@ -509,7 +509,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         style={styles.tokensDetectedButton}
         onPress={showDetectedTokens}
       >
-        <Text style={styles.tokensDetectedText}>
+        <Text
+          style={styles.tokensDetectedText}
+          testID={WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON}
+        >
           {strings('wallet.tokens_detected_in_account', {
             tokenCount: detectedTokens.length,
             tokensLabel: detectedTokens.length > 1 ? 'tokens' : 'token',

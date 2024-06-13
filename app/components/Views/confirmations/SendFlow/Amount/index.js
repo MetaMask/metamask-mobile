@@ -89,7 +89,7 @@ import {
 import { selectTokens } from '../../../../../selectors/tokensController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
 import { PREFIX_HEX_STRING } from '../../../../../constants/transaction';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
@@ -1516,7 +1516,7 @@ const mapStateToProps = (state, ownProps) => ({
   gasFeeEstimates: selectGasFeeEstimates(state),
   providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   ticker: selectTicker(state),
   tokens: selectTokens(state),
   transactionState: ownProps.transaction || state.transaction,

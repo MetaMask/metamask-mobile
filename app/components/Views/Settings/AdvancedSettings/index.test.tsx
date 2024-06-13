@@ -1,12 +1,8 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import AdvancedSettings from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
-import { Store, AnyAction } from 'redux';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
@@ -14,9 +10,7 @@ import Device from '../../../../util/device';
 
 const originalFetch = global.fetch;
 
-const mockStore = configureMockStore();
 let initialState: any;
-let store: Store<any, AnyAction>;
 const mockNavigate = jest.fn();
 let mockSetDisabledRpcMethodPreference: jest.Mock<any, any>;
 let mockSetSmartTransactionsOptInStatus: jest.Mock<any, any>;
@@ -28,7 +22,6 @@ beforeEach(() => {
       backgroundState: initialBackgroundState,
     },
   };
-  store = mockStore(initialState);
   mockNavigate.mockClear();
   mockSetDisabledRpcMethodPreference.mockClear();
   mockSetSmartTransactionsOptInStatus.mockClear();
@@ -62,12 +55,15 @@ jest.mock('../../../../core/Engine', () => {
 
 describe('AdvancedSettings', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <AdvancedSettings />
-      </Provider>,
+    const container = renderWithProvider(
+      <AdvancedSettings
+        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+      />,
+      {
+        state: initialState,
+      },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(container).toMatchSnapshot();
   });
 
   it('should render eth_sign switch off by default with correct label', () => {

@@ -24,15 +24,13 @@ import Engine from '../../../core/Engine';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
 import { useTheme } from '../../../util/theme';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 // Internal dependencies
 import styleSheet from './EditAccountName.styles';
@@ -47,19 +45,27 @@ const EditAccountName = () => {
   const [accountName, setAccountName] = useState<string>();
   const [ens, setEns] = useState<string>();
 
-  const selectedAddress = useSelector(selectSelectedAddress);
-  const identities = useSelector(selectIdentities);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+
+  const selectedChecksummedAddress = selectedInternalAccount?.address
+    ? toChecksumHexAddress(selectedInternalAccount.address)
+    : undefined;
 
   const chainId = useSelector(selectChainId);
 
   const lookupEns = useCallback(async () => {
-    try {
-      const accountEns = await doENSReverseLookup(selectedAddress, chainId);
+    if (selectedChecksummedAddress) {
+      try {
+        const accountEns = await doENSReverseLookup(
+          selectedChecksummedAddress,
+          chainId,
+        );
 
-      setEns(accountEns);
-      // eslint-disable-next-line no-empty
-    } catch {}
-  }, [selectedAddress, chainId]);
+        setEns(accountEns);
+        // eslint-disable-next-line no-empty
+      } catch {}
+    }
+  }, [selectedChecksummedAddress, chainId]);
 
   useEffect(() => {
     lookupEns();
@@ -74,22 +80,28 @@ const EditAccountName = () => {
   }, [updateNavBar]);
 
   useEffect(() => {
-    const name = identities[selectedAddress].name;
+    const name = selectedInternalAccount?.metadata.name;
     setAccountName(isDefaultAccountName(name) && ens ? ens : name);
-  }, [selectedAddress, identities, ens]);
+  }, [ens, selectedInternalAccount?.metadata.name]);
 
   const onChangeName = (name: string) => {
     setAccountName(name);
   };
 
   const saveAccountName = async () => {
-    if (accountName && accountName.length > 0) {
-      Engine.setAccountLabel(selectedAddress, accountName);
+    if (
+      accountName &&
+      accountName.length > 0 &&
+      selectedInternalAccount?.address
+    ) {
+      Engine.setAccountLabel(selectedInternalAccount?.address, accountName);
       navigate('WalletView');
 
       try {
         const analyticsProperties = async () => {
-          const accountType = getAddressAccountType(selectedAddress);
+          const accountType = getAddressAccountType(
+            selectedInternalAccount?.address,
+          );
           const account_type = accountType === 'QR' ? 'hardware' : accountType;
           return { account_type, chain_id: getDecimalChainId(chainId) };
         };
@@ -118,10 +130,15 @@ const EditAccountName = () => {
           <Text variant={TextVariant.BodyLGMedium}>
             {strings('address_book.address')}
           </Text>
-          <TextField
-            isDisabled
-            placeholder={formatAddress(selectedAddress, 'mid')}
-          />
+          {selectedInternalAccount?.address ? (
+            <TextField
+              isDisabled
+              placeholder={formatAddress(
+                selectedInternalAccount?.address,
+                'mid',
+              )}
+            />
+          ) : null}
         </View>
       </View>
       <View style={styles.buttonsContainer}>

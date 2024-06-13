@@ -14,7 +14,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({

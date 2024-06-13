@@ -24,6 +24,7 @@ import useBalance from '../../hooks/useBalance';
 import { toTokenMinimalUnit } from '../../../../../util/number';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -37,7 +38,10 @@ function render(Component: React.ComponentType) {
     {
       state: {
         engine: {
-          backgroundState: initialBackgroundState,
+          backgroundState: {
+            ...initialBackgroundState,
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          },
         },
       },
     },

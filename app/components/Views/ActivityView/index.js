@@ -14,7 +14,7 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useParams } from '../../../util/navigation/navUtils';
 
@@ -28,7 +28,9 @@ const ActivityView = () => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const navigation = useNavigation();
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountChecksummedAddress,
+  );
   const hasOrders = useSelector((state) => getHasOrders(state) || false);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const tabViewRef = useRef();
