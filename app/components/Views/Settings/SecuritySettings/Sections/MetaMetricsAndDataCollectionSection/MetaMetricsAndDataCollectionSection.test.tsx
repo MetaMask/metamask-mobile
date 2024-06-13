@@ -86,7 +86,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
     const { toJSON } = renderScreen(
       MetaMetricsAndDataCollectionSection,
       { name: 'MetaMetricsAndDataCollectionSection' },
-      { state: initialStateMarketingTrue },
+      { state: initialStateMarketingFalse },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -113,7 +113,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
     });
 
     describe('switch', () => {
-      it('on when MetaMetrics initially enabled', async () => {
+      it('is on when MetaMetrics is initially enabled', async () => {
         mockMetrics.isEnabled.mockReturnValueOnce(true);
 
         const { findByTestId } = renderScreen(
@@ -130,7 +130,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         expect(metaMetricsSwitch.props.value).toBe(true);
       });
 
-      it('off when MetaMetrics initially disabled', async () => {
+      it('is off when MetaMetrics is initially disabled', async () => {
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
@@ -145,7 +145,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         expect(metaMetricsSwitch.props.value).toBe(false);
       });
 
-      it('alerts and disables when turned off', async () => {
+      it('alerts and disables marketing when turned off', async () => {
         mockMetrics.isEnabled.mockReturnValueOnce(true);
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
@@ -157,13 +157,21 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
         );
 
+        const marketingSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+        );
+
         expect(metaMetricsSwitch).toBeTruthy();
+        expect(marketingSwitch).toBeTruthy();
+
         expect(metaMetricsSwitch.props.value).toBe(true);
+        expect(marketingSwitch.props.value).toBe(true);
 
         fireEvent(metaMetricsSwitch, 'valueChange', false);
 
         await waitFor(() => {
           expect(metaMetricsSwitch.props.value).toBe(false);
+          expect(marketingSwitch.props.value).toBe(false);
           expect(mockMetrics.enable).toHaveBeenCalledWith(false);
           expect(mockAlert).toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).not.toHaveBeenCalled();
@@ -171,24 +179,32 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         });
       });
 
-      it('traits added to user and event tracked when turned on', async () => {
+      it('keeps marketing off, adds traits to user and tracks event when turned on', async () => {
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
-          { state: initialStateMarketingTrue },
+          { state: initialStateMarketingFalse },
         );
 
         const metaMetricsSwitch = await findByTestId(
           SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
         );
 
+        const marketingSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+        );
+
         expect(metaMetricsSwitch).toBeTruthy();
+        expect(marketingSwitch).toBeTruthy();
+
         expect(metaMetricsSwitch.props.value).toBe(false);
+        expect(marketingSwitch.props.value).toBe(false);
 
         fireEvent(metaMetricsSwitch, 'valueChange', true);
 
         await waitFor(() => {
           expect(metaMetricsSwitch.props.value).toBe(true);
+          expect(marketingSwitch.props.value).toBe(false);
           expect(mockMetrics.enable).toHaveBeenCalledWith();
           expect(mockAlert).not.toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
@@ -208,7 +224,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
 
   describe('Marketing section', () => {
     describe('switch', () => {
-      it('on when Marketing initially enabled', async () => {
+      it('is on when Marketing is initially enabled', async () => {
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
@@ -223,7 +239,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         expect(marketingSwitch.props.value).toBe(true);
       });
 
-      it('off when Marketing initially disabled', async () => {
+      it('is off when Marketing is initially disabled', async () => {
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
@@ -238,7 +254,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         expect(marketingSwitch.props.value).toBe(false);
       });
 
-      it('turns MetaMetrics switch on when turned on', async () => {
+      it('turns MetaMetrics switch on, adds traits to user and tracks event when turned on', async () => {
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
@@ -290,7 +306,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         });
       });
 
-      it('keep MetaMetrics switch on when turned off', async () => {
+      it('keeps MetaMetrics switch on when turned off', async () => {
         mockMetrics.isEnabled.mockReturnValueOnce(true);
 
         const { findByTestId } = renderScreen(
