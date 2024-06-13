@@ -382,7 +382,7 @@ describe('Migration #45', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 45: Invalid NetworkController network configuration entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'null'",
+        "FATAL ERROR: Migration 45: Invalid NetworkController network configuration entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'object'",
       scenario: 'networkConfigurations is invalid',
     },
   ];
