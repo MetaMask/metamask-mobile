@@ -4,12 +4,18 @@ import { captureException } from '@sentry/react-native';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 
 /**
- * Migration to fix the "Engine does not exist" issue
- * On this migration we populate selectedNetworkClientId property of Network Controller with provider config id
- * or network configuration id if the rpc url matches the one on provider config
- * or we default it to mainnet
- * @param state Persisted Redux state
- * @returns mutated state with selectNetworkClientId on Network Controller data
+ * Migration to fix the "No network client ID was provided" bug (#9973) and "Engine does not exist" (#9958).
+ *
+ * This migration fixes corrupted `networkConfigurations` state, which was introduced in v7.7.0
+ * in migration 20. This corrupted state did not cause an error until v7.24.0.
+ *
+ * The problem was that some `networkConfigurations` entries were missing an `id` property. It has
+ * been restored. `selectedNetworkClientId` may have been erased as a side-effect of this invalid
+ * state, so it has been normalized here to match the `providerConfig` state, or reset to the
+ * default (main net).
+ *
+ * @param state Persisted Redux state that is potentially corrupted
+ * @returns Valid persisted Redux state
  */
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 43)) {
@@ -21,7 +27,7 @@ export default function migrate(state: unknown) {
   if (!isObject(networkControllerState)) {
     captureException(
       new Error(
-        `Migration 43: Invalid NetworkController state: '${typeof networkControllerState}'`,
+        `FATAL ERROR: Migration 43: Invalid NetworkController state: '${typeof networkControllerState}'`,
       ),
     );
     return state;
@@ -33,7 +39,25 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `Migration 43: Invalid NetworkController networkConfigurations state: '${typeof networkControllerState.networkConfigurations}'`,
+        `FATAL ERROR: Migration 43: Invalid NetworkController networkConfigurations state: '${typeof networkControllerState.networkConfigurations}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (
+    Object.values(networkControllerState.networkConfigurations).some(
+      (networkConfiguration) => !isObject(networkConfiguration),
+    )
+  ) {
+    const invalidEntry = Object.entries(
+      networkControllerState.networkConfigurations,
+    ).find(([_, networkConfiguration]) => !isObject(networkConfiguration));
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 43: Invalid NetworkController network configuration entry with id: '${
+          invalidEntry?.[0]
+        }', type: '${JSON.stringify(invalidEntry?.[1])}'`,
       ),
     );
     return state;
@@ -45,7 +69,7 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `Migration 43: Invalid NetworkController providerConfig state: '${typeof networkControllerState.providerConfig}'`,
+        `FATAL ERROR: Migration 43: Invalid NetworkController providerConfig state: '${typeof networkControllerState.providerConfig}'`,
       ),
     );
     return state;

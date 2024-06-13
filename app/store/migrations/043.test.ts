@@ -2,15 +2,14 @@ import migrate from './043';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
-
+// This is a state mock with invalid networkConfigurations, derived from the state logs of an affected user
 const oldState = {
   engine: {
     backgroundState: {
       NetworkController: {
         networkConfigurations: {
           '92c0e479-6133-4a18-b1bf-fa38f654e293': {
-            rpcUrl:
-              'https://polygon-mainnet.infura.io/v3/d039103314584a379e33c21fbe89b6cb',
+            rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345abcd',
             chainId: '0x89',
             ticker: 'MATIC',
             nickname: 'Polygon Mainnet',
@@ -19,8 +18,7 @@ const oldState = {
             },
           },
           '8229552c-e0ab-4337-b2c7-c572c2dc5f5a': {
-            rpcUrl:
-              'https://optimism-mainnet.infura.io/v3/d039103314584a379e33c21fbe89b6cb',
+            rpcUrl: 'https://optimism-mainnet.infura.io/v3/12345abcd',
             chainId: '0xa',
             ticker: 'ETH',
             nickname: 'Optimism',
@@ -47,8 +45,7 @@ const oldState = {
             },
           },
           '581302a2-f713-40fd-9175-e25392b49a6e': {
-            rpcUrl:
-              'https://arbitrum-mainnet.infura.io/v3/267e54bc7b094f3f817b941097d249d8',
+            rpcUrl: 'https://arbitrum-mainnet.infura.io/v3/12345abcd',
             chainId: '0xa4b1',
             ticker: 'ETH',
             nickname: 'Arbitrum One',
@@ -156,8 +153,7 @@ const expectedState = {
         networkConfigurations: {
           '92c0e479-6133-4a18-b1bf-fa38f654e293': {
             id: '92c0e479-6133-4a18-b1bf-fa38f654e293',
-            rpcUrl:
-              'https://polygon-mainnet.infura.io/v3/d039103314584a379e33c21fbe89b6cb',
+            rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345abcd',
             chainId: '0x89',
             ticker: 'MATIC',
             nickname: 'Polygon Mainnet',
@@ -167,8 +163,7 @@ const expectedState = {
           },
           '8229552c-e0ab-4337-b2c7-c572c2dc5f5a': {
             id: '8229552c-e0ab-4337-b2c7-c572c2dc5f5a',
-            rpcUrl:
-              'https://optimism-mainnet.infura.io/v3/d039103314584a379e33c21fbe89b6cb',
+            rpcUrl: 'https://optimism-mainnet.infura.io/v3/12345abcd',
             chainId: '0xa',
             ticker: 'ETH',
             nickname: 'Optimism',
@@ -198,8 +193,7 @@ const expectedState = {
           },
           '581302a2-f713-40fd-9175-e25392b49a6e': {
             id: '581302a2-f713-40fd-9175-e25392b49a6e',
-            rpcUrl:
-              'https://arbitrum-mainnet.infura.io/v3/267e54bc7b094f3f817b941097d249d8',
+            rpcUrl: 'https://arbitrum-mainnet.infura.io/v3/12345abcd',
             chainId: '0xa4b1',
             ticker: 'ETH',
             nickname: 'Arbitrum One',
@@ -345,7 +339,8 @@ describe('Migration #43', () => {
           backgroundState: { NetworkController: null },
         },
       }),
-      errorMessage: "Migration 43: Invalid NetworkController state: 'object'",
+      errorMessage:
+        "FATAL ERROR: Migration 43: Invalid NetworkController state: 'object'",
       scenario: 'NetworkController is invalid',
     },
     {
@@ -357,7 +352,7 @@ describe('Migration #43', () => {
         },
       }),
       errorMessage:
-        "Migration 43: Invalid NetworkController providerConfig state: 'object'",
+        "FATAL ERROR: Migration 43: Invalid NetworkController providerConfig state: 'object'",
       scenario: 'providerConfig is invalid',
     },
     {
@@ -371,7 +366,23 @@ describe('Migration #43', () => {
         },
       }),
       errorMessage:
-        "Migration 43: Invalid NetworkController networkConfigurations state: 'object'",
+        "FATAL ERROR: Migration 43: Invalid NetworkController networkConfigurations state: 'object'",
+      scenario: 'networkConfigurations is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurations: {
+                '92c0e479-6133-4a18-b1bf-fa38f654e293': null,
+              },
+            },
+          },
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 43: Invalid NetworkController network configuration entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'null'",
       scenario: 'networkConfigurations is invalid',
     },
   ];
@@ -525,5 +536,72 @@ describe('Migration #43', () => {
     const newState = migrate(oldState3);
 
     expect(newState).toStrictEqual(expectedState3);
+  });
+  it('should populate selected network id to network configurations if no id is found on provider config, but the rpcUrl matches the network configuration', () => {
+    const oldState4 = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurations: {
+              'a50a052d-b0e3-48f7-b1d2-e795fb52b485': {
+                rpcUrl: 'https://developer-access-mainnet.base.org',
+                chainId: '0x2105',
+                ticker: 'ETH',
+                nickname: 'Base',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://basescan.org',
+                },
+              },
+            },
+            providerConfig: {
+              type: 'rpc',
+              ticker: 'ETH',
+              chainId: '0x2105',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://basescan.org',
+              },
+              rpcUrl: 'https://developer-access-mainnet.base.org',
+              nickname: 'Base',
+            },
+          },
+        },
+      },
+    };
+    const expectedState4 = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'a50a052d-b0e3-48f7-b1d2-e795fb52b485',
+            networkConfigurations: {
+              'a50a052d-b0e3-48f7-b1d2-e795fb52b485': {
+                id: 'a50a052d-b0e3-48f7-b1d2-e795fb52b485',
+                rpcUrl: 'https://developer-access-mainnet.base.org',
+                chainId: '0x2105',
+                ticker: 'ETH',
+                nickname: 'Base',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://basescan.org',
+                },
+              },
+            },
+            providerConfig: {
+              type: 'rpc',
+              ticker: 'ETH',
+              chainId: '0x2105',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://basescan.org',
+              },
+              rpcUrl: 'https://developer-access-mainnet.base.org',
+              nickname: 'Base',
+              id: 'a50a052d-b0e3-48f7-b1d2-e795fb52b485',
+            },
+          },
+        },
+      },
+    };
+
+    const newState = migrate(oldState4);
+
+    expect(newState).toStrictEqual(expectedState4);
   });
 });
