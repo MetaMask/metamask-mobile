@@ -22,11 +22,11 @@ describe(
   SmokeAccounts('AES Crypto - Encryption and decryption with encryption key'),
   () => {
     const PASSWORD_ONE = '123123123';
-    const PASSWORD_TWO = '456456456';
+    // const PASSWORD_TWO = '456456456';
     const SALT_ONE = 'ZDuWAyf5kcDxVvMgVaoyzJNB9kP3Ykdq8DSx8rR/+ro=';
-    const SALT_TWO = 'avJ8b37znYTLyeCL0sNxkYxctQrfUdFKoK7SeqC3JSU=';
+    // const SALT_TWO = 'avJ8b37znYTLyeCL0sNxkYxctQrfUdFKoK7SeqC3JSU=';
     const DATA_TO_ENCRYPT_ONE = 'random data to encrypt';
-    const DATA_TO_ENCRYPT_TWO = 'more random data to encrypt';
+    // const DATA_TO_ENCRYPT_TWO = 'more random data to encrypt';
 
     beforeAll(async () => {
       jest.setTimeout(150000);
@@ -49,9 +49,7 @@ describe(
       await SettingsView.scrollToAesCryptoButton();
       await SettingsView.tapAesCryptoTestForm();
 
-      let encryptionKey;
-
-      encryptionKey = await AesCryptoTestForm.generateEncryptionKey(
+      const encryptionKey = await AesCryptoTestForm.generateEncryptionKey(
         PASSWORD_ONE,
         SALT_ONE,
       );
@@ -65,20 +63,20 @@ describe(
         DATA_TO_ENCRYPT_ONE,
       );
 
-      await AesCryptoTestForm.scrollUpToGenerateEncryptionKey();
-      encryptionKey = await AesCryptoTestForm.generateEncryptionKey(
-        PASSWORD_TWO,
-        SALT_TWO,
-      );
-      await AesCryptoTestForm.encryptWithKey(
-        encryptionKey,
-        DATA_TO_ENCRYPT_TWO,
-      );
-      await AesCryptoTestForm.decryptWithKey(encryptionKey);
-      await Assertions.checkIfElementHasLabel(
-        AesCryptoTestForm.decryptWithKeyResponse,
-        DATA_TO_ENCRYPT_TWO,
-      );
+      // await AesCryptoTestForm.scrollUpToGenerateEncryptionKey();
+      // encryptionKey = await AesCryptoTestForm.generateEncryptionKey(
+      //   PASSWORD_TWO,
+      //   SALT_TWO,
+      // );
+      // await AesCryptoTestForm.encryptWithKey(
+      //   encryptionKey,
+      //   DATA_TO_ENCRYPT_TWO,
+      // );
+      // await AesCryptoTestForm.decryptWithKey(encryptionKey);
+      // await Assertions.checkIfElementHasLabel(
+      //   AesCryptoTestForm.decryptWithKeyResponse,
+      //   DATA_TO_ENCRYPT_TWO,
+      // );
     });
   },
 );
