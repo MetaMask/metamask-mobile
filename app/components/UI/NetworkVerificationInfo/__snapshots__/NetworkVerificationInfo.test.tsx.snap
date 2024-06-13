@@ -8,7 +8,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "flexDirection": "row",
         "padding": 16,
       }
@@ -39,7 +39,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 18,
             "fontWeight": "700",
@@ -69,7 +69,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     onGestureHandlerStateChange={[Function]}
     style={
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "paddingHorizontal": 16,
       }
     }
@@ -81,7 +81,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "center",
-            "backgroundColor": "#F2F4F6",
+            "backgroundColor": "#f2f4f6",
             "borderRadius": 16,
             "flexDirection": "row",
             "height": 32,
@@ -94,7 +94,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#FFFFFF",
+              "backgroundColor": "#ffffff",
               "borderRadius": 8,
               "height": 16,
               "justifyContent": "center",
@@ -127,7 +127,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "flexShrink": 1,
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -145,8 +145,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#BF520819",
-            "borderColor": "#BF5208",
+            "backgroundColor": "#bf52081a",
+            "borderColor": "#bf5208",
             "borderLeftWidth": 4,
             "borderRadius": 4,
             "flexDirection": "row",
@@ -166,7 +166,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           }
         >
           <SvgMock
-            color="#BF5208"
+            color="#bf5208"
             height={24}
             name="Danger"
             style={
@@ -189,7 +189,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -228,7 +228,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             testID="banner-close-button-icon"
           >
             <SvgMock
-              color="#24272A"
+              color="#141618"
               height={16}
               name="Close"
               style={
@@ -246,7 +246,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -263,7 +263,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           onPress={[Function]}
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -284,7 +284,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           [
             {
-              "borderColor": "#BBC0C5",
+              "borderColor": "#bbc0c5",
               "borderRadius": 10,
               "borderWidth": 1,
               "marginVertical": 16,
@@ -299,7 +299,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "700",
@@ -314,7 +314,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -330,7 +330,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "700",
@@ -345,7 +345,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -361,7 +361,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "700",
@@ -376,7 +376,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -405,7 +405,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376C9",
+                  "color": "#0376c9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -435,7 +435,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               testID="accordionheader-arrow-icon-animation"
             >
               <SvgMock
-                color="#0376C9"
+                color="#0376c9"
                 height={16}
                 name="ArrowDown"
                 style={
@@ -456,7 +456,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "flexDirection": "row",
         "paddingHorizontal": 8,
         "paddingVertical": 4,
@@ -475,7 +475,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderColor": "#0376C9",
+          "borderColor": "#0376c9",
           "borderRadius": 24,
           "borderWidth": 1,
           "flex": 1,
@@ -492,7 +492,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376C9",
+            "color": "#0376c9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -514,7 +514,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#0376C9",
+          "backgroundColor": "#0376c9",
           "borderRadius": 24,
           "flex": 1,
           "flexDirection": "row",
@@ -532,7 +532,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#FFFFFF",
+            "color": "#ffffff",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",

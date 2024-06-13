@@ -13,29 +13,14 @@ interface NotificationAction {
   isExternal: boolean;
 }
 
-interface CommonData {
-  network_fee: {
-    gas_price: string;
-    native_token_price_in_usd: string;
-  };
-  from?: string;
-  to?: string;
-  amount?: {
-    usd: string;
-    eth?: string;
-  };
-  image?: string;
-  symbol?: string;
-}
-
 const createNotificationBase = (
   id: string,
-  type: TRIGGER_TYPES,
+  type: keyof typeof TRIGGER_TYPES,
   createdAt: Date = new Date(),
   isRead = false,
 ): Omit<Notification, 'data'> => ({
   id,
-  type,
+  type: TRIGGER_TYPES[type],
   createdAt,
   isRead,
 });
@@ -48,7 +33,7 @@ import SVG_MM_LOGO_PATH from '../../../../images/fox.svg';
 
 const MOCK_NOTIFICATIONS: Notification[] = [
   {
-    ...createNotificationBase('1', TRIGGER_TYPES.FEATURES_ANNOUNCEMENT),
+    ...createNotificationBase('1', 'FEATURES_ANNOUNCEMENT'),
     data: {
       title: 'Welcome to the new MyMetaverse!',
       shortDescription:
@@ -74,13 +59,14 @@ const MOCK_NOTIFICATIONS: Notification[] = [
     },
   },
   {
-    ...createNotificationBase(
-      '9d9b1467-b3ee-5492-8ca2-22382657b690',
-      TRIGGER_TYPES.LIDO_STAKE_COMPLETED,
-    ),
-    block_number: 18487118,
-    block_timestamp: '1698961091',
+    ...createNotificationBase('2', 'LIDO_STAKE_COMPLETED'),
+    trigger_id: 'some-trigger-id',
     chain_id: 1,
+    block_number: 20069079,
+    block_timestamp: '1698961091',
+    tx_hash:
+      '0x6271899e371c87ff96307d5ffed7ddcc39dcee5742bfab4f395501f6bf4c2002',
+    unread: false,
     created_at: '2023-11-02T22:28:49.970865Z',
     data: {
       kind: 'lido_stake_completed',
@@ -106,8 +92,8 @@ const MOCK_NOTIFICATIONS: Notification[] = [
         gas_price: '26536359866',
         native_token_price_in_usd: '1806.33',
       },
-    } as CommonData,
-  },
+    },
+  } as Notification,
 ];
 
 export default MOCK_NOTIFICATIONS;

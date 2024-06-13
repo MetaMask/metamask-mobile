@@ -1001,7 +1001,23 @@
     "smart_transactions_learn_more": "Learn more.",
     "simulation_details": "Estimate balance changes",
     "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
-    "simulation_details_learn_more": "Learn more."
+    "simulation_details_learn_more": "Learn more.",
+    "aes_crypto_test_form_title": "AES Crypto - Test Form",
+    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support."
+  },
+  "aes_crypto_test_form": {
+    "generate_random_salt": "Generate Random Salt",
+    "salt_bytes_count": "Salt bytes count",
+    "generate": "Generate",
+    "generate_encryption_key": "Generate encryption key from password",
+    "password": "Password",
+    "salt": "Salt",
+    "encrypt_with_key": "Encrypt with key",
+    "encrypt": "Encrypt",
+    "encryption_key": "Encryption Key",
+    "data": "Data",
+    "decrypt_with_key": "Decrypt with key",
+    "decrypt": "Decrypt"
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1513,6 +1529,10 @@
     "to": "To",
     "details": "Details",
     "amount": "Amount",
+    "fee": {
+      "transaction_fee_in_ether": "Transaction Fee",
+      "transaction_fee_in_usd": "Transaction Fee (USD)"
+    },
     "gas_used": "Gas Used (Units)",
     "gas_limit": "Gas Limit (Units)",
     "gas_price": "Gas Price (GWEI)",
@@ -1623,11 +1643,11 @@
     "approve": "Approve",
     "edit_network_details": "Edit network details",
     "malicious_network_warning": "A malicious network provider can lie about the state of the blockchain and record your network activity. Only add custom networks you trust.",
-    "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
+    "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "Network Information",
     "network_warning_desc": "This network connection relies on third parties. This connection may be less reliable or enable third-parties to track activity.",
     "learn_more": "Learn more",
-    "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
+    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Switch to network",
     "switch": "Switch",
     "new_network": "New network added",
@@ -1910,14 +1930,21 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "staked": "Staked",
+    "received": "Received",
+    "unstaked": "Unstaked",
+    "to": "To",
+    "rate": "Rate(fees included)",
+    "unstaking_requested": "Unstaking requested",
     "stake_completed": "Stake completed",
     "withdrawal_completed": "Withdrawal completed",
     "unstake_completed": "Unstake completed",
     "withdrawal_requested": "Withdrawal requested",
     "stake_ready_to_be_withdrawn": "Stake ready to be withdrawn",
     "swap_completed": "Swapped {{from}} for {{to}}",
+    "swap": "Swapped",
     "sent": "Sent to {{address}}",
-    "received": "Received from {{address}}",
+    "received_from": "Received from {{address}}",
     "nft_sent": "Sent NFT to {{address}}",
     "erc721_sent": "Sent NFT to {{address}}",
     "erc1155_sent": "Sent NFT to {{address}}",
@@ -1964,6 +1991,7 @@
     "wc_description": "Please check the application",
     "wallet": "Wallet",
     "web3": "Web3",
+    "staking_provider": "Staking Provider",
     "empty": {
       "title": "Nothing to see here",
       "message": "This is where you can find notifications once there’s activity in your wallet. "
@@ -2606,6 +2634,11 @@
       "benefit_2_2": "money",
       "benefit_3_1": "Real-time",
       "benefit_3_2": "updates"
+    },
+    "transaction_simulation": {
+      "title": "Estimated balance changes",
+      "description_1": "Now you can see the potential outcome of your transactions before you make them!",
+      "description_2": "This is just a simulation, so we can’t guarantee the final outcome. You can turn this off anytime in Settings > Security & Privacy."
     }
   },
   "invalid_network": {
@@ -2777,7 +2810,7 @@
     "error_title": "Oops! Something went wrong.",
     "error_message": "There was an error loading the network information. Please try again later.",
     "private_network_third_description": "Please enter a name for this network to make it easy to identify.",
-    "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
+    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "enable_token_detection": "Enable auto token detection",
     "token_detection_mainnet_title": "Token detection is enabled so tokens will automatically show up in your wallet.",
     "token_detection_mainnet_link": "You can also add tokens manually.",
