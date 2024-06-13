@@ -57,7 +57,7 @@ export default function migrate(state: unknown) {
       new Error(
         `FATAL ERROR: Migration 43: Invalid NetworkController network configuration entry with id: '${
           invalidEntry?.[0]
-        }', type: '${JSON.stringify(invalidEntry?.[1])}'`,
+        }', type: '${typeof invalidEntry?.[1]}'`,
       ),
     );
     return state;
