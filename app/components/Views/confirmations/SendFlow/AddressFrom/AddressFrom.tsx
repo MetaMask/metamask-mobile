@@ -33,15 +33,15 @@ const SendFlowAddressFrom = ({
   const ticker = useSelector(selectTicker);
 
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  const checksummedSelectedAddress = toChecksumHexAddress(
-    selectedInternalAccount.address,
-  );
+  const checksummedSelectedAddress = selectedInternalAccount
+    ? toChecksumHexAddress(selectedInternalAccount.address)
+    : null;
 
   const [accountAddress, setAccountAddress] = useState(
     checksummedSelectedAddress,
   );
   const [accountName, setAccountName] = useState(
-    selectedInternalAccount.metadata.name,
+    selectedInternalAccount?.metadata.name,
   );
   const [accountBalance, setAccountBalance] = useState('');
 
@@ -77,16 +77,21 @@ const SendFlowAddressFrom = ({
 
   useEffect(() => {
     async function getAccount() {
-      const ens = await doENSReverseLookup(checksummedSelectedAddress, chainId);
-      const balance = `${renderFromWei(
-        accounts[checksummedSelectedAddress].balance,
-      )} ${getTicker(ticker)}`;
-      const balanceIsZero = hexToBN(
-        accounts[checksummedSelectedAddress].balance,
-      ).isZero();
-      setAccountName(ens || selectedInternalAccount.metadata.name);
-      setAccountBalance(balance);
-      fromAccountBalanceState(balanceIsZero);
+      if (checksummedSelectedAddress) {
+        const ens = await doENSReverseLookup(
+          checksummedSelectedAddress,
+          chainId,
+        );
+        const balance = `${renderFromWei(
+          accounts[checksummedSelectedAddress].balance,
+        )} ${getTicker(ticker)}`;
+        const balanceIsZero = hexToBN(
+          accounts[checksummedSelectedAddress].balance,
+        ).isZero();
+        setAccountName(ens || selectedInternalAccount?.metadata.name);
+        setAccountBalance(balance);
+        fromAccountBalanceState(balanceIsZero);
+      }
     }
     getAccount();
   }, [
@@ -95,11 +100,11 @@ const SendFlowAddressFrom = ({
     ticker,
     chainId,
     fromAccountBalanceState,
-    selectedInternalAccount.metadata.name,
+    selectedInternalAccount?.metadata.name,
   ]);
 
   const onSelectAccount = async (address: string) => {
-    const name = selectedInternalAccount.metadata.name;
+    const name = selectedInternalAccount?.metadata.name;
     const balance = `${renderFromWei(accounts[address].balance)} ${getTicker(
       ticker,
     )}`;
