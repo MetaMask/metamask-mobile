@@ -10,7 +10,7 @@ exports[`ClipboardText renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#24272A",
+        "color": "#141618",
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
         "fontWeight": "400",
