@@ -305,7 +305,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                     <View
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -389,12 +389,12 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                           <RefreshControlMock
                             colors={
                               [
-                                "#0376C9",
+                                "#0376c9",
                               ]
                             }
                             onRefresh={[Function]}
                             refreshing={false}
-                            tintColor="#24272A"
+                            tintColor="#141618"
                           />
                         }
                         removeClippedSubviews={false}
@@ -424,7 +424,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 32,
                                     "fontWeight": "500",
@@ -448,7 +448,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
                                     "backgroundColor": "transparent",
-                                    "borderColor": "#0376C9",
+                                    "borderColor": "#0376c9",
                                     "borderRadius": 20,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -465,7 +465,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#0376C9",
+                                      "color": "#0376c9",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -477,7 +477,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   Portfolio
                                 </Text>
                                 <SvgMock
-                                  color="#0376C9"
+                                  color="#0376c9"
                                   height={16}
                                   name="Export"
                                   style={
@@ -625,14 +625,14 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#FFFFFF",
-                                          "borderColor": "#FFFFFF",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001A",
+                                          "shadowColor": "#0000001a",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -688,7 +688,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -741,7 +741,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 16,
                                           "fontWeight": "500",
@@ -755,7 +755,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 16,
                                             "fontWeight": "500",
@@ -768,7 +768,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       </Text>
                                     </Text>
                                     <SvgMock
-                                      color="#0376C9"
+                                      color="#0376c9"
                                       height={16}
                                       name="Plant"
                                       style={
@@ -785,7 +785,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#535A61",
+                                      "color": "#6a737d",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -831,7 +831,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
                                     "fontWeight": "500",
@@ -877,7 +877,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   <View
                                     style={
                                       {
-                                        "backgroundColor": "#FFFFFF",
+                                        "backgroundColor": "#ffffff",
                                         "borderRadius": 16,
                                         "height": 32,
                                         "overflow": "hidden",
@@ -945,14 +945,14 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#FFFFFF",
-                                          "borderColor": "#FFFFFF",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001A",
+                                          "shadowColor": "#0000001a",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -1008,7 +1008,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -1024,7 +1024,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#535A61",
+                                      "color": "#6a737d",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -1070,7 +1070,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
                                     "fontWeight": "500",
@@ -1112,7 +1112,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -1126,7 +1126,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -1143,7 +1143,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -1478,7 +1478,7 @@ exports[`Tokens should render correctly 1`] = `
                     <View
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -1562,12 +1562,12 @@ exports[`Tokens should render correctly 1`] = `
                           <RefreshControlMock
                             colors={
                               [
-                                "#0376C9",
+                                "#0376c9",
                               ]
                             }
                             onRefresh={[Function]}
                             refreshing={false}
-                            tintColor="#24272A"
+                            tintColor="#141618"
                           />
                         }
                         removeClippedSubviews={false}
@@ -1597,7 +1597,7 @@ exports[`Tokens should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 32,
                                     "fontWeight": "500",
@@ -1621,7 +1621,7 @@ exports[`Tokens should render correctly 1`] = `
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
                                     "backgroundColor": "transparent",
-                                    "borderColor": "#0376C9",
+                                    "borderColor": "#0376c9",
                                     "borderRadius": 20,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -1638,7 +1638,7 @@ exports[`Tokens should render correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#0376C9",
+                                      "color": "#0376c9",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -1650,7 +1650,7 @@ exports[`Tokens should render correctly 1`] = `
                                   Portfolio
                                 </Text>
                                 <SvgMock
-                                  color="#0376C9"
+                                  color="#0376c9"
                                   height={16}
                                   name="Export"
                                   style={
@@ -1798,14 +1798,14 @@ exports[`Tokens should render correctly 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#FFFFFF",
-                                          "borderColor": "#FFFFFF",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001A",
+                                          "shadowColor": "#0000001a",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -1861,7 +1861,7 @@ exports[`Tokens should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -1914,7 +1914,7 @@ exports[`Tokens should render correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 16,
                                           "fontWeight": "500",
@@ -1928,7 +1928,7 @@ exports[`Tokens should render correctly 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 16,
                                             "fontWeight": "500",
@@ -1941,7 +1941,7 @@ exports[`Tokens should render correctly 1`] = `
                                       </Text>
                                     </Text>
                                     <SvgMock
-                                      color="#0376C9"
+                                      color="#0376c9"
                                       height={16}
                                       name="Plant"
                                       style={
@@ -1958,7 +1958,7 @@ exports[`Tokens should render correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#535A61",
+                                      "color": "#6a737d",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -2004,7 +2004,7 @@ exports[`Tokens should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
                                     "fontWeight": "500",
@@ -2050,7 +2050,7 @@ exports[`Tokens should render correctly 1`] = `
                                   <View
                                     style={
                                       {
-                                        "backgroundColor": "#FFFFFF",
+                                        "backgroundColor": "#ffffff",
                                         "borderRadius": 16,
                                         "height": 32,
                                         "overflow": "hidden",
@@ -2118,14 +2118,14 @@ exports[`Tokens should render correctly 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#FFFFFF",
-                                          "borderColor": "#FFFFFF",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001A",
+                                          "shadowColor": "#0000001a",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -2181,7 +2181,7 @@ exports[`Tokens should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -2197,7 +2197,7 @@ exports[`Tokens should render correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#535A61",
+                                      "color": "#6a737d",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -2243,7 +2243,7 @@ exports[`Tokens should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
                                     "fontWeight": "500",
@@ -2285,7 +2285,7 @@ exports[`Tokens should render correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -2299,7 +2299,7 @@ exports[`Tokens should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -2316,7 +2316,7 @@ exports[`Tokens should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -2651,7 +2651,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                     <View
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -2743,12 +2743,12 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                           <RefreshControlMock
                             colors={
                               [
-                                "#0376C9",
+                                "#0376c9",
                               ]
                             }
                             onRefresh={[Function]}
                             refreshing={false}
-                            tintColor="#24272A"
+                            tintColor="#141618"
                           />
                         }
                         removeClippedSubviews={false}
@@ -2778,7 +2778,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 32,
                                     "fontWeight": "500",
@@ -2802,7 +2802,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
                                     "backgroundColor": "transparent",
-                                    "borderColor": "#0376C9",
+                                    "borderColor": "#0376c9",
                                     "borderRadius": 20,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -2819,7 +2819,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#0376C9",
+                                      "color": "#0376c9",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -2831,7 +2831,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   Portfolio
                                 </Text>
                                 <SvgMock
-                                  color="#0376C9"
+                                  color="#0376c9"
                                   height={16}
                                   name="Export"
                                   style={
@@ -2979,14 +2979,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#FFFFFF",
-                                          "borderColor": "#FFFFFF",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001A",
+                                          "shadowColor": "#0000001a",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -3042,7 +3042,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -3095,7 +3095,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 16,
                                           "fontWeight": "500",
@@ -3109,7 +3109,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 16,
                                             "fontWeight": "500",
@@ -3122,7 +3122,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       </Text>
                                     </Text>
                                     <SvgMock
-                                      color="#0376C9"
+                                      color="#0376c9"
                                       height={16}
                                       name="Plant"
                                       style={
@@ -3139,7 +3139,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#535A61",
+                                      "color": "#6a737d",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -3185,7 +3185,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
                                     "fontWeight": "500",
@@ -3231,7 +3231,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   <View
                                     style={
                                       {
-                                        "backgroundColor": "#FFFFFF",
+                                        "backgroundColor": "#ffffff",
                                         "borderRadius": 16,
                                         "height": 32,
                                         "overflow": "hidden",
@@ -3299,14 +3299,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#FFFFFF",
-                                          "borderColor": "#FFFFFF",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001A",
+                                          "shadowColor": "#0000001a",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -3362,7 +3362,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -3378,7 +3378,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#535A61",
+                                      "color": "#6a737d",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -3424,7 +3424,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
                                     "fontWeight": "500",
@@ -3470,7 +3470,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   <View
                                     style={
                                       {
-                                        "backgroundColor": "#FFFFFF",
+                                        "backgroundColor": "#ffffff",
                                         "borderRadius": 16,
                                         "height": 32,
                                         "overflow": "hidden",
@@ -3538,14 +3538,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#FFFFFF",
-                                          "borderColor": "#FFFFFF",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001A",
+                                          "shadowColor": "#0000001a",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -3601,7 +3601,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -3617,7 +3617,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#535A61",
+                                      "color": "#6a737d",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -3663,7 +3663,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
                                     "fontWeight": "500",
@@ -3705,7 +3705,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -3719,7 +3719,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -3736,7 +3736,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",

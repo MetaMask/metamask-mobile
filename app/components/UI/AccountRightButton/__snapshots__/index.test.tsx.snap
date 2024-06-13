@@ -329,7 +329,7 @@ exports[`AccountRightButton should render correctly 1`] = `
                         style={
                           {
                             "alignItems": "center",
-                            "backgroundColor": "#F2F4F6",
+                            "backgroundColor": "#f2f4f6",
                             "borderRadius": 16,
                             "borderWidth": 1,
                             "height": 32,
@@ -343,7 +343,7 @@ exports[`AccountRightButton should render correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#24272A",
+                              "color": "#141618",
                               "fontFamily": "Euclid Circular B",
                               "fontSize": 16,
                               "fontWeight": "400",

@@ -43,7 +43,7 @@ exports[`NotificationRoot matches snapshot 1`] = `
     }
   >
     <SvgMock
-      color="#6A737D"
+      color="#6a737d"
       height={20}
       name="Trash"
       style={

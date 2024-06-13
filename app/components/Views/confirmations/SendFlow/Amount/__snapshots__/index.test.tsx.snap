@@ -310,7 +310,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                       }
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -360,7 +360,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376C9",
+                                      "backgroundColor": "#0376c9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -373,7 +373,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#FFFFFF",
+                                        "color": "#ffffff",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -389,7 +389,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                             "fontSize": 16,
                                           },
                                           {
@@ -432,7 +432,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -466,10 +466,10 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#BBC0C5"
+                                    placeholderTextColor="#9fa6ae"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 44,
                                         "fontWeight": "300",
@@ -500,7 +500,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     onPress={[Function]}
                                     style={
                                       {
-                                        "borderColor": "#535A61",
+                                        "borderColor": "#6a737d",
                                         "borderRadius": 8,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -515,7 +515,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                       numberOfLines={1}
                                       style={
                                         {
-                                          "color": "#535A61",
+                                          "color": "#6a737d",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -539,7 +539,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#0376C9",
+                                              "color": "#0376c9",
                                               "fontSize": 16,
                                             },
                                             {
@@ -572,7 +572,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                   style={
                                     {
                                       "alignSelf": "center",
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 12,
                                       "fontWeight": "400",
@@ -624,7 +624,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "minHeight": 50,
                                   },
                                   {
@@ -659,7 +659,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                     },
                                     undefined,
                                   ],
@@ -1026,7 +1026,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                       }
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -1076,7 +1076,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376C9",
+                                      "backgroundColor": "#0376c9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -1089,7 +1089,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#FFFFFF",
+                                        "color": "#ffffff",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -1105,7 +1105,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                             "fontSize": 16,
                                           },
                                           {
@@ -1148,7 +1148,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -1182,10 +1182,10 @@ exports[`Amount should convert ETH to USD 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#BBC0C5"
+                                    placeholderTextColor="#9fa6ae"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 44,
                                         "fontWeight": "300",
@@ -1216,7 +1216,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                     onPress={[Function]}
                                     style={
                                       {
-                                        "borderColor": "#535A61",
+                                        "borderColor": "#6a737d",
                                         "borderRadius": 8,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -1231,7 +1231,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                       numberOfLines={1}
                                       style={
                                         {
-                                          "color": "#535A61",
+                                          "color": "#6a737d",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -1255,7 +1255,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#0376C9",
+                                              "color": "#0376c9",
                                               "fontSize": 16,
                                             },
                                             {
@@ -1288,7 +1288,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                   style={
                                     {
                                       "alignSelf": "center",
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 12,
                                       "fontWeight": "400",
@@ -1340,7 +1340,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "minHeight": 50,
                                   },
                                   {
@@ -1375,7 +1375,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                     },
                                     undefined,
                                   ],
@@ -1742,7 +1742,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                       }
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -1792,7 +1792,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376C9",
+                                      "backgroundColor": "#0376c9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -1805,7 +1805,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#FFFFFF",
+                                        "color": "#ffffff",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -1821,7 +1821,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                             "fontSize": 16,
                                           },
                                           {
@@ -1864,7 +1864,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -1897,7 +1897,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 44,
                                         "fontWeight": "300",
@@ -1915,10 +1915,10 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#BBC0C5"
+                                    placeholderTextColor="#9fa6ae"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 44,
                                         "fontWeight": "300",
@@ -1949,7 +1949,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     onPress={[Function]}
                                     style={
                                       {
-                                        "borderColor": "#535A61",
+                                        "borderColor": "#6a737d",
                                         "borderRadius": 8,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -1964,7 +1964,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                       numberOfLines={1}
                                       style={
                                         {
-                                          "color": "#535A61",
+                                          "color": "#6a737d",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -1988,7 +1988,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#0376C9",
+                                              "color": "#0376c9",
                                               "fontSize": 16,
                                             },
                                             {
@@ -2021,7 +2021,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                   style={
                                     {
                                       "alignSelf": "center",
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 12,
                                       "fontWeight": "400",
@@ -2073,7 +2073,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "minHeight": 50,
                                   },
                                   {
@@ -2108,7 +2108,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                     },
                                     undefined,
                                   ],
@@ -2475,7 +2475,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                       }
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -2525,7 +2525,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376C9",
+                                      "backgroundColor": "#0376c9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -2538,7 +2538,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#FFFFFF",
+                                        "color": "#ffffff",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -2554,7 +2554,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                             "fontSize": 16,
                                           },
                                           {
@@ -2597,7 +2597,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -2630,7 +2630,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 44,
                                         "fontWeight": "300",
@@ -2648,10 +2648,10 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#BBC0C5"
+                                    placeholderTextColor="#9fa6ae"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 44,
                                         "fontWeight": "300",
@@ -2682,7 +2682,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     onPress={[Function]}
                                     style={
                                       {
-                                        "borderColor": "#535A61",
+                                        "borderColor": "#6a737d",
                                         "borderRadius": 8,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -2697,7 +2697,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                       numberOfLines={1}
                                       style={
                                         {
-                                          "color": "#535A61",
+                                          "color": "#6a737d",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -2721,7 +2721,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#0376C9",
+                                              "color": "#0376c9",
                                               "fontSize": 16,
                                             },
                                             {
@@ -2754,7 +2754,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                   style={
                                     {
                                       "alignSelf": "center",
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 12,
                                       "fontWeight": "400",
@@ -2806,7 +2806,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "minHeight": 50,
                                   },
                                   {
@@ -2841,7 +2841,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                     },
                                     undefined,
                                   ],
@@ -3208,7 +3208,7 @@ exports[`Amount should display correct balance 1`] = `
                       }
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -3258,7 +3258,7 @@ exports[`Amount should display correct balance 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376C9",
+                                      "backgroundColor": "#0376c9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -3271,7 +3271,7 @@ exports[`Amount should display correct balance 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#FFFFFF",
+                                        "color": "#ffffff",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -3287,7 +3287,7 @@ exports[`Amount should display correct balance 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                             "fontSize": 16,
                                           },
                                           {
@@ -3330,7 +3330,7 @@ exports[`Amount should display correct balance 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -3364,10 +3364,10 @@ exports[`Amount should display correct balance 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#BBC0C5"
+                                    placeholderTextColor="#9fa6ae"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 44,
                                         "fontWeight": "300",
@@ -3397,7 +3397,7 @@ exports[`Amount should display correct balance 1`] = `
                                     onPress={[Function]}
                                     style={
                                       {
-                                        "borderColor": "#535A61",
+                                        "borderColor": "#6a737d",
                                         "borderRadius": 8,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -3412,7 +3412,7 @@ exports[`Amount should display correct balance 1`] = `
                                       numberOfLines={1}
                                       style={
                                         {
-                                          "color": "#535A61",
+                                          "color": "#6a737d",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -3436,7 +3436,7 @@ exports[`Amount should display correct balance 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#0376C9",
+                                              "color": "#0376c9",
                                               "fontSize": 16,
                                             },
                                             {
@@ -3469,7 +3469,7 @@ exports[`Amount should display correct balance 1`] = `
                                   style={
                                     {
                                       "alignSelf": "center",
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 12,
                                       "fontWeight": "400",
@@ -3521,7 +3521,7 @@ exports[`Amount should display correct balance 1`] = `
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "minHeight": 50,
                                   },
                                   {
@@ -3556,7 +3556,7 @@ exports[`Amount should display correct balance 1`] = `
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                     },
                                     undefined,
                                   ],
@@ -3923,7 +3923,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                       }
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -3973,7 +3973,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376C9",
+                                      "backgroundColor": "#0376c9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -3986,7 +3986,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                   <Text
                                     style={
                                       {
-                                        "color": "#FFFFFF",
+                                        "color": "#ffffff",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -4002,7 +4002,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                       style={
                                         [
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                             "fontSize": 16,
                                           },
                                           {
@@ -4045,7 +4045,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -4079,10 +4079,10 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#BBC0C5"
+                                    placeholderTextColor="#9fa6ae"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 44,
                                         "fontWeight": "300",
@@ -4112,7 +4112,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     onPress={[Function]}
                                     style={
                                       {
-                                        "borderColor": "#535A61",
+                                        "borderColor": "#6a737d",
                                         "borderRadius": 8,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -4127,7 +4127,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                       numberOfLines={1}
                                       style={
                                         {
-                                          "color": "#535A61",
+                                          "color": "#6a737d",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -4151,7 +4151,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                         style={
                                           [
                                             {
-                                              "color": "#0376C9",
+                                              "color": "#0376c9",
                                               "fontSize": 16,
                                             },
                                             {
@@ -4184,7 +4184,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                   style={
                                     {
                                       "alignSelf": "center",
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 12,
                                       "fontWeight": "400",
@@ -4236,7 +4236,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "minHeight": 50,
                                   },
                                   {
@@ -4271,7 +4271,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                     },
                                     undefined,
                                   ],
@@ -4638,7 +4638,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                       }
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -4688,7 +4688,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376C9",
+                                      "backgroundColor": "#0376c9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -4701,7 +4701,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#FFFFFF",
+                                        "color": "#ffffff",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -4717,7 +4717,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                             "fontSize": 16,
                                           },
                                           {
@@ -4788,7 +4788,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                         [
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#F2F4F6",
+                                            "backgroundColor": "#f2f4f6",
                                             "borderRadius": 8,
                                             "justifyContent": "flex-start",
                                           },
@@ -4819,7 +4819,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
                                               "fontWeight": "400",
@@ -4872,7 +4872,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#535A61",
+                                      "color": "#6a737d",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 32,
                                       "fontWeight": "400",
@@ -4883,7 +4883,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#535A61",
+                                      "color": "#6a737d",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -4936,7 +4936,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "minHeight": 50,
                                   },
                                   {
@@ -4971,7 +4971,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                     },
                                     undefined,
                                   ],
@@ -5338,7 +5338,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                       }
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -5388,7 +5388,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376C9",
+                                      "backgroundColor": "#0376c9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -5401,7 +5401,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                   <Text
                                     style={
                                       {
-                                        "color": "#FFFFFF",
+                                        "color": "#ffffff",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -5417,7 +5417,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                       style={
                                         [
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                             "fontSize": 16,
                                           },
                                           {
@@ -5460,7 +5460,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -5494,10 +5494,10 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#BBC0C5"
+                                    placeholderTextColor="#9fa6ae"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 44,
                                         "fontWeight": "300",
@@ -5528,7 +5528,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     onPress={[Function]}
                                     style={
                                       {
-                                        "borderColor": "#535A61",
+                                        "borderColor": "#6a737d",
                                         "borderRadius": 8,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -5543,7 +5543,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                       numberOfLines={1}
                                       style={
                                         {
-                                          "color": "#535A61",
+                                          "color": "#6a737d",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -5567,7 +5567,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                         style={
                                           [
                                             {
-                                              "color": "#0376C9",
+                                              "color": "#0376c9",
                                               "fontSize": 16,
                                             },
                                             {
@@ -5600,7 +5600,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                   style={
                                     {
                                       "alignSelf": "center",
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 12,
                                       "fontWeight": "400",
@@ -5653,7 +5653,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "minHeight": 50,
                                   },
                                   {
@@ -5684,7 +5684,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                     },
                                     undefined,
                                   ],
@@ -6049,7 +6049,7 @@ exports[`Amount should render correctly 1`] = `
                       }
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -6077,8 +6077,8 @@ exports[`Amount should render correctly 1`] = `
                                   "paddingVertical": 8,
                                 },
                                 {
-                                  "backgroundColor": "#BF520819",
-                                  "borderColor": "#BF5208",
+                                  "backgroundColor": "#bf52081a",
+                                  "borderColor": "#bf5208",
                                 },
                                 {
                                   "marginHorizontal": 20,
@@ -6099,7 +6099,7 @@ exports[`Amount should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#BF5208",
+                                      "color": "#bf5208",
                                       "fontSize": 20,
                                     },
                                     undefined,
@@ -6128,7 +6128,7 @@ exports[`Amount should render correctly 1`] = `
                                 red={true}
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "lineHeight": 20,
                                   }
                                 }
@@ -6174,7 +6174,7 @@ exports[`Amount should render correctly 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376C9",
+                                      "backgroundColor": "#0376c9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -6187,7 +6187,7 @@ exports[`Amount should render correctly 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#FFFFFF",
+                                        "color": "#ffffff",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -6203,7 +6203,7 @@ exports[`Amount should render correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                             "fontSize": 16,
                                           },
                                           {
@@ -6246,7 +6246,7 @@ exports[`Amount should render correctly 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -6280,10 +6280,10 @@ exports[`Amount should render correctly 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#BBC0C5"
+                                    placeholderTextColor="#9fa6ae"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 44,
                                         "fontWeight": "300",
@@ -6305,7 +6305,7 @@ exports[`Amount should render correctly 1`] = `
                                   style={
                                     {
                                       "alignSelf": "center",
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 12,
                                       "fontWeight": "400",
@@ -6357,7 +6357,7 @@ exports[`Amount should render correctly 1`] = `
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "minHeight": 50,
                                   },
                                   {
@@ -6392,7 +6392,7 @@ exports[`Amount should render correctly 1`] = `
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                     },
                                     undefined,
                                   ],
@@ -6759,7 +6759,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                       }
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -6787,8 +6787,8 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                   "paddingVertical": 8,
                                 },
                                 {
-                                  "backgroundColor": "#BF520819",
-                                  "borderColor": "#BF5208",
+                                  "backgroundColor": "#bf52081a",
+                                  "borderColor": "#bf5208",
                                 },
                                 {
                                   "marginHorizontal": 20,
@@ -6809,7 +6809,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                 style={
                                   [
                                     {
-                                      "color": "#BF5208",
+                                      "color": "#bf5208",
                                       "fontSize": 20,
                                     },
                                     undefined,
@@ -6838,7 +6838,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                 red={true}
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "lineHeight": 20,
                                   }
                                 }
@@ -6884,7 +6884,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376C9",
+                                      "backgroundColor": "#0376c9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -6897,7 +6897,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                   <Text
                                     style={
                                       {
-                                        "color": "#FFFFFF",
+                                        "color": "#ffffff",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -6913,7 +6913,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                       style={
                                         [
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                             "fontSize": 16,
                                           },
                                           {
@@ -6956,7 +6956,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -6990,10 +6990,10 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#BBC0C5"
+                                    placeholderTextColor="#9fa6ae"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 44,
                                         "fontWeight": "300",
@@ -7015,7 +7015,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                   style={
                                     {
                                       "alignSelf": "center",
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 12,
                                       "fontWeight": "400",
@@ -7067,7 +7067,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "minHeight": 50,
                                   },
                                   {
@@ -7102,7 +7102,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                     },
                                     undefined,
                                   ],
@@ -7469,7 +7469,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                       }
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -7519,7 +7519,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376C9",
+                                      "backgroundColor": "#0376c9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -7532,7 +7532,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#FFFFFF",
+                                        "color": "#ffffff",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -7548,7 +7548,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                             "fontSize": 16,
                                           },
                                           {
@@ -7591,7 +7591,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -7625,10 +7625,10 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#BBC0C5"
+                                    placeholderTextColor="#9fa6ae"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 44,
                                         "fontWeight": "300",
@@ -7659,7 +7659,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     onPress={[Function]}
                                     style={
                                       {
-                                        "borderColor": "#535A61",
+                                        "borderColor": "#6a737d",
                                         "borderRadius": 8,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -7674,7 +7674,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                       numberOfLines={1}
                                       style={
                                         {
-                                          "color": "#535A61",
+                                          "color": "#6a737d",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -7698,7 +7698,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#0376C9",
+                                              "color": "#0376c9",
                                               "fontSize": 16,
                                             },
                                             {
@@ -7731,7 +7731,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                   style={
                                     {
                                       "alignSelf": "center",
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 12,
                                       "fontWeight": "400",
@@ -7755,8 +7755,8 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#D7384719",
-                                      "borderColor": "#D73847",
+                                      "backgroundColor": "#d738471a",
+                                      "borderColor": "#d73847",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "justifyContent": "center",
@@ -7770,7 +7770,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -7825,7 +7825,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "minHeight": 50,
                                   },
                                   {
@@ -7856,7 +7856,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                     },
                                     undefined,
                                   ],

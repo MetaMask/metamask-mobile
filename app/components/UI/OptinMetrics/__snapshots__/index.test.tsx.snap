@@ -54,7 +54,7 @@ exports[`OptinMetrics should render correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -169,7 +169,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                     style={
                       {
                         "height": 15,
-                        "tintColor": "#24272A",
+                        "tintColor": "#141618",
                         "width": 122,
                       }
                     }
@@ -195,7 +195,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -380,7 +380,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                     <RCTSafeAreaView
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -393,7 +393,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                         scrollEventThrottle={150}
                         style={
                           {
-                            "backgroundColor": "#FFFFFF",
+                            "backgroundColor": "#ffffff",
                             "flex": 1,
                           }
                         }
@@ -409,7 +409,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                             <Text
                               style={
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Bold",
                                   "fontSize": 22,
                                   "fontWeight": "600",
@@ -422,7 +422,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                             <Text
                               style={
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -436,7 +436,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                             <Text
                               style={
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -469,7 +469,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                                         "marginRight": 5,
                                       },
                                       {
-                                        "color": "#1C8234",
+                                        "color": "#1c8234",
                                       },
                                     ],
                                     {
@@ -486,7 +486,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "flex": 1,
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontWeight": "400",
@@ -527,7 +527,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                                         "marginRight": 5,
                                       },
                                       {
-                                        "color": "#1C8234",
+                                        "color": "#1c8234",
                                       },
                                     ],
                                     {
@@ -544,7 +544,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "flex": 1,
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontWeight": "400",
@@ -585,7 +585,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                                         "marginRight": 5,
                                       },
                                       {
-                                        "color": "#D73847",
+                                        "color": "#d73847",
                                       },
                                     ],
                                     {
@@ -602,7 +602,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "flex": 1,
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontWeight": "400",
@@ -645,7 +645,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                                         "marginRight": 5,
                                       },
                                       {
-                                        "color": "#D73847",
+                                        "color": "#d73847",
                                       },
                                     ],
                                     {
@@ -662,7 +662,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "flex": 1,
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontWeight": "400",
@@ -705,7 +705,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                                         "marginRight": 5,
                                       },
                                       {
-                                        "color": "#D73847",
+                                        "color": "#d73847",
                                       },
                                     ],
                                     {
@@ -722,7 +722,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "flex": 1,
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontWeight": "400",
@@ -746,7 +746,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#BBC0C5",
+                                    "color": "#9fa6ae",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -770,7 +770,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                                   style={
                                     {
                                       "backgroundColor": "transparent",
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                     }
                                   }
                                   suppressHighlighting={true}
@@ -779,7 +779,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -802,7 +802,7 @@ For more information on how MetaMask and Infura interact from a data collection 
                                   style={
                                     {
                                       "backgroundColor": "transparent",
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                     }
                                   }
                                   suppressHighlighting={true}
@@ -811,7 +811,7 @@ For more information on how MetaMask and Infura interact from a data collection 
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -833,7 +833,7 @@ For more information on how MetaMask and Infura interact from a data collection 
                                   style={
                                     {
                                       "backgroundColor": "transparent",
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                     }
                                   }
                                   suppressHighlighting={true}
@@ -842,7 +842,7 @@ For more information on how MetaMask and Infura interact from a data collection 
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#0376C9",
+                                        "color": "#0376c9",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -886,7 +886,7 @@ For more information on how MetaMask and Infura interact from a data collection 
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "transparent",
-                              "borderColor": "#0376C9",
+                              "borderColor": "#0376c9",
                               "borderRadius": 24,
                               "borderWidth": 1,
                               "flex": 1,
@@ -903,7 +903,7 @@ For more information on how MetaMask and Infura interact from a data collection 
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#0376C9",
+                                "color": "#0376c9",
                                 "fontFamily": "Euclid Circular B",
                                 "fontSize": 14,
                                 "fontWeight": "400",
@@ -934,7 +934,7 @@ For more information on how MetaMask and Infura interact from a data collection 
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "#0376C9",
+                              "backgroundColor": "#0376c9",
                               "borderRadius": 24,
                               "flex": 1,
                               "flexDirection": "row",
@@ -950,7 +950,7 @@ For more information on how MetaMask and Infura interact from a data collection 
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#FFFFFF",
+                                "color": "#ffffff",
                                 "fontFamily": "Euclid Circular B",
                                 "fontSize": 14,
                                 "fontWeight": "400",
