@@ -5166,11 +5166,6 @@
   resolved "https://registry.yarnpkg.com/@metamask/react-native-actionsheet/-/react-native-actionsheet-2.4.2.tgz#9f956fe9e784d92c8e33656877fcfaabe4a482f1"
   integrity sha512-oibRXUzF+7DB0Nyzp2cMGN7ztB9Sl21W1NFq1IMa00mB4/X43JY+u+LCkx625WvQUeq0GO2ZQ6hG1L5XjMumSA==
 
-"@metamask/react-native-aes-crypto@^1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@metamask/react-native-aes-crypto/-/react-native-aes-crypto-1.2.2.tgz#862496cc4c2c7b7817bc78ac19ad7bb1f1be33d4"
-  integrity sha512-qOeNDJRob00NyCfZNK2snI6sKmREGavOHVdEFJQ2pEiSDA2Uaz757yiUrD4Alh70weZrF2cxVjZU2Gt7kMY3fQ==
-
 "@metamask/react-native-button@^3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/react-native-button/-/react-native-button-3.0.0.tgz#4af8affd11e2b285cfc1b1752280797e1b33e62b"

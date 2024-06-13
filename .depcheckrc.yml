@@ -46,7 +46,6 @@ ignores:
   ## Unused devDependencies to investigate
   - '@ethersproject/abi'
   - '@metamask/swappable-obj-proxy'
-  - '@metamask/react-native-aes-crypto'
   - '@react-native-picker/picker'
   - '@rnhooks/keyboard'
   - '@segment/sovran-react-native'
