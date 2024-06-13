@@ -4,6 +4,7 @@ import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../util/networks';
 import {
   Reason,
   ResultType,
+  SecurityAlertResponse,
 } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 import Engine from '../../core/Engine';
 import { store } from '../../store';
@@ -13,8 +14,11 @@ import { updateSecurityAlertResponse } from '../../util/transaction-controller';
 import { normalizeTransactionParams } from '@metamask/transaction-controller';
 import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 import AppConstants from '../../core/AppConstants';
+import { isEnabled, validate } from './security-alerts-api';
+import { PPOMController } from '@metamask/ppom-validator';
 
 const TRANSACTION_METHOD = 'eth_sendTransaction';
+const TRANSACTION_METHODS = [TRANSACTION_METHOD, 'eth_sendRawTransaction'];
 
 const ConfirmationMethods = Object.freeze([
   'eth_sendRawTransaction',
@@ -40,84 +44,104 @@ const RequestInProgress = {
 };
 
 const validateRequest = async (req: any, transactionId?: string) => {
-  let securityAlertResponse;
-
   const {
     PPOMController: ppomController,
     PreferencesController,
     NetworkController,
   } = Engine.context;
-  const currentChainId = NetworkController.state.providerConfig.chainId;
+
+  const chainId = NetworkController.state.providerConfig.chainId;
+  const isConfirmationMethod = ConfirmationMethods.includes(req.method);
+  const isSupportedChain = BLOCKAID_SUPPORTED_CHAIN_IDS.includes(chainId);
+
+  const isSecurityAlertsEnabled =
+    PreferencesController.state.securityAlertsEnabled;
+
   if (
     !ppomController ||
     !isBlockaidFeatureEnabled() ||
-    !PreferencesController.state.securityAlertsEnabled ||
-    !ConfirmationMethods.includes(req.method) ||
-    !BLOCKAID_SUPPORTED_CHAIN_IDS.includes(currentChainId)
+    !isSecurityAlertsEnabled ||
+    !isConfirmationMethod ||
+    !isSupportedChain
   ) {
     return;
   }
+
+  const isTransaction = isTransactionRequest(req);
+  let securityAlertResponse: SecurityAlertResponse | undefined;
+
   try {
-    if (
-      (req.method === 'eth_sendRawTransaction' ||
-        req.method === 'eth_sendTransaction') &&
-      !transactionId
-    ) {
+    if (isTransaction && !transactionId) {
       securityAlertResponse = FailedResponse;
-    } else {
-      if (
-        req.method === 'eth_sendRawTransaction' ||
-        req.method === 'eth_sendTransaction'
-      ) {
-        store.dispatch(
-          setTransactionSecurityAlertResponse(transactionId, RequestInProgress),
-        );
-      } else {
-        store.dispatch(
-          setSignatureRequestSecurityAlertResponse(RequestInProgress),
-        );
-      }
-      const normalizedRequest = normalizeRequest(req);
-      securityAlertResponse = await ppomController.usePPOM((ppom: any) =>
-        ppom.validateJsonRpc(normalizedRequest),
-      );
-      securityAlertResponse = {
-        ...securityAlertResponse,
-        req,
-        chainId: currentChainId,
-      };
     }
+
+    setSecurityAlertResponse(req, RequestInProgress, transactionId);
+
+    const normalizedRequest = normalizeRequest(req);
+
+    securityAlertResponse = isEnabled()
+      ? await validateWithAPI(chainId, normalizedRequest)
+      : await validateWithController(ppomController, normalizedRequest);
+
+    securityAlertResponse = {
+      ...securityAlertResponse,
+      req,
+      chainId,
+    };
   } catch (e) {
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
   } finally {
     if (!securityAlertResponse) {
       securityAlertResponse = FailedResponse;
     }
-    if (
-      req.method === 'eth_sendRawTransaction' ||
-      req.method === 'eth_sendTransaction'
-    ) {
-      store.dispatch(
-        setTransactionSecurityAlertResponse(
-          transactionId,
-          securityAlertResponse,
-        ),
-      );
-      updateSecurityAlertResponse(
-        transactionId as string,
-        // @ts-expect-error TODO: fix types
-        securityAlertResponse,
-      );
-    } else {
-      store.dispatch(
-        // @ts-expect-error TODO: fix types
-        setSignatureRequestSecurityAlertResponse(securityAlertResponse),
-      );
-    }
+
+    setSecurityAlertResponse(req, securityAlertResponse, transactionId, {
+      updateControllerState: true,
+    });
   }
+
   // todo: once all call to validateRequest are async we may not return any result
   return securityAlertResponse;
 };
+
+async function validateWithController(
+  ppomController: PPOMController,
+  request: any,
+): Promise<SecurityAlertResponse> {
+  return await ppomController.usePPOM((ppom: any) =>
+    ppom.validateJsonRpc(request),
+  );
+}
+
+async function validateWithAPI(
+  chainId: string,
+  request: any,
+): Promise<SecurityAlertResponse> {
+  return validate(chainId, request);
+}
+
+function setSecurityAlertResponse(
+  request: any,
+  response: SecurityAlertResponse,
+  transactionId?: string,
+  { updateControllerState }: { updateControllerState?: boolean } = {},
+) {
+  if (isTransactionRequest(request)) {
+    store.dispatch(
+      setTransactionSecurityAlertResponse(transactionId, response),
+    );
+
+    if (updateControllerState) {
+      updateSecurityAlertResponse(transactionId as string, response as any);
+    }
+  } else {
+    store.dispatch(setSignatureRequestSecurityAlertResponse(response));
+  }
+}
+
+function isTransactionRequest(request: any) {
+  return TRANSACTION_METHODS.includes(request.method);
+}
 
 function normalizeRequest(request: any) {
   if (request.method !== TRANSACTION_METHOD) {
