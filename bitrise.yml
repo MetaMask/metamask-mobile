@@ -741,7 +741,7 @@ workflows:
           is_always_run: true
           is_skippable: true
           title: Deploy test report files
-      inputs:
+          inputs:
             - content: |-
                 #!/usr/bin/env bash
                 cp -r $BITRISE_SOURCE_DIR/html-report $BITRISE_HTML_REPORT_DIR/
