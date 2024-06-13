@@ -211,7 +211,7 @@ workflows:
                 echo "${NVM_SHA256SUM} install-nvm.sh" > install-nvm.sh.SHA256SUM
                 sha256sum -c install-nvm.sh.SHA256SUM
                 chmod +x install-nvm.sh && ./install-nvm.sh && rm ./install-nvm.sh
-                source ${HOME}/.profile
+                source "${HOME}/.nvm/nvm.sh"
 
                 nvm install ${NODE_VERSION}
 
