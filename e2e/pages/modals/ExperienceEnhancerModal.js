@@ -10,7 +10,7 @@ class ExperienceEnhancerModal {
   }
 
   get iAgree() {
-    return Matchers.getElementByText(
+    return Matchers.getElementByID(
       ExperienceEnhancerModalSelectorsText.I_AGREE,
     );
   }
