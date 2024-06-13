@@ -1331,6 +1331,9 @@ app:
   envs:
     - opts:
         is_expand: false
+      MM_TRANSACTION_SIMULATIONS_ENABLED: false
+    - opts:
+        is_expand: false
       MM_NOTIFICATIONS_UI_ENABLED: false
     - opts:
         is_expand: false
