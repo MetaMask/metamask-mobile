@@ -28,9 +28,9 @@ exports[`BadgeNetwork - snapshots should render badge network correctly 1`] = `
     size="32"
     style={
       {
-        "borderColor": "#FFFFFF",
+        "borderColor": "#ffffff",
         "borderWidth": 2,
-        "shadowColor": "#0000001A",
+        "shadowColor": "#0000001a",
         "shadowOffset": {
           "height": 2,
           "width": 0,

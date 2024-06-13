@@ -29,7 +29,7 @@ Feature: Upgrade previous app build with current release
     And the splash animation completes
     And I fill my password in the Login screen
     And I log into my wallet
-    Then I should see the added network name "<Network>" in the top navigation bar
+    Then I should see the added network name "Sepolia" in the top navigation bar
     And tokens <TOKEN> in account should be displayed
     And I tap on the Settings tab option
     And I scroll up

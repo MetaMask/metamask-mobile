@@ -309,7 +309,7 @@ exports[`LockScreen should render correctly 1`] = `
                             "flex": 1,
                           },
                           {
-                            "backgroundColor": "#FFFFFF",
+                            "backgroundColor": "#ffffff",
                             "flex": 1,
                           },
                         ]

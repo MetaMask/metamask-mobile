@@ -5,7 +5,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
   collapsable={false}
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "minHeight": 200,
@@ -25,7 +25,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -46,7 +46,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#D7384719",
+            "backgroundColor": "#d738471a",
             "borderRadius": 24,
             "height": 48,
             "justifyContent": "center",
@@ -55,7 +55,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         }
       >
         <SvgMock
-          color="#D73847"
+          color="#d73847"
           height={24}
           name="Warning"
           style={
@@ -74,7 +74,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "space-between",
@@ -93,7 +93,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 18,
             "fontWeight": "700",
@@ -117,7 +117,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -132,7 +132,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -158,7 +158,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "paddingHorizontal": 8,
           "paddingVertical": 4,
@@ -177,7 +177,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#0376C9",
+            "backgroundColor": "#0376c9",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
@@ -193,7 +193,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#FFFFFF",
+              "color": "#ffffff",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -215,7 +215,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
   collapsable={false}
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "minHeight": 200,
@@ -235,7 +235,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -256,7 +256,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#1C823419",
+            "backgroundColor": "#1c82341a",
             "borderRadius": 24,
             "height": 48,
             "justifyContent": "center",
@@ -265,7 +265,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         }
       >
         <SvgMock
-          color="#1C8234"
+          color="#1c8234"
           height={24}
           name="Confirmation"
           style={
@@ -284,7 +284,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "space-between",
@@ -303,7 +303,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 18,
             "fontWeight": "700",
@@ -327,7 +327,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -342,7 +342,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -368,7 +368,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "paddingHorizontal": 8,
           "paddingVertical": 4,
@@ -387,7 +387,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#0376C9",
+            "backgroundColor": "#0376c9",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
@@ -403,7 +403,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#FFFFFF",
+              "color": "#ffffff",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",

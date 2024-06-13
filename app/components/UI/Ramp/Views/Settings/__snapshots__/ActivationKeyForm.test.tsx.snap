@@ -54,7 +54,7 @@ exports[`AddActivationKey renders correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -137,7 +137,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -168,7 +168,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -178,7 +178,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -377,7 +377,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -409,7 +409,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 16,
                                   "fontWeight": "500",
@@ -436,7 +436,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -452,8 +452,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#FFFFFF",
-                                    "borderColor": "#0376C9",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#0376c9",
                                     "borderRadius": 8,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -484,10 +484,10 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     returnKeyType="done"
                                     style={
                                       {
-                                        "backgroundColor": "#FFFFFF",
+                                        "backgroundColor": "#ffffff",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -519,7 +519,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -535,8 +535,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#FFFFFF",
-                                    "borderColor": "#BBC0C5",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#bbc0c5",
                                     "borderRadius": 8,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -569,10 +569,10 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     spellCheck={false}
                                     style={
                                       {
-                                        "backgroundColor": "#FFFFFF",
+                                        "backgroundColor": "#ffffff",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -615,7 +615,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "transparent",
-                                    "borderColor": "#0376C9",
+                                    "borderColor": "#0376c9",
                                     "borderRadius": 24,
                                     "borderWidth": 1,
                                     "flex": 1,
@@ -631,7 +631,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#0376C9",
+                                      "color": "#0376c9",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -655,7 +655,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "borderRadius": 24,
                                     "flex": 1,
                                     "flexDirection": "row",
@@ -671,7 +671,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
                                       "fontWeight": "400",
