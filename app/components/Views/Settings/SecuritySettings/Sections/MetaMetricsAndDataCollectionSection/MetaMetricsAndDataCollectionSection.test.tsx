@@ -254,7 +254,12 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         expect(marketingSwitch.props.value).toBe(false);
       });
 
-      it('turns MetaMetrics switch on, adds traits to user and tracks event when turned on', async () => {
+      // testing the interaction between MetaMetrics and Marketing switches
+      const testMarketingSwitchWithMetaMetricsSwitch = async (
+        metaMetricsInitiallyEnabled: boolean,
+      ) => {
+        mockMetrics.isEnabled.mockReturnValueOnce(metaMetricsInitiallyEnabled);
+
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
@@ -272,7 +277,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         expect(metaMetricsSwitch).toBeTruthy();
         expect(marketingSwitch).toBeTruthy();
 
-        expect(metaMetricsSwitch.props.value).toBe(false);
+        expect(metaMetricsSwitch.props.value).toBe(metaMetricsInitiallyEnabled);
         expect(marketingSwitch.props.value).toBe(false);
 
         fireEvent(marketingSwitch, 'valueChange', true);
@@ -280,33 +285,51 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         await waitFor(() => {
           expect(marketingSwitch.props.value).toBe(true);
           expect(metaMetricsSwitch.props.value).toBe(true);
-          expect(mockMetrics.enable).toHaveBeenCalledWith();
-          expect(mockAlert).not.toHaveBeenCalled();
-          expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
-            deviceProp: 'Device value',
-            userProp: 'User value',
-            is_metrics_opted_in: true,
-          });
-          expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(2, {
-            has_marketing_consent: true,
-          });
 
-          expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
-            1,
-            MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-            { is_metrics_opted_in: true, updated_after_onboarding: true },
-            true,
+          expect(mockAlert).not.toHaveBeenCalled();
+
+          // Not called when MetaMetrics is initially enabled
+          if (!metaMetricsInitiallyEnabled) {
+            expect(mockMetrics.enable).toHaveBeenCalledWith();
+            expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
+              deviceProp: 'Device value',
+              userProp: 'User value',
+              is_metrics_opted_in: true,
+            });
+            expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
+              1,
+              MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+              { is_metrics_opted_in: true, updated_after_onboarding: true },
+              true,
+            );
+          }
+
+          expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(
+            // if MetaMetrics is initially disabled, addTraitsToUser is called twice and this is 2nd call
+            !metaMetricsInitiallyEnabled ? 2 : 1,
+            {
+              has_marketing_consent: true,
+            },
           );
           expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
-            2,
+            // if MetaMetrics is initially disabled, trackEvent is called twice and this is 2nd call
+            !metaMetricsInitiallyEnabled ? 2 : 1,
             MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
             { has_marketing_consent: true, location: 'settings' },
             true,
           );
         });
+      };
+
+      it('change MetaMetrics switch to on, adds traits to user and tracks event when turned on', async () => {
+        await testMarketingSwitchWithMetaMetricsSwitch(false);
       });
 
-      it('keeps MetaMetrics switch on when turned off', async () => {
+      it('keeps MetaMetrics switch on, adds traits to user and tracks event when turned on', async () => {
+        await testMarketingSwitchWithMetaMetricsSwitch(true);
+      });
+
+      it('keeps MetaMetrics switch on and display modal when turned off', async () => {
         mockMetrics.isEnabled.mockReturnValueOnce(true);
 
         const { findByTestId } = renderScreen(

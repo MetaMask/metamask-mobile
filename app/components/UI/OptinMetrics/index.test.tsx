@@ -2,12 +2,13 @@ import OptinMetrics from './';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { InteractionManager } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 
-jest
-  .spyOn(InteractionManager, 'runAfterInteractions')
-  .mockImplementation((callback) => callback());
+const { InteractionManager } = jest.requireActual('react-native');
+
+InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
+  callback(),
+);
 
 jest.mock('../../../core/Analytics/MetaMetrics');
 
