@@ -737,36 +737,20 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 yarn test:api-specs
-      - custom-test-results-export@1:
-          is_always_run: true
-          is_skippable: false
-          title: Export test results
-          inputs:
-            - base_path: $BITRISE_SOURCE_DIR/html-report
-            - test_name: API Spec Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/html-report/index.html
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: true
           title: Deploy test report files
-      - script@1:
-          is_always_run: true
-          run_if: .IsBuildFailed
-          title: Copy screenshot files
-          inputs:
+      inputs:
             - content: |-
                 #!/usr/bin/env bash
-                set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
-      - deploy-to-bitrise-io@2.3:
+                cp -r $BITRISE_SOURCE_DIR/html-report $BITRISE_HTML_REPORT_DIR/
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
-          run_if: .IsBuildFailed
-          title: Deploy test screenshots
+          is_skippable: false
           inputs:
-            - deploy_path: $BITRISE_DEPLOY_DIR
-            - is_compress: true
-            - zip_name: 'E2E_IOS_Failure_Screenshots'
-
+            - deploy_path: $BITRISE_HTML_REPORT_DIR
+          title: Deploy test report files
   ios_e2e_build:
     before_run:
       - code_setup
