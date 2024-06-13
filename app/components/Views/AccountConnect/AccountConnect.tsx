@@ -117,6 +117,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   // on inappBrowser: hostname from inappBrowserOrigin
   // on walletConnect: hostname from hostInfo
   // on sdk: channelId
+  console.log('---- inappBrowserOrigin', inappBrowserOrigin);
+  console.log('---- hostInfo origin', hostInfo.metadata.origin);
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;

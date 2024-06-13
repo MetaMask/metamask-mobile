@@ -265,6 +265,8 @@ export const BrowserTab = (props) => {
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
+  const [loadFinished, setLoadFinished] = useState(true);
+  const [loadedHostname, setLoadedHostname] = useState('');
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
@@ -735,6 +737,7 @@ export const BrowserTab = (props) => {
    * Handles state changes for when the url changes
    */
   const changeUrl = async (siteInfo) => {
+    console.log('++++++ changeUrl', siteInfo);
     url.current = siteInfo.url;
     title.current = siteInfo.title;
     if (siteInfo.icon) icon.current = siteInfo.icon;
@@ -851,7 +854,20 @@ export const BrowserTab = (props) => {
    *  Return `true` to continue loading the request and `false` to stop loading.
    */
   const onShouldStartLoadWithRequest = ({ url }) => {
-    const { hostname } = new URL(url);
+    const newUrl = new URL(url);
+    const { hostname } = newUrl;
+    console.log('---- NEW URL', newUrl);
+    console.log(
+      '---- ON SHOULD START LOAD WITH REQUEST',
+      url.current === hostname,
+    );
+    console.log('---- HOSTNAME', hostname, url.current);
+    if (!loadFinished && url.current === hostname) {
+      console.log('---- LOADED HOSTNAME', url.current, hostname);
+      return false;
+    }
+    setLoadFinished(false);
+    // return true;
 
     // Stops normal loading when it's ens, instead call go to be properly set up
     if (isENSUrl(url)) {
@@ -917,6 +933,7 @@ export const BrowserTab = (props) => {
   // We should check if this is fixed on the newest versions of react-native-webview
   const onLoad = ({ nativeEvent }) => {
     //For iOS url on the navigation bar should only update upon load.
+    console.log('---- HEYYYYYYYYY');
     if (Device.isIos()) {
       const { origin, pathname = '', query = '' } = new URL(nativeEvent.url);
       const realUrl = `${origin}${pathname}${query}`;
@@ -930,6 +947,12 @@ export const BrowserTab = (props) => {
    */
   const onLoadEnd = ({ nativeEvent }) => {
     // Do not update URL unless website has successfully completed loading.
+    console.log('---- ON LOAD END');
+    const newUrl = new URL(nativeEvent.url);
+    const { hostname } = newUrl;
+    console.log('ON LOAD END HOSTNAME', hostname);
+    setLoadedHostname(hostname);
+    setLoadFinished(true);
     if (nativeEvent.loading) {
       return;
     }
@@ -1066,7 +1089,9 @@ export const BrowserTab = (props) => {
       query = '',
       hostname,
     } = new URL(nativeEvent.url);
-
+    console.log('---- ON LOAD START HOSTNAME', hostname);
+    setLoadedHostname(url.current);
+    console.log('---- ON LOAD START NEW URL', newUrl);
     // Reset the previous bridges
     backgroundBridges.current.length &&
       backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
@@ -1490,6 +1515,11 @@ export const BrowserTab = (props) => {
       />
     </View>
   );
+
+  // console.log(
+  //   '>>>>>>> webview props:',
+  //   webviewRef.current?.props.injectedJavaScriptBeforeContentLoaded,
+  // );
 
   /**
    * Main render
