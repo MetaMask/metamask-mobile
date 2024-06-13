@@ -1124,7 +1124,15 @@ class Engine {
       },
       initialState.SmartTransactionsController,
     );
-
+    if (!networkController.state.selectedNetworkClientId) {
+      captureException(
+        new Error(
+          `No selectedNetworkClientId in network controller: ${JSON.stringify(
+            networkController.state,
+          )}`,
+        ),
+      );
+    }
     const controllers: Controllers[keyof Controllers][] = [
       keyringController,
       accountTrackerController,

@@ -1,0 +1,20 @@
+diff --git a/node_modules/@metamask/network-controller/dist/chunk-4ZD3DTQ7.js b/node_modules/@metamask/network-controller/dist/chunk-4ZD3DTQ7.js
+index e172d15..c387fda 100644
+--- a/node_modules/@metamask/network-controller/dist/chunk-4ZD3DTQ7.js
++++ b/node_modules/@metamask/network-controller/dist/chunk-4ZD3DTQ7.js
+@@ -314,7 +314,14 @@ var NetworkController = class extends _basecontroller.BaseController {
+   }
+   getNetworkClientById(networkClientId) {
+     if (!networkClientId) {
+-      throw new Error("No network client ID was provided.");
++      // This patch is for the Engine continue initialization when opening the app
++      // When the selectedNetworkClientId is null
++      // What's the needs of the consumers of getNetworkClientById:
++      // - Currency Rate controller needs the ticker
++      // - Token Detection controller needs the chainId
++      // - Tokens controller needs the provider but have fallback so no need to return the provider
++      // - Transaction controller needs the type
++      return {configuration: {chainId: this.state.providerConfig.chainId, ticker: this.state.providerConfig.ticker, type: this.state.providerConfig.type}};
+     }
+     const autoManagedNetworkClientRegistry = _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _ensureAutoManagedNetworkClientRegistryPopulated, ensureAutoManagedNetworkClientRegistryPopulated_fn).call(this);
+     if (_controllerutils.isInfuraNetworkType.call(void 0, networkClientId)) {
