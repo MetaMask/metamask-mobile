@@ -16,7 +16,7 @@ class ExperienceEnhancerModal {
   }
 
   get noThanks() {
-    return Matchers.getElementByText(
+    return Matchers.getElementByID(
       ExperienceEnhancerModalSelectorsText.NO_THANKS,
     );
   }
