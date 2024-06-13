@@ -64,5 +64,5 @@ export interface CustomNetworkProps {
    * we should take that into consideration before displaying an empty state telling the user he has already added all networks.
    * This is the main use case for this prop.
    */
-  shouldShowEmptyPopularList?: boolean;
+  showCompletionMessage?: boolean;
 }
