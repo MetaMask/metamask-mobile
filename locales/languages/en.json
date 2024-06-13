@@ -2632,6 +2632,11 @@
       "benefit_2_2": "money",
       "benefit_3_1": "Real-time",
       "benefit_3_2": "updates"
+    },
+    "transaction_simulation": {
+      "title": "Estimated balance changes",
+      "description_1": "Now you can see the potential outcome of your transactions before you make them!",
+      "description_2": "This is just a simulation, so we can’t guarantee the final outcome. You can turn this off anytime in Settings > Security & Privacy."
     }
   },
   "invalid_network": {
