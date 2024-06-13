@@ -3,6 +3,14 @@ import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 
+/**
+ * Migration to fix the "Engine does not exist" issue
+ * On this migration we populate selectedNetworkClientId property of Network Controller with provider config id
+ * or network configuration id if the rpc url matches the one on provider config
+ * or we default it to mainnet
+ * @param state Persisted Redux state
+ * @returns mutated state with selectNetworkClientId on Network Controller data
+ */
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 43)) {
     return state;
