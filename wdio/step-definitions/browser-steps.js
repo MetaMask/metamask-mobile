@@ -71,6 +71,7 @@ Then(/^select account component is displayed$/, async () => {
 
 When(/^I navigate to "([^"]*)"$/, async function (text) {
   await BrowserScreen.tapUrlBar();
+  await AddressBarScreen.tapClearButton();
   switch (text) {
     case 'test-dapp-erc20':
       await AddressBarScreen.editUrlInput(

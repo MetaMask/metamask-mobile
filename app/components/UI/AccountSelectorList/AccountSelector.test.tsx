@@ -1,7 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { waitFor, within } from '@testing-library/react-native';
-import Engine from '../../../core/Engine';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
@@ -9,28 +8,23 @@ import { View } from 'react-native';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { regex } from '../../../../app/util/regex';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { toChecksumAddress } from 'ethereumjs-util';
 
-const mockEngine = Engine;
+const MOCK_ACCOUNT_ADDRESSES = Object.values(
+  MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+).map((account) => account.address);
 
-const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+const BUSINESS_ACCOUNT = toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]);
+const PERSONAL_ACCOUNT = toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]);
 
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
-  context: {
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            type: 'HD Key Tree',
-            index: 0,
-            accounts: [BUSINESS_ACCOUNT, PERSONAL_ACCOUNT],
-          },
-        ],
-      },
-    },
-  },
-}));
+jest.mock('../../../util/address', () => {
+  const actual = jest.requireActual('../../../util/address');
+  return {
+    ...actual,
+    getLabelTextByAddress: jest.fn(),
+  };
+});
 
 const initialState = {
   engine: {
@@ -44,6 +38,7 @@ const initialState = {
           chainId: '0x1',
         },
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
         accounts: {
           [BUSINESS_ACCOUNT]: { balance: '0xDE0B6B3A7640000' },
@@ -167,6 +162,7 @@ describe('AccountSelectorList', () => {
             ...initialState.engine.backgroundState.PreferencesController,
             isMultiAccountBalancesEnabled: false,
           },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
         },
       },
     });
@@ -176,12 +172,12 @@ describe('AccountSelectorList', () => {
       expect(accounts.length).toBe(1);
 
       const businessAccountItem = await queryByTestId(
-        `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+        `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
       );
 
-      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
+      expect(within(businessAccountItem).getByText(regex.eth(2))).toBeDefined();
       expect(
-        within(businessAccountItem).getByText(regex.usd(3200)),
+        within(businessAccountItem).getByText(regex.usd(6400)),
       ).toBeDefined();
 
       expect(toJSON()).toMatchSnapshot();

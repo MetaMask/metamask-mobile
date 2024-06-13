@@ -4,7 +4,7 @@ exports[`AccountApproval should render correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "minHeight": 200,
@@ -34,7 +34,7 @@ exports[`AccountApproval should render correctly 1`] = `
       <View
         placeholderStyle={
           {
-            "backgroundColor": "#F2F4F6",
+            "backgroundColor": "#f2f4f6",
           }
         }
         useNativeDriver={true}
@@ -80,7 +80,7 @@ exports[`AccountApproval should render correctly 1`] = `
                   "backgroundColor": "#eee",
                 },
                 {
-                  "backgroundColor": "#F2F4F6",
+                  "backgroundColor": "#f2f4f6",
                 },
               ]
             }
@@ -107,7 +107,7 @@ exports[`AccountApproval should render correctly 1`] = `
               "fontSize": 15,
             },
             {
-              "color": "#24272A",
+              "color": "#141618",
               "marginRight": 5,
             },
             {
@@ -124,7 +124,7 @@ exports[`AccountApproval should render correctly 1`] = `
       <Text
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 14,
             "fontWeight": "600",
@@ -159,7 +159,7 @@ exports[`AccountApproval should render correctly 1`] = `
       <Text
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
@@ -177,7 +177,7 @@ exports[`AccountApproval should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#24272A",
+        "color": "#141618",
         "fontFamily": "Euclid Circular B",
         "fontSize": 18,
         "fontWeight": "700",
@@ -195,7 +195,7 @@ exports[`AccountApproval should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#24272A",
+        "color": "#141618",
         "fontFamily": "Euclid Circular B",
         "fontSize": 16,
         "fontWeight": "400",
@@ -221,7 +221,7 @@ exports[`AccountApproval should render correctly 1`] = `
       style={
         {
           "alignItems": "center",
-          "borderColor": "#BBC0C5",
+          "borderColor": "#bbc0c5",
           "borderRadius": 10,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -256,7 +256,7 @@ exports[`AccountApproval should render correctly 1`] = `
             style={
               {
                 "0": {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 16,
                   "fontWeight": "600",
@@ -264,7 +264,7 @@ exports[`AccountApproval should render correctly 1`] = `
                   "maxWidth": "45%",
                 },
                 "1": undefined,
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -279,14 +279,14 @@ exports[`AccountApproval should render correctly 1`] = `
             style={
               {
                 "0": {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "flexGrow": 1,
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 16,
                   "fontWeight": "600",
                 },
                 "1": undefined,
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -306,13 +306,13 @@ exports[`AccountApproval should render correctly 1`] = `
             {
               "0": {
                 "alignSelf": "flex-start",
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "100",
               },
               "1": undefined,
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -323,8 +323,7 @@ exports[`AccountApproval should render correctly 1`] = `
         >
           Balance:
            
-           
-          (0 ETH)
+          0 ETH
         </Text>
       </View>
     </View>
@@ -353,8 +352,8 @@ exports[`AccountApproval should render correctly 1`] = `
               "padding": 15,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#535A61",
+              "backgroundColor": "#ffffff",
+              "borderColor": "#6a737d",
               "borderWidth": 1,
             },
             [
@@ -389,7 +388,7 @@ exports[`AccountApproval should render correctly 1`] = `
                 "textAlign": "center",
               },
               {
-                "color": "#535A61",
+                "color": "#6a737d",
               },
               undefined,
             ],
@@ -415,7 +414,7 @@ exports[`AccountApproval should render correctly 1`] = `
               "padding": 15,
             },
             {
-              "backgroundColor": "#0376C9",
+              "backgroundColor": "#0376c9",
               "minHeight": 50,
             },
             [
@@ -451,7 +450,7 @@ exports[`AccountApproval should render correctly 1`] = `
                 "textAlign": "center",
               },
               {
-                "color": "#FFFFFF",
+                "color": "#ffffff",
               },
               undefined,
             ],

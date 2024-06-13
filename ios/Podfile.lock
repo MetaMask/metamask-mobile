@@ -443,6 +443,8 @@ PODS:
   - react-native-blob-jsi-helper (0.3.1):
     - React
     - React-Core
+  - react-native-blob-util (0.19.9):
+    - React-Core
   - react-native-blur (4.3.2):
     - React-Core
   - react-native-branch (5.6.2):
@@ -589,8 +591,6 @@ PODS:
     - React-perflogger (= 0.71.15)
   - ReactNativePayments (2.0.0):
     - React
-  - rn-fetch-blob (0.12.0):
-    - React-Core
   - RNCAsyncStorage (1.23.1):
     - React-Core
   - RNCCheckbox (0.5.12):
@@ -663,7 +663,7 @@ PODS:
     - Sentry/HybridSDK (= 8.21.0)
   - RNShare (7.3.7):
     - React-Core
-  - RNSVG (15.2.0):
+  - RNSVG (15.3.0):
     - React-Core
   - RNVectorIcons (6.4.2):
     - React
@@ -742,6 +742,7 @@ DEPENDENCIES:
   - react-native-background-timer (from `../node_modules/react-native-background-timer`)
   - react-native-ble-plx (from `../node_modules/react-native-ble-plx`)
   - react-native-blob-jsi-helper (from `../node_modules/react-native-blob-jsi-helper`)
+  - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - react-native-branch (from `../node_modules/react-native-branch`)
   - react-native-camera (from `../node_modules/react-native-camera`)
@@ -777,7 +778,6 @@ DEPENDENCIES:
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "ReactNativePayments (from `../node_modules/@metamask/react-native-payments/lib/ios/`)"
-  - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
@@ -899,6 +899,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-ble-plx"
   react-native-blob-jsi-helper:
     :path: "../node_modules/react-native-blob-jsi-helper"
+  react-native-blob-util:
+    :path: "../node_modules/react-native-blob-util"
   react-native-blur:
     :path: "../node_modules/@react-native-community/blur"
   react-native-branch:
@@ -969,8 +971,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativePayments:
     :path: "../node_modules/@metamask/react-native-payments/lib/ios/"
-  rn-fetch-blob:
-    :path: "../node_modules/rn-fetch-blob"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCCheckbox:
@@ -1084,6 +1084,7 @@ SPEC CHECKSUMS:
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
   react-native-ble-plx: 669899d2fd4d360d541b05ce19c6ee77d95853bf
   react-native-blob-jsi-helper: 13c10135af4614dbc0712afba5960784cd44f043
+  react-native-blob-util: 18b510205c080a453574a7d2344d64673d0ad9af
   react-native-blur: cfdad7b3c01d725ab62a8a729f42ea463998afa2
   react-native-branch: 4e42fda662d96893afbbd02839806931398e3d2e
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
@@ -1119,7 +1120,6 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: 8f2ddd9db7874ec7de84f5c55d73aeaaf82908e2
   ReactCommon: 4a6ace8e5bd40d585223775ba56d002173e72fb2
   ReactNativePayments: db62ee22a825e9e9c3e19c276d8d020881dd0630
-  rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
   RNCAsyncStorage: 826b603ae9c0f88b5ac4e956801f755109fa4d5c
   RNCCheckbox: ed1b4ca295475b41e7251ebae046360a703b6eb5
   RNCClipboard: ddd4d291537f1667209c9c405aaa4307297e252e
@@ -1141,7 +1141,7 @@ SPEC CHECKSUMS:
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
   RNSentry: 98e170b6eedc5c54e3ac88b6140fffb8b496deb4
   RNShare: f116bbb04f310c665ca483d0bd1e88cf59b3b334
-  RNSVG: 43b64ed39c14ce830d840903774154ca0c1f27ec
+  RNSVG: a48668fd382115bc89761ce291a81c4ca5f2fd2e
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
   segment-analytics-react-native: dbdd08d96fec78132e96bda092562e41c2ce0ce0
   Sentry: ebc12276bd17613a114ab359074096b6b3725203

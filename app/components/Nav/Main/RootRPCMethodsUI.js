@@ -23,7 +23,7 @@ import {
   getTokenAddressParam,
   calcTokenAmount,
   getTokenValueParamAsHex,
-  getIsSwapApproveOrSwapTransaction as isSwapTransaction,
+  getIsSwapApproveOrSwapTransaction,
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
@@ -59,10 +59,13 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
+import { getSmartTransactionMetricsProperties } from '../../../util/smart-transactions';
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
@@ -82,10 +85,11 @@ const RootRPCMethodsUI = (props) => {
   };
 
   const trackSwaps = useCallback(
-    async (event, transactionMeta) => {
+    async (event, transactionMeta, swapsTransactions) => {
       try {
-        const { TransactionController } = Engine.context;
-        const newSwapsTransactions = props.swapsTransactions;
+        const { TransactionController, SmartTransactionsController } =
+          Engine.context;
+        const newSwapsTransactions = swapsTransactions;
         const swapTransaction = newSwapsTransactions[transactionMeta.id];
         const {
           sentAt,
@@ -166,12 +170,20 @@ const RootRPCMethodsUI = (props) => {
         delete newSwapsTransactions[transactionMeta.id].analytics;
         delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 
+        const smartTransactionMetricsProperties =
+          getSmartTransactionMetricsProperties(
+            SmartTransactionsController,
+            transactionMeta,
+          );
+
         const parameters = {
           ...analyticsParams,
           time_to_mine: timeToMine,
           estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
           quote_vs_executionRatio: quoteVsExecutionRatio,
           token_to_amount_received: tokenToAmountReceived.toString(),
+          is_smart_transaction: props.shouldUseSmartTransaction,
+          ...smartTransactionMetricsProperties,
         };
 
         trackAnonymousEvent(event, parameters);
@@ -184,7 +196,7 @@ const RootRPCMethodsUI = (props) => {
     },
     [
       props.selectedAddress,
-      props.swapsTransactions,
+      props.shouldUseSmartTransaction,
       trackEvent,
       trackAnonymousEvent,
     ],
@@ -193,6 +205,7 @@ const RootRPCMethodsUI = (props) => {
   const autoSign = useCallback(
     async (transactionMeta) => {
       const { TransactionController, KeyringController } = Engine.context;
+      const swapsTransactions = props.swapsTransactions;
       try {
         TransactionController.hub.once(
           `${transactionMeta.id}:finished`,
@@ -203,8 +216,12 @@ const RootRPCMethodsUI = (props) => {
                 assetType: transactionMeta.txParams.assetType,
               });
             } else {
-              if (props.swapsTransactions[transactionMeta.id]?.analytics) {
-                trackSwaps(MetaMetricsEvents.SWAP_FAILED, transactionMeta);
+              if (swapsTransactions[transactionMeta.id]?.analytics) {
+                trackSwaps(
+                  MetaMetricsEvents.SWAP_FAILED,
+                  transactionMeta,
+                  swapsTransactions,
+                );
               }
               throw transactionMeta.error;
             }
@@ -213,8 +230,15 @@ const RootRPCMethodsUI = (props) => {
         TransactionController.hub.once(
           `${transactionMeta.id}:confirmed`,
           (transactionMeta) => {
-            if (props.swapsTransactions[transactionMeta.id]?.analytics) {
-              trackSwaps(MetaMetricsEvents.SWAP_COMPLETED, transactionMeta);
+            if (
+              swapsTransactions[transactionMeta.id]?.analytics &&
+              swapsTransactions[transactionMeta.id]?.paramsForAnalytics
+            ) {
+              trackSwaps(
+                MetaMetricsEvents.SWAP_COMPLETED,
+                transactionMeta,
+                swapsTransactions,
+              );
             }
           },
         );
@@ -227,12 +251,12 @@ const RootRPCMethodsUI = (props) => {
 
         // For Ledger Accounts we handover the signing to the confirmation flow
         if (isLedgerAccount) {
-          const ledgerKeyring = await getLedgerKeyring();
+          const deviceId = await getDeviceId();
 
           props.navigation.navigate(
             ...createLedgerTransactionModalNavDetails({
               transactionId: transactionMeta.id,
-              deviceId: ledgerKeyring.deviceId,
+              deviceId,
               // eslint-disable-next-line no-empty-function
               onConfirmationComplete: () => {},
               type: 'signTransaction',
@@ -242,7 +266,10 @@ const RootRPCMethodsUI = (props) => {
           Engine.acceptPendingApproval(transactionMeta.id);
         }
       } catch (error) {
-        if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+        if (
+          !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+          !error?.message.startsWith(STX_NO_HASH_ERROR)
+        ) {
           Alert.alert(
             strings('transactions.transaction_error'),
             error && error.message,
@@ -264,7 +291,14 @@ const RootRPCMethodsUI = (props) => {
       const to = transactionMeta.txParams.to?.toLowerCase();
       const { data } = transactionMeta.txParams;
 
-      if (isSwapTransaction(data, transactionMeta.origin, to, props.chainId)) {
+      if (
+        getIsSwapApproveOrSwapTransaction(
+          data,
+          transactionMeta.origin,
+          to,
+          props.chainId,
+        )
+      ) {
         autoSign(transactionMeta);
       } else {
         const {
@@ -441,6 +475,10 @@ RootRPCMethodsUI.propTypes = {
    * Chain id
    */
   chainId: PropTypes.string,
+  /**
+   * If smart transactions should be used
+   */
+  shouldUseSmartTransaction: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -450,6 +488,7 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

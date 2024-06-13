@@ -69,6 +69,7 @@ class EngineService {
       },
       { name: 'TokenRatesController' },
       { name: 'TransactionController' },
+      { name: 'SmartTransactionsController' },
       { name: 'SwapsController' },
       {
         name: 'TokenListController',

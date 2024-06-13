@@ -53,7 +53,6 @@ export const LAST_APP_VERSION = `${prefix}LastAppVersion`;
 export const CURRENT_APP_VERSION = `${prefix}CurrentAppVersion`;
 
 export const WHATS_NEW_APP_VERSION_SEEN = `${prefix}WhatsNewAppVersionSeen`;
-export const SMART_TRANSACTIONS_OPT_IN_MODAL_APP_VERSION_SEEN = `${prefix}SmartTransactionsOptInModalAppVersionSeen`;
 
 export const REVIEW_EVENT_COUNT = 'reviewEventCount';
 

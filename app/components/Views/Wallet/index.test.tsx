@@ -9,6 +9,7 @@ import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockEngine = Engine;
 
@@ -51,6 +52,14 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const mockInitialState = {
+  networkOnboarded: {
+    networkOnboardedState: {
+      '0x1': true,
+    },
+  },
+  security: {
+    dataCollectionForMarketing: true,
+  },
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   wizard: {
     step: 0,
@@ -67,6 +76,7 @@ const mockInitialState = {
           '0x': { name: 'Account 1', address: '0x' },
         },
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };

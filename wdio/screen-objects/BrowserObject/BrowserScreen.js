@@ -1,63 +1,55 @@
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
+import  {
+  BrowserViewSelectorsIDs,
 
-import {
-  ACCOUNT_BUTTON,
-  BACK_BUTTON,
-  BROWSER_SCREEN_ID,
-  FORWARD_BUTTON,
-  HOME_BUTTON,
-  NAVBAR_TITLE_NETWORK,
-  NETWORK_AVATAR_ICON,
-  OPTIONS_BUTTON,
-  SEARCH_BUTTON,
-  TABS_BUTTON,
-  TABS_NUMBER,
-} from '../testIDs/BrowserScreen/BrowserScreen.testIds';
+} from '../../../e2e/selectors/Browser/BrowserView.selectors';
+
+
 
 class BrowserScreen {
   get container() {
-    return Selectors.getXpathElementByResourceId(BROWSER_SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
   }
 
   get urlBarTitle() {
-    return Selectors.getXpathElementByResourceId(NAVBAR_TITLE_NETWORK);
+    return Selectors.getXpathElementByResourceId(BrowserViewSelectorsIDs.URL_INPUT);
   }
 
   get accountIconButton() {
-    return Selectors.getElementByPlatform(ACCOUNT_BUTTON);
+    return Selectors.getElementByPlatform(BrowserViewSelectorsIDs.ACCOUNT_BUTTON);
   }
 
   get optionButton() {
-    return Selectors.getElementByPlatform(OPTIONS_BUTTON);
+    return Selectors.getElementByPlatform(BrowserViewSelectorsIDs.OPTIONS_BUTTON);
   }
 
   get tabsButton() {
-    return Selectors.getElementByPlatform(TABS_BUTTON);
+    return Selectors.getElementByPlatform(BrowserViewSelectorsIDs.TABS_BUTTON);
   }
 
   get tabsButtonTextElement() {
-    return Selectors.getElementByPlatform(TABS_NUMBER);
+    return Selectors.getElementByPlatform(BrowserViewSelectorsIDs.TABS_NUMBER);
   }
 
   get homeButton() {
-    return Selectors.getElementByPlatform(HOME_BUTTON);
+    return Selectors.getElementByPlatform(BrowserViewSelectorsIDs.HOME_BUTTON);
   }
 
   get backButton() {
-    return Selectors.getElementByPlatform(BACK_BUTTON);
+    return Selectors.getElementByPlatform(BrowserViewSelectorsIDs.BACK_BUTTON);
   }
 
   get forwardButton() {
-    return Selectors.getElementByPlatform(FORWARD_BUTTON);
+    return Selectors.getElementByPlatform(BrowserViewSelectorsIDs.FORWARD_BUTTON);
   }
 
   get searchButton() {
-    return Selectors.getElementByPlatform(SEARCH_BUTTON);
+    return Selectors.getElementByPlatform(BrowserViewSelectorsIDs.SEARCH_BUTTON);
   }
 
   get networkAvatarIcon() {
-    return Selectors.getElementByPlatform(NETWORK_AVATAR_ICON);
+    return Selectors.getElementByPlatform(BrowserViewSelectorsIDs.AVATAR_IMAGE);
   }
 
   async isScreenContentDisplayed() {

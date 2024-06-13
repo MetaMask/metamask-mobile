@@ -26,8 +26,8 @@ import Networks, {
   compareRpcUrls,
   getAllNetworks,
   getDecimalChainId,
-  getNetworkImageSource,
   isTestNet,
+  getNetworkImageSource,
 } from '../../../util/networks';
 import {
   LINEA_MAINNET,
@@ -241,7 +241,7 @@ const NetworkSelector = () => {
           true: colors.primary.default,
           false: colors.border.muted,
         }}
-        thumbColor={theme.brandColors.white['000']}
+        thumbColor={theme.brandColors.white}
         ios_backgroundColor={colors.border.muted}
         testID={NetworkListModalSelectorsIDs.TEST_NET_TOGGLE}
         disabled={isTestNet(providerConfig.chainId)}

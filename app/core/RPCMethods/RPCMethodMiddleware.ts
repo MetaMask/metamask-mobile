@@ -1,9 +1,6 @@
 import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
-import {
-  createAsyncMiddleware,
-  JsonRpcEngineCallbackError,
-} from 'json-rpc-engine';
+import { createAsyncMiddleware } from 'json-rpc-engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   EndFlowOptions,
@@ -392,7 +389,7 @@ export const getRpcMethodMiddleware = ({
               req,
               res,
               next,
-              (err: JsonRpcEngineCallbackError | undefined) => {
+              (err) => {
                 if (err) {
                   return reject(err);
                 }
@@ -493,7 +490,6 @@ export const getRpcMethodMiddleware = ({
           }
         }
       },
-      eth_accounts: getEthAccounts,
       eth_coinbase: getEthAccounts,
       parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
@@ -520,11 +516,6 @@ export const getRpcMethodMiddleware = ({
             });
           },
         });
-      },
-      eth_signTransaction: async () => {
-        // This is implemented later in our middleware stack – specifically, in
-        // eth-json-rpc-middleware – but our UI does not support it.
-        throw rpcErrors.methodNotSupported();
       },
       eth_sign: async () => {
         const { SignatureController, PreferencesController } = Engine.context;

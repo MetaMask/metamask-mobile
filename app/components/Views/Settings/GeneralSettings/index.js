@@ -408,7 +408,7 @@ class Settings extends PureComponent {
                     true: colors.primary.default,
                     false: colors.border.muted,
                   }}
-                  thumbColor={themeTokens.brandColors.white['000']}
+                  thumbColor={themeTokens.brandColors.white}
                   style={styles.switch}
                   ios_backgroundColor={colors.border.muted}
                 />
