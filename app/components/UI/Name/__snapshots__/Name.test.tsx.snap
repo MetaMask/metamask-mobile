@@ -139,7 +139,7 @@ exports[`Name unknown address displays checksummed address 1`] = `
       }
     }
   >
-    0x299007B3F9E23B8d432D5f545F8a4a2B3E9A5B4e
+    0x29900...A5B4e
   </Text>
 </View>
 `;
