@@ -1,5 +1,3 @@
-import Engine from '../../core/Engine';
-
 // eslint-disable-next-line import/prefer-default-export
 export const generateStateLogs = (state: any): string => {
   const fullState = JSON.parse(JSON.stringify(state));
@@ -14,17 +12,12 @@ export const generateStateLogs = (state: any): string => {
   // Remove encrypted vault from logs
   delete fullState.engine.backgroundState.KeyringController.vault;
 
-  const { KeyringController } = Engine.context as any;
   const newState = {
     ...fullState,
     engine: {
       ...fullState.engine,
       backgroundState: {
         ...fullState.engine.backgroundState,
-        KeyringController: {
-          ...fullState.engine.backgroundState.KeyringController,
-          keyrings: KeyringController.state.keyrings,
-        },
       },
     },
   };
