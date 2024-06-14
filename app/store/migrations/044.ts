@@ -1,8 +1,6 @@
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
-import { Identity } from '@metamask/preferences-controller';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 
 /**
