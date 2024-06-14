@@ -3,11 +3,11 @@
 ## Current Main Branch
 
 ## 7.24.1 - Jun 13, 2024
-### Added
-- [#9687](https://github.com/MetaMask/metamask-mobile/pull/9687): feat: adds "data collection for marketing" toggles
-
 ### Fixed
-- [#9943](https://github.com/MetaMask/metamask-mobile/pull/9943): fix: duplicate accounts
+- [#9943](https://github.com/MetaMask/metamask-mobile/pull/9943): fix: Remove duplicate accounts (#9943)
+- [#10006](https://github.com/MetaMask/metamask-mobile/pull/10006): fix: Fix order of accounts (#10006)
+- [#10004](https://github.com/MetaMask/metamask-mobile/pull/10004): fix: Synchronize account names (#10004)
+- [#9974](https://github.com/MetaMask/metamask-mobile/pull/9974): fix: Fix freeze on buy and sell flow (#9974)
 
 ## 7.24.0 - Jun 11, 2024
 ### Added
