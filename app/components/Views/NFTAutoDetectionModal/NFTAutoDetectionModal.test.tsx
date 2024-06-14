@@ -13,16 +13,30 @@ const setUseNftDetectionSpy = jest.spyOn(
   'setUseNftDetection',
 );
 
+
+const setDisplayNftMediaSpy = jest.spyOn(
+  Engine.context.PreferencesController,
+  'setDisplayNftMedia',
+);
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   context: {
     PreferencesController: {
       setUseNftDetection: jest.fn(),
+      setDisplayNftMedia: jest.fn(),
     },
   },
 }));
 
-const initialState = {};
+const initialState = {
+  engine: {
+    backgroundState: {
+      PreferencesController: {
+        displayNftMedia: true,
+      },
+    },
+  },
+};
 
 const Stack = createStackNavigator();
 
@@ -44,19 +58,38 @@ describe('NFT Auto detection modal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should call setUseNftDetection when clicking on allow button', () => {
+  it('should call setUseNftDetection and setDisplayNftMedia when clicking on allow button with nftDisplayMedia initially off', () => {
+    const { getByTestId } = renderComponent({
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            displayNftMedia: false,
+          },
+        },
+      },
+    });
+    const allowButton = getByTestId('allow');
+
+    fireEvent.press(allowButton);
+    expect(setUseNftDetectionSpy).toHaveBeenCalled();
+    expect(setDisplayNftMediaSpy).toHaveBeenCalled();
+  });
+
+  it('should call setDisplayNftMedia when clicking on allow button if displayNftMedia if on', () => {
     const { getByTestId } = renderComponent(initialState);
     const allowButton = getByTestId('allow');
 
     fireEvent.press(allowButton);
     expect(setUseNftDetectionSpy).toHaveBeenCalled();
+    expect(setDisplayNftMediaSpy).not.toHaveBeenCalled();
   });
 
-  it('should not call setUseNftDetection when clicking on not right now button', () => {
+  it('should not call setUseNftDetection nor setDisplayNftMedia when clicking on not right now button', () => {
     const { getByTestId } = renderComponent(initialState);
     const cancelButton = getByTestId('cancel');
 
     fireEvent.press(cancelButton);
     expect(setUseNftDetectionSpy).not.toHaveBeenCalled();
+    expect(setDisplayNftMediaSpy).not.toHaveBeenCalled();
   });
 });

@@ -43,6 +43,7 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
+  isMainNet,
 } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
@@ -76,6 +77,7 @@ import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
   showNftFetchingLoadingIndicator as showNftFetchingLoadingIndicatorAction,
 } from '../../../reducers/collectibles';
+import { getCurrentRoute } from '../../../reducers/navigation';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -123,6 +125,7 @@ const Wallet = ({
   navigation,
   storePrivacyPolicyShownDate,
   shouldShowNewPrivacyToast,
+  currentRouteName,
   storePrivacyPolicyClickedOrClosed,
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
@@ -273,7 +276,8 @@ const Wallet = ({
   }, [navigate, providerConfig.chainId, trackEvent]);
 
   const checkNftAutoDetectionModal = () => {
-    if (!useNftDetection && !isNFTAutoDetectionModalOpened) {
+    const isOnMainnet = isMainNet(providerConfig.chainId);
+    if (!useNftDetection && isOnMainnet && !isNFTAutoDetectionModalOpened) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.NFT_AUTO_DETECTION_MODAL,
       });
@@ -282,7 +286,13 @@ const Wallet = ({
   };
 
   useEffect(() => {
-    checkNftAutoDetectionModal();
+    const networkOnboarded = getIsNetworkOnboarded(
+      providerConfig.chainId,
+      networkOnboardingState,
+    );
+    if (networkOnboarded || currentRouteName === 'SecuritySettings') {
+      checkNftAutoDetectionModal();
+    }
   });
 
   /**
@@ -551,6 +561,7 @@ const Wallet = ({
 
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
+  currentRouteName: getCurrentRoute(state),
 });
 
 const mapDispatchToProps = (dispatch: any) => ({

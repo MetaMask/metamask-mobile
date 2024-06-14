@@ -43,6 +43,7 @@ const CollectibleDetectionModal = () => {
       });
       // set nft autodetection
       const { PreferencesController, NftDetectionController } = Engine.context;
+      PreferencesController.setDisplayNftMedia(true);
       PreferencesController.setUseNftDetection(true);
       // Call detect nfts
       showNftFetchingLoadingIndicator();

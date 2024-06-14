@@ -23,6 +23,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
 import { useSelector } from 'react-redux';
+import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 
 const NFTAutoDetectionModal = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -30,11 +31,15 @@ const NFTAutoDetectionModal = () => {
   const walletImage = require('../../../images/wallet-alpha.png'); // eslint-disable-line
   const navigation = useNavigation();
   const chainId = useSelector(selectChainId);
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
   const { trackEvent } = useMetrics();
   const enableNftDetectionAndDismissModal = useCallback(
     (value: boolean) => {
       if (value) {
         const { PreferencesController } = Engine.context;
+        if (!displayNftMedia) {
+          PreferencesController.setDisplayNftMedia(true);
+        }
         PreferencesController.setUseNftDetection(true);
         trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE, {
           chainId,
