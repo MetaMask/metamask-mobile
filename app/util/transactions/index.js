@@ -109,9 +109,7 @@ const reviewActionKeys = {
     'transactions.tx_review_unknown',
   ),
   [APPROVE_ACTION_KEY]: strings('transactions.tx_review_approve'),
-  [INCREASE_ALLOWANCE_ACTION_KEY]: strings(
-    'transactions.tx_review_increase_allowance',
-  ),
+  [INCREASE_ALLOWANCE_ACTION_KEY]: strings('transactions.increase_allowance'),
 };
 
 /**
