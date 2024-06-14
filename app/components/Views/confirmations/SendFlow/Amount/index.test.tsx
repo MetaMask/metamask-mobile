@@ -10,6 +10,7 @@ import TransactionTypes from '../../../../../core/TransactionTypes';
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 
 const mockEngine = Engine;
 const mockTransactionTypes = TransactionTypes;
@@ -72,8 +73,12 @@ jest.mock('../../../../../util/transaction-controller', () => ({
 
 const mockNavigate = jest.fn();
 
-const CURRENT_ACCOUNT = '0x1a';
+const CURRENT_ACCOUNT = '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 const RECEIVER_ACCOUNT = '0x2a';
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  CURRENT_ACCOUNT,
+]);
 
 const initialState = {
   engine: {
@@ -90,15 +95,7 @@ const initialState = {
       AccountTrackerController: {
         accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
       },
-      PreferencesController: {
-        selectedAddress: CURRENT_ACCOUNT,
-        identities: {
-          [CURRENT_ACCOUNT]: {
-            address: CURRENT_ACCOUNT,
-            name: 'Account 1',
-          },
-        },
-      },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NftController: {
         allNfts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
         allNftContracts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
