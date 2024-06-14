@@ -2342,7 +2342,11 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="metametrics-switch"
-              thumbTintColor="#FFFFFF"
+              thumbTintColor={
+                {
+                  "000": "#FFFFFF",
+                }
+              }
               tintColor="#D6D9DC"
               value={false}
             />
@@ -2459,7 +2463,11 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="data-collection-switch"
-              thumbTintColor="#FFFFFF"
+              thumbTintColor={
+                {
+                  "000": "#FFFFFF",
+                }
+              }
               tintColor="#D6D9DC"
               value={false}
             />
