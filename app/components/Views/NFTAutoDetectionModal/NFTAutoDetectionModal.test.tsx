@@ -13,7 +13,6 @@ const setUseNftDetectionSpy = jest.spyOn(
   'setUseNftDetection',
 );
 
-
 const setDisplayNftMediaSpy = jest.spyOn(
   Engine.context.PreferencesController,
   'setDisplayNftMedia',

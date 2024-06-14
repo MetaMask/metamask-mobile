@@ -56,7 +56,7 @@ const NFTAutoDetectionModal = () => {
         navigation.goBack();
       }
     },
-    [chainId, trackEvent, navigation],
+    [displayNftMedia, trackEvent, chainId, navigation],
   );
 
   return (
