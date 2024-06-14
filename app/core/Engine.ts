@@ -188,19 +188,13 @@ import {
   UserStorageController,
   UserStorageControllerState,
 } from '@metamask/profile-sync-controller';
-import {
-  PushPlatformNotificationsController,
-  PushPlatformNotificationsControllerState,
-} from '@metamask/push-platform-notifications-controller';
-import {
-  MetamaskNotificationsController,
-  MetamaskNotificationsControllerState,
-} from '@metamask/notifications-controller';
 
 import {
-  MetaMetricsController,
-  MetaMetricsControllerState,
-} from '@metamask/metametrics-controller';
+  NotificationServicesController,
+  NotificationServicesControllerState,
+  NotificationServicesPushController,
+  NotificationServicesPushControllerState,
+} from '@metamask/notification-services-controller';
 
 import { providerErrors } from '@metamask/rpc-errors';
 
@@ -334,9 +328,8 @@ export interface EngineState {
   // Notification Controllers
   AuthenticationController: AuthenticationControllerState;
   UserStorageController: UserStorageControllerState;
-  MetamaskNotificationsController: MetamaskNotificationsControllerState;
-  PushPlatformNotificationsController: PushPlatformNotificationsControllerState;
-  MetaMetricsController: MetaMetricsControllerState;
+  NotificationServicesController: NotificationServicesControllerState;
+  NotificationServicesPushController: NotificationServicesPushControllerState;
 }
 
 /**
@@ -376,9 +369,8 @@ interface Controllers {
   // Notification Controllers
   AuthenticationController: AuthenticationController;
   UserStorageController: UserStorageController;
-  MetamaskNotificationsController: MetamaskNotificationsController;
-  PushPlatformNotificationsController: PushPlatformNotificationsController;
-  MetaMetricsController: MetaMetricsController;
+  NotificationServicesController: NotificationServicesController;
+  NotificationServicesPushController: NotificationServicesPushController;
 }
 
 /**
@@ -1003,26 +995,6 @@ class Engine {
       ],
     });
 
-    // Notification Controllers
-    // TODO: Check if this will be ready to be used in the time of shipping notifications
-    const metaMetricsController = new MetaMetricsController({
-      segment,
-      preferencesStore: preferencesController.state,
-      onNetworkStateChange: (listener) =>
-        this.controllerMessenger.subscribe(
-          AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          listener,
-        ),
-      getNetworkIdentifier: () => {
-        const { type, rpcUrl } = networkController.state.providerConfig;
-        return type === 'rpc' ? rpcUrl : type;
-      },
-      getCurrentChainId: () => networkController.state.providerConfig.chainId,
-      environment: process.env.METAMASK_ENVIRONMENT,
-      initState: initialState.MetaMetricsController,
-      captureException,
-    });
-
     const authenticationController = new AuthenticationController({
       state: initialState.AuthenticationController,
       messenger: this.controllerMessenger.getRestricted({
@@ -1032,16 +1004,11 @@ class Engine {
           'UserStorageController:disableProfileSyncing',
         ],
       }),
-      metametrics: {
-        getMetaMetricsId: () => metaMetricsController.getClientMetaMetricsId(),
-        setMetaMetricsId: (newId: string | null) =>
-          metaMetricsController.setServerMetaMetricsId(newId),
-      },
     });
 
     const userStorageController = new UserStorageController({
-      getMetaMetricsState: () =>
-        metaMetricsController.state.participateInMetaMetrics,
+      // getMetaMetricsState: () =>
+      //   metaMetricsController.state.participateInMetaMetrics,
       state: initialState.UserStorageController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
@@ -1052,45 +1019,44 @@ class Engine {
           'AuthenticationController:isSignedIn',
           'AuthenticationController:performSignOut',
           'AuthenticationController:performSignIn',
-          'MetamaskNotificationsController:disableMetamaskNotifications',
-          'MetamaskNotificationsController:selectIsMetamaskNotificationsEnabled',
+          'NotificationServicesController:disableMetamaskNotifications',
+          'NotificationServicesController:selectIsMetamaskNotificationsEnabled',
         ],
       }),
     });
 
-    const pushPlatformNotificationsController =
-      new PushPlatformNotificationsController({
-        state: initialState.PushPlatformNotificationsController,
+    const notificationServicesPushController =
+      new NotificationServicesPushController({
+        state: initialState.NotificationServicesPushController,
         messenger: this.controllerMessenger.getRestricted({
-          name: 'PushPlatformNotificationsController',
-          allowedActions: [
-            'AuthenticationController:getBearerToken',
-            'MetamaskNotificationsController:updateMetamaskNotificationsList',
-          ],
+          name: 'NotificationsServicesPushController',
+          allowedActions: ['AuthenticationController:getBearerToken'],
         }),
+        NotificationServicesPushController,
       });
 
-    const metamaskNotificationsController = new MetamaskNotificationsController(
-      {
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'MetamaskNotificationsController',
-          allowedActions: [
-            'KeyringController:getAccounts',
-            'AuthenticationController:getBearerToken',
-            'AuthenticationController:isSignedIn',
-            'UserStorageController:enableProfileSyncing',
-            'UserStorageController:getStorageKey',
-            'UserStorageController:performGetStorage',
-            'UserStorageController:performSetStorage',
-            'PushPlatformNotificationsController:enablePushNotifications',
-            'PushPlatformNotificationsController:disablePushNotifications',
-            'PushPlatformNotificationsController:updateTriggerPushNotifications',
-          ],
-          allowedEvents: ['KeyringController:stateChange'],
-        }),
-        state: initialState.MetamaskNotificationsController,
-      },
-    );
+    const notificationServicesController = new NotificationServicesController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'NotificationServicesController',
+        allowedActions: [
+          'KeyringController:getAccounts',
+          'AuthenticationController:getBearerToken',
+          'AuthenticationController:isSignedIn',
+          'UserStorageController:enableProfileSyncing',
+          'UserStorageController:getStorageKey',
+          'UserStorageController:performGetStorage',
+          'UserStorageController:performSetStorage',
+          'NotificationServicesPushController:enablePushNotifications',
+          'NotificationServicesPushController:disablePushNotifications',
+          'NotificationServicesPushController:updateTriggerPushNotifications',
+        ],
+        allowedEvents: [
+          'KeyringController:stateChange',
+          'NotificationServicesPushController:onNewNotifications',
+        ],
+      }),
+      state: initialState.NotificationServicesController,
+    });
 
     const snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
@@ -1383,9 +1349,8 @@ class Engine {
       permissionController,
       authenticationController,
       userStorageController,
-      metamaskNotificationsController,
-      pushPlatformNotificationsController,
-      metaMetricsController,
+      notificationServicesController,
+      notificationServicesPushController,
       new SignatureController({
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
