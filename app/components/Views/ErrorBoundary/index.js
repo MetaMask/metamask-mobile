@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { lastEventId } from '@sentry/react-native';
+import { lastEventId as getLatestSentryId } from '@sentry/react-native';
 import { captureSentryFeedback } from '../../../util/sentry/utils';
 import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
@@ -112,38 +112,37 @@ const Fallback = (props) => {
   const styles = createStyles(colors);
   const sentryId = props.sentryId;
 
+  const promptBugReport = useCallback(() => {
+    Alert.prompt(
+      strings('error_screen.bug_report_prompt_title'),
+      strings('error_screen.bug_report_prompt_description'),
+      [
+        { text: strings('error_screen.cancel'), style: 'cancel' },
+        {
+          text: strings('error_screen.send'),
+          onPress: (comments = '') => {
+            // Send Sentry feedback
+            captureSentryFeedback({ sentryId, comments });
+            Alert.alert('Thank you for the bug report.');
+          },
+        },
+      ],
+    );
+  }, [sentryId]);
+
   const renderSentryFeedbackSection = useCallback(() => {
     return (
       <Text style={[styles.reportStep, styles.text]}>
         <Icon name="bug" size={14} />
         {'  '}
         {strings('error_screen.submit_ticket_8')}{' '}
-        <Text
-          onPress={() =>
-            Alert.prompt(
-              'Tell us what happened',
-              'Ex. How can we reproduce this bug?',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Send',
-                  onPress: (comments = '') => {
-                    // Send Sentry feedback
-                    captureSentryFeedback({ sentryId, comments });
-                    Alert.alert('Thank you for the bug report.');
-                  },
-                },
-              ],
-            )
-          }
-          style={styles.link}
-        >
+        <Text onPress={promptBugReport} style={styles.link}>
           {strings('error_screen.submit_ticket_6')}
         </Text>{' '}
         {strings('error_screen.submit_ticket_9')}
       </Text>
     );
-  }, [sentryId]);
+  }, [promptBugReport]);
 
   return (
     <ScrollView style={styles.content}>
@@ -193,7 +192,7 @@ const Fallback = (props) => {
             </Text>{' '}
             {strings('error_screen.submit_ticket_7')}
           </Text>
-            {renderSentryFeedbackSection()}
+          {renderSentryFeedbackSection()}
         </View>
         <Text style={styles.text}>
           {strings('error_screen.save_seedphrase_1')}{' '}
@@ -249,6 +248,8 @@ class ErrorBoundary extends Component {
   };
 
   componentDidCatch(error, errorInfo) {
+    const sentryId = getLatestSentryId();
+    this.setState({ sentryId });
     this.generateErrorReport(error, errorInfo?.componentStack);
     Logger.error(error, { View: this.props.view, ...errorInfo });
   }
@@ -309,7 +310,7 @@ class ErrorBoundary extends Component {
             showExportSeedphrase={this.showExportSeedphrase}
             copyErrorToClipboard={this.copyErrorToClipboard}
             openTicket={this.openTicket}
-                sentryId={this.state.sentryId}
+            sentryId={this.state.sentryId}
           />,
         )
       : this.props.children;
