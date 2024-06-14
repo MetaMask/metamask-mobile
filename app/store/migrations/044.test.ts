@@ -92,7 +92,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid AccountsController state error: 'null'",
+        "FATAL ERROR: Migration 44: Invalid AccountsController state error: 'object'",
       scenario: 'AccountsController state is invalid',
     },
     {
@@ -104,7 +104,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid AccountsController internalAccounts state error: 'null'",
+        "FATAL ERROR: Migration 44: Invalid AccountsController internalAccounts state error: 'object'",
       scenario: 'AccountsController internalAccounts state is invalid',
     },
     {
@@ -117,7 +117,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid PreferencesController state error: 'null'",
+        "FATAL ERROR: Migration 44: Invalid PreferencesController state error: 'object'",
       scenario: 'PreferencesController state is invalid',
     },
     {
@@ -130,7 +130,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid PreferencesController identities state error: 'null'",
+        "FATAL ERROR: Migration 44: Invalid PreferencesController identities state error: 'object'",
       scenario: 'PreferencesController identities state is invalid',
     },
     {
@@ -147,8 +147,58 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid AccountsController entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'object'",
+        "FATAL ERROR: Migration 44: Invalid AccountsController account entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'object'",
       scenario: 'AccountsController accounts account state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            PreferencesController: { identities: null },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '92c0e479-6133-4a18-b1bf-fa38f654e293': { metadata: null },
+                },
+              },
+            },
+          },
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 44: Invalid AccountsController account metadata entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'object'",
+      scenario: 'AccountsController accounts account state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            PreferencesController: { identities: null },
+            AccountsController: {
+              internalAccounts: {
+                accounts: { '92c0e479-6133-4a18-b1bf-fa38f654e293': null },
+              },
+            },
+          },
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 44: Invalid AccountsController account entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'object'",
+      scenario: 'AccountsController accounts account state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            PreferencesController: {
+              identities: { [mockChecksummedInternalAcc1]: null },
+            },
+          },
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 44: Invalid PreferencesController identity entry with type: 'object'",
+      scenario: 'PreferencesController identities identity state is invalid',
     },
   ];
 
