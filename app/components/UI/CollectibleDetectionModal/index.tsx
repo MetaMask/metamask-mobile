@@ -30,24 +30,24 @@ const styles = StyleSheet.create({
 const CollectibleDetectionModal = () => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const showToastAndEnableNFtDetection =  () => {
+  const showToastAndEnableNFtDetection = () => {
     void (async () => {
-    // show toast
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [{ label: strings('toast.nft_detection_enabled') }],
-      iconName: IconName.CheckBold,
-      iconColor: IconColor.Default,
-      backgroundColor: colors.primary.inverse,
-      hasNoTimeout: false,
-    });
-    // set nft autodetection
-    const { PreferencesController, NftDetectionController } = Engine.context;
-    PreferencesController.setUseNftDetection(true);
-    // Call detect nfts
-    showNftFetchingLoadingIndicator();
-    await NftDetectionController.detectNfts();
-    hideNftFetchingLoadingIndicator();
+      // show toast
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [{ label: strings('toast.nft_detection_enabled') }],
+        iconName: IconName.CheckBold,
+        iconColor: IconColor.Default,
+        backgroundColor: colors.primary.inverse,
+        hasNoTimeout: false,
+      });
+      // set nft autodetection
+      const { PreferencesController, NftDetectionController } = Engine.context;
+      PreferencesController.setUseNftDetection(true);
+      // Call detect nfts
+      showNftFetchingLoadingIndicator();
+      await NftDetectionController.detectNfts();
+      hideNftFetchingLoadingIndicator();
     })();
   };
   return (
