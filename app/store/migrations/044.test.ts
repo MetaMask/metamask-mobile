@@ -154,21 +154,15 @@ describe('Migration #44', () => {
   it('should add importTime from identities or default to the current date', () => {
     // Mocked Date.now since jest is not aware of date.
     jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-01-01').getTime());
-    const newState: Partial<RootState> = migration(
-      oldState,
-    ) as Partial<RootState>;
-    if (!newState.engine) {
-      expect(true).toBeFalsy();
-      return;
-    }
+    const newState: Pick<RootState, 'engine'> = migration(oldState) as Pick<
+      RootState,
+      'engine'
+    >;
+
     Object.keys(
       newState.engine.backgroundState.AccountsController.internalAccounts
         .accounts,
     ).forEach((accountId) => {
-      if (!newState.engine) {
-        expect(true).toBeFalsy();
-        return;
-      }
       expect(
         newState.engine.backgroundState.AccountsController.internalAccounts
           .accounts[accountId].metadata.importTime,
@@ -177,10 +171,6 @@ describe('Migration #44', () => {
       Object.values(
         newState.engine.backgroundState.PreferencesController.identities,
       ).forEach((identity) => {
-        if (!newState.engine) {
-          expect(true).toBeFalsy();
-          return;
-        }
         if (
           (identity as Identity).importTime &&
           toChecksumHexAddress(
@@ -194,6 +184,55 @@ describe('Migration #44', () => {
           ).toStrictEqual((identity as Identity).importTime);
         }
       });
+    });
+  });
+  it('should default importTime to the current date if identities is not populated', () => {
+    // Mocked Date.now since jest is not aware of date.
+    jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-01-01').getTime());
+
+    const oldState2 = {
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            identities: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                //importTime variable didn't exist on the old state
+                [expectedUuid]: {
+                  ...internalAccount1,
+                  metadata: {
+                    ...internalAccount1.metadata,
+                  },
+                },
+                [expectedUuid2]: {
+                  ...internalAccount2,
+                  metadata: {
+                    ...internalAccount2.metadata,
+                  },
+                },
+              },
+              selectedAccount: {},
+            },
+          },
+        },
+      },
+    };
+
+    const newState: Pick<RootState, 'engine'> = migration(oldState2) as Pick<
+      RootState,
+      'engine'
+    >;
+
+    Object.keys(
+      newState.engine.backgroundState.AccountsController.internalAccounts
+        .accounts,
+    ).forEach((accountId) => {
+      expect(
+        newState.engine.backgroundState.AccountsController.internalAccounts
+          .accounts[accountId].metadata.importTime,
+      ).toEqual(expect.any(Number));
     });
   });
 });

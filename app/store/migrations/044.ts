@@ -6,10 +6,10 @@ import { PreferencesState } from '@metamask/preferences-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 /**
- * Migration to reset state of TokenBalancesController
- *
+ * Migration to add importTime property to accounts metadata of accounts controller
+ * This migration is needed due to the update of Accounts Controller to version 14
  * @param state Persisted Redux state
- * @returns
+ * @returns Valid persisted Redux state
  */
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 44)) {
@@ -86,22 +86,28 @@ export default function migrate(state: unknown) {
         !accountsControllerState.internalAccounts.accounts[accountId].metadata
           .importTime
       ) {
-        Object.keys(preferencesControllerState.identities).forEach(
-          (identityAddress) => {
-            if (
-              toChecksumHexAddress(identityAddress) ===
-              toChecksumHexAddress(
-                accountsControllerState.internalAccounts.accounts[accountId]
-                  .address,
+        if (Object.keys(preferencesControllerState.identities).length) {
+          Object.keys(preferencesControllerState.identities).forEach(
+            (identityAddress) => {
+              if (
+                toChecksumHexAddress(identityAddress) ===
+                toChecksumHexAddress(
+                  accountsControllerState.internalAccounts.accounts[accountId]
+                    .address,
+                )
               )
-            )
-              accountsControllerState.internalAccounts.accounts[
-                accountId
-              ].metadata.importTime =
-                preferencesControllerState.identities[identityAddress]
-                  .importTime ?? Date.now();
-          },
-        );
+                accountsControllerState.internalAccounts.accounts[
+                  accountId
+                ].metadata.importTime =
+                  preferencesControllerState.identities[identityAddress]
+                    .importTime ?? Date.now();
+            },
+          );
+        } else {
+          accountsControllerState.internalAccounts.accounts[
+            accountId
+          ].metadata.importTime = Date.now();
+        }
       }
     },
   );
