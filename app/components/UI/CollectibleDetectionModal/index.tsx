@@ -30,7 +30,8 @@ const styles = StyleSheet.create({
 const CollectibleDetectionModal = () => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const showToastAndEnableNFtDetection = async () => {
+  const showToastAndEnableNFtDetection =  () => {
+    void (async () => {
     // show toast
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
@@ -47,6 +48,7 @@ const CollectibleDetectionModal = () => {
     showNftFetchingLoadingIndicator();
     await NftDetectionController.detectNfts();
     hideNftFetchingLoadingIndicator();
+    })();
   };
   return (
     <View style={styles.alertBar}>
