@@ -28,6 +28,8 @@ This document outlines best practices and guidelines for writing migration scrip
 
 5. **Error Assertions**: Verify that errors are logged correctly for invalid states or unexpected conditions. Use `expect` to assert that `captureException` was called with the expected error messages.
 
+6. **Ensure State Immutability**: Always use deep cloning (e.g., `cloneDeep` from `lodash`) on the old state before passing it to the migration function in tests. This practice ensures that the original state object is not mutated during the migration process, preserving the integrity of your test data across different test cases. Mutating the state directly can lead to hard-to-track bugs and false positives or negatives in your tests because subsequent tests might not start with the original state as intended. Deep cloning guarantees that each test case operates on an exact, untouched copy of the state, ensuring test reliability and accuracy.
+
 ## Conclusion
 
 Following these guidelines will help ensure that migrations are robust, error-resistant, and maintain data integrity. Testing migrations thoroughly is crucial for identifying potential issues before they affect users. Always aim for clarity and thoroughness in both migration scripts and tests.
