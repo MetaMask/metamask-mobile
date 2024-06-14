@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`OptinMetrics should render correctly 1`] = `
+exports[`OptinMetrics render matches snapshot 1`] = `
 <View
   style={
     {
@@ -433,7 +433,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                               }
                               testID="optin-metrics-privacy-policy-description"
                             >
-                              MetaMask would like to gather usage data to better understand how our users interact with MetaMask. This data will be used to provide the service, which includes improving the service based on your use.
+                              We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.
                             </Text>
                             <Text
                               style={
@@ -446,7 +446,7 @@ exports[`OptinMetrics should render correctly 1`] = `
                                 }
                               }
                             >
-                              MetaMask will...
+                              When we gather metrics, it will always be...
                             </Text>
                             <View
                               style={
@@ -502,8 +502,10 @@ exports[`OptinMetrics should render correctly 1`] = `
                                       "fontWeight": "600",
                                     }
                                   }
-                                />
-                                Always allow you to opt-out via Settings
+                                >
+                                  Private: 
+                                </Text>
+                                clicks and views on the app are stored, but other details (like your public address) are not.
                               </Text>
                             </View>
                             <View
@@ -560,190 +562,129 @@ exports[`OptinMetrics should render correctly 1`] = `
                                       "fontWeight": "600",
                                     }
                                   }
+                                >
+                                  General: 
+                                </Text>
+                                we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.
+                              </Text>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flex": 0,
+                                  "flexDirection": "row",
+                                  "paddingVertical": 10,
+                                }
+                              }
+                            >
+                              <Text
+                                allowFontScaling={false}
+                                style={
+                                  [
+                                    {
+                                      "color": undefined,
+                                      "fontSize": 20,
+                                    },
+                                    [
+                                      {
+                                        "marginRight": 5,
+                                      },
+                                      {
+                                        "color": "#1c8234",
+                                      },
+                                    ],
+                                    {
+                                      "fontFamily": "Entypo",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    {},
+                                  ]
+                                }
+                              >
+                                
+                              </Text>
+                              <Text
+                                style={
+                                  {
+                                    "color": "#141618",
+                                    "flex": 1,
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontWeight": "400",
+                                  }
+                                }
+                              >
+                                <Text
+                                  style={
+                                    {
+                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontWeight": "600",
+                                    }
+                                  }
+                                >
+                                  Optional: 
+                                </Text>
+                                you decide if you want to share or delete your usage data via settings any time.
+                              </Text>
+                            </View>
+                            <TouchableOpacity
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "gap": 15,
+                                  "marginRight": 25,
+                                }
+                              }
+                            >
+                              <TouchableOpacity
+                                accessibilityRole="checkbox"
+                                accessible={true}
+                                disabled={false}
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "height": 24,
+                                    "opacity": 1,
+                                  }
+                                }
+                              >
+                                <View
+                                  accessibilityRole="checkbox"
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#141618",
+                                      "borderRadius": 4,
+                                      "borderWidth": 2,
+                                      "height": 20,
+                                      "justifyContent": "center",
+                                      "width": 20,
+                                    }
+                                  }
                                 />
-                                Send anonymized click & pageview events
-                              </Text>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 0,
-                                  "flexDirection": "row",
-                                  "paddingVertical": 10,
-                                }
-                              }
-                            >
-                              <Text
-                                allowFontScaling={false}
-                                style={
-                                  [
-                                    {
-                                      "color": undefined,
-                                      "fontSize": 24,
-                                    },
-                                    [
-                                      {
-                                        "marginRight": 5,
-                                      },
-                                      {
-                                        "color": "#d73847",
-                                      },
-                                    ],
-                                    {
-                                      "fontFamily": "Entypo",
-                                      "fontStyle": "normal",
-                                      "fontWeight": "normal",
-                                    },
-                                    {},
-                                  ]
-                                }
-                              >
-                                
-                              </Text>
+                              </TouchableOpacity>
                               <Text
                                 style={
                                   {
                                     "color": "#141618",
-                                    "flex": 1,
                                     "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
                                     "fontWeight": "400",
+                                    "paddingVertical": 10,
                                   }
                                 }
                               >
-                                <Text
-                                  style={
-                                    {
-                                      "fontFamily": "EuclidCircularB-Bold",
-                                      "fontWeight": "600",
-                                    }
-                                  }
-                                >
-                                  Never 
-                                </Text>
-                                collect information we don’t need to provide the service (such as keys, addresses, transaction hashes, or balances)
+                                We'll use this data to learn how you interact with our marketing communications. We may share relavent news (like product features).
                               </Text>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 0,
-                                  "flexDirection": "row",
-                                  "paddingVertical": 10,
-                                }
-                              }
-                            >
-                              <Text
-                                allowFontScaling={false}
-                                style={
-                                  [
-                                    {
-                                      "color": undefined,
-                                      "fontSize": 24,
-                                    },
-                                    [
-                                      {
-                                        "marginRight": 5,
-                                      },
-                                      {
-                                        "color": "#d73847",
-                                      },
-                                    ],
-                                    {
-                                      "fontFamily": "Entypo",
-                                      "fontStyle": "normal",
-                                      "fontWeight": "normal",
-                                    },
-                                    {},
-                                  ]
-                                }
-                              >
-                                
-                              </Text>
-                              <Text
-                                style={
-                                  {
-                                    "color": "#141618",
-                                    "flex": 1,
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontWeight": "400",
-                                  }
-                                }
-                              >
-                                <Text
-                                  style={
-                                    {
-                                      "fontFamily": "EuclidCircularB-Bold",
-                                      "fontWeight": "600",
-                                    }
-                                  }
-                                >
-                                  Never 
-                                </Text>
-                                collect your full IP address*
-                              </Text>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 0,
-                                  "flexDirection": "row",
-                                  "paddingVertical": 10,
-                                }
-                              }
-                            >
-                              <Text
-                                allowFontScaling={false}
-                                style={
-                                  [
-                                    {
-                                      "color": undefined,
-                                      "fontSize": 24,
-                                    },
-                                    [
-                                      {
-                                        "marginRight": 5,
-                                      },
-                                      {
-                                        "color": "#d73847",
-                                      },
-                                    ],
-                                    {
-                                      "fontFamily": "Entypo",
-                                      "fontStyle": "normal",
-                                      "fontWeight": "normal",
-                                    },
-                                    {},
-                                  ]
-                                }
-                              >
-                                
-                              </Text>
-                              <Text
-                                style={
-                                  {
-                                    "color": "#141618",
-                                    "flex": 1,
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontWeight": "400",
-                                  }
-                                }
-                              >
-                                <Text
-                                  style={
-                                    {
-                                      "fontFamily": "EuclidCircularB-Bold",
-                                      "fontWeight": "600",
-                                    }
-                                  }
-                                >
-                                  Never 
-                                </Text>
-                                sell data. Ever!
-                              </Text>
-                            </View>
+                            </TouchableOpacity>
                             <View>
                               <Text
                                 style={
@@ -757,12 +698,8 @@ exports[`OptinMetrics should render correctly 1`] = `
                                 }
                               >
                                 <Text>
-                                  This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679.
+                                  We’ll let you know if we decide to use this data for other purposes. You can review our 
                                 </Text>
-                                
-
-
-                                *When you use Infura as your default RPC provider in MetaMask, Infura will collect your IP address and your Ethereum wallet address when you send a transaction. We don’t store this information in a way that allows our systems to associate those two pieces of data. You can configure your RPC provider 
                                 <Text
                                   accessibilityRole="link"
                                   accessible={true}
@@ -790,73 +727,12 @@ exports[`OptinMetrics should render correctly 1`] = `
                                       }
                                     }
                                   >
-                                    here
+                                    Privacy Policy
                                   </Text>
                                 </Text>
-                                 before proceeding.
-For more information on how MetaMask and Infura interact from a data collection perspective, see our update 
-                                <Text
-                                  accessibilityRole="link"
-                                  accessible={true}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "backgroundColor": "transparent",
-                                      "color": "#141618",
-                                    }
-                                  }
-                                  suppressHighlighting={true}
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#0376c9",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 14,
-                                        "fontWeight": "400",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
-                                    }
-                                  >
-                                    here
-                                  </Text>
+                                <Text>
+                                   for more information. Remember, you can go to settings and opt out at any time.
                                 </Text>
-                                . For more information on our privacy practices in general, see our Privacy Policy 
-                                <Text
-                                  accessibilityRole="link"
-                                  accessible={true}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "backgroundColor": "transparent",
-                                      "color": "#141618",
-                                    }
-                                  }
-                                  suppressHighlighting={true}
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#0376c9",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 14,
-                                        "fontWeight": "400",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
-                                    }
-                                  >
-                                    here
-                                  </Text>
-                                </Text>
-                                .
                               </Text>
                             </View>
                           </View>
