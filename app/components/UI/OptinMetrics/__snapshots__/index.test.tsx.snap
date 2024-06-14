@@ -591,7 +591,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                         "marginRight": 5,
                                       },
                                       {
-                                        "color": "#1c8234",
+                                        "color": "#1C8234",
                                       },
                                     ],
                                     {
@@ -608,7 +608,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "flex": 1,
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontWeight": "400",
@@ -660,8 +660,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#ffffff",
-                                      "borderColor": "#141618",
+                                      "backgroundColor": "#FFFFFF",
+                                      "borderColor": "#24272A",
                                       "borderRadius": 4,
                                       "borderWidth": 2,
                                       "height": 20,
@@ -674,7 +674,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
