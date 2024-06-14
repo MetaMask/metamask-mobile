@@ -336,7 +336,7 @@ const CollectibleContracts = ({
           <>
             {isCollectionDetectionBannerVisible && (
               <View style={styles.emptyView}>
-                <CollectibleDetectionModal navigation={navigation} />
+                <CollectibleDetectionModal />
               </View>
             )}
             {renderFavoriteCollectibles()}
@@ -369,7 +369,6 @@ const CollectibleContracts = ({
       renderFooter,
       renderEmpty,
       isCollectionDetectionBannerVisible,
-      navigation,
       styles.emptyView,
     ],
   );

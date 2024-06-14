@@ -1,10 +1,24 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import { BannerVariant } from '../../../component-library/components/Banners/Banner';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../util/theme';
+import Engine from '../../../core/Engine';
+import {
+  hideNftFetchingLoadingIndicator,
+  showNftFetchingLoadingIndicator,
+} from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
   alertBar: {
@@ -13,21 +27,26 @@ const styles = StyleSheet.create({
   },
 });
 
-interface Props {
-  /**
-   * Navigation object needed to link to settings
-   */
-  navigation: any;
-}
-
-const CollectibleDetectionModal = ({ navigation }: Props) => {
-  const goToSecuritySettings = () => {
-    navigation.navigate('SettingsView', {
-      screen: 'SecuritySettings',
-      params: {
-        scrollToDetectNFTs: true,
-      },
+const CollectibleDetectionModal = () => {
+  const { colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
+  const showToastAndEnableNFtDetection = async () => {
+    // show toast
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [{ label: strings('toast.nft_detection_enabled') }],
+      iconName: IconName.CheckBold,
+      iconColor: IconColor.Default,
+      backgroundColor: colors.primary.inverse,
+      hasNoTimeout: false,
     });
+    // set nft autodetection
+    const { PreferencesController, NftDetectionController } = Engine.context;
+    PreferencesController.setUseNftDetection(true);
+    // Call detect nfts
+    showNftFetchingLoadingIndicator();
+    await NftDetectionController.detectNfts();
+    hideNftFetchingLoadingIndicator();
   };
   return (
     <View style={styles.alertBar}>
@@ -38,7 +57,7 @@ const CollectibleDetectionModal = ({ navigation }: Props) => {
         actionButtonProps={{
           variant: ButtonVariants.Link,
           label: strings('wallet.nfts_autodetect_cta'),
-          onPress: goToSecuritySettings,
+          onPress: showToastAndEnableNFtDetection,
           textVariant: TextVariant.BodyMD,
         }}
       />
