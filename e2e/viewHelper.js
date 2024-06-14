@@ -79,7 +79,6 @@ export const importWalletWithRecoveryPhrase = async () => {
     await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
     await ExperienceEnhancerModal.tapNoThanks();
     await Assertions.checkIfNotVisible(ExperienceEnhancerModal.container);
-
   } catch {
     //
   }
@@ -135,7 +134,7 @@ export const CreateNewWallet = async () => {
     await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
 
     await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
-    
+
     await ExperienceEnhancerModal.tapNoThanks();
     await Assertions.checkIfNotVisible(ExperienceEnhancerModal.container);
   } catch {
