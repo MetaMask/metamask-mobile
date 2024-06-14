@@ -1031,7 +1031,7 @@ describe('Transactions utils :: getIsNativeTokenTransferred', () => {
 });
 
 describe('Transactions utils :: getTransactionActionKey', () => {
-  it('should return increase allowance method when receiving increase allowance signature', async () => {
+  it('returns increase allowance method when receiving increase allowance signature', async () => {
     const transaction = {
       txParams: {
         data: `${INCREASE_ALLOWANCE_SIGNATURE}000000000000000000000000000000000000000000000`,
