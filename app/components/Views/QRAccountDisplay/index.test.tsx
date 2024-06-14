@@ -1,21 +1,45 @@
+import QRAccountDisplay from './index';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import QrScanner from './';
+
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import Routes from '../../../constants/navigation/Routes';
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState: {
+      ...initialBackgroundState,
+      PreferencesController: {
+        selectedAddress: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+        identities: {
+          '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045': {
+            address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+            name: 'Account 1',
+          },
+        },
+      },
+    },
+    NetworkController: {
+      network: 1,
+      providerConfig: {
+        type: 'mainnet',
+        chainId: '0x1',
+        ticker: 'ETH',
+      },
+    },
   },
 };
 
-// create mock for react-native-permissions
+const TestWrapper = () => (
+  // eslint-disable-next-line react/react-in-jsx-scope
+  <QRAccountDisplay
+    accountAddress={'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'}
+  />
+);
 
-describe('QrScanner', () => {
-  it('should render correctly', () => {
+describe('QRAccountDisplay', () => {
+  it('renders correctly', () => {
     const { toJSON } = renderScreen(
-      QrScanner,
-      { name: Routes.QR_SCANNER },
+      TestWrapper,
+      { name: 'QRAccountDisplay' },
       { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
