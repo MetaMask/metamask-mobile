@@ -38,7 +38,7 @@ export default function BasicFunctionalityComponent({
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={theme.brandColors.white['000']}
+          thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
         />
       </View>

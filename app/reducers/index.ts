@@ -28,6 +28,7 @@ import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
 import { pushNotificationsReducer } from '../store/ducks/notifications';
 import smartTransactionsReducer from '../core/redux/slices/smartTransactions';
+import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 
 /**
  * Infer state from a reducer
@@ -76,6 +77,7 @@ export interface RootState {
   rpcEvents: any;
   accounts: any;
   inpageProvider: StateFromReducer<typeof inpageProviderReducer>;
+  transactionMetrics: StateFromReducer<typeof transactionMetricsReducer>;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -109,6 +111,7 @@ const rootReducer = combineReducers<RootState, any>({
   rpcEvents: rpcEventReducer,
   accounts: accountsReducer,
   inpageProvider: inpageProviderReducer,
+  transactionMetrics: transactionMetricsReducer,
 });
 
 export default rootReducer;
