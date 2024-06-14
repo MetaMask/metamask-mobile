@@ -1,5 +1,5 @@
 import migration from './044';
-import { merge } from 'lodash';
+import { cloneDeep, merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 import {
@@ -276,7 +276,7 @@ describe('Migration #44', () => {
         },
       },
     };
-    const newState: Pick<RootState, 'engine'> = migration(oldState2) as Pick<
+    const newState = migration(cloneDeep(oldState2)) as Pick<
       RootState,
       'engine'
     >;
