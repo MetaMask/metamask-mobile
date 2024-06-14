@@ -1503,7 +1503,6 @@
     "tx_review_transfer_from": "Transfer From",
     "tx_review_unknown": "Unknown Method",
     "tx_review_approve": "Approve",
-    "tx_review_increase_allowance": "Increase Allowance",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",

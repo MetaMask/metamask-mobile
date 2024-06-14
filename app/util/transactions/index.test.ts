@@ -288,22 +288,22 @@ describe('Transactions utils :: getMethodData', () => {
   it('getMethodData', async () => {
     const transferData =
       '0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001';
-    const contractData =
+    const deployData =
       '0x60a060405260046060527f48302e31000000000000000000000000000000000000000000000000000000006080526006805460008290527f48302e310000000000000000000000000000000000000000000000000000000882556100b5907ff652222313e28459528d920b65115c16c04f3efc82aaedc97be59f3f377c0d3f602060026001841615610100026000190190931692909204601f01919091048101905b8082111561017957600081556001016100a1565b505060405161094b38038061094b833981';
     const randomData = '0x987654321000000000';
     const transferFromData = '0x23b872dd0000000000000000000000000000';
     const increaseAllowanceDataMock = `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000000000`;
-    const firstMethodData = await getMethodData(transferData);
-    const secondMethodData = await getMethodData(contractData);
-    const thirdMethodData = await getMethodData(transferFromData);
-    const fourthMethodData = await getMethodData(randomData);
+    const transferMethodData = await getMethodData(transferData);
+    const deployMethodData = await getMethodData(deployData);
+    const transferFromMethodData = await getMethodData(transferFromData);
+    const randomMethodData = await getMethodData(randomData);
     const increaseAllowanceMethodData = await getMethodData(
       increaseAllowanceDataMock,
     );
-    expect(firstMethodData.name).toEqual(TOKEN_METHOD_TRANSFER);
-    expect(secondMethodData.name).toEqual(CONTRACT_METHOD_DEPLOY);
-    expect(thirdMethodData.name).toEqual(TOKEN_METHOD_TRANSFER_FROM);
-    expect(fourthMethodData).toEqual({});
+    expect(transferMethodData.name).toEqual(TOKEN_METHOD_TRANSFER);
+    expect(deployMethodData.name).toEqual(CONTRACT_METHOD_DEPLOY);
+    expect(transferFromMethodData.name).toEqual(TOKEN_METHOD_TRANSFER_FROM);
+    expect(randomMethodData).toEqual({});
     expect(increaseAllowanceMethodData.name).toEqual(
       TOKEN_METHOD_INCREASE_ALLOWANCE,
     );
