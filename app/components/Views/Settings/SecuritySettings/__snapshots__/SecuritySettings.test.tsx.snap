@@ -532,7 +532,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ]
                 }
                 testID="turn-on-remember-me"
-                thumbTintColor="#ffffff"
                 tintColor="#D6D9DC"
                 value={true}
               />
@@ -577,7 +576,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Show private key for "[missing {{accountName}} value]"
+          Show private key for "Account 2"
         </Text>
         <Text
           accessibilityRole="text"
@@ -593,7 +592,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          This is the private key for the current selected account: [missing {{accountName}} value]. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
+          This is the private key for the current selected account: Account 2. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
         </Text>
         <TouchableOpacity
           accessibilityRole="button"
@@ -684,7 +683,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             ]
           }
           testID="security-alerts-toggle"
-          thumbTintColor="#ffffff"
           tintColor="#D6D9DC"
           value={true}
         />
@@ -799,7 +797,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                   },
                 ]
               }
-              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={false}
             />
@@ -1345,7 +1342,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="display-use-safe-list-validation"
-              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -1465,7 +1461,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="security-settings-multi-account-balances-switch"
-              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -1670,7 +1665,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                       ],
                     ]
                   }
-                  thumbTintColor="#ffffff"
                   tintColor="#D6D9DC"
                   value={true}
                 />
@@ -1811,7 +1805,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                       ],
                     ]
                   }
-                  thumbTintColor="#ffffff"
                   tintColor="#D6D9DC"
                   value={true}
                 />
@@ -1910,7 +1903,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ],
                 ]
               }
-              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -2042,7 +2034,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="display-nft-toggle"
-              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -2127,7 +2118,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ],
                 ]
               }
-              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -2212,7 +2202,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ],
                 ]
               }
-              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={true}
             />
@@ -2353,7 +2342,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                     ],
                   ]
                 }
-                thumbTintColor="#ffffff"
                 tintColor="#D6D9DC"
                 value={false}
               />
@@ -2456,7 +2444,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="metametrics-switch"
-              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={false}
             />
@@ -2573,7 +2560,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ]
               }
               testID="data-collection-switch"
-              thumbTintColor="#ffffff"
               tintColor="#D6D9DC"
               value={false}
             />

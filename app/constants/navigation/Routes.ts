@@ -128,6 +128,7 @@ const Routes = {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
     OPT_IN_STACK: 'OptInStack',
+    DETAILS: 'NotificationsDetails',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
