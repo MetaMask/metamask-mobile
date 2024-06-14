@@ -1,9 +1,6 @@
 import migrate from './044';
 import { captureException } from '@sentry/react-native';
-import {
-  AccountsControllerState,
-  getUUIDFromAddressOfNormalAccount,
-} from '@metamask/accounts-controller';
+import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { EthMethod } from '@metamask/keyring-api';
 
