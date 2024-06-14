@@ -11,12 +11,10 @@ import {
 import Modal from 'react-native-modal';
 import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
-import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { connect } from 'react-redux';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import { getTicker } from '../../../util/transactions';
@@ -29,7 +27,6 @@ import Text from '../../Base/Text';
 import ModalHandler from '../../Base/ModalHandler';
 import ModalDragger from '../../Base/ModalDragger';
 import AddressQRCode from '../../Views/AddressQRCode';
-import EthereumAddress from '../EthereumAddress';
 import GlobalAlert from '../GlobalAlert';
 import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -45,6 +42,7 @@ import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
 import { getDecimalChainId } from '../../../util/networks';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import QRAccountDisplay from '../../Views/QRAccountDisplay';
 
 const createStyles = (theme) =>
   StyleSheet.create({
@@ -124,8 +122,8 @@ class ReceiveRequest extends PureComponent {
      */
     toggleReceiveModal: PropTypes.func,
     /**
-		/* Triggers global alert
-		*/
+     /* Triggers global alert
+     */
     showAlert: PropTypes.func,
     /**
      * Network provider chain id
@@ -308,28 +306,8 @@ class ReceiveRequest extends PureComponent {
 
           <Text>{strings('receive_request.scan_address')}</Text>
 
-          <TouchableOpacity
-            style={styles.addressWrapper}
-            onPress={this.copyAccountToClipboard}
-            testID={RequestPaymentModalSelectorsIDs.ACCOUNT_ADDRESS}
-          >
-            <Text>
-              <EthereumAddress
-                address={this.props.selectedAddress}
-                type={'short'}
-              />
-            </Text>
-            <Text style={styles.copyButton} small>
-              {strings('receive_request.copy')}
-            </Text>
-            <TouchableOpacity onPress={this.onShare}>
-              <EvilIcons
-                name={Device.isIos() ? 'share-apple' : 'share-google'}
-                size={25}
-                color={colors.primary.default}
-              />
-            </TouchableOpacity>
-          </TouchableOpacity>
+          <QRAccountDisplay accountAddress={this.props.selectedAddress} />
+
           <View style={styles.actionRow}>
             {this.props.isNetworkBuySupported && (
               <StyledButton
