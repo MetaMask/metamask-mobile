@@ -26,11 +26,11 @@ const oldState = {
         identities: {
           [mockChecksummedInternalAcc1]: {
             address: mockChecksummedInternalAcc1,
-            name: 'Account 1',
+            name: 'First',
           },
           [mockChecksummedInternalAcc2]: {
             address: mockChecksummedInternalAcc2,
-            name: 'Account 2',
+            name: 'Second',
           },
         },
       },
@@ -220,6 +220,66 @@ describe('Migration #44', () => {
       'engine'
     >;
 
+    Object.keys(
+      newState.engine.backgroundState.AccountsController.internalAccounts
+        .accounts,
+    ).forEach((accountId) => {
+      Object.values(
+        newState.engine.backgroundState.PreferencesController.identities,
+      ).forEach((identity) => {
+        if (
+          toChecksumHexAddress(
+            newState.engine.backgroundState.AccountsController.internalAccounts
+              .accounts[accountId].address,
+          ) === (identity as Identity).address
+        ) {
+          expect(
+            newState.engine.backgroundState.AccountsController.internalAccounts
+              .accounts[accountId].metadata.name,
+          ).toStrictEqual((identity as Identity).name);
+        }
+      });
+    });
+  });
+
+  it('should let the name properties be the same if they are synchronized', () => {
+    const oldState2 = {
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            identities: {
+              [mockChecksummedInternalAcc1]: {
+                address: mockChecksummedInternalAcc1,
+                name: 'Name1',
+              },
+              [mockChecksummedInternalAcc2]: {
+                address: mockChecksummedInternalAcc2,
+                name: 'Name2',
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [expectedUuid]: {
+                  ...internalAccount1,
+                  metadata: { ...internalAccount1.metadata, name: 'Name1' },
+                },
+                [expectedUuid2]: {
+                  ...internalAccount2,
+                  metadata: { ...internalAccount2.metadata, name: 'Name2 ' },
+                },
+              },
+              selectedAccount: {},
+            },
+          },
+        },
+      },
+    };
+    const newState: Pick<RootState, 'engine'> = migration(oldState2) as Pick<
+      RootState,
+      'engine'
+    >;
     Object.keys(
       newState.engine.backgroundState.AccountsController.internalAccounts
         .accounts,
