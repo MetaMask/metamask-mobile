@@ -6,7 +6,7 @@ import {
   MOCK_HD_ACCOUNTS,
   MOCK_KEYRINGS,
   MOCK_KEYRING_CONTROLLER,
-} from './utils';
+} from './testUtils';
 
 describe('KeyringController Selectors', () => {
   describe('selectKeyrings', () => {

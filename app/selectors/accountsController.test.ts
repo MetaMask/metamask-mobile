@@ -22,7 +22,7 @@ import { AGREED } from '../constants/storage';
 import {
   MOCK_KEYRINGS,
   MOCK_KEYRING_CONTROLLER,
-} from './keyringController/utils';
+} from './keyringController/testUtils';
 
 /**
  * Generates a mocked AccountsController state
