@@ -4,14 +4,22 @@ import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
-import { selectOrderedKeyringAccounts } from './keyringController';
+import { selectFlattenedKeyringAccounts } from './keyringController';
 
+/**
+ *
+ * @param state - Root redux state
+ * @returns - AccountsController state
+ */
 const selectAccountsControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountsController;
 
+/**
+ * A memoized selector that returns internal accounts from the AccountsController, sorted by the order of KeyringController's keyring accounts
+ */
 export const selectInternalAccounts = createDeepEqualSelector(
   selectAccountsControllerState,
-  selectOrderedKeyringAccounts,
+  selectFlattenedKeyringAccounts,
   (accountControllerState, orderedKeyringAccounts) => {
     const keyringAccountsMap = new Map(
       orderedKeyringAccounts.map((account, index) => [
@@ -30,6 +38,9 @@ export const selectInternalAccounts = createDeepEqualSelector(
   },
 );
 
+/**
+ * A memoized selector that returns the selected internal account from the AccountsController
+ */
 export const selectSelectedInternalAccount = createDeepEqualSelector(
   selectAccountsControllerState,
   (accountsControllerState: AccountsControllerState) => {
@@ -47,6 +58,9 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
   },
 );
 
+/**
+ * A memoized selector that returns the selected internal account address in checksum format
+ */
 export const selectSelectedInternalAccountChecksummedAddress = createSelector(
   selectSelectedInternalAccount,
   (account) => {

@@ -1,4 +1,4 @@
-import { selectKeyrings, selectOrderedKeyringAccounts } from './index';
+import { selectKeyrings, selectFlattenedKeyringAccounts } from './index';
 import { RootState } from '../../reducers';
 import {
   MOCK_SIMPLE_ACCOUNTS,
@@ -22,15 +22,15 @@ describe('KeyringController Selectors', () => {
       ).toEqual(MOCK_KEYRINGS);
     });
   });
-  describe('selectOrderedKeyringAccounts', () => {
-    it('returns ordered keyring accounts', () => {
+  describe('selectFlattenedKeyringAccounts', () => {
+    it('returns flattened keyring accounts', () => {
       const expectedOrderedKeyringAccounts = [
         ...MOCK_SIMPLE_ACCOUNTS,
         ...MOCK_QR_ACCOUNTS,
         ...MOCK_HD_ACCOUNTS,
       ];
       expect(
-        selectOrderedKeyringAccounts({
+        selectFlattenedKeyringAccounts({
           engine: {
             backgroundState: {
               KeyringController: MOCK_KEYRING_CONTROLLER,
