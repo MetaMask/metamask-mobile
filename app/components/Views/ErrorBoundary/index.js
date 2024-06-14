@@ -123,15 +123,15 @@ const Fallback = (props) => {
           onPress: (comments = '') => {
             // Send Sentry feedback
             captureSentryFeedback({ sentryId, comments });
-            Alert.alert('Thank you for the bug report.');
+            Alert.alert(strings('error_screen.bug_report_thanks'));
           },
         },
       ],
     );
   }, [sentryId]);
 
-  const renderSentryFeedbackSection = useCallback(() => {
-    return (
+  const renderSentryFeedbackSection = useCallback(
+    () => (
       <Text style={[styles.reportStep, styles.text]}>
         <Icon name="bug" size={14} />
         {'  '}
@@ -141,8 +141,9 @@ const Fallback = (props) => {
         </Text>{' '}
         {strings('error_screen.submit_ticket_9')}
       </Text>
-    );
-  }, [promptBugReport]);
+    ),
+    [promptBugReport, styles.text, styles.link, styles.reportStep],
+  );
 
   return (
     <ScrollView style={styles.content}>
@@ -212,6 +213,7 @@ Fallback.propTypes = {
   showExportSeedphrase: PropTypes.func,
   copyErrorToClipboard: PropTypes.func,
   openTicket: PropTypes.func,
+  sentryId: PropTypes.string,
 };
 
 class ErrorBoundary extends Component {
