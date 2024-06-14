@@ -1,4 +1,4 @@
-import migration from './044';
+import migration from './046';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
@@ -58,7 +58,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #44', () => {
+describe('Migration #46', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -70,7 +70,7 @@ describe('Migration #44', () => {
         engine: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid engine state error: 'object'",
+        "FATAL ERROR: Migration 46: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -80,7 +80,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 46: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -92,7 +92,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid AccountsController state error: 'object'",
+        "FATAL ERROR: Migration 46: Invalid AccountsController state error: 'object'",
       scenario: 'AccountsController state is invalid',
     },
     {
@@ -104,7 +104,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid AccountsController internalAccounts state error: 'object'",
+        "FATAL ERROR: Migration 46: Invalid AccountsController internalAccounts state error: 'object'",
       scenario: 'AccountsController internalAccounts state is invalid',
     },
     {
@@ -117,7 +117,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid PreferencesController state error: 'object'",
+        "FATAL ERROR: Migration 46: Invalid PreferencesController state error: 'object'",
       scenario: 'PreferencesController state is invalid',
     },
     {
@@ -130,7 +130,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid PreferencesController identities state error: 'object'",
+        "FATAL ERROR: Migration 46: Invalid PreferencesController identities state error: 'object'",
       scenario: 'PreferencesController identities state is invalid',
     },
     {
@@ -147,7 +147,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid AccountsController account entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'object'",
+        "FATAL ERROR: Migration 46: Invalid AccountsController account entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'object'",
       scenario: 'AccountsController accounts account state is invalid',
     },
     {
@@ -166,7 +166,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid AccountsController account metadata entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'object'",
+        "FATAL ERROR: Migration 46: Invalid AccountsController account metadata entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'object'",
       scenario: 'AccountsController accounts account state is invalid',
     },
     {
@@ -183,7 +183,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid AccountsController account entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'object'",
+        "FATAL ERROR: Migration 46: Invalid AccountsController account entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'object'",
       scenario: 'AccountsController accounts account state is invalid',
     },
     {
@@ -197,7 +197,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid PreferencesController identity entry with type: 'object'",
+        "FATAL ERROR: Migration 46: Invalid PreferencesController identity entry with type: 'object'",
       scenario: 'PreferencesController identities identity state is invalid',
     },
   ];
