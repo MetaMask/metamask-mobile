@@ -4,6 +4,8 @@ import { BN } from 'ethereumjs-util';
 /* eslint-disable-next-line import/no-namespace */
 import * as controllerUtilsModule from '@metamask/controller-utils';
 
+import { handleMethodData } from '../../util/transaction-controller';
+
 import { BNToHex } from '../number';
 import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
 import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
@@ -33,6 +35,8 @@ import {
   isApprovalTransaction,
   SET_APPROVAL_FOR_ALL_SIGNATURE,
   TOKEN_METHOD_SET_APPROVAL_FOR_ALL,
+  TOKEN_METHOD_APPROVE,
+  getTransactionReviewActionKey,
 } from '.';
 import buildUnserializedTransaction from './optimismTransaction';
 import Engine from '../../core/Engine';
@@ -44,6 +48,8 @@ jest.mock('@metamask/controller-utils', () => ({
 }));
 jest.mock('../../core/Engine');
 const ENGINE_MOCK = Engine as jest.MockedClass<any>;
+
+jest.mock('../../util/transaction-controller');
 
 ENGINE_MOCK.context = {
   TransactionController: {
@@ -288,6 +294,7 @@ describe('Transactions utils :: parseTransactionLegacy', () => {
 
 describe('Transactions utils :: getMethodData', () => {
   it('getMethodData', async () => {
+    const invalidData = '0x';
     const transferData =
       '0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001';
     const contractData =
@@ -296,26 +303,41 @@ describe('Transactions utils :: getMethodData', () => {
     const transferFromData = '0x23b872dd0000000000000000000000000000';
     const increaseAllowanceDataMock = `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000000000`;
     const setApprovalForAllDataMock = `${SET_APPROVAL_FOR_ALL_SIGNATURE}0000000000000000000000000000`;
+    const approveDataMock = `${APPROVE_FUNCTION_SIGNATURE}000000000000000000000000`;
+    const invalidMethodData = await getMethodData(invalidData);
     const firstMethodData = await getMethodData(transferData);
     const secondMethodData = await getMethodData(contractData);
     const thirdMethodData = await getMethodData(transferFromData);
     const fourthMethodData = await getMethodData(randomData);
+    const approvalMethodData = await getMethodData(approveDataMock);
     const increaseAllowanceMethodData = await getMethodData(
       increaseAllowanceDataMock,
     );
     const setApprovalForAllMethodData = await getMethodData(
       setApprovalForAllDataMock,
     );
+    expect(invalidMethodData).toEqual({});
     expect(firstMethodData.name).toEqual(TOKEN_METHOD_TRANSFER);
     expect(secondMethodData.name).toEqual(CONTRACT_METHOD_DEPLOY);
     expect(thirdMethodData.name).toEqual(TOKEN_METHOD_TRANSFER_FROM);
     expect(fourthMethodData).toEqual({});
+    expect(approvalMethodData.name).toEqual(TOKEN_METHOD_APPROVE);
     expect(increaseAllowanceMethodData.name).toEqual(
       TOKEN_METHOD_INCREASE_ALLOWANCE,
     );
     expect(setApprovalForAllMethodData.name).toEqual(
       TOKEN_METHOD_SET_APPROVAL_FOR_ALL,
     );
+  });
+
+  it('calls handleMethodData with the correct data', async () => {
+    (handleMethodData as jest.Mock).mockResolvedValue({
+      parsedRegistryMethod: { name: TOKEN_METHOD_TRANSFER },
+    });
+    const transferData =
+      '0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a';
+    await getMethodData(transferData);
+    expect(handleMethodData).toHaveBeenCalledWith('0x98765432');
   });
 });
 
@@ -581,6 +603,16 @@ describe('Transaction utils :: generateApprovalData', () => {
     expect(data).toBe(
       '0x095ea7b3000000000000000000000000b794f5ea0ba39494ce839613fffba742795792680000000000000000000000000000000000000000000000000000000000000000',
     );
+  });
+
+  it('throws an error if the spender is not defined', () => {
+    expect(() => {
+      generateApprovalData({
+        spender: undefined as any,
+        value: '0x0',
+        data: '0x095ea7b3',
+      });
+    }).toThrow();
   });
 });
 
@@ -1071,4 +1103,23 @@ describe('Transactions utils :: isApprovalTransaction', () => {
       expect(isApprovalTransaction(data)).toBe(expectedResult);
     },
   );
+});
+
+describe('Transactions utils :: getTransactionReviewActionKey', () => {
+  const transaction = { to: '0xContractAddress' };
+  const chainId = '1';
+  it('returns `Unknown Method` review action key when transaction action key exists', async () => {
+    const expectedReviewActionKey = 'Unknown Method';
+    const result = await getTransactionReviewActionKey(transaction, chainId);
+    expect(result).toEqual(expectedReviewActionKey);
+  });
+
+  it('returns correct review action key', async () => {
+    const expectedReviewActionKey = 'Increase Allowance';
+    const result = await getTransactionReviewActionKey(
+      { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE },
+      chainId,
+    );
+    expect(result).toEqual(expectedReviewActionKey);
+  });
 });

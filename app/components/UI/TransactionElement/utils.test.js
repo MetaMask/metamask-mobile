@@ -1,4 +1,7 @@
-import { TRANSACTION_TYPES } from '../../../util/transactions';
+import {
+  CONTRACT_CREATION_SIGNATURE,
+  TRANSACTION_TYPES,
+} from '../../../util/transactions';
 import decodeTransaction, { decodeIncomingTransfer } from './utils';
 
 jest.mock('../../../core/Engine', () => ({
@@ -153,24 +156,40 @@ describe('Utils', () => {
   });
 
   describe('decodeTransaction', () => {
-    it('decodes a transaction with type SET_APPROVAL_FOR_ALL', async () => {
+    const expectedTransactionDetails = {
+      hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      renderFrom: '0xABcdEFABcdEFabcdEfAbCdefabcdeFABcDEFabCD',
+      renderGas: '21000',
+      renderGasPrice: 1,
+      renderTo: '0x1234567890AbcdEF1234567890aBcdef12345678',
+      renderTotalGas: '0.00002 ETH',
+      renderValue: '0 ETH',
+      summaryAmount: '0 ETH',
+      summaryFee: '0.00002 ETH',
+      summarySecondaryTotalAmount: undefined,
+      summaryTotalAmount: '0.00002 ETH',
+    };
+
+    const txParamsMock = {
+      to: '0x1234567890abcdef1234567890abcdef12345678',
+      from: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+      value: '0',
+      data: '0xa22cb4650000000000000000000000000000000000000000000000000000000000000001',
+      gas: '0x5208',
+      gasPrice: '0x3b9aca00',
+    };
+
+    it('decodes a transaction with type set approval for all', async () => {
       const args = {
         tx: {
-          txParams: {
-            to: '0x1234567890abcdef1234567890abcdef12345678',
-            from: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-            value: '0',
-            data: '0xa22cb4650000000000000000000000000000000000000000000000000000000000000001',
-            gas: '0x5208',
-            gasPrice: '0x3b9aca00',
-          },
+          txParams: txParamsMock,
           transactionType: TRANSACTION_TYPES.SET_APPROVAL_FOR_ALL,
           hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
         },
         currentCurrency: 'usd',
         contractExchangeRates: {},
         totalGas: '0x5208',
-        actionKey: 'key',
+        actionKey: 'transactions.set_approval_for_all',
         primaryCurrency: 'ETH',
         selectedAddress: '0x1234567890abcdef1234567890abcdef12345678',
         ticker: 'ETH',
@@ -188,18 +207,82 @@ describe('Utils', () => {
           value: '0 ETH',
         },
         {
-          hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-          renderFrom: '0xABcdEFABcdEFabcdEfAbCdefabcdeFABcDEFabCD',
-          renderGas: '21000',
-          renderGasPrice: 1,
-          renderTo: '0x1234567890AbcdEF1234567890aBcdef12345678',
-          renderTotalGas: '0.00002 ETH',
-          renderValue: '0 ETH',
-          summaryAmount: '0 ETH',
-          summaryFee: '0.00002 ETH',
-          summarySecondaryTotalAmount: undefined,
-          summaryTotalAmount: '0.00002 ETH',
+          ...expectedTransactionDetails,
           transactionType: 'transaction_set_approval_for_all',
+        },
+      ]);
+    });
+
+    it('decodes a transaction with type increase allowance', async () => {
+      const args = {
+        tx: {
+          txParams: {
+            ...txParamsMock,
+            data: '0x39509351',
+          },
+          transactionType: TRANSACTION_TYPES.INCREASE_ALLOWANCE,
+          hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        },
+        currentCurrency: 'usd',
+        contractExchangeRates: {},
+        totalGas: '0x5208',
+        actionKey: 'transactions.increase_allowance',
+        primaryCurrency: 'ETH',
+        selectedAddress: '0x1234567890abcdef1234567890abcdef12345678',
+        ticker: 'ETH',
+      };
+
+      const result = await decodeTransaction(args);
+
+      expect(result).toEqual([
+        {
+          actionKey: 'Increase Allowance',
+          fiatValue: undefined,
+          renderFrom: '0xABcdEFABcdEFabcdEfAbCdefabcdeFABcDEFabCD',
+          renderTo: '0x1234567890AbcdEF1234567890aBcdef12345678',
+          transactionType: 'transaction_increase_allowance',
+          value: '0 ETH',
+        },
+        {
+          ...expectedTransactionDetails,
+          transactionType: 'transaction_increase_allowance',
+        },
+      ]);
+    });
+
+    it('decodes a transaction with type contract interactions', async () => {
+      const args = {
+        tx: {
+          txParams: {
+            ...txParamsMock,
+            data: CONTRACT_CREATION_SIGNATURE,
+          },
+          hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        },
+        currentCurrency: 'usd',
+        contractExchangeRates: {},
+        totalGas: '0x5208',
+        actionKey: 'transactions.swaps_transaction',
+        primaryCurrency: 'ETH',
+        selectedAddress: '0x1234567890abcdef1234567890abcdef12345678',
+        ticker: 'ETH',
+      };
+
+      const result = await decodeTransaction(args);
+
+      expect(result).toEqual([
+        {
+          actionKey: 'Contract Deployment',
+          fiatValue: undefined,
+          contractDeployment: true,
+          renderFrom: '0xABcdEFABcdEFabcdEfAbCdefabcdeFABcDEFabCD',
+          renderTo: 'New Contract',
+          transactionType: 'transaction_site_interaction',
+          value: '0.00002 ETH',
+        },
+        {
+          ...expectedTransactionDetails,
+          renderTo: 'New Contract',
         },
       ]);
     });

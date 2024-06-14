@@ -1,27 +1,50 @@
-import React from 'react';
-import { shallow } from 'enzyme';
 import ApproveTransactionModal from '.';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
+import { SET_APPROVAL_FOR_ALL_SIGNATURE } from '../../../../../util/transactions';
 
-// Mock the selector module
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+}));
+
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   ...jest.requireActual('../../../../../selectors/smartTransactionsController'),
   selectShouldUseSmartTransaction: jest.fn(),
 }));
 
-const navigationMock = {
-  navigate: jest.fn(),
+jest.mock('../../../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    KeyringController: {
+      getOrAddQRKeyring: async () => ({ subscribe: () => ({}) }),
+    },
+  },
+  controllerMessenger: {
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
+}));
+
+const data = `0x${SET_APPROVAL_FOR_ALL_SIGNATURE}00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001`;
+const transaction = {
+  to: '0x',
+  origin: 'test-dapp',
+  chainId: '0x1',
+  txParams: {
+    to: '0x',
+    from: '0x',
+    data,
+    origin: 'test-dapp',
+  },
+  data,
 };
 
-const mockStore = configureMockStore();
 const initialState = {
   engine: {
     backgroundState: initialBackgroundState,
   },
-  transaction: {},
+  transaction,
   settings: {
     primaryCurrency: 'fiat',
   },
@@ -41,19 +64,14 @@ const initialState = {
     ],
   },
 };
-const store = mockStore(initialState);
 
 describe('ApproveTransactionModal', () => {
-  beforeEach(() => {
-    (selectShouldUseSmartTransaction as jest.Mock).mockReturnValue(false);
-  });
-
-  it('should render correctly', async () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <ApproveTransactionModal navigation={navigationMock} />
-      </Provider>,
+  it('render matches snapshot', () => {
+    const { toJSON } = renderScreen(
+      ApproveTransactionModal,
+      { name: 'Approve' },
+      { state: initialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
