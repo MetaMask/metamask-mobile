@@ -124,7 +124,7 @@ export function renderAccountName(address, identities) {
 }
 
 /**
- * Imports a an account from a private key
+ * Imports an account from a private key
  *
  * @param {String} private_key - String corresponding to a private key
  * @returns {Promise} - Returns a promise

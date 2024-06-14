@@ -18,6 +18,9 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { showAlert } from '../../../actions/alert';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import { useSelector } from 'react-redux';
+import { renderAccountName } from '../../../util/address';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -39,7 +42,7 @@ const createStyles = (theme: Theme) =>
   });
 
 const copyAddressToClipboard = async (address: string) => {
-  ClipboardManager.setString(address);
+  await ClipboardManager.setString(address);
   showAlert({
     isVisible: true,
     autodismiss: 1500,
@@ -52,13 +55,12 @@ const copyAddressToClipboard = async (address: string) => {
 const PREFIX_LEN = 6;
 const SUFFIX_LEN = 5;
 
-const QRAccountDisplay = (props: {
-  accountAddress: string;
-  accountLabel: string;
-}) => {
+const QRAccountDisplay = (props: { accountAddress: string }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const addr = props.accountAddress;
+  const identities = useSelector(selectIdentities);
+  const accountLabel = renderAccountName(addr, identities);
   const addressStart = addr.substring(0, PREFIX_LEN);
   const addressMiddle: string = addr.substring(
     PREFIX_LEN,
@@ -70,7 +72,7 @@ const QRAccountDisplay = (props: {
     <SafeAreaView style={styles.wrapper}>
       {/*account name*/}
       <Text variant={TextVariant.BodyLGMedium} style={styles.accountLabel}>
-        {props.accountLabel}
+        {accountLabel}
       </Text>
 
       {/*address*/}
