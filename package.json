@@ -140,7 +140,7 @@
     "@metamask/approval-controller": "^3.5.2",
     "@metamask/assets-controllers": "^26.0.0",
     "@metamask/base-controller": "^5.0.0",
-    "@metamask/composable-controller": "^3.0.0",
+    "@metamask/composable-controller": "^6.0.2",
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^8.0.4",
     "@metamask/design-tokens": "^2.0.0",

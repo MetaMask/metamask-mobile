@@ -1120,11 +1120,11 @@ class Engine {
 
     const controllers: Controllers[keyof Controllers][] = [
       keyringController,
-      accountTrackerController,
+      // accountTrackerController,
       new AddressBookController(),
-      assetsContractController,
-      nftController,
-      tokensController,
+      // assetsContractController,
+      // nftController,
+      // tokensController,
       tokenListController,
       new TokenDetectionController({
         //@ts-expect-error Misalign types because of Base Controller version
@@ -1332,11 +1332,10 @@ class Engine {
       }
     }
 
-    this.datamodel = new ComposableController(
-      // @ts-expect-error The ComposableController needs to be updated to support BaseControllerV2
+    this.datamodel = new ComposableController({
       controllers,
-      this.controllerMessenger,
-    );
+      messenger: this.controllerMessenger,
+    });
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({
         ...context,

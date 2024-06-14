@@ -3647,7 +3647,7 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/base-controller@^3.0.0", "@metamask/base-controller@^3.2.2", "@metamask/base-controller@^3.2.3":
+"@metamask/base-controller@^3.0.0", "@metamask/base-controller@^3.2.2":
   version "3.2.3"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-3.2.3.tgz#7436a14f6789acf0814952dabaa70ee4fb7d473c"
   integrity sha512-k66oZe7BOEx0D5N5X8feE/32QlrUTmiEHHAZU/yCac2+VHllJOCEQV/cTeaAtgepnEf8O7SskvYZN+eIjgS99w==
@@ -3693,12 +3693,12 @@
     "@metamask/utils" "^8.2.0"
     "@types/eslint" "^8.44.7"
 
-"@metamask/composable-controller@^3.0.0":
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/@metamask/composable-controller/-/composable-controller-3.0.3.tgz#9644a65c482996ee033eae34e169eb9713e4a33e"
-  integrity sha512-dF8emJGwJi66Uhk+VoBaQpl5+DT3+cT/g/IBZ6pg4cbAu8L/kXuS3sw8JEKFskkaSVy/can8qgcBY5zU4LfeUA==
+"@metamask/composable-controller@^6.0.2":
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/composable-controller/-/composable-controller-6.0.2.tgz#cfe1e9053cf996fa2d8c91635ebe519731d96518"
+  integrity sha512-CmZsust0/CljWgetB6XhASxhqmEpSbIldsmwO664UIZnJVVAbRWvUQFmQWT+iH9jKJR4C7dfDqCn+9DtwfVfBw==
   dependencies:
-    "@metamask/base-controller" "^3.2.3"
+    "@metamask/base-controller" "^5.0.2"
 
 "@metamask/contract-metadata@^2.1.0", "@metamask/contract-metadata@^2.4.0":
   version "2.2.0"

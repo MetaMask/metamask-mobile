@@ -78,7 +78,7 @@ LogBox.ignoreLogs([
 
 const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;
 // Ignore box logs, useful for QA testing in development builds
-if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
+if (true) {
   LogBox.ignoreAllLogs();
 }
 
