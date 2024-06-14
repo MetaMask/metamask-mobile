@@ -20,7 +20,7 @@ import { PPOMController } from '@metamask/ppom-validator';
 const TRANSACTION_METHOD = 'eth_sendTransaction';
 const TRANSACTION_METHODS = [TRANSACTION_METHOD, 'eth_sendRawTransaction'];
 
-const ConfirmationMethods = Object.freeze([
+const CONFIRMATION_METHODS = Object.freeze([
   'eth_sendRawTransaction',
   TRANSACTION_METHOD,
   'eth_sign',
@@ -31,13 +31,13 @@ const ConfirmationMethods = Object.freeze([
   'personal_sign',
 ]);
 
-const FailedResponse = {
+const SECURITY_ALERT_RESPONSE_FAILED = {
   result_type: ResultType.Failed,
   reason: Reason.failed,
   description: 'Validating the confirmation failed by throwing error.',
 };
 
-const RequestInProgress = {
+const SECURITY_ALERT_RESPONSE_IN_PROGRESS = {
   result_type: ResultType.RequestInProgress,
   reason: Reason.requestInProgress,
   description: 'Validating the confirmation in progress.',
@@ -51,7 +51,7 @@ const validateRequest = async (req: any, transactionId?: string) => {
   } = Engine.context;
 
   const chainId = NetworkController.state.providerConfig.chainId;
-  const isConfirmationMethod = ConfirmationMethods.includes(req.method);
+  const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
   const isSupportedChain = BLOCKAID_SUPPORTED_CHAIN_IDS.includes(chainId);
 
   const isSecurityAlertsEnabled =
@@ -72,10 +72,15 @@ const validateRequest = async (req: any, transactionId?: string) => {
 
   try {
     if (isTransaction && !transactionId) {
-      securityAlertResponse = FailedResponse;
+      securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
+      return;
     }
 
-    setSecurityAlertResponse(req, RequestInProgress, transactionId);
+    setSecurityAlertResponse(
+      req,
+      SECURITY_ALERT_RESPONSE_IN_PROGRESS,
+      transactionId,
+    );
 
     const normalizedRequest = normalizeRequest(req);
 
@@ -92,16 +97,13 @@ const validateRequest = async (req: any, transactionId?: string) => {
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
   } finally {
     if (!securityAlertResponse) {
-      securityAlertResponse = FailedResponse;
+      securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
     }
 
     setSecurityAlertResponse(req, securityAlertResponse, transactionId, {
       updateControllerState: true,
     });
   }
-
-  // todo: once all call to validateRequest are async we may not return any result
-  return securityAlertResponse;
 };
 
 async function validateWithController(
