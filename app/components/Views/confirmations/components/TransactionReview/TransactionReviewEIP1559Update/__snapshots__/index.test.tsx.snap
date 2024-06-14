@@ -5,7 +5,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
   style={
     [
       {
-        "borderColor": "#D6D9DC",
+        "borderColor": "#bbc0c566",
         "borderRadius": 8,
         "borderWidth": 1,
         "padding": 16,
@@ -56,7 +56,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
           style={
             [
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
                 "fontWeight": "400",
@@ -76,7 +76,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
               false,
               undefined,
               {
-                "color": "#24272A",
+                "color": "#141618",
               },
               undefined,
               undefined,
@@ -122,7 +122,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
                     "fontSize": 13,
                   },
                   {
-                    "color": "#BBC0C5",
+                    "color": "#9fa6ae",
                   },
                   {
                     "fontFamily": "Material Design Icons",
@@ -284,7 +284,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
       style={
         [
           {
-            "borderBottomColor": "#D6D9DC",
+            "borderBottomColor": "#bbc0c566",
             "borderBottomWidth": 1,
             "marginVertical": 6,
           },
@@ -317,7 +317,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
           style={
             [
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
                 "fontWeight": "400",
@@ -337,7 +337,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
               undefined,
               undefined,
               {
-                "color": "#24272A",
+                "color": "#141618",
               },
               undefined,
               undefined,
