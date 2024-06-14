@@ -24,6 +24,39 @@ import {
   MOCK_KEYRING_CONTROLLER,
 } from './keyringController/utils';
 
+/**
+ * Generates a mocked AccountsController state
+ * The internal accounts are generated in reverse order relative to the mock keyrings that are used for generation
+ *
+ * @returns - A mocked state of AccountsController
+ */
+const MOCK_GENERATED_ACCOUNTS_CONTROLLER_REVERSED =
+  (): AccountsControllerState => {
+    const reversedKeyringAccounts = [...MOCK_KEYRINGS]
+      .reverse()
+      .flatMap((keyring) => [...keyring.accounts].reverse());
+    const accountsForInternalAccounts = reversedKeyringAccounts.reduce(
+      (record, keyringAccount, index) => {
+        const lowercasedKeyringAccount = keyringAccount.toLowerCase();
+        const accountName = `Account ${index}`;
+        const uuid = createMockUuidFromAddress(lowercasedKeyringAccount);
+        const internalAccount = createMockInternalAccount(
+          lowercasedKeyringAccount,
+          accountName,
+        );
+        record[uuid] = internalAccount;
+        return record;
+      },
+      {} as Record<string, InternalAccount>,
+    );
+    return {
+      internalAccounts: {
+        accounts: accountsForInternalAccounts,
+        selectedAccount: Object.values(accountsForInternalAccounts)[0].id,
+      },
+    };
+  };
+
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
@@ -92,41 +125,18 @@ describe('Accounts Controller Selectors', () => {
   });
   describe('selectInternalAccounts', () => {
     it(`returns internal accounts of the accounts controller sorted by the keyring controller's accounts`, () => {
-      // Generate accounts for AccountsController in reverse order
-      const reversedKeyringAccounts = [...MOCK_KEYRINGS]
-        .reverse()
-        .flatMap((keyring) => [...keyring.accounts].reverse());
-      const accountsForInternalAccounts = reversedKeyringAccounts.reduce(
-        (record, keyringAccount, index) => {
-          const lowercasedKeyringAccount = keyringAccount.toLowerCase();
-          const accountName = `Account ${index}`;
-          const uuid = createMockUuidFromAddress(lowercasedKeyringAccount);
-          const internalAccount = createMockInternalAccount(
-            lowercasedKeyringAccount,
-            accountName,
-          );
-          record[uuid] = internalAccount;
-          return record;
-        },
-        {} as Record<string, InternalAccount>,
-      );
-      const MOCK_GENERATED_ACCOUNTS_CONTROLLER: AccountsControllerState = {
-        internalAccounts: {
-          accounts: accountsForInternalAccounts,
-          selectedAccount: Object.values(accountsForInternalAccounts)[0].id,
-        },
-      };
-
+      const mockAccountsControllerReversed =
+        MOCK_GENERATED_ACCOUNTS_CONTROLLER_REVERSED();
       const internalAccountsResult = selectInternalAccounts({
         engine: {
           backgroundState: {
             KeyringController: MOCK_KEYRING_CONTROLLER,
-            AccountsController: MOCK_GENERATED_ACCOUNTS_CONTROLLER,
+            AccountsController: mockAccountsControllerReversed,
           },
         },
       } as RootState);
       const expectedInteralAccountsResult = Object.values(
-        MOCK_GENERATED_ACCOUNTS_CONTROLLER.internalAccounts.accounts,
+        mockAccountsControllerReversed.internalAccounts.accounts,
       ).reverse();
 
       const internalAccountAddressesResult = internalAccountsResult.map(
