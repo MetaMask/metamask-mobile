@@ -16,8 +16,8 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  const accountsControllerState = state.engine.backgroundState
-    .AccountsController as AccountsControllerState;
+  const accountsControllerState =
+    state.engine.backgroundState.AccountsController;
 
   if (!isObject(accountsControllerState)) {
     captureException(
@@ -54,6 +54,24 @@ export default function migrate(state: unknown) {
     return state;
   }
 
+  if (
+    Object.values(accountsControllerState.internalAccounts.accounts).some(
+      (account) => !isObject(account),
+    )
+  ) {
+    const invalidEntry = Object.entries(
+      accountsControllerState.internalAccounts.accounts,
+    ).find(([_, account]) => !isObject(account));
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 46: Invalid AccountsController entry with id: '${
+          invalidEntry?.[0]
+        }', type: '${typeof invalidEntry?.[1]}'`,
+      ),
+    );
+    return state;
+  }
+
   const preferencesControllerState = state.engine.backgroundState
     .PreferencesController as PreferencesState;
 
@@ -80,33 +98,35 @@ export default function migrate(state: unknown) {
     return state;
   }
 
+  const accounts = accountsControllerState.internalAccounts.accounts;
   Object.keys(accountsControllerState.internalAccounts.accounts).forEach(
     (accountId) => {
+      const account = accounts[accountId];
       if (
-        !accountsControllerState.internalAccounts.accounts[accountId].metadata
-          .importTime
+        isObject(account) &&
+        isObject(account.metadata) &&
+        !account.metadata.importTime
       ) {
         if (Object.keys(preferencesControllerState.identities).length) {
           Object.keys(preferencesControllerState.identities).forEach(
             (identityAddress) => {
               if (
                 toChecksumHexAddress(identityAddress) ===
-                toChecksumHexAddress(
-                  accountsControllerState.internalAccounts.accounts[accountId]
-                    .address,
-                )
-              )
-                accountsControllerState.internalAccounts.accounts[
-                  accountId
-                ].metadata.importTime =
+                toChecksumHexAddress(account.address as string)
+              ) {
+                (
+                  accountsControllerState as AccountsControllerState
+                ).internalAccounts.accounts[accountId].metadata.importTime =
                   preferencesControllerState.identities[identityAddress]
                     .importTime ?? Date.now();
+              }
             },
           );
         } else {
-          accountsControllerState.internalAccounts.accounts[
-            accountId
-          ].metadata.importTime = Date.now();
+          (
+            accountsControllerState as AccountsControllerState
+          ).internalAccounts.accounts[accountId].metadata.importTime =
+            Date.now();
         }
       }
     },

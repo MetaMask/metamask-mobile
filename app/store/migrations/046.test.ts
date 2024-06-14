@@ -137,6 +137,23 @@ describe('Migration #46', () => {
         "FATAL ERROR: Migration 46: Invalid PreferencesController identities state error: 'null'",
       scenario: 'PreferencesController identities state is invalid',
     },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            PreferencesController: { identities: null },
+            AccountsController: {
+              internalAccounts: {
+                accounts: { '92c0e479-6133-4a18-b1bf-fa38f654e293': null },
+              },
+            },
+          },
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 46: Invalid AccountsController entry with id: '92c0e479-6133-4a18-b1bf-fa38f654e293', type: 'object'",
+      scenario: 'AccountsController accounts account state is invalid',
+    },
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
@@ -186,16 +203,14 @@ describe('Migration #46', () => {
       });
     });
   });
-  it('should default importTime to the current date if identities is not populated', () => {
+  it('should default importTime to the current date if identities is not populated and import time is undefined', () => {
     // Mocked Date.now since jest is not aware of date.
     jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-01-01').getTime());
 
     const oldState2 = {
       engine: {
         backgroundState: {
-          PreferencesController: {
-            identities: {},
-          },
+          PreferencesController: { identities: {} },
           AccountsController: {
             internalAccounts: {
               accounts: {
@@ -204,12 +219,14 @@ describe('Migration #46', () => {
                   ...internalAccount1,
                   metadata: {
                     ...internalAccount1.metadata,
+                    importTime: undefined,
                   },
                 },
                 [expectedUuid2]: {
                   ...internalAccount2,
                   metadata: {
                     ...internalAccount2.metadata,
+                    importTime: undefined,
                   },
                 },
               },
