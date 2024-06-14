@@ -15,7 +15,7 @@ exports[`DefaultSettings should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -30,7 +30,7 @@ exports[`DefaultSettings should render correctly 1`] = `
         onPress={[Function]}
         style={
           {
-            "color": "#0376C9",
+            "color": "#0376c9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -64,7 +64,7 @@ exports[`DefaultSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
               "fontWeight": "700",
@@ -80,7 +80,7 @@ exports[`DefaultSettings should render correctly 1`] = `
           onChange={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
-          onTintColor="#0376C9"
+          onTintColor="#0376c9"
           style={
             [
               {
@@ -88,13 +88,13 @@ exports[`DefaultSettings should render correctly 1`] = `
                 "width": 51,
               },
               {
-                "backgroundColor": "#D6D9DC",
+                "backgroundColor": "#bbc0c566",
                 "borderRadius": 16,
               },
             ]
           }
-          thumbTintColor="#FFFFFF"
-          tintColor="#D6D9DC"
+          thumbTintColor="#ffffff"
+          tintColor="#bbc0c566"
           value={false}
         />
       </View>
@@ -102,7 +102,7 @@ exports[`DefaultSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#535A61",
+            "color": "#6a737d",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -117,7 +117,7 @@ exports[`DefaultSettings should render correctly 1`] = `
           onPress={[Function]}
           style={
             {
-              "color": "#0376C9",
+              "color": "#0376c9",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -151,7 +151,7 @@ exports[`DefaultSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
               "fontWeight": "700",
@@ -167,7 +167,7 @@ exports[`DefaultSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#535A61",
+            "color": "#6a737d",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -184,7 +184,7 @@ exports[`DefaultSettings should render correctly 1`] = `
           onPress={[Function]}
           style={
             {
-              "color": "#0376C9",
+              "color": "#0376c9",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -203,7 +203,7 @@ exports[`DefaultSettings should render correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#F2F4F6",
+            "backgroundColor": "#f2f4f6",
             "borderRadius": 16,
             "flexDirection": "row",
             "height": 32,
@@ -217,7 +217,7 @@ exports[`DefaultSettings should render correctly 1`] = `
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#F2F4F6",
+              "backgroundColor": "#f2f4f6",
               "borderRadius": 8,
               "borderWidth": 1,
               "height": 16,
@@ -231,7 +231,7 @@ exports[`DefaultSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 10,
                 "fontWeight": "400",
@@ -248,7 +248,7 @@ exports[`DefaultSettings should render correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "flexShrink": 1,
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -263,7 +263,7 @@ exports[`DefaultSettings should render correctly 1`] = `
           Ethereum Main Network
         </Text>
         <SvgMock
-          color="#24272A"
+          color="#141618"
           height={12}
           name="ArrowDown"
           style={

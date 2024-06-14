@@ -13,10 +13,18 @@ import {
 import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
-} from '../selectors/WalletView.selectors';
+} from '../selectors/wallet/WalletView.selectors';
 import { CommonSelectorsText } from '../selectors/Common.selectors';
+import Gestures from '../utils/Gestures';
+import Matchers from '../utils/Matchers';
 
 export default class WalletView {
+  static get tokendetectionLinkButton() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON,
+    );
+  }
+
   static async tapOKAlertButton() {
     await TestHelpers.tapAlertWithButton(CommonSelectorsText.OK_ALERT_BUTTON); // system alert.
   }
@@ -130,5 +138,9 @@ export default class WalletView {
       WALLET_ACCOUNT_NAME_LABEL_INPUT,
       accountName,
     );
+  }
+
+  static async tapNewTokensFound() {
+    await Gestures.waitAndTap(this.tokendetectionLinkButton);
   }
 }

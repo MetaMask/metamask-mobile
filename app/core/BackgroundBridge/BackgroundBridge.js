@@ -38,6 +38,8 @@ import { getPermittedAccounts } from '../Permissions';
 import { MetaMetrics } from '../Analytics';
 import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
+import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
+import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -391,6 +393,26 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
 
+    // Handle unsupported RPC Methods
+    engine.push(createUnsupportedMethodMiddleware());
+
+    // Legacy RPC methods that need to be implemented ahead of the permission middleware
+    engine.push(
+      createLegacyMethodMiddleware({
+        getAccounts: async () =>
+          await getPermittedAccounts(this.isMMSDK ? this.channelId : origin),
+      }),
+    );
+
+    // Append PermissionController middleware
+    engine.push(
+      Engine.context.PermissionController.createPermissionMiddleware({
+        // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
+        // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
+        origin: this.isMMSDK ? this.channelId : origin,
+      }),
+    );
+
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // Snaps middleware
     engine.push(
@@ -412,16 +434,8 @@ export class BackgroundBridge extends EventEmitter {
       }),
     );
 
-    // Add PermissionController middleware
-    engine.push(
-      Engine.context.PermissionController.createPermissionMiddleware({
-        // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
-        // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
-        origin: this.isMMSDK ? this.channelId : origin,
-      }),
-    );
-
     engine.push(createSanitizationMiddleware());
+
     // forward to metamask primary provider
     engine.push(providerAsMiddleware(provider));
     return engine;

@@ -107,7 +107,7 @@ const createStyles = (theme: any) =>
       marginTop: Device.getDeviceHeight() * 0.025,
     },
     loader: {
-      color: theme.brandColors.white['000'],
+      color: theme.brandColors.white,
     },
   });
 
