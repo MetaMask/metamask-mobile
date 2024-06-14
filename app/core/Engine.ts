@@ -1120,11 +1120,11 @@ class Engine {
 
     const controllers: Controllers[keyof Controllers][] = [
       keyringController,
-      // accountTrackerController,
+      accountTrackerController,
       new AddressBookController(),
-      // assetsContractController,
-      // nftController,
-      // tokensController,
+      assetsContractController,
+      nftController,
+      tokensController,
       tokenListController,
       new TokenDetectionController({
         //@ts-expect-error Misalign types because of Base Controller version
