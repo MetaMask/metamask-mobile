@@ -1004,11 +1004,13 @@ class Engine {
           'UserStorageController:disableProfileSyncing',
         ],
       }),
+      metametrics: {
+        getMetaMetricsId: () => MetaMetrics.getInstance().getMetaMetricsId(),
+      },
     });
 
     const userStorageController = new UserStorageController({
-      // getMetaMetricsState: () =>
-      //   metaMetricsController.state.participateInMetaMetrics,
+      getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       state: initialState.UserStorageController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
@@ -1818,8 +1820,7 @@ class Engine {
 }
 
 /**
- * Assert that the given Engine instance has been initialized
- *
+ * Assert that the given Engine instance has been initialized *
  * @param instance - Either an Engine instance, or null
  */
 function assertEngineExists(
