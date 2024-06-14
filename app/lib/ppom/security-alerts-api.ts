@@ -2,32 +2,49 @@ import { SecurityAlertResponse } from '../../components/Views/confirmations/comp
 
 const ENDPOINT_VALIDATE = 'validate';
 
-export interface SecurityAlertAPIRequest {
+export interface SecurityAlertsAPIRequest {
   method: string;
   params: any[];
 }
 
-export function isEnabled() {
+export function isSecurityAlertsAPIEnabled() {
   return process.env.SECURITY_ALERTS_API_ENABLED === 'true';
 }
 
-export async function validate(
+export async function validateWithSecurityAlertsAPI(
   chainId: string,
-  request: SecurityAlertAPIRequest,
+  request: SecurityAlertsAPIRequest,
 ): Promise<SecurityAlertResponse> {
-  const url = getUrl(chainId, ENDPOINT_VALIDATE);
+  const endpoint = `${ENDPOINT_VALIDATE}/${chainId}`;
+  return postRequest(endpoint, request);
+}
+
+async function postRequest(endpoint: string, body: any) {
+  const url = getUrl(endpoint);
 
   const response = await fetch(url, {
     method: 'POST',
-    body: JSON.stringify(request),
+    body: JSON.stringify(body),
     headers: {
       'Content-Type': 'application/json',
     },
   });
 
-  return response.json() as Promise<SecurityAlertResponse>;
+  if (!response.ok) {
+    throw new Error(
+      `Security alerts API request failed with status: ${response.status}`,
+    );
+  }
+
+  return response.json();
 }
 
-function getUrl(chainId: string, endpoint: string) {
-  return `${process.env.SECURITY_ALERTS_API_URL}/${endpoint}/${chainId}`;
+function getUrl(endpoint: string) {
+  const host = process.env.SECURITY_ALERTS_API_URL;
+
+  if (!host) {
+    throw new Error('Security alerts API URL is not set');
+  }
+
+  return `${host}/${endpoint}`;
 }

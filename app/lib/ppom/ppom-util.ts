@@ -14,7 +14,10 @@ import { updateSecurityAlertResponse } from '../../util/transaction-controller';
 import { normalizeTransactionParams } from '@metamask/transaction-controller';
 import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 import AppConstants from '../../core/AppConstants';
-import { isEnabled, validate } from './security-alerts-api';
+import {
+  isSecurityAlertsAPIEnabled,
+  validateWithSecurityAlertsAPI,
+} from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
 
 const TRANSACTION_METHOD = 'eth_sendTransaction';
@@ -43,7 +46,7 @@ const SECURITY_ALERT_RESPONSE_IN_PROGRESS = {
   description: 'Validating the confirmation in progress.',
 };
 
-const validateRequest = async (req: any, transactionId?: string) => {
+async function validateRequest(req: any, transactionId?: string) {
   const {
     PPOMController: ppomController,
     PreferencesController,
@@ -84,8 +87,8 @@ const validateRequest = async (req: any, transactionId?: string) => {
 
     const normalizedRequest = normalizeRequest(req);
 
-    securityAlertResponse = isEnabled()
-      ? await validateWithAPI(chainId, normalizedRequest)
+    securityAlertResponse = isSecurityAlertsAPIEnabled()
+      ? await validateWithAPI(ppomController, chainId, normalizedRequest)
       : await validateWithController(ppomController, normalizedRequest);
 
     securityAlertResponse = {
@@ -104,7 +107,7 @@ const validateRequest = async (req: any, transactionId?: string) => {
       updateControllerState: true,
     });
   }
-};
+}
 
 async function validateWithController(
   ppomController: PPOMController,
@@ -116,10 +119,16 @@ async function validateWithController(
 }
 
 async function validateWithAPI(
+  ppomController: PPOMController,
   chainId: string,
   request: any,
 ): Promise<SecurityAlertResponse> {
-  return validate(chainId, request);
+  try {
+    return await validateWithSecurityAlertsAPI(chainId, request);
+  } catch (e) {
+    Logger.log(`Error validating request with security alerts API: ${e}`);
+    return await validateWithController(ppomController, request);
+  }
 }
 
 function setSecurityAlertResponse(
