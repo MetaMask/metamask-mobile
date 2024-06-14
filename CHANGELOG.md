@@ -2,12 +2,20 @@
 
 ## Current Main Branch
 
-## 7.24.1 - Jun 13, 2024
+## 7.24.2 - Jun 13, 2024
 ### Added
 - [#9687](https://github.com/MetaMask/metamask-mobile/pull/9687): feat: adds "data collection for marketing" toggles
 
+### Fixed 
+- [#9905](https://github.com/MetaMask/metamask-mobile/pull/9905): fix: remove metametrics redundant calls and improve compliance
+
+
+## 7.24.1 - Jun 13, 2024
 ### Fixed
 - [#9943](https://github.com/MetaMask/metamask-mobile/pull/9943): fix: duplicate accounts
+- [#9974](https://github.com/MetaMask/metamask-mobile/pull/9974): fix: fix(ramp): memoize asset before passing it to balance hook (#9968)
+- [#9978](https://github.com/MetaMask/metamask-mobile/pull/9978): fix: Engine does not exist, network controller is missing ids
+- [#9946](https://github.com/MetaMask/metamask-mobile/pull/9946): fix: Update help center URLs 
 
 ## 7.24.0 - Jun 11, 2024
 ### Added
