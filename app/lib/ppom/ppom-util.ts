@@ -5,6 +5,7 @@ import {
   Reason,
   ResultType,
   SecurityAlertResponse,
+  SecurityAlertSource,
 } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 import Engine from '../../core/Engine';
 import { store } from '../../store';
@@ -113,9 +114,14 @@ async function validateWithController(
   ppomController: PPOMController,
   request: any,
 ): Promise<SecurityAlertResponse> {
-  return await ppomController.usePPOM((ppom: any) =>
-    ppom.validateJsonRpc(request),
+  const response: SecurityAlertResponse = await ppomController.usePPOM(
+    (ppom: any) => ppom.validateJsonRpc(request),
   );
+
+  return {
+    ...response,
+    source: SecurityAlertSource.Local,
+  };
 }
 
 async function validateWithAPI(
@@ -124,7 +130,12 @@ async function validateWithAPI(
   request: any,
 ): Promise<SecurityAlertResponse> {
   try {
-    return await validateWithSecurityAlertsAPI(chainId, request);
+    const response = await validateWithSecurityAlertsAPI(chainId, request);
+
+    return {
+      ...response,
+      source: SecurityAlertSource.API,
+    };
   } catch (e) {
     Logger.log(`Error validating request with security alerts API: ${e}`);
     return await validateWithController(ppomController, request);
