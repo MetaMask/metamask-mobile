@@ -8,6 +8,7 @@
 - [#10006](https://github.com/MetaMask/metamask-mobile/pull/10006): fix: Fix order of accounts (#10006)
 - [#10004](https://github.com/MetaMask/metamask-mobile/pull/10004): fix: Synchronize account names (#10004)
 - [#9974](https://github.com/MetaMask/metamask-mobile/pull/9974): fix: Fix freeze on buy and sell flow (#9974)
+- [#9980](https://github.com/MetaMask/metamask-mobile/pull/9980): fix: Fix initialization crash / login error "Engine does not exist (#9980) 
 
 ## 7.24.0 - Jun 11, 2024
 ### Added
