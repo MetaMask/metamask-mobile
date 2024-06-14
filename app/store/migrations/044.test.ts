@@ -24,9 +24,7 @@ const expectedId3 = getUUIDFromAddressOfNormalAccount(MOCK_LOWERCASE_ADDRESS_3);
 const expectedId4 = getUUIDFromAddressOfNormalAccount(MOCK_LOWERCASE_ADDRESS_4);
 const expectedId5 = getUUIDFromAddressOfNormalAccount(MOCK_LOWERCASE_ADDRESS_5);
 
-function createMockAccountsControllerState(
-  selectedAccount = 'id1',
-): AccountsControllerState {
+function createMockAccountsControllerState(selectedAccount = 'id1') {
   return {
     internalAccounts: {
       accounts: {
@@ -427,7 +425,7 @@ describe('Migration #044', () => {
   });
 
   it('should handle cases with no duplicates correctly', () => {
-    const uniqueState: AccountsControllerState = {
+    const uniqueState = {
       internalAccounts: {
         accounts: {
           unique1: {
