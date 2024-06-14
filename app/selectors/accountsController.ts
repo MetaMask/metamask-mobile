@@ -4,14 +4,30 @@ import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
+import { selectOrderedKeyringAccounts } from './keyringController';
 
 const selectAccountsControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountsController;
 
 export const selectInternalAccounts = createDeepEqualSelector(
   selectAccountsControllerState,
-  (accountControllerState) =>
-    Object.values(accountControllerState.internalAccounts.accounts),
+  selectOrderedKeyringAccounts,
+  (accountControllerState, orderedKeyringAccounts) => {
+    const keyringAccountsMap = new Map(
+      orderedKeyringAccounts.map((account, index) => [
+        account.toLowerCase(),
+        index,
+      ]),
+    );
+    const sortedAccounts = Object.values(
+      accountControllerState.internalAccounts.accounts,
+    ).sort(
+      (a, b) =>
+        (keyringAccountsMap.get(a.address.toLowerCase()) || 0) -
+        (keyringAccountsMap.get(b.address.toLowerCase()) || 0),
+    );
+    return sortedAccounts;
+  },
 );
 
 export const selectSelectedInternalAccount = createDeepEqualSelector(
