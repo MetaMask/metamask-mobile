@@ -80,7 +80,7 @@ have to have all these work arounds in the tests
   } finally {
     // Handle Marketing consent modal
 
-    await Assertions.checkIfVisible(await ExperienceEnhancerModal.title);
+    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
     await ExperienceEnhancerModal.tapNoThanks();
   }
 };
