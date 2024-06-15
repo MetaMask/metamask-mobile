@@ -71,18 +71,19 @@ have to have all these work arounds in the tests
   } catch {
     //
   }
-  // Handle Marketing consent modal
-  await TestHelpers.delay(2500);
 
   try {
     await WhatsNewModal.isVisible();
     await WhatsNewModal.tapCloseButton();
   } catch {
+    console.log('The whats new modal is not visible');
+
     //
   } finally {
+    // Handle Marketing consent modal
+
     await Assertions.checkIfVisible(await ExperienceEnhancerModal.title);
     await ExperienceEnhancerModal.tapNoThanks();
-    await Assertions.checkIfNotVisible(await ExperienceEnhancerModal.title);
   }
 };
 
@@ -113,7 +114,6 @@ export const importWalletWithRecoveryPhrase = async () => {
   await closeOnboardingModals();
 
   // should tap on the close button to dismiss the whats new modal
-  await TestHelpers.delay(2500);
   try {
     await WhatsNewModal.isVisible();
     await WhatsNewModal.tapCloseButton();
@@ -157,22 +157,8 @@ export const CreateNewWallet = async () => {
   // 'should dismiss the onboarding wizard'
   // dealing with flakiness on bitrise.
   await TestHelpers.delay(1000);
-  try {
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
-    await OnboardingWizardModal.tapNoThanksButton();
-    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
-
-    await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
-
-    await ExperienceEnhancerModal.tapNoThanks();
-    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.container);
-  } catch {
-    //
-  }
-
-  //should tap on the close button to dismiss the whats new modal'
-  // dealing with flakiness on bitrise.
-  await TestHelpers.delay(2000);
+  await closeOnboardingModals();
+  // should tap on the close button to dismiss the whats new modal
   try {
     await WhatsNewModal.isVisible();
     await WhatsNewModal.tapCloseButton();
