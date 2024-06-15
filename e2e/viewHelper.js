@@ -47,8 +47,8 @@ export const acceptTermOfUse = async () => {
   await TermsOfUseModal.isNotDisplayed();
 };
 export const closeOnboardingModals = async () => {
-  /* 
-These onboarding modals are becoming a bit wild. We need less of these so we dont 
+  /*
+These onboarding modals are becoming a bit wild. We need less of these so we dont
 have to have all these work arounds in the tests
   */
   // check if whats new appears and close it
@@ -76,8 +76,6 @@ have to have all these work arounds in the tests
     await WhatsNewModal.isVisible();
     await WhatsNewModal.tapCloseButton();
   } catch {
-    console.log('The whats new modal is not visible');
-
     //
   } finally {
     // Handle Marketing consent modal
