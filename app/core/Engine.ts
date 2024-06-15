@@ -1337,7 +1337,33 @@ class Engine {
       Controllers[keyof Controllers]
     >({
       controllers,
-      messenger: this.controllerMessenger,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'ComposableController',
+        allowedActions: [],
+        // Add `stateChange` event here and in the `GlobalEvents` type
+        // whenever `messagingSystem` is added to a V1 child controller (or it is upgraded to V2)
+        allowedEvents: [
+          'AccountsController:stateChange',
+          'ApprovalController:stateChange',
+          'CurrencyRateController:stateChange',
+          'GasFeeController:stateChange',
+          'KeyringController:stateChange',
+          'LoggingController:stateChange',
+          'NetworkController:stateChange',
+          'NftController:stateChange',
+          'PermissionController:stateChange',
+          'PhishingController:stateChange',
+          'PreferencesController:stateChange',
+          'PPOMController:stateChange',
+          'TokenBalancesController:stateChange',
+          'TokenListController:stateChange',
+          'TokensController:stateChange',
+          'TransactionController:stateChange',
+          'SignatureController:stateChange',
+          'SnapController:stateChange',
+          'SubjectMetadataController:stateChange',
+        ],
+      }),
     });
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({
