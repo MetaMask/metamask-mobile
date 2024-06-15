@@ -204,6 +204,7 @@ import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
+import { isTransactionSimulationsFeatureEnabled } from '../util/transaction-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1023,6 +1024,9 @@ class Engine {
         },
         updateTransactions: true,
       },
+      isSimulationEnabled: () =>
+        isTransactionSimulationsFeatureEnabled() &&
+        preferencesController.state.useTransactionSimulations,
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',

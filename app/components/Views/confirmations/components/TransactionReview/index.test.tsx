@@ -12,6 +12,8 @@ import initialBackgroundState from '../../../../../util/test/initial-background-
 import { fireEvent } from '@testing-library/react-native';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
+import { AccountsControllerState } from '@metamask/accounts-controller';
+import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 
 jest.mock('../../../../../util/transactions', () => ({
   ...jest.requireActual('../../../../../util/transactions'),
@@ -38,6 +40,16 @@ jest.mock(
   '../../../../../components/UI/QRHardware/withQRHardwareAwareness',
   () => (obj: any) => obj,
 );
+
+const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+const MOCK_ADDRESS_2 = '0xB374Ca013934e498e5baD3409147F34E6c462389';
+const MOCK_ADDRESS_3 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState =
+  createMockAccountsControllerState(
+    [MOCK_ADDRESS_1, MOCK_ADDRESS_2, MOCK_ADDRESS_3],
+    MOCK_ADDRESS_3,
+  );
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -71,20 +83,21 @@ const mockState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+          [MOCK_ADDRESS_1]: {
             balance: '0x2',
           },
         },
       },
       PreferencesController: {
-        selectedAddress: '0xd018538C87232FF95acbCe4870629b75640a78E7',
+        selectedAddress: MOCK_ADDRESS_3,
         identities: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': { name: 'Account 1' },
-          '0xB374Ca013934e498e5baD3409147F34E6c462389': { name: 'Account 2' },
-          '0xd018538C87232FF95acbCe4870629b75640a78E7': { name: 'Account 3' },
+          [MOCK_ADDRESS_1]: { name: 'Account 1' },
+          [MOCK_ADDRESS_2]: { name: 'Account 2' },
+          [MOCK_ADDRESS_3]: { name: 'Account 3' },
         },
         securityAlertsEnabled: true,
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
         providerConfig: {
           chainId: '0x1',
@@ -100,13 +113,13 @@ const mockState = {
   },
   transaction: {
     transaction: {
-      from: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-      to: '0xB374Ca013934e498e5baD3409147F34E6c462389',
+      from: MOCK_ADDRESS_1,
+      to: MOCK_ADDRESS_2,
     },
-    transactionTo: '0xB374Ca013934e498e5baD3409147F34E6c462389',
+    transactionTo: MOCK_ADDRESS_2,
     selectedAsset: {
       isETH: true,
-      address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+      address: MOCK_ADDRESS_1,
       symbol: 'ETH',
       decimals: 8,
     },
