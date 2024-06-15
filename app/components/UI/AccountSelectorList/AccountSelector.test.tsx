@@ -8,15 +8,15 @@ import { View } from 'react-native';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { regex } from '../../../../app/util/regex';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
-const MOCK_ACCOUNT_ADDRESSES = Object.values(
-  MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-).map((account) => account.address);
+const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
 
-const BUSINESS_ACCOUNT = toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]);
-const PERSONAL_ACCOUNT = toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]);
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  BUSINESS_ACCOUNT,
+  PERSONAL_ACCOUNT,
+]);
 
 jest.mock('../../../util/address', () => {
   const actual = jest.requireActual('../../../util/address');
@@ -172,12 +172,12 @@ describe('AccountSelectorList', () => {
       expect(accounts.length).toBe(1);
 
       const businessAccountItem = await queryByTestId(
-        `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
+        `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
-      expect(within(businessAccountItem).getByText(regex.eth(2))).toBeDefined();
+      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
       expect(
-        within(businessAccountItem).getByText(regex.usd(6400)),
+        within(businessAccountItem).getByText(regex.usd(3200)),
       ).toBeDefined();
 
       expect(toJSON()).toMatchSnapshot();
