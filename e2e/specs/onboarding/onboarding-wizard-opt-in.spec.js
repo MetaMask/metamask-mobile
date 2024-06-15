@@ -20,6 +20,7 @@ import { acceptTermOfUse } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
+import ExperienceEnhancerModal from '../../pages/modals/ExperienceEnhancerModal';
 
 const PASSWORD = '12345678';
 
@@ -54,6 +55,8 @@ describe(
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
       await SkipAccountSecurityModal.tapSkipButton();
       await OnboardingSuccessView.tapDone();
+      await ExperienceEnhancerModal.tapIagree();
+
       await WalletView.isVisible();
     });
 
