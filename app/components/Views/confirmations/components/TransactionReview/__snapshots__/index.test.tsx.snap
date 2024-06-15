@@ -944,7 +944,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                       <View
                         style={
                           {
-                            "borderColor": "#bbc0c5",
+                            "borderColor": "#BBC0C5",
                             "borderRadius": 8,
                             "borderWidth": 1,
                             "flexDirection": "column",
@@ -975,7 +975,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "500",
@@ -1018,7 +1018,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                               onStartShouldSetResponder={[Function]}
                             >
                               <SvgMock
-                                color="#9fa6ae"
+                                color="#BBC0C5"
                                 height={16}
                                 name="Info"
                                 style={
@@ -1034,7 +1034,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                           <View
                             style={
                               {
-                                "borderColor": "#f2f4f6",
+                                "borderColor": "#F2F4F6",
                                 "borderRadius": 48,
                                 "borderWidth": 3.5,
                                 "height": 24,
@@ -1064,7 +1064,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#0376c9",
+                                      "color": "#0376C9",
                                       "fontSize": 24,
                                     },
                                     undefined,
