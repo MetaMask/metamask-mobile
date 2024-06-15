@@ -472,6 +472,7 @@ exports[`BlockaidBanner should render loader if reason is requestInProgress 1`] 
 exports[`BlockaidBanner should render normal banner alert if resultType is failed 1`] = `
 <View
   collapsable={false}
+  forwardedRef={[Function]}
   style={
     {
       "marginBottom": 20,

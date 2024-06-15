@@ -254,6 +254,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -346,6 +347,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -875,6 +877,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                     accessible={true}
                                     collapsable={false}
                                     focusable={true}
+                                    forwardedRef={[Function]}
                                     onClick={[Function]}
                                     onResponderGrant={[Function]}
                                     onResponderMove={[Function]}
@@ -900,6 +903,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                     collapsable={false}
                                     deviceHeight={null}
                                     deviceWidth={null}
+                                    forwardedRef={[Function]}
                                     hideModalContentWhileAnimating={false}
                                     onBackdropPress={[Function]}
                                     onModalHide={[Function]}
@@ -2006,6 +2010,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -2098,6 +2103,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3169,6 +3175,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -3261,6 +3268,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4332,6 +4340,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -4424,6 +4433,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -5495,6 +5505,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -5587,6 +5598,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6756,6 +6768,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -6848,6 +6861,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -8017,6 +8031,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -8109,6 +8124,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -8703,6 +8719,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -8795,6 +8812,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -9389,6 +9407,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -9481,6 +9500,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={

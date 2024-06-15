@@ -876,6 +876,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -968,6 +969,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1618,6 +1620,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1710,6 +1713,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3127,6 +3131,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -3219,6 +3224,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -5089,6 +5095,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -5181,6 +5188,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -5882,6 +5890,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -5974,6 +5983,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6675,6 +6685,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -6767,6 +6778,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -7468,6 +7480,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -7560,6 +7573,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={

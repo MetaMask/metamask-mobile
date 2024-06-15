@@ -142,6 +142,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -234,6 +235,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -406,7 +408,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                         <RCTRefreshControl />
                         <View>
                           <View
-                            collapsable={false}
                             onLayout={[Function]}
                           >
                             <View
@@ -1315,6 +1316,7 @@ exports[`Tokens should render correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1407,6 +1409,7 @@ exports[`Tokens should render correctly 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1579,7 +1582,6 @@ exports[`Tokens should render correctly 1`] = `
                         <RCTRefreshControl />
                         <View>
                           <View
-                            collapsable={false}
                             onLayout={[Function]}
                           >
                             <View
@@ -2488,6 +2490,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -2580,6 +2583,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2760,7 +2764,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                         <RCTRefreshControl />
                         <View>
                           <View
-                            collapsable={false}
                             onLayout={[Function]}
                           >
                             <View
