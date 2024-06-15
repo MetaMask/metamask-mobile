@@ -9,13 +9,13 @@
 ### Fixed 
 - [#9905](https://github.com/MetaMask/metamask-mobile/pull/9905): fix: remove metametrics redundant calls and improve compliance
 
-
 ## 7.24.1 - Jun 13, 2024
 ### Fixed
-- [#9943](https://github.com/MetaMask/metamask-mobile/pull/9943): fix: duplicate accounts
-- [#9974](https://github.com/MetaMask/metamask-mobile/pull/9974): fix: fix(ramp): memoize asset before passing it to balance hook (#9968)
-- [#9978](https://github.com/MetaMask/metamask-mobile/pull/9978): fix: Engine does not exist, network controller is missing ids
-- [#9946](https://github.com/MetaMask/metamask-mobile/pull/9946): fix: Update help center URLs 
+- [#9943](https://github.com/MetaMask/metamask-mobile/pull/9943): fix: Remove duplicate accounts (#9943)
+- [#10006](https://github.com/MetaMask/metamask-mobile/pull/10006): fix: Fix order of accounts (#10006)
+- [#10004](https://github.com/MetaMask/metamask-mobile/pull/10004): fix: Synchronize account names (#10004)
+- [#9974](https://github.com/MetaMask/metamask-mobile/pull/9974): fix: Fix freeze on buy and sell flow (#9974)
+- [#9980](https://github.com/MetaMask/metamask-mobile/pull/9980): fix: Fix initialization crash / login error "Engine does not exist (#9980) 
 
 ## 7.24.0 - Jun 11, 2024
 ### Added
