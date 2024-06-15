@@ -3,7 +3,7 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
 class ExperienceEnhancerModal {
-  get title() {
+  get container() {
     return Matchers.getElementByID(
       ExperienceEnhancerModalSelectorsIDs.BOTTOM_SHEET,
     );
