@@ -60,28 +60,32 @@ have to have all these work arounds in the tests
   } catch {
     //
   }
-  await TestHelpers.delay(3000);
 
   // Handle Onboarding wizard
   try {
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
+    await Assertions.checkIfVisible(
+      await OnboardingWizardModal.stepOneContainer,
+    );
     await OnboardingWizardModal.tapNoThanksButton();
-    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
+    await Assertions.checkIfNotVisible(
+      await OnboardingWizardModal.stepOneContainer,
+    );
   } catch {
     //
   }
   // Handle Marketing consent modal
   await TestHelpers.delay(2500);
-  await ExperienceEnhancerModal.tapNoThanks();
-  await Assertions.checkIfNotVisible(ExperienceEnhancerModal.title);
 
-  // try {
-  //   await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
-  //   await ExperienceEnhancerModal.tapNoThanks();
-  //   await Assertions.checkIfNotVisible(ExperienceEnhancerModal.title);
-  // } catch {
-  //   //
-  // }
+  try {
+    await WhatsNewModal.isVisible();
+    await WhatsNewModal.tapCloseButton();
+  } catch {
+    //
+  } finally {
+    await Assertions.checkIfVisible(await ExperienceEnhancerModal.title);
+    await ExperienceEnhancerModal.tapNoThanks();
+    await Assertions.checkIfNotVisible(await ExperienceEnhancerModal.title);
+  }
 };
 
 export const importWalletWithRecoveryPhrase = async () => {
