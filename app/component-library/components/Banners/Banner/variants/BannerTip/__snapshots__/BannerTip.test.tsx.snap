@@ -4,8 +4,8 @@ exports[`BannerTip should render default settings correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#FFFFFF",
-      "borderColor": "#BBC0C5",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#bbc0c5",
       "borderRadius": 4,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -56,7 +56,7 @@ exports[`BannerTip should render default settings correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "500",
@@ -71,7 +71,7 @@ exports[`BannerTip should render default settings correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -91,7 +91,7 @@ exports[`BannerTip should render default settings correctly 1`] = `
       style={
         {
           "backgroundColor": "transparent",
-          "color": "#24272A",
+          "color": "#141618",
         }
       }
       suppressHighlighting={true}
@@ -100,7 +100,7 @@ exports[`BannerTip should render default settings correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376C9",
+            "color": "#0376c9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -140,7 +140,7 @@ exports[`BannerTip should render default settings correctly 1`] = `
       testID="banner-close-button-icon"
     >
       <SvgMock
-        color="#24272A"
+        color="#141618"
         height={16}
         name="Close"
         style={
