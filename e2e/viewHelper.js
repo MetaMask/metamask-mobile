@@ -46,6 +46,38 @@ export const acceptTermOfUse = async () => {
   await TermsOfUseModal.tapAcceptButton();
   await TermsOfUseModal.isNotDisplayed();
 };
+export const closeOnboardingModals = async () => {
+  /* 
+These onboarding modals are becoming a bit wild. We need less of these so we dont 
+have to have all these work arounds in the tests
+  */
+  // check if whats new appears and close it
+  try {
+    await WhatsNewModal.isVisible();
+    await WhatsNewModal.tapCloseButton();
+  } catch {
+    //
+  }
+  await TestHelpers.delay(1000);
+
+  // Handle Onboarding wizard
+  try {
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
+    await OnboardingWizardModal.tapNoThanksButton();
+    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
+  } catch {
+    //
+  }
+  // Handle Marketing consent modal
+
+  try {
+    await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
+    await ExperienceEnhancerModal.tapNoThanks();
+    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.title);
+  } catch {
+    //
+  }
+};
 
 export const importWalletWithRecoveryPhrase = async () => {
   // tap on import seed phrase button
@@ -71,17 +103,7 @@ export const importWalletWithRecoveryPhrase = async () => {
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await TestHelpers.delay(1000);
-  try {
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
-    await OnboardingWizardModal.tapNoThanksButton();
-    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
-
-    await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
-    await ExperienceEnhancerModal.tapNoThanks();
-    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.container);
-  } catch {
-    //
-  }
+  await closeOnboardingModals();
 
   // should tap on the close button to dismiss the whats new modal
   await TestHelpers.delay(2500);
