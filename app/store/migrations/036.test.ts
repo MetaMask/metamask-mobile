@@ -8,7 +8,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-const MOCK_ADDRESS = '0x0';
+const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
 
 interface Identities {
@@ -16,7 +16,7 @@ interface Identities {
 }
 
 function createMockPreferenceControllerState(
-  identities: Identity[] = [{ name: 'Account 1', address: MOCK_ADDRESS }],
+  identities: Identity[] = [{ name: 'Account 1', address: MOCK_ADDRESS_1 }],
   selectedAddress?: string,
 ): {
   identities: Identities;
@@ -145,19 +145,19 @@ describe('Migration #036', () => {
     it('creates default state for accounts controller', () => {
       const oldState = createMockState({
         identities: {
-          [MOCK_ADDRESS]: {
+          [MOCK_ADDRESS_1]: {
             name: 'Account 1',
-            address: MOCK_ADDRESS,
+            address: MOCK_ADDRESS_1,
             lastSelected: undefined,
           },
         },
-        selectedAddress: MOCK_ADDRESS,
+        selectedAddress: MOCK_ADDRESS_1,
       });
       const newState = migrate(oldState);
 
-      const expectedUUID = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS);
+      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
       const resultInternalAccount = expectedInternalAccount(
-        MOCK_ADDRESS,
+        MOCK_ADDRESS_1,
         'Account 1',
       );
       expect(newState).toStrictEqual({
@@ -166,9 +166,9 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUUID]: resultInternalAccount,
+                  [expectedUuid]: resultInternalAccount,
                 },
-                selectedAccount: expectedUUID,
+                selectedAccount: expectedUuid,
               },
             },
             PreferencesController: {
@@ -189,16 +189,16 @@ describe('Migration #036', () => {
 
   describe('createInternalAccountsForAccountsController', () => {
     it('should create the identities into AccountsController as internal accounts', () => {
-      const expectedUUID = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS);
+      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
       const oldState = createMockState({
         identities: {
-          [MOCK_ADDRESS]: {
+          [MOCK_ADDRESS_1]: {
             name: 'Account 1',
-            address: MOCK_ADDRESS,
+            address: MOCK_ADDRESS_1,
             lastSelected: undefined,
           },
         },
-        selectedAddress: MOCK_ADDRESS,
+        selectedAddress: MOCK_ADDRESS_1,
       });
 
       const newState = migrate(oldState);
@@ -209,12 +209,12 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUUID]: expectedInternalAccount(
-                    MOCK_ADDRESS,
+                  [expectedUuid]: expectedInternalAccount(
+                    MOCK_ADDRESS_1,
                     `Account 1`,
                   ),
                 },
-                selectedAccount: expectedUUID,
+                selectedAccount: expectedUuid,
               },
             },
             PreferencesController: expect.any(Object),
@@ -224,11 +224,11 @@ describe('Migration #036', () => {
     });
 
     it('should keep the same name from the identities', () => {
-      const expectedUUID = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS);
+      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
       const oldState = createMockState(
         createMockPreferenceControllerState(
-          [{ name: 'a random name', address: MOCK_ADDRESS }],
-          MOCK_ADDRESS,
+          [{ name: 'a random name', address: MOCK_ADDRESS_1 }],
+          MOCK_ADDRESS_1,
         ),
       );
       const newState = migrate(oldState);
@@ -239,12 +239,12 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUUID]: expectedInternalAccount(
-                    MOCK_ADDRESS,
+                  [expectedUuid]: expectedInternalAccount(
+                    MOCK_ADDRESS_1,
                     `a random name`,
                   ),
                 },
-                selectedAccount: expectedUUID,
+                selectedAccount: expectedUuid,
               },
             },
           },
@@ -253,11 +253,11 @@ describe('Migration #036', () => {
     });
 
     it('should be able to handle multiple identities', () => {
-      const expectedUUID = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS);
-      const expectedUUID2 = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_2);
+      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
+      const expectedUuid2 = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_2);
       const oldState = createMockState({
         identities: {
-          [MOCK_ADDRESS]: { name: 'Account 1', address: MOCK_ADDRESS },
+          [MOCK_ADDRESS_1]: { name: 'Account 1', address: MOCK_ADDRESS_1 },
           [MOCK_ADDRESS_2]: { name: 'Account 2', address: MOCK_ADDRESS_2 },
         },
         selectedAddress: MOCK_ADDRESS_2,
@@ -269,16 +269,16 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUUID]: expectedInternalAccount(
-                    MOCK_ADDRESS,
+                  [expectedUuid]: expectedInternalAccount(
+                    MOCK_ADDRESS_1,
                     `Account 1`,
                   ),
-                  [expectedUUID2]: expectedInternalAccount(
+                  [expectedUuid2]: expectedInternalAccount(
                     MOCK_ADDRESS_2,
                     `Account 2`,
                   ),
                 },
-                selectedAccount: expectedUUID2,
+                selectedAccount: expectedUuid2,
               },
             },
             PreferencesController: expect.any(Object),
@@ -316,8 +316,8 @@ describe('Migration #036', () => {
     it('should select the same account as the selected address', () => {
       const oldState = createMockState(
         createMockPreferenceControllerState(
-          [{ name: 'a random name', address: MOCK_ADDRESS }],
-          MOCK_ADDRESS,
+          [{ name: 'a random name', address: MOCK_ADDRESS_1 }],
+          MOCK_ADDRESS_1,
         ),
       );
       const newState = migrate(oldState);
@@ -329,7 +329,7 @@ describe('Migration #036', () => {
               internalAccounts: {
                 accounts: expect.any(Object),
                 selectedAccount:
-                  getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS),
+                  getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1),
               },
             },
           },
@@ -365,15 +365,15 @@ describe('Migration #036', () => {
     });
     it('should select the first account as the selected account if selectedAddress is undefined, and update PreferencesController accordingly', () => {
       const identities = [
-        { name: 'Account 1', address: MOCK_ADDRESS },
+        { name: 'Account 1', address: MOCK_ADDRESS_1 },
         { name: 'Account 2', address: MOCK_ADDRESS_2 },
       ];
       // explicitly set selectedAddress to undefined
       const oldState = createMockState(
         createMockPreferenceControllerState(identities, undefined),
       );
-      const expectedUUID = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS);
-      const expectedUUID2 = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_2);
+      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
+      const expectedUuid2 = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_2);
 
       expect(oldState).toStrictEqual({
         engine: {
@@ -381,8 +381,8 @@ describe('Migration #036', () => {
             PreferencesController: {
               selectedAddress: undefined,
               identities: {
-                [MOCK_ADDRESS]: {
-                  address: MOCK_ADDRESS,
+                [MOCK_ADDRESS_1]: {
+                  address: MOCK_ADDRESS_1,
                   name: 'Account 1',
                   lastSelected: undefined,
                 },
@@ -406,10 +406,10 @@ describe('Migration #036', () => {
           backgroundState: {
             PreferencesController: {
               // Verifying that PreferencesController's selectedAddress is updated to the first account's address
-              selectedAddress: MOCK_ADDRESS,
+              selectedAddress: MOCK_ADDRESS_1,
               identities: {
-                [MOCK_ADDRESS]: {
-                  address: MOCK_ADDRESS,
+                [MOCK_ADDRESS_1]: {
+                  address: MOCK_ADDRESS_1,
                   name: 'Account 1',
                   lastSelected: undefined,
                 },
@@ -423,17 +423,17 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUUID]: expectedInternalAccount(
-                    MOCK_ADDRESS,
+                  [expectedUuid]: expectedInternalAccount(
+                    MOCK_ADDRESS_1,
                     `Account 1`,
                   ),
-                  [expectedUUID2]: expectedInternalAccount(
+                  [expectedUuid2]: expectedInternalAccount(
                     MOCK_ADDRESS_2,
                     `Account 2`,
                   ),
                 },
                 // Verifying the accounts controller's selectedAccount is updated to the first account's UUID
-                selectedAccount: expectedUUID,
+                selectedAccount: expectedUuid,
               },
             },
           },
