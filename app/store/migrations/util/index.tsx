@@ -1,7 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 
-export interface ValidState {
+interface ValidState {
   engine: {
     backgroundState: Record<string, unknown>;
   };

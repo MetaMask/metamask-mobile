@@ -4,8 +4,8 @@ exports[`Banner should render correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#d738471a",
-      "borderColor": "#d73847",
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -24,7 +24,7 @@ exports[`Banner should render correctly 1`] = `
     }
   >
     <SvgMock
-      color="#d73847"
+      color="#D73847"
       height={24}
       name="Danger"
       style={
@@ -47,7 +47,7 @@ exports[`Banner should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "500",
@@ -62,7 +62,7 @@ exports[`Banner should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -81,8 +81,8 @@ exports[`Banner should render correctly with a close button 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#d738471a",
-      "borderColor": "#d73847",
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -101,7 +101,7 @@ exports[`Banner should render correctly with a close button 1`] = `
     }
   >
     <SvgMock
-      color="#d73847"
+      color="#D73847"
       height={24}
       name="Danger"
       style={
@@ -124,7 +124,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "500",
@@ -139,7 +139,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -162,7 +162,7 @@ exports[`Banner should render correctly with a close button 1`] = `
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderColor": "#0376c9",
+          "borderColor": "#0376C9",
           "borderRadius": 0,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -177,7 +177,7 @@ exports[`Banner should render correctly with a close button 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
+            "color": "#0376C9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -217,7 +217,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       testID="banner-close-button-icon"
     >
       <SvgMock
-        color="#141618"
+        color="#0376C9"
         height={16}
         name="Close"
         style={
@@ -237,8 +237,8 @@ exports[`Banner should render correctly with a start accessory 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#d738471a",
-      "borderColor": "#d73847",
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -260,7 +260,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -283,7 +283,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "500",
@@ -298,7 +298,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -317,8 +317,8 @@ exports[`Banner should render correctly with an action button 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#d738471a",
-      "borderColor": "#d73847",
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -337,7 +337,7 @@ exports[`Banner should render correctly with an action button 1`] = `
     }
   >
     <SvgMock
-      color="#d73847"
+      color="#D73847"
       height={24}
       name="Danger"
       style={
@@ -360,7 +360,7 @@ exports[`Banner should render correctly with an action button 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "500",
@@ -375,7 +375,7 @@ exports[`Banner should render correctly with an action button 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -398,7 +398,7 @@ exports[`Banner should render correctly with an action button 1`] = `
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderColor": "#0376c9",
+          "borderColor": "#0376C9",
           "borderRadius": 0,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -413,7 +413,7 @@ exports[`Banner should render correctly with an action button 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
+            "color": "#0376C9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",

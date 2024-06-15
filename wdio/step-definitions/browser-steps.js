@@ -401,7 +401,6 @@ When(/^I connect my active wallet to the Uniswap exchange page$/, async () => {
   await ExternalWebsitesScreen.tapUniswapMetaMaskWalletButton();
 });
 When(/^I connect my active wallet to the test dapp$/, async () => {
-  await ExternalWebsitesScreen.isTestDappDisplayed();
   await ExternalWebsitesScreen.tapDappConnectButton();
   await AccountApprovalModal.tapConnectButtonByText();
   await AccountApprovalModal.waitForDisappear();

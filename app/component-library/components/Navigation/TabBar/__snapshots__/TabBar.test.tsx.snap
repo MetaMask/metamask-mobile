@@ -5,7 +5,7 @@ exports[`TabBar renders correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#FFFFFF",
         "flexBasis": 1,
         "shadowColor": "#00000099",
         "shadowOffset": {
@@ -21,7 +21,7 @@ exports[`TabBar renders correctly 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#FFFFFF",
         "flexDirection": "row",
         "height": 48,
         "marginBottom": 0,
@@ -53,7 +53,7 @@ exports[`TabBar renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#0376c9"
+          color="#0376C9"
           height={24}
           name="Wallet"
           style={
@@ -90,7 +90,7 @@ exports[`TabBar renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#9fa6ae"
+          color="#BBC0C5"
           height={24}
           name="Activity"
           style={
@@ -117,7 +117,7 @@ exports[`TabBar renders correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#0376C9",
             "borderRadius": 16,
             "height": 32,
             "justifyContent": "center",
@@ -127,7 +127,7 @@ exports[`TabBar renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#ffffff"
+          color="#FFFFFF"
           height={20}
           name="SwapVertival"
           style={
@@ -164,7 +164,7 @@ exports[`TabBar renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#9fa6ae"
+          color="#BBC0C5"
           height={24}
           name="Explore"
           style={
@@ -201,7 +201,7 @@ exports[`TabBar renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#9fa6ae"
+          color="#BBC0C5"
           height={24}
           name="Setting"
           style={

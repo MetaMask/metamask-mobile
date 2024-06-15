@@ -17,7 +17,7 @@ exports[`BlockaidSettings should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "500",
@@ -33,7 +33,7 @@ exports[`BlockaidSettings should render correctly 1`] = `
       onChange={[Function]}
       onResponderTerminationRequest={[Function]}
       onStartShouldSetResponder={[Function]}
-      onTintColor="#0376c9"
+      onTintColor="#0376C9"
       style={
         [
           {
@@ -45,7 +45,7 @@ exports[`BlockaidSettings should render correctly 1`] = `
               "alignSelf": "flex-end",
             },
             {
-              "backgroundColor": "#bbc0c566",
+              "backgroundColor": "#D6D9DC",
               "borderRadius": 16,
             },
           ],
@@ -53,7 +53,7 @@ exports[`BlockaidSettings should render correctly 1`] = `
       }
       testID="security-alerts-toggle"
       thumbTintColor="#ffffff"
-      tintColor="#bbc0c566"
+      tintColor="#D6D9DC"
       value={true}
     />
   </View>,
@@ -61,7 +61,7 @@ exports[`BlockaidSettings should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#6a737d",
+        "color": "#535A61",
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
         "fontWeight": "400",

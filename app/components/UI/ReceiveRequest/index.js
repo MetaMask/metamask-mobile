@@ -40,7 +40,7 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/utils';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
 import { getDecimalChainId } from '../../../util/networks';
@@ -60,7 +60,7 @@ const createStyles = (theme) =>
     qrWrapper: {
       margin: 8,
       padding: 8,
-      backgroundColor: theme.brandColors.white,
+      backgroundColor: theme.brandColors.white000,
     },
     addressWrapper: {
       flexDirection: 'row',
@@ -364,7 +364,7 @@ ReceiveRequest.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   ticker: selectTicker(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedAddress(state),
   receiveAsset: state.modals.receiveAsset,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   isNetworkBuySupported: isNetworkRampSupported(

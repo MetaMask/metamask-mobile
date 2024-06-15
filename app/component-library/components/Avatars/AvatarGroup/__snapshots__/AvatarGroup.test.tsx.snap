@@ -24,7 +24,7 @@ exports[`AvatarGroup should render correctly 1`] = `
       style={
         [
           {
-            "borderColor": "#ffffff",
+            "borderColor": "#FFFFFF",
             "borderRadius": 50,
             "borderWidth": 1,
             "position": "absolute",
@@ -50,7 +50,7 @@ exports[`AvatarGroup should render correctly 1`] = `
       style={
         [
           {
-            "borderColor": "#ffffff",
+            "borderColor": "#FFFFFF",
             "borderRadius": 50,
             "borderWidth": 1,
             "position": "absolute",
@@ -76,7 +76,7 @@ exports[`AvatarGroup should render correctly 1`] = `
       style={
         [
           {
-            "borderColor": "#ffffff",
+            "borderColor": "#FFFFFF",
             "borderRadius": 50,
             "borderWidth": 1,
             "position": "absolute",
@@ -102,7 +102,7 @@ exports[`AvatarGroup should render correctly 1`] = `
       style={
         [
           {
-            "borderColor": "#ffffff",
+            "borderColor": "#FFFFFF",
             "borderRadius": 50,
             "borderWidth": 1,
             "position": "absolute",
@@ -135,7 +135,7 @@ exports[`AvatarGroup should render correctly 1`] = `
       style={
         {
           "bottom": 2,
-          "color": "#6a737d",
+          "color": "#535A61",
           "marginLeft": 2,
         }
       }

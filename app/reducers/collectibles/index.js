@@ -4,14 +4,14 @@ import {
   selectAllNftContracts,
   selectAllNfts,
 } from '../../selectors/nftController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../selectors/accountsController';
+import { selectSelectedAddress } from '../../selectors/preferencesController';
 import { compareTokenIds } from '../../util/tokens';
 import { createDeepEqualSelector } from '../../selectors/util';
 
 const favoritesSelector = (state) => state.collectibles.favorites;
 
 export const collectibleContractsSelector = createSelector(
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedAddress,
   selectChainId,
   selectAllNftContracts,
   (address, chainId, allNftContracts) =>
@@ -19,14 +19,14 @@ export const collectibleContractsSelector = createSelector(
 );
 
 export const collectiblesSelector = createDeepEqualSelector(
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedAddress,
   selectChainId,
   selectAllNfts,
   (address, chainId, allNfts) => allNfts[address]?.[chainId] || [],
 );
 
 export const favoritesCollectiblesSelector = createSelector(
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedAddress,
   selectChainId,
   favoritesSelector,
   (address, chainId, favorites) => favorites[address]?.[chainId] || [],

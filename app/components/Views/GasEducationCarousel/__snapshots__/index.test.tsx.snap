@@ -11,7 +11,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#FFFFFF",
         "flex": 1,
       }
     }
@@ -181,7 +181,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -195,14 +195,14 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                                 },
                                 undefined,
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                 },
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                 },
                                 undefined,
                                 undefined,
@@ -234,7 +234,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -247,7 +247,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#6a737d",
+                                  "color": "#535A61",
                                 },
                                 undefined,
                                 undefined,
@@ -283,7 +283,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -296,7 +296,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#6a737d",
+                                  "color": "#535A61",
                                 },
                                 undefined,
                                 undefined,
@@ -332,7 +332,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 30,
                                     "fontWeight": "400",
@@ -409,7 +409,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#141618",
+                      "backgroundColor": "#24272A",
                       "borderRadius": 4,
                       "height": 8,
                       "marginHorizontal": 8,
@@ -426,7 +426,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#141618",
+                      "backgroundColor": "#24272A",
                       "borderRadius": 4,
                       "height": 8,
                       "marginHorizontal": 8,
@@ -441,7 +441,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#141618",
+                      "backgroundColor": "#24272A",
                       "borderRadius": 4,
                       "height": 8,
                       "marginHorizontal": 8,
@@ -462,7 +462,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
     collapsable={false}
     style={
       {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#FFFFFF",
         "bottom": 0,
         "left": 0,
         "opacity": 1,

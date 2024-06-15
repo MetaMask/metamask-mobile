@@ -20,7 +20,7 @@ import {
   selectTicker,
 } from '../../../../../selectors/networkController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
+import { selectSelectedAddress } from '../../../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
@@ -102,9 +102,6 @@ const UpdateEIP1559Tx = ({
     (updateTx) => {
       let error;
 
-      if (isNaN(updateTx.totalMaxHex)) {
-        return strings('invalid_amount');
-      }
       const updateTxCost: any = hexToBN(`0x${updateTx.totalMaxHex}`);
       const accountBalance: any = hexToBN(accounts[selectedAddress].balance);
       const isMaxFeePerGasMoreThanLegacyResult = isMaxFeePerGasMoreThanLegacy(
@@ -258,7 +255,7 @@ const UpdateEIP1559Tx = ({
 
 const mapStateToProps = (state: any) => ({
   accounts: selectAccounts(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedAddress(state),
   ticker: selectTicker(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),

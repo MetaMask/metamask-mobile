@@ -1,22 +1,28 @@
+import { v4 as uuid } from 'uuid';
 import { EthMethod, InternalAccount } from '@metamask/keyring-api';
-import migrate, { Identity } from './036';
+import migrate, { sha256FromAddress, Identity } from './036';
 import { captureException } from '@sentry/react-native';
-import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-const MOCK_ADDRESS_1 = '0x0';
+const MOCK_ADDRESS = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
+
+async function addressToUUID(address: string): Promise<string> {
+  return uuid({
+    random: await sha256FromAddress(address),
+  });
+}
 
 interface Identities {
   [key: string]: Identity;
 }
 
 function createMockPreferenceControllerState(
-  identities: Identity[] = [{ name: 'Account 1', address: MOCK_ADDRESS_1 }],
+  identities: Identity[] = [{ name: 'Account 1', address: MOCK_ADDRESS }],
   selectedAddress?: string,
 ): {
   identities: Identities;
@@ -41,14 +47,14 @@ function createMockPreferenceControllerState(
   return state;
 }
 
-function expectedInternalAccount(
+async function expectedInternalAccount(
   address: string,
   nickname: string,
   lastSelected?: number,
-): InternalAccount {
+): Promise<InternalAccount> {
   return {
     address,
-    id: getUUIDFromAddressOfNormalAccount(address),
+    id: await addressToUUID(address),
     metadata: {
       name: nickname,
       keyring: {
@@ -91,28 +97,28 @@ describe('Migration #036', () => {
     beforeEach(() => {
       mockedCaptureException.mockReset();
     });
-    it('should throw if state.engine is not defined', () => {
-      const newState = migrate({});
+    it('should throw if state.engine is not defined', async () => {
+      const newState = await migrate({});
       expect(newState).toStrictEqual({});
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         `Migration 36: Invalid root engine state: 'undefined'`,
       );
     });
-    it('should throw if state.engine.backgroundState is not defined', () => {
+    it('should throw if state.engine.backgroundState is not defined', async () => {
       const oldState = {
         engine: {
           backgroundState: undefined,
         },
       };
-      const newState = migrate(oldState);
+      const newState = await migrate(oldState);
       expect(newState).toStrictEqual(oldState);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         `Migration 36: Invalid root engine backgroundState: 'undefined'`,
       );
     });
-    it('should throw if state.engine.backgroundState.PreferencesController is not defined', () => {
+    it('should throw if state.engine.backgroundState.PreferencesController is not defined', async () => {
       const oldState = {
         engine: {
           backgroundState: {
@@ -120,14 +126,14 @@ describe('Migration #036', () => {
           },
         },
       };
-      const newState = migrate(oldState);
+      const newState = await migrate(oldState);
       expect(newState).toStrictEqual(oldState);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         `Migration 36: Invalid PreferencesController state: 'undefined'`,
       );
     });
-    it('should throw if state.engine.backgroundState.PreferencesController.identities is not defined', () => {
+    it('should throw if state.engine.backgroundState.PreferencesController.identities is not defined', async () => {
       const oldState = {
         engine: {
           backgroundState: {
@@ -135,29 +141,29 @@ describe('Migration #036', () => {
           },
         },
       };
-      const newState = migrate(oldState);
+      const newState = await migrate(oldState);
       expect(newState).toStrictEqual(oldState);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         `Migration 36: Missing identities property from PreferencesController: 'object'`,
       );
     });
-    it('creates default state for accounts controller', () => {
+    it('creates default state for accounts controller', async () => {
       const oldState = createMockState({
         identities: {
-          [MOCK_ADDRESS_1]: {
+          [MOCK_ADDRESS]: {
             name: 'Account 1',
-            address: MOCK_ADDRESS_1,
+            address: MOCK_ADDRESS,
             lastSelected: undefined,
           },
         },
-        selectedAddress: MOCK_ADDRESS_1,
+        selectedAddress: MOCK_ADDRESS,
       });
-      const newState = migrate(oldState);
+      const newState = await migrate(oldState);
 
-      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
-      const resultInternalAccount = expectedInternalAccount(
-        MOCK_ADDRESS_1,
+      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
+      const resultInternalAccount = await expectedInternalAccount(
+        MOCK_ADDRESS,
         'Account 1',
       );
       expect(newState).toStrictEqual({
@@ -166,9 +172,9 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUuid]: resultInternalAccount,
+                  [expectedUUID]: resultInternalAccount,
                 },
-                selectedAccount: expectedUuid,
+                selectedAccount: expectedUUID,
               },
             },
             PreferencesController: {
@@ -188,20 +194,20 @@ describe('Migration #036', () => {
   });
 
   describe('createInternalAccountsForAccountsController', () => {
-    it('should create the identities into AccountsController as internal accounts', () => {
-      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
+    it('should create the identities into AccountsController as internal accounts', async () => {
+      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
       const oldState = createMockState({
         identities: {
-          [MOCK_ADDRESS_1]: {
+          [MOCK_ADDRESS]: {
             name: 'Account 1',
-            address: MOCK_ADDRESS_1,
+            address: MOCK_ADDRESS,
             lastSelected: undefined,
           },
         },
-        selectedAddress: MOCK_ADDRESS_1,
+        selectedAddress: MOCK_ADDRESS,
       });
 
-      const newState = migrate(oldState);
+      const newState = await migrate(oldState);
 
       expect(newState).toStrictEqual({
         engine: {
@@ -209,12 +215,12 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUuid]: expectedInternalAccount(
-                    MOCK_ADDRESS_1,
+                  [expectedUUID]: await expectedInternalAccount(
+                    MOCK_ADDRESS,
                     `Account 1`,
                   ),
                 },
-                selectedAccount: expectedUuid,
+                selectedAccount: expectedUUID,
               },
             },
             PreferencesController: expect.any(Object),
@@ -223,15 +229,15 @@ describe('Migration #036', () => {
       });
     });
 
-    it('should keep the same name from the identities', () => {
-      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
+    it('should keep the same name from the identities', async () => {
+      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
       const oldState = createMockState(
         createMockPreferenceControllerState(
-          [{ name: 'a random name', address: MOCK_ADDRESS_1 }],
-          MOCK_ADDRESS_1,
+          [{ name: 'a random name', address: MOCK_ADDRESS }],
+          MOCK_ADDRESS,
         ),
       );
-      const newState = migrate(oldState);
+      const newState = await migrate(oldState);
       expect(newState).toStrictEqual({
         engine: {
           backgroundState: {
@@ -239,12 +245,12 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUuid]: expectedInternalAccount(
-                    MOCK_ADDRESS_1,
+                  [expectedUUID]: await expectedInternalAccount(
+                    MOCK_ADDRESS,
                     `a random name`,
                   ),
                 },
-                selectedAccount: expectedUuid,
+                selectedAccount: expectedUUID,
               },
             },
           },
@@ -252,33 +258,33 @@ describe('Migration #036', () => {
       });
     });
 
-    it('should be able to handle multiple identities', () => {
-      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
-      const expectedUuid2 = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_2);
+    it('should be able to handle multiple identities', async () => {
+      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
+      const expectedUUID2 = await addressToUUID(MOCK_ADDRESS_2);
       const oldState = createMockState({
         identities: {
-          [MOCK_ADDRESS_1]: { name: 'Account 1', address: MOCK_ADDRESS_1 },
+          [MOCK_ADDRESS]: { name: 'Account 1', address: MOCK_ADDRESS },
           [MOCK_ADDRESS_2]: { name: 'Account 2', address: MOCK_ADDRESS_2 },
         },
         selectedAddress: MOCK_ADDRESS_2,
       });
-      const newState = migrate(oldState);
+      const newState = await migrate(oldState);
       expect(newState).toStrictEqual({
         engine: {
           backgroundState: {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUuid]: expectedInternalAccount(
-                    MOCK_ADDRESS_1,
+                  [expectedUUID]: await expectedInternalAccount(
+                    MOCK_ADDRESS,
                     `Account 1`,
                   ),
-                  [expectedUuid2]: expectedInternalAccount(
+                  [expectedUUID2]: await expectedInternalAccount(
                     MOCK_ADDRESS_2,
                     `Account 2`,
                   ),
                 },
-                selectedAccount: expectedUuid2,
+                selectedAccount: expectedUUID2,
               },
             },
             PreferencesController: expect.any(Object),
@@ -287,12 +293,12 @@ describe('Migration #036', () => {
       });
     });
 
-    it('should handle empty identities and create default AccountsController with no internal accounts', () => {
+    it('should handle empty identities and create default AccountsController with no internal accounts', async () => {
       const oldState = createMockState({
         // Simulate `identities` being an empty object
         identities: {},
       });
-      const newState = migrate(oldState);
+      const newState = await migrate(oldState);
 
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
 
@@ -313,14 +319,14 @@ describe('Migration #036', () => {
   });
 
   describe('createSelectedAccountForAccountsController', () => {
-    it('should select the same account as the selected address', () => {
+    it('should select the same account as the selected address', async () => {
       const oldState = createMockState(
         createMockPreferenceControllerState(
-          [{ name: 'a random name', address: MOCK_ADDRESS_1 }],
-          MOCK_ADDRESS_1,
+          [{ name: 'a random name', address: MOCK_ADDRESS }],
+          MOCK_ADDRESS,
         ),
       );
-      const newState = migrate(oldState);
+      const newState = await migrate(oldState);
       expect(newState).toStrictEqual({
         engine: {
           backgroundState: {
@@ -328,8 +334,7 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: expect.any(Object),
-                selectedAccount:
-                  getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1),
+                selectedAccount: await addressToUUID(MOCK_ADDRESS),
               },
             },
           },
@@ -337,7 +342,7 @@ describe('Migration #036', () => {
       });
     });
 
-    it("should leave selectedAccount as empty if there aren't any selectedAddress", () => {
+    it("should leave selectedAccount as empty if there aren't any selectedAddress", async () => {
       const oldState = {
         engine: {
           backgroundState: {
@@ -348,7 +353,7 @@ describe('Migration #036', () => {
           },
         },
       };
-      const newState = migrate(oldState);
+      const newState = await migrate(oldState);
       expect(newState).toStrictEqual({
         engine: {
           backgroundState: {
@@ -363,17 +368,17 @@ describe('Migration #036', () => {
         },
       });
     });
-    it('should select the first account as the selected account if selectedAddress is undefined, and update PreferencesController accordingly', () => {
+    it('should select the first account as the selected account if selectedAddress is undefined, and update PreferencesController accordingly', async () => {
       const identities = [
-        { name: 'Account 1', address: MOCK_ADDRESS_1 },
+        { name: 'Account 1', address: MOCK_ADDRESS },
         { name: 'Account 2', address: MOCK_ADDRESS_2 },
       ];
       // explicitly set selectedAddress to undefined
       const oldState = createMockState(
         createMockPreferenceControllerState(identities, undefined),
       );
-      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
-      const expectedUuid2 = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_2);
+      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
+      const expectedUUID2 = await addressToUUID(MOCK_ADDRESS_2);
 
       expect(oldState).toStrictEqual({
         engine: {
@@ -381,8 +386,8 @@ describe('Migration #036', () => {
             PreferencesController: {
               selectedAddress: undefined,
               identities: {
-                [MOCK_ADDRESS_1]: {
-                  address: MOCK_ADDRESS_1,
+                [MOCK_ADDRESS]: {
+                  address: MOCK_ADDRESS,
                   name: 'Account 1',
                   lastSelected: undefined,
                 },
@@ -397,7 +402,7 @@ describe('Migration #036', () => {
         },
       });
 
-      const newState = migrate(oldState);
+      const newState = await migrate(oldState);
 
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
 
@@ -406,10 +411,10 @@ describe('Migration #036', () => {
           backgroundState: {
             PreferencesController: {
               // Verifying that PreferencesController's selectedAddress is updated to the first account's address
-              selectedAddress: MOCK_ADDRESS_1,
+              selectedAddress: MOCK_ADDRESS,
               identities: {
-                [MOCK_ADDRESS_1]: {
-                  address: MOCK_ADDRESS_1,
+                [MOCK_ADDRESS]: {
+                  address: MOCK_ADDRESS,
                   name: 'Account 1',
                   lastSelected: undefined,
                 },
@@ -423,17 +428,17 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUuid]: expectedInternalAccount(
-                    MOCK_ADDRESS_1,
+                  [expectedUUID]: await expectedInternalAccount(
+                    MOCK_ADDRESS,
                     `Account 1`,
                   ),
-                  [expectedUuid2]: expectedInternalAccount(
+                  [expectedUUID2]: await expectedInternalAccount(
                     MOCK_ADDRESS_2,
                     `Account 2`,
                   ),
                 },
                 // Verifying the accounts controller's selectedAccount is updated to the first account's UUID
-                selectedAccount: expectedUuid,
+                selectedAccount: expectedUUID,
               },
             },
           },

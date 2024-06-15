@@ -84,7 +84,7 @@ describe(
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(2500);
       try {
-        await Assertions.checkIfVisible(WhatsNewModal.container);
+        await WhatsNewModal.isVisible();
         await WhatsNewModal.tapCloseButton();
       } catch {
         //

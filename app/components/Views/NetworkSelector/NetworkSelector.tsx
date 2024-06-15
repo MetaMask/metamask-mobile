@@ -241,7 +241,7 @@ const NetworkSelector = () => {
           true: colors.primary.default,
           false: colors.border.muted,
         }}
-        thumbColor={theme.brandColors.white}
+        thumbColor={theme.brandColors.white000}
         ios_backgroundColor={colors.border.muted}
         testID={NetworkListModalSelectorsIDs.TEST_NET_TOGGLE}
         disabled={isTestNet(providerConfig.chainId)}

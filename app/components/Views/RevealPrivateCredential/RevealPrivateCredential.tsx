@@ -52,7 +52,7 @@ import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const PRIVATE_KEY = 'private_key';
@@ -83,9 +83,7 @@ const RevealPrivateCredential = ({
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
   const dispatch = useDispatch();

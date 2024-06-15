@@ -58,8 +58,8 @@ import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -197,8 +197,8 @@ const RootRPCMethodsUI = (props) => {
     [
       props.selectedAddress,
       props.shouldUseSmartTransaction,
-      trackAnonymousEvent,
       trackEvent,
+      trackAnonymousEvent,
     ],
   );
 
@@ -482,7 +482,7 @@ RootRPCMethodsUI.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedAddress(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
   swapsTransactions:

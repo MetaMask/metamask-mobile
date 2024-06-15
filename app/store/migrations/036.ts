@@ -5,8 +5,9 @@ import {
 } from '@metamask/keyring-api';
 import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
-import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import { v4 as uuid } from 'uuid';
+import { NativeModules } from 'react-native';
+const Aes = NativeModules.Aes;
 
 export interface Identity {
   name: string;
@@ -14,7 +15,8 @@ export interface Identity {
   lastSelected?: number;
 }
 
-export default function migrate(state: unknown) {
+export default async function migrate(stateAsync: unknown) {
+  const state = await stateAsync;
   if (!isObject(state)) {
     captureException(
       new Error(`Migration 36: Invalid root state: '${typeof state}'`),
@@ -63,11 +65,19 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
+
   createDefaultAccountsController(state);
-  createInternalAccountsForAccountsController(state);
+  await createInternalAccountsForAccountsController(state);
   createSelectedAccountForAccountsController(state);
   return state;
 }
+
+export const sha256FromAddress = async (
+  address: string,
+): Promise<ArrayLike<number>> => {
+  const sha256: string = await Aes.sha256(address);
+  return Buffer.from(sha256).slice(0, 16);
+};
 
 function createDefaultAccountsController(state: Record<string, any>) {
   state.engine.backgroundState.AccountsController = {
@@ -78,7 +88,7 @@ function createDefaultAccountsController(state: Record<string, any>) {
   };
 }
 
-function createInternalAccountsForAccountsController(
+async function createInternalAccountsForAccountsController(
   state: Record<string, any>,
 ) {
   const identities: {
@@ -95,8 +105,9 @@ function createInternalAccountsForAccountsController(
   const accounts: Record<string, InternalAccount> = {};
 
   for (const identity of Object.values(identities)) {
-    const lowerCaseAddress = identity.address.toLocaleLowerCase();
-    const expectedId = getUUIDFromAddressOfNormalAccount(lowerCaseAddress);
+    const expectedId = uuid({
+      random: await sha256FromAddress(identity.address),
+    });
 
     accounts[expectedId] = {
       address: identity.address,
@@ -109,7 +120,7 @@ function createInternalAccountsForAccountsController(
           // This is default HD Key Tree type because the keyring is encrypted
           // during migration, the type will get updated when the during the
           // initial updateAccounts call.
-          type: KeyringTypes.hd,
+          type: 'HD Key Tree',
         },
       },
       methods: [

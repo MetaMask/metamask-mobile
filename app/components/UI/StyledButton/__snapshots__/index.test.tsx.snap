@@ -14,8 +14,8 @@ exports[`StyledButton should render correctly on Android the button with type ca
           "padding": 15,
         },
         {
-          "backgroundColor": "#ffffff",
-          "borderColor": "#6a737d",
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#535A61",
           "borderWidth": 1,
         },
         null,
@@ -40,7 +40,7 @@ exports[`StyledButton should render correctly on Android the button with type co
           "padding": 15,
         },
         {
-          "backgroundColor": "#0376c9",
+          "backgroundColor": "#0376C9",
           "minHeight": 50,
         },
         null,
@@ -65,8 +65,8 @@ exports[`StyledButton should render correctly on Android the button with type no
           "padding": 15,
         },
         {
-          "backgroundColor": "#ffffff",
-          "borderColor": "#0376c9",
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#0376C9",
           "borderWidth": 1,
         },
         null,
@@ -91,7 +91,7 @@ exports[`StyledButton should render correctly on Android the button with type or
           "padding": 15,
         },
         {
-          "borderColor": "#bf5208",
+          "borderColor": "#F66A0A",
           "borderWidth": 1,
         },
         null,
@@ -113,8 +113,8 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
         "padding": 15,
       },
       {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#6a737d",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#535A61",
         "borderWidth": 1,
       },
       undefined,
@@ -130,7 +130,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
         "textAlign": "center",
       },
       {
-        "color": "#6a737d",
+        "color": "#535A61",
       },
       undefined,
     ]
@@ -150,7 +150,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
         "padding": 15,
       },
       {
-        "backgroundColor": "#0376c9",
+        "backgroundColor": "#0376C9",
         "minHeight": 50,
       },
       undefined,
@@ -166,7 +166,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
         "textAlign": "center",
       },
       {
-        "color": "#ffffff",
+        "color": "#FFFFFF",
       },
       undefined,
     ]
@@ -186,8 +186,8 @@ exports[`StyledButton should render correctly on iOS the button with type normal
         "padding": 15,
       },
       {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#0376c9",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#0376C9",
         "borderWidth": 1,
       },
       undefined,
@@ -203,7 +203,7 @@ exports[`StyledButton should render correctly on iOS the button with type normal
         "textAlign": "center",
       },
       {
-        "color": "#0376c9",
+        "color": "#0376C9",
       },
       undefined,
     ]
@@ -223,7 +223,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
         "padding": 15,
       },
       {
-        "borderColor": "#bf5208",
+        "borderColor": "#F66A0A",
         "borderWidth": 1,
       },
       undefined,
@@ -239,7 +239,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
         "textAlign": "center",
       },
       {
-        "color": "#bf5208",
+        "color": "#F66A0A",
       },
       undefined,
     ]

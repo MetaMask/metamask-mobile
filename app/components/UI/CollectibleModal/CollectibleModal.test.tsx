@@ -10,14 +10,10 @@ import {
   selectIsIpfsGatewayEnabled,
 } from '../../../selectors/preferencesController';
 import { useSelector } from 'react-redux';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockInitialState = {
   engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 

@@ -4,7 +4,7 @@ exports[`AssetIcon should render correctly 1`] = `
 <View
   placeholderStyle={
     {
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#F2F4F6",
     }
   }
   useNativeDriver={true}
@@ -15,7 +15,7 @@ exports[`AssetIcon should render correctly 1`] = `
     onLoadEnd={[Function]}
     placeholderStyle={
       {
-        "backgroundColor": "#f2f4f6",
+        "backgroundColor": "#F2F4F6",
       }
     }
     source={
@@ -61,7 +61,7 @@ exports[`AssetIcon should render correctly 1`] = `
             "backgroundColor": "#eee",
           },
           {
-            "backgroundColor": "#f2f4f6",
+            "backgroundColor": "#F2F4F6",
           },
         ]
       }

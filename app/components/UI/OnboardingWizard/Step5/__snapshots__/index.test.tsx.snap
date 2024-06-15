@@ -33,7 +33,7 @@ exports[`Step5 should render correctly 1`] = `
         style={
           [
             {
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#0376C9",
               "borderRadius": 8,
               "padding": 20,
             },
@@ -61,32 +61,32 @@ exports[`Step5 should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "borderRadius": 8,
-                "height": 24,
+                "height": 16,
                 "justifyContent": "center",
                 "opacity": 1,
-                "width": 24,
+                "width": 16,
               }
             }
             testID="onboarding-wizard-back-button"
           >
             <SvgMock
-              color="#ffffff"
-              height={16}
+              color="#FFFFFF"
+              height={20}
               name="Arrow2Left"
               style={
                 {
-                  "height": 16,
-                  "width": 16,
+                  "height": 20,
+                  "width": 20,
                 }
               }
-              width={16}
+              width={20}
             />
           </TouchableOpacity>
           <Text
             style={
               {
                 "alignSelf": "center",
-                "color": "#ffffff",
+                "color": "#FFFFFF",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 18,
                 "fontWeight": "600",
@@ -106,24 +106,24 @@ exports[`Step5 should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "borderRadius": 8,
-                "height": 24,
+                "height": 16,
                 "justifyContent": "center",
                 "opacity": 1,
-                "width": 24,
+                "width": 16,
               }
             }
           >
             <SvgMock
-              color="#ffffff"
-              height={16}
+              color="#FFFFFF"
+              height={20}
               name="Close"
               style={
                 {
-                  "height": 16,
-                  "width": 16,
+                  "height": 20,
+                  "width": 20,
                 }
               }
-              width={16}
+              width={20}
             />
           </TouchableOpacity>
         </View>
@@ -137,7 +137,7 @@ exports[`Step5 should render correctly 1`] = `
           <Text
             style={
               {
-                "color": "#ffffff",
+                "color": "#FFFFFF",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -169,7 +169,7 @@ exports[`Step5 should render correctly 1`] = `
             <Text
               style={
                 {
-                  "color": "#ffffff",
+                  "color": "#FFFFFF",
                 }
               }
             >
@@ -191,7 +191,7 @@ exports[`Step5 should render correctly 1`] = `
                     "padding": 15,
                   },
                   {
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "#FFFFFF",
                   },
                   [
                     {
@@ -227,7 +227,7 @@ exports[`Step5 should render correctly 1`] = `
                       "textAlign": "center",
                     },
                     {
-                      "color": "#0376c9",
+                      "color": "#0376C9",
                     },
                     undefined,
                   ],
@@ -258,7 +258,7 @@ exports[`Step5 should render correctly 1`] = `
               "borderRightColor": "transparent",
               "borderRightWidth": 15,
               "borderStyle": "solid",
-              "borderTopColor": "#0376c9",
+              "borderTopColor": "#0376C9",
               "borderTopWidth": 12,
               "height": 0,
               "position": "absolute",

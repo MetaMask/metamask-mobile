@@ -107,18 +107,18 @@ export default {
     DATA_RETENTION_UPDATE:
       'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:
-      'https://support.metamask.io/troubleshooting/why-infura-cannot-serve-certain-areas/',
-    NFT: 'https://support.metamask.io/nfts/nft-tokens-in-your-metamask-wallet/',
+      'https://metamask.zendesk.com/hc/en-us/articles/360059386712',
+    NFT: 'https://metamask.zendesk.com/hc/en-us/articles/360058238591-NFT-tokens-in-MetaMask-wallet',
     SECURITY:
-      'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
+      'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask',
     TOKEN_BALANCE:
-      'https://support.metamask.io/troubleshooting/what-to-do-when-your-balance-of-tokens-is-incorrect/',
+      'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate',
     WHY_TRANSACTION_TAKE_TIME:
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
     WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:
-      'https://support.metamask.io/privacy-and-security/what-is-eth_sign-and-why-is-it-a-risk/',
+      'https://support.metamask.io/hc/articles/14764161421467',
     TESTNET_ETH_SCAMS:
-      'https://support.metamask.io/privacy-and-security/staying-safe-in-web3/testnet-eth-scams/',
+      'https://support.metamask.io/hc/en-us/articles/11836891903003-Testnet-ETH-scams',
     WHAT_IS_SRP:
       'https://community.metamask.io/t/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/3440',
     PRIVACY_POLICY_2024: 'https://consensys.io/privacy-policy',
@@ -149,11 +149,11 @@ export default {
   },
   REVIEW_PROMPT: {
     HIGH_GAS_FEES:
-      'https://support.metamask.io/transactions-and-gas/gas-fees/why-are-my-gas-fees-so-high/',
+      'https://metamask.zendesk.com/hc/en-us/articles/360058751211-Why-my-gas-fees-are-so-high',
     MISSING_TOKENS:
-      'https://support.metamask.io/managing-my-tokens/custom-tokens/how-to-display-tokens-in-metamask/',
+      'https://metamask.zendesk.com/hc/en-us/articles/360015489031-How-to-add-unlisted-tokens-custom-tokens-in-MetaMask',
     SWAP_ISSUES:
-      'https://support.metamask.io/token-swaps/error-fetching-quote/',
+      'https://metamask.zendesk.com/hc/en-us/articles/360060329612-Error-fetching-quote',
     SUPPORT: 'https://support.metamask.io',
   },
   BUNDLE_IDS: {

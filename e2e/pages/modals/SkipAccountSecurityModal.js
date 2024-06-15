@@ -1,40 +1,37 @@
-import { SkipAccountSecurityModalSelectorsIDs } from '../../selectors/Modals/SkipAccountSecurityModal.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import TestHelpers from '../../helpers';
+import {
+  SKIP_BACKUP_MODAL,
+  ANDROID_SKIP_BACKUP_BUTTON_ID,
+  SKIP_BUTTON,
+  iOS_SKIP_BACKUP_BUTTON_ID,
+} from '../../../wdio/screen-objects/testIDs/Components/SkipAccountSecurityModalTestIds';
 
-class SkipAccountSecurityModal {
-  get container() {
-    return Matchers.getElementByID(
-      SkipAccountSecurityModalSelectorsIDs.CONTAINER,
-    );
-  }
-  get iUnderstandCheckbox() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByID(
-          SkipAccountSecurityModalSelectorsIDs.ANDROID_SKIP_BACKUP_BUTTON_ID,
-        )
-      : Matchers.getElementByID(
-          SkipAccountSecurityModalSelectorsIDs.iOS_SKIP_BACKUP_BUTTON_ID,
-        );
-  }
-
-  get skipButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(
-          SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON,
-        )
-      : Matchers.getElementByID(
-          SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON,
-        );
+export default class SkipAccountSecurityModal {
+  static async tapIUnderstandCheckBox() {
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.tap(iOS_SKIP_BACKUP_BUTTON_ID);
+    } else {
+      // Tap by the I understand text
+      await TestHelpers.delay(1000);
+      await TestHelpers.tap(ANDROID_SKIP_BACKUP_BUTTON_ID);
+    }
   }
 
-  async tapIUnderstandCheckBox() {
-    await Gestures.waitAndTap(this.iUnderstandCheckbox);
+  static async tapSkipButton() {
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.tap(SKIP_BUTTON);
+    } else {
+      // Tap by the I understand text
+      await TestHelpers.delay(1000);
+      await TestHelpers.waitAndTapByLabel(SKIP_BUTTON);
+    }
   }
 
-  async tapSkipButton() {
-    await Gestures.waitAndTap(this.skipButton);
+  static async isVisible() {
+    await TestHelpers.checkIfVisible(SKIP_BACKUP_MODAL);
+  }
+
+  static async isNotVisible() {
+    await TestHelpers.checkIfNotVisible(SKIP_BACKUP_MODAL);
   }
 }
-
-export default new SkipAccountSecurityModal();

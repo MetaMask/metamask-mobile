@@ -7,8 +7,10 @@ import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { colors as importedColors } from '../../../../styles/common';
-import { selectIdentities } from '../../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../../selectors/preferencesController';
 
 // TODO: Convert into typescript and correctly type
 const Identicon = JSIdenticon as any;
@@ -46,9 +48,7 @@ const Account = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
   const identities = useSelector(selectIdentities);
   return (
     <View

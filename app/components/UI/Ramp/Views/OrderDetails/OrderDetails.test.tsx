@@ -15,10 +15,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RampSDK } from '../../sdk';
 import { PROVIDER_LINKS } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
-import {
-  MOCK_ADDRESS_1,
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
-} from '../../../../../util/test/accountsControllerTestUtils';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -52,7 +48,7 @@ type DeepPartial<BaseType> = {
 
 const mockOrder: DeepPartial<FiatOrder> = {
   id: 'test-order-1',
-  account: MOCK_ADDRESS_1,
+  account: '0x0',
   network: '1',
   cryptoAmount: '0.01231324',
   orderType: OrderOrderTypeEnum.Buy,
@@ -140,10 +136,7 @@ function render(Component: React.ComponentType, orders = [mockOrder]) {
     {
       state: {
         engine: {
-          backgroundState: {
-            ...initialBackgroundState,
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-          },
+          backgroundState: initialBackgroundState,
         },
         fiatOrders: {
           orders: orders as FiatOrder[],

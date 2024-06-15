@@ -103,7 +103,7 @@ exports[`NetworkDetails renders correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#FFFFFF",
           "borderRadius": 10,
           "maxHeight": "80%",
           "padding": 4,
@@ -124,7 +124,7 @@ exports[`NetworkDetails renders correctly 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#bbc0c566",
+                "backgroundColor": "#D6D9DC",
                 "borderRadius": 2,
                 "height": 4,
                 "width": 40,
@@ -135,7 +135,7 @@ exports[`NetworkDetails renders correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "#FFFFFF",
               "maxHeight": "85%",
               "paddingBottom": 20,
               "paddingHorizontal": 0,
@@ -149,7 +149,7 @@ exports[`NetworkDetails renders correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#FFFFFF",
                   "flexDirection": "row",
                   "padding": 16,
                 }
@@ -180,7 +180,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#24272A",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -210,7 +210,7 @@ exports[`NetworkDetails renders correctly 1`] = `
               onGestureHandlerStateChange={[Function]}
               style={
                 {
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#FFFFFF",
                   "paddingHorizontal": 16,
                 }
               }
@@ -222,7 +222,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     {
                       "alignItems": "center",
                       "alignSelf": "center",
-                      "backgroundColor": "#f2f4f6",
+                      "backgroundColor": "#F2F4F6",
                       "borderRadius": 16,
                       "flexDirection": "row",
                       "height": 32,
@@ -235,7 +235,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#f2f4f6",
+                        "backgroundColor": "#F2F4F6",
                         "borderRadius": 8,
                         "borderWidth": 1,
                         "height": 16,
@@ -249,7 +249,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#24272A",
                           "fontFamily": "Euclid Circular B",
                           "fontSize": 10,
                           "fontWeight": "400",
@@ -266,7 +266,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
+                        "color": "#24272A",
                         "flexShrink": 1,
                         "fontFamily": "Euclid Circular B",
                         "fontSize": 14,
@@ -285,7 +285,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#24272A",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -302,7 +302,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     onPress={[Function]}
                     style={
                       {
-                        "color": "#141618",
+                        "color": "#24272A",
                         "fontFamily": "Euclid Circular B",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -323,7 +323,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   style={
                     [
                       {
-                        "borderColor": "#bbc0c5",
+                        "borderColor": "#BBC0C5",
                         "borderRadius": 10,
                         "borderWidth": 1,
                         "marginVertical": 16,
@@ -338,7 +338,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#24272A",
                           "fontFamily": "Euclid Circular B",
                           "fontSize": 14,
                           "fontWeight": "700",
@@ -353,7 +353,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#24272A",
                           "fontFamily": "Euclid Circular B",
                           "fontSize": 14,
                           "fontWeight": "400",
@@ -369,7 +369,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#24272A",
                           "fontFamily": "Euclid Circular B",
                           "fontSize": 14,
                           "fontWeight": "700",
@@ -384,7 +384,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#24272A",
                           "fontFamily": "Euclid Circular B",
                           "fontSize": 14,
                           "fontWeight": "400",
@@ -400,7 +400,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#24272A",
                           "fontFamily": "Euclid Circular B",
                           "fontSize": 14,
                           "fontWeight": "700",
@@ -415,7 +415,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#24272A",
                           "fontFamily": "Euclid Circular B",
                           "fontSize": 14,
                           "fontWeight": "400",
@@ -444,7 +444,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#0376c9",
+                            "color": "#0376C9",
                             "fontFamily": "Euclid Circular B",
                             "fontSize": 14,
                             "fontWeight": "400",
@@ -474,7 +474,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                         testID="accordionheader-arrow-icon-animation"
                       >
                         <SvgMock
-                          color="#0376c9"
+                          color="#0376C9"
                           height={16}
                           name="ArrowDown"
                           style={
@@ -495,7 +495,7 @@ exports[`NetworkDetails renders correctly 1`] = `
             <View
               style={
                 {
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#FFFFFF",
                   "flexDirection": "row",
                   "paddingHorizontal": 8,
                   "paddingVertical": 4,
@@ -515,7 +515,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     "alignItems": "center",
                     "alignSelf": "flex-start",
                     "backgroundColor": "transparent",
-                    "borderColor": "#0376c9",
+                    "borderColor": "#0376C9",
                     "borderRadius": 24,
                     "borderWidth": 1,
                     "flex": 1,
@@ -532,7 +532,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#0376C9",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -555,7 +555,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#0376c9",
+                    "backgroundColor": "#0376C9",
                     "borderRadius": 24,
                     "flex": 1,
                     "flexDirection": "row",
@@ -573,7 +573,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#ffffff",
+                      "color": "#FFFFFF",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",

@@ -23,7 +23,7 @@ import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwa
 import WebsiteIcon from '../../../../UI/WebsiteIcon';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
+import { selectSelectedAddress } from '../../../../../selectors/preferencesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -218,8 +218,8 @@ class SignatureRequest extends PureComponent {
     this.props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io',
-        title: 'support.metamask.io',
+        url: 'https://metamask.zendesk.com/hc/en-us/articles/360015488751',
+        title: 'metamask.zendesk.com',
       },
     });
   };
@@ -418,7 +418,7 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedAddress(state),
   networkType: selectProviderType(state),
   securityAlertResponse: state.signatureRequest.securityAlertResponse,
 });

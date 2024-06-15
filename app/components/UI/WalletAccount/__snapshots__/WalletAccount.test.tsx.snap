@@ -4,7 +4,7 @@ exports[`WalletAccount renders correctly 1`] = `
 <View
   style={
     {
-      "borderColor": "#bbc0c5",
+      "borderColor": "#BBC0C5",
       "borderRadius": 8,
       "borderWidth": 1,
       "marginHorizontal": 16,
@@ -16,8 +16,8 @@ exports[`WalletAccount renders correctly 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#bbc0c5",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#BBC0C5",
         "borderRadius": 8,
         "borderWidth": 0,
         "flexDirection": "row",
@@ -38,7 +38,7 @@ exports[`WalletAccount renders correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "#FFFFFF",
             "borderRadius": 16,
             "height": 32,
             "marginRight": 16,
@@ -189,7 +189,7 @@ exports[`WalletAccount renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
               "fontWeight": "400",
@@ -204,7 +204,7 @@ exports[`WalletAccount renders correctly 1`] = `
       </View>
     </View>
     <SvgMock
-      color="#6a737d"
+      color="#6A737D"
       height={20}
       name="ArrowDown"
       style={
@@ -220,7 +220,7 @@ exports[`WalletAccount renders correctly 1`] = `
   <View
     style={
       {
-        "borderColor": "#bbc0c5",
+        "borderColor": "#BBC0C5",
         "borderTopWidth": 1,
         "marginHorizontal": 16,
       }
@@ -230,8 +230,8 @@ exports[`WalletAccount renders correctly 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#bbc0c5",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#BBC0C5",
         "borderRadius": 8,
         "borderWidth": 0,
         "flexDirection": "row",
@@ -251,7 +251,7 @@ exports[`WalletAccount renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
             "fontWeight": "700",
@@ -278,7 +278,7 @@ exports[`WalletAccount renders correctly 1`] = `
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#0376c91a",
+              "backgroundColor": "#0376C919",
               "borderRadius": 20,
               "flexDirection": "row",
               "marginLeft": 8,
@@ -291,7 +291,7 @@ exports[`WalletAccount renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#0376c9",
+                "color": "#0376C9",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 12,
                 "fontWeight": "400",
@@ -300,11 +300,9 @@ exports[`WalletAccount renders correctly 1`] = `
               }
             }
             testID="wallet-account-address"
-          >
-            0xC496...a756
-          </Text>
+          />
           <SvgMock
-            color="#0376c9"
+            color="#0376C9"
             height={16}
             name="Copy"
             style={
@@ -339,7 +337,7 @@ exports[`WalletAccount renders correctly 1`] = `
       testID="main-wallet-account-actions"
     >
       <SvgMock
-        color="#141618"
+        color="#24272A"
         height={16}
         name="MoreHorizontal"
         style={

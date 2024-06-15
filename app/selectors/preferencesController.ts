@@ -17,9 +17,6 @@ export const selectIpfsGateway = createSelector(
     preferencesControllerState.ipfsGateway,
 );
 
-/**
- * @deprecated use selectSelectedInternal or selectSelectedInternalAccountChecksummedAddress account from selectors/accountsController.ts
- */
 export const selectSelectedAddress = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>

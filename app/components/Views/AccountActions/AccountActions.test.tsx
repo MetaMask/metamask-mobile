@@ -15,11 +15,6 @@ import {
   VIEW_ETHERSCAN,
 } from './AccountActions.constants';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import {
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
-  MOCK_ADDRESS_2,
-} from '../../../util/test/accountsControllerTestUtils';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const mockEngine = Engine;
 
@@ -28,7 +23,12 @@ const initialState = {
   engine: {
     backgroundState: {
       ...initialBackgroundState,
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      PreferencesController: {
+        selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
+        identities: {
+          '0xe7E125654064EEa56229f273dA586F10DF96B0a1': { name: 'Account 1' },
+        },
+      },
     },
   },
 };
@@ -93,7 +93,7 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+        url: 'https://etherscan.io/address/0xe7E125654064EEa56229f273dA586F10DF96B0a1',
         title: 'etherscan.io',
       },
     });
@@ -107,7 +107,7 @@ describe('AccountActions', () => {
     fireEvent.press(getByTestId(SHARE_ADDRESS));
 
     expect(Share.open).toHaveBeenCalledWith({
-      message: toChecksumHexAddress(MOCK_ADDRESS_2),
+      message: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
     });
   });
 

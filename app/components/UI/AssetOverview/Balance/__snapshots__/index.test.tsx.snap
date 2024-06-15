@@ -8,7 +8,7 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
     style={
       [
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -54,7 +54,7 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
     style={
       [
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -85,7 +85,7 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
         undefined,
         [
           {
-            "color": "#141618",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "600",
@@ -110,7 +110,7 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
     style={
       [
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -163,7 +163,7 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
     style={
       [
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -209,7 +209,7 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
     style={
       [
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -240,7 +240,7 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
         undefined,
         [
           {
-            "color": "#141618",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "600",
@@ -265,7 +265,7 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
     style={
       [
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",

@@ -20,7 +20,7 @@ exports[`ButtonIcon should render correctly 1`] = `
   }
 >
   <SvgMock
-    color="#141618"
+    color="#0376C9"
     height={16}
     name="AddSquare"
     style={

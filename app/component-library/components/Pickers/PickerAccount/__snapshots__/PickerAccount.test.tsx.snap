@@ -6,8 +6,8 @@ exports[`PickerAccount should render correctly 1`] = `
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#ffffff",
-      "borderColor": "#bbc0c5",
+      "backgroundColor": "#FFFFFF",
+      "borderColor": "#BBC0C5",
       "borderRadius": 4,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -26,7 +26,7 @@ exports[`PickerAccount should render correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#FFFFFF",
           "borderRadius": 16,
           "height": 32,
           "marginRight": 16,
@@ -177,7 +177,7 @@ exports[`PickerAccount should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
             "fontWeight": "400",
@@ -193,7 +193,7 @@ exports[`PickerAccount should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -207,7 +207,7 @@ exports[`PickerAccount should render correctly 1`] = `
     </View>
   </View>
   <SvgMock
-    color="#6a737d"
+    color="#6A737D"
     height={20}
     name="ArrowDown"
     style={

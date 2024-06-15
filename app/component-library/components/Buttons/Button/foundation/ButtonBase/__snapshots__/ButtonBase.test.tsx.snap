@@ -10,7 +10,7 @@ exports[`ButtonBase should render correctly 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
       "flexDirection": "row",
       "height": 40,
@@ -33,7 +33,7 @@ exports[`ButtonBase should render correctly 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#141618",
+        "color": "#24272A",
       }
     }
     variant="sBodyMD"
@@ -54,7 +54,7 @@ exports[`ButtonBase should render correctly when disabled 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
       "flexDirection": "row",
       "height": 40,
@@ -78,7 +78,7 @@ exports[`ButtonBase should render correctly when disabled 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#141618",
+        "color": "#24272A",
       }
     }
     variant="sBodyMD"

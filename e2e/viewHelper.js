@@ -40,12 +40,12 @@ const validAccount = Accounts.getValidAccount();
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
   await TestHelpers.delay(3500);
-  await Assertions.checkIfVisible(TermsOfUseModal.container);
+  await TermsOfUseModal.isDisplayed();
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
   await TestHelpers.delay(3500);
   await TermsOfUseModal.tapAcceptButton();
-  await Assertions.checkIfNotVisible(TermsOfUseModal.container);
+  await TermsOfUseModal.isNotDisplayed();
 };
 export const closeOnboardingModals = async () => {
   /* 
@@ -117,7 +117,7 @@ export const importWalletWithRecoveryPhrase = async () => {
 
   // should tap on the close button to dismiss the whats new modal
   try {
-    await Assertions.checkIfVisible(WhatsNewModal.container);
+    await WhatsNewModal.isVisible();
     await WhatsNewModal.tapCloseButton();
   } catch {
     //
@@ -162,7 +162,7 @@ export const CreateNewWallet = async () => {
   await closeOnboardingModals();
   // should tap on the close button to dismiss the whats new modal
   try {
-    await Assertions.checkIfVisible(WhatsNewModal.container);
+    await WhatsNewModal.isVisible();
     await WhatsNewModal.tapCloseButton();
   } catch {
     //
@@ -227,9 +227,9 @@ export const loginToApp = async () => {
     await TestHelpers.waitAndTapText(
       enContent.privacy_policy.toast_action_button,
     );
-    await Assertions.checkIfVisible(await WhatsNewModal.container);
+    await WhatsNewModal.isVisible();
     await WhatsNewModal.tapCloseButton();
-    await Assertions.checkIfVisible(await ExperienceEnhancerModal.title);
+    await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
     await ExperienceEnhancerModal.tapNoThanks();
   } catch {
     //

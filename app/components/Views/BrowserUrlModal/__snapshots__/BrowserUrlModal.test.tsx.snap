@@ -4,7 +4,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
 <ForwardRef
   style={
     {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
   }
@@ -12,7 +12,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#FFFFFF",
         "flexDirection": "row",
         "height": 87,
         "paddingHorizontal": 10,
@@ -24,7 +24,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#f2f4f6",
+          "backgroundColor": "#F2F4F6",
           "borderRadius": 30,
           "flex": 1,
           "flexDirection": "row",
@@ -41,12 +41,12 @@ exports[`BrowserUrlModal should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Search or Type URL"
-        placeholderTextColor="#9fa6ae"
+        placeholderTextColor="#BBC0C5"
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
           {
-            "color": "#141618",
+            "color": "#24272A",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
@@ -71,7 +71,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
       <Text
         style={
           {
-            "color": "#0376c9",
+            "color": "#0376C9",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",

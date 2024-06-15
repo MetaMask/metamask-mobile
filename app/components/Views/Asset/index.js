@@ -54,8 +54,10 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectIdentities } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 import {
   TOKEN_OVERVIEW_BUY_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
@@ -580,7 +582,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedAddress(state),
   identities: selectIdentities(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),

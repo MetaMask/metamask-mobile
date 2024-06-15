@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, Platform } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
 import { baseStyles } from '../../../styles/common';
@@ -8,7 +8,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ProtectWalletModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ProtectWalletModal.selectors';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+  SECURE_WALLET_BACKUP_ALERT_MODAL,
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import styleSheet from './BackupAlert.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { BackupAlertI } from './BackupAlert.types';
@@ -110,7 +114,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
       <View style={styles.backupAlertWrapper}>
         <View
           style={styles.touchableView}
-          testID={ProtectWalletModalSelectorsIDs.COLLAPSED_WALLET_MODAL}
+          {...generateTestId(Platform, SECURE_WALLET_BACKUP_ALERT_MODAL)}
         >
           <View style={styles.backupAlertIconWrapper}>
             <Icon
@@ -145,7 +149,10 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
                 <Text
                   variant={TextVariant.BodyMD}
                   style={styles.backupAlertMessage}
-                  testID={ProtectWalletModalSelectorsIDs.REMIND_ME_LATER_BUTTON}
+                  {...generateTestId(
+                    Platform,
+                    NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+                  )}
                 >
                   {strings('backup_alert.left_button')}
                 </Text>

@@ -80,7 +80,7 @@ import {
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import AccountSelector from '../Ramp/components/AccountSelector';
 import {
   SWAP_SOURCE_TOKEN,
@@ -1009,7 +1009,7 @@ const mapStateToProps = (state) => ({
   swapsControllerTokens: swapsControllerTokens(state),
   accounts: selectAccounts(state),
   balances: selectContractBalances(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedAddress(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   tokenExchangeRates: selectContractExchangeRates(state),

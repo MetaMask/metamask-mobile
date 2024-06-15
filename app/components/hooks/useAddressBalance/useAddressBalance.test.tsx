@@ -7,15 +7,6 @@ import Engine from '../../../core/Engine';
 import { Asset } from './useAddressBalance.types';
 import useAddressBalance from './useAddressBalance';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-
-const MOCK_ADDRESS_1 = '0x0';
-const MOCK_ADDRESS_2 = '0x1';
-
-const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
-  MOCK_ADDRESS_1,
-  MOCK_ADDRESS_2,
-]);
 
 const mockStore = configureMockStore();
 const mockInitialState = {
@@ -25,10 +16,10 @@ const mockInitialState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          [MOCK_ADDRESS_1]: {
+          '0x0': {
             balance: '0x4a7036655fab2ca3',
           },
-          [MOCK_ADDRESS_2]: {
+          '0x1': {
             balance: '0x5',
           },
         },
@@ -39,9 +30,8 @@ const mockInitialState = {
         },
       },
       PreferencesController: {
-        selectedAddress: MOCK_ADDRESS_1,
+        selectedAddress: '0x0',
       },
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
@@ -71,18 +61,15 @@ describe('useAddressBalance', () => {
 
   it('should render balance from AccountTrackerController.accounts for ETH', () => {
     let res = renderHook(
-      () => useAddressBalance({ isETH: true } as Asset, MOCK_ADDRESS_1),
+      () => useAddressBalance({ isETH: true } as Asset, '0x0'),
       {
         wrapper: Wrapper,
       },
     );
     expect(res.result.current.addressBalance).toStrictEqual('5.36385 ETH');
-    res = renderHook(
-      () => useAddressBalance({ isETH: true } as Asset, MOCK_ADDRESS_2),
-      {
-        wrapper: Wrapper,
-      },
-    );
+    res = renderHook(() => useAddressBalance({ isETH: true } as Asset, '0x1'), {
+      wrapper: Wrapper,
+    });
     expect(res.result.current.addressBalance).toStrictEqual('< 0.00001 ETH');
   });
 
@@ -92,7 +79,7 @@ describe('useAddressBalance', () => {
       symbol: 'TST',
       decimals: 4,
     };
-    renderHook(() => useAddressBalance(asset, MOCK_ADDRESS_2), {
+    renderHook(() => useAddressBalance(asset, '0x1'), {
       wrapper: Wrapper,
     });
     expect(mockGetERC20BalanceOf).toBeCalledTimes(1);
@@ -100,16 +87,13 @@ describe('useAddressBalance', () => {
 
   it('should render balance if asset is undefined', () => {
     let asset: Asset;
-    let res = renderHook(() => useAddressBalance(asset, MOCK_ADDRESS_1), {
+    let res = renderHook(() => useAddressBalance(asset, '0x0'), {
       wrapper: Wrapper,
     });
     expect(res.result.current.addressBalance).toStrictEqual('5.36385 ETH');
-    res = renderHook(
-      () => useAddressBalance({ isETH: true } as Asset, MOCK_ADDRESS_2),
-      {
-        wrapper: Wrapper,
-      },
-    );
+    res = renderHook(() => useAddressBalance({ isETH: true } as Asset, '0x1'), {
+      wrapper: Wrapper,
+    });
     expect(res.result.current.addressBalance).toStrictEqual('< 0.00001 ETH');
   });
 
@@ -122,7 +106,7 @@ describe('useAddressBalance', () => {
             symbol: 'TST',
             decimals: 4,
           },
-          MOCK_ADDRESS_1,
+          '0x0',
         ),
       {
         wrapper: Wrapper,

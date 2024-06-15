@@ -31,7 +31,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
@@ -47,7 +47,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
         style={
           [
             {
-              "borderColor": "#bbc0c5",
+              "borderColor": "#BBC0C5",
               "borderRadius": 8,
               "borderWidth": 1,
               "flex": 1,
@@ -58,7 +58,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
               "padding": 10,
             },
             {
-              "borderColor": "#bbc0c5",
+              "borderColor": "#BBC0C5",
             },
           ]
         }
@@ -74,7 +74,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
           <View
             placeholderStyle={
               {
-                "backgroundColor": "#f2f4f6",
+                "backgroundColor": "#F2F4F6",
               }
             }
             useNativeDriver={true}
@@ -122,7 +122,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                       "backgroundColor": "#eee",
                     },
                     {
-                      "backgroundColor": "#f2f4f6",
+                      "backgroundColor": "#F2F4F6",
                     },
                   ]
                 }
@@ -157,7 +157,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -173,7 +173,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
+                "color": "#535A61",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",
@@ -211,7 +211,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
@@ -237,7 +237,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
               "paddingHorizontal": 10,
             },
             {
-              "borderColor": "#bbc0c5",
+              "borderColor": "#BBC0C5",
             },
           ]
         }
@@ -255,7 +255,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
           <View
             placeholderStyle={
               {
-                "backgroundColor": "#f2f4f6",
+                "backgroundColor": "#F2F4F6",
               }
             }
             useNativeDriver={true}
@@ -303,7 +303,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                       "backgroundColor": "#eee",
                     },
                     {
-                      "backgroundColor": "#f2f4f6",
+                      "backgroundColor": "#F2F4F6",
                     },
                   ]
                 }
@@ -345,7 +345,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -369,7 +369,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#6a737d",
+                      "color": "#535A61",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 12,
                       "fontWeight": "400",
@@ -392,7 +392,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#1c8234",
+                          "color": "#1C8234",
                           "fontSize": 15,
                         },
                         undefined,

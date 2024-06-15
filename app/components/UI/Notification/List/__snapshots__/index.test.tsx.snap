@@ -4,7 +4,7 @@ exports[`NotificationsList should render correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
   }
@@ -20,7 +20,7 @@ exports[`NotificationsList should render correctly 1`] = `
     }
   >
     <ActivityIndicator
-      color="#0376c9"
+      color="#0376C9"
       size="large"
     />
   </View>

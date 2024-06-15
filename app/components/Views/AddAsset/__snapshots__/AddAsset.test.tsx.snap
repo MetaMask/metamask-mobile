@@ -4,7 +4,7 @@ exports[`AddAsset component renders correctly 1`] = `
 <RCTSafeAreaView
   style={
     {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
   }
@@ -21,8 +21,8 @@ exports[`AddAsset component renders correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#bf52081a",
-          "borderColor": "#bf5208",
+          "backgroundColor": "#BF520819",
+          "borderColor": "#BF5208",
           "borderLeftWidth": 4,
           "borderRadius": 4,
           "flexDirection": "row",
@@ -41,7 +41,7 @@ exports[`AddAsset component renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#bf5208"
+          color="#BF5208"
           height={24}
           name="Danger"
           style={
@@ -64,7 +64,7 @@ exports[`AddAsset component renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -82,7 +82,7 @@ exports[`AddAsset component renders correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#FFFFFF",
         "flex": 1,
       }
     }
@@ -170,7 +170,7 @@ exports[`AddAsset component renders correctly 1`] = `
               <Text
                 style={
                   {
-                    "color": "#141618",
+                    "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontWeight": "400",
                     "paddingBottom": 3,
@@ -185,14 +185,14 @@ exports[`AddAsset component renders correctly 1`] = `
                 onChangeText={[Function]}
                 onSubmitEditing={[Function]}
                 placeholder="0x..."
-                placeholderTextColor="#9fa6ae"
+                placeholderTextColor="#BBC0C5"
                 style={
                   [
                     {
-                      "borderColor": "#bbc0c5",
+                      "borderColor": "#BBC0C5",
                       "borderRadius": 4,
                       "borderWidth": 1,
-                      "color": "#141618",
+                      "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontWeight": "400",
                       "padding": 16,
@@ -206,7 +206,7 @@ exports[`AddAsset component renders correctly 1`] = `
               <Text
                 style={
                   {
-                    "color": "#d73847",
+                    "color": "#D73847",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontWeight": "400",
                     "marginTop": 15,
@@ -225,7 +225,7 @@ exports[`AddAsset component renders correctly 1`] = `
               <Text
                 style={
                   {
-                    "color": "#141618",
+                    "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontWeight": "400",
                     "paddingBottom": 3,
@@ -241,15 +241,15 @@ exports[`AddAsset component renders correctly 1`] = `
                 onChangeText={[Function]}
                 onSubmitEditing={[Function]}
                 placeholder="Enter the collectible ID"
-                placeholderTextColor="#9fa6ae"
+                placeholderTextColor="#BBC0C5"
                 returnKeyType="done"
                 style={
                   [
                     {
-                      "borderColor": "#bbc0c5",
+                      "borderColor": "#BBC0C5",
                       "borderRadius": 4,
                       "borderWidth": 1,
-                      "color": "#141618",
+                      "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontWeight": "400",
                       "padding": 16,
@@ -263,7 +263,7 @@ exports[`AddAsset component renders correctly 1`] = `
               <Text
                 style={
                   {
-                    "color": "#d73847",
+                    "color": "#D73847",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontWeight": "400",
                     "marginTop": 15,
@@ -298,8 +298,8 @@ exports[`AddAsset component renders correctly 1`] = `
                       "padding": 15,
                     },
                     {
-                      "backgroundColor": "#ffffff",
-                      "borderColor": "#6a737d",
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#535A61",
                       "borderWidth": 1,
                     },
                     [
@@ -334,7 +334,7 @@ exports[`AddAsset component renders correctly 1`] = `
                         "textAlign": "center",
                       },
                       {
-                        "color": "#6a737d",
+                        "color": "#535A61",
                       },
                       undefined,
                     ],
@@ -359,8 +359,8 @@ exports[`AddAsset component renders correctly 1`] = `
                       "padding": 15,
                     },
                     {
-                      "backgroundColor": "#ffffff",
-                      "borderColor": "#0376c9",
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#0376C9",
                       "borderWidth": 1,
                     },
                     [
@@ -401,7 +401,7 @@ exports[`AddAsset component renders correctly 1`] = `
                         "textAlign": "center",
                       },
                       {
-                        "color": "#0376c9",
+                        "color": "#0376C9",
                       },
                       undefined,
                     ],

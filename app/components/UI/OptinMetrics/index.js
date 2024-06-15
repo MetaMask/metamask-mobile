@@ -8,7 +8,6 @@ import {
   BackHandler,
   Alert,
   InteractionManager,
-  TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -318,17 +317,8 @@ class OptinMetrics extends PureComponent {
     await metrics.enable();
     InteractionManager.runAfterInteractions(async () => {
       // add traits to user for identification
-
-      // trait indicating if user opts in for data collection for marketing
-      let dataCollectionForMarketingTraits;
-      if (this.props.isDataCollectionForMarketingEnabled) {
-        dataCollectionForMarketingTraits = { has_marketing_consent: true };
-      }
-
       // consolidate device and user settings traits
       const consolidatedTraits = {
-        ...dataCollectionForMarketingTraits,
-        is_metrics_opted_in: true,
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
       };
@@ -355,11 +345,24 @@ class OptinMetrics extends PureComponent {
 
       this.props.clearOnboardingEvents();
 
-      // track event for user opting in on metrics and data collection for marketing
+      if (this.props.isDataCollectionForMarketingEnabled) {
+        const traits = {
+          is_metrics_opted_in: true,
+          has_marketing_consent: Boolean(
+            this.props.setDataCollectionForMarketing,
+          ),
+        };
+
+        metrics.addTraitsToUser(traits);
+        metrics.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+          ...traits,
+          location: 'onboarding_metametrics',
+        });
+      }
+
+      // track event for user opting in
       metrics.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        ...dataCollectionForMarketingTraits,
-        is_metrics_opted_in: true,
-        location: 'onboarding_metametrics',
+        analytics_option_selected: 'Metrics Opt In',
         updated_after_onboarding: false,
       });
     });
@@ -595,15 +598,7 @@ class OptinMetrics extends PureComponent {
                 : this.renderLegacyAction(action, i),
             )}
             {isPastPrivacyPolicyDate ? (
-              <TouchableOpacity
-                style={styles.checkbox}
-                onPress={() =>
-                  setDataCollectionForMarketing(
-                    !isDataCollectionForMarketingEnabled,
-                  )
-                }
-                activeOpacity={1}
-              >
+              <View style={styles.checkbox}>
                 <Checkbox
                   isChecked={isDataCollectionForMarketingEnabled}
                   accessibilityRole={'checkbox'}
@@ -617,7 +612,7 @@ class OptinMetrics extends PureComponent {
                 <Text style={styles.content}>
                   {strings('privacy_policy.checkbox')}
                 </Text>
-              </TouchableOpacity>
+              </View>
             ) : null}
             {this.renderPrivacyPolicy()}
           </View>

@@ -4,7 +4,7 @@ exports[`UrlAutocomplete should render correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#FFFFFF",
       "flex": 1,
       "paddingVertical": 15,
     }

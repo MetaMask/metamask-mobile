@@ -17,7 +17,7 @@ exports[`AccountOverview should render correctly 1`] = `
     keyboardShouldPersistTaps="never"
     style={
       {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#FFFFFF",
       }
     }
   >
@@ -35,7 +35,7 @@ exports[`AccountOverview should render correctly 1`] = `
           onPress={[Function]}
           style={
             {
-              "borderColor": "#0376c9",
+              "borderColor": "#0376C9",
               "borderRadius": 80,
               "borderWidth": 2,
               "padding": 2,
@@ -46,7 +46,7 @@ exports[`AccountOverview should render correctly 1`] = `
           <View
             placeholderStyle={
               {
-                "backgroundColor": "#f2f4f6",
+                "backgroundColor": "#F2F4F6",
               }
             }
             useNativeDriver={true}
@@ -94,7 +94,7 @@ exports[`AccountOverview should render correctly 1`] = `
                       "backgroundColor": "#eee",
                     },
                     {
-                      "backgroundColor": "#f2f4f6",
+                      "backgroundColor": "#F2F4F6",
                     },
                   ]
                 }
@@ -127,7 +127,7 @@ exports[`AccountOverview should render correctly 1`] = `
                 style={
                   {
                     "0": {
-                      "color": "#141618",
+                      "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 24,
                       "fontWeight": "400",
@@ -141,9 +141,9 @@ exports[`AccountOverview should render correctly 1`] = `
                       "top": 0,
                     },
                     "2": {
-                      "borderColor": "#ffffff",
+                      "borderColor": "#FFFFFF",
                     },
-                    "color": "#141618",
+                    "color": "#24272A",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -160,7 +160,7 @@ exports[`AccountOverview should render correctly 1`] = `
           onPress={[Function]}
           style={
             {
-              "backgroundColor": "#0376c91a",
+              "backgroundColor": "#0376C919",
               "borderRadius": 40,
               "marginBottom": 20,
               "marginTop": 20,
@@ -173,7 +173,7 @@ exports[`AccountOverview should render correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#141618",
+                "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",

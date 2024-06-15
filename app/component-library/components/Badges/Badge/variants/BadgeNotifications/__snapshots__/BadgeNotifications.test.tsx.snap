@@ -7,8 +7,8 @@ exports[`BadgeNotifications - snapshots should render badge notifications correc
     {
       "alignItems": "center",
       "aspectRatio": 1,
-      "backgroundColor": "#0376c9",
-      "borderColor": "#ffffff",
+      "backgroundColor": "#0376C9",
+      "borderColor": "#FFFFFF",
       "borderRadius": 9,
       "borderWidth": 1,
       "height": "50%",
@@ -20,7 +20,7 @@ exports[`BadgeNotifications - snapshots should render badge notifications correc
   testID="badge-notifications"
 >
   <SvgMock
-    color="#ffffff"
+    color="#FFFFFF"
     height={10}
     name="Send2"
     style={

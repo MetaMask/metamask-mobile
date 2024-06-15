@@ -6,16 +6,10 @@ import { fireEvent } from '@testing-library/react-native';
 import EditAccountName from './EditAccountName';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
 const mockPreferencesSetAccountLabel = jest.fn();
 const mockEngineSetAccountLabel = jest.fn();
 const mockAccountsControllerSetAccountName = jest.fn();
-
-const MOCK_ADDRESS = '0x0';
-const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
-  MOCK_ADDRESS,
-]);
 
 jest.mock('../../../core/Engine', () => ({
   setAccountLabel: () => mockEngineSetAccountLabel,
@@ -25,7 +19,6 @@ jest.mock('../../../core/Engine', () => ({
     },
     AccountsController: {
       setAccountName: () => mockAccountsControllerSetAccountName,
-      ...MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 }));
@@ -42,7 +35,37 @@ const mockInitialState = {
     backgroundState: {
       ...initialBackgroundState,
       AccountsController: {
-        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        internalAccounts: {
+          accounts: {
+            '30313233-3435-4637-b839-383736353430': {
+              address: '0x0',
+              id: '30313233-3435-4637-b839-383736353430',
+              options: {},
+              metadata: {
+                name: 'Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              methods: [
+                'personal_sign',
+                'eth_sign',
+                'eth_signTransaction',
+                'eth_signTypedData_v1',
+                'eth_signTypedData_v3',
+                'eth_signTypedData_v4',
+              ],
+              type: 'eip155:eoa',
+            },
+          },
+        },
+        selectedAccount: '30313233-3435-4637-b839-383736353430',
+      },
+      PreferencesController: {
+        selectedAddress: '0x0',
+        identities: {
+          '0x0': { name: 'Account 1', address: '0x0' },
+        },
       },
     },
   },

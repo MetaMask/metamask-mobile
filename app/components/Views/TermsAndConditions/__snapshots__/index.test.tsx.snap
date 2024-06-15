@@ -8,7 +8,7 @@ exports[`TermsAndConditions should render correctly 1`] = `
   <Text
     style={
       {
-        "color": "#6a737d",
+        "color": "#535A61",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 10,
         "fontWeight": "400",

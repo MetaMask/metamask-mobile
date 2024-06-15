@@ -6,7 +6,7 @@ exports[`Name recognized address should return name 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#F2F4F6",
       "borderRadius": 99,
       "flexDirection": "row",
       "gap": 5,
@@ -19,7 +19,7 @@ exports[`Name recognized address should return name 1`] = `
   <View
     placeholderStyle={
       {
-        "backgroundColor": "#f2f4f6",
+        "backgroundColor": "#F2F4F6",
       }
     }
     useNativeDriver={true}
@@ -67,7 +67,7 @@ exports[`Name recognized address should return name 1`] = `
               "backgroundColor": "#eee",
             },
             {
-              "backgroundColor": "#f2f4f6",
+              "backgroundColor": "#F2F4F6",
             },
           ]
         }
@@ -80,7 +80,7 @@ exports[`Name recognized address should return name 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#141618",
+        "color": "#24272A",
         "flexShrink": 1,
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
@@ -101,7 +101,7 @@ exports[`Name unknown address displays checksummed address 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#F2F4F6",
       "borderRadius": 99,
       "flexDirection": "row",
       "gap": 5,
@@ -112,7 +112,7 @@ exports[`Name unknown address displays checksummed address 1`] = `
   }
 >
   <SvgMock
-    color="#141618"
+    color="#24272A"
     height={20}
     name="Question"
     style={
@@ -129,7 +129,7 @@ exports[`Name unknown address displays checksummed address 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#141618",
+        "color": "#24272A",
         "flexShrink": 1,
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
@@ -139,7 +139,7 @@ exports[`Name unknown address displays checksummed address 1`] = `
       }
     }
   >
-    0x29900...A5B4e
+    0x299007B3F9E23B8d432D5f545F8a4a2B3E9A5B4e
   </Text>
 </View>
 `;

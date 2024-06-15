@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -26,7 +26,13 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import AppConstants from '../../../../../core/AppConstants';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { ToggleEthSignModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/ToggleEthSignModal.selectors';
+import generateTestId from '../../../../../../wdio/utils/generateTestId';
+import {
+  TOGGLE_ETH_SIGN_CONTINUE_BUTTON,
+  TOGGLE_ETH_SIGN_MODAL,
+  TOGGLE_ETH_SIGN_UNDERSTAND_CHECKBOX,
+  TOGGLE_ETH_SIGN_UNDERSTAND_INPUT,
+} from '../../../../../../wdio/screen-objects/testIDs/Components/ToggleEthSignModal.testIds';
 
 // Internal dependencies
 import createStyles from './EthSignFriction.styles';
@@ -118,7 +124,7 @@ const EthSignFriction = () => {
     <BottomSheet ref={sheetRef}>
       <View
         style={styles.frictionContainer}
-        testID={ToggleEthSignModalSelectorsIDs.CONTAINER}
+        {...generateTestId(Platform, TOGGLE_ETH_SIGN_MODAL)}
       >
         {/*Common explanation content for both steps*/}
         <Icon
@@ -159,7 +165,7 @@ const EthSignFriction = () => {
           // First step checkbox content
           <View
             style={styles.understandCheckboxView}
-            testID={ToggleEthSignModalSelectorsIDs.UNDERSTAND_CHECKBOX}
+            {...generateTestId(Platform, TOGGLE_ETH_SIGN_UNDERSTAND_CHECKBOX)}
           >
             <Checkbox
               isChecked={understandCheckbox}
@@ -196,7 +202,7 @@ const EthSignFriction = () => {
               )}
               onEndEditing={(e) => setApproveText(e.nativeEvent.text)}
               onFocus={() => setApproveText('')}
-              testID={ToggleEthSignModalSelectorsIDs.UNDERSTAND_INPUT}
+              {...generateTestId(Platform, TOGGLE_ETH_SIGN_UNDERSTAND_INPUT)}
             />
             {approveText.length > 0 && isPrimaryButtonDisabled && (
               <Text style={styles.confirmTextError}>
@@ -233,7 +239,7 @@ const EthSignFriction = () => {
                 : 'app_settings.toggleEthSignContinueButton',
             )}
             onPress={onPrimaryPress}
-            testID={ToggleEthSignModalSelectorsIDs.CONTINUE_BUTTON}
+            {...generateTestId(Platform, TOGGLE_ETH_SIGN_CONTINUE_BUTTON)}
           />
         </View>
       </View>

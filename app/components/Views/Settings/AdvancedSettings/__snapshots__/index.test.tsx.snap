@@ -42,7 +42,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
     showsVerticalScrollIndicator={true}
     style={
       {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#FFFFFF",
         "flex": 1,
         "padding": 16,
         "paddingBottom": 100,
@@ -106,7 +106,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
+                "color": "#24272A",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 16,
                 "fontWeight": "500",
@@ -121,7 +121,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
+                "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -145,7 +145,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
-                "borderColor": "#0376c9",
+                "borderColor": "#0376C9",
                 "borderRadius": 24,
                 "borderWidth": 1,
                 "flexDirection": "row",
@@ -161,7 +161,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
+                  "color": "#0376C9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -193,7 +193,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 16,
@@ -220,7 +220,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
                 onStartShouldSetResponder={[Function]}
-                onTintColor="#0376c9"
+                onTintColor="#0376C9"
                 style={
                   [
                     {
@@ -232,14 +232,14 @@ exports[`AdvancedSettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#bbc0c566",
+                        "backgroundColor": "#D6D9DC",
                         "borderRadius": 16,
                       },
                     ],
                   ]
                 }
                 thumbTintColor="#ffffff"
-                tintColor="#bbc0c566"
+                tintColor="#D6D9DC"
                 value={false}
               />
             </View>
@@ -248,7 +248,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
+                "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -266,7 +266,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               onPress={[Function]}
               style={
                 {
-                  "color": "#0376c9",
+                  "color": "#0376C9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -298,7 +298,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 16,
@@ -324,7 +324,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
                 onStartShouldSetResponder={[Function]}
-                onTintColor="#0376c9"
+                onTintColor="#0376C9"
                 style={
                   [
                     {
@@ -336,14 +336,14 @@ exports[`AdvancedSettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#bbc0c566",
+                        "backgroundColor": "#D6D9DC",
                         "borderRadius": 16,
                       },
                     ],
                   ]
                 }
                 thumbTintColor="#ffffff"
-                tintColor="#bbc0c566"
+                tintColor="#D6D9DC"
                 value={true}
               />
             </View>
@@ -352,7 +352,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
+                "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -384,7 +384,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 16,
@@ -410,7 +410,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 onPress={[Function]}
                 style={
                   {
-                    "color": "#141618",
+                    "color": "#24272A",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
                     "fontWeight": "400",
@@ -428,7 +428,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
                 onStartShouldSetResponder={[Function]}
-                onTintColor="#0376c9"
+                onTintColor="#0376C9"
                 style={
                   [
                     {
@@ -440,7 +440,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#bbc0c566",
+                        "backgroundColor": "#D6D9DC",
                         "borderRadius": 16,
                       },
                     ],
@@ -448,7 +448,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 }
                 testID="eth-sign-switch"
                 thumbTintColor="#ffffff"
-                tintColor="#bbc0c566"
+                tintColor="#D6D9DC"
                 value={false}
               />
             </View>
@@ -457,7 +457,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
+                "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -489,7 +489,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 16,
@@ -515,7 +515,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
                 onStartShouldSetResponder={[Function]}
-                onTintColor="#0376c9"
+                onTintColor="#0376C9"
                 style={
                   [
                     {
@@ -527,14 +527,14 @@ exports[`AdvancedSettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#bbc0c566",
+                        "backgroundColor": "#D6D9DC",
                         "borderRadius": 16,
                       },
                     ],
                   ]
                 }
                 thumbTintColor="#ffffff"
-                tintColor="#bbc0c566"
+                tintColor="#D6D9DC"
                 value={false}
               />
             </View>
@@ -543,7 +543,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
+                "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -576,7 +576,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 16,
@@ -602,7 +602,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
                 onStartShouldSetResponder={[Function]}
-                onTintColor="#0376c9"
+                onTintColor="#0376C9"
                 style={
                   [
                     {
@@ -614,14 +614,14 @@ exports[`AdvancedSettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#bbc0c566",
+                        "backgroundColor": "#D6D9DC",
                         "borderRadius": 16,
                       },
                     ],
                   ]
                 }
                 thumbTintColor="#ffffff"
-                tintColor="#bbc0c566"
+                tintColor="#D6D9DC"
                 value={true}
               />
             </View>
@@ -630,7 +630,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
+                "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -662,7 +662,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 16,
@@ -688,7 +688,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
                 onStartShouldSetResponder={[Function]}
-                onTintColor="#0376c9"
+                onTintColor="#0376C9"
                 style={
                   [
                     {
@@ -700,7 +700,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#bbc0c566",
+                        "backgroundColor": "#D6D9DC",
                         "borderRadius": 16,
                       },
                     ],
@@ -708,7 +708,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 }
                 testID="show-fiat-on-testnets"
                 thumbTintColor="#ffffff"
-                tintColor="#bbc0c566"
+                tintColor="#D6D9DC"
                 value={false}
               />
             </View>
@@ -717,7 +717,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
+                "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -741,7 +741,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
+                "color": "#24272A",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 16,
                 "fontWeight": "500",
@@ -756,7 +756,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
+                "color": "#535A61",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -780,7 +780,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
-                "borderColor": "#0376c9",
+                "borderColor": "#0376C9",
                 "borderRadius": 24,
                 "borderWidth": 1,
                 "flexDirection": "row",
@@ -796,7 +796,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
+                  "color": "#0376C9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
                   "fontWeight": "400",

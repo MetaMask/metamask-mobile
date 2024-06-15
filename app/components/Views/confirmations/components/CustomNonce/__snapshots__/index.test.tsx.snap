@@ -4,7 +4,7 @@ exports[`CustomNonce should render correctly 1`] = `
 <TouchableOpacity
   style={
     {
-      "borderColor": "#bbc0c5",
+      "borderColor": "#BBC0C5",
       "borderRadius": 8,
       "borderWidth": 1,
       "display": "flex",
@@ -20,7 +20,7 @@ exports[`CustomNonce should render correctly 1`] = `
     style={
       [
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -34,14 +34,14 @@ exports[`CustomNonce should render correctly 1`] = `
         },
         undefined,
         {
-          "color": "#141618",
+          "color": "#24272A",
         },
         undefined,
         undefined,
         undefined,
         undefined,
         {
-          "color": "#141618",
+          "color": "#24272A",
         },
         undefined,
         undefined,
@@ -66,7 +66,7 @@ exports[`CustomNonce should render correctly 1`] = `
     style={
       [
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -95,7 +95,7 @@ exports[`CustomNonce should render correctly 1`] = `
         undefined,
         undefined,
         {
-          "color": "#0376c9",
+          "color": "#0376C9",
         },
         undefined,
         undefined,
@@ -111,7 +111,7 @@ exports[`CustomNonce should render correctly 1`] = `
     style={
       [
         {
-          "color": "#141618",
+          "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -125,14 +125,14 @@ exports[`CustomNonce should render correctly 1`] = `
         },
         undefined,
         {
-          "color": "#141618",
+          "color": "#24272A",
         },
         undefined,
         undefined,
         undefined,
         undefined,
         {
-          "color": "#141618",
+          "color": "#24272A",
         },
         undefined,
         undefined,

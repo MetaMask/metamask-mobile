@@ -12,7 +12,7 @@ exports[`MultiAssetListItems render matches previous snapshot 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
+        "color": "#24272A",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",

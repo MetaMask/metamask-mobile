@@ -9,40 +9,23 @@ import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockEngine = Engine;
-
-const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
-
-const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
-  MOCK_ADDRESS,
-]);
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     PreferencesController: {
-      selectedAddress: MOCK_ADDRESS,
+      selectedAddress: '0x',
       identities: {
-        [MOCK_ADDRESS]: {
-          name: 'Account 1',
-          address: MOCK_ADDRESS,
-        },
+        '0x': { name: 'Account 1', address: '0x' },
       },
     },
     NftController: {
-      allNfts: {
-        [MOCK_ADDRESS]: {
-          [MOCK_ADDRESS]: [],
-        },
-      },
-      allNftContracts: {
-        [MOCK_ADDRESS]: {
-          [MOCK_ADDRESS]: [],
-        },
-      },
+      allNfts: { '0x': { '0x1': [] } },
+      allNftContracts: { '0x': { '0x1': [] } },
     },
     TokenRatesController: {
       poll: jest.fn(),
@@ -65,9 +48,6 @@ jest.mock('../../../core/Engine', () => ({
         ],
       },
     },
-    AccountsController: {
-      ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-    },
   },
 }));
 
@@ -80,11 +60,7 @@ const mockInitialState = {
   security: {
     dataCollectionForMarketing: true,
   },
-  swaps: {
-    [MOCK_ADDRESS]: { isLive: true },
-    hasOnboarded: false,
-    isLive: true,
-  },
+  swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   wizard: {
     step: 0,
   },
@@ -95,17 +71,12 @@ const mockInitialState = {
     backgroundState: {
       ...initialBackgroundState,
       PreferencesController: {
-        selectedAddress: MOCK_ADDRESS,
+        selectedAddress: '0x',
         identities: {
-          [MOCK_ADDRESS]: {
-            name: 'Account 1',
-            address: MOCK_ADDRESS,
-          },
+          '0x': { name: 'Account 1', address: '0x' },
         },
       },
-      AccountsController: {
-        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-      },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };

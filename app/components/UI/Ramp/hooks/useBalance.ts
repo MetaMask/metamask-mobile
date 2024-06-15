@@ -6,7 +6,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectChainId } from '../../../../selectors/networkController';
@@ -28,9 +28,7 @@ export default function useBalance(asset?: Asset) {
   const assetAddress = safeToChecksumAddress(asset?.address);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const chainId = useSelector(selectChainId);
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenExchangeRates = useSelector(selectContractExchangeRates);

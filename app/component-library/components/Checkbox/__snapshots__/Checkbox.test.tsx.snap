@@ -17,8 +17,8 @@ exports[`Checkbox should render correctly 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#141618",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#24272A",
         "borderRadius": 4,
         "borderWidth": 2,
         "height": 20,

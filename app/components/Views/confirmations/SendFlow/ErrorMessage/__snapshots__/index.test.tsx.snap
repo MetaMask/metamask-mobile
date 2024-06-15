@@ -13,8 +13,8 @@ exports[`ErrorMessage should render correctly 1`] = `
       },
       undefined,
       {
-        "backgroundColor": "#d738471a",
-        "borderColor": "#d73847",
+        "backgroundColor": "#D7384719",
+        "borderColor": "#D73847",
       },
       undefined,
     ]
@@ -25,7 +25,7 @@ exports[`ErrorMessage should render correctly 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -58,7 +58,7 @@ exports[`ErrorMessage should render correctly 1`] = `
           undefined,
           [
             {
-              "color": "#141618",
+              "color": "#24272A",
               "flex": 1,
               "fontSize": 14,
               "lineHeight": 17,

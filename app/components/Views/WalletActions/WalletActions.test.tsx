@@ -4,7 +4,13 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
 import WalletActions from './WalletActions';
-import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
+import {
+  WALLET_BRIDGE,
+  WALLET_BUY,
+  WALLET_RECEIVE,
+  WALLET_SEND,
+  WALLET_SWAP,
+} from './WalletActions.constants';
 import Engine from '../../../core/Engine';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
@@ -78,21 +84,11 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    expect(
-      getByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON),
-    ).toBeDefined();
-    expect(
-      getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON),
-    ).toBeDefined();
-    expect(
-      getByTestId(WalletActionsModalSelectorsIDs.RECEIVE_BUTTON),
-    ).toBeDefined();
-    expect(
-      getByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON),
-    ).toBeDefined();
-    expect(
-      getByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON),
-    ).toBeDefined();
+    expect(getByTestId(WALLET_BUY)).toBeDefined();
+    expect(getByTestId(WALLET_SEND)).toBeDefined();
+    expect(getByTestId(WALLET_RECEIVE)).toBeDefined();
+    expect(getByTestId(WALLET_SWAP)).toBeDefined();
+    expect(getByTestId(WALLET_BRIDGE)).toBeDefined();
   });
 
   it('should not show the buy button and swap button if the chain does not allow buying', () => {
@@ -133,13 +129,9 @@ describe('WalletActions', () => {
       state: mockState,
     });
 
-    expect(queryByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON)).toBeNull();
-    expect(
-      queryByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON),
-    ).toBeNull();
-    expect(
-      queryByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON),
-    ).toBeNull();
+    expect(queryByTestId(WALLET_BUY)).toBeNull();
+    expect(queryByTestId(WALLET_SWAP)).toBeNull();
+    expect(queryByTestId(WALLET_BRIDGE)).toBeNull();
   });
 
   it('should call the onBuy function when the Buy button is pressed', () => {
@@ -147,14 +139,14 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON));
+    fireEvent.press(getByTestId(WALLET_BUY));
     expect(mockNavigate).toHaveBeenCalled();
   });
 
   it('should call the onSend function when the Send button is pressed', () => {
     const { getByTestId } = renderWithProvider(<WalletActions />);
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON));
+    fireEvent.press(getByTestId(WALLET_SEND));
 
     expect(mockNavigate).toHaveBeenCalled();
   });
@@ -163,7 +155,7 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON));
+    fireEvent.press(getByTestId(WALLET_SWAP));
 
     expect(mockNavigate).toHaveBeenCalled();
   });
@@ -172,7 +164,7 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON));
+    fireEvent.press(getByTestId(WALLET_BRIDGE));
 
     expect(mockNavigate).toHaveBeenCalled();
   });

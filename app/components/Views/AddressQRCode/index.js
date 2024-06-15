@@ -18,7 +18,7 @@ import GlobalAlert from '../../UI/GlobalAlert';
 import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const WIDTH = Dimensions.get('window').width - 88;
 
@@ -44,7 +44,7 @@ const createStyles = (theme) =>
     },
     qrCode: {
       padding: 8,
-      backgroundColor: theme.brandColors.white,
+      backgroundColor: theme.brandColors.white000,
     },
     addressWrapper: {
       alignItems: 'center',
@@ -175,7 +175,7 @@ class AddressQRCode extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedAddress(state),
   seedphraseBackedUp: state.user.seedphraseBackedUp,
 });
 

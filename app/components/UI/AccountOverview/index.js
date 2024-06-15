@@ -41,8 +41,10 @@ import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { selectIdentities } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import Text, {
   TextVariant,
@@ -460,7 +462,7 @@ class AccountOverview extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedAddress(state),
   identities: selectIdentities(state),
   currentCurrency: selectCurrentCurrency(state),
   chainId: selectChainId(state),

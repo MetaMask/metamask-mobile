@@ -42,7 +42,7 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
       <Text
         style={
           {
-            "color": "#0376c9",
+            "color": "#0376C9",
           }
         }
         variant="sHeadingMD"

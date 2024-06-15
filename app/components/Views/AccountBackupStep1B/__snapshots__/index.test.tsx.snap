@@ -54,7 +54,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -132,7 +132,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                   style={
                     {
                       "height": 15,
-                      "tintColor": "#141618",
+                      "tintColor": "#24272A",
                       "width": 122,
                     }
                   }
@@ -336,7 +336,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                     <RCTSafeAreaView
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "#FFFFFF",
                           "flex": 1,
                         }
                       }
@@ -349,7 +349,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                         }
                         style={
                           {
-                            "backgroundColor": "#ffffff",
+                            "backgroundColor": "#FFFFFF",
                             "flex": 1,
                           }
                         }
@@ -433,8 +433,8 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#0376c9",
-                                        "borderColor": "#0376c9",
+                                        "backgroundColor": "#0376C9",
+                                        "borderColor": "#0376C9",
                                         "borderRadius": 10,
                                         "borderWidth": 2,
                                         "height": 20,
@@ -448,7 +448,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                     <Text
                                       style={
                                         {
-                                          "color": "#ffffff",
+                                          "color": "#FFFFFF",
                                           "fontSize": 9,
                                           "overflow": "hidden",
                                         }
@@ -496,8 +496,8 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#0376c9",
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderColor": "#0376C9",
                                         "borderRadius": 10,
                                         "borderWidth": 2,
                                         "height": 20,
@@ -511,7 +511,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                     <Text
                                       style={
                                         {
-                                          "color": "#141618",
+                                          "color": "#24272A",
                                           "fontSize": 9,
                                           "overflow": "hidden",
                                         }
@@ -559,8 +559,8 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#9fa6ae",
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderColor": "#BBC0C5",
                                         "borderRadius": 10,
                                         "borderWidth": 2,
                                         "height": 20,
@@ -574,7 +574,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                     <Text
                                       style={
                                         {
-                                          "color": "#9fa6ae",
+                                          "color": "#BBC0C5",
                                           "fontSize": 9,
                                           "overflow": "hidden",
                                         }
@@ -637,7 +637,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#9fa6ae",
+                                          "color": "#BBC0C5",
                                         },
                                         {
                                           "fontFamily": "EuclidCircularB-Regular",
@@ -685,7 +685,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#0376c9",
+                                          "color": "#0376C9",
                                         },
                                         {
                                           "fontFamily": "EuclidCircularB-Regular",
@@ -733,7 +733,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#9fa6ae",
+                                          "color": "#BBC0C5",
                                         },
                                         {
                                           "fontFamily": "EuclidCircularB-Regular",
@@ -767,7 +767,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "600",
@@ -791,7 +791,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#24272A",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -806,7 +806,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                     onPress={[Function]}
                                     style={
                                       {
-                                        "color": "#0376c9",
+                                        "color": "#0376C9",
                                       }
                                     }
                                   >
@@ -829,7 +829,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#0376c9",
+                                        "color": "#0376C9",
                                         "fontSize": 12,
                                       },
                                       {
@@ -850,7 +850,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#0376c9",
+                                      "color": "#0376C9",
                                       "fontSize": 14,
                                     }
                                   }
@@ -862,8 +862,8 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#ffffff",
-                                  "borderColor": "#bbc0c5",
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderColor": "#BBC0C5",
                                   "borderRadius": 10,
                                   "borderWidth": 1,
                                   "elevation": 4,
@@ -875,7 +875,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 16,
                                     "fontWeight": "600",
@@ -889,7 +889,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontSize": 12,
                                     "lineHeight": 17,
                                     "marginBottom": 20,
@@ -901,7 +901,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontSize": 12,
                                     "lineHeight": 17,
                                     "marginBottom": 8,
@@ -922,7 +922,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                 <View
                                   style={
                                     {
-                                      "backgroundColor": "#0376c9",
+                                      "backgroundColor": "#0376C9",
                                       "height": 6,
                                       "lineHeight": 17,
                                       "marginRight": 2,
@@ -933,7 +933,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                 <View
                                   style={
                                     {
-                                      "backgroundColor": "#0376c9",
+                                      "backgroundColor": "#0376C9",
                                       "height": 6,
                                       "lineHeight": 17,
                                       "marginRight": 2,
@@ -944,7 +944,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                 <View
                                   style={
                                     {
-                                      "backgroundColor": "#0376c9",
+                                      "backgroundColor": "#0376C9",
                                       "height": 6,
                                       "lineHeight": 17,
                                       "marginRight": 2,
@@ -956,7 +956,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontSize": 12,
                                     "lineHeight": 17,
                                   }
@@ -967,7 +967,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontSize": 12,
                                     "lineHeight": 17,
                                   }
@@ -979,7 +979,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontSize": 12,
                                     "lineHeight": 17,
                                   }
@@ -991,7 +991,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontSize": 12,
                                     "lineHeight": 17,
                                     "marginBottom": 20,
@@ -1004,7 +1004,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontSize": 12,
                                     "lineHeight": 17,
                                     "marginBottom": 20,
@@ -1016,7 +1016,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontSize": 12,
                                     "lineHeight": 17,
                                   }
@@ -1027,7 +1027,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontSize": 12,
                                     "lineHeight": 17,
                                   }
@@ -1039,7 +1039,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontSize": 12,
                                     "lineHeight": 17,
                                   }
@@ -1051,7 +1051,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontSize": 12,
                                     "lineHeight": 17,
                                     "marginBottom": 20,
@@ -1075,7 +1075,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                         "padding": 15,
                                       },
                                       {
-                                        "backgroundColor": "#0376c9",
+                                        "backgroundColor": "#0376C9",
                                         "minHeight": 50,
                                       },
                                       undefined,
@@ -1102,7 +1102,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#ffffff",
+                                          "color": "#FFFFFF",
                                         },
                                         undefined,
                                       ],

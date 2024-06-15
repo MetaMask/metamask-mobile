@@ -6,7 +6,7 @@ exports[`ListItemMultiSelect should render snapshot correctly 1`] = `
   style={
     {
       "alignItems": "flex-start",
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#FFFFFF",
       "borderRadius": 4,
       "opacity": 1,
       "padding": 16,
@@ -41,8 +41,8 @@ exports[`ListItemMultiSelect should render snapshot correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderColor": "#141618",
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#24272A",
             "borderRadius": 4,
             "borderWidth": 2,
             "height": 20,

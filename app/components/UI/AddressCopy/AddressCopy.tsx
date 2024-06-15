@@ -26,8 +26,10 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
 import { AddressCopyProps } from './AddressCopy.types';
-import { selectIdentities } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
@@ -49,9 +51,7 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
   /**
    * A string that represents the selected address
    */
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
 
   /**
    * An object containing each identity in the format address => account

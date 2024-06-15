@@ -15,7 +15,11 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { strings } from '../../../../../../../locales/i18n';
 import { createStyles } from './styles';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
+import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../../../../selectors/preferencesController';
 import { REVEAL_PRIVATE_KEY_SECTION } from '../../SecuritySettings.constants';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 
@@ -28,7 +32,14 @@ const RevealPrivateKey = () => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
 
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const accounts = useSelector(selectAccounts);
+  const identities = useSelector(selectIdentities);
+  const selectedAddress = useSelector(selectSelectedAddress);
+
+  const account = {
+    ...identities[selectedAddress],
+    ...accounts[selectedAddress],
+  };
 
   const goToExportPrivateKey = () => {
     trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED, {});
@@ -42,7 +53,7 @@ const RevealPrivateKey = () => {
     <View style={styles.setting} testID={testIds.section}>
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('reveal_credential.private_key_title_for_account', {
-          accountName: selectedInternalAccount?.metadata.name,
+          accountName: account.name,
         })}
       </Text>
       <Text
@@ -51,7 +62,7 @@ const RevealPrivateKey = () => {
         style={styles.desc}
       >
         {strings('reveal_credential.private_key_warning', {
-          accountName: selectedInternalAccount?.metadata.name,
+          accountName: account.name,
         })}
       </Text>
       <Button

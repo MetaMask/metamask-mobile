@@ -3,7 +3,6 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import AddAsset from './AddAsset';
 import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/AddAssetView.selectors';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -43,10 +42,7 @@ jest.mock('react-native-scrollable-tab-view', () => {
 
 const initialState = {
   engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 

@@ -17,8 +17,8 @@ exports[`RadioButton should render correctly 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#bbc0c5",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#BBC0C5",
         "borderRadius": 99,
         "borderWidth": 2,
         "height": 20,

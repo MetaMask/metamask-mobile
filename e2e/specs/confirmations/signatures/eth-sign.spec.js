@@ -11,7 +11,6 @@ import {
 } from '../../../fixtures/fixture-helper';
 import { SmokeConfirmations } from '../../../tags';
 import TestHelpers from '../../../helpers';
-import Assertions from '../../../utils/Assertions';
 
 describe(SmokeConfirmations('Eth Sign'), () => {
   beforeAll(async () => {
@@ -43,19 +42,15 @@ describe(SmokeConfirmations('Eth Sign'), () => {
 
         await TestDApp.tapEthSignButton();
 
-        await Assertions.checkIfVisible(SigningModal.ethRequest);
+        await SigningModal.isEthRequestVisible();
         await SigningModal.tapCancelButton();
-        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
-        await Assertions.checkIfNotVisible(SigningModal.personalRequest);
-        await Assertions.checkIfNotVisible(SigningModal.typedRequest);
+        await SigningModal.isNotVisible();
 
         await TestDApp.tapEthSignButton();
 
-        await Assertions.checkIfVisible(SigningModal.ethRequest);
+        await SigningModal.isEthRequestVisible();
         await SigningModal.tapSignButton();
-        await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
-        await Assertions.checkIfNotVisible(SigningModal.personalRequest);
+        await SigningModal.isNotVisible();
       },
     );
   });

@@ -66,8 +66,8 @@ exports[`NotificationIcon matches snapshot with Wallet type 1`] = `
         {
           "alignItems": "center",
           "aspectRatio": 1,
-          "backgroundColor": "#0376c9",
-          "borderColor": "#ffffff",
+          "backgroundColor": "#0376C9",
+          "borderColor": "#FFFFFF",
           "borderRadius": 9,
           "borderWidth": 1,
           "height": "50%",
@@ -79,7 +79,7 @@ exports[`NotificationIcon matches snapshot with Wallet type 1`] = `
       testID="badge-notifications"
     >
       <SvgMock
-        color="#ffffff"
+        color="#FFFFFF"
         height={10}
         name="Send2"
         style={

@@ -12,8 +12,8 @@ exports[`TabBarItem should render correctly 1`] = `
   }
 >
   <Avatar
-    backgroundColor="#ffffff"
-    iconColor="#0376c9"
+    backgroundColor="#FFFFFF"
+    iconColor="#0376C9"
     name="Bank"
     size="32"
     variant="Icon"

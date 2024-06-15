@@ -40,7 +40,7 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../../selectors/networkController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { providerErrors } from '@metamask/rpc-errors';
 import { getDeviceId } from '../../../../core/Ledger/Ledger';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
@@ -703,7 +703,7 @@ class Approval extends PureComponent {
 const mapStateToProps = (state) => ({
   transaction: getNormalizedTxState(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedAddress(state),
   networkType: selectProviderType(state),
   showCustomNonce: state.settings.showCustomNonce,
   chainId: selectChainId(state),

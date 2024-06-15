@@ -22,7 +22,6 @@ const WalletAction = ({
   onPress,
   containerStyle,
   iconStyle,
-  actionID,
   ...props
 }: WalletActionProps) => {
   const { colors } = useTheme();
@@ -31,7 +30,6 @@ const WalletAction = ({
     <TouchableOpacity
       style={{ ...styles.base, ...containerStyle }}
       onPress={onPress}
-      testID={actionID}
       {...props}
     >
       <Avatar

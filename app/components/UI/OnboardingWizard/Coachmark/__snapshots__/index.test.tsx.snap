@@ -23,7 +23,7 @@ exports[`Coachmark should render correctly 1`] = `
       style={
         {
           "backgroundColor": "transparent",
-          "borderBottomColor": "#0376c9",
+          "borderBottomColor": "#0376C9",
           "borderBottomWidth": 12,
           "borderLeftColor": "transparent",
           "borderLeftWidth": 15,
@@ -41,7 +41,7 @@ exports[`Coachmark should render correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#0376c9",
+          "backgroundColor": "#0376C9",
           "borderRadius": 8,
           "padding": 20,
         },
@@ -78,8 +78,8 @@ exports[`Coachmark should render correctly 1`] = `
         testID="onboarding-wizard-back-button"
       >
         <SvgMock
-          color="#ffffff"
-          height={16}
+          color="#FFFFFF"
+          height={20}
           name="Arrow2Left"
           style={
             {
@@ -94,7 +94,7 @@ exports[`Coachmark should render correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "color": "#ffffff",
+            "color": "#FFFFFF",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "600",
@@ -121,8 +121,8 @@ exports[`Coachmark should render correctly 1`] = `
         }
       >
         <SvgMock
-          color="#ffffff"
-          height={16}
+          color="#FFFFFF"
+          height={20}
           name="Close"
           style={
             {
@@ -154,7 +154,7 @@ exports[`Coachmark should render correctly 1`] = `
         <Text
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
             }
           }
         >
@@ -176,7 +176,7 @@ exports[`Coachmark should render correctly 1`] = `
                 "padding": 15,
               },
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#FFFFFF",
               },
               [
                 {
@@ -212,7 +212,7 @@ exports[`Coachmark should render correctly 1`] = `
                   "textAlign": "center",
                 },
                 {
-                  "color": "#0376c9",
+                  "color": "#0376C9",
                 },
                 undefined,
               ],

@@ -356,7 +356,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                             ],
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
+                              "backgroundColor": "#FFFFFF",
                               "flex": 1,
                               "justifyContent": "space-between",
                               "paddingHorizontal": 24,
@@ -412,7 +412,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 32,
                                   "fontWeight": "700",
@@ -429,7 +429,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -462,7 +462,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#0376c9",
+                                "backgroundColor": "#0376C9",
                                 "borderRadius": 20,
                                 "flexDirection": "row",
                                 "height": undefined,
@@ -478,7 +478,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#ffffff",
+                                  "color": "#FFFFFF",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -515,7 +515,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#0376C9",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "400",

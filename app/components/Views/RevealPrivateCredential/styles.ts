@@ -101,7 +101,7 @@ export const createStyles = (theme: Theme) =>
       alignSelf: 'center',
       justifyContent: 'center',
       padding: 8,
-      backgroundColor: theme.brandColors.white,
+      backgroundColor: theme.brandColors.white000,
     },
     tabUnderlineStyle: {
       height: 2,

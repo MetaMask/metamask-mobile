@@ -372,15 +372,15 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c566",
+                                "backgroundColor": "#FFFFFF",
+                                "borderColor": "#D6D9DC",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
+                                "shadowColor": "#0000001A",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -410,7 +410,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#bbc0c566",
+                                  "backgroundColor": "#D6D9DC",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -422,7 +422,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#ffffff",
+                                "backgroundColor": "#FFFFFF",
                                 "flexDirection": "row",
                                 "height": 32,
                                 "justifyContent": "space-between",
@@ -441,7 +441,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 18,
                                   "fontWeight": "700",
@@ -465,7 +465,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#24272A",
                                 "fontFamily": "Euclid Circular B",
                                 "fontSize": 14,
                                 "fontWeight": "400",
@@ -484,7 +484,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -500,7 +500,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "700",
@@ -519,7 +519,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "700",
@@ -553,7 +553,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
                                   "backgroundColor": "transparent",
-                                  "borderColor": "#0376c9",
+                                  "borderColor": "#0376C9",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flex": 1,
@@ -570,7 +570,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#0376c9",
+                                    "color": "#0376C9",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -593,7 +593,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
-                                  "backgroundColor": "#0376c9",
+                                  "backgroundColor": "#0376C9",
                                   "borderRadius": 24,
                                   "flex": 1,
                                   "flexDirection": "row",
@@ -609,7 +609,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#ffffff",
+                                    "color": "#FFFFFF",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 14,
                                     "fontWeight": "400",

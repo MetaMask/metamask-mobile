@@ -4,15 +4,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import ApproveTransactionHeader from '.';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import { APPROVE_TRANSACTION_ORIGIN_PILL } from './ApproveTransactionHeader.constants';
-import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
-
-const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-const MOCK_ADDRESS_2 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
-
-const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
-  MOCK_ADDRESS_1,
-  MOCK_ADDRESS_2,
-]);
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -34,28 +25,27 @@ const mockInitialState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          [MOCK_ADDRESS_1]: {
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
             balance: '200',
           },
-          [MOCK_ADDRESS_2]: {
+          '0xd018538C87232FF95acbCe4870629b75640a78E7': {
             balance: '200',
           },
         },
       },
       PreferencesController: {
-        selectedAddress: MOCK_ADDRESS_1,
+        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
         identities: {
-          [MOCK_ADDRESS_1]: {
-            address: MOCK_ADDRESS_1,
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+            address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
             name: 'Account 1',
           },
-          [MOCK_ADDRESS_2]: {
-            address: MOCK_ADDRESS_2,
+          '0xd018538C87232FF95acbCe4870629b75640a78E7': {
+            address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
             name: 'Account 2',
           },
         },
       },
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
         providerConfig: {
           chainId: '0xaa36a7',

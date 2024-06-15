@@ -24,7 +24,7 @@ exports[`HintModal should render correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#FFFFFF",
           "borderRadius": 16,
           "flex": 1,
           "padding": 24,
@@ -90,13 +90,13 @@ exports[`HintModal should render correctly 1`] = `
         multiline={true}
         onChangeText={[Function]}
         placeholder="e.g. Mom's house"
-        placeholderTextColor="#9fa6ae"
+        placeholderTextColor="#BBC0C5"
         style={
           {
-            "borderColor": "#bbc0c5",
+            "borderColor": "#BBC0C5",
             "borderRadius": 6,
             "borderWidth": 1,
-            "color": "#141618",
+            "color": "#24272A",
             "minHeight": 76,
             "padding": 16,
             "paddingTop": 16,

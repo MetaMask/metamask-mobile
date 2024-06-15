@@ -89,7 +89,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -2319,7 +2319,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   ticker: selectTicker(state),
   balances: selectContractBalances(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedAddress(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   isInPolling: state.engine.backgroundState.SwapsController.isInPolling,

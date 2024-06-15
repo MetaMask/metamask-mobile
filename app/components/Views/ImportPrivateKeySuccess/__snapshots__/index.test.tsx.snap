@@ -307,7 +307,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                     <View
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "#FFFFFF",
                           "flex": 1,
                         }
                       }
@@ -320,7 +320,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                         }
                         style={
                           {
-                            "backgroundColor": "#ffffff",
+                            "backgroundColor": "#FFFFFF",
                             "flex": 1,
                           }
                         }
@@ -356,7 +356,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                                       "fontSize": 15,
                                     },
                                     {
-                                      "color": "#141618",
+                                      "color": "#24272A",
                                       "fontSize": 28,
                                     },
                                     {
@@ -384,7 +384,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#1c8234",
+                                      "color": "#1C8234",
                                       "fontSize": 12,
                                     },
                                     {
@@ -407,7 +407,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 32,
                                     "fontWeight": "400",
@@ -430,7 +430,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#24272A",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",

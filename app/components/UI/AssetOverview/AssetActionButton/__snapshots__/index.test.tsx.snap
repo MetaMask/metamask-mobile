@@ -20,7 +20,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
       {
         "alignContent": "center",
         "alignItems": "center",
-        "backgroundColor": "#0376c9",
+        "backgroundColor": "#0376C9",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -35,7 +35,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#0376c9",
+        "color": "#0376C9",
         "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
@@ -67,7 +67,7 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
       {
         "alignContent": "center",
         "alignItems": "center",
-        "backgroundColor": "#0376c9",
+        "backgroundColor": "#0376C9",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -84,7 +84,7 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
       style={
         {
           "alignContent": "center",
-          "color": "#ffffff",
+          "color": "#FFFFFF",
           "justifyContent": "center",
           "textAlign": "center",
         }
@@ -96,7 +96,7 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#0376c9",
+        "color": "#0376C9",
         "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
@@ -128,7 +128,7 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
       {
         "alignContent": "center",
         "alignItems": "center",
-        "backgroundColor": "#0376c9",
+        "backgroundColor": "#0376C9",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -145,7 +145,7 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
       style={
         {
           "alignContent": "center",
-          "color": "#ffffff",
+          "color": "#FFFFFF",
           "justifyContent": "center",
           "textAlign": "center",
         }
@@ -157,7 +157,7 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#0376c9",
+        "color": "#0376C9",
         "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
@@ -189,7 +189,7 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
       {
         "alignContent": "center",
         "alignItems": "center",
-        "backgroundColor": "#0376c9",
+        "backgroundColor": "#0376C9",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -201,14 +201,14 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      color="#ffffff"
+      color="#FFFFFF"
       name="keyboard-tab"
       size={20}
       style={
         [
           {
             "alignContent": "center",
-            "color": "#ffffff",
+            "color": "#FFFFFF",
             "justifyContent": "center",
             "textAlign": "center",
           },
@@ -230,7 +230,7 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#0376c9",
+        "color": "#0376C9",
         "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
@@ -262,7 +262,7 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
       {
         "alignContent": "center",
         "alignItems": "center",
-        "backgroundColor": "#0376c9",
+        "backgroundColor": "#0376C9",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -279,7 +279,7 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
       style={
         {
           "alignContent": "center",
-          "color": "#ffffff",
+          "color": "#FFFFFF",
           "justifyContent": "center",
           "textAlign": "center",
         }
@@ -291,7 +291,7 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#0376c9",
+        "color": "#0376C9",
         "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
@@ -323,7 +323,7 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
       {
         "alignContent": "center",
         "alignItems": "center",
-        "backgroundColor": "#0376c9",
+        "backgroundColor": "#0376C9",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -341,7 +341,7 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
         [
           {
             "alignContent": "center",
-            "color": "#ffffff",
+            "color": "#FFFFFF",
             "justifyContent": "center",
             "textAlign": "center",
           },
@@ -358,7 +358,7 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#0376c9",
+        "color": "#0376C9",
         "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,

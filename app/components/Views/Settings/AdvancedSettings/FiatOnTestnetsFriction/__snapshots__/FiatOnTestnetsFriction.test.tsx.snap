@@ -69,15 +69,15 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
       style={
         [
           {
-            "backgroundColor": "#ffffff",
-            "borderColor": "#bbc0c566",
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#D6D9DC",
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
             "maxHeight": NaN,
             "overflow": "hidden",
             "paddingBottom": undefined,
-            "shadowColor": "#0000001a",
+            "shadowColor": "#0000001A",
             "shadowOffset": {
               "height": 2,
               "width": 0,
@@ -107,7 +107,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#bbc0c566",
+              "backgroundColor": "#D6D9DC",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -125,7 +125,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
         }
       >
         <SvgMock
-          color="#bf5208"
+          color="#FFC70A"
           height={32}
           name="Danger"
           style={
@@ -140,7 +140,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
           style={
             [
               {
-                "color": "#141618",
+                "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
                 "fontWeight": "400",
@@ -185,7 +185,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
           style={
             [
               {
-                "color": "#141618",
+                "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
                 "fontWeight": "400",
@@ -224,7 +224,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             style={
               [
                 {
-                  "color": "#141618",
+                  "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
                   "fontWeight": "400",
@@ -267,7 +267,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             style={
               [
                 {
-                  "color": "#141618",
+                  "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
                   "fontWeight": "400",
@@ -284,7 +284,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
                 undefined,
                 undefined,
                 {
-                  "color": "#141618",
+                  "color": "#24272A",
                 },
                 undefined,
                 undefined,
@@ -295,7 +295,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
                 undefined,
                 undefined,
                 {
-                  "color": "#0376c9",
+                  "color": "#0376C9",
                 },
                 undefined,
                 undefined,
@@ -331,7 +331,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
-                "borderColor": "#0376c9",
+                "borderColor": "#0376C9",
                 "borderRadius": 24,
                 "borderWidth": 1,
                 "flex": 1,
@@ -348,7 +348,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
+                  "color": "#0376C9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -371,7 +371,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#0376C9",
                 "borderRadius": 24,
                 "flex": 1,
                 "flexDirection": "row",
@@ -387,7 +387,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
+                  "color": "#FFFFFF",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
                   "fontWeight": "400",

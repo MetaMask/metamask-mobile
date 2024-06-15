@@ -15,7 +15,13 @@ import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { SkipAccountSecurityModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SkipAccountSecurityModal.selectors';
+import {
+  SKIP_BUTTON,
+  CANCEL_BUTTON,
+  SKIP_BACKUP_MODAL,
+  ANDROID_SKIP_BACKUP_BUTTON_ID,
+  iOS_SKIP_BACKUP_BUTTON_ID,
+} from '../../../../wdio/screen-objects/testIDs/Components/SkipAccountSecurityModalTestIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -79,8 +85,8 @@ const SkipAccountSecurityModal = ({
 
   return (
     <ActionModal
-      cancelTestID={SkipAccountSecurityModalSelectorsIDs.CANCEL_BUTTON}
-      confirmTestID={SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON}
+      cancelTestID={CANCEL_BUTTON}
+      confirmTestID={SKIP_BUTTON}
       confirmText={strings('account_backup_step_1.skip_button_confirm')}
       cancelText={strings('account_backup_step_1.skip_button_cancel')}
       confirmButtonMode={'confirm'}
@@ -113,7 +119,7 @@ const SkipAccountSecurityModal = ({
         </Text>
         <View
           style={styles.skipModalActionButtons}
-          testID={SkipAccountSecurityModalSelectorsIDs.CONTAINER}
+          {...generateTestId(Platform, SKIP_BACKUP_MODAL)}
         >
           <CheckBox
             style={styles.skipModalCheckbox}
@@ -124,16 +130,12 @@ const SkipAccountSecurityModal = ({
               true: colors.primary.default,
               false: colors.border.default,
             }}
-            testID={
-              SkipAccountSecurityModalSelectorsIDs.iOS_SKIP_BACKUP_BUTTON_ID
-            }
+            testID={iOS_SKIP_BACKUP_BUTTON_ID}
           />
           <Text
             onPress={toggleSkipCheckbox}
             style={styles.skipModalText}
-            testID={
-              SkipAccountSecurityModalSelectorsIDs.ANDROID_SKIP_BACKUP_BUTTON_ID
-            }
+            {...generateTestId(Platform, ANDROID_SKIP_BACKUP_BUTTON_ID)}
           >
             {strings('account_backup_step_1.skip_check')}
           </Text>

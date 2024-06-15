@@ -4,7 +4,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "maxHeight": "95%",
@@ -62,7 +62,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#141618",
+                      "color": "#24272A",
                       "fontSize": 24,
                     },
                     undefined,
@@ -82,7 +82,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#24272A",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 16,
                   "fontWeight": "700",
@@ -98,7 +98,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               style={
                 [
                   {
-                    "color": "#ffffff",
+                    "color": "#FFFFFF",
                     "fontSize": 24,
                   },
                   undefined,
@@ -129,8 +129,8 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 "paddingVertical": 8,
               },
               {
-                "backgroundColor": "#bf52081a",
-                "borderColor": "#bf5208",
+                "backgroundColor": "#BF520819",
+                "borderColor": "#BF5208",
               },
               undefined,
             ]
@@ -148,7 +148,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               style={
                 [
                   {
-                    "color": "#bf5208",
+                    "color": "#BF5208",
                     "fontSize": 20,
                   },
                   undefined,
@@ -169,7 +169,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#bf5208",
+                  "color": "#BF5208",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -211,7 +211,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
+                    "color": "#24272A",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 32,
                     "fontWeight": "700",
@@ -234,7 +234,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
+                    "color": "#535A61",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "500",
@@ -275,7 +275,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#24272A",
                           "fontFamily": "Euclid Circular B",
                           "fontSize": 14,
                           "fontWeight": "700",
@@ -307,7 +307,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                               "fontSize": 14,
                             },
                             {
-                              "color": "#9fa6ae",
+                              "color": "#BBC0C5",
                             },
                             {
                               "fontFamily": "Material Design Icons",
@@ -327,7 +327,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "borderColor": "#bbc0c5",
+                      "borderColor": "#BBC0C5",
                       "borderRadius": 6,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -357,7 +357,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "borderColor": "#0376c9",
+                          "borderColor": "#0376C9",
                           "borderRadius": 100,
                           "borderWidth": 2,
                           "height": 20,
@@ -375,7 +375,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                               "fontSize": 10,
                             },
                             {
-                              "color": "#0376c9",
+                              "color": "#0376C9",
                               "paddingLeft": 0.5,
                               "paddingTop": 1,
                             },
@@ -408,7 +408,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       onChangeText={[Function]}
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#24272A",
                           "height": 38,
                           "minWidth": 10,
                           "paddingRight": 6,
@@ -434,7 +434,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       style={
                         [
                           {
-                            "color": "#141618",
+                            "color": "#24272A",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 30,
                             "fontWeight": "400",
@@ -486,7 +486,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "borderColor": "#0376c9",
+                          "borderColor": "#0376C9",
                           "borderRadius": 100,
                           "borderWidth": 2,
                           "height": 20,
@@ -504,7 +504,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                               "fontSize": 10,
                             },
                             {
-                              "color": "#0376c9",
+                              "color": "#0376C9",
                               "paddingLeft": 0.5,
                               "paddingTop": 1,
                             },
@@ -526,7 +526,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "color": "#d73847",
+                      "color": "#D73847",
                       "flexDirection": "row",
                       "marginTop": 8,
                     }
@@ -541,7 +541,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                           "fontSize": 14,
                         },
                         {
-                          "color": "#d73847",
+                          "color": "#D73847",
                           "paddingRight": 4,
                         },
                         {
@@ -559,7 +559,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#141618",
+                          "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 30,
                           "fontWeight": "400",
@@ -573,7 +573,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                         undefined,
                         undefined,
                         {
-                          "color": "#d73847",
+                          "color": "#D73847",
                         },
                         undefined,
                         undefined,
@@ -595,7 +595,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                           "marginVertical": 0,
                         },
                         {
-                          "color": "#141618",
+                          "color": "#24272A",
                         },
                       ]
                     }
@@ -636,7 +636,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#24272A",
                           "fontFamily": "Euclid Circular B",
                           "fontSize": 14,
                           "fontWeight": "700",
@@ -652,7 +652,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#6a737d",
+                          "color": "#535A61",
                           "fontFamily": "Euclid Circular B",
                           "fontSize": 14,
                           "fontWeight": "400",
@@ -683,7 +683,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                               "fontSize": 14,
                             },
                             {
-                              "color": "#9fa6ae",
+                              "color": "#BBC0C5",
                             },
                             {
                               "fontFamily": "Material Design Icons",
@@ -703,7 +703,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "borderColor": "#bbc0c5",
+                      "borderColor": "#BBC0C5",
                       "borderRadius": 6,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -733,7 +733,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "borderColor": "#0376c9",
+                          "borderColor": "#0376C9",
                           "borderRadius": 100,
                           "borderWidth": 2,
                           "height": 20,
@@ -751,7 +751,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                               "fontSize": 10,
                             },
                             {
-                              "color": "#0376c9",
+                              "color": "#0376C9",
                               "paddingLeft": 0.5,
                               "paddingTop": 1,
                             },
@@ -784,7 +784,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       onChangeText={[Function]}
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#24272A",
                           "height": 38,
                           "minWidth": 10,
                           "paddingRight": 6,
@@ -810,7 +810,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       style={
                         [
                           {
-                            "color": "#141618",
+                            "color": "#24272A",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 30,
                             "fontWeight": "400",
@@ -862,7 +862,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "borderColor": "#0376c9",
+                          "borderColor": "#0376C9",
                           "borderRadius": 100,
                           "borderWidth": 2,
                           "height": 20,
@@ -880,7 +880,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                               "fontSize": 10,
                             },
                             {
-                              "color": "#0376c9",
+                              "color": "#0376C9",
                               "paddingLeft": 0.5,
                               "paddingTop": 1,
                             },
@@ -916,7 +916,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       "padding": 15,
                     },
                     {
-                      "backgroundColor": "#0376c9",
+                      "backgroundColor": "#0376C9",
                       "minHeight": 50,
                     },
                     undefined,
@@ -947,7 +947,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                         "textAlign": "center",
                       },
                       {
-                        "color": "#ffffff",
+                        "color": "#FFFFFF",
                       },
                       undefined,
                     ],

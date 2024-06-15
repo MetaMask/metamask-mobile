@@ -6,7 +6,7 @@ exports[`SelectOption should render snapshot correctly 1`] = `
   disabled={false}
   style={
     {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#FFFFFF",
       "borderRadius": 4,
       "opacity": 1,
       "padding": 16,
@@ -47,7 +47,7 @@ exports[`SelectOption should render snapshot correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "#FFFFFF",
               "borderRadius": 16,
               "height": 32,
               "overflow": "hidden",
@@ -206,7 +206,7 @@ exports[`SelectOption should render snapshot correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -222,7 +222,7 @@ exports[`SelectOption should render snapshot correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#6a737d",
+              "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 12,
               "fontWeight": "400",

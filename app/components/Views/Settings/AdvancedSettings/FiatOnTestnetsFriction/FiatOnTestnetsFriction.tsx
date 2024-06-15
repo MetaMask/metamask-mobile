@@ -35,7 +35,7 @@ const FiatOnTestnetsFriction = () => {
       <View style={styles.frictionContainer}>
         <Icon
           name={IconName.Danger}
-          color={colors.warning.default}
+          color={colors.warning.alternative}
           size={IconSize.Xl}
         />
         <Text style={styles.heading}>

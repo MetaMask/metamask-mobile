@@ -13,35 +13,33 @@ import {
   selectTicker,
 } from '../../../../../selectors/networkController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../../../selectors/preferencesController';
 import { doENSReverseLookup } from '../../../../../util/ENSUtils';
 import { renderFromWei, hexToBN } from '../../../../../util/number';
 import { getEther, getTicker } from '../../../../../util/transactions';
 import { AddressFrom } from '../../../../UI/AddressInputs';
 import { SFAddressFromProps } from './AddressFrom.types';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const SendFlowAddressFrom = ({
   fromAccountBalanceState,
   setFromAddress,
 }: SFAddressFromProps) => {
   const navigation = useNavigation();
+  const identities = useSelector(selectIdentities);
 
   const accounts = useSelector(selectAccounts);
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
 
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  const checksummedSelectedAddress = selectedInternalAccount
-    ? toChecksumHexAddress(selectedInternalAccount.address)
-    : null;
+  const selectedAddress = useSelector(selectSelectedAddress);
 
-  const [accountAddress, setAccountAddress] = useState(
-    checksummedSelectedAddress,
-  );
+  const [accountAddress, setAccountAddress] = useState(selectedAddress);
   const [accountName, setAccountName] = useState(
-    selectedInternalAccount?.metadata.name,
+    identities[selectedAddress].name,
   );
   const [accountBalance, setAccountBalance] = useState('');
 
@@ -77,34 +75,27 @@ const SendFlowAddressFrom = ({
 
   useEffect(() => {
     async function getAccount() {
-      if (checksummedSelectedAddress) {
-        const ens = await doENSReverseLookup(
-          checksummedSelectedAddress,
-          chainId,
-        );
-        const balance = `${renderFromWei(
-          accounts[checksummedSelectedAddress].balance,
-        )} ${getTicker(ticker)}`;
-        const balanceIsZero = hexToBN(
-          accounts[checksummedSelectedAddress].balance,
-        ).isZero();
-        setAccountName(ens || selectedInternalAccount?.metadata.name);
-        setAccountBalance(balance);
-        fromAccountBalanceState(balanceIsZero);
-      }
+      const ens = await doENSReverseLookup(selectedAddress, chainId);
+      const balance = `${renderFromWei(
+        accounts[selectedAddress].balance,
+      )} ${getTicker(ticker)}`;
+      const balanceIsZero = hexToBN(accounts[selectedAddress].balance).isZero();
+      setAccountName(ens || identities[selectedAddress].name);
+      setAccountBalance(balance);
+      fromAccountBalanceState(balanceIsZero);
     }
     getAccount();
   }, [
     accounts,
-    checksummedSelectedAddress,
+    selectedAddress,
     ticker,
     chainId,
+    identities,
     fromAccountBalanceState,
-    selectedInternalAccount?.metadata.name,
   ]);
 
   const onSelectAccount = async (address: string) => {
-    const name = selectedInternalAccount?.metadata.name;
+    const { name } = identities[address];
     const balance = `${renderFromWei(accounts[address].balance)} ${getTicker(
       ticker,
     )}`;

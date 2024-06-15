@@ -11,7 +11,6 @@ import {
 } from '../../../fixtures/fixture-helper';
 import { SmokeConfirmations } from '../../../tags';
 import TestHelpers from '../../../helpers';
-import Assertions from '../../../utils/Assertions';
 
 describe(SmokeConfirmations('Personal Sign'), () => {
   beforeAll(async () => {
@@ -37,18 +36,14 @@ describe(SmokeConfirmations('Personal Sign'), () => {
         await Browser.navigateToTestDApp();
 
         await TestDApp.tapPersonalSignButton();
-        await Assertions.checkIfVisible(SigningModal.personalRequest);
+        await SigningModal.isPersonalRequestVisible();
         await SigningModal.tapCancelButton();
-        await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
-        await Assertions.checkIfNotVisible(SigningModal.personalRequest);
+        await SigningModal.isNotVisible();
 
         await TestDApp.tapPersonalSignButton();
-        await Assertions.checkIfVisible(SigningModal.personalRequest);
+        await SigningModal.isPersonalRequestVisible();
         await SigningModal.tapSignButton();
-        await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
-        await Assertions.checkIfNotVisible(SigningModal.personalRequest);
+        await SigningModal.isNotVisible();
       },
     );
   });

@@ -4,8 +4,8 @@ exports[`Card - Snapshot should render correctly 1`] = `
 <TouchableOpacity
   style={
     {
-      "backgroundColor": "#ffffff",
-      "borderColor": "#bbc0c5",
+      "backgroundColor": "#FFFFFF",
+      "borderColor": "#BBC0C5",
       "borderRadius": 4,
       "borderWidth": 1,
       "padding": 16,

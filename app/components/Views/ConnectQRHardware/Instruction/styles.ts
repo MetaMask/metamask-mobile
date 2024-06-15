@@ -50,7 +50,7 @@ export const createStyles = (theme: Theme) =>
       paddingHorizontal: '30%',
     },
     buttonText: {
-      color: theme.brandColors.white,
+      color: theme.brandColors.white000,
       ...fontStyles.normal,
     },
     image: {

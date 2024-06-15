@@ -53,7 +53,7 @@ import AnimatedFox from '@metamask/react-native-animated-fox';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 
 const createStyles = (colors) =>
@@ -504,8 +504,8 @@ class ResetPassword extends PureComponent {
     this.props.navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
-        title: 'support.metamask.io',
+        url: 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-',
+        title: 'metamask.zendesk.com',
       },
     });
   };
@@ -809,7 +809,7 @@ class ResetPassword extends PureComponent {
 ResetPassword.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedAddress(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

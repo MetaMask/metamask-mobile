@@ -54,7 +54,7 @@ exports[`Accounts should render correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -130,7 +130,7 @@ exports[`Accounts should render correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -167,7 +167,7 @@ exports[`Accounts should render correctly 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -206,7 +206,7 @@ exports[`Accounts should render correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -248,7 +248,7 @@ exports[`Accounts should render correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -439,7 +439,7 @@ exports[`Accounts should render correctly 1`] = `
                     <View
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "#FFFFFF",
                           "flex": 1,
                         }
                       }
@@ -448,7 +448,7 @@ exports[`Accounts should render correctly 1`] = `
                         style={
                           {
                             "alignItems": "center",
-                            "backgroundColor": "#ffffff",
+                            "backgroundColor": "#FFFFFF",
                             "flex": 1,
                             "justifyContent": "center",
                           }

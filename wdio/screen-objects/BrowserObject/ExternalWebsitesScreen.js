@@ -77,10 +77,6 @@ class ExternalWebsitesScreen {
     return Selectors.getXpathElementByText('CONNECT');
   }
 
-  get testDappTitle() {
-    return Selectors.getXpathElementByText('E2E Test Dapp');
-  }
-
   get testDappTransferTokens() {
     return Selectors.getXpathElementByText('TRANSFER TOKENS');
   }
@@ -136,13 +132,7 @@ class ExternalWebsitesScreen {
   async tapUniswapConnectButton() {
     await Gestures.waitAndTap(this.uniswapConnectButton);
   }
-
-  async isTestDappDisplayed() {
-    await expect(await this.testDappTitle).toBeDisplayed();
-  }
-
   async tapDappConnectButton() {
-    await Gestures.swipeUp(0.5);
     const element = await this.testDappConnectButton;
     await element.waitForEnabled();
     await Gestures.waitAndTap(this.testDappConnectButton);

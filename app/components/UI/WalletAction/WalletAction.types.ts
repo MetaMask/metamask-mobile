@@ -10,5 +10,4 @@ export interface WalletActionProps {
   onPress: () => void;
   containerStyle?: ViewStyle;
   iconStyle?: ImageStyle;
-  actionID?: string;
 }

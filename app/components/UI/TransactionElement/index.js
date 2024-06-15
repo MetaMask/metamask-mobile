@@ -33,8 +33,10 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import { selectIdentities } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -605,7 +607,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   identities: selectIdentities(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedAddress(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   swapsTokens: state.engine.backgroundState.SwapsController.tokens,

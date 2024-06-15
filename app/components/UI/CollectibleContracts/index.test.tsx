@@ -13,7 +13,6 @@ import { cleanup, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 
 import TestHelpers from '../../../../e2e/helpers';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -45,7 +44,6 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const mockStore = configureMockStore();
-
 const initialState = {
   collectibles: {
     favorites: {},
@@ -55,11 +53,6 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
-
-const MOCK_ADDRESS = '0xd018538C87232FF95acbCe4870629b75640a78E7';
-const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
-  MOCK_ADDRESS,
-]);
 
 describe('CollectibleContracts', () => {
   afterEach(cleanup);
@@ -73,6 +66,7 @@ describe('CollectibleContracts', () => {
   });
 
   it('should only get owned collectibles', () => {
+    const CURRENT_ACCOUNT = '0x1a';
     const mockState = {
       collectibles: {
         favorites: {},
@@ -89,12 +83,20 @@ describe('CollectibleContracts', () => {
             },
           },
           AccountTrackerController: {
-            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
+            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
           },
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          PreferencesController: {
+            selectedAddress: CURRENT_ACCOUNT,
+            identities: {
+              [CURRENT_ACCOUNT]: {
+                address: CURRENT_ACCOUNT,
+                name: 'Account 1',
+              },
+            },
+          },
           NftController: {
             allNfts: {
-              [MOCK_ADDRESS]: {
+              [CURRENT_ACCOUNT]: {
                 '0x1': [
                   {
                     address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -126,7 +128,7 @@ describe('CollectibleContracts', () => {
               },
             },
             allNftContracts: {
-              [MOCK_ADDRESS]: {
+              [CURRENT_ACCOUNT]: {
                 '0x1': [
                   {
                     address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -152,6 +154,7 @@ describe('CollectibleContracts', () => {
   });
 
   it('UI refresh changes NFT image when metadata image changes - detection disabled', async () => {
+    const CURRENT_ACCOUNT = '0x1a';
     const collectibleData = [
       {
         address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -206,22 +209,28 @@ describe('CollectibleContracts', () => {
             },
           },
           AccountTrackerController: {
-            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
+            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
           },
           PreferencesController: {
             displayNftMedia: true,
+            selectedAddress: CURRENT_ACCOUNT,
+            identities: {
+              [CURRENT_ACCOUNT]: {
+                address: CURRENT_ACCOUNT,
+                name: 'Account 1',
+              },
+            },
           },
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
             addNft: jest.fn(),
             updateNftMetadata: jest.fn(),
             allNfts: {
-              [MOCK_ADDRESS]: {
+              [CURRENT_ACCOUNT]: {
                 '1': [],
               },
             },
             allNftContracts: {
-              [MOCK_ADDRESS]: {
+              [CURRENT_ACCOUNT]: {
                 '1': [],
               },
             },
@@ -265,6 +274,7 @@ describe('CollectibleContracts', () => {
   });
 
   it('UI refresh changes NFT image when metadata image changes - detection enabled', async () => {
+    const CURRENT_ACCOUNT = '0x1a';
     const collectibleData = [
       {
         address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -319,23 +329,29 @@ describe('CollectibleContracts', () => {
             },
           },
           AccountTrackerController: {
-            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
+            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
           },
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
+            selectedAddress: CURRENT_ACCOUNT,
+            identities: {
+              [CURRENT_ACCOUNT]: {
+                address: CURRENT_ACCOUNT,
+                name: 'Account 1',
+              },
+            },
           },
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
             addNft: jest.fn(),
             updateNftMetadata: jest.fn(),
             allNfts: {
-              [MOCK_ADDRESS]: {
+              [CURRENT_ACCOUNT]: {
                 '1': [],
               },
             },
             allNftContracts: {
-              [MOCK_ADDRESS]: {
+              [CURRENT_ACCOUNT]: {
                 '1': [],
               },
             },
@@ -382,6 +398,7 @@ describe('CollectibleContracts', () => {
   });
 
   it('UI pull down experience should call detectNfts when detection is enabled', async () => {
+    const CURRENT_ACCOUNT = '0x1a';
     const collectibleData = [
       {
         address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -436,22 +453,29 @@ describe('CollectibleContracts', () => {
             },
           },
           AccountTrackerController: {
-            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
+            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
           },
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
+            selectedAddress: CURRENT_ACCOUNT,
+            identities: {
+              [CURRENT_ACCOUNT]: {
+                address: CURRENT_ACCOUNT,
+                name: 'Account 1',
+              },
+            },
           },
           NftController: {
             addNft: jest.fn(),
             updateNftMetadata: jest.fn(),
             allNfts: {
-              [MOCK_ADDRESS]: {
+              [CURRENT_ACCOUNT]: {
                 '1': [],
               },
             },
             allNftContracts: {
-              [MOCK_ADDRESS]: {
+              [CURRENT_ACCOUNT]: {
                 '1': [],
               },
             },

@@ -2,7 +2,7 @@
 
 exports[`Icon renders correctly 1`] = `
 <SvgMock
-  color="#141618"
+  color="#24272A"
   height={20}
   name="Add"
   style={

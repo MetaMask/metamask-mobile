@@ -54,7 +54,7 @@ exports[`Confirm should render correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -128,7 +128,7 @@ exports[`Confirm should render correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -165,7 +165,7 @@ exports[`Confirm should render correctly 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -204,7 +204,7 @@ exports[`Confirm should render correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -246,7 +246,7 @@ exports[`Confirm should render correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -442,7 +442,7 @@ exports[`Confirm should render correctly 1`] = `
                       }
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "#FFFFFF",
                           "flex": 1,
                         }
                       }
@@ -477,7 +477,7 @@ exports[`Confirm should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
@@ -493,7 +493,7 @@ exports[`Confirm should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "borderColor": "#bbc0c5",
+                                  "borderColor": "#BBC0C5",
                                   "borderRadius": 8,
                                   "borderWidth": 1,
                                   "flex": 1,
@@ -504,7 +504,7 @@ exports[`Confirm should render correctly 1`] = `
                                   "padding": 10,
                                 },
                                 {
-                                  "borderColor": "#bbc0c5",
+                                  "borderColor": "#BBC0C5",
                                 },
                               ]
                             }
@@ -520,7 +520,7 @@ exports[`Confirm should render correctly 1`] = `
                               <View
                                 placeholderStyle={
                                   {
-                                    "backgroundColor": "#f2f4f6",
+                                    "backgroundColor": "#F2F4F6",
                                   }
                                 }
                                 useNativeDriver={true}
@@ -568,7 +568,7 @@ exports[`Confirm should render correctly 1`] = `
                                           "backgroundColor": "#eee",
                                         },
                                         {
-                                          "backgroundColor": "#f2f4f6",
+                                          "backgroundColor": "#F2F4F6",
                                         },
                                       ]
                                     }
@@ -603,7 +603,7 @@ exports[`Confirm should render correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#24272A",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -617,7 +617,7 @@ exports[`Confirm should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#6a737d",
+                                    "color": "#535A61",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 12,
                                     "fontWeight": "400",
@@ -658,7 +658,7 @@ exports[`Confirm should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
@@ -684,7 +684,7 @@ exports[`Confirm should render correctly 1`] = `
                                   "paddingHorizontal": 10,
                                 },
                                 {
-                                  "borderColor": "#bbc0c5",
+                                  "borderColor": "#BBC0C5",
                                 },
                               ]
                             }
@@ -707,7 +707,7 @@ exports[`Confirm should render correctly 1`] = `
                                 <View
                                   placeholderStyle={
                                     {
-                                      "backgroundColor": "#f2f4f6",
+                                      "backgroundColor": "#F2F4F6",
                                     }
                                   }
                                   useNativeDriver={true}
@@ -755,7 +755,7 @@ exports[`Confirm should render correctly 1`] = `
                                             "backgroundColor": "#eee",
                                           },
                                           {
-                                            "backgroundColor": "#f2f4f6",
+                                            "backgroundColor": "#F2F4F6",
                                           },
                                         ]
                                       }
@@ -795,7 +795,7 @@ exports[`Confirm should render correctly 1`] = `
                                         numberOfLines={1}
                                         style={
                                           {
-                                            "color": "#141618",
+                                            "color": "#24272A",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 14,
                                             "fontWeight": "400",
@@ -818,7 +818,7 @@ exports[`Confirm should render correctly 1`] = `
                                           style={
                                             [
                                               {
-                                                "color": "#1c8234",
+                                                "color": "#1C8234",
                                                 "fontSize": 15,
                                               },
                                               undefined,
@@ -891,7 +891,7 @@ exports[`Confirm should render correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 30,
                                     "fontWeight": "400",
@@ -921,7 +921,7 @@ exports[`Confirm should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#6a737d",
+                                    "color": "#535A61",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -938,7 +938,7 @@ exports[`Confirm should render correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 30,
                                     "fontWeight": "400",
@@ -968,7 +968,7 @@ exports[`Confirm should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 44,
                                     "fontWeight": "300",
@@ -982,7 +982,7 @@ exports[`Confirm should render correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#141618",
+                                    "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 30,
                                     "fontWeight": "400",
@@ -1012,7 +1012,7 @@ exports[`Confirm should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#6a737d",
+                                    "color": "#535A61",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -1028,7 +1028,7 @@ exports[`Confirm should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "borderColor": "#bbc0c566",
+                                  "borderColor": "#D6D9DC",
                                   "borderRadius": 8,
                                   "borderWidth": 1,
                                   "padding": 16,
@@ -1079,7 +1079,7 @@ exports[`Confirm should render correctly 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#141618",
+                                          "color": "#24272A",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 30,
                                           "fontWeight": "400",
@@ -1099,7 +1099,7 @@ exports[`Confirm should render correctly 1`] = `
                                         false,
                                         undefined,
                                         {
-                                          "color": "#141618",
+                                          "color": "#24272A",
                                         },
                                         undefined,
                                         undefined,
@@ -1145,7 +1145,7 @@ exports[`Confirm should render correctly 1`] = `
                                               "fontSize": 13,
                                             },
                                             {
-                                              "color": "#9fa6ae",
+                                              "color": "#BBC0C5",
                                             },
                                             {
                                               "fontFamily": "Material Design Icons",
@@ -1307,7 +1307,7 @@ exports[`Confirm should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderBottomColor": "#bbc0c566",
+                                      "borderBottomColor": "#D6D9DC",
                                       "borderBottomWidth": 1,
                                       "marginVertical": 6,
                                     },
@@ -1340,7 +1340,7 @@ exports[`Confirm should render correctly 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#141618",
+                                          "color": "#24272A",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 30,
                                           "fontWeight": "400",
@@ -1360,7 +1360,7 @@ exports[`Confirm should render correctly 1`] = `
                                         undefined,
                                         undefined,
                                         {
-                                          "color": "#141618",
+                                          "color": "#24272A",
                                         },
                                         undefined,
                                         undefined,
@@ -1585,7 +1585,7 @@ exports[`Confirm should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#141618",
+                                      "color": "#24272A",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 30,
                                       "fontWeight": "400",
@@ -1616,7 +1616,7 @@ exports[`Confirm should render correctly 1`] = `
                                     undefined,
                                     {
                                       "alignSelf": "center",
-                                      "color": "#0376c9",
+                                      "color": "#0376C9",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -1653,7 +1653,7 @@ exports[`Confirm should render correctly 1`] = `
                                   "padding": 15,
                                 },
                                 {
-                                  "backgroundColor": "#0376c9",
+                                  "backgroundColor": "#0376C9",
                                   "minHeight": 50,
                                 },
                                 [
@@ -1692,7 +1692,7 @@ exports[`Confirm should render correctly 1`] = `
                                     "textAlign": "center",
                                   },
                                   {
-                                    "color": "#ffffff",
+                                    "color": "#FFFFFF",
                                   },
                                   undefined,
                                 ],

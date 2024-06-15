@@ -1,39 +1,42 @@
+import TestHelpers from '../../helpers';
 import { SigningModalSelectorsIDs } from '../../selectors/Modals/SigningModal.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
 
-class SigningModal {
-  get signButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(SigningModalSelectorsIDs.SIGN_BUTTON)
-      : Matchers.getElementByID(SigningModalSelectorsIDs.SIGN_BUTTON);
+export default class SigningModal {
+  static async tapSignButton() {
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(SigningModalSelectorsIDs.SIGN_BUTTON);
+    } else {
+      await TestHelpers.waitAndTap(SigningModalSelectorsIDs.SIGN_BUTTON);
+    }
   }
 
-  get cancelButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(SigningModalSelectorsIDs.CANCEL_BUTTON)
-      : Matchers.getElementByID(SigningModalSelectorsIDs.CANCEL_BUTTON);
+  static async tapCancelButton() {
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(
+        SigningModalSelectorsIDs.CANCEL_BUTTON,
+      );
+    } else {
+      await TestHelpers.waitAndTap(SigningModalSelectorsIDs.CANCEL_BUTTON);
+    }
   }
 
-  get ethRequest() {
-    return Matchers.getElementByID(SigningModalSelectorsIDs.ETH_REQUEST);
+  static async isEthRequestVisible() {
+    await TestHelpers.checkIfVisible(SigningModalSelectorsIDs.ETH_REQUEST);
   }
 
-  get personalRequest() {
-    return Matchers.getElementByID(SigningModalSelectorsIDs.PERSONAL_REQUEST);
+  static async isPersonalRequestVisible() {
+    await TestHelpers.checkIfVisible(SigningModalSelectorsIDs.PERSONAL_REQUEST);
   }
 
-  get typedRequest() {
-    return Matchers.getElementByID(SigningModalSelectorsIDs.TYPED_REQUEST);
+  static async isTypedRequestVisible() {
+    await TestHelpers.checkIfVisible(SigningModalSelectorsIDs.TYPED_REQUEST);
   }
 
-  async tapSignButton() {
-    await Gestures.waitAndTap(this.signButton);
-  }
-
-  async tapCancelButton() {
-    await Gestures.waitAndTap(this.cancelButton);
+  static async isNotVisible() {
+    await TestHelpers.checkIfNotVisible(SigningModalSelectorsIDs.ETH_REQUEST);
+    await TestHelpers.checkIfNotVisible(
+      SigningModalSelectorsIDs.PERSONAL_REQUEST,
+    );
+    await TestHelpers.checkIfNotVisible(SigningModalSelectorsIDs.TYPED_REQUEST);
   }
 }
-
-export default new SigningModal();

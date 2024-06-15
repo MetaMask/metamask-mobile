@@ -5,7 +5,7 @@ exports[`ListItemSelect should render snapshot correctly 1`] = `
   disabled={false}
   style={
     {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#FFFFFF",
       "borderRadius": 4,
       "opacity": 1,
       "padding": 16,

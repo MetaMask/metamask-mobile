@@ -14,7 +14,7 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
@@ -27,9 +27,7 @@ const ActivityView = () => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const navigation = useNavigation();
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
   const hasOrders = useSelector((state) => getHasOrders(state) || false);
   const accountsByChainId = useSelector(selectAccountsByChainId);
 

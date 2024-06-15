@@ -9,15 +9,6 @@ import { Transaction } from './AccountFromToInfoCard.types';
 import AccountFromToInfoCard from '.';
 import Engine from '../../../core/Engine';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-
-const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
-const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
-
-const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
-  MOCK_ADDRESS_1,
-  MOCK_ADDRESS_2,
-]);
 
 const mockInitialState = {
   settings: {},
@@ -26,10 +17,10 @@ const mockInitialState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          [MOCK_ADDRESS_1]: {
+          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
             balance: 200,
           },
-          [MOCK_ADDRESS_2]: {
+          '0x519d2CE57898513F676a5C3b66496c3C394c9CC7': {
             balance: 200,
           },
         },
@@ -40,19 +31,18 @@ const mockInitialState = {
         },
       },
       PreferencesController: {
-        selectedAddress: MOCK_ADDRESS_1,
+        selectedAddress: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
         identities: {
-          [MOCK_ADDRESS_1]: {
-            address: MOCK_ADDRESS_1,
+          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
+            address: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
             name: 'Account 1',
           },
-          [MOCK_ADDRESS_2]: {
-            address: MOCK_ADDRESS_2,
+          '0x519d2CE57898513F676a5C3b66496c3C394c9CC7': {
+            address: '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
             name: 'Account 2',
           },
         },
       },
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
@@ -80,7 +70,6 @@ jest.mock('../../../core/Engine', () => ({
         ],
       },
     },
-    AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
   },
 }));
 

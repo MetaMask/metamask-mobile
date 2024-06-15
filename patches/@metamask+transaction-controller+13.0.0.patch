@@ -261,7 +261,7 @@ index 083b07c..0000000
 -{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index bfa2871..8809ca2 100644
+index bfa2871..a5147c0 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -8,11 +8,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
@@ -450,10 +450,10 @@ index bfa2871..8809ca2 100644
              const isEIP1559Compatible = yield this.getEIP1559Compatibility();
              (0, utils_1.validateTxParams)(txParams, isEIP1559Compatible);
              const dappSuggestedGasFees = this.generateDappSuggestedGasFees(txParams, origin);
-@@ -250,6 +302,13 @@ class TransactionController extends base_controller_1.BaseController {
-                 this.update({
-                     transactions: this.trimTransactionsForState(transactions),
-                 });
+@@ -246,6 +298,13 @@ class TransactionController extends base_controller_1.BaseController {
+                 if (!this.isHistoryDisabled) {
+                     (0, history_1.addInitialHistorySnapshot)(transactionMeta);
+                 }
 +                if (requireApproval !== false) {
 +                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
 +                    __classPrivateFieldGet(this, _TransactionController_instances, "m", _TransactionController_updateSimulationData).call(this, transactionMeta);
@@ -461,9 +461,9 @@ index bfa2871..8809ca2 100644
 +                else {
 +                    (0, logger_1.projectLogger)('Skipping simulation as approval not required');
 +                }
-                 this.hub.emit(`unapprovedTransaction`, transactionMeta);
-             }
-             return {
+                 transactions.push(transactionMeta);
+                 this.update({
+                     transactions: this.trimTransactionsForState(transactions),
 @@ -353,7 +412,7 @@ class TransactionController extends base_controller_1.BaseController {
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.txParams.from);
              yield this.updateTransactionMetaRSV(transactionMeta, signedTx);
@@ -512,7 +512,7 @@ index bfa2871..8809ca2 100644
      }
 +    updateTransaction(transactionMeta, note) {
 +        const { id: transactionId } = transactionMeta;
-+        __classPrivateFieldGet(this, _TransactionController_instances, "m", _TransactionController_updateTransactionInternal).call(this, { transactionId, note }, () => (Object.assign({}, transactionMeta)));
++        __classPrivateFieldGet(this, _TransactionController_instances, "m", _TransactionController_updateTransactionInternal).call(this, { transactionId, note, skipHistory: this.isHistoryDisabled }, () => (Object.assign({}, transactionMeta)));
 +    }
      /**
 -     * Updates an existing transaction in state.
@@ -913,7 +913,7 @@ index bfa2871..8809ca2 100644
 +        (0, utils_1.validateTxParams)(transactionMeta.txParams);
 +        updatedTransactionParams =
 +            __classPrivateFieldGet(this, _TransactionController_instances, "m", _TransactionController_checkIfTransactionParamsUpdated).call(this, transactionMeta);
-+        if (!this.isHistoryDisabled && skipHistory !== true) {
++        if (skipHistory !== true) {
 +            (0, history_1.updateTransactionHistory)(transactionMeta, note !== null && note !== void 0 ? note : 'Transaction updated');
 +        }
 +        state.transactions[index] = transactionMeta;
@@ -2299,7 +2299,7 @@ index 01c0c66..0000000
 -{"version":3,"file":"utils.d.ts","sourceRoot":"","sources":["../src/utils.ts"],"names":[],"mappings":"AAMA,OAAO,KAAK,EAAE,WAAW,IAAI,uBAAuB,EAAE,MAAM,iCAAiC,CAAC;AAE9F,OAAO,KAAK,EACV,aAAa,EACb,sBAAsB,EACvB,MAAM,yBAAyB,CAAC;AACjC,OAAO,EAAE,iBAAiB,EAAE,MAAM,SAAS,CAAC;AAC5C,OAAO,KAAK,EAAE,iBAAiB,EAAE,eAAe,EAAE,MAAM,SAAS,CAAC;AAElE,eAAO,MAAM,kBAAkB,qCAAqC,CAAC;AAmBrE;;;;;GAKG;AACH,wBAAgB,iBAAiB,CAAC,QAAQ,EAAE,iBAAiB,qBAS5D;AAED;;;;;;GAMG;AACH,wBAAgB,gBAAgB,CAC9B,QAAQ,EAAE,iBAAiB,EAC3B,mBAAmB,UAAO,QAyD3B;AAED;;;;;;GAMG;AACH,wBAAgB,oBAAoB,CAAC,QAAQ,EAAE,iBAAiB,GAAG,OAAO,CAOzE;AAED,eAAO,MAAM,iBAAiB,cACjB,aAAa,GAAG,sBAAsB,SAUlD,CAAC;AAEF,eAAO,MAAM,wBAAwB,eACvB,aAAa,GAAG,sBAAsB,wCAGuB,CAAC;AAE5E,eAAO,MAAM,eAAe,eACd,aAAa,GAAG,sBAAsB,+BAEE,CAAC;AAEvD,eAAO,MAAM,oBAAoB,UAAW,MAAM,QAAQ,MAAM,KAAG,MACF,CAAC;AAElE,eAAO,MAAM,6BAA6B,UACjC,MAAM,GAAG,SAAS,QACnB,MAAM,KACX,MAEF,CAAC;AAEF;;;;;;;GAOG;AACH,wBAAgB,uBAAuB,CAAC,QAAQ,EAAE,MAAM,EAAE,GAAG,EAAE,MAAM,UAQpE;AAED;;;;;;;GAOG;AACH,wBAAgB,uCAAuC,CACrD,WAAW,EAAE,MAAM,EACnB,iBAAiB,EAAE,iBAAiB,EACpC,YAAY,EAAE,eAAe,EAAE,GAC9B,uBAAuB,EAAE,CAsB3B;AAED;;;;;;GAMG;AACH,wBAAgB,+BAA+B,CAC7C,eAAe,EAAE,eAAe,GAAG,SAAS,EAC5C,MAAM,EAAE,MAAM,QAQf"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.js b/node_modules/@metamask/transaction-controller/dist/utils.js
-index 835d1e4..b59fc6a 100644
+index 835d1e4..0eab5db 100644
 --- a/node_modules/@metamask/transaction-controller/dist/utils.js
 +++ b/node_modules/@metamask/transaction-controller/dist/utils.js
 @@ -1,13 +1,13 @@
@@ -2318,15 +2318,7 @@ index 835d1e4..b59fc6a 100644
      from: (from) => (0, ethereumjs_util_1.addHexPrefix)(from).toLowerCase(),
      gas: (gas) => (0, ethereumjs_util_1.addHexPrefix)(gas),
      gasLimit: (gas) => (0, ethereumjs_util_1.addHexPrefix)(gas),
-@@ -19,6 +19,7 @@ const NORMALIZERS = {
-     maxPriorityFeePerGas: (maxPriorityFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxPriorityFeePerGas),
-     estimatedBaseFee: (maxPriorityFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxPriorityFeePerGas),
-     type: (type) => (type === '0x0' ? '0x0' : undefined),
-+    estimateGasError: (estimateGasError) => estimateGasError,
- };
- /**
-  * Normalizes properties on transaction params.
-@@ -26,7 +27,7 @@ const NORMALIZERS = {
+@@ -26,7 +26,7 @@ const NORMALIZERS = {
   * @param txParams - The transaction params to normalize.
   * @returns Normalized transaction params.
   */
@@ -2335,7 +2327,7 @@ index 835d1e4..b59fc6a 100644
      const normalizedTxParams = { from: '' };
      let key;
      for (key in NORMALIZERS) {
-@@ -36,7 +37,7 @@ function normalizeTxParams(txParams) {
+@@ -36,7 +36,7 @@ function normalizeTxParams(txParams) {
      }
      return normalizedTxParams;
  }
@@ -2344,7 +2336,7 @@ index 835d1e4..b59fc6a 100644
  /**
   * Validates the transaction params for required properties and throws in
   * the event of any validation error.
-@@ -137,14 +138,17 @@ exports.validateMinimumIncrease = validateMinimumIncrease;
+@@ -137,14 +137,17 @@ exports.validateMinimumIncrease = validateMinimumIncrease;
  /**
   * Helper function to filter and format transactions for the nonce tracker.
   *
@@ -2364,7 +2356,7 @@ index 835d1e4..b59fc6a 100644
          from.toLowerCase() === fromAddress.toLowerCase())
          .map(({ status, txParams: { from, gas, value, nonce } }) => {
          // the only value we care about is the nonce
-@@ -177,4 +181,18 @@ function validateIfTransactionUnapproved(transactionMeta, fnName) {
+@@ -177,4 +180,18 @@ function validateIfTransactionUnapproved(transactionMeta, fnName) {
      }
  }
  exports.validateIfTransactionUnapproved = validateIfTransactionUnapproved;

@@ -13,7 +13,7 @@ exports[`NotificationActions matches snapshot 1`] = `
       "alignItems": "center",
       "alignSelf": "flex-start",
       "backgroundColor": "transparent",
-      "borderColor": "#0376c9",
+      "borderColor": "#0376C9",
       "borderRadius": 20,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -29,7 +29,7 @@ exports[`NotificationActions matches snapshot 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#0376c9",
+        "color": "#0376C9",
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
         "fontWeight": "400",
@@ -41,7 +41,7 @@ exports[`NotificationActions matches snapshot 1`] = `
     Learn more
   </Text>
   <SvgMock
-    color="#0376c9"
+    color="#0376C9"
     height={16}
     name="Arrow2Upright"
     style={
@@ -69,7 +69,7 @@ exports[`NotificationActions matches snapshot with LINK only 1`] = `
       "alignItems": "center",
       "alignSelf": "flex-start",
       "backgroundColor": "transparent",
-      "borderColor": "#0376c9",
+      "borderColor": "#0376C9",
       "borderRadius": 20,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -85,7 +85,7 @@ exports[`NotificationActions matches snapshot with LINK only 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#0376c9",
+        "color": "#0376C9",
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
         "fontWeight": "400",
@@ -97,7 +97,7 @@ exports[`NotificationActions matches snapshot with LINK only 1`] = `
     Learn more
   </Text>
   <SvgMock
-    color="#0376c9"
+    color="#0376C9"
     height={16}
     name="Arrow2Upright"
     style={

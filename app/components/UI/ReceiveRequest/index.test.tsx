@@ -4,15 +4,11 @@ import ReceiveRequest from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-    },
+    backgroundState: initialBackgroundState,
   },
   modals: {
     receiveAsset: {},
