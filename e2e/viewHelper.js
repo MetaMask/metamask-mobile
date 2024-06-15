@@ -72,14 +72,16 @@ have to have all these work arounds in the tests
   }
   // Handle Marketing consent modal
   await TestHelpers.delay(2500);
+  await ExperienceEnhancerModal.tapNoThanks();
+  await Assertions.checkIfNotVisible(ExperienceEnhancerModal.title);
 
-  try {
-    await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
-    await ExperienceEnhancerModal.tapNoThanks();
-    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.title);
-  } catch {
-    //
-  }
+  // try {
+  //   await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
+  //   await ExperienceEnhancerModal.tapNoThanks();
+  //   await Assertions.checkIfNotVisible(ExperienceEnhancerModal.title);
+  // } catch {
+  //   //
+  // }
 };
 
 export const importWalletWithRecoveryPhrase = async () => {
