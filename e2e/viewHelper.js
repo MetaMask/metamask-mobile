@@ -28,6 +28,7 @@ import LoginView from './pages/LoginView';
 import { getGanachePort } from './fixtures/utils';
 import Assertions from './utils/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
+import enContent from '../locales/languages/en.json';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 
@@ -47,11 +48,12 @@ export const acceptTermOfUse = async () => {
   await Assertions.checkIfNotVisible(TermsOfUseModal.container);
 };
 export const closeOnboardingModals = async () => {
-  /*
-These onboarding modals are becoming a bit wild. We need less of these so we dont
+  /* 
+These onboarding modals are becoming a bit wild. We need less of these so we dont 
 have to have all these work arounds in the tests
   */
-  // check if whats new appears and close it
+  await TestHelpers.delay(1000);
+
   try {
     await WhatsNewModal.isVisible();
     await WhatsNewModal.tapCloseButton();
@@ -220,8 +222,13 @@ export const loginToApp = async () => {
 
   await TestHelpers.delay(2500);
   try {
-    await Assertions.checkIfVisible(WhatsNewModal.container);
+    await TestHelpers.waitAndTapText(
+      enContent.privacy_policy.toast_action_button,
+    );
+    await Assertions.checkIfVisible(await WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
+    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
+    await ExperienceEnhancerModal.tapNoThanks();
   } catch {
     //
   }

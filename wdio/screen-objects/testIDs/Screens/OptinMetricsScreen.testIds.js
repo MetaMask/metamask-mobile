@@ -6,3 +6,4 @@ export const OPTIN_METRICS_I_AGREE_BUTTON_ID =
 export const OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID =
   'optin-metrics-privacy-policy-description';
 export const METAMETRICS_OPT_IN_CONTAINER_ID = 'meta-metrics-container';
+export const MARKETING_CONSENST_CHECK_BOX_ID= 'marketing-consent-opt-in-checkbox';

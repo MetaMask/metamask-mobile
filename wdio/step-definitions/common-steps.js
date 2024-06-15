@@ -53,6 +53,7 @@ Given(/^I have imported my wallet$/, async () => {
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.isScreenTitleVisible();
+  await MetaMetricsScreen.tapMarketingConsentCheckBox();
   await MetaMetricsScreen.tapIAgreeButton();
   await TermOfUseScreen.isDisplayed();
   await TermOfUseScreen.textIsDisplayed();

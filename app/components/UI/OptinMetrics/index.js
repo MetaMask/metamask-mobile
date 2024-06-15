@@ -613,6 +613,9 @@ class OptinMetrics extends PureComponent {
                       !isDataCollectionForMarketingEnabled,
                     )
                   }
+                  testID={
+                    MetaMetricsOptInSelectorsIDs.MARKETING_CONSENST_CHECK_BOX_ID
+                  }
                 />
                 <Text style={styles.content}>
                   {strings('privacy_policy.checkbox')}

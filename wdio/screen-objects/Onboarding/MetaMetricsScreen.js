@@ -1,5 +1,6 @@
 import Gestures from '../../helpers/Gestures';
 import {
+  MARKETING_CONSENST_CHECK_BOX_ID,
   OPTIN_METRICS_I_AGREE_BUTTON_ID,
   OPTIN_METRICS_NO_THANKS_BUTTON_ID,
   OPTIN_METRICS_TITLE_ID,
@@ -14,6 +15,11 @@ class MetaMetricsScreen {
   get iAgreeButton() {
     return Selectors.getXpathElementByResourceId(
       OPTIN_METRICS_I_AGREE_BUTTON_ID,
+    );
+  }
+  get marketingConsentCheckbox() {
+    return Selectors.getXpathElementByResourceId(
+      MARKETING_CONSENST_CHECK_BOX_ID
     );
   }
 
@@ -34,6 +40,12 @@ class MetaMetricsScreen {
     await Gestures.swipeUp(0.5);
     await element.waitForEnabled();
     await Gestures.waitAndTap(this.iAgreeButton);
+  }
+
+  async tapMarketingConsentCheckBox() {
+    const element = await this.marketingConsentCheckbox;
+    await element.waitForDisplayed();
+    await Gestures.waitAndTap(element);
   }
 
   async tapNoThanksButton() {

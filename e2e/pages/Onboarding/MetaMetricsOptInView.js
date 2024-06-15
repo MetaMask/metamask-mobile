@@ -14,7 +14,11 @@ class MetaMetricsOptIn {
       MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
     );
   }
-
+  get marketingConsentCheckbox() {
+    return Matchers.getElementByID(
+      MetaMetricsOptInSelectorsIDs.MARKETING_CONSENST_CHECK_BOX_ID,
+    );
+  }
   get iAgreeButton() {
     return Matchers.getElementByID(
       MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_I_AGREE_BUTTON_ID,
@@ -30,6 +34,10 @@ class MetaMetricsOptIn {
   async tapAgreeButton() {
     await Gestures.swipe(this.optInMetricsContent, 'up', 'fast', 0.9);
     await Gestures.waitAndTap(this.iAgreeButton);
+  }
+
+  async tapToOptInMarketingConsent() {
+    await Gestures.waitAndTap(this.marketingConsentCheckbox);
   }
 
   async tapNoThanksButton() {
