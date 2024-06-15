@@ -52,14 +52,15 @@ export const closeOnboardingModals = async () => {
 These onboarding modals are becoming a bit wild. We need less of these so we dont 
 have to have all these work arounds in the tests
   */
-  // check if whats new appears and close it
+  await TestHelpers.delay(1000);
+
   try {
     await WhatsNewModal.isVisible();
     await WhatsNewModal.tapCloseButton();
   } catch {
     //
   }
-  await TestHelpers.delay(1000);
+  await TestHelpers.delay(3000);
 
   // Handle Onboarding wizard
   try {
@@ -70,6 +71,7 @@ have to have all these work arounds in the tests
     //
   }
   // Handle Marketing consent modal
+  await TestHelpers.delay(2500);
 
   try {
     await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
