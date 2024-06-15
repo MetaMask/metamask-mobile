@@ -279,7 +279,7 @@ type GlobalEvents =
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
-export interface EngineState {
+export type EngineState = {
   AccountTrackerController: AccountTrackerState;
   AddressBookController: AddressBookState;
   AssetsContractController: BaseState;
@@ -309,7 +309,7 @@ export interface EngineState {
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
-}
+};
 
 /**
  * All mobile controllers, keyed by name
@@ -1332,7 +1332,10 @@ class Engine {
       }
     }
 
-    this.datamodel = new ComposableController({
+    this.datamodel = new ComposableController<
+      EngineState,
+      Controllers[keyof Controllers]
+    >({
       controllers,
       messenger: this.controllerMessenger,
     });
