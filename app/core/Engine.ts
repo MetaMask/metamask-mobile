@@ -13,10 +13,10 @@ import {
   NftDetectionController,
   NftState,
   TokenBalancesController,
+  TokenBalancesControllerEvents,
   TokenDetectionController,
   TokenListController,
   TokenListState,
-  TokenListStateChange,
   TokenRatesController,
   TokenRatesState,
   TokensController,
@@ -36,7 +36,11 @@ import {
   AddressBookController,
   AddressBookState,
 } from '@metamask/address-book-controller';
-import { BaseState, ControllerMessenger } from '@metamask/base-controller';
+import {
+  BaseState,
+  ControllerMessenger,
+  ControllerStateChangeEvent,
+} from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
@@ -262,19 +266,35 @@ type GlobalEvents =
   | CurrencyRateStateChange
   | GasFeeStateChange
   | KeyringControllerEvents
-  | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
-  | KeyringControllerEvents
-  | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
+  | TokenBalancesControllerEvents
+  | TokenListControllerEvents
   | TokensControllerEvents
-  | TokenListControllerEvents;
+  // TODO: Replace with `LoggingControllerEvents` once it's defined to include `LoggingControllerStateChangeEvent`
+  | ControllerStateChangeEvent<'LoggingController', LoggingControllerState>
+  // TODO: Replace with `NftControllerEvents` once it's defined to include `NftControllerStateChangeEvent`
+  | ControllerStateChangeEvent<
+      'NftController',
+      NftState & { [key: string]: Json }
+    >
+  // TODO: Replace with `PhishingControllerEvents` once it's defined to include `PhishingControllerStateChangeEvent`
+  | ControllerStateChangeEvent<'PhishingController', PhishingControllerState>
+  // TODO: `NetworkControllerStateChangeEvent` is already provided by `NetworkControllerEvents` and should be excluded from `PPOMControllerEvents`
+  | PPOMControllerEvents
+  // TODO: Remove once `PPOMControllerStateChangeEvent` is defined and is included in `PPOMControllerEvents`
+  | ControllerStateChangeEvent<'PPOMController', PPOMState>
+  // TODO: Replace with `TransactionControllerEvents` once it's defined to include `TransactionControllerStateChangeEvent`
+  | ControllerStateChangeEvent<
+      'TransactionController',
+      TransactionState & { [key: string]: Json }
+    >;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
