@@ -24,6 +24,7 @@ import Text, {
 import Empty from '../../UI/Notification/Empty';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
 
 const NotificationsView = ({
   navigation,
@@ -43,9 +44,7 @@ const NotificationsView = ({
   const [annoucementsNotifications, setAnnoucementsNotifications] = useState<
     FeatureAnnouncementRawNotification[]
   >([]);
-  const isNotificationEnabled = useSelector(
-    (state: any) => state.notification.notificationsSettings?.isEnabled,
-  );
+  const isNotificationEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
   const [loading, setLoading] = useState<boolean>(false);
 
   const filterNotifications = useCallback(

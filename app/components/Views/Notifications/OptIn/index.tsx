@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Image, View, Linking } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import Button, {
@@ -15,17 +16,16 @@ import EnableNotificationsCardPlaceholder from '../../../../images/enableNotific
 import { createStyles } from './styles';
 import Routes from '../../../../constants/navigation/Routes';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../../constants/urls';
-import { useSelector } from 'react-redux';
+
 import { mmStorage } from '../../../../util/notifications';
 import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 
 const OptIn = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
-  const isNotificationEnabled = useSelector(
-    (state: any) => state.notification?.notificationsSettings?.isEnabled,
-  );
+  const isNotificationEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
   const [promptCount, setPromptCount] = useState(0);
 
   const navigateToNotificationsSettings = () => {

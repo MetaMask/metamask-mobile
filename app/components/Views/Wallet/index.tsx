@@ -70,6 +70,7 @@ import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
+import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -239,9 +240,7 @@ const Wallet = ({
     (state: any) => state.networkOnboarded.networkOnboardedState,
   );
 
-  const isNotificationEnabled = useSelector(
-    (state: any) => state.notification?.notificationsSettings?.isEnabled,
-  );
+  const isNotificationEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
 
   const networkName = useSelector(selectNetworkName);
 
