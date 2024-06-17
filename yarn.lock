@@ -41,11 +41,6 @@
     "@jridgewell/gen-mapping" "^0.3.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@apocentre/alias-sampling@^0.5.3":
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/@apocentre/alias-sampling/-/alias-sampling-0.5.3.tgz#897ff181b48ad7b2bcb4ecf29400214888244f08"
-  integrity sha512-7UDWIIF9hIeJqfKXkNIzkVandlwLf1FWTSdrb9iXvOP8oF544JRXQjCbiTmCv2c9n44n/FIWtehhBfNuAx2CZA==
-
 "@appium/schema@^0.3.1":
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/@appium/schema/-/schema-0.3.1.tgz#f76386c75ce4272dd4fe2a4085ec44b529b12bf2"
@@ -3793,6 +3788,11 @@
   resolved "https://registry.yarnpkg.com/@juggle/resize-observer/-/resize-observer-3.4.0.tgz#08d6c5e20cf7e4cc02fd181c4b0c225cd31dbb60"
   integrity sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==
 
+"@keystonehq/alias-sampling@^0.1.1":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@keystonehq/alias-sampling/-/alias-sampling-0.1.2.tgz#63af931ffe6500aef4c0d87775a5b279189abf8d"
+  integrity sha512-5ukLB3bcgltgaFfQfYKYwHDUbwHicekYo53fSEa7xhVkAEqsA74kxdIwoBIURmGUtXe3EVIRm4SYlgcrt2Ri0w==
+
 "@keystonehq/base-eth-keyring@^0.14.1":
   version "0.14.1"
   resolved "https://registry.yarnpkg.com/@keystonehq/base-eth-keyring/-/base-eth-keyring-0.14.1.tgz#b838524678e5d3e70c0f1e9e1089baece6ef5f87"
@@ -5618,11 +5618,11 @@
     ramda "^0.27.2"
 
 "@ngraveio/bc-ur@^1.1.5", "@ngraveio/bc-ur@^1.1.6":
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/@ngraveio/bc-ur/-/bc-ur-1.1.6.tgz#8f8c75fff22f6a5e4dfbc5a6b540d7fe8f42cd39"
-  integrity sha512-G+2XgjXde2IOcEQeCwR250aS43/Swi7gw0FuETgJy2c3HqF8f88SXDMsIGgJlZ8jXd0GeHR4aX0MfjXf523UZg==
+  version "1.1.13"
+  resolved "https://registry.yarnpkg.com/@ngraveio/bc-ur/-/bc-ur-1.1.13.tgz#27719fd3e745ccdbe97a7950905edcd1fed4844b"
+  integrity sha512-j73akJMV4+vLR2yQ4AphPIT5HZmxVjn/LxpL7YHoINnXoH6ccc90Zzck6/n6a3bCXOVZwBxq+YHwbAKRV+P8Zg==
   dependencies:
-    "@apocentre/alias-sampling" "^0.5.3"
+    "@keystonehq/alias-sampling" "^0.1.1"
     assert "^2.0.0"
     bignumber.js "^9.0.1"
     cbor-sync "^1.0.4"
