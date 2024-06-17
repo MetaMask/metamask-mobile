@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.23.0",
+  "version": "7.24.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -143,7 +143,7 @@
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^10.0.0",
-    "@metamask/design-tokens": "^2.0.0",
+    "@metamask/design-tokens": "^4.0.0",
     "@metamask/eth-sig-util": "^7.0.2",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/gas-fee-controller": "^15.1.2",

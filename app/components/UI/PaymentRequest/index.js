@@ -58,7 +58,7 @@ import {
 import { selectTokenListArray } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/RequestPaymentView.selectors';
 
@@ -893,7 +893,7 @@ const mapStateToProps = (state) => ({
   contractExchangeRates: selectContractExchangeRates(state),
   searchEngine: state.settings.searchEngine,
   tokens: selectTokens(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   primaryCurrency: state.settings.primaryCurrency,
   ticker: selectTicker(state),
   chainId: selectChainId(state),

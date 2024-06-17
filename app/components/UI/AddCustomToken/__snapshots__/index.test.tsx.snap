@@ -4,7 +4,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flex": 1,
     }
   }
@@ -24,8 +24,8 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
             },
             undefined,
             {
-              "backgroundColor": "#0376C919",
-              "borderColor": "#0376C9",
+              "backgroundColor": "#0376c91a",
+              "borderColor": "#0376c9",
             },
             {
               "marginHorizontal": 20,
@@ -46,7 +46,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
             style={
               [
                 {
-                  "color": "#0376C9",
+                  "color": "#0376c9",
                   "fontSize": 18,
                 },
                 {
@@ -69,7 +69,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
           style={
             [
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
                 "fontWeight": "400",
@@ -100,7 +100,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
               undefined,
               [
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 17,
@@ -115,7 +115,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
           <Text
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
               }
             }
           >
@@ -125,7 +125,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
             onPress={[Function]}
             style={
               {
-                "color": "#0376C9",
+                "color": "#0376c9",
               }
             }
             suppressHighlighting={true}
@@ -145,7 +145,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         <Text
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
@@ -160,14 +160,14 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
           onFocus={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
-          placeholderTextColor="#BBC0C5"
+          placeholderTextColor="#9fa6ae"
           returnKeyType="next"
           style={
             {
-              "borderColor": "#BBC0C5",
+              "borderColor": "#bbc0c5",
               "borderRadius": 8,
               "borderWidth": 1,
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "paddingHorizontal": 16,
@@ -180,7 +180,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         <Text
           style={
             {
-              "color": "#D73847",
+              "color": "#d73847",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 0,
@@ -211,9 +211,9 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "center",
-          "backgroundColor": "#0376C9",
+          "backgroundColor": "#0376c9",
           "borderRadius": 24,
-          "color": "#0376C9",
+          "color": "#0376c9",
           "flexDirection": "row",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 18,
@@ -233,7 +233,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#FFFFFF",
+            "color": "#ffffff",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
