@@ -19,6 +19,8 @@ PODS:
   - ExpoGL (12.4.0):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
+  - ExpoHaptics (12.2.1):
+    - ExpoModulesCore
   - ExpoKeepAwake (12.0.1):
     - ExpoModulesCore
   - ExpoModulesCore (1.2.7):
@@ -508,6 +510,11 @@ PODS:
     - React-Core
   - react-native-safe-area-context (3.4.1):
     - React-Core
+  - react-native-skia (1.3.6):
+    - RCT-Folly (= 2021.07.22.00)
+    - React
+    - React-callinvoker
+    - React-Core
   - react-native-slider (4.4.3):
     - React-Core
   - react-native-splash-screen (3.2.0):
@@ -712,6 +719,7 @@ DEPENDENCIES:
   - EXFont (from `../node_modules/expo-font/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoGL (from `../node_modules/expo-gl`)
+  - ExpoHaptics (from `../node_modules/expo-haptics/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
@@ -785,6 +793,7 @@ DEPENDENCIES:
   - react-native-quick-crypto (from `../node_modules/react-native-quick-crypto`)
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - "react-native-skia (from `../node_modules/@shopify/react-native-skia`)"
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - "react-native-splash-screen (from `../node_modules/@metamask/react-native-splash-screen`)"
   - react-native-video (from `../node_modules/react-native-video`)
@@ -888,6 +897,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo"
   ExpoGL:
     :path: "../node_modules/expo-gl"
+  ExpoHaptics:
+    :path: "../node_modules/expo-haptics/ios"
   ExpoKeepAwake:
     :path: "../node_modules/expo-keep-awake/ios"
   ExpoModulesCore:
@@ -974,6 +985,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-randombytes"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-skia:
+    :path: "../node_modules/@shopify/react-native-skia"
   react-native-slider:
     :path: "../node_modules/@react-native-community/slider"
   react-native-splash-screen:
@@ -1082,6 +1095,7 @@ SPEC CHECKSUMS:
   EXFont: 6ea3800df746be7233208d80fe379b8ed74f4272
   Expo: 0d9f112757acc6bf32103eabccf91267780bd580
   ExpoGL: 8f8e40e494a462f33c1f513cf101bf7d6abe767e
+  ExpoHaptics: 5156bc5160d8e04c170dd6e645a71154951a2ad9
   ExpoKeepAwake: 69f5f627670d62318410392d03e0b5db0f85759a
   ExpoModulesCore: 653958063a301098b541ae4dfed1ac0b98db607b
   FBLazyVector: d06bbe89e3a89ee90c4deab1c84bf306ffa5ed37
@@ -1151,6 +1165,7 @@ SPEC CHECKSUMS:
   react-native-quick-crypto: 455c1b411db006dba1026a30681ececb19180187
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
   react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
+  react-native-skia: 608b79ca816d62c72992ddb064ea328ca5523db8
   react-native-slider: 1cdd6ba29675df21f30544253bf7351d3c2d68c4
   react-native-splash-screen: 49a7160705f32169d27ab8dff9dda53331592412
   react-native-video: c26780b224543c62d5e1b2a7244a5cd1b50e8253
