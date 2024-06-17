@@ -180,18 +180,18 @@ describe('notifications', () => {
     expect(generator.next().value).toEqual(call(disableProfileSyncing));
   });
 
-  it('should trigger enableMetamaskNotifications when action ENABLE_METAMASK_NOTIFICATIONS_REQUEST is dispatched', async () => {
+  it('should trigger enableMetamaskNotifications when action ENABLE_PUSH_NOTIFICATIONS_REQUEST is dispatched', async () => {
     const generator = enableMetamaskNotifications();
     expect(generator.next().value).toEqual(
-      take(NotificationsTypes.ENABLE_METAMASK_NOTIFICATIONS_REQUEST),
+      take(NotificationsTypes.ENABLE_PUSH_NOTIFICATIONS_REQUEST),
     );
     expect(generator.next().value).toEqual(call(enableMetamaskNotifications));
   });
 
-  it('should trigger disableMetamaskNotifications when action DISABLE_METAMASK_NOTIFICATIONS_REQUEST is dispatched', async () => {
+  it('should trigger disableMetamaskNotifications when action DISABLE_PUSH_NOTIFICATIONS_REQUEST is dispatched', async () => {
     const generator = disableMetamaskNotifications();
     expect(generator.next().value).toEqual(
-      take(NotificationsTypes.DISABLE_METAMASK_NOTIFICATIONS_REQUEST),
+      take(NotificationsTypes.DISABLE_PUSH_NOTIFICATIONS_REQUEST),
     );
     expect(generator.next().value).toEqual(call(disableMetamaskNotifications));
   });

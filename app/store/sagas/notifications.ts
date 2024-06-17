@@ -6,8 +6,7 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
-import { MetamaskNotificationsController } from '@metamask/notifications-controller';
-import { MetaMetricsController } from '@metamask/metametrics-controller';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 
 export function* signIn() {
   try {
@@ -86,22 +85,22 @@ export function* disableProfileSyncing() {
 export function* enableMetamaskNotifications() {
   try {
     const { result } = yield call(
-      MetamaskNotificationsController.enableMetamaskNotifications(),
+      NotificationServicesController.enableMetamaskNotifications(),
     );
     if (!result.ok) {
       yield put(
-        NotificationsActions.enableMetamaskNotificationsFailure(
+        NotificationsActions.enablePushNotificationsFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_ENABLE_METAMASK_NOTIFICATIONS,
         ),
       );
       return;
     }
-    yield put(NotificationsActions.enableMetamaskNotificationsSuccess());
+    yield put(NotificationsActions.enablePushNotificationsSuccess());
     yield put(NotificationsActions.setFeatureAnnouncementsEnabledSuccess());
     yield put(NotificationsActions.setSnapNotificationsEnabledSuccess());
   } catch (error) {
     yield put(
-      NotificationsActions.enableMetamaskNotificationsFailure({ error }),
+      NotificationsActions.enablePushNotificationsFailure({ error }),
     );
   }
 }
@@ -109,20 +108,20 @@ export function* enableMetamaskNotifications() {
 export function* disableMetamaskNotifications() {
   try {
     const { result } = yield call(
-      MetamaskNotificationsController.disableMetamaskNotifications(),
+      NotificationServicesController.disableMetamaskNotifications(),
     );
     if (!result.ok) {
       yield put(
-        NotificationsActions.disableMetamaskNotificationsFailure(
+        NotificationsActions.disablePushNotificationsFailure(
           NOTIFICATIONS_ERRORS.FAILED_TO_DISABLE_METAMASK_NOTIFICATIONS,
         ),
       );
       return;
     }
-    yield put(NotificationsActions.disableMetamaskNotificationsSuccess());
+    yield put(NotificationsActions.disablePushNotificationsSuccess());
   } catch (error) {
     yield put(
-      NotificationsActions.disableMetamaskNotificationsFailure({ error }),
+      NotificationsActions.disablePushNotificationsFailure({ error }),
     );
   }
 }
@@ -130,7 +129,7 @@ export function* disableMetamaskNotifications() {
 export function* setFeatureAnnouncementsEnabled() {
   try {
     const { result } = yield call(
-      MetamaskNotificationsController.setFeatureAnnouncementsEnabled(),
+      NotificationServicesController.setFeatureAnnouncementsEnabled(),
     );
     if (!result.ok) {
       yield put(
@@ -151,7 +150,7 @@ export function* setFeatureAnnouncementsEnabled() {
 export function* setSnapNotificationsEnabled() {
   try {
     const { result } = yield call(
-      MetamaskNotificationsController.setSnapNotificationsEnabled(),
+      NotificationServicesController.setSnapNotificationsEnabled(),
     );
     if (!result.ok) {
       yield put(
@@ -195,7 +194,7 @@ export function* checkAccountsPresence(action: any) {
   const { accounts } = action.payload;
   try {
     const { presence } = yield call(
-      MetamaskNotificationsController.checkAccountsPresence(accounts),
+      NotificationServicesController.checkAccountsPresence(accounts),
     );
     if (!presence) {
       yield put(
@@ -214,7 +213,7 @@ export function* checkAccountsPresence(action: any) {
 export function* setMetamaskNotificationsFeatureSeen() {
   try {
     const { result } = yield call(
-      MetamaskNotificationsController.setMetamaskNotificationsFeatureSeen(),
+      NotificationServicesController.setMetamaskNotificationsFeatureSeen(),
     );
     if (!result.ok) {
       yield put(
@@ -239,7 +238,7 @@ export function* setMetamaskNotificationsFeatureSeen() {
 export function* fetchAndUpdateMetamaskNotifications() {
   try {
     const { result } = yield call(
-      MetamaskNotificationsController.fetchAndUpdateMetamaskNotifications(),
+      NotificationServicesController.fetchAndUpdateMetamaskNotifications(),
     );
     if (!result.ok) {
       yield put(
@@ -269,7 +268,7 @@ export function* markMetamaskNotificationsAsRead(action: any) {
   const { notifications } = action.payload;
   try {
     const { result } = yield call(
-      MetamaskNotificationsController.markMetamaskNotificationsAsRead(
+      NotificationServicesController.markMetamaskNotificationsAsRead(
         notifications,
       ),
     );
@@ -301,7 +300,7 @@ export function* deleteNotifications(action: any) {
   const { notifications } = action.payload;
   try {
     const { result } = yield call(
-      MetamaskNotificationsController.deleteNotifications(notifications),
+      NotificationServicesController.deleteNotifications(notifications),
     );
     if (!result.ok) {
       yield put(

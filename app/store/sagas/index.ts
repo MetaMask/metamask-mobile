@@ -201,11 +201,11 @@ export function* rootSaga() {
     disableProfileSyncing,
   );
   yield takeLatest(
-    NotificationsTypes.ENABLE_METAMASK_NOTIFICATIONS_REQUEST,
+    NotificationsTypes.ENABLE_PUSH_NOTIFICATIONS_REQUEST,
     enableMetamaskNotifications,
   );
   yield takeLatest(
-    NotificationsTypes.DISABLE_METAMASK_NOTIFICATIONS_REQUEST,
+    NotificationsTypes.DISABLE_PUSH_NOTIFICATIONS_REQUEST,
     disableMetamaskNotifications,
   );
   yield takeLatest(
