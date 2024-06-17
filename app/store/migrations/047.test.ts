@@ -1,4 +1,4 @@
-import migration from './044';
+import migration from './047';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
@@ -27,7 +27,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #44', () => {
+describe('Migration #47', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -39,7 +39,7 @@ describe('Migration #44', () => {
         engine: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid engine state error: 'object'",
+        "FATAL ERROR: Migration 47: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -49,7 +49,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 47: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -61,7 +61,7 @@ describe('Migration #44', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 44: Invalid TokenRatesController state error: 'null'",
+        "FATAL ERROR: Migration 47: Invalid TokenRatesController state error: 'null'",
       scenario: 'TokenRatesController state is invalid',
     },
   ];
