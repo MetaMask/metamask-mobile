@@ -1,7 +1,6 @@
 import { hasProperty, isPlainObject, Json } from '@metamask/utils';
 import {
   SALT_BYTES_COUNT,
-  CIPHER_ALGORITHM,
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
 } from './constants';
@@ -120,7 +119,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    *
    * @param key - The encryption key to encrypt with.
    * @param data - The data to encrypt.
-   * @param algorithm - The encryption algorithm to use. Defaults to `CIPHER_ALGORITHM.cbc`.
    * @returns A promise that resolves to an object containing the cipher text and initialization vector (IV).
    */
   encryptWithKey = async (
@@ -146,13 +144,11 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    *
    * @param key - The encryption key to decrypt with.
    * @param payload - The encrypted payload to decrypt.
-   * @param algorithm - The encryption algorithm to use. Defaults to `CIPHER_ALGORITHM.cbc`.
    * @returns The decrypted object.
    */
   decryptWithKey = async (
     key: EncryptionKey,
     payload: EncryptionResult,
-    algorithm = CIPHER_ALGORITHM.cbc,
   ): Promise<unknown> => {
     // TODO: Check for key and payload compatibility?
 
