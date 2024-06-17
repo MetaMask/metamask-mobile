@@ -59,7 +59,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import {
   TransactionError,
   CancelTransactionError,
@@ -866,7 +866,7 @@ const mapStateToProps = (state) => ({
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
