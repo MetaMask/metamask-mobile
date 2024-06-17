@@ -23,9 +23,9 @@ import { STORAGE_IDS } from '../settings/storage/constants';
 import Device from '../../../util/device';
 import { store } from '../../../store';
 import { renderFromWei } from '../../../util/number';
-import { updateNotificationStatus } from '../../../actions/notification';
 import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
+import Creators from 'app/store/ducks/notifications';
 
 export interface ViewOnEtherscanProps {
   navigation: any;
@@ -510,40 +510,6 @@ export const notificationSettings = {
 
 export const requestPushNotificationsPermission = async () => {
   let permissionStatus;
-  interface NotificationEnabledState {
-    isEnabled: true;
-    notificationsOpts: {
-      [K in keyof typeof notificationSettings]: true;
-    };
-    accounts: object;
-  }
-
-  interface NotificationDisabledState {
-    isEnabled: false;
-    notificationsOpts: {
-      [K in keyof typeof notificationSettings]: false;
-    };
-    accounts: object;
-  }
-
-  const notificationDisabledState: NotificationDisabledState = {
-    isEnabled: false,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    notificationsOpts: Object.fromEntries(
-      Object.keys(notificationSettings).map((key) => [key, false] as const),
-    ),
-  };
-
-  const notificationEnabledState: NotificationEnabledState = {
-    isEnabled: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    notificationsOpts: Object.fromEntries(
-      Object.keys(notificationSettings).map((key) => [key, true] as const),
-    ),
-    accounts: [],
-  };
 
   const promptCount = mmStorage.getLocal(
     STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
@@ -563,7 +529,7 @@ export const requestPushNotificationsPermission = async () => {
             text: strings('notifications.prompt_cancel'),
             onPress: () => {
               store.dispatch(
-                updateNotificationStatus(notificationDisabledState),
+                Creators.disablePushNotificationsRequest(),
               );
               mmStorage.saveLocal(
                 STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
@@ -572,11 +538,6 @@ export const requestPushNotificationsPermission = async () => {
               mmStorage.saveLocal(
                 STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_TIME,
                 Date.now().toString(),
-              );
-
-              mmStorage.saveLocal(
-                STORAGE_IDS.NOTIFICATIONS_SETTINGS,
-                JSON.stringify(notificationDisabledState),
               );
             },
             style: 'default',
@@ -592,14 +553,8 @@ export const requestPushNotificationsPermission = async () => {
                 permissionStatus = await notifee.requestPermission();
               }
               store.dispatch(
-                updateNotificationStatus(notificationEnabledState),
+                Creators.enablePushNotificationsRequest(),
               );
-
-              mmStorage.saveLocal(
-                STORAGE_IDS.NOTIFICATIONS_SETTINGS,
-                JSON.stringify(notificationEnabledState),
-              );
-              // await saveFCMToken();
             },
           },
         ],

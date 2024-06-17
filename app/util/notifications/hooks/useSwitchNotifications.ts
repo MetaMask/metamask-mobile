@@ -65,35 +65,71 @@ export function useSwitchFeatureAnnouncementsChange(): SwitchFeatureAnnouncement
   };
 }
 
-export function useSwitchAccountNotifications(
-  accounts: string[],
-): SwitchAccountNotificationsReturn {
+export function useSwitchPushNotificationsChange(): SwitchFeatureAnnouncementsChangeReturn {
+  const dispatch = useDispatch();
+
+  const [error, setError] = useState<null | string>(null);
+
+  const onChange = useCallback(
+    async (state: boolean) => {
+      setError(null);
+
+      try {
+        if (state === true) {
+          await dispatch(Creators.enablePushNotificationsRequest());
+        } else {
+          await dispatch(Creators.disablePushNotificationsRequest());
+        }
+      } catch (e) {
+        const errorMessage =
+          e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
+        setError(errorMessage);
+        throw e;
+      }
+    },
+    [dispatch],
+  );
+
+  return {
+    onChange,
+    error,
+  };
+}
+
+export function useSwitchAccountNotifications(): {
+  switchAccountNotifications: (
+    accounts: string[],
+  ) => Promise<UseSwitchAccountNotificationsData | undefined>;
+  isLoading: boolean;
+  error: string | null;
+} {
   const dispatch = useDispatch();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const switchAccountNotifications = useCallback(async (): Promise<
-    UseSwitchAccountNotificationsData | undefined
-  > => {
-    setIsLoading(true);
-    setError(null);
+  const switchAccountNotifications = useCallback(
+    async (
+      accounts: string[],
+    ): Promise<UseSwitchAccountNotificationsData | undefined> => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const data = await dispatch(
-        Creators.checkAccountsPresenceRequest(accounts),
-      );
-      return data as unknown as UseSwitchAccountNotificationsData;
-    } catch (e) {
-      const errorMessage =
-        e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
-      setError(errorMessage);
-      Logger.error(errorMessage);
-      throw e;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [accounts, dispatch]);
+      try {
+        const data = await dispatch(Creators.checkAccountsPresence(accounts));
+        return data as unknown as UseSwitchAccountNotificationsData;
+      } catch (e) {
+        const errorMessage =
+          e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
+        setError(errorMessage);
+        Logger.error(errorMessage);
+        throw e;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [dispatch],
+  );
 
   return { switchAccountNotifications, isLoading, error };
 }

@@ -113,7 +113,7 @@ export function useEnableNotifications(): EnableNotificationsReturn {
     setError(null);
 
     try {
-      await dispatch(Creators.enableMetamaskNotificationsRequest());
+      await dispatch(Creators.enablePushNotificationsRequest());
       dispatch(Creators.setMetamaskNotificationsFeatureSeenRequest());
     } catch (e: any) {
       setError(e instanceof Error ? e.message : 'An unexpected error occurred');
@@ -147,7 +147,7 @@ export function useDisableNotifications(): DisableNotificationsReturn {
     setError(null);
 
     try {
-      await dispatch(Creators.disableMetamaskNotificationsRequest());
+      await dispatch(Creators.disablePushNotificationsRequest());
     } catch (e: any) {
       setError(e instanceof Error ? e.message : 'An unexpected error occurred');
       Logger.error(e);
