@@ -3,6 +3,15 @@ import { createSelector } from 'reselect';
 import { RootState } from '../../reducers';
 import { TRIGGER_TYPES, type Notification } from 'app/util/notifications';
 import { createDeepEqualSelector } from '../util';
+import {
+  AuthenticationControllerState,
+  UserStorageControllerState,
+} from '@metamask/profile-sync-controller';
+
+import {
+  NotificationServicesControllerState,
+  NotificationServicesPushControllerState,
+} from '@metamask/notification-services-controller';
 const selectAuthenticationControllerState = (state: RootState) =>
   state.engine.backgroundState.AuthenticationController;
 
@@ -17,102 +26,95 @@ const selectNotificationServicesPushControllerState = (state: RootState) =>
 
 export const selectIsSignedIn = createSelector(
   selectAuthenticationControllerState,
-  (authenticationControllerState) => authenticationControllerState.isSignedIn,
+  (authenticationControllerState: AuthenticationControllerState) => authenticationControllerState.isSignedIn,
 );
 
 export const selectSessionData = createSelector(
   selectAuthenticationControllerState,
-  (authenticationControllerState) => authenticationControllerState.sessionData,
+  (authenticationControllerState: AuthenticationControllerState) => authenticationControllerState.sessionData,
 );
 
 export const selectIsProfileSyncingEnabled = createSelector(
   selectUserStorageControllerState,
-  (userStorageControllerState) =>
+  (userStorageControllerState: UserStorageControllerState) =>
     userStorageControllerState.isProfileSyncingEnabled,
 );
 
 export const selectIsProfileSyncingUpdateLoading = createSelector(
   selectUserStorageControllerState,
-  (userStorageControllerState) =>
+  (userStorageControllerState: UserStorageControllerState) =>
     userStorageControllerState.isProfileSyncingUpdateLoading,
 );
 
 export const selectInternalAccounts = createSelector(
   selectUserStorageControllerState,
-  (userStorageControllerState) => userStorageControllerState.internalAccounts,
+  (userStorageControllerState: UserStorageControllerState) => userStorageControllerState.internalAccounts,
 );
 
 export const selectUniqueAccounts = createSelector(
   selectUserStorageControllerState,
-  (userStorageControllerState) => userStorageControllerState.uniqueAccounts,
+  (userStorageControllerState: UserStorageControllerState) => userStorageControllerState.uniqueAccounts,
 );
 
 export const selectIsMetamaskNotificationsEnabled = createSelector(
   selectNotificationServicesPushControllerState,
-  (metamaskNotificationsControllerState) =>
+  (metamaskNotificationsControllerState: NotificationServicesControllerState) =>
     metamaskNotificationsControllerState.isMetamaskNotificationsEnabled,
 );
 
 export const selectIsFeatureAnnouncementsEnabled = createSelector(
   selectNotificationsControllerState,
-  (metamaskNotificationsController) =>
+  (metamaskNotificationsController: NotificationServicesControllerState) =>
     metamaskNotificationsController.isFeatureAnnouncementsEnabled,
 );
 
 export const selectIsCheckingAccountsPresence = createSelector(
   selectNotificationsControllerState,
-  (metamaskNotificationsController) =>
+  (metamaskNotificationsController: NotificationServicesControllerState) =>
     metamaskNotificationsController.isCheckingAccountsPresence,
 );
 
 export const selectIsUpdatingMetamaskNotifications = createSelector(
   selectNotificationsControllerState,
-  (metamaskNotificationsController) =>
+  (metamaskNotificationsController: NotificationServicesControllerState) =>
     metamaskNotificationsController.isUpdatingMetamaskNotifications,
 );
 
 export const selectHasSeenNotificationsFeature = createSelector(
   selectNotificationsControllerState,
-  (metamaskNotificationsController) =>
+  (metamaskNotificationsController: NotificationServicesControllerState) =>
     metamaskNotificationsController.hasSeenNotificationsFeature,
 );
 
 export const selectIsFetchingMetamaskNotification = createSelector(
   selectNotificationsControllerState,
-  (metamaskNotificationsController) =>
+  (metamaskNotificationsController: NotificationServicesControllerState) =>
     metamaskNotificationsController.isFetchingMetamaskNotification,
 );
 
 export const selectIsUpdatingMetamaskNotificationsAccounts = createSelector(
   selectNotificationsControllerState,
-  (metamaskNotificationsController) =>
+  (metamaskNotificationsController: NotificationServicesControllerState) =>
     metamaskNotificationsController.isUpdatingMetamaskNotificationsAccounts,
 );
 
 export const selectIsUpdatingMetamaskNotificationsAccount = createSelector(
   selectNotificationsControllerState,
-  (metamaskNotificationsController) =>
+  (metamaskNotificationsController: NotificationServicesControllerState) =>
     metamaskNotificationsController.isUpdatingMetamaskNotificationsAccount,
 );
 
 export const selectNotificationsList = createSelector(
   selectNotificationsControllerState,
-  (metamaskNotificationsController) =>
+  (metamaskNotificationsController: NotificationServicesControllerState) =>
     metamaskNotificationsController.metamaskNotificationsList,
 );
 
 export const selectNotificationsReadList = createSelector(
   selectNotificationsControllerState,
-  (metamaskNotificationsController) =>
+  (metamaskNotificationsController: NotificationServicesControllerState) =>
     metamaskNotificationsController.metamaskNotificationsReadList,
 );
-
-export const getMetamaskNotificationById = (id: string) =>
-  createDeepEqualSelector(
-    [selectNotificationsControllerState],
-    (notifications: Notification[]): Notification | undefined =>
-      notifications.find((notification) => notification.id === id),
-  );
 
 export const getMetamaskNotificationsUnreadCount = createSelector(
   [selectNotificationsControllerState],
@@ -133,3 +135,10 @@ export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
         ).length
       : 0,
 );
+
+export const getMetamaskNotificationById = (id: string) =>
+  createDeepEqualSelector(
+    [selectNotificationsControllerState],
+    (notifications: Notification[]): Notification | undefined =>
+      notifications.find((notification) => notification.id === id),
+  );
