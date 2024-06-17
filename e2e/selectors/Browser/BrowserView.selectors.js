@@ -25,6 +25,7 @@ export const BrowserViewSelectorsText = {
   CONFIRM_BUTTON: enContent.confirmation_modal.confirm_cta,
   RETURN_HOME: enContent.webview_error.return_home,
   METAMASK_TEST_DAPP_URL: 'metamask.github.io',
+  CLOSE_ALL_BUTTON: enContent.browser.tabs_close_all,
 };
 export const BrowserViewSelectorsXPaths = {
   FAVORITE_TAB: `//div[@id='root']/div[@class='App']//ol//li[contains(text(), 'Favorites')]`,

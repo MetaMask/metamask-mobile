@@ -19,6 +19,10 @@ import Gestures from '../utils/Gestures';
 import Matchers from '../utils/Matchers';
 
 export default class WalletView {
+  static get portfolioButton() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.PORTFOLIO_BUTTON);
+  }
+
   static get tokendetectionLinkButton() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON,
@@ -142,5 +146,9 @@ export default class WalletView {
 
   static async tapNewTokensFound() {
     await Gestures.waitAndTap(this.tokendetectionLinkButton);
+  }
+
+  static async tapPortfolio() {
+    await Gestures.waitAndTap(this.portfolioButton);
   }
 }

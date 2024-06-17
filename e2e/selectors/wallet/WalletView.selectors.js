@@ -7,6 +7,7 @@ export const WalletViewSelectorsIDs = {
   WALLET_SCAN_BUTTON: 'wallet-scan-button',
   WALLET_NOTIFICATIONS_BUTTON: 'wallet-notifications-button',
   WALLET_TOKEN_DETECTION_LINK_BUTTON: 'wallet-token-detection-link-button',
+  PORTFOLIO_BUTTON: 'portfolio-button',
 };
 
 export const WalletViewSelectorsText = {
