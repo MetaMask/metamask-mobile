@@ -12,7 +12,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
  * @returns Valid persisted Redux state
  */
 export default function migrate(state: unknown) {
-  if (!ensureValidState(state, 46)) {
+  if (!ensureValidState(state, 47)) {
     return state;
   }
 
@@ -22,7 +22,7 @@ export default function migrate(state: unknown) {
   if (!isObject(accountsControllerState)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 46: Invalid AccountsController state error: '${JSON.stringify(
+        `FATAL ERROR: Migration 47: Invalid AccountsController state error: '${JSON.stringify(
           accountsControllerState,
         )}'`,
       ),
@@ -36,7 +36,7 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 46: Invalid AccountsController internalAccounts state error: '${accountsControllerState.internalAccounts}'`,
+        `FATAL ERROR: Migration 47: Invalid AccountsController internalAccounts state error: '${accountsControllerState.internalAccounts}'`,
       ),
     );
     return state;
@@ -48,7 +48,7 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 46: Invalid AccountsController internalAccounts accounts state error: '${accountsControllerState.internalAccounts.accounts}'`,
+        `FATAL ERROR: Migration 47: Invalid AccountsController internalAccounts accounts state error: '${accountsControllerState.internalAccounts.accounts}'`,
       ),
     );
     return state;
@@ -64,7 +64,7 @@ export default function migrate(state: unknown) {
     ).find(([_, account]) => !isObject(account));
     captureException(
       new Error(
-        `FATAL ERROR: Migration 46: Invalid AccountsController entry with id: '${
+        `FATAL ERROR: Migration 47: Invalid AccountsController entry with id: '${
           invalidEntry?.[0]
         }', type: '${typeof invalidEntry?.[1]}'`,
       ),
@@ -78,7 +78,7 @@ export default function migrate(state: unknown) {
   if (!isObject(preferencesControllerState)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 46: Invalid PreferencesController state error: '${JSON.stringify(
+        `FATAL ERROR: Migration 47: Invalid PreferencesController state error: '${JSON.stringify(
           preferencesControllerState,
         )}'`,
       ),
@@ -92,7 +92,7 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 46: Invalid PreferencesController identities state error: '${preferencesControllerState.identities}'`,
+        `FATAL ERROR: Migration 47: Invalid PreferencesController identities state error: '${preferencesControllerState.identities}'`,
       ),
     );
     return state;
