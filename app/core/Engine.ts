@@ -1876,8 +1876,8 @@ export default {
       // Notification Controllers
       AuthenticationController,
       UserStorageController,
-      MetamaskNotificationsController,
-      PushPlatformNotificationsController,
+      NotificationServicesController,
+      NotificationServicesPushController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -1922,8 +1922,8 @@ export default {
       // Notification Controllers
       AuthenticationController,
       UserStorageController,
-      MetamaskNotificationsController,
-      PushPlatformNotificationsController,
+      NotificationServicesController,
+      NotificationServicesPushController,
     };
   },
   get datamodel() {
