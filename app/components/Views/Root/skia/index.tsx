@@ -13,9 +13,11 @@ import {
   SkPath,
   PathCommand,
   PathVerb,
+  usePathInterpolation,
 } from '@shopify/react-native-skia';
 import {
   Easing,
+  cancelAnimation,
   useDerivedValue,
   useSharedValue,
   withTiming,
@@ -251,7 +253,8 @@ const Graph = () => {
   const path = useDerivedValue(() => {
     const start = graphs[state.value.current].data;
     const end = graphs[state.value.next].data;
-    return end.interpolate(start, transition.value);
+    return end;
+    // return end.interpolate(start, transition.value);
   }, [state, transition]);
   //   const path = useDerivedValue(() => getGraph()[state.value.current], [state]);
   const x = useSharedValue(0);
@@ -283,7 +286,7 @@ const Graph = () => {
   });
 
   return (
-    <SafeAreaView style={{ justifyContent: 'center', flex: 1 }}>
+    <View style={{ justifyContent: 'center', flex: 1 }}>
       <Canvas style={{ flex: 1 }} onTouch={onTouch}>
         <Group>
           <Path style={'stroke'} path={path} strokeWidth={4}>
@@ -330,7 +333,7 @@ const Graph = () => {
           />
         ))}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

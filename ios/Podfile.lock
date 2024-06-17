@@ -215,6 +215,7 @@ PODS:
   - nanopb/decode (2.30910.0)
   - nanopb/encode (2.30910.0)
   - OpenSSL-Universal (1.1.1100)
+  - PanModal (1.2.7)
   - Permission-BluetoothPeripheral (3.10.1):
     - RNPermissions
   - PromisesObjC (2.4.0)
@@ -508,8 +509,12 @@ PODS:
     - React-Core
   - react-native-randombytes (3.6.1):
     - React-Core
-  - react-native-safe-area-context (3.4.1):
+  - react-native-safe-area-context (4.5.0):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - ReactCommon/turbomodule/core
   - react-native-skia (1.3.6):
     - RCT-Folly (= 2021.07.22.00)
     - React
@@ -625,6 +630,9 @@ PODS:
     - React-Core
   - RNCMaskedView (0.2.6):
     - React-Core
+  - RNCoolModals (0.0.9):
+    - PanModal
+    - React
   - RNCPicker (2.2.1):
     - React-Core
   - RNDateTimePicker (7.5.0):
@@ -635,7 +643,8 @@ PODS:
     - React-Core
   - RNFS (2.20.0):
     - React-Core
-  - RNGestureHandler (1.10.3):
+  - RNGestureHandler (2.16.2):
+    - RCT-Folly (= 2021.07.22.00)
     - React-Core
   - RNI18n (2.0.15):
     - React
@@ -679,7 +688,7 @@ PODS:
     - React-RCTText
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.19.0):
+  - RNScreens (3.20.0):
     - React-Core
     - React-RCTImage
   - RNSensors (5.3.0):
@@ -818,6 +827,7 @@ DEPENDENCIES:
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
+  - RNCoolModals (from `../node_modules/react-native-cool-modals`)
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNDefaultPreference (from `../node_modules/react-native-default-preference`)
@@ -872,6 +882,7 @@ SPEC REPOS:
     - MultiplatformBleAdapter
     - nanopb
     - OpenSSL-Universal
+    - PanModal
     - PromisesObjC
     - Sentry
     - SentryPrivate
@@ -1035,6 +1046,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNCMaskedView:
     :path: "../node_modules/@react-native-masked-view/masked-view"
+  RNCoolModals:
+    :path: "../node_modules/react-native-cool-modals"
   RNCPicker:
     :path: "../node_modules/@react-native-picker/picker"
   RNDateTimePicker:
@@ -1128,6 +1141,7 @@ SPEC CHECKSUMS:
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
+  PanModal: 3e16ead1a907fb06f4df3f13492fd00149fa4974
   Permission-BluetoothPeripheral: 247e379c9ecb4b1af2b87f73e4a15a00a5bc0c1f
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
@@ -1164,7 +1178,7 @@ SPEC CHECKSUMS:
   react-native-quick-base64: 777057ea4286f806b00259ede65dc79c7c706320
   react-native-quick-crypto: 455c1b411db006dba1026a30681ececb19180187
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
-  react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
+  react-native-safe-area-context: 39c2d8be3328df5d437ac1700f4f3a4f75716acc
   react-native-skia: 608b79ca816d62c72992ddb064ea328ca5523db8
   react-native-slider: 1cdd6ba29675df21f30544253bf7351d3c2d68c4
   react-native-splash-screen: 49a7160705f32169d27ab8dff9dda53331592412
@@ -1190,12 +1204,13 @@ SPEC CHECKSUMS:
   RNCCheckbox: ed1b4ca295475b41e7251ebae046360a703b6eb5
   RNCClipboard: ddd4d291537f1667209c9c405aaa4307297e252e
   RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
+  RNCoolModals: 49df7bf454cb98802a208531a7fc4cec28cfc501
   RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
   RNDateTimePicker: b722c23030b744763cf51d80fc22f354653f65e0
   RNDefaultPreference: 2f8d6d54230edbd78708ada8d63bb275e5a8415b
   RNDeviceInfo: 1e3f62b9ec32f7754fac60bd06b8f8a27124e7f0
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
-  RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
+  RNGestureHandler: d678f94a8f74de70ce3d9f5d23eb0f97b686e943
   RNI18n: e2f7e76389fcc6e84f2c8733ea89b92502351fd8
   RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
   RNKeychain: 4f63aada75ebafd26f4bc2c670199461eab85d94
@@ -1203,7 +1218,7 @@ SPEC CHECKSUMS:
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNPermissions: 4e3714e18afe7141d000beae3755e5b5fb2f5e05
   RNReanimated: b1220a0e5168745283ff5d53bfc7d2144b2cee1b
-  RNScreens: ea4cd3a853063cda19a4e3c28d2e52180c80f4eb
+  RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
   RNSentry: 98e170b6eedc5c54e3ac88b6140fffb8b496deb4
   RNShare: f116bbb04f310c665ca483d0bd1e88cf59b3b334
