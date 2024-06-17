@@ -626,7 +626,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           style={styles.buyButton}
           onPress={onOpenPortfolio}
           label={strings('asset_overview.portfolio_button')}
-          {...generateTestId(Platform, PORTFOLIO_BUTTON)}
+          testID={PORTFOLIO_BUTTON}
           endIconName={IconName.Export}
         />
       </View>
