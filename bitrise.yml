@@ -115,6 +115,8 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_swaps_ios: {}
@@ -135,6 +137,8 @@ stages:
       - android_run_regression_tests: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
@@ -435,7 +439,23 @@ workflows:
     after_run:
       - run_android_appium_test
 
-  ### Seperating workflows so they run concurrently during smoke runs
+  ### Separating workflows so they run concurrently during smoke runs
+  run_tag_smoke_accounts_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
+      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_accounts_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
+      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - android_e2e_test
   run_tag_smoke_confirmations_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
@@ -1309,6 +1329,9 @@ workflows:
 
 app:
   envs:
+    - opts:
+        is_expand: false
+      MM_TRANSACTION_SIMULATIONS_ENABLED: false
     - opts:
         is_expand: false
       MM_NOTIFICATIONS_UI_ENABLED: false

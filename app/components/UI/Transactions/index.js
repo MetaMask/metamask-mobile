@@ -59,13 +59,13 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import {
   TransactionError,
   CancelTransactionError,
   SpeedupTransactionError,
 } from '../../../core/Transaction/TransactionError';
-import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import { getDeviceId } from '../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { TOKEN_OVERVIEW_TXN_SCREEN } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import {
@@ -552,7 +552,7 @@ class Transactions extends PureComponent {
   };
 
   signLedgerTransaction = async (transaction) => {
-    const ledgerKeyring = await getLedgerKeyring();
+    const deviceId = await getDeviceId();
 
     const onConfirmation = (isComplete) => {
       if (isComplete) {
@@ -566,7 +566,7 @@ class Transactions extends PureComponent {
     this.props.navigation.navigate(
       ...createLedgerTransactionModalNavDetails({
         transactionId: transaction.id,
-        deviceId: ledgerKeyring.deviceId,
+        deviceId,
         onConfirmationComplete: onConfirmation,
         type: 'signTransaction',
         replacementParams: transaction?.replacementParams,
@@ -866,7 +866,7 @@ const mapStateToProps = (state) => ({
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates: selectGasFeeEstimates(state),

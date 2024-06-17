@@ -76,7 +76,7 @@ describe(
           await Assertions.checkIfNotVisible(await CommonView.toast);
           await OnboardingView.tapCreateWallet();
 
-          //Create new wallet
+          // Create new wallet
           await Assertions.checkIfVisible(MetaMetricsOptIn.container);
           await MetaMetricsOptIn.tapAgreeButton();
           await Assertions.checkIfVisible(CreatePasswordView.container);

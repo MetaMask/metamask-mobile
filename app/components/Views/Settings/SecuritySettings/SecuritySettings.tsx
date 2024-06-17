@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Keyboard,
   Platform,
+  Linking,
 } from 'react-native';
 import AsyncStorage from '../../../../store/async-storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
@@ -17,6 +18,7 @@ import { clearHistory } from '../../../../actions/browser';
 import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
+import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
@@ -60,6 +62,7 @@ import {
   selectShowIncomingTransactionNetworks,
   selectShowTestNetworks,
   selectUseSafeChainsListValidation,
+  selectUseTransactionSimulations,
 } from '../../../../selectors/preferencesController';
 import {
   SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
@@ -117,6 +120,8 @@ import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
+import { MetaMetrics } from '../../../../core/Analytics';
+import { isTransactionSimulationsFeatureEnabled } from '../../../../util/transaction-controller';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
@@ -162,6 +167,9 @@ const Settings: React.FC = () => {
   const displayNftMedia = useSelector(selectDisplayNftMedia);
   const useSafeChainsListValidation = useSelector(
     selectUseSafeChainsListValidation,
+  );
+  const useTransactionSimulations = useSelector(
+    selectUseTransactionSimulations,
   );
 
   const useNftDetection = useSelector(selectUseNftDetection);
@@ -467,7 +475,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white['000']}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
             {...generateTestId(
@@ -551,7 +559,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white['000']}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
               testID="display-nft-toggle"
@@ -585,7 +593,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white['000']}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
               testID={DISPLAY_SAFE_CHAINS_LIST_VALIDATION}
@@ -604,7 +612,61 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     ),
-    [colors, styles, useSafeChainsListValidation, theme.brandColors.white],
+    [colors, styles, useSafeChainsListValidation, theme.brandColors],
+  );
+
+  const toggleUseTransactionSimulations = (value: boolean) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setUseTransactionSimulations(value);
+  };
+
+  const renderUseTransactionSimulations = useCallback(
+    () => (
+      <View style={styles.halfSetting}>
+        <View style={styles.titleContainer}>
+          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+            {strings('app_settings.simulation_details')}
+          </Text>
+          <View style={styles.switchElement}>
+            <Switch
+              value={useTransactionSimulations}
+              onValueChange={toggleUseTransactionSimulations}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={theme.brandColors.white}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+            />
+          </View>
+        </View>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
+        >
+          {strings('app_settings.simulation_details_description')}
+          <Button
+            variant={ButtonVariants.Link}
+            size={ButtonSize.Auto}
+            onPress={() => {
+              Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
+              MetaMetrics.getInstance().trackEvent(
+                MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
+                {
+                  location: 'app_settings',
+                  text: strings('app_settings.simulation_details_learn_more'),
+                  url_domain: SIMULATION_DETALS_ARTICLE_URL,
+                },
+              );
+            }}
+            label={strings('app_settings.simulation_details_learn_more')}
+          />
+        </Text>
+      </View>
+    ),
+    [colors, styles, useTransactionSimulations, theme.brandColors.white],
   );
 
   const renderAutoDetectNft = useCallback(
@@ -626,7 +688,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white['000']}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />
@@ -668,7 +730,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white['000']}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -747,7 +809,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white['000']}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -779,7 +841,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white['000']}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -820,7 +882,7 @@ const Settings: React.FC = () => {
                   true: colors.primary.default,
                   false: colors.border.muted,
                 }}
-                thumbColor={theme.brandColors.white['000']}
+                thumbColor={theme.brandColors.white}
                 style={styles.switch}
                 ios_backgroundColor={colors.border.muted}
               />
@@ -857,7 +919,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white['000']}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />
@@ -972,6 +1034,8 @@ const Settings: React.FC = () => {
         {renderMultiAccountBalancesSection()}
         {renderShowIncomingTransactions()}
         {renderHistoryModal()}
+        {isTransactionSimulationsFeatureEnabled() &&
+          renderUseTransactionSimulations()}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
