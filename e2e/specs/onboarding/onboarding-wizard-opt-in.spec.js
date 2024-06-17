@@ -74,10 +74,10 @@ describe(
         await Assertions.checkIfNotVisible(
           OnboardingWizardModal.stepOneContainer,
         );
-        await ExperienceEnhancerModal.tapIagree();
       } catch {
         //
       }
+      await ExperienceEnhancerModal.tapIagree();
     });
 
     it('should tap on "Got it" Button in the whats new modal', async () => {
