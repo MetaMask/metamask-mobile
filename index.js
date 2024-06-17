@@ -17,7 +17,7 @@ setupSentry();
 import notifee, { EventType } from '@notifee/react-native';
 
 import { AppRegistry, LogBox } from 'react-native';
-import Root from './app/components/Views/Root/Roots';
+import Root from './app/components/Views/Root/skia';
 import { name } from './app.json';
 import { isTest } from './app/util/test/utils.js';
 
