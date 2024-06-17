@@ -1,10 +1,18 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber/native';
-import { ActivityIndicator, Button, View } from 'react-native';
+import { useLoader } from '@react-three/fiber';
+import { ActivityIndicator, Button, TextInput, View } from 'react-native';
 // import Model from './model';
 import { useGLTF, useAnimations } from '@react-three/drei/native';
 import { useFrame } from '@react-three/fiber/native';
-import { MathUtils } from 'three';
+import {
+  PerspectiveCamera,
+  Scene,
+  WebGLRenderer,
+  AmbientLight,
+  MathUtils,
+} from 'three';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { useAnimatedSensor, SensorType } from 'react-native-reanimated';
 
 // const modelPath = require('./mazda.glb');
@@ -22,7 +30,7 @@ function Model(props) {
   const countRef = useRef(0);
   const ref = useRef(); // Add this line to create a reference to your model
   const group = useRef();
-  const gltf = useGLTF(require('./skeleton.glb'));
+  const gltf = useGLTF(require('./assets/Xbot.glb'));
   const { actions, names } = useAnimations(gltf.animations, group);
 
   // console.warn(actions, names);
@@ -116,26 +124,56 @@ function Model(props) {
   );
 }
 
+const Hey = () => {
+  const cubeRef = useRef();
+
+  useFrame(() => {
+    // cubeRef.current.rotation.x += 0.01;
+    // cubeRef.current.rotation.y += 0.01;
+  });
+
+  return (
+    <group>
+      <ambientLight intensity={1} />
+      <pointLight position={[0, 1, 1]} />
+      <group ref={cubeRef}>
+        <mesh position={[0, 0, 0]}>
+          <sphereGeometry />
+          <meshNormalMaterial />
+          <meshStandardMaterial color={'orange'} />
+          {/* <boxGeometry args={[2, 2, 1]} /> */}
+          {/* <perspectiveCamera /> */}
+        </mesh>
+
+        {/* <mesh scale={0.1}>
+          <torusKnotGeometry args={[10, 1, 260, 6, 10, 16]} />
+          <meshStandardMaterial color={'green'} />
+        </mesh> */}
+      </group>
+    </group>
+  );
+};
+
 export default function App() {
   return (
     <View style={{ flex: 1, backgroundColor: 'white' }}>
       <Canvas
-        onCreated={(state) => {
-          const gl = state.gl.getContext();
-          const pixelStorei = gl.pixelStorei.bind(gl);
-          gl.pixelStorei = (...args) => {
-            const [parameter] = args;
-            switch (parameter) {
-              case gl.UNPACK_FLIP_Y_WEBGL:
-                return pixelStorei(...args);
-            }
-          };
-        }}
+      // onCreated={(state) => {
+      //   const gl = state.gl.getContext();
+      //   const pixelStorei = gl.pixelStorei.bind(gl);
+      //   gl.pixelStorei = (...args) => {
+      //     const [parameter] = args;
+      //     switch (parameter) {
+      //       case gl.UNPACK_FLIP_Y_WEBGL:
+      //         return pixelStorei(...args);
+      //     }
+      //   };
+      // }}
       >
-        <ambientLight />
-        <Suspense fallback={null}>
-          <Model />
-        </Suspense>
+        {/* <Suspense fallback={null}> */}
+        <Hey />
+        {/* <Model /> */}
+        {/* </Suspense> */}
       </Canvas>
     </View>
   );
