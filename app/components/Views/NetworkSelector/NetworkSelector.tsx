@@ -19,6 +19,10 @@ import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import {
   selectNetworkConfigurations,
@@ -67,6 +71,7 @@ import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNe
 import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { PopularList } from '../../../util/networks/customNetworks';
 import Icon from 'react-native-vector-icons/Ionicons';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
@@ -199,7 +204,13 @@ const NetworkSelector = () => {
         }
         onPress={() => onNetworkChange(MAINNET)}
         style={styles.networkCell}
-      />
+      >
+        <ButtonIcon
+          iconName={IconName.MoreVertical}
+          iconColor={IconColor.Default}
+          onPress={() => console.log('IM HERE')}
+        />
+      </Cell>
     );
   };
 
@@ -225,7 +236,13 @@ const NetworkSelector = () => {
         }}
         isSelected={chainId === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
-      />
+      >
+        <ButtonIcon
+          iconName={IconName.MoreVertical}
+          iconColor={IconColor.Default}
+          onPress={() => console.log('IM HERE')}
+        />
+      </Cell>
     );
   };
 
@@ -244,7 +261,7 @@ const NetworkSelector = () => {
         return (
           <Cell
             key={chainId}
-            variant={CellVariant.Select}
+            variant={CellVariant.SelectWithMenu}
             title={name}
             avatarProps={{
               variant: AvatarVariant.Network,
@@ -257,6 +274,8 @@ const NetworkSelector = () => {
             )}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}
+            buttonIcon={IconName.MoreVertical}
+            onButtonClick={() => console.log('Button Click ....')}
           />
         );
       },
@@ -285,7 +304,13 @@ const NetworkSelector = () => {
           isSelected={chainId === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
           style={styles.networkCell}
-        />
+        >
+          <ButtonIcon
+            iconName={IconName.MoreVertical}
+            iconColor={IconColor.Default}
+            onPress={() => console.log('IM HERE', networkType)}
+          />
+        </Cell>
       );
     });
   };
