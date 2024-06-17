@@ -34,8 +34,8 @@ import {
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { speedUpTransaction } from '../../../../util/transaction-controller';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -447,7 +447,7 @@ const mapStateToProps = (state) => {
 
   return {
     accounts: selectAccounts(state),
-    selectedAddress: selectSelectedAddress(state),
+    selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
     transactions: TransactionController.transactions,
     ticker: selectTicker(state),
     chainId,

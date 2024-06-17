@@ -11,6 +11,8 @@ export const LEARN_MORE_URL =
   'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/';
 export const WHY_TRANSACTION_TAKE_TIME_URL =
   'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172';
+export const SIMULATION_DETALS_ARTICLE_URL =
+  'https://support.metamask.io/transactions-and-gas/transactions/simulations/';
 
 export const TOKEN_APPROVAL_SPENDING_CAP = `https://support.metamask.io/privacy-and-security/how-to-customize-token-approvals-with-a-spending-cap/`;
 export const CONNECTING_TO_A_DECEPTIVE_SITE =
@@ -86,3 +88,6 @@ export const GOERLI_DEPRECATED_ARTICLE =
 
 export const ETHEREUM_LOGO =
   'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg';
+
+export const HOW_TO_MANAGE_METRAMETRICS_SETTINGS =
+  'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings';

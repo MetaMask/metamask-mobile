@@ -413,7 +413,7 @@
     "no_tokens": "You don't have any tokens!",
     "no_nfts_yet": "No NFTs yet",
     "nfts_autodetection_title": "NFT detection",
-    "nfts_autodetection_desc": "Allow MetaMask to automatically detect NFTs from OpenSea and display in your MetaMask wallet.",
+    "nfts_autodetection_desc": "Let MetaMask automatically detect and display NFTs in your wallet.",
     "network_details_check": "Network details check",
     "network_with_chain_id": "The network with chain ID",
     "chain_list_returned_different_ticker_symbol": "This token symbol doesn't match the network name or chain ID entered. Many popular tokens use similar symbols, which scammers can use to trick you into sending them a more valuable token in return. Verify everything before you continue.",
@@ -454,7 +454,7 @@
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
     "nfts_autodetect_title": "NFT autodetection",
-    "nfts_autodetect_cta": "Turn on Autodetect NFTs in Settings",
+    "nfts_autodetect_cta": "Enable NFT autodetection",
     "turn_on_network_check_cta": "Turn on network details check",
     "display_nft_media_cta_new_1": "To see an NFT, turn on Display NFT media in",
     "display_nft_media_cta_new_2": "Settings > Security and Privacy.",
@@ -650,7 +650,8 @@
     "revoked_all": "All accounts revoked.",
     "accounts_connected": "accounts connected.",
     "disconnected": "disconnected.",
-    "disconnected_all": "All accounts disconnected."
+    "disconnected_all": "All accounts disconnected.",
+    "nft_detection_enabled": "NFT autodetection enabled"
   },
   "connect_qr_hardware": {
     "title": "Connect a QR-based hardware wallet",
@@ -998,7 +999,26 @@
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
     "smart_transactions_opt_in_desc": "Turn on Smart Transactions for more reliable and secure transactions on Ethereum Mainnet.",
-    "smart_transactions_learn_more": "Learn more."
+    "smart_transactions_learn_more": "Learn more.",
+    "simulation_details": "Estimate balance changes",
+    "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
+    "simulation_details_learn_more": "Learn more.",
+    "aes_crypto_test_form_title": "AES Crypto - Test Form",
+    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support."
+  },
+  "aes_crypto_test_form": {
+    "generate_random_salt": "Generate Random Salt",
+    "salt_bytes_count": "Salt bytes count",
+    "generate": "Generate",
+    "generate_encryption_key": "Generate encryption key from password",
+    "password": "Password",
+    "salt": "Salt",
+    "encrypt_with_key": "Encrypt with key",
+    "encrypt": "Encrypt",
+    "encryption_key": "Encryption Key",
+    "data": "Data",
+    "decrypt_with_key": "Decrypt with key",
+    "decrypt": "Decrypt"
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1178,6 +1198,15 @@
     "show_private_key": "Show private key",
     "account_copied_to_clipboard": "Public address copied to clipboard",
     "share_public_key": "Sharing my public key: "
+  },
+  "enable_nft-auto-detection": {
+    "title": "Enable NFT autodetection",
+    "description": "Allow MetaMask to detect and display your NFTs with autodetection. You’ll be able to:",
+    "immediateAccess": "Immediately access your NFTs",
+    "navigate": "Effortlessly navigate your digital assets",
+    "dive": "Dive straight into using your NFTs",
+    "allow": "Allow",
+    "notRightNow": "Not right now"
   },
   "detected_tokens": {
     "title": "{{tokenCount}} new token found",
@@ -1510,6 +1539,10 @@
     "to": "To",
     "details": "Details",
     "amount": "Amount",
+    "fee": {
+      "transaction_fee_in_ether": "Transaction Fee",
+      "transaction_fee_in_usd": "Transaction Fee (USD)"
+    },
     "gas_used": "Gas Used (Units)",
     "gas_limit": "Gas Limit (Units)",
     "gas_price": "Gas Price (GWEI)",
@@ -1905,14 +1938,21 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "staked": "Staked",
+    "received": "Received",
+    "unstaked": "Unstaked",
+    "to": "To",
+    "rate": "Rate(fees included)",
+    "unstaking_requested": "Unstaking requested",
     "stake_completed": "Stake completed",
     "withdrawal_completed": "Withdrawal completed",
     "unstake_completed": "Unstake completed",
     "withdrawal_requested": "Withdrawal requested",
     "stake_ready_to_be_withdrawn": "Stake ready to be withdrawn",
     "swap_completed": "Swapped {{from}} for {{to}}",
+    "swap": "Swapped",
     "sent": "Sent to {{address}}",
-    "received": "Received from {{address}}",
+    "received_from": "Received from {{address}}",
     "nft_sent": "Sent NFT to {{address}}",
     "erc721_sent": "Sent NFT to {{address}}",
     "erc1155_sent": "Sent NFT to {{address}}",
@@ -1959,6 +1999,7 @@
     "wc_description": "Please check the application",
     "wallet": "Wallet",
     "web3": "Web3",
+    "staking_provider": "Staking Provider",
     "empty": {
       "title": "Nothing to see here",
       "message": "This is where you can find notifications once there’s activity in your wallet. "
@@ -2601,6 +2642,11 @@
       "benefit_2_2": "money",
       "benefit_3_1": "Real-time",
       "benefit_3_2": "updates"
+    },
+    "transaction_simulation": {
+      "title": "Estimated balance changes",
+      "description_1": "Now you can see the potential outcome of your transactions before you make them!",
+      "description_2": "This is just a simulation, so we can’t guarantee the final outcome. You can turn this off anytime in Settings > Security & Privacy."
     }
   },
   "invalid_network": {
@@ -3046,5 +3092,16 @@
         "turn_off": "Turn off"
       }
     }
+  },
+  "simulation_details": {
+    "failed": "There was an error loading your estimation.",
+    "fiat_not_available": "Not Available",
+    "incoming_heading": "You receive", 
+    "no_balance_changes": "No changes predicted for your wallet",
+    "outgoing_heading": "You send",
+    "reverted": "This transaction is likely to fail",
+    "title": "Estimated changes",
+    "tooltip_description": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
+    "total_fiat": "Total = {{currency}}"
   }
 }
