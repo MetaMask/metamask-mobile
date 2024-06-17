@@ -55,7 +55,6 @@ describe(
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
       await SkipAccountSecurityModal.tapSkipButton();
       await OnboardingSuccessView.tapDone();
-      await ExperienceEnhancerModal.tapIagree();
 
       await WalletView.isVisible();
     });
@@ -75,6 +74,7 @@ describe(
         await Assertions.checkIfNotVisible(
           OnboardingWizardModal.stepOneContainer,
         );
+        await ExperienceEnhancerModal.tapIagree();
       } catch {
         //
       }
