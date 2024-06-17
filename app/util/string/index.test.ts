@@ -53,19 +53,60 @@ describe('string utils', () => {
       const result = parseTypedSignDataMessage(typedDataMsg);
       expect(result).toStrictEqual({
         value: {
-          string: { value: 'Secure ✅ \n', type: 'string' },
-          object: {
+          contents: { value: 'Hello, Bob!', type: 'string' },
+          from: {
             value: {
-              address: {
-                value: '0xDeaDbeefdEAdbeefdEadbEEFdeadbeEFdEaDbeeF',
-                type: 'address',
+              name: { value: 'Cow', type: 'string' },
+              wallets: {
+                value: [
+                  {
+                    value: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+                    type: 'address',
+                  },
+                  {
+                    value: '0xDeaDbeefdEAdbeefdEadbEEFdeadbeEFdEaDbeeF',
+                    type: 'address',
+                  },
+                  {
+                    value: '0x06195827297c7A80a443b6894d3BDB8824b43896',
+                    type: 'address',
+                  },
+                ],
+                type: 'address[]',
               },
-              uint: { value: 42, type: 'uint256' },
             },
-            type: 'object',
+            type: 'Person',
+          },
+          to: {
+            value: [
+              {
+                value: {
+                  name: { value: 'Bob', type: 'string' },
+                  wallets: {
+                    value: [
+                      {
+                        value: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+                        type: 'address',
+                      },
+                      {
+                        value: '0xB0BdaBea57B0BDABeA57b0bdABEA57b0BDabEa57',
+                        type: 'address',
+                      },
+                      {
+                        value: '0xB0B0b0b0b0b0B000000000000000000000000000',
+                        type: 'address',
+                      },
+                    ],
+                    type: 'address[]',
+                  },
+                },
+                type: 'Person',
+              },
+            ],
+            type: 'Person[]',
           },
         },
-        type: 'payload',
+        type: 'Mail',
       });
     });
   });
