@@ -26,18 +26,12 @@ const OptIn = () => {
   const styles = createStyles(theme);
   const navigation = useNavigation();
   const isNotificationEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
-  const [promptCount, setPromptCount] = useState(0);
 
   const navigateToNotificationsSettings = () => {
     navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
   };
 
   const navigateToMainWallet = () => {
-    !isNotificationEnabled &&
-      mmStorage.saveLocal(
-        STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
-        promptCount,
-      );
     navigation.navigate(Routes.WALLET_VIEW);
   };
 
@@ -54,7 +48,10 @@ const OptIn = () => {
       );
       const times = count + 1 || 1;
 
-      setPromptCount(times);
+      mmStorage.saveLocal(
+        STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
+        times,
+      );
     }
   });
 
