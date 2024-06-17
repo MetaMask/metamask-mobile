@@ -25,12 +25,12 @@ export const { Types, Creators } = createActions({
   disableProfileSyncingSuccess: [],
   disableProfileSyncingFailure: ['error'],
   // handle turning on/off metamask notifications
-  enableMetamaskNotificationsRequest: [],
-  enableMetamaskNotificationsSuccess: [],
-  enableMetamaskNotificationsFailure: ['error'],
-  disableMetamaskNotificationsRequest: [],
-  disableMetamaskNotificationsSuccess: [],
-  disableMetamaskNotificationsFailure: ['error'],
+  enablePushNotificationsRequest: [],
+  enablePushNotificationsSuccess: [],
+  enablePushNotificationsFailure: ['error'],
+  disablePushNotificationsRequest: [],
+  disablePushNotificationsSuccess: [],
+  disablePushNotificationsFailure: ['error'],
   // handle checking accounts presence
   checkAccountsPresenceRequest: ['accounts'],
   checkAccountsPresenceSuccess: [],
@@ -96,7 +96,7 @@ interface IPushNotificationsState {
     isSignedIn: IsEnabled;
     isProfileSyncingEnabled: IsEnabled;
     isParticipatingInMetaMetrics: IsEnabled;
-    isMetamaskNotificationsEnabled: IsEnabled;
+    enable: IsEnabled;
     isSnapNotificationsEnabled: IsEnabled;
     isFeatureAnnouncementsEnabled: IsEnabled;
     isCheckingAccountsPresence: IsEnabled;
@@ -127,7 +127,7 @@ export const INITIAL_STATE: IPushNotificationsState = {
       loading: false,
       status: false,
     },
-    isMetamaskNotificationsEnabled: {
+    enable: {
       loading: false,
       status: false,
     },
@@ -335,32 +335,27 @@ const disableProfileSyncingFailure = (action: any, state = INITIAL_STATE) => {
     },
   };
 };
-const enableMetamaskNotificationsRequest = (state = INITIAL_STATE) => ({
+const enablePushNotificationsRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
-    isMetamaskNotificationsEnabled: {
+    enable: {
       loading: true,
       error: null,
       status: false,
     },
-    isUpdatingMetamaskNotifications: {
-      loading: true,
-      error: null,
-      status: true,
-    },
   },
 });
-const enableMetamaskNotificationsSuccess = (state = INITIAL_STATE) => ({
+const enablePushNotificationsSuccess = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
-    isMetamaskNotificationsEnabled: {
+    enable: {
       loading: false,
       error: null,
       status: true,
     },
   },
 });
-const enableMetamaskNotificationsFailure = (
+const enablePushNotificationsFailure = (
   action: any,
   state = INITIAL_STATE,
 ) => {
@@ -368,7 +363,7 @@ const enableMetamaskNotificationsFailure = (
   return {
     pushNotifications: {
       ...state.pushNotifications,
-      isMetamaskNotificationsEnabled: {
+      enable: {
         loading: false,
         error,
         status: false,
@@ -376,20 +371,20 @@ const enableMetamaskNotificationsFailure = (
     },
   };
 };
-const disableMetamaskNotificationsRequest = (state = INITIAL_STATE) => ({
+const disablePushNotificationsRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
-    isMetamaskNotificationsEnabled: {
+    enable: {
       loading: true,
       error: null,
       status: true,
     },
   },
 });
-const disableMetamaskNotificationsSuccess = (state = INITIAL_STATE) => ({
+const disablePushNotificationsSuccess = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
-    isMetamaskNotificationsEnabled: {
+    enable: {
       loading: false,
       error: null,
       status: false,
@@ -411,7 +406,7 @@ const disableMetamaskNotificationsSuccess = (state = INITIAL_STATE) => ({
     },
   },
 });
-const disableMetamaskNotificationsFailure = (
+const disablePushNotificationsFailure = (
   action: any,
   state = INITIAL_STATE,
 ) => {
@@ -419,7 +414,7 @@ const disableMetamaskNotificationsFailure = (
   return {
     pushNotifications: {
       ...state.pushNotifications,
-      isMetamaskNotificationsEnabled: {
+      enable: {
         loading: false,
         error,
         status: true,
@@ -787,18 +782,18 @@ export const HANDLERS = {
   [Types.DISABLE_PROFILE_SYNCING_REQUEST]: disableProfileSyncingRequest,
   [Types.DISABLE_PROFILE_SYNCING_SUCCESS]: disableProfileSyncingSuccess,
   [Types.DISABLE_PROFILE_SYNCING_FAILURE]: disableProfileSyncingFailure,
-  [Types.ENABLE_METAMASK_NOTIFICATIONS_REQUEST]:
-    enableMetamaskNotificationsRequest,
-  [Types.ENABLE_METAMASK_NOTIFICATIONS_SUCCESS]:
-    enableMetamaskNotificationsSuccess,
-  [Types.ENABLE_METAMASK_NOTIFICATIONS_FAILURE]:
-    enableMetamaskNotificationsFailure,
-  [Types.DISABLE_METAMASK_NOTIFICATIONS_REQUEST]:
-    disableMetamaskNotificationsRequest,
-  [Types.DISABLE_METAMASK_NOTIFICATIONS_SUCCESS]:
-    disableMetamaskNotificationsSuccess,
-  [Types.DISABLE_METAMASK_NOTIFICATIONS_FAILURE]:
-    disableMetamaskNotificationsFailure,
+  [Types.ENABLE_PUSH_NOTIFICATIONS_REQUEST]:
+    enablePushNotificationsRequest,
+  [Types.ENABLE_PUSH_NOTIFICATIONS_SUCCESS]:
+    enablePushNotificationsSuccess,
+  [Types.ENABLE_PUSH_NOTIFICATIONS_FAILURE]:
+    enablePushNotificationsFailure,
+  [Types.DISABLE_PUSH_NOTIFICATIONS_REQUEST]:
+    disablePushNotificationsRequest,
+  [Types.DISABLE_PUSH_NOTIFICATIONS_SUCCESS]:
+    disablePushNotificationsSuccess,
+  [Types.DISABLE_PUSH_NOTIFICATIONS_FAILURE]:
+    disablePushNotificationsFailure,
   [Types.CHECK_ACCOUNTS_PRESENCE_REQUEST]: checkAccountsPresenceRequest,
   [Types.CHECK_ACCOUNTS_PRESENCE_SUCCESS]: checkAccountsPresenceSuccess,
   [Types.CHECK_ACCOUNTS_PRESENCE_FAILURE]: checkAccountsPresenceFailure,

@@ -66,34 +66,34 @@ describe('notificafications actions', () => {
     });
   });
 
-  it('should return the expected action for "enableMetamaskNotificationsRequest"', () => {
-    expect(Creators.enableMetamaskNotificationsRequest()).toEqual({
-      type: NotificationsTypes.ENABLE_METAMASK_NOTIFICATIONS_REQUEST,
+  it('should return the expected action for "enablePushNotificationsRequest"', () => {
+    expect(Creators.enablePushNotificationsRequest()).toEqual({
+      type: NotificationsTypes.ENABLE_PUSH_NOTIFICATIONS_REQUEST,
     });
   });
-  it('should return the expected action for "enableMetamaskNotificationsSuccess"', () => {
-    expect(Creators.enableMetamaskNotificationsSuccess()).toEqual({
-      type: NotificationsTypes.ENABLE_METAMASK_NOTIFICATIONS_SUCCESS,
+  it('should return the expected action for "enablePushNotificationsSuccess"', () => {
+    expect(Creators.enablePushNotificationsSuccess()).toEqual({
+      type: NotificationsTypes.ENABLE_PUSH_NOTIFICATIONS_SUCCESS,
     });
   });
-  it('should return the expected action for "enableMetamaskNotificationsFailure"', () => {
-    expect(Creators.enableMetamaskNotificationsFailure()).toEqual({
-      type: NotificationsTypes.ENABLE_METAMASK_NOTIFICATIONS_FAILURE,
+  it('should return the expected action for "enablePushNotificationsFailure"', () => {
+    expect(Creators.enablePushNotificationsFailure()).toEqual({
+      type: NotificationsTypes.ENABLE_PUSH_NOTIFICATIONS_FAILURE,
     });
   });
-  it('should return the expected action for "disableMetamaskNotificationsRequest"', () => {
-    expect(Creators.disableMetamaskNotificationsRequest()).toEqual({
-      type: NotificationsTypes.DISABLE_METAMASK_NOTIFICATIONS_REQUEST,
+  it('should return the expected action for "disablePushNotificationsRequest"', () => {
+    expect(Creators.disablePushNotificationsRequest()).toEqual({
+      type: NotificationsTypes.DISABLE_PUSH_NOTIFICATIONS_REQUEST,
     });
   });
-  it('should return the expected action for "disableMetamaskNotificationsSuccess"', () => {
-    expect(Creators.disableMetamaskNotificationsSuccess()).toEqual({
-      type: NotificationsTypes.DISABLE_METAMASK_NOTIFICATIONS_SUCCESS,
+  it('should return the expected action for "disablePushNotificationsSuccess"', () => {
+    expect(Creators.disablePushNotificationsSuccess()).toEqual({
+      type: NotificationsTypes.DISABLE_PUSH_NOTIFICATIONS_SUCCESS,
     });
   });
-  it('should return the expected action for "disableMetamaskNotificationsFailure"', () => {
-    expect(Creators.disableMetamaskNotificationsFailure()).toEqual({
-      type: NotificationsTypes.DISABLE_METAMASK_NOTIFICATIONS_FAILURE,
+  it('should return the expected action for "disablePushNotificationsFailure"', () => {
+    expect(Creators.disablePushNotificationsFailure()).toEqual({
+      type: NotificationsTypes.DISABLE_PUSH_NOTIFICATIONS_FAILURE,
     });
   });
 
