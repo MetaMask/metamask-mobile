@@ -164,7 +164,7 @@ const AccountActions = () => {
   }, []);
 
   const triggerRemoveHWAccount = useCallback(async () => {
-    if (blockingModalVisible) {
+    if (blockingModalVisible && selectedAddress) {
       const kr = getKeyringByAddress(selectedAddress);
       let requestForgetDevice = false;
 
@@ -262,7 +262,7 @@ const AccountActions = () => {
           onPress={goToExportPrivateKey}
           {...generateTestId(Platform, SHOW_PRIVATE_KEY)}
         />
-        {isHardwareAccount(selectedAddress) && (
+        {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
             iconName={IconName.Close}

@@ -15,10 +15,7 @@ import {
   VIEW_ETHERSCAN,
 } from './AccountActions.constants';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import {
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
-  MOCK_ADDRESS_2,
-} from '../../../util/test/accountsControllerTestUtils';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const mockEngine = Engine;
@@ -35,6 +32,21 @@ const initialState = {
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
+  context: {
+    PreferencesController: {
+      selectedAddress: `0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756`,
+    },
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            type: 'HD Key Tree',
+            accounts: ['0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756'],
+          },
+        ],
+      },
+    },
+  },
 }));
 
 const mockNavigate = jest.fn();
@@ -107,7 +119,9 @@ describe('AccountActions', () => {
     fireEvent.press(getByTestId(SHARE_ADDRESS));
 
     expect(Share.open).toHaveBeenCalledWith({
-      message: toChecksumHexAddress(MOCK_ADDRESS_2),
+      message: toChecksumHexAddress(
+        '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+      ),
     });
   });
 
