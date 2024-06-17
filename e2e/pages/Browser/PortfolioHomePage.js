@@ -1,8 +1,6 @@
-import TestHelpers from '../../helpers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
-import BrowserView from './BrowserView';
 
 class PortfolioHomePage {
   get connectWalletButton() {

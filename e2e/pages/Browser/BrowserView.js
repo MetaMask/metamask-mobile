@@ -102,8 +102,10 @@ class Browser {
       : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
-  get closeAllButton(){
-    return Matchers.getElementByLabel(BrowserViewSelectorsText.CLOSE_ALL_BUTTON);
+  get closeAllButton() {
+    return Matchers.getElementByLabel(
+      BrowserViewSelectorsText.CLOSE_ALL_BUTTON,
+    );
   }
 
   async getFavoritesURL(url) {
@@ -180,7 +182,7 @@ class Browser {
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
   }
 
-  async tapCloseAll(){
+  async tapCloseAll() {
     await Gestures.waitAndTap(this.closeAllButton);
   }
 }
