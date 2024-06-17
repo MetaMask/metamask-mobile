@@ -37,12 +37,7 @@ export interface EncryptionLibrary {
    * @param algorithm - The encryption algorithm.
    * @returns The encrypted data.
    */
-  encrypt(
-    data: string,
-    key: string,
-    iv: string,
-    algorithm: string,
-  ): Promise<string>;
+  encrypt(data: string, key: string, iv: string): Promise<string>;
   /**
    * Decrypts encrypted data.
    *
@@ -52,12 +47,7 @@ export interface EncryptionLibrary {
    * @param algorithm - The encryption algorithm.
    * @returns The decrypted original data.
    */
-  decrypt(
-    data: string,
-    key: string,
-    iv: string,
-    algorithm: string,
-  ): Promise<string>;
+  decrypt(data: string, key: string, iv: string): Promise<string>;
 }
 
 /**

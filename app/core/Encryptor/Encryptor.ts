@@ -126,13 +126,12 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   encryptWithKey = async (
     key: EncryptionKey,
     data: Json,
-    algorithm = CIPHER_ALGORITHM.cbc,
   ): Promise<EncryptionResult> => {
     const text = JSON.stringify(data);
 
     const lib = getEncryptionLibrary(key.lib);
     const iv = await lib.generateIV(16);
-    const cipher = await lib.encrypt(text, key.key, iv, algorithm);
+    const cipher = await lib.encrypt(text, key.key, iv);
 
     return {
       cipher,
@@ -159,12 +158,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
 
     // We assume that both `payload.lib` and `key.lib` are the same here!
     const lib = getEncryptionLibrary(payload.lib);
-    const text = await lib.decrypt(
-      payload.cipher,
-      key.key,
-      payload.iv,
-      algorithm,
-    );
+    const text = await lib.decrypt(payload.cipher, key.key, payload.iv);
 
     return JSON.parse(text);
   };
