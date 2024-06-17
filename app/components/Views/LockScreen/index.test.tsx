@@ -2,6 +2,7 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import LockScreen from './';
 import Routes from '../../../constants/navigation/Routes';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockInitialState = {
   settings: {},
@@ -13,6 +14,7 @@ const mockInitialState = {
           securityAlertsEnabled: true,
         },
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };

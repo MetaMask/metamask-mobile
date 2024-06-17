@@ -201,6 +201,33 @@ class FixtureBuilder {
               hotlistLastFetched: 1684231917,
               stalelistLastFetched: 1684231917,
             },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  1: {
+                    address: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+                    id: '1',
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    options: {},
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: 1,
+              },
+            },
             PreferencesController: {
               featureFlags: {},
               identities: {
@@ -348,6 +375,7 @@ class FixtureBuilder {
               estimatedGasFeeTimeBounds: {},
               gasEstimateType: 'none',
               gasFeeEstimatesByChainId: {},
+              nonRPCGasFeeApisDisabled: false,
             },
             TokenDetectionController: {},
             NftDetectionController: {},
