@@ -25,7 +25,7 @@ exports[`TabThumbnail should render correctly 1`] = `
     style={
       [
         {
-          "borderColor": "#BBC0C5",
+          "borderColor": "#bbc0c5",
           "borderRadius": 10,
           "borderWidth": 1,
           "elevation": 8,
@@ -36,7 +36,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           "width": 720,
         },
         {
-          "borderColor": "#0376C9",
+          "borderColor": "#0376c9",
           "borderWidth": 5,
         },
       ]
@@ -46,7 +46,7 @@ exports[`TabThumbnail should render correctly 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "padding": 8,
         }
@@ -68,7 +68,7 @@ exports[`TabThumbnail should render correctly 1`] = `
               [
                 {
                   "alignContent": "center",
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 27,
                   "height": 54,
                   "justifyContent": "center",
@@ -88,7 +88,7 @@ exports[`TabThumbnail should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 24,
                     "fontWeight": "400",
@@ -108,7 +108,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
@@ -137,7 +137,7 @@ exports[`TabThumbnail should render correctly 1`] = `
         onPress={[Function]}
       >
         <SvgMock
-          color="#24272A"
+          color="#141618"
           height={20}
           name="Close"
           style={
@@ -153,7 +153,7 @@ exports[`TabThumbnail should render correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "flex": 1,
         }
       }
@@ -181,8 +181,8 @@ exports[`TabThumbnail should render correctly 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#FFFFFF",
-          "borderTopColor": "#BBC0C5",
+          "backgroundColor": "#ffffff",
+          "borderTopColor": "#bbc0c5",
           "borderTopWidth": 1,
           "flexDirection": "row",
           "height": 36,
@@ -211,7 +211,7 @@ exports[`TabThumbnail should render correctly 1`] = `
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 8,
                   "height": 16,
                   "overflow": "hidden",
@@ -389,14 +389,14 @@ exports[`TabThumbnail should render correctly 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#FFFFFF",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#ffffff",
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "height": 16,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001A",
+                    "shadowColor": "#0000001a",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -441,7 +441,7 @@ exports[`TabThumbnail should render correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "flex": 1,
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,

@@ -37,11 +37,11 @@ import Routes from '../../../constants/navigation/Routes';
 
 import ButtonIcon, {
   ButtonIconSizes,
-  ButtonIconVariants,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconName,
   IconSize,
+  IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import {
   default as MorphText,
@@ -90,10 +90,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Device.isAndroid() ? 22 : 18,
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
-  infoButton: {
-    paddingRight: Device.isAndroid() ? 0 : 18,
-
-    marginTop: 5,
+  notificationButton: {
+    marginRight: 4,
   },
   disabled: {
     opacity: 0.3,
@@ -1002,20 +1000,19 @@ export function getWalletNavbarOptions(
       <View style={styles.leftButtonContainer}>
         {isNotificationsFeatureEnabled() && (
           <ButtonIcon
-            variant={ButtonIconVariants.Primary}
+            iconColor={IconColor.Primary}
             onPress={handleNotificationOnPress}
             iconName={IconName.Notification}
-            style={styles.infoButton}
             size={IconSize.Xl}
             testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+            style={styles.notificationButton}
           />
         )}
 
         <ButtonIcon
-          variant={ButtonIconVariants.Primary}
+          iconColor={IconColor.Primary}
           onPress={openQRScanner}
           iconName={IconName.Scan}
-          style={styles.infoButton}
           size={IconSize.Xl}
           testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
         />
@@ -1085,7 +1082,7 @@ export function getImportTokenNavbarOptions(
       >
         <ButtonIcon
           iconName={IconName.Close}
-          variant={ButtonIconVariants.Secondary}
+          iconColor={IconColor.Default}
           size={ButtonIconSizes.Lg}
           onPress={
             onClose

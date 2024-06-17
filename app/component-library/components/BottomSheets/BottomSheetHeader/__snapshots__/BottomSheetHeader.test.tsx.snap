@@ -5,7 +5,7 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flexDirection": "row",
       "padding": 16,
     }
@@ -36,7 +36,7 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "700",
