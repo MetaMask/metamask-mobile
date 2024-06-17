@@ -1,9 +1,8 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
-import React, { FC, useEffect } from 'react';
+import React, { FC, useEffect, useState, useCallback } from 'react';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { camelCase } from 'lodash';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -18,60 +17,46 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { Props } from './NotificationsSettings.types';
 import createStyles from './NotificationsSettings.styles';
 import NotificationOptionToggle from './NotificationOptionToggle';
-import notificationsRows from './notificationsRows';
 import {
   NotificationsToggleTypes,
-  NotificationsViewSelectorsIDs,
 } from './NotificationsSettings.constants';
 
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+
 import {
-  notificationSettings as defaultDisabledNotificationSettings,
-  mmStorage,
   requestPushNotificationsPermission,
 } from '../../../../util/notifications';
-import { updateNotificationStatus } from '../../../../actions/notification';
-import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
 import Routes from '../../../../constants/navigation/Routes';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
+import { useSwitchAccountNotifications, useSwitchPushNotificationsChange } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import { SessionHeader } from './sectionHeader';
+import { UseSwitchAccountNotificationsData } from '../../../../util/notifications/hooks/types';
+import { useListNotifications } from '../../../../util/notifications/hooks/useNotifications';
 
-/**
- * TODO: Discuss the granularity of the notifications settings.
- * i.e. Users can turn off all notifications for a particular account, for all accounts, or some notifications to account A, but not for account B.
- *
- */
-interface SessionHeaderProps {
-  title: string;
-  description: string;
-  styles: ReturnType<typeof createStyles>;
-}
-
-const SessionHeader = ({ title, description, styles }: SessionHeaderProps) => (
-  <>
-    <View style={styles.switchElement}>
-      <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-        {title}
-      </Text>
-    </View>
-    <View style={styles.setting}>
-      <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-        {description}
-      </Text>
-    </View>
-  </>
-);
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
-  const notificationsSettingsState = useSelector(
-    (state: any) => state.notification.notificationsSettings,
-  );
-
-  const isNotificationEnabled = notificationsSettingsState?.isEnabled;
-
-  const dispatch = useDispatch();
+  // Hooks
   const { accounts } = useAccounts();
+  const { onChange } = useSwitchPushNotificationsChange();
+  const { switchAccountNotifications } = useSwitchAccountNotifications();
+  const { listNotifications } = useListNotifications();
+  const theme = useTheme();
+  // Selectors
+  const isMetamaskNotificationsEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
+
+  // Params
+  const isFullScreenModal = route?.params?.isFullScreenModal;
+  // Style
+  const { colors } = theme;
+  const styles = createStyles(colors);
+  const addresses = accounts.map((account) => account.address);
+  // Local state
+  const [data, setData] = useState<
+  UseSwitchAccountNotificationsData | undefined
+>(undefined);
 
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
@@ -80,30 +65,18 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   );
 
   const toggleNotificationsEnabled = () => {
-    !isNotificationEnabled
+    !isMetamaskNotificationsEnabled
       ? requestPushNotificationsPermission()
-      : dispatch(
-          updateNotificationStatus({
-            isEnabled: false,
-            notificationsOpts: defaultDisabledNotificationSettings,
-            accounts: [],
-          }),
-        );
+      : onChange(false);
   };
 
-  const isFullScreenModal = route?.params?.isFullScreenModal;
-
-  const theme = useTheme();
-  const { colors } = theme;
-  const styles = createStyles(colors);
-
   useEffect(() => {
-    notificationsSettingsState &&
-      mmStorage.saveLocal(
-        STORAGE_IDS.NOTIFICATIONS_SETTINGS,
-        JSON.stringify(notificationsSettingsState),
-      );
-  }, [notificationsSettingsState]);
+    const fetchData = async () => {
+      const fetchedData = await switchAccountNotifications(addresses);
+      setData(fetchedData || {});
+    };
+    fetchData();
+  }, [accounts, switchAccountNotifications]);
 
   useEffect(
     () => {
@@ -116,20 +89,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           null,
         ),
       );
-      dispatch(
-        updateNotificationStatus({
-          ...notificationsSettingsState,
-          accounts:
-            notificationsSettingsState?.accounts ??
-            accounts.reduce((acc: { [key: string]: boolean }, account) => {
-              acc[account.address] = true;
-              return acc;
-            }, {}),
-        }),
-      );
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [colors],
+    [],
   );
 
   const MainNotificationSettings: FC = () => (
@@ -142,8 +103,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           {strings('app_settings.allow_notifications')}
         </Text>
         <Switch
-          disabled={!isNotificationEnabled}
-          value={isNotificationEnabled}
+          disabled={!isMetamaskNotificationsEnabled}
+          value={isMetamaskNotificationsEnabled}
           onChange={toggleNotificationsEnabled}
           trackColor={{
             true: colors.primary.default,
@@ -165,44 +126,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <MainNotificationSettings />
-      {notificationsSettingsState?.isEnabled && (
+      {isMetamaskNotificationsEnabled && (
         <>
-          <SessionHeader
-            title={strings(
-              'app_settings.notifications_opts.customize_session_title',
-            )}
-            description={strings(
-              'app_settings.notifications_opts.customize_session_desc',
-            )}
-            styles={styles}
-          />
-          {notificationsRows.map((opt) => (
-            <NotificationOptionToggle
-              type={NotificationsToggleTypes.ACTIONS}
-              key={opt.title}
-              icon={opt.icon}
-              title={opt.title}
-              description={opt.description}
-              value={
-                notificationsSettingsState.notificationsOpts[
-                  camelCase(opt.title)
-                ]
-              }
-              onOptionUpdated={(value) => {
-                dispatch(
-                  updateNotificationStatus({
-                    ...notificationsSettingsState,
-                    notificationsOpts: {
-                      ...notificationsSettingsState.notificationsOpts,
-                      [camelCase(opt.title)]: value,
-                    },
-                  }),
-                );
-              }}
-              testId={NotificationsViewSelectorsIDs[opt.title]}
-              disabled={opt.disabled}
-            />
-          ))}
           <SessionHeader
             title={strings(
               'app_settings.notifications_opts.account_session_title',
@@ -218,21 +143,10 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               icon={accountAvatarType}
               key={account.address}
               title={account.name}
-              description={account.address}
-              value={
-                notificationsSettingsState?.accounts[account.address] ?? true
-              }
-              onOptionUpdated={(value) => {
-                dispatch(
-                  updateNotificationStatus({
-                    ...notificationsSettingsState,
-                    accounts: {
-                      ...notificationsSettingsState.accounts,
-                      [account.address]: value,
-                    },
-                  }),
-                );
-              }}
+              address={account.address}
+              setData={setData}
+              listNotifications={listNotifications}
+              data={data}
             />
           ))}
         </>
