@@ -1031,6 +1031,7 @@
     "cancel": "Cancel",
     "loading": "Connecting to MetaMask...",
     "unkown_dapp": "DAPP name not available",
+    "unknown": "Unknown",
     "no_connections": "No connections",
     "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
   },
@@ -3096,7 +3097,7 @@
   "simulation_details": {
     "failed": "There was an error loading your estimation.",
     "fiat_not_available": "Not Available",
-    "incoming_heading": "You receive", 
+    "incoming_heading": "You receive",
     "no_balance_changes": "No changes predicted for your wallet",
     "outgoing_heading": "You send",
     "reverted": "This transaction is likely to fail",

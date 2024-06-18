@@ -534,7 +534,7 @@ class TransactionReview extends PureComponent {
 
     const originatorInfo = currentConnection?.originatorInfo;
     const sdkDappMetadata = {
-      url: originatorInfo?.url ?? 'Unknown',
+      url: originatorInfo?.url ?? strings('sdk.unknown'),
       icon: originatorInfo?.icon,
     };
 

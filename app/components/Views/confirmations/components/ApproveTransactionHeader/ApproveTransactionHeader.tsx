@@ -135,7 +135,7 @@ const ApproveTransactionHeader = ({
         <TagUrl
           testID={APPROVE_TRANSACTION_ORIGIN_PILL}
           imageSource={imageSource}
-          label={sdkDappMetadata?.url || 'Unknown'}
+          label={sdkDappMetadata?.url || strings('sdk.unknown')}
           style={styles.tagUrl}
         />
       ) : null}

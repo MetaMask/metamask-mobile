@@ -134,7 +134,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const urlWithProtocol = hostname
     ? prefixUrlWithProtocol(hostname)
-    : 'Unknown';
+    : strings('sdk.unknown');
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
