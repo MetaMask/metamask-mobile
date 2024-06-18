@@ -125,6 +125,7 @@
     "redux-persist-filesystem-storage/react-native-blob-util": "^0.19.9",
     "xmldom": "npm:@xmldom/xmldom@0.7.13",
     "@metamask/metamask-eth-abis": "3.1.1",
+    "**/@walletconnect/core/@walletconnect/socket-transport/ws": "^7.5.10",
     "socket.io-client/engine.io-client/ws": "^8.17.1"
   },
   "dependencies": {
