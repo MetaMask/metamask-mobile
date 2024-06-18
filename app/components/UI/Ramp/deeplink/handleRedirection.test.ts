@@ -14,7 +14,7 @@ describe('handleRedirection', () => {
     } as unknown as NavigationProp<ParamListBase>;
   });
 
-  it('should navigate to TRANSACTIONS_VIEW route when first path is "activity"', () => {
+  it('navigates to TRANSACTIONS_VIEW route when first path is "activity"', () => {
     handleRedirection(['activity'], undefined, RampType.BUY, navigation);
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
       screen: Routes.TRANSACTIONS_VIEW,

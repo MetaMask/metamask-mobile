@@ -1,7 +1,7 @@
 import getRedirectPathsAndParams from './getRedirectPathAndParams';
 
 describe('getRedirectPathsAndParams', () => {
-  it('should return empty values for empty paths', () => {
+  it('returns empty values for empty paths', () => {
     expect(getRedirectPathsAndParams('')).toStrictEqual([[], undefined]);
   });
 

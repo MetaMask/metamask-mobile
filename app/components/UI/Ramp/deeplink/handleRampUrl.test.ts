@@ -18,7 +18,7 @@ describe('handleRampUrl', () => {
     (handleRedirection as jest.Mock).mockClear();
   });
 
-  it('should call handle redirection with the paths', () => {
+  it('handles redirection with the paths', () => {
     handleRampUrl({
       rampPath: '/somePath?as=example',
       rampType: RampType.BUY,
@@ -32,7 +32,7 @@ describe('handleRampUrl', () => {
     );
   });
 
-  it('should navigate to Buy route when rampType is BUY, redirectPaths length is 0 and query params do not have allowed fields', () => {
+  it('navigates to Buy route when rampType is BUY, redirectPaths length is 0 and query params do not have allowed fields', () => {
     handleRampUrl({
       rampPath: '?as=example',
       rampType: RampType.BUY,
@@ -42,7 +42,7 @@ describe('handleRampUrl', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.BUY);
   });
 
-  it('should navigate to Sell route when rampType is SELL, redirectPaths length is 0 and query param do not have allowed fields', () => {
+  it('navigates to Sell route when rampType is SELL, redirectPaths length is 0 and query param do not have allowed fields', () => {
     handleRampUrl({
       rampPath: '?as=example',
       rampType: RampType.SELL,
@@ -52,7 +52,7 @@ describe('handleRampUrl', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.SELL);
   });
 
-  it('should navigate to Buy route when rampType is BUY, redirectPaths length is 0 and query param is intent', () => {
+  it('navigates to Buy route when rampType is BUY, redirectPaths length is 0 and query param is intent', () => {
     handleRampUrl({
       rampPath: '?chainId=1&address=0x123456',
       rampType: RampType.BUY,
@@ -68,7 +68,7 @@ describe('handleRampUrl', () => {
     });
   });
 
-  it('should navigate to Sell route when rampType is SELL, redirectPaths length is 0 and query param is intent', () => {
+  it('navigates to Sell route when rampType is SELL, redirectPaths length is 0 and query param is intent', () => {
     handleRampUrl({
       rampPath: '?chainId=1&address=0x123456',
       rampType: RampType.SELL,

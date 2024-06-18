@@ -40,7 +40,7 @@ describe('parseAmount', () => {
     ${'-10.0'}                 | ${undefined}  | ${undefined}
     ${'6e-7'}                  | ${7}          | ${undefined}
   `(
-    'parseAmount("$amount", $decimalPlaces) should return "$expected"',
+    'parseAmount("$amount", $decimalPlaces) returns "$expected"',
     ({ amount, decimalPlaces, expected }) => {
       const result = parseAmount(amount, decimalPlaces);
       expect(result).toEqual(expected);
