@@ -1,4 +1,4 @@
-import { fork, take, cancel, put, call, takeLatest } from 'redux-saga/effects';
+import { fork, take, cancel, put, call } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -16,29 +16,11 @@ import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
 import AppConstants from '../../../app/core/AppConstants';
 import { XMLHttpRequest as _XMLHttpRequest } from 'xhr2';
+import notificationsSagas from './notifications';
 
 if (typeof global.XMLHttpRequest === 'undefined') {
   global.XMLHttpRequest = _XMLHttpRequest;
 }
-
-import {
-  signIn,
-  signOut,
-  enableProfileSyncing,
-  disableProfileSyncing,
-  enableMetamaskNotifications,
-  disableMetamaskNotifications,
-  setFeatureAnnouncementsEnabled,
-  setSnapNotificationsEnabled,
-  setParticipateInMetaMetrics,
-  checkAccountsPresence,
-  setMetamaskNotificationsFeatureSeen,
-  fetchAndUpdateMetamaskNotifications,
-  markMetamaskNotificationsAsRead,
-  deleteNotifications,
-} from './notifications';
-
-import { NotificationsTypes } from '../ducks/notifications';
 
 const originalSend = XMLHttpRequest.prototype.send;
 const originalOpen = XMLHttpRequest.prototype.open;
@@ -189,55 +171,5 @@ export function* basicFunctionalityToggle() {
 export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
-  // New Push Notifications Sagas
-  yield takeLatest(NotificationsTypes.PERFORM_SIGN_IN_REQUEST, signIn);
-  yield takeLatest(NotificationsTypes.PERFORM_SIGN_OUT_REQUEST, signOut);
-  yield takeLatest(
-    NotificationsTypes.ENABLE_PROFILE_SYNCING_REQUEST,
-    enableProfileSyncing,
-  );
-  yield takeLatest(
-    NotificationsTypes.DISABLE_PROFILE_SYNCING_REQUEST,
-    disableProfileSyncing,
-  );
-  yield takeLatest(
-    NotificationsTypes.ENABLE_PUSH_NOTIFICATIONS_REQUEST,
-    enableMetamaskNotifications,
-  );
-  yield takeLatest(
-    NotificationsTypes.DISABLE_PUSH_NOTIFICATIONS_REQUEST,
-    disableMetamaskNotifications,
-  );
-  yield takeLatest(
-    NotificationsTypes.SET_FEATURE_ANNOUNCEMENTS_ENABLED_REQUEST,
-    setFeatureAnnouncementsEnabled,
-  );
-  yield takeLatest(
-    NotificationsTypes.SET_SNAP_NOTIFICATIONS_ENABLED_REQUEST,
-    setSnapNotificationsEnabled,
-  );
-  yield takeLatest(
-    NotificationsTypes.SET_PARTICIPATE_IN_META_METRICS_REQUEST,
-    setParticipateInMetaMetrics,
-  );
-  yield takeLatest(
-    NotificationsTypes.CHECK_ACCOUNTS_PRESENCE_REQUEST,
-    checkAccountsPresence,
-  );
-  yield takeLatest(
-    NotificationsTypes.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN_REQUEST,
-    setMetamaskNotificationsFeatureSeen,
-  );
-  yield takeLatest(
-    NotificationsTypes.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS_REQUEST,
-    fetchAndUpdateMetamaskNotifications,
-  );
-  yield takeLatest(
-    NotificationsTypes.MARK_METAMASK_NOTIFICATIONS_AS_READ_REQUEST,
-    markMetamaskNotificationsAsRead,
-  );
-  yield takeLatest(
-    NotificationsTypes.DELETE_NOTIFICATION_STATUS_REQUEST,
-    deleteNotifications,
-  );
+  yield notificationsSagas;
 }

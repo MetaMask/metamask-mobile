@@ -1,8 +1,8 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
-import React, { FC, useEffect, useState, useCallback } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -17,25 +17,23 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { Props } from './NotificationsSettings.types';
 import createStyles from './NotificationsSettings.styles';
 import NotificationOptionToggle from './NotificationOptionToggle';
-import {
-  NotificationsToggleTypes,
-} from './NotificationsSettings.constants';
+import { NotificationsToggleTypes } from './NotificationsSettings.constants';
 
-import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/pushNotifications';
 
-import {
-  requestPushNotificationsPermission,
-} from '../../../../util/notifications';
+import { requestPushNotificationsPermission } from '../../../../util/notifications';
 import Routes from '../../../../constants/navigation/Routes';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
-import { useSwitchAccountNotifications, useSwitchPushNotificationsChange } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import {
+  useSwitchAccountNotifications,
+  useSwitchPushNotificationsChange,
+} from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { SessionHeader } from './sectionHeader';
 import { UseSwitchAccountNotificationsData } from '../../../../util/notifications/hooks/types';
 import { useListNotifications } from '../../../../util/notifications/hooks/useNotifications';
-
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   // Hooks
@@ -45,7 +43,9 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const { listNotifications } = useListNotifications();
   const theme = useTheme();
   // Selectors
-  const isMetamaskNotificationsEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
+  const isMetamaskNotificationsEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
 
   // Params
   const isFullScreenModal = route?.params?.isFullScreenModal;
@@ -55,8 +55,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const addresses = accounts.map((account) => account.address);
   // Local state
   const [data, setData] = useState<
-  UseSwitchAccountNotificationsData | undefined
->(undefined);
+    UseSwitchAccountNotificationsData | undefined
+  >(undefined);
 
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
@@ -76,22 +76,19 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       setData(fetchedData || {});
     };
     fetchData();
-  }, [accounts, switchAccountNotifications]);
+  }, [accounts, addresses, switchAccountNotifications]);
 
-  useEffect(
-    () => {
-      navigation.setOptions(
-        getNavigationOptionsTitle(
-          strings('app_settings.notifications_title'),
-          navigation,
-          isFullScreenModal,
-          colors,
-          null,
-        ),
-      );
-    },
-    [],
-  );
+  useEffect(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        strings('app_settings.notifications_title'),
+        navigation,
+        isFullScreenModal,
+        colors,
+        null,
+      ),
+    );
+  }, [colors, isFullScreenModal, navigation]);
 
   const MainNotificationSettings: FC = () => (
     <>

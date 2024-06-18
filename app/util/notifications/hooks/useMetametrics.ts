@@ -4,7 +4,7 @@ import Logger from '../../../util/Logger';
 import {
   selectIsSignedIn,
   selectIsProfileSyncingEnabled,
-} from '../../../selectors/notifications';
+} from '../../../selectors/pushNotifications';
 import Creators from '../../../store/ducks/notifications';
 import { DisableMetametricsReturn, EnableMetametricsReturn } from './types';
 

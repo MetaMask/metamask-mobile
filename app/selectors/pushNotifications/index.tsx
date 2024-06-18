@@ -1,17 +1,14 @@
 /* eslint-disable import/prefer-default-export */
 import { createSelector } from 'reselect';
 import { RootState } from '../../reducers';
-import { TRIGGER_TYPES, type Notification } from 'app/util/notifications';
+import { TRIGGER_TYPES, type Notification } from '../../util/notifications';
 import { createDeepEqualSelector } from '../util';
 import {
   AuthenticationControllerState,
   UserStorageControllerState,
 } from '@metamask/profile-sync-controller';
 
-import {
-  NotificationServicesControllerState,
-  NotificationServicesPushControllerState,
-} from '@metamask/notification-services-controller';
+import { NotificationServicesControllerState } from '@metamask/notification-services-controller';
 const selectAuthenticationControllerState = (state: RootState) =>
   state.engine.backgroundState.AuthenticationController;
 
@@ -26,12 +23,14 @@ const selectNotificationServicesPushControllerState = (state: RootState) =>
 
 export const selectIsSignedIn = createSelector(
   selectAuthenticationControllerState,
-  (authenticationControllerState: AuthenticationControllerState) => authenticationControllerState.isSignedIn,
+  (authenticationControllerState: AuthenticationControllerState) =>
+    authenticationControllerState.isSignedIn,
 );
 
 export const selectSessionData = createSelector(
   selectAuthenticationControllerState,
-  (authenticationControllerState: AuthenticationControllerState) => authenticationControllerState.sessionData,
+  (authenticationControllerState: AuthenticationControllerState) =>
+    authenticationControllerState.sessionData,
 );
 
 export const selectIsProfileSyncingEnabled = createSelector(
@@ -48,12 +47,14 @@ export const selectIsProfileSyncingUpdateLoading = createSelector(
 
 export const selectInternalAccounts = createSelector(
   selectUserStorageControllerState,
-  (userStorageControllerState: UserStorageControllerState) => userStorageControllerState.internalAccounts,
+  (userStorageControllerState: UserStorageControllerState) =>
+    userStorageControllerState.internalAccounts,
 );
 
 export const selectUniqueAccounts = createSelector(
   selectUserStorageControllerState,
-  (userStorageControllerState: UserStorageControllerState) => userStorageControllerState.uniqueAccounts,
+  (userStorageControllerState: UserStorageControllerState) =>
+    userStorageControllerState.uniqueAccounts,
 );
 
 export const selectIsMetamaskNotificationsEnabled = createSelector(

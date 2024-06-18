@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Image, View, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -19,13 +19,15 @@ import { CONSENSYS_PRIVACY_POLICY } from '../../../../constants/urls';
 
 import { mmStorage } from '../../../../util/notifications';
 import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
-import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/pushNotifications';
 
 const OptIn = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
-  const isNotificationEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
 
   const navigateToNotificationsSettings = () => {
     navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
@@ -48,10 +50,7 @@ const OptIn = () => {
       );
       const times = count + 1 || 1;
 
-      mmStorage.saveLocal(
-        STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
-        times,
-      );
+      mmStorage.saveLocal(STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT, times);
     }
   });
 

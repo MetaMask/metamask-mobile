@@ -5,7 +5,6 @@ import Creators from '../../../store/ducks/notifications';
 import {
   SwitchSnapNotificationsChangeReturn,
   SwitchFeatureAnnouncementsChangeReturn,
-  SwitchAccountNotificationsReturn,
   UseSwitchAccountNotificationsData,
   SwitchAccountNotificationsChangeReturn,
 } from './types';

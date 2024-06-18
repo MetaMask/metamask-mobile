@@ -528,9 +528,7 @@ export const requestPushNotificationsPermission = async () => {
           {
             text: strings('notifications.prompt_cancel'),
             onPress: () => {
-              store.dispatch(
-                Creators.disablePushNotificationsRequest(),
-              );
+              store.dispatch(Creators.disablePushNotificationsRequest());
               mmStorage.saveLocal(
                 STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
                 times,
@@ -552,9 +550,7 @@ export const requestPushNotificationsPermission = async () => {
               } else {
                 permissionStatus = await notifee.requestPermission();
               }
-              store.dispatch(
-                Creators.enablePushNotificationsRequest(),
-              );
+              store.dispatch(Creators.enablePushNotificationsRequest());
             },
           },
         ],

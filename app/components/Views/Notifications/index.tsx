@@ -24,7 +24,7 @@ import Text, {
 import Empty from '../../UI/Notification/Empty';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/pushNotifications';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 
 const NotificationsView = ({

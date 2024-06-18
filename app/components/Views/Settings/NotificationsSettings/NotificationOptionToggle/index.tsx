@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Platform, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { createStyles } from './styles';
@@ -19,8 +19,11 @@ import Icon, {
   IconColor,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { selectIsUpdatingMetamaskNotificationsAccount } from '../../../../../selectors/notifications';
-import { useSwitchAccountNotifications, useSwitchAccountNotificationsChange } from '../../../../../util/notifications/hooks/useSwitchNotifications';
+import { selectIsUpdatingMetamaskNotificationsAccount } from '../../../../../selectors/pushNotifications';
+import {
+  useSwitchAccountNotifications,
+  useSwitchAccountNotificationsChange,
+} from '../../../../../util/notifications/hooks/useSwitchNotifications';
 import { UseSwitchAccountNotificationsData } from '../../../../../util/notifications/hooks/types';
 
 interface NotificationOptionsToggleProps {
@@ -52,9 +55,9 @@ const NotificationOptionToggle = ({
 }: NotificationOptionsToggleProps) => {
   const isUpdatingMetamaskNotificationsAccount = useSelector(
     selectIsUpdatingMetamaskNotificationsAccount,
- );
- const { switchAccountNotifications } = useSwitchAccountNotifications();
- const { onChange } = useSwitchAccountNotificationsChange();
+  );
+  const { switchAccountNotifications } = useSwitchAccountNotifications();
+  const { onChange } = useSwitchAccountNotificationsChange();
 
   const theme = useTheme();
   const { colors } = theme;
@@ -64,7 +67,7 @@ const NotificationOptionToggle = ({
     const originalValue = data?.[address];
     await onChange([address], !originalValue);
     listNotifications();
-  }, [data, onChange]);
+  }, [address, data, listNotifications, onChange]);
 
   useEffect(() => {
     const updateData = async () => {
@@ -74,7 +77,12 @@ const NotificationOptionToggle = ({
       }
     };
     updateData();
-  }, [address, isUpdatingMetamaskNotificationsAccount]);
+  }, [
+    address,
+    isUpdatingMetamaskNotificationsAccount,
+    setData,
+    switchAccountNotifications,
+  ]);
 
   return (
     <View style={styles.container}>
