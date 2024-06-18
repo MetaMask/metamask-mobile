@@ -5,6 +5,7 @@ import { createActions, createReducer } from 'reduxsauce';
 import DefaultPreference from 'react-native-default-preference';
 import { AGREED, DENIED, METRICS_OPT_IN } from '../../constants/storage';
 import { Notification } from '../../util/notifications';
+import { error } from 'console';
 
 export const { Types, Creators } = createActions({
   // handle loading for any action
@@ -153,6 +154,7 @@ export const INITIAL_STATE: IPushNotificationsState = {
     },
     isFetchingMetamaskNotification: {
       loading: false,
+      error: null,
       status: false,
     },
     isUpdatingMetamaskNotificationsAccounts: {
@@ -175,7 +177,6 @@ export const INITIAL_STATE: IPushNotificationsState = {
     isUpdatingMetamaskNotificationsAccount: [],
   },
 };
-
 const performSignInRequest = (state = INITIAL_STATE) => ({
   pushNotifications: {
     ...state.pushNotifications,
@@ -355,10 +356,7 @@ const enablePushNotificationsSuccess = (state = INITIAL_STATE) => ({
     },
   },
 });
-const enablePushNotificationsFailure = (
-  action: any,
-  state = INITIAL_STATE,
-) => {
+const enablePushNotificationsFailure = (action: any, state = INITIAL_STATE) => {
   const { error } = action;
   return {
     pushNotifications: {
@@ -655,17 +653,29 @@ const fetchAndUpdateMetamaskNotificationsSuccess = (
   return {
     pushNotifications: {
       ...state.pushNotifications,
+      isFetchingMetamaskNotification: {
+        loading: false,
+        error: null,
+        status: true,
+      },
       metamaskNotificationsList,
       metamaskNotificationsReadList,
     },
   };
 };
-const fetchAndUpdateMetamaskNotificationsFailure = (state = INITIAL_STATE) => ({
+const fetchAndUpdateMetamaskNotificationsFailure = (
+  action: any,
+  state = INITIAL_STATE,
+) => ({
   pushNotifications: {
     ...state.pushNotifications,
+    isFetchingMetamaskNotification: {
+      loading: false,
+      error: action.error,
+      status: true,
+    },
   },
 });
-
 const markMetamaskNotificationsAsReadRequest = (
   action: any,
   state = INITIAL_STATE,
@@ -696,7 +706,6 @@ const markMetamaskNotificationsAsReadFailure = (state = INITIAL_STATE) => ({
     ...state.pushNotifications,
   },
 });
-
 const deleteNotificationStatusRequest = (
   action: any,
   state = INITIAL_STATE,
@@ -782,18 +791,12 @@ export const HANDLERS = {
   [Types.DISABLE_PROFILE_SYNCING_REQUEST]: disableProfileSyncingRequest,
   [Types.DISABLE_PROFILE_SYNCING_SUCCESS]: disableProfileSyncingSuccess,
   [Types.DISABLE_PROFILE_SYNCING_FAILURE]: disableProfileSyncingFailure,
-  [Types.ENABLE_PUSH_NOTIFICATIONS_REQUEST]:
-    enablePushNotificationsRequest,
-  [Types.ENABLE_PUSH_NOTIFICATIONS_SUCCESS]:
-    enablePushNotificationsSuccess,
-  [Types.ENABLE_PUSH_NOTIFICATIONS_FAILURE]:
-    enablePushNotificationsFailure,
-  [Types.DISABLE_PUSH_NOTIFICATIONS_REQUEST]:
-    disablePushNotificationsRequest,
-  [Types.DISABLE_PUSH_NOTIFICATIONS_SUCCESS]:
-    disablePushNotificationsSuccess,
-  [Types.DISABLE_PUSH_NOTIFICATIONS_FAILURE]:
-    disablePushNotificationsFailure,
+  [Types.ENABLE_PUSH_NOTIFICATIONS_REQUEST]: enablePushNotificationsRequest,
+  [Types.ENABLE_PUSH_NOTIFICATIONS_SUCCESS]: enablePushNotificationsSuccess,
+  [Types.ENABLE_PUSH_NOTIFICATIONS_FAILURE]: enablePushNotificationsFailure,
+  [Types.DISABLE_PUSH_NOTIFICATIONS_REQUEST]: disablePushNotificationsRequest,
+  [Types.DISABLE_PUSH_NOTIFICATIONS_SUCCESS]: disablePushNotificationsSuccess,
+  [Types.DISABLE_PUSH_NOTIFICATIONS_FAILURE]: disablePushNotificationsFailure,
   [Types.CHECK_ACCOUNTS_PRESENCE_REQUEST]: checkAccountsPresenceRequest,
   [Types.CHECK_ACCOUNTS_PRESENCE_SUCCESS]: checkAccountsPresenceSuccess,
   [Types.CHECK_ACCOUNTS_PRESENCE_FAILURE]: checkAccountsPresenceFailure,

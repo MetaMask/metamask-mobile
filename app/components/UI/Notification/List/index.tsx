@@ -18,6 +18,7 @@ import {
   getRowDetails,
 } from '../../../../util/notifications';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface NotificationsList {
   navigation: any;
@@ -40,15 +41,14 @@ const Notifications = ({
   const { trackEvent } = useMetrics();
 
   const onPress = useCallback(
-    (item) => {
-      //TODO: details will be implemented on a separete PR
-      navigation.navigate('NotificationsDetails', { notification: item });
+    (item: any) => {
+      navigation.navigate(Routes.NOTIFICATIONS.DETAILS, { notification: item });
     },
     [navigation],
   );
 
   const renderTabBar = useCallback(
-    (props) => (
+    (props: any) => (
       <View style={styles.base}>
         <DefaultTabBar
           underlineStyle={styles.tabUnderlineStyle}

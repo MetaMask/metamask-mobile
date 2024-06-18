@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { InteractionManager, View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
-
+import { RootState } from '../../../reducers';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
 import { createStyles } from './styles';
 import Notifications from '../../UI/Notification/List';
@@ -25,27 +25,49 @@ import Empty from '../../UI/Notification/Empty';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 
 const NotificationsView = ({
   navigation,
   selectedAddress,
-  notifications,
 }: {
   navigation: any;
   selectedAddress: string;
-  notifications: Notification[];
 }) => {
   const styles = createStyles();
-  const [allNotifications, setAllNotifications] =
-    useState<Notification[]>(notifications);
+  /**
+   * Destruct methods, state, and data from the custom hook
+   * this call will be used to update the store `pushNotifications` state
+   */
+  const { listNotifications, isLoading } = useListNotifications();
+
+  /**
+   * Selectors
+   */
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+  const pushNotificationsState = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.NotificationServicesController,
+  );
+
+  const { metamaskNotificationsList } =
+    pushNotificationsState.pushNotifications;
+
+  /**
+   * Defines local state for notifications
+   */
+  const [allNotifications, setAllNotifications] = useState<Notification[]>([
+    ...metamaskNotificationsList,
+  ]);
   const [walletNotifications, setWalletNotifications] = useState<
     HalRawNotification[]
   >([]);
   const [annoucementsNotifications, setAnnoucementsNotifications] = useState<
     FeatureAnnouncementRawNotification[]
   >([]);
-  const isNotificationEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(isLoading);
 
   const filterNotifications = useCallback(
     (address) => {
@@ -58,7 +80,9 @@ const NotificationsView = ({
       const annoucements: FeatureAnnouncementRawNotification[] = [];
       const uniqueNotifications: Notification[] = [];
 
-      const allNotificationsSorted = sortNotifications(allNotifications);
+      const allNotificationsSorted = sortNotifications(
+        metamaskNotificationsList,
+      );
       const seenIds = new Set();
 
       for (const notification of allNotificationsSorted) {
@@ -79,11 +103,15 @@ const NotificationsView = ({
 
       setLoading(false);
     },
-    [allNotifications],
+    [metamaskNotificationsList],
   );
 
   useEffect(() => {
     setLoading(true);
+    async function updateNotifications() {
+      await listNotifications();
+    }
+    updateNotifications();
     InteractionManager.runAfterInteractions(() => {
       filterNotifications(selectedAddress);
     });

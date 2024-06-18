@@ -1,12 +1,12 @@
-import { put, call } from 'redux-saga/effects';
-import { NOTIFICATIONS_ERRORS } from './constants';
+import { call, put } from 'redux-saga/effects';
 import NotificationsActions from '../ducks/notifications';
+import { NOTIFICATIONS_ERRORS } from './constants';
 
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
-import { NotificationServicesController } from '@metamask/notification-services-controller';
 
 export function* signIn() {
   try {
@@ -99,9 +99,7 @@ export function* enableMetamaskNotifications() {
     yield put(NotificationsActions.setFeatureAnnouncementsEnabledSuccess());
     yield put(NotificationsActions.setSnapNotificationsEnabledSuccess());
   } catch (error) {
-    yield put(
-      NotificationsActions.enablePushNotificationsFailure({ error }),
-    );
+    yield put(NotificationsActions.enablePushNotificationsFailure({ error }));
   }
 }
 
@@ -120,9 +118,7 @@ export function* disableMetamaskNotifications() {
     }
     yield put(NotificationsActions.disablePushNotificationsSuccess());
   } catch (error) {
-    yield put(
-      NotificationsActions.disablePushNotificationsFailure({ error }),
-    );
+    yield put(NotificationsActions.disablePushNotificationsFailure({ error }));
   }
 }
 
@@ -242,9 +238,9 @@ export function* fetchAndUpdateMetamaskNotifications() {
     );
     if (!result.ok) {
       yield put(
-        NotificationsActions.fetchAndUpdateMetamaskNotificationsFailure(
-          NOTIFICATIONS_ERRORS.FAILED_TO_FETCH_NOTIFICATIONS,
-        ),
+        NotificationsActions.fetchAndUpdateMetamaskNotificationsFailure({
+          error: NOTIFICATIONS_ERRORS.FAILED_TO_FETCH_NOTIFICATIONS,
+        }),
       );
       return;
     }
