@@ -24,6 +24,15 @@ describe('useHideFiatForTestnet', () => {
     jest.clearAllMocks();
   });
 
+  it('utilizes the specified chain id', () => {
+    mockSelectShowFiatInTestnets.mockReturnValue(false);
+    mockSelectChainId.mockReturnValue(TEST_NETWORK_IDS[0]);
+
+    const { result } = renderHook(() => useHideFiatForTestnet('0x1'));
+
+    expect(result.current).toBe(false);
+  });
+
   it('returns true if current network is a testnet and showFiatInTestnets is false', () => {
     mockSelectShowFiatInTestnets.mockReturnValue(false);
     mockSelectChainId.mockReturnValue(TEST_NETWORK_IDS[0]);
