@@ -22,8 +22,9 @@ import ExamplesRule from '@open-rpc/test-coverage/build/rules/examples-rule';
 import ConfirmationsRejectRule from './ConfirmationsRejectionRule';
 import { createDriverTransport } from './helpers';
 import { BrowserViewSelectorsIDs } from '../selectors/Browser/BrowserView.selectors';
+import { getGanachePort } from '../fixtures/utils';
 
-const port = 8545;
+const port = getGanachePort(8545, process.pid);
 const chainId = 1338;
 
 const main = async () => {
@@ -184,6 +185,8 @@ const main = async () => {
         'eth_getEncryptionPublicKey', // requires permissions for eth_accounts
       ];
 
+      // replace this with pulling tags out of the api-spec
+      // tag: Confirmations
       const filteredMethods = openrpcDocument.methods
         .filter(
           (m) =>

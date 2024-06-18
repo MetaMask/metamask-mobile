@@ -56,7 +56,7 @@ const pollResult = async (driver, generatedKey) => {
   if (result !== undefined) {
     return result;
   }
-  return pollResult(driver);
+  return pollResult(driver, generatedKey);
 };
 
 export const createDriverTransport = (driver) => (_, method, params) => {
