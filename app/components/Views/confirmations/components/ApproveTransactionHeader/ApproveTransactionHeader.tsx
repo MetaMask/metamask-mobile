@@ -3,18 +3,18 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
-import AppConstants from '../../../../../core/AppConstants';
 import { strings } from '../../../../../../locales/i18n';
 import AccountBalance from '../../../../../component-library/components-temp/Accounts/AccountBalance';
 import { BadgeVariant } from '../../../../../component-library/components/Badges/Badge';
 import TagUrl from '../../../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../../../component-library/hooks';
+import AppConstants from '../../../../../core/AppConstants';
+import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import {
-  selectNetworkName,
   selectNetworkImageSource,
+  selectNetworkName,
 } from '../../../../../selectors/networkInfos';
 import { selectIdentities } from '../../../../../selectors/preferencesController';
-import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import {
   getLabelTextByAddress,
   renderAccountName,
@@ -123,17 +123,19 @@ const ApproveTransactionHeader = ({
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
+  const imageSource = sdkDappMetadata?.icon
+    ? { uri: sdkDappMetadata.icon }
+    : faviconSource?.uri
+    ? faviconSource
+    : { uri: '' };
+
   return (
     <View style={styles.transactionHeader}>
       {origin && !isOriginDeepLink ? (
         <TagUrl
           testID={APPROVE_TRANSACTION_ORIGIN_PILL}
-          imageSource={
-            sdkDappMetadata?.icon
-              ? { uri: sdkDappMetadata?.icon }
-              : faviconSource
-          }
-          label={sdkDappMetadata?.url ?? domainTitle}
+          imageSource={imageSource}
+          label={sdkDappMetadata?.url || 'Unknown'}
           style={styles.tagUrl}
         />
       ) : null}

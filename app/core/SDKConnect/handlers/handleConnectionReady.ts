@@ -62,10 +62,26 @@ export const handleConnectionReady = async ({
     return;
   }
 
-  connection.originatorInfo = originatorInfo;
+  let dappUrl = '';
+
+  try {
+    const urlObj = new URL(originatorInfo?.url);
+    dappUrl = `${urlObj.protocol}//${urlObj.hostname}`;
+  } catch (e) {
+    DevLogger.log('Invalid URL:', originatorInfo?.url);
+  }
+
+  connection.originatorInfo = {
+    ...originatorInfo,
+    url: dappUrl,
+  };
+
   updateOriginatorInfos({
     channelId: connection.channelId,
-    originatorInfo,
+    originatorInfo: {
+      ...originatorInfo,
+      url: dappUrl,
+    },
   });
   DevLogger.log(
     `SDKConnect::CLIENTS_READY originatorInfo updated`,

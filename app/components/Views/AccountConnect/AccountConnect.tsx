@@ -132,7 +132,9 @@ const AccountConnect = (props: AccountConnectProps) => {
       : sdkConnection?.originatorInfo?.url ?? ''
     : inappBrowserOrigin;
 
-  const urlWithProtocol = prefixUrlWithProtocol(hostname);
+  const urlWithProtocol = hostname
+    ? prefixUrlWithProtocol(hostname)
+    : 'Unknown';
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';

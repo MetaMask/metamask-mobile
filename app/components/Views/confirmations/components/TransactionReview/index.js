@@ -519,6 +519,12 @@ class TransactionReview extends PureComponent {
 
     const styles = this.getStyles();
 
+    const originatorInfo = currentConnection?.originatorInfo;
+    const sdkDappMetadata = {
+      url: originatorInfo?.url ?? 'Unknown',
+      icon: originatorInfo?.icon,
+    };
+
     return (
       <>
         <Animated.View
@@ -534,10 +540,7 @@ class TransactionReview extends PureComponent {
               url={url}
               from={from}
               asset={transaction?.selectedAsset}
-              sdkDappMetadata={{
-                url: currentConnection?.originatorInfo?.url,
-                icon: currentConnection?.originatorInfo?.icon,
-              }}
+              sdkDappMetadata={sdkDappMetadata}
             />
           )}
           <View style={styles.actionViewWrapper}>
