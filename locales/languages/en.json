@@ -2603,7 +2603,7 @@
     "submit_ticket_9": "Please include details about what happened.",
     "bug_report_prompt_title": "Tell us what happened",
     "bug_report_prompt_description": "Add details so we can figure out what went wrong.",
-    "bug_report_thanks": "Thank you for the bug report.",
+    "bug_report_thanks": "Thanks! We’ll take a look soon.",
     "save_seedphrase_1": "If this error persists,",
     "save_seedphrase_2": "save your Secret Recovery Phrase",
     "save_seedphrase_3": "& re-install the app. Note: you can NOT restore your wallet without your Secret Recovery Phrase.",
