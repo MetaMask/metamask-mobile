@@ -33,6 +33,7 @@ describe(SmokeConfirmations('Eth Sign'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
+        disableGanache: false,
         ganacheOptions: defaultGanacheOptions,
       },
       async () => {

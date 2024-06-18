@@ -32,6 +32,7 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
+        disableGanache: false,
         ganacheOptions: defaultGanacheOptions,
       },
       async () => {

@@ -34,6 +34,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
+        disableGanache: false,
         ganacheOptions: defaultGanacheOptions,
         smartContract: HST_CONTRACT,
       },
