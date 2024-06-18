@@ -116,7 +116,6 @@ const GetStarted: React.FC = () => {
     getStarted,
     isNetworkRampSupported,
     navigation,
-    intent?.chainId,
     selectedChainId,
     selectedRegion,
     params,
