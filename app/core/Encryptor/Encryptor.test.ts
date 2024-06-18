@@ -1,8 +1,8 @@
 import { NativeModules } from 'react-native';
 import { Encryptor } from './Encryptor';
 import {
-  SHA_ALGORITHM,
-  CIPHER_ALGORITHM,
+  ShaAlgorithm,
+  CipherAlgorithm,
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
 } from './constants';
@@ -65,7 +65,7 @@ describe('Encryptor', () => {
             'mockedSalt',
             5000,
             256,
-            SHA_ALGORITHM.sha512,
+            ShaAlgorithm.sha512,
           ],
         },
       ],
@@ -101,7 +101,7 @@ describe('Encryptor', () => {
                 mockVault.cipher,
                 expectedKeyValue,
                 mockVault.iv,
-                CIPHER_ALGORITHM.cbc,
+                CipherAlgorithm.cbc,
               ]
             : [mockVault.cipher, expectedKeyValue, mockVault.iv];
         expect(
