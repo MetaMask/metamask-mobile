@@ -5,7 +5,6 @@ import React, { PureComponent } from 'react';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
@@ -43,11 +42,11 @@ import {
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { isTransactionSimulationsFeatureEnabled } from '../../../../../util/transaction-controller';
 import {
-  APPROVE_FUNCTION_SIGNATURE,
   decodeTransferData,
   getNormalizedTxState,
   getTicker,
   getTransactionReviewActionKey,
+  isApprovalTransaction,
 } from '../../../../../util/transactions';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import AccountFromToInfoCard from '../../../../UI/AccountFromToInfoCard';
@@ -62,6 +61,7 @@ import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionB
 import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
+import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -316,9 +316,7 @@ class TransactionReview extends PureComponent {
     let assetAmount, conversionRate, fiatValue;
     showHexData = showHexData || data;
     const approveTransaction =
-      data &&
-      data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-      (!value || isZeroValue(value));
+      isApprovalTransaction(data) && (!value || isZeroValue(value));
     const actionKey = await getTransactionReviewActionKey(transaction, chainId);
     if (approveTransaction) {
       let contract = tokenList[safeToChecksumAddress(to)];
