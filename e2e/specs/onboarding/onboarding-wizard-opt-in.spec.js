@@ -86,7 +86,7 @@ describe(
         await WhatsNewModal.isVisible();
         await WhatsNewModal.tapCloseButton();
       } catch {
-        //
+        console.log('The whats new modal is not visible');
       }
     });
     it('should dismiss the marketing consent bottom sheet', async () => {
@@ -98,13 +98,13 @@ describe(
         );
         await ExperienceEnhancerModal.tapIagree();
       } catch {
-        //
+        console.log('The marketing consent sheet is not visible');
       }
       try {
         await WhatsNewModal.isVisible();
         await WhatsNewModal.tapCloseButton();
       } catch {
-        //
+        console.log('The whats new modal is not visible');
       }
     });
 
@@ -153,7 +153,7 @@ describe(
           OnboardingWizardModal.stepOneContainer,
         );
       } catch {
-        //
+        console.log('The onboarding wizard is not visible');
       }
     });
 

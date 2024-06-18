@@ -71,7 +71,7 @@ have to have all these work arounds in the tests
       await OnboardingWizardModal.stepOneContainer,
     );
   } catch {
-    //
+    console.log('The onboarding modal is not visible');
   }
 
   try {
@@ -79,10 +79,7 @@ have to have all these work arounds in the tests
     await WhatsNewModal.tapCloseButton();
   } catch {
     console.log('The whats new modal is not visible');
-
-    //
   }
-  await TestHelpers.delay(3000);
 
   try {
     // Handle Marketing consent modal
@@ -91,8 +88,6 @@ have to have all these work arounds in the tests
     await ExperienceEnhancerModal.tapNoThanks();
   } catch {
     console.log('The marketing consent modal is not visible');
-
-    //
   }
   try {
     await TestHelpers.waitAndTapText(
@@ -100,8 +95,6 @@ have to have all these work arounds in the tests
     );
   } catch {
     console.log('The marketing toast is not visible');
-
-    //
   }
 };
 
@@ -131,14 +124,12 @@ export const importWalletWithRecoveryPhrase = async () => {
   await TestHelpers.delay(1000);
   await closeOnboardingModals();
 
-  await TestHelpers.delay(2000);
-
   // should tap on the close button to dismiss the whats new modal
   try {
     await Assertions.checkIfVisible(WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
   } catch {
-    //
+    console.log('The whats new modal is not visible');
   } finally {
     // Handle Marketing consent modal
 
@@ -189,7 +180,7 @@ export const CreateNewWallet = async () => {
     await Assertions.checkIfVisible(WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
   } catch {
-    //
+    console.log('The whats new modal is not visible');
   } finally {
     // Handle Marketing consent modal
 
@@ -261,7 +252,7 @@ export const loginToApp = async () => {
     await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
     await ExperienceEnhancerModal.tapNoThanks();
   } catch {
-    //
+    console.log('The onboarding modals is not visible');
   }
   // this is not ideal. The whats new modal usually pops up last?
   try {
