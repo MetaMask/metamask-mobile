@@ -7,7 +7,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
       "alignItems": "center",
       "backgroundColor": "#ffffff",
       "flexDirection": "row",
-      "paddingRight": 40,
+      "paddingRight": 20,
     }
   }
 >
@@ -16,10 +16,10 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderRadius": 4,
         "opacity": 1,
         "padding": 16,
         "position": "relative",
+        "width": "95%",
       }
     }
     testID="cellmultiselect"
@@ -31,7 +31,11 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "padding": 0,
+          "padding": 16,
+          "paddingBottom": 0,
+          "paddingLeft": 0,
+          "paddingRight": 0,
+          "paddingTop": 0,
         }
       }
     >
@@ -277,6 +281,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
   </TouchableOpacity>
   <View>
     <TouchableOpacity
+      accessibilityRole="button"
       accessible={true}
       activeOpacity={1}
       disabled={false}
@@ -292,6 +297,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
           "width": 24,
         }
       }
+      testID="button-menu-select-test-id"
     >
       <SvgMock
         color="#141618"

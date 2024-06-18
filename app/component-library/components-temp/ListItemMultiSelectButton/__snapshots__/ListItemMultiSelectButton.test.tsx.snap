@@ -7,7 +7,7 @@ exports[`ListItemMultiSelectButton should render correctly with default props 1`
       "alignItems": "center",
       "backgroundColor": "#ffffff",
       "flexDirection": "row",
-      "paddingRight": 40,
+      "paddingRight": 20,
     }
   }
 >
@@ -16,10 +16,10 @@ exports[`ListItemMultiSelectButton should render correctly with default props 1`
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderRadius": 4,
         "opacity": 1,
         "padding": 16,
         "position": "relative",
+        "width": "95%",
       }
     }
   >
@@ -30,7 +30,11 @@ exports[`ListItemMultiSelectButton should render correctly with default props 1`
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "padding": 0,
+          "padding": 16,
+          "paddingBottom": 0,
+          "paddingLeft": 0,
+          "paddingRight": 0,
+          "paddingTop": 0,
         }
       }
     >

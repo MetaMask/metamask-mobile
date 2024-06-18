@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Linking, Switch, TextInput, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
@@ -19,10 +19,7 @@ import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import {
-  IconColor,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import {
   selectNetworkConfigurations,
@@ -71,7 +68,11 @@ import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNe
 import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { PopularList } from '../../../util/networks/customNetworks';
 import Icon from 'react-native-vector-icons/Ionicons';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+import AccountAction from '../AccountAction';
+import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
+import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
@@ -88,6 +89,22 @@ const NetworkSelector = () => {
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState({
+    isVisible: false,
+    networkName: '',
+    entry: {},
+  });
+
+  const [showNetworkMenuModal, setNetworkMenuModal] = useState({
+    isVisible: false,
+    chainId: '',
+    displayEdit: false,
+  });
+
+  const networkMenuSheetRef = useRef<BottomSheetRef>(null);
+
+  const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: string) => {
@@ -149,6 +166,33 @@ const NetworkSelector = () => {
     }
   };
 
+  const openModal = useCallback((chainId, displayEdit) => {
+    setNetworkMenuModal({
+      isVisible: true,
+      chainId,
+      displayEdit,
+    });
+    networkMenuSheetRef.current?.onOpenBottomSheet();
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setNetworkMenuModal(() => ({
+      chainId: '',
+      isVisible: false,
+      displayEdit: false,
+    }));
+    networkMenuSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const closeDeleteModal = useCallback(() => {
+    setShowConfirmDeleteModal(() => ({
+      networkName: '',
+      isVisible: false,
+      entry: {},
+    }));
+    networkMenuSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   // TODO: type the any below to import { Network } from './CustomNetwork.types';
   const showNetworkModal = (networkConfiguration: any) => {
     setShowPopularNetworkModal(true);
@@ -168,6 +212,7 @@ const NetworkSelector = () => {
   const toggleWarningModal = () => {
     setShowWarningModal(!showWarningModal);
   };
+
   const goToLearnMore = () => {
     Linking.openURL(strings('networks.learn_more_url'));
   };
@@ -189,6 +234,30 @@ const NetworkSelector = () => {
     )
       return null;
 
+    if (isNetworkUiRedesignEnabled) {
+      return (
+        <Cell
+          key={chainId}
+          variant={CellVariant.SelectWithMenu}
+          title={mainnetName}
+          avatarProps={{
+            variant: AvatarVariant.Network,
+            name: mainnetName,
+            imageSource: images.ETHEREUM,
+            size: AvatarSize.Sm,
+          }}
+          isSelected={
+            chainId === providerConfig.chainId && !providerConfig.rpcUrl
+          }
+          onPress={() => onNetworkChange(MAINNET)}
+          style={styles.networkCell}
+          buttonIcon={IconName.MoreVertical}
+          onButtonClick={() => {
+            openModal(chainId, false);
+          }}
+        />
+      );
+    }
     return (
       <Cell
         variant={CellVariant.Select}
@@ -204,13 +273,7 @@ const NetworkSelector = () => {
         }
         onPress={() => onNetworkChange(MAINNET)}
         style={styles.networkCell}
-      >
-        <ButtonIcon
-          iconName={IconName.MoreVertical}
-          iconColor={IconColor.Default}
-          onPress={() => console.log('IM HERE')}
-        />
-      </Cell>
+      />
     );
   };
 
@@ -224,6 +287,28 @@ const NetworkSelector = () => {
     )
       return null;
 
+    if (isNetworkUiRedesignEnabled) {
+      return (
+        <Cell
+          key={chainId}
+          variant={CellVariant.SelectWithMenu}
+          title={lineaMainnetName}
+          avatarProps={{
+            variant: AvatarVariant.Network,
+            name: lineaMainnetName,
+            imageSource: images['LINEA-MAINNET'],
+            size: AvatarSize.Sm,
+          }}
+          isSelected={chainId === providerConfig.chainId}
+          onPress={() => onNetworkChange(LINEA_MAINNET)}
+          style={styles.networkCell}
+          buttonIcon={IconName.MoreVertical}
+          onButtonClick={() => {
+            openModal(chainId, false);
+          }}
+        />
+      );
+    }
     return (
       <Cell
         variant={CellVariant.Select}
@@ -236,13 +321,7 @@ const NetworkSelector = () => {
         }}
         isSelected={chainId === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
-      >
-        <ButtonIcon
-          iconName={IconName.MoreVertical}
-          iconColor={IconColor.Default}
-          onPress={() => console.log('IM HERE')}
-        />
-      </Cell>
+      />
     );
   };
 
@@ -258,10 +337,34 @@ const NetworkSelector = () => {
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
+        if (isNetworkUiRedesignEnabled) {
+          return (
+            <Cell
+              key={chainId}
+              variant={CellVariant.SelectWithMenu}
+              title={name}
+              avatarProps={{
+                variant: AvatarVariant.Network,
+                name,
+                imageSource: image,
+                size: AvatarSize.Sm,
+              }}
+              isSelected={Boolean(
+                chainId === providerConfig.chainId && providerConfig.rpcUrl,
+              )}
+              onPress={() => onSetRpcTarget(rpcUrl)}
+              style={styles.networkCell}
+              buttonIcon={IconName.MoreVertical}
+              onButtonClick={() => {
+                openModal(chainId, true);
+              }}
+            />
+          );
+        }
         return (
           <Cell
             key={chainId}
-            variant={CellVariant.SelectWithMenu}
+            variant={CellVariant.Select}
             title={name}
             avatarProps={{
               variant: AvatarVariant.Network,
@@ -274,8 +377,6 @@ const NetworkSelector = () => {
             )}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}
-            buttonIcon={IconName.MoreVertical}
-            onButtonClick={() => console.log('Button Click ....')}
           />
         );
       },
@@ -304,13 +405,7 @@ const NetworkSelector = () => {
           isSelected={chainId === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
           style={styles.networkCell}
-        >
-          <ButtonIcon
-            iconName={IconName.MoreVertical}
-            iconColor={IconColor.Default}
-            onPress={() => console.log('IM HERE', networkType)}
-          />
-        </Cell>
+        />
       );
     });
   };
@@ -389,6 +484,54 @@ const NetworkSelector = () => {
     setSearchString('');
   };
 
+  const removeRpcUrl = (networkId: string) => {
+    const entry = Object.entries(networkConfigurations).find(
+      ([, { chainId }]) => chainId === networkId,
+    );
+
+    if (!entry) {
+      throw new Error(`Unable to find network with chain id ${networkId}`);
+    }
+
+    const [, { nickname }] = entry;
+
+    closeModal();
+
+    setShowConfirmDeleteModal({
+      isVisible: true,
+      networkName: nickname,
+      entry,
+    });
+  };
+
+  const confirmRemoveRpc = () => {
+    const [networkConfigurationId] = showConfirmDeleteModal.entry;
+
+    const { NetworkController } = Engine.context;
+
+    NetworkController.removeNetworkConfiguration(networkConfigurationId);
+
+    setShowConfirmDeleteModal({
+      isVisible: false,
+      networkName: '',
+      entry: {},
+    });
+  };
+
+  const cancelButtonProps: ButtonProps = {
+    variant: ButtonVariants.Secondary,
+    label: strings('accountApproval.cancel'),
+    size: ButtonSize.Lg,
+    onPress: () => closeDeleteModal(),
+  };
+
+  const deleteButtonProps: ButtonProps = {
+    variant: ButtonVariants.Primary,
+    label: strings('app_settings.delete'),
+    size: ButtonSize.Lg,
+    onPress: () => confirmRemoveRpc(),
+  };
+
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.networkListContainer}>
@@ -456,6 +599,54 @@ const NetworkSelector = () => {
           }
           toggleModal={toggleWarningModal}
         />
+      ) : null}
+
+      {showNetworkMenuModal.isVisible ? (
+        <BottomSheet
+          ref={networkMenuSheetRef}
+          onClose={closeModal}
+          shouldNavigateBack={false}
+        >
+          <View style={styles.networkMenu}>
+            <AccountAction
+              actionTitle={strings('transaction.edit')}
+              iconName={IconName.Edit}
+              onPress={() => console.log('TODO EDIT HERE ...')}
+            />
+            {showNetworkMenuModal.chainId !== providerConfig.chainId &&
+            showNetworkMenuModal.displayEdit ? (
+              <AccountAction
+                actionTitle={strings('app_settings.delete')}
+                iconName={IconName.Trash}
+                onPress={() => removeRpcUrl(showNetworkMenuModal.chainId)}
+              />
+            ) : null}
+          </View>
+        </BottomSheet>
+      ) : null}
+      {showConfirmDeleteModal.isVisible ? (
+        <BottomSheet
+          ref={deleteModalSheetRef}
+          onClose={closeDeleteModal}
+          shouldNavigateBack={false}
+        >
+          <BottomSheetHeader>
+            <Text variant={TextVariant.HeadingMD}>
+              {strings('app_settings.delete')}{' '}
+              {showConfirmDeleteModal.networkName}{' '}
+              {strings('asset_details.network')}
+            </Text>
+          </BottomSheetHeader>
+          <View style={styles.containerDeleteText}>
+            <Text style={styles.textCentred}>
+              {strings('app_settings.network_delete')}
+            </Text>
+            <BottomSheetFooter
+              buttonsAlignment={ButtonsAlignment.Horizontal}
+              buttonPropsArray={[cancelButtonProps, deleteButtonProps]}
+            />
+          </View>
+        </BottomSheet>
       ) : null}
     </BottomSheet>
   );
