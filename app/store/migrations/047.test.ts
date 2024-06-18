@@ -96,7 +96,7 @@ describe('Migration #47', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 47: Invalid AccountsController state error: 'null'",
+        "FATAL ERROR: Migration 47: Invalid AccountsController state error: 'object'",
       scenario: 'AccountsController state is invalid',
     },
     {
@@ -108,7 +108,7 @@ describe('Migration #47', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 47: Invalid AccountsController internalAccounts state error: 'null'",
+        "FATAL ERROR: Migration 47: Invalid AccountsController internalAccounts state error: 'object'",
       scenario: 'AccountsController internalAccounts state is invalid',
     },
     {

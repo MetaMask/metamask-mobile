@@ -22,9 +22,7 @@ export default function migrate(state: unknown) {
   if (!isObject(accountsControllerState)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 47: Invalid AccountsController state error: '${JSON.stringify(
-          accountsControllerState,
-        )}'`,
+        `FATAL ERROR: Migration 47: Invalid AccountsController state error: '${typeof accountsControllerState}'`,
       ),
     );
     return state;
@@ -36,7 +34,7 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 47: Invalid AccountsController internalAccounts state error: '${accountsControllerState.internalAccounts}'`,
+        `FATAL ERROR: Migration 47: Invalid AccountsController internalAccounts state error: '${typeof accountsControllerState.internalAccounts}'`,
       ),
     );
     return state;
@@ -48,7 +46,8 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 47: Invalid AccountsController internalAccounts accounts state error: '${accountsControllerState.internalAccounts.accounts}'`,
+        `FATAL ERROR: Migration 47: Invalid AccountsController internalAccounts accounts state error: '${typeof accountsControllerState
+          .internalAccounts.accounts}'`,
       ),
     );
     return state;
