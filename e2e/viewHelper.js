@@ -132,16 +132,6 @@ export const importWalletWithRecoveryPhrase = async () => {
   await closeOnboardingModals();
 
   await TestHelpers.delay(2000);
-  try {
-    // Handle Marketing consent modal
-
-    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
-    await ExperienceEnhancerModal.tapNoThanks();
-  } catch {
-    console.log('The marketing consent modal is not visible');
-
-    //
-  }
 
   // should tap on the close button to dismiss the whats new modal
   try {
@@ -149,6 +139,11 @@ export const importWalletWithRecoveryPhrase = async () => {
     await WhatsNewModal.tapCloseButton();
   } catch {
     //
+  } finally {
+    // Handle Marketing consent modal
+
+    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
+    await ExperienceEnhancerModal.tapNoThanks();
   }
 };
 
@@ -188,22 +183,18 @@ export const CreateNewWallet = async () => {
   // dealing with flakiness on bitrise.
   await TestHelpers.delay(1000);
   await closeOnboardingModals();
-  try {
-    // Handle Marketing consent modal
 
-    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
-    await ExperienceEnhancerModal.tapNoThanks();
-  } catch {
-    console.log('The marketing consent modal is not visible');
-
-    //
-  }
   // should tap on the close button to dismiss the whats new modal
   try {
     await Assertions.checkIfVisible(WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
   } catch {
     //
+  } finally {
+    // Handle Marketing consent modal
+
+    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
+    await ExperienceEnhancerModal.tapNoThanks();
   }
 
   // Dismissing the protect your wallet modal
