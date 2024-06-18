@@ -654,7 +654,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                     "opacity": 1,
                                   }
                                 }
-                                testID="marketing-consent-opt-in-checkbox"
+                              testID="marketing-consent-opt-in-checkbox"
                               >
                                 <View
                                   accessibilityRole="checkbox"
