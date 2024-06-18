@@ -1534,6 +1534,7 @@
     "smart_contract_interaction": "Smart contract interaction",
     "swaps_transaction": "Swaps transaction",
     "approve": "Approve",
+    "increase_allowance": "Increase Allowance",
     "hash": "Hash",
     "from": "From",
     "to": "To",
