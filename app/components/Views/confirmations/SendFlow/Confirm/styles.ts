@@ -146,6 +146,11 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.warning.default,
       borderColor: colors.warning.default,
     },
+    simulationWrapper: {
+      marginLeft: 24,
+      marginRight: 24,
+      marginBottom: 24,
+    },
   });
 
 export default createStyles;
