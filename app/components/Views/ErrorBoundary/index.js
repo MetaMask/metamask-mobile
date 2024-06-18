@@ -107,11 +107,10 @@ const createStyles = (colors) =>
     },
   });
 
-const Fallback = (props) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
-  const sentryId = props.sentryId;
-
+const UserFeedbackSection = ({ styles, sentryId }) => {
+  /**
+   * Prompt bug report form
+   */
   const promptBugReport = useCallback(() => {
     Alert.prompt(
       strings('error_screen.bug_report_prompt_title'),
@@ -130,20 +129,27 @@ const Fallback = (props) => {
     );
   }, [sentryId]);
 
-  const renderSentryFeedbackSection = useCallback(
-    () => (
-      <Text style={[styles.reportStep, styles.text]}>
-        <Icon name="bug" size={14} />
-        {'  '}
-        {strings('error_screen.submit_ticket_8')}{' '}
-        <Text onPress={promptBugReport} style={styles.link}>
-          {strings('error_screen.submit_ticket_6')}
-        </Text>{' '}
-        {strings('error_screen.submit_ticket_9')}
-      </Text>
-    ),
-    [promptBugReport, styles.text, styles.link, styles.reportStep],
+  return (
+    <Text style={[styles.reportStep, styles.text]}>
+      <Icon name="bug" size={14} />
+      {'  '}
+      {strings('error_screen.submit_ticket_8')}{' '}
+      <Text onPress={promptBugReport} style={styles.link}>
+        {strings('error_screen.submit_ticket_6')}
+      </Text>{' '}
+      {strings('error_screen.submit_ticket_9')}
+    </Text>
   );
+};
+
+UserFeedbackSection.propTypes = {
+  styles: PropTypes.object,
+  sentryId: PropTypes.string,
+};
+
+const Fallback = (props) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   return (
     <ScrollView style={styles.content}>
@@ -193,7 +199,7 @@ const Fallback = (props) => {
             </Text>{' '}
             {strings('error_screen.submit_ticket_7')}
           </Text>
-          {renderSentryFeedbackSection()}
+          <UserFeedbackSection styles={styles} sentryId={props.sentryId} />
         </View>
         <Text style={styles.text}>
           {strings('error_screen.save_seedphrase_1')}{' '}
