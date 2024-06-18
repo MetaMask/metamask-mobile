@@ -71,6 +71,8 @@ have to have all these work arounds in the tests
       await OnboardingWizardModal.stepOneContainer,
     );
   } catch {
+    /* eslint-disable no-console */
+
     console.log('The onboarding modal is not visible');
   }
 
@@ -78,6 +80,8 @@ have to have all these work arounds in the tests
     await WhatsNewModal.isVisible();
     await WhatsNewModal.tapCloseButton();
   } catch {
+    /* eslint-disable no-console */
+
     console.log('The whats new modal is not visible');
   }
 
@@ -94,6 +98,8 @@ have to have all these work arounds in the tests
       enContent.privacy_policy.toast_action_button,
     );
   } catch {
+    /* eslint-disable no-undef */
+
     console.log('The marketing toast is not visible');
   }
 };
@@ -129,6 +135,7 @@ export const importWalletWithRecoveryPhrase = async () => {
     await Assertions.checkIfVisible(WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
   } catch {
+    /* eslint-disable no-console */
     console.log('The whats new modal is not visible');
   } finally {
     // Handle Marketing consent modal
@@ -180,7 +187,9 @@ export const CreateNewWallet = async () => {
     await Assertions.checkIfVisible(WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
   } catch {
-    console.log('The whats new modal is not visible');
+    /* eslint-disable no-console */ console.log(
+      'The whats new modal is not visible',
+    );
   } finally {
     // Handle Marketing consent modal
 
@@ -252,13 +261,16 @@ export const loginToApp = async () => {
     await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
     await ExperienceEnhancerModal.tapNoThanks();
   } catch {
-    console.log('The onboarding modals is not visible');
+    /* eslint-disable no-console */ console.log(
+      'The onboarding modals is not visible',
+    );
   }
   // this is not ideal. The whats new modal usually pops up last?
   try {
     await Assertions.checkIfVisible(WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
   } catch {
-    //
+    /* eslint-disable no-console */
+    console.log('The whats new modal is not visible');
   }
 };

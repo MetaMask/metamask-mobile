@@ -86,6 +86,8 @@ describe(
         await WhatsNewModal.isVisible();
         await WhatsNewModal.tapCloseButton();
       } catch {
+        /* eslint-disable no-console */
+
         console.log('The whats new modal is not visible');
       }
     });
@@ -104,6 +106,8 @@ describe(
         await WhatsNewModal.isVisible();
         await WhatsNewModal.tapCloseButton();
       } catch {
+        /* eslint-disable no-console */
+
         console.log('The whats new modal is not visible');
       }
     });
@@ -153,6 +157,8 @@ describe(
           OnboardingWizardModal.stepOneContainer,
         );
       } catch {
+        /* eslint-disable no-console */
+
         console.log('The onboarding wizard is not visible');
       }
     });
