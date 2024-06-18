@@ -3603,7 +3603,7 @@
     "@metamask/utils" "^8.3.0"
     nanoid "^3.1.31"
 
-"@metamask/approval-controller@^6.0.1", "@metamask/approval-controller@^6.0.2":
+"@metamask/approval-controller@^6.0.2":
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-6.0.2.tgz#2bae3c293b73e8ecaf8cbba11fbc99c61adb4367"
   integrity sha512-G5FmEwRkKJPjCh3sA6g8eoYOcmLj/Y6Kllh663fYYbt1DZHHJtkrWBuaUnbTySS0VYqbTInpcgSRzuawE1VMgw==
@@ -3761,10 +3761,10 @@
     eth-ens-namehash "^2.0.8"
     fast-deep-equal "^3.1.3"
 
-"@metamask/design-tokens@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-2.0.0.tgz#12ddc1c0343dd147c1fee442c1b23979f73d919d"
-  integrity sha512-dntpAa+8czwj1P6D00jCxgKm6axKeHvHq+4XYstcq+wj4zwV8g3NX6a1+05iNXrccX6JSNO9M+JYyqMMqsZAkA==
+"@metamask/design-tokens@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-4.0.0.tgz#3aad7e4da21c279374668e179c0b055d93aa0552"
+  integrity sha512-bpGKH06Nq6KwMRPNkQ+a/H2vNfX/ViIkpUHkx0FnkastL4+G63lcFS8Nv8mmi9zI24k3l0a2zvsSb/KsvFWTzA==
 
 "@metamask/eslint-config-typescript@^9.0.0":
   version "9.0.1"
@@ -4149,25 +4149,6 @@
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
 
-"@metamask/keyring-controller@^14.0.1":
-  version "14.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-14.0.1.tgz#019596a29a59d1b7cdc806c096bf3cba254e2657"
-  integrity sha512-lK4Zf5ek+eqstnPEQ6pwJPzj4Zt79in0atN2ttUPZi3IN/Xw5Il4nLrTQSSpcAxDwSble1hJibGTOPXAVA+lRg==
-  dependencies:
-    "@ethereumjs/util" "^8.1.0"
-    "@keystonehq/metamask-airgapped-keyring" "^0.13.1"
-    "@metamask/base-controller" "^5.0.1"
-    "@metamask/browser-passworder" "^4.3.0"
-    "@metamask/eth-hd-keyring" "^7.0.1"
-    "@metamask/eth-sig-util" "^7.0.1"
-    "@metamask/eth-simple-keyring" "^6.0.1"
-    "@metamask/keyring-api" "^3.0.0"
-    "@metamask/message-manager" "^8.0.1"
-    "@metamask/utils" "^8.3.0"
-    async-mutex "^0.2.6"
-    ethereumjs-wallet "^1.0.1"
-    immer "^9.0.6"
-
 "@metamask/keyring-controller@^16.0.0":
   version "16.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-16.0.0.tgz#36530a5cbc311d496ef66701c66daf779a769fca"
@@ -4209,7 +4190,7 @@
     jsonschema "^1.2.4"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^8.0.1", "@metamask/message-manager@^8.0.2":
+"@metamask/message-manager@^8.0.2":
   version "8.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-8.0.2.tgz#84720f0fe9e0c02cc97b76f0bc8f3d5b0a25f731"
   integrity sha512-6o0FRWzmOv5ClYv9QfSJI6LtUJaQokwhVROTV2gLsuoAns8a9NuiHmXZrBh1tdjYifXPoPh74nqim4XBBT+GQQ==
@@ -4235,12 +4216,7 @@
     "@noble/hashes" "^1.4.0"
     zod "^3.22.4"
 
-"@metamask/metamask-eth-abis@3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/metamask-eth-abis/-/metamask-eth-abis-3.0.0.tgz#eccc0746b3ab1ab63000444403819c16e88b5272"
-  integrity sha512-YtIl4e1VzqwwHGafuLIVPqbcWWWqQ0Ezo8/Ci5m5OGllqE2oTTx9iVHdUmXNkgCVD37SBfwn/fm/S1IGkM8BQA==
-
-"@metamask/metamask-eth-abis@^3.0.0", "@metamask/metamask-eth-abis@^3.1.1":
+"@metamask/metamask-eth-abis@3.0.0", "@metamask/metamask-eth-abis@3.1.1", "@metamask/metamask-eth-abis@^3.0.0", "@metamask/metamask-eth-abis@^3.1.1":
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/metamask-eth-abis/-/metamask-eth-abis-3.1.1.tgz#3de904511115c488809ddee25c470332c03db531"
   integrity sha512-lRUyWN/GrIFQlT0wq/9gB+4wIV2i0N6yAQlJhfLCT6bVfK5GI5IUDxvCyLTDvxQxaLpNgtBFFzbuY1iVj3UWLA==
@@ -4465,10 +4441,10 @@
     "@metamask/utils" "^8.1.0"
     readable-stream "3.6.2"
 
-"@metamask/ppom-validator@0.30.0":
-  version "0.30.0"
-  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.30.0.tgz#7c2c7ff9cd602acee1004ddc882e02cc8b70588c"
-  integrity sha512-MY1DK7Oa6sYZiXlssZpw3pUYhOeY/y2I3p69wyL/hS+MUOPDZmMaNPG1eapwBKmdq91D4oMSlTHg8GS4wzpmjw==
+"@metamask/ppom-validator@0.31.0":
+  version "0.31.0"
+  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.31.0.tgz#bff78766d777b85df7bebdb6065d6382341cc23f"
+  integrity sha512-+TdBp333ifttbKhMwGZwyLh5GpxWGFMyHf1z3MXu0dWaj9ntJIfSsYI4whJ123Jc0BvCdjV/W/kKaWH5r+n0RQ==
   dependencies:
     "@metamask/base-controller" "^3.0.0"
     "@metamask/controller-utils" "^8.0.1"
@@ -4641,17 +4617,17 @@
     utf-8-validate "^6.0.3"
     uuid "^8.3.2"
 
-"@metamask/signature-controller@^14.0.0":
-  version "14.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-14.0.1.tgz#3add95d378f7b398f29945b33b0ef4dd3503808e"
-  integrity sha512-ZBkrpRjo4KYD/bulmDk4MscgKDOGlcLHSXudHTtQRMeg+2HVXGk4ZRyvHohxkT0B4vvex2uVMXk9iyLfc2/Tgg==
+"@metamask/signature-controller@^16.0.0":
+  version "16.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-16.0.0.tgz#78c7f23d02da99d4e953eb9b4e8e2909523a3288"
+  integrity sha512-6KOzkBxqivKXexJLjcaE9bGjh2vSKO3JsOjE1KD9Mkcx8qxDJOaXft+FJSs2XhJgi5FoyjRgfhryukszl+tCIg==
   dependencies:
-    "@metamask/approval-controller" "^6.0.1"
-    "@metamask/base-controller" "^5.0.1"
-    "@metamask/controller-utils" "^9.0.1"
-    "@metamask/keyring-controller" "^14.0.1"
+    "@metamask/approval-controller" "^6.0.2"
+    "@metamask/base-controller" "^5.0.2"
+    "@metamask/controller-utils" "^9.1.0"
+    "@metamask/keyring-controller" "^16.0.0"
     "@metamask/logging-controller" "^3.0.1"
-    "@metamask/message-manager" "^8.0.1"
+    "@metamask/message-manager" "^8.0.2"
     "@metamask/rpc-errors" "^6.2.1"
     "@metamask/utils" "^8.3.0"
     lodash "^4.17.21"
@@ -12481,11 +12457,11 @@ brace-expansion@^2.0.1:
     balanced-match "^1.0.0"
 
 braces@^3.0.2, braces@~3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/braces/-/braces-3.0.2.tgz#3454e1a462ee8d599e236df336cd9ea4f8afe107"
-  integrity sha512-b8um+L1RzM3WDSzvhm6gIz1yfTbBt6YTlcEKAvsmqCZZFw46z626lVj9j1yEPW33H5H+lBQpZMP1k8l+78Ha0A==
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/braces/-/braces-3.0.3.tgz#490332f40919452272d55a8480adc0c441358789"
+  integrity sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==
   dependencies:
-    fill-range "^7.0.1"
+    fill-range "^7.1.1"
 
 brorand@^1.0.1, brorand@^1.1.0:
   version "1.1.0"
@@ -16976,10 +16952,10 @@ filelist@^1.0.1:
   dependencies:
     minimatch "^5.0.1"
 
-fill-range@^7.0.1:
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/fill-range/-/fill-range-7.0.1.tgz#1919a6a7c75fe38b2c7c77e5198535da9acdda40"
-  integrity sha512-qOo9F+dMUmC2Lcb4BbVvnKJxTPjCm+RRpe4gDuGrzkL7mEVl/djYSu2OdQ2Pa302N4oqkSg9ir6jaLWJ2USVpQ==
+fill-range@^7.1.1:
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/fill-range/-/fill-range-7.1.1.tgz#44265d3cac07e3ea7dc247516380643754a05292"
+  integrity sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==
   dependencies:
     to-regex-range "^5.0.1"
 

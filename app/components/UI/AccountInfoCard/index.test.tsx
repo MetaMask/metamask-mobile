@@ -2,6 +2,10 @@ import React from 'react';
 import AccountInfoCard from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import {
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+  MOCK_ADDRESS_1,
+} from '../../../util/test/accountsControllerTestUtils';
 
 jest.mock('../../../core/Engine', () => ({
   resetState: jest.fn(),
@@ -26,18 +30,12 @@ const mockInitialState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+          [MOCK_ADDRESS_1]: {
             balance: '0x2',
           },
         },
       },
-      PreferencesController: {
-        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-        identities: {
-          address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-          name: 'Account 1',
-        },
-      },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       CurrencyRateController: {
         currentCurrency: 'inr',
         currencyRates: {

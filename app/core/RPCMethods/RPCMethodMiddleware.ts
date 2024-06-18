@@ -490,8 +490,6 @@ export const getRpcMethodMiddleware = ({
           }
         }
       },
-      // TODO: This code is no longer used and should be removed in the future. eth_accounts is implemented by permissions specifications
-      eth_accounts: getEthAccounts,
       eth_coinbase: getEthAccounts,
       parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
@@ -518,11 +516,6 @@ export const getRpcMethodMiddleware = ({
             });
           },
         });
-      },
-      eth_signTransaction: async () => {
-        // This is implemented later in our middleware stack – specifically, in
-        // eth-json-rpc-middleware – but our UI does not support it.
-        throw rpcErrors.methodNotSupported();
       },
       eth_sign: async () => {
         const { SignatureController, PreferencesController } = Engine.context;
