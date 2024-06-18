@@ -1391,6 +1391,8 @@ class NetworkSettings extends PureComponent {
     const networkTypeOrRpcUrl = route.params?.network;
     const shouldNetworkSwitchPopToWallet =
       route.params?.shouldNetworkSwitchPopToWallet ?? true;
+    const shouldShowPopularNetworks =
+      route.params?.shouldShowPopularNetworks ?? true;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -1400,7 +1402,8 @@ class NetworkSettings extends PureComponent {
         testID={NetworksViewSelectorsIDs.CONTAINER}
       >
         <View style={styles.informationWrapper}>
-          {isNetworkUiRedesignEnabled || networkTypeOrRpcUrl ? (
+          {(isNetworkUiRedesignEnabled && !shouldShowPopularNetworks) ||
+          networkTypeOrRpcUrl ? (
             this.customNetwork(networkTypeOrRpcUrl)
           ) : (
             <ScrollableTabView

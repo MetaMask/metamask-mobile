@@ -294,6 +294,7 @@ const NetworkSelector = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.ADD_NETWORK, {
         shouldNetworkSwitchPopToWallet: false,
+        shouldShowPopularNetworks: false,
       });
     });
   };
