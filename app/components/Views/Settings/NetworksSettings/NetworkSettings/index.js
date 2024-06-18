@@ -1400,7 +1400,7 @@ class NetworkSettings extends PureComponent {
         testID={NetworksViewSelectorsIDs.CONTAINER}
       >
         <View style={styles.informationWrapper}>
-          {isNetworkUiRedesignEnabled ? (
+          {isNetworkUiRedesignEnabled || networkTypeOrRpcUrl ? (
             this.customNetwork(networkTypeOrRpcUrl)
           ) : (
             <ScrollableTabView
