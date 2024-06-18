@@ -5,7 +5,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
   <RCTScrollView
     style={
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "flex": 1,
         "padding": 24,
         "paddingBottom": 48,
@@ -17,7 +17,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
             "fontWeight": "500",
@@ -32,7 +32,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#535A61",
+            "color": "#6a737d",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -56,7 +56,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
             "alignItems": "center",
             "alignSelf": "stretch",
             "backgroundColor": "transparent",
-            "borderColor": "#0376C9",
+            "borderColor": "#0376c9",
             "borderRadius": 24,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -72,7 +72,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376C9",
+              "color": "#0376c9",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -88,7 +88,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 24,
             "fontWeight": "700",
@@ -121,7 +121,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 16,
                 "fontWeight": "500",
@@ -137,7 +137,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
             onChange={[Function]}
             onResponderTerminationRequest={[Function]}
             onStartShouldSetResponder={[Function]}
-            onTintColor="#0376C9"
+            onTintColor="#0376c9"
             style={
               [
                 {
@@ -149,13 +149,13 @@ exports[`ExperimentalSettings should render correctly 1`] = `
                     "alignSelf": "flex-end",
                   },
                   {
-                    "backgroundColor": "#D6D9DC",
+                    "backgroundColor": "#bbc0c566",
                     "borderRadius": 16,
                   },
                 ],
               ]
             }
-            tintColor="#D6D9DC"
+            tintColor="#bbc0c566"
             value={false}
           />
         </View>
@@ -163,7 +163,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
+              "color": "#6a737d",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -184,7 +184,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
             style={
               {
                 "backgroundColor": "transparent",
-                "color": "#24272A",
+                "color": "#141618",
               }
             }
             suppressHighlighting={true}
@@ -193,7 +193,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376C9",
+                  "color": "#0376c9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
                   "fontWeight": "400",
