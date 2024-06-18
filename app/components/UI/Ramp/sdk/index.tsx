@@ -187,7 +187,6 @@ export const RampSDKProvider = ({
   const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
   const [unsupportedRegion, setUnsupportedRegion] = useState<Region>();
 
-  //** Ramp Intent */
   const [intent, setIntent] = useState<RampIntent>();
 
   const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
