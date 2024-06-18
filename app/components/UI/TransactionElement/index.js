@@ -295,6 +295,7 @@ class TransactionElement extends PureComponent {
           : transactionIconSwap;
         break;
       case TRANSACTION_TYPES.APPROVE:
+      case TRANSACTION_TYPES.INCREASE_ALLOWANCE:
         icon = isFailedTransaction
           ? transactionIconApproveFailed
           : transactionIconApprove;
