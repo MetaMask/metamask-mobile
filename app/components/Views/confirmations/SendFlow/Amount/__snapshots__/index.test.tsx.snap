@@ -4790,89 +4790,71 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                     }
                                   }
                                 >
-                                  <View>
-                                    <Image
-                                      onError={[Function]}
-                                      source={
+                                  <View
+                                    style={
+                                      [
                                         {
-                                          "uri": "MockImage",
-                                        }
-                                      }
+                                          "alignItems": "center",
+                                          "backgroundColor": "#f2f4f6",
+                                          "borderRadius": 8,
+                                          "justifyContent": "flex-start",
+                                        },
+                                        undefined,
+                                        undefined,
+                                        {
+                                          "height": 50,
+                                          "width": 50,
+                                        },
+                                        undefined,
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="fallback-nft-with-token-id"
+                                  >
+                                    <Text
                                       style={
                                         [
                                           {
-                                            "alignItems": "center",
-                                            "backgroundColor": "#f2f4f6",
-                                            "borderRadius": 8,
-                                            "justifyContent": "flex-start",
+                                            "color": "#141618",
+                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontSize": 30,
+                                            "fontWeight": "400",
+                                            "marginVertical": 2,
                                           },
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
                                           undefined,
                                           undefined,
                                           {
-                                            "height": 50,
-                                            "width": 50,
+                                            "fontSize": 12,
                                           },
                                           undefined,
                                           undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          {
+                                            "marginTop": 16,
+                                            "textAlign": "center",
+                                          },
                                         ]
                                       }
-                                      testID="fallback-nft-ipfs"
-                                    />
-                                    <View
-                                      style={
-                                        {
-                                          "bottom": 0,
-                                          "left": 0,
-                                          "position": "absolute",
-                                          "right": 0,
-                                          "top": 0,
-                                        }
-                                      }
                                     >
-                                      <Text
-                                        style={
-                                          [
-                                            {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "color": "black",
-                                              "marginTop": 16,
-                                              "textAlign": "center",
-                                            },
-                                          ]
-                                        }
-                                      >
-                                         #1850
-                                      </Text>
-                                    </View>
+                                       #1850
+                                    </Text>
                                   </View>
                                 </View>
                               </View>

@@ -33,10 +33,8 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -297,6 +295,7 @@ class TransactionElement extends PureComponent {
           : transactionIconSwap;
         break;
       case TRANSACTION_TYPES.APPROVE:
+      case TRANSACTION_TYPES.INCREASE_ALLOWANCE:
         icon = isFailedTransaction
           ? transactionIconApproveFailed
           : transactionIconApprove;
@@ -607,7 +606,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   identities: selectIdentities(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   swapsTokens: state.engine.backgroundState.SwapsController.tokens,

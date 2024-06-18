@@ -13,6 +13,8 @@ import initialBackgroundState from '../../../../../util/test/initial-background-
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetrics } from '../../../../../core/Analytics';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
+import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
 
 jest.mock('../../../../../core/Analytics/MetaMetrics');
 
@@ -65,6 +67,7 @@ const initialState = {
   engine: {
     backgroundState: {
       ...initialBackgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
   signatureRequest: {
@@ -128,7 +131,7 @@ describe('TypedSign', () => {
       expect(container).toMatchSnapshot();
 
       const signButton = await container.findByTestId(
-        'request-signature-confirm-button',
+        SigningModalSelectorsIDs.SIGN_BUTTON,
       );
       fireEvent.press(signButton);
       expect(mockConfirm).toHaveBeenCalledTimes(1);
@@ -160,7 +163,7 @@ describe('TypedSign', () => {
         );
 
         const signButton = await container.findByTestId(
-          'request-signature-confirm-button',
+          SigningModalSelectorsIDs.SIGN_BUTTON,
         );
         fireEvent.press(signButton);
 
@@ -211,7 +214,7 @@ describe('TypedSign', () => {
         );
 
         const rejectButton = await container.findByTestId(
-          'request-signature-cancel-button',
+          SigningModalSelectorsIDs.CANCEL_BUTTON,
         );
         fireEvent.press(rejectButton);
 
@@ -252,7 +255,7 @@ describe('TypedSign', () => {
       expect(container).toMatchSnapshot();
 
       const rejectButton = await container.findByTestId(
-        'request-signature-cancel-button',
+        SigningModalSelectorsIDs.CANCEL_BUTTON,
       );
       fireEvent.press(rejectButton);
       expect(mockReject).toHaveBeenCalledTimes(1);
@@ -287,7 +290,7 @@ describe('TypedSign', () => {
       );
 
       const rejectButton = await container.findByTestId(
-        'request-signature-cancel-button',
+        SigningModalSelectorsIDs.CANCEL_BUTTON,
       );
       fireEvent.press(rejectButton);
 
@@ -325,7 +328,7 @@ describe('TypedSign', () => {
       );
 
       const rejectButton = await container.findByTestId(
-        'request-signature-cancel-button',
+        SigningModalSelectorsIDs.CANCEL_BUTTON,
       );
       fireEvent.press(rejectButton);
 
@@ -367,7 +370,7 @@ describe('TypedSign', () => {
       );
 
       const signButton = await container.findByTestId(
-        'request-signature-confirm-button',
+        SigningModalSelectorsIDs.SIGN_BUTTON,
       );
       fireEvent.press(signButton);
 

@@ -48,10 +48,8 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../../../selectors/preferencesController';
+import { selectIdentities } from '../../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../UI/AddToAddressBookWrapper';
 import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
@@ -661,7 +659,7 @@ SendFlow.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   selectedAsset: state.transaction.selectedAsset,
   identities: selectIdentities(state),
   ticker: selectTicker(state),
