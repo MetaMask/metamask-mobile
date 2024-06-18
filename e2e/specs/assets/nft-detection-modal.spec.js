@@ -9,12 +9,12 @@ import {
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import NftDetectionModal from '../../pages/modals/NftDetectionModal';
-import { SmokeNftDetection } from '../../tags';
+import { SmokeCore } from '../../tags';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import enContent from '../../../locales/languages/en.json';
 
-describe(SmokeNftDetection('NFT Detection Modal'), () => {
+describe(SmokeCore('NFT Detection Modal'), () => {
   const ETHEREUM = 'Ethereum Main Network';
   beforeAll(async () => {
     jest.setTimeout(170000);
