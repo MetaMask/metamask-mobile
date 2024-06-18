@@ -24,6 +24,13 @@ import {
   getIsSwapApproveOrSwapTransaction,
   getIsSwapApproveTransaction,
   getIsSwapTransaction,
+  INCREASE_ALLOWANCE_SIGNATURE,
+  TOKEN_METHOD_INCREASE_ALLOWANCE,
+  getTransactionActionKey,
+  generateApprovalData,
+  getFourByteSignature,
+  APPROVE_FUNCTION_SIGNATURE,
+  isApprovalTransaction,
 } from '.';
 import buildUnserializedTransaction from './optimismTransaction';
 import Engine from '../../core/Engine';
@@ -281,18 +288,25 @@ describe('Transactions utils :: getMethodData', () => {
   it('getMethodData', async () => {
     const transferData =
       '0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001';
-    const contractData =
+    const deployData =
       '0x60a060405260046060527f48302e31000000000000000000000000000000000000000000000000000000006080526006805460008290527f48302e310000000000000000000000000000000000000000000000000000000882556100b5907ff652222313e28459528d920b65115c16c04f3efc82aaedc97be59f3f377c0d3f602060026001841615610100026000190190931692909204601f01919091048101905b8082111561017957600081556001016100a1565b505060405161094b38038061094b833981';
     const randomData = '0x987654321000000000';
     const transferFromData = '0x23b872dd0000000000000000000000000000';
-    const firstMethodData = await getMethodData(transferData);
-    const secondtMethodData = await getMethodData(contractData);
-    const thirdMethodData = await getMethodData(transferFromData);
-    const fourthMethodData = await getMethodData(randomData);
-    expect(firstMethodData.name).toEqual(TOKEN_METHOD_TRANSFER);
-    expect(secondtMethodData.name).toEqual(CONTRACT_METHOD_DEPLOY);
-    expect(thirdMethodData.name).toEqual(TOKEN_METHOD_TRANSFER_FROM);
-    expect(fourthMethodData).toEqual({});
+    const increaseAllowanceDataMock = `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000000000`;
+    const transferMethodData = await getMethodData(transferData);
+    const deployMethodData = await getMethodData(deployData);
+    const transferFromMethodData = await getMethodData(transferFromData);
+    const randomMethodData = await getMethodData(randomData);
+    const increaseAllowanceMethodData = await getMethodData(
+      increaseAllowanceDataMock,
+    );
+    expect(transferMethodData.name).toEqual(TOKEN_METHOD_TRANSFER);
+    expect(deployMethodData.name).toEqual(CONTRACT_METHOD_DEPLOY);
+    expect(transferFromMethodData.name).toEqual(TOKEN_METHOD_TRANSFER_FROM);
+    expect(randomMethodData).toEqual({});
+    expect(increaseAllowanceMethodData.name).toEqual(
+      TOKEN_METHOD_INCREASE_ALLOWANCE,
+    );
   });
 });
 
@@ -534,6 +548,30 @@ describe('Transactions utils :: generateTxWithNewTokenAllowance', () => {
       '0x0000000000000000000000000000000000000000000000000000000000000001';
     const decodedHexValue = decodeAmount(newTx.data);
     expect(expectedHexValue).toBe(decodedHexValue);
+  });
+});
+
+describe('Transaction utils :: generateApprovalData', () => {
+  it('generates the correct data for a token increase allowance transaction', () => {
+    const increaseAllowanceDataMock = `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000000000`;
+    const data = generateApprovalData({
+      spender: MOCK_ADDRESS3,
+      value: '0x1',
+      data: increaseAllowanceDataMock,
+    });
+    expect(data).toBe(
+      '0x39509351000000000000000000000000b794f5ea0ba39494ce839613fffba742795792680000000000000000000000000000000000000000000000000000000000000001',
+    );
+  });
+  it('generates the correct data for a approve transaction with a value of 0', () => {
+    const data = generateApprovalData({
+      spender: MOCK_ADDRESS3,
+      value: '0x0',
+      data: '0x095ea7b3',
+    });
+    expect(data).toBe(
+      '0x095ea7b3000000000000000000000000b794f5ea0ba39494ce839613fffba742795792680000000000000000000000000000000000000000000000000000000000000000',
+    );
   });
 });
 
@@ -949,4 +987,74 @@ describe('Transactions utils :: getIsNativeTokenTransferred', () => {
     const result = getIsNativeTokenTransferred(tx);
     expect(result).toBe(false);
   });
+});
+
+describe('Transactions utils :: getTransactionActionKey', () => {
+  it('returns increase allowance method when receiving increase allowance signature', async () => {
+    const transaction = {
+      txParams: {
+        data: `${INCREASE_ALLOWANCE_SIGNATURE}000000000000000000000000000000000000000000000`,
+        to: '0xAddress',
+      },
+    };
+    const chainId = '1';
+
+    const actionKey = await getTransactionActionKey(transaction, chainId);
+    expect(actionKey).toBe(TOKEN_METHOD_INCREASE_ALLOWANCE);
+  });
+});
+
+describe('Transactions utils :: getFourByteSignature', () => {
+  const testCases = [
+    {
+      data: '0xa9059cbb0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5',
+      expected: '0xa9059cbb',
+    },
+    {
+      data: undefined,
+      expected: undefined,
+    },
+    {
+      data: '',
+      expected: '',
+    },
+  ];
+
+  it.each(testCases)(
+    `extracts the four-byte signature from transaction data`,
+    ({ data, expected }) => {
+      expect(getFourByteSignature(data)).toBe(expected);
+    },
+  );
+});
+
+describe('Transactions utils :: isApprovalTransaction', () => {
+  const testCases: {
+    data: string;
+    expectedResult: boolean;
+    method: string;
+  }[] = [
+    {
+      data: `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5`,
+      expectedResult: true,
+      method: 'increaseAllowance',
+    },
+    {
+      data: `${APPROVE_FUNCTION_SIGNATURE}0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5`,
+      expectedResult: true,
+      method: 'approve',
+    },
+    {
+      data: '0x0a19b14a0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5',
+      expectedResult: false,
+      method: 'otherTransactionType',
+    },
+  ];
+
+  it.each(testCases)(
+    'returns $expectedResult for transaction data: $method',
+    ({ data, expectedResult }) => {
+      expect(isApprovalTransaction(data)).toBe(expectedResult);
+    },
+  );
 });
