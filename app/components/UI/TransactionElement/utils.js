@@ -605,6 +605,8 @@ function decodeConfirmTx(args) {
   let transactionType;
   if (actionKey === strings('transactions.approve'))
     transactionType = TRANSACTION_TYPES.APPROVE;
+  else if (actionKey === strings('transactions.increase_allowance'))
+    transactionType = TRANSACTION_TYPES.INCREASE_ALLOWANCE;
   else if (actionKey === strings('transactions.swaps_transaction'))
     transactionType = TRANSACTION_TYPES.SWAPS_TRANSACTION;
   else if (
