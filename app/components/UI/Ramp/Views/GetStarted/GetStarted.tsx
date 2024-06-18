@@ -28,7 +28,6 @@ const GetStarted: React.FC = () => {
     sdkError,
     selectedChainId,
     isBuy,
-    intent,
     setIntent,
   } = useRampSDK();
   const { selectedRegion } = useRegions();

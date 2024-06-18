@@ -3,9 +3,7 @@ import { type BN } from 'ethereumjs-util';
 import { useRampSDK } from '../sdk';
 import parseAmount from '../utils/parseAmount';
 import { toTokenMinimalUnit } from '../../../../util/number';
-import Logger from '../../../../util/Logger';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
-
 
 /**
  * This hook is used to parse and set the amount of the ramp intent in the view state.
