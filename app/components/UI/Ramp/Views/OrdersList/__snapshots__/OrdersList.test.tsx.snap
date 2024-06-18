@@ -53,7 +53,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
   data={
     [
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -76,7 +76,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         "state": "COMPLETED",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -99,7 +99,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         "state": "PENDING",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "cryptocurrency": "ETH",
         "currency": "USD",
         "data": {
@@ -1190,7 +1190,7 @@ exports[`OrdersList renders correctly 1`] = `
   data={
     [
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -1213,7 +1213,7 @@ exports[`OrdersList renders correctly 1`] = `
         "state": "COMPLETED",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -1236,7 +1236,7 @@ exports[`OrdersList renders correctly 1`] = `
         "state": "PENDING",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -1259,7 +1259,7 @@ exports[`OrdersList renders correctly 1`] = `
         "state": "PENDING",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "cryptocurrency": "ETH",
         "currency": "USD",
         "data": {
@@ -3153,7 +3153,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
   data={
     [
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -3699,7 +3699,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
   data={
     [
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -4243,7 +4243,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
   data={
     [
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -4266,7 +4266,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         "state": "COMPLETED",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -4289,7 +4289,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         "state": "PENDING",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -4312,7 +4312,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         "state": "PENDING",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "cryptocurrency": "ETH",
         "currency": "USD",
         "data": {
