@@ -124,6 +124,7 @@
     "**/babel-runtime/regenerator-runtime": "^0.13.8",
     "redux-persist-filesystem-storage/react-native-blob-util": "^0.19.9",
     "xmldom": "npm:@xmldom/xmldom@0.7.13",
+    "socket.io-client/engine.io-client/ws": "^8.17.1",
     "@storybook/react-native/chokidar/braces": "^3.0.3",
     "lint-staged/micromatch/braces": "^3.0.3",
     "@metamask/metamask-eth-abis": "3.1.1"
