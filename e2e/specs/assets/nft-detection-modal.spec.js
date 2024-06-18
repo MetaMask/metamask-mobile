@@ -36,9 +36,6 @@ describe(SmokeCore('NFT Detection Modal'), () => {
       async () => {
         await loginToApp();
 
-        // Tap on Close for the privacy toast
-        await TestHelpers.waitAndTapByLabel('Close');
-
         // Switch to Mainnet
         await WalletView.tapNetworksButtonOnNavBar();
         await NetworkListModal.changeNetworkTo(ETHEREUM);
@@ -72,9 +69,6 @@ describe(SmokeCore('NFT Detection Modal'), () => {
       },
       async () => {
         await loginToApp();
-
-        // Tap on Close for the privacy toast
-        await TestHelpers.waitAndTapByLabel('Close');
 
         // Switch to Mainnet
         await WalletView.tapNetworksButtonOnNavBar();
