@@ -29,14 +29,16 @@ app/core/Encryptor/                  @MetaMask/accounts-engineers
 app/components/UI/Swaps              @MetaMask/swaps-engineers @MetaMask/mobile-platform
 
 # Notifications Team
-app/components/Views/Notifications   @MetaMask/notifications @MetaMask/mobile-platform
-app/components/Views/Settings/NotificationsSettings @MetaMask/notifications  @MetaMask/mobile-platform
-app/components/UI/Notifications @MetaMask/notifications  @MetaMask/mobile-platform
-app/core/Engine.ts  @MetaMask/mobile-platform
-app/core/Engine.test.js  @MetaMask/mobile-platform
-app/components/Nav  @MetaMask/mobile-platform
-app/store @MetaMask/mobile-platform
+app/components/Views/Notifications @MetaMask/notifications @MetaMask/mobile-platform
+app/components/Views/Settings/NotificationsSettings @MetaMask/notifications @MetaMask/mobile-platform
+app/components/UI/Notifications @MetaMask/notifications @MetaMask/mobile-platform
 app/reducers/notification  @MetaMask/notifications  @MetaMask/mobile-platform
 app/actions/notification @MetaMask/notifications  @MetaMask/mobile-platform
 app/selectors/notification @MetaMask/notifications  @MetaMask/mobile-platform
 app/util/notifications  @MetaMask/notifications  @MetaMask/mobile-platform
+
+app/core/Engine.ts @MetaMask/notifications @MetaMask/mobile-platform
+app/core/Engine.test.js @MetaMask/notifications @MetaMask/mobile-platform
+app/components/Nav @MetaMask/notifications @MetaMask/mobile-platform
+app/store @MetaMask/notifications @MetaMask/mobile-platform
+
