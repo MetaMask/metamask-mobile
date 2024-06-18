@@ -11,36 +11,32 @@ interface SessionData {
   accessToken: string;
 }
 
-interface IState {
-  pushNotifications: {
-    isSignedIn: boolean;
-    isProfileSyncingEnabled: boolean;
-    isMetamaskNotificationsFeatureSeen: boolean;
-    isPushNotificationEnabled: boolean;
-    isFeatureAnnouncementsEnabled: boolean;
-    setParticipateInMetaMetrics: boolean;
-    isNotificationServicesEnabled: boolean;
-    accounts: string[];
-    notifications: Notification[];
-    fcmToken?: string;
-    sessionData?: SessionData;
-  };
+export interface IPushNotificationsState {
+  isSignedIn: boolean;
+  isProfileSyncingEnabled: boolean;
+  isMetamaskNotificationsFeatureSeen: boolean;
+  isPushNotificationEnabled: boolean;
+  isFeatureAnnouncementsEnabled: boolean;
+  setParticipateInMetaMetrics: boolean;
+  isNotificationServicesEnabled: boolean;
+  accounts: string[];
+  notifications: Notification[];
+  fcmToken?: string;
+  sessionData?: SessionData;
 }
 
-const initialState: IState = {
-  pushNotifications: {
-    isSignedIn: false,
-    sessionData: undefined,
-    isProfileSyncingEnabled: false,
-    isMetamaskNotificationsFeatureSeen: false,
-    isPushNotificationEnabled: false,
-    isFeatureAnnouncementsEnabled: false,
-    setParticipateInMetaMetrics: false,
-    isNotificationServicesEnabled: false,
-    accounts: [],
-    notifications: [],
-    fcmToken: undefined,
-  },
+const initialState: IPushNotificationsState = {
+  isSignedIn: false,
+  sessionData: undefined,
+  isProfileSyncingEnabled: false,
+  isMetamaskNotificationsFeatureSeen: false,
+  isPushNotificationEnabled: false,
+  isFeatureAnnouncementsEnabled: false,
+  setParticipateInMetaMetrics: false,
+  isNotificationServicesEnabled: false,
+  accounts: [],
+  notifications: [],
+  fcmToken: undefined,
 };
 
 const pushNotificationsReducer = (action: any, state = initialState) => {

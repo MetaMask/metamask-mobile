@@ -1,145 +1,69 @@
 /* eslint-disable import/prefer-default-export */
 import { createSelector } from 'reselect';
 import { RootState } from '../../reducers';
-import { TRIGGER_TYPES, type Notification } from '../../util/notifications';
-import { createDeepEqualSelector } from '../util';
-import {
-  AuthenticationControllerState,
-  UserStorageControllerState,
-} from '@metamask/profile-sync-controller';
+import { TRIGGER_TYPES } from '../../util/notifications';
 
-import { NotificationServicesControllerState } from '@metamask/notification-services-controller';
-const selectAuthenticationControllerState = (state: RootState) =>
-  state.engine.backgroundState.AuthenticationController;
+import { IPushNotificationsState } from '../../reducers/pushNotifications';
 
-const selectUserStorageControllerState = (state: RootState) =>
-  state.engine.backgroundState.UserStorageController;
-
-const selectNotificationsControllerState = (state: RootState) =>
-  state.engine.backgroundState.NotificationServicesController;
-
-const selectNotificationServicesPushControllerState = (state: RootState) =>
-  state.engine.backgroundState.NotificationServicesPushController;
-
+const selectPushNotificationsState = (state: RootState) =>
+  state.pushNotifications;
 export const selectIsSignedIn = createSelector(
-  selectAuthenticationControllerState,
-  (authenticationControllerState: AuthenticationControllerState) =>
-    authenticationControllerState.isSignedIn,
+  selectPushNotificationsState,
+  (pushNotificationsState: IPushNotificationsState) =>
+    pushNotificationsState.isSignedIn,
 );
-
 export const selectSessionData = createSelector(
-  selectAuthenticationControllerState,
-  (authenticationControllerState: AuthenticationControllerState) =>
-    authenticationControllerState.sessionData,
+  selectPushNotificationsState,
+  (pushNotificationsState: IPushNotificationsState) =>
+    pushNotificationsState.sessionData,
 );
-
 export const selectIsProfileSyncingEnabled = createSelector(
-  selectUserStorageControllerState,
-  (userStorageControllerState: UserStorageControllerState) =>
-    userStorageControllerState.isProfileSyncingEnabled,
+  selectPushNotificationsState,
+  (pushNotificationsState: IPushNotificationsState) =>
+    pushNotificationsState.isProfileSyncingEnabled,
 );
-
-export const selectIsProfileSyncingUpdateLoading = createSelector(
-  selectUserStorageControllerState,
-  (userStorageControllerState: UserStorageControllerState) =>
-    userStorageControllerState.isProfileSyncingUpdateLoading,
-);
-
-export const selectInternalAccounts = createSelector(
-  selectUserStorageControllerState,
-  (userStorageControllerState: UserStorageControllerState) =>
-    userStorageControllerState.internalAccounts,
-);
-
-export const selectUniqueAccounts = createSelector(
-  selectUserStorageControllerState,
-  (userStorageControllerState: UserStorageControllerState) =>
-    userStorageControllerState.uniqueAccounts,
-);
-
 export const selectIsMetamaskNotificationsEnabled = createSelector(
-  selectNotificationServicesPushControllerState,
-  (metamaskNotificationsControllerState: NotificationServicesControllerState) =>
-    metamaskNotificationsControllerState.isMetamaskNotificationsEnabled,
+  selectPushNotificationsState,
+  (pushNotificationsState: IPushNotificationsState) =>
+    pushNotificationsState.isNotificationServicesEnabled,
 );
-
 export const selectIsFeatureAnnouncementsEnabled = createSelector(
-  selectNotificationsControllerState,
-  (metamaskNotificationsController: NotificationServicesControllerState) =>
-    metamaskNotificationsController.isFeatureAnnouncementsEnabled,
+  selectPushNotificationsState,
+  (pushNotificationsState: IPushNotificationsState) =>
+    pushNotificationsState.isFeatureAnnouncementsEnabled,
 );
-
-export const selectIsCheckingAccountsPresence = createSelector(
-  selectNotificationsControllerState,
-  (metamaskNotificationsController: NotificationServicesControllerState) =>
-    metamaskNotificationsController.isCheckingAccountsPresence,
+export const selectAccountsPresence = createSelector(
+  selectPushNotificationsState,
+  (pushNotificationsState: IPushNotificationsState) =>
+    pushNotificationsState.accounts,
 );
-
-export const selectIsUpdatingMetamaskNotifications = createSelector(
-  selectNotificationsControllerState,
-  (metamaskNotificationsController: NotificationServicesControllerState) =>
-    metamaskNotificationsController.isUpdatingMetamaskNotifications,
+export const selectIsMetamaskNotificationsFeatureSeen = createSelector(
+  selectPushNotificationsState,
+  (pushNotificationsState: IPushNotificationsState) =>
+    pushNotificationsState.isMetamaskNotificationsFeatureSeen,
 );
-
-export const selectHasSeenNotificationsFeature = createSelector(
-  selectNotificationsControllerState,
-  (metamaskNotificationsController: NotificationServicesControllerState) =>
-    metamaskNotificationsController.hasSeenNotificationsFeature,
-);
-
-export const selectIsFetchingMetamaskNotification = createSelector(
-  selectNotificationsControllerState,
-  (metamaskNotificationsController: NotificationServicesControllerState) =>
-    metamaskNotificationsController.isFetchingMetamaskNotification,
-);
-
-export const selectIsUpdatingMetamaskNotificationsAccounts = createSelector(
-  selectNotificationsControllerState,
-  (metamaskNotificationsController: NotificationServicesControllerState) =>
-    metamaskNotificationsController.isUpdatingMetamaskNotificationsAccounts,
-);
-
-export const selectIsUpdatingMetamaskNotificationsAccount = createSelector(
-  selectNotificationsControllerState,
-  (metamaskNotificationsController: NotificationServicesControllerState) =>
-    metamaskNotificationsController.isUpdatingMetamaskNotificationsAccount,
-);
-
 export const selectNotificationsList = createSelector(
-  selectNotificationsControllerState,
-  (metamaskNotificationsController: NotificationServicesControllerState) =>
-    metamaskNotificationsController.metamaskNotificationsList,
+  selectPushNotificationsState,
+  (pushNotificationsState: IPushNotificationsState) =>
+    pushNotificationsState.notifications,
 );
-
-export const selectNotificationsReadList = createSelector(
-  selectNotificationsControllerState,
-  (metamaskNotificationsController: NotificationServicesControllerState) =>
-    metamaskNotificationsController.metamaskNotificationsReadList,
-);
-
 export const getMetamaskNotificationsUnreadCount = createSelector(
-  [selectNotificationsControllerState],
-  (notifications: Notification[]) =>
-    notifications
-      ? notifications.filter((notification) => !notification.isRead).length
+  selectPushNotificationsState,
+  (pushNotificationsState: IPushNotificationsState) =>
+    pushNotificationsState.notifications
+      ? pushNotificationsState.notifications.filter(
+          (notification) => !notification.isRead,
+        ).length
       : 0,
 );
-
 export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
-  [selectNotificationsControllerState],
-  (notifications: Notification[]) =>
-    notifications
-      ? notifications.filter(
+  selectPushNotificationsState,
+  (pushNotificationsState: IPushNotificationsState) =>
+    pushNotificationsState.notifications
+      ? pushNotificationsState.notifications.filter(
           (notification) =>
             !notification.isRead &&
             notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
         ).length
       : 0,
 );
-
-export const getMetamaskNotificationById = (id: string) =>
-  createDeepEqualSelector(
-    [selectNotificationsControllerState],
-    (notifications: Notification[]): Notification | undefined =>
-      notifications.find((notification) => notification.id === id),
-  );
