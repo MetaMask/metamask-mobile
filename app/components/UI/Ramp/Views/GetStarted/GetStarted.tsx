@@ -56,7 +56,7 @@ const GetStarted: React.FC = () => {
     if (params) {
       setIntent(params);
     }
-  }, [intent, params, setIntent]);
+  }, [params, setIntent]);
 
   useEffect(() => {
     navigation.setOptions(
