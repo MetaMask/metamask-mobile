@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.24.0",
+  "version": "7.24.1",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -125,7 +125,8 @@
     "redux-persist-filesystem-storage/react-native-blob-util": "^0.19.9",
     "xmldom": "npm:@xmldom/xmldom@0.7.13",
     "@storybook/react-native/chokidar/braces": "^3.0.3",
-    "lint-staged/micromatch/braces": "^3.0.3"
+    "lint-staged/micromatch/braces": "^3.0.3",
+    "@metamask/metamask-eth-abis": "3.1.1"
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
