@@ -81,11 +81,17 @@ have to have all these work arounds in the tests
     console.log('The whats new modal is not visible');
 
     //
-  } finally {
+  }
+
+  try {
     // Handle Marketing consent modal
 
     await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
     await ExperienceEnhancerModal.tapNoThanks();
+  } catch {
+    console.log('The marketing consent modal is not visible');
+
+    //
   }
 };
 
