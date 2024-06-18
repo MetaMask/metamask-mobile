@@ -77,6 +77,7 @@ describe(
       } catch {
         //
       }
+      await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
       await ExperienceEnhancerModal.tapIagree();
     });
 
