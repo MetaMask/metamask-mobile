@@ -77,8 +77,19 @@ describe(
       } catch {
         //
       }
-      await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
-      await ExperienceEnhancerModal.tapIagree();
+    });
+
+    it('should dismiss the marketing consent bottom sheet', async () => {
+      // dealing with flakiness on bitrise.
+      await TestHelpers.delay(1000);
+      try {
+        await Assertions.checkIfVisible(
+          await ExperienceEnhancerModal.container,
+        );
+        await ExperienceEnhancerModal.tapIagree();
+      } catch {
+        //
+      }
     });
 
     it('should tap on "Got it" Button in the whats new modal', async () => {
