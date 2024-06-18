@@ -1179,6 +1179,8 @@ class Engine {
         getNftState: () => nftController.state,
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
+        disabled: false,
+        selectedAddress: preferencesController.state.selectedAddress,
       }),
       currencyRateController,
       networkController,

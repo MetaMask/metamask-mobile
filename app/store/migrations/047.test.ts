@@ -39,7 +39,7 @@ describe('Migration #47', () => {
         engine: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 47: Invalid engine state error: 'object'",
+        "FATAL ERROR: Migration 47: Invalid engine state error: 'null'",
       scenario: 'engine state is invalid',
     },
     {

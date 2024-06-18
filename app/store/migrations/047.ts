@@ -19,9 +19,7 @@ export default function migrate(state: unknown) {
   if (!isObject(tokenRatesControllerState)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 47: Invalid TokenRatesController state error: '${JSON.stringify(
-          tokenRatesControllerState,
-        )}'`,
+        `FATAL ERROR: Migration 47: Invalid TokenRatesController state error: '${typeof tokenRatesControllerState}'`,
       ),
     );
     return state;

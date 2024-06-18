@@ -650,7 +650,7 @@ index 2f1b66f..eb28224 100644
          }
          const { price } = marketData;
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
-index 42a321a..e158cba 100644
+index 42a321a..1393ca3 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
 @@ -109,6 +109,7 @@ export interface NftMetadata {
@@ -670,6 +670,15 @@ index 42a321a..e158cba 100644
      useIPFSSubdomains: boolean;
      isIpfsGatewayEnabled: boolean;
  }
+@@ -350,7 +351,7 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
+             source: string;
+         }) => void;
+         messenger: NftControllerMessenger;
+-    }, config?: Partial<BaseConfig>, state?: Partial<NftState>);
++    }, config?: Partial<NftConfig>, state?: Partial<NftState>);
+     private validateWatchNft;
+     private getCorrectChainId;
+     /**
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts
 index 52bb3ac..1f4d15d 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts
