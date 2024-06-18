@@ -64,7 +64,7 @@ export const { Types, Creators } = createActions({
   fetchAndUpdateMetamaskNotificationsRequest: [],
   fetchAndUpdateMetamaskNotificationsSuccess: [],
   fetchAndUpdateMetamaskNotificationsFailure: ['error'],
-  markMetamaskNotificationsAsReadRequest: [],
+  markMetamaskNotificationsAsReadRequest: ['notifications'],
   markMetamaskNotificationsAsReadSuccess: [],
   markMetamaskNotificationsAsReadFailure: ['error'],
   deleteNotificationStatusRequest: [],
@@ -676,17 +676,11 @@ const fetchAndUpdateMetamaskNotificationsFailure = (
     },
   },
 });
-const markMetamaskNotificationsAsReadRequest = (
-  action: any,
-  state = INITIAL_STATE,
-) => {
-  const { notifications } = action;
-  return {
-    pushNotifications: {
-      ...state.pushNotifications,
-    },
-  };
-};
+const markMetamaskNotificationsAsReadRequest = (state = INITIAL_STATE) => ({
+  pushNotifications: {
+    ...state.pushNotifications,
+  },
+});
 const markMetamaskNotificationsAsReadSuccess = (
   action: any,
   state = INITIAL_STATE,

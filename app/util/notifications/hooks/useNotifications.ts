@@ -170,19 +170,22 @@ export function useDisableNotifications(): DisableNotificationsReturn {
  * @param notifications - The notifications to mark as read.
  * @returns An object containing the `markNotificationAsRead` function, loading state, and error state.
  */
-export function useMarkNotificationAsRead(
-  notifications: MarkAsReadNotificationsParam,
-): MarkNotificationAsReadReturn {
+export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
   const dispatch = useDispatch();
 
-  const markNotificationAsRead = useCallback(async () => {
-    try {
-      dispatch(Creators.markMetamaskNotificationsAsReadRequest(notifications));
-    } catch (e: any) {
-      Logger.error(e);
-      throw e;
-    }
-  }, [dispatch, notifications]);
+  const markNotificationAsRead = useCallback(
+    async (notifications: MarkAsReadNotificationsParam) => {
+      try {
+        dispatch(
+          Creators.markMetamaskNotificationsAsReadRequest(notifications),
+        );
+      } catch (e: any) {
+        Logger.error(e);
+        throw e;
+      }
+    },
+    [dispatch],
+  );
 
   return {
     markNotificationAsRead,

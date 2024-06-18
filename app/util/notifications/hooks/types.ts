@@ -1,6 +1,9 @@
 import type { InternalAccount } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import type { Notification } from '../../../util/notifications/types/notification';
+import type {
+  MarkAsReadNotificationsParam,
+  Notification,
+} from '../../../util/notifications/types/notification';
 
 export interface UseCreateSessionReturn {
   createSession: () => Promise<void>;
@@ -44,7 +47,9 @@ export interface DisableNotificationsReturn {
 }
 
 export interface MarkNotificationAsReadReturn {
-  markNotificationAsRead: () => Promise<void>;
+  markNotificationAsRead: (
+    notifications: MarkAsReadNotificationsParam,
+  ) => Promise<void>;
 }
 
 export interface EnableProfileSyncingReturn {

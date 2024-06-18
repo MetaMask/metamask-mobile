@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { capitalize } from 'lodash';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -25,7 +25,7 @@ import { AvatarAccountType } from '../../../../component-library/components/Avat
 
 import { showAlert } from '../../../../actions/alert';
 import { protectWalletModalVisible } from '../../../../actions/user';
-
+import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
 import { createStyles } from './styles';
 
 import renderAnnouncementsDetails from './Announcements';
@@ -43,16 +43,26 @@ interface Props {
 
 const NotificationsDetails = ({ navigation, route }: Props) => {
   const { notification } = route.params;
-
+  const { markNotificationAsRead } = useMarkNotificationAsRead();
   const dispatch = useDispatch();
   const theme = useTheme();
   const styles = createStyles(theme);
+
+  const markAsRead = useCallback(() => {
+    markNotificationAsRead([notification]);
+  }, [notification, markNotificationAsRead]);
 
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  useEffect(() => {
+    setTimeout(() => {
+      markAsRead();
+    }, 5000);
+  }, [markAsRead]);
 
   const handleShowAlert = (config: {
     isVisible: boolean;

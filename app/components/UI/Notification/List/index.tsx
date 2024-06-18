@@ -19,6 +19,7 @@ import {
 } from '../../../../util/notifications';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
 import Routes from '../../../../constants/navigation/Routes';
+import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
 
 interface NotificationsList {
   navigation: any;
@@ -35,6 +36,7 @@ const Notifications = ({
   annoucementsNotifications,
   loading,
 }: NotificationsList) => {
+  const { markNotificationAsRead } = useMarkNotificationAsRead();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
@@ -46,6 +48,12 @@ const Notifications = ({
     },
     [navigation],
   );
+
+  //TODO: Implement markAllAsRead function call based on the separate PR https://github.com/MetaMask/metamask-mobile/pull/9954
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const markAllAsRead = useCallback(() => {
+    markNotificationAsRead(allNotifications);
+  }, [allNotifications, markNotificationAsRead]);
 
   const renderTabBar = useCallback(
     (props: any) => (
