@@ -43,9 +43,9 @@ export default function useIntentAmount(
           try {
             valueAsNumber = Number(parsedAmount);
           } catch (numberError) {
-            Logger.error(
-              numberError as Error,
+            console.error(
               'Error parsing intent amount as number',
+              numberError as Error,
             );
           }
           setAmount(parsedAmount);
@@ -60,7 +60,7 @@ export default function useIntentAmount(
           }
         }
       } catch (parsingError) {
-        Logger.error(parsingError as Error, 'Error parsing intent amount');
+        console.error('Error parsing intent amount', parsingError as Error);
       } finally {
         setIntent((prevIntent) => ({ ...prevIntent, amount: undefined }));
       }
