@@ -48,8 +48,8 @@ export const acceptTermOfUse = async () => {
   await Assertions.checkIfNotVisible(TermsOfUseModal.container);
 };
 export const closeOnboardingModals = async () => {
-  /* 
-These onboarding modals are becoming a bit wild. We need less of these so we dont 
+  /*
+These onboarding modals are becoming a bit wild. We need less of these so we dont
 have to have all these work arounds in the tests
   */
   await TestHelpers.delay(1000);
