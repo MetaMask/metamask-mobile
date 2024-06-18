@@ -819,6 +819,7 @@
     "network_other_networks": "Other Networks",
     "network_rpc_networks": "RPC Networks",
     "network_add_network": "Add Network",
+    "network_add_custom_network": "Add a custom network",
     "network_add": "Add",
     "network_save": "Save",
     "remove_network_title": "Do you want to remove this network?",

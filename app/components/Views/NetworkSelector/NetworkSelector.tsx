@@ -397,7 +397,7 @@ const NetworkSelector = () => {
         </ScrollView>
         <Button
           variant={ButtonVariants.Secondary}
-          label={strings('app_settings.network_add_network')}
+          label={strings('app_settings.network_add_custom_network')}
           onPress={goToNetworkSettings}
           width={ButtonWidthTypes.Full}
           size={ButtonSize.Lg}
