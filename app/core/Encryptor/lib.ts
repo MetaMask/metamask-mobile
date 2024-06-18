@@ -31,8 +31,8 @@ class AesEncryptionLibrary implements EncryptionLibrary {
       password,
       salt,
       opts.params.iterations,
-      // We're passing a digest of 256 bits but using it with SHA512.
-      // Truncating the output to 256 bits is safe and considerate a good practice.
+      // We're using SHA512 but returning a key with length 256 bits.
+      // Truncating the output to 256 bits is intentional and considered safe.
       SHA256_DIGEST_LENGTH,
       ShaAlgorithm.sha512,
     );
