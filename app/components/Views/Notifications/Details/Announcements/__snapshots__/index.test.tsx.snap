@@ -1,0 +1,126 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AnnouncementsDetails should renders correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "flex-start",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignContent": "center",
+        "borderRadius": 12,
+        "height": 240,
+        "marginBottom": 16,
+        "overflow": "hidden",
+        "width": 718,
+      }
+    }
+  >
+    <Image
+      source={
+        {
+          "uri": "SvgMock",
+        }
+      }
+      style={
+        {
+          "height": 240,
+          "resizeMode": "cover",
+          "width": 718,
+        }
+      }
+    />
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#141618",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 16,
+        "fontWeight": "500",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Welcome to the new MyMetaverse!
+  </Text>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#6a737d",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    We are excited to announce the launch of our brand new website and app!
+  </Text>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={1}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "alignSelf": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#0376c9",
+        "borderRadius": 20,
+        "borderWidth": 1,
+        "bottom": 0,
+        "flexDirection": "row",
+        "height": 40,
+        "justifyContent": "center",
+        "margin": 16,
+        "paddingHorizontal": 16,
+        "position": "absolute",
+        "width": "90%",
+      }
+    }
+    variant="Secondary"
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#0376c9",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Learn more
+    </Text>
+    <SvgMock
+      color="#0376c9"
+      height={16}
+      name="Arrow2Right"
+      style={
+        {
+          "height": 16,
+          "marginLeft": 8,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </TouchableOpacity>
+</View>
+`;

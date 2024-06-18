@@ -8,15 +8,18 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 
 type DeepPartial<BaseType> = {
   [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
 };
 
+const MOCK_ADDRESS = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
+
 const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-order-1',
-    account: '0x0',
+    account: MOCK_ADDRESS,
     network: '1',
     cryptoAmount: '0.01231324',
     orderType: 'BUY',
@@ -39,7 +42,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   },
   {
     id: 'test-order-2',
-    account: '0x0',
+    account: MOCK_ADDRESS,
     network: '1',
     cryptoAmount: '0.01231324',
     orderType: 'SELL',
@@ -62,7 +65,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   },
   {
     id: 'test-order-3',
-    account: '0x0',
+    account: MOCK_ADDRESS,
     network: '1',
     cryptoAmount: '0.01231324',
     orderType: 'BUY',
@@ -85,7 +88,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   },
   {
     id: 'test-order-4',
-    account: '0x0',
+    account: MOCK_ADDRESS,
     network: '1',
     orderType: 'BUY',
     state: FIAT_ORDER_STATES.PENDING,
@@ -105,6 +108,10 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   },
 ];
 
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  MOCK_ADDRESS,
+]);
+
 function render(Component: React.ReactElement, orders = testOrders) {
   return renderWithProvider(Component, {
     state: {
@@ -112,10 +119,10 @@ function render(Component: React.ReactElement, orders = testOrders) {
         backgroundState: {
           ...initialBackgroundState,
           PreferencesController: {
-            selectedAddress: '0x0',
+            selectedAddress: MOCK_ADDRESS,
             identities: {
-              '0x0': {
-                address: '0x0',
+              [MOCK_ADDRESS]: {
+                address: MOCK_ADDRESS,
                 name: 'Account 1',
               },
             },
@@ -128,6 +135,7 @@ function render(Component: React.ReactElement, orders = testOrders) {
               chainId: '0x1',
             },
           },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
         },
       },
       fiatOrders: {

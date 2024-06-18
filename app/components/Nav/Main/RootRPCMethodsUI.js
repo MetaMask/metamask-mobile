@@ -18,12 +18,12 @@ import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
-  APPROVE_FUNCTION_SIGNATURE,
   getTokenValueParam,
   getTokenAddressParam,
   calcTokenAmount,
   getTokenValueParamAsHex,
   getIsSwapApproveOrSwapTransaction,
+  isApprovalTransaction,
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
@@ -58,8 +58,8 @@ import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -197,8 +197,8 @@ const RootRPCMethodsUI = (props) => {
     [
       props.selectedAddress,
       props.shouldUseSmartTransaction,
-      trackEvent,
       trackAnonymousEvent,
+      trackEvent,
     ],
   );
 
@@ -373,11 +373,7 @@ const RootRPCMethodsUI = (props) => {
           });
         }
 
-        if (
-          data &&
-          data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-          (!value || isZeroValue(value))
-        ) {
+        if (isApprovalTransaction(data) && (!value || isZeroValue(value))) {
           setTransactionModalType(TransactionModalType.Transaction);
         } else {
           setTransactionModalType(TransactionModalType.Dapp);
@@ -482,7 +478,7 @@ RootRPCMethodsUI.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
   swapsTransactions:

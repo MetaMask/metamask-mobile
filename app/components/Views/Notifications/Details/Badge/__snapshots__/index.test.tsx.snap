@@ -1,0 +1,162 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationBadge should renders correctly 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "justifyContent": "center",
+      "position": "absolute",
+    }
+  }
+  testID="badge-wrapper-badge"
+>
+  <View>
+    <View
+      useNativeDriver={true}
+    >
+      <Image
+        fadeIn={true}
+        onError={[Function]}
+        onLoadEnd={[Function]}
+        source={
+          {
+            "uri": undefined,
+          }
+        }
+        style={
+          [
+            {
+              "borderRadius": 12,
+              "height": 24,
+              "width": 24,
+            },
+            undefined,
+            undefined,
+            undefined,
+            {
+              "borderRadius": 16,
+              "height": 32,
+              "width": 32,
+            },
+          ]
+        }
+        testID="network-main-asset-badge"
+      />
+      <View
+        collapsable={false}
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "opacity": 1,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 16,
+                "height": 32,
+                "width": 32,
+              },
+              {
+                "backgroundColor": "#eee",
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "aspectRatio": 1,
+        "bottom": 0,
+        "height": 0,
+        "justifyContent": "center",
+        "position": "absolute",
+        "right": 0,
+        "transform": [
+          {
+            "translateX": 0,
+          },
+          {
+            "translateY": 0,
+          },
+        ],
+      }
+    }
+  >
+    <View
+      onLayout={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "aspectRatio": 1,
+          "height": "50%",
+          "justifyContent": "center",
+          "maxHeight": 24,
+          "minHeight": 8,
+          "opacity": 0,
+        }
+      }
+      testID="badge-network"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#ffffff",
+            "borderRadius": 16,
+            "borderWidth": 2,
+            "height": 32,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "shadowColor": "#0000001a",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 1,
+            "shadowRadius": 4,
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+            "width": 32,
+          }
+        }
+      >
+        <Image
+          onError={[Function]}
+          resizeMode="contain"
+          source={
+            {
+              "uri": "badgeImage",
+            }
+          }
+          style={
+            {
+              "height": 32,
+              "width": 32,
+            }
+          }
+          testID="network-avatar-image"
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
