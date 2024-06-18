@@ -4907,10 +4907,10 @@
     human-standard-token-abi "^2.0.0"
     web3 "^4.2.2"
 
-"@metamask/test-dapp@^8.7.0":
-  version "8.8.0"
-  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-8.8.0.tgz#1ea9e527399f81cad16bf1c8f26e89b9344ff248"
-  integrity sha512-J9uT6KNnOeQAoonTnXmBN8gY/Ptg5SVxEm3S5PQu1XE62XKoGDi2hTP2OR93My4YNlgdzIoVcY2NQ/OYWOBEzg==
+"@metamask/test-dapp@^8.9.0":
+  version "8.9.0"
+  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-8.9.0.tgz#bac680e8f0007b3a11440f7e311674d6457d37ed"
+  integrity sha512-N/WfmdrzJm+xbpuqJsfMrlrAhiNDsllIpwt9gDDeEKDlQAfJnMtT9xvOvBJbXY7zgMdtGZuD+KY64jNKabbuVQ==
 
 "@metamask/transaction-controller@^13.0.0":
   version "13.0.0"
