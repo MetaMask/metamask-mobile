@@ -1,5 +1,5 @@
 import { getNetworkTypeById } from '../../../util/networks';
-import { generateApproveData } from '../../../util/transactions';
+import { generateApprovalData } from '../../../util/transactions';
 import { ParseOutput } from 'eth-url-parser';
 import { strings } from '../../../../locales/i18n';
 import { getAddress } from '../../../util/address';
@@ -54,7 +54,7 @@ async function approveTransaction({
     to: target_address.toString(),
     from: PreferencesController.state.selectedAddress.toString(),
     value: '0x0',
-    data: generateApproveData({ spender: spenderAddress, value }),
+    data: generateApprovalData({ spender: spenderAddress, value }),
   };
 
   addTransaction(txParams, {
