@@ -100,6 +100,12 @@ describe(
       } catch {
         //
       }
+      try {
+        await WhatsNewModal.isVisible();
+        await WhatsNewModal.tapCloseButton();
+      } catch {
+        //
+      }
     });
 
     it('should dismiss the protect your wallet modal', async () => {

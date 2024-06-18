@@ -115,6 +115,7 @@ export const importWalletWithRecoveryPhrase = async () => {
   await TestHelpers.delay(1000);
   await closeOnboardingModals();
 
+  await TestHelpers.delay(2000);
   // should tap on the close button to dismiss the whats new modal
   try {
     await Assertions.checkIfVisible(WhatsNewModal.container);
@@ -231,6 +232,13 @@ export const loginToApp = async () => {
     await WhatsNewModal.tapCloseButton();
     await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
     await ExperienceEnhancerModal.tapNoThanks();
+  } catch {
+    //
+  }
+  // this is not ideal. The whats new modal usually pops up last?
+  try {
+    await Assertions.checkIfVisible(WhatsNewModal.container);
+    await WhatsNewModal.tapCloseButton();
   } catch {
     //
   }
