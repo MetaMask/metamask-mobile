@@ -93,6 +93,15 @@ have to have all these work arounds in the tests
 
     //
   }
+  try {
+    await TestHelpers.waitAndTapText(
+      enContent.privacy_policy.toast_action_button,
+    );
+  } catch {
+    console.log('The marketing toast is not visible');
+
+    //
+  }
 };
 
 export const importWalletWithRecoveryPhrase = async () => {
