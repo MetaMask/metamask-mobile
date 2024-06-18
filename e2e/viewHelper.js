@@ -82,6 +82,7 @@ have to have all these work arounds in the tests
 
     //
   }
+  await TestHelpers.delay(3000);
 
   try {
     // Handle Marketing consent modal
@@ -131,6 +132,17 @@ export const importWalletWithRecoveryPhrase = async () => {
   await closeOnboardingModals();
 
   await TestHelpers.delay(2000);
+  try {
+    // Handle Marketing consent modal
+
+    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
+    await ExperienceEnhancerModal.tapNoThanks();
+  } catch {
+    console.log('The marketing consent modal is not visible');
+
+    //
+  }
+
   // should tap on the close button to dismiss the whats new modal
   try {
     await Assertions.checkIfVisible(WhatsNewModal.container);
@@ -176,6 +188,16 @@ export const CreateNewWallet = async () => {
   // dealing with flakiness on bitrise.
   await TestHelpers.delay(1000);
   await closeOnboardingModals();
+  try {
+    // Handle Marketing consent modal
+
+    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
+    await ExperienceEnhancerModal.tapNoThanks();
+  } catch {
+    console.log('The marketing consent modal is not visible');
+
+    //
+  }
   // should tap on the close button to dismiss the whats new modal
   try {
     await Assertions.checkIfVisible(WhatsNewModal.container);
