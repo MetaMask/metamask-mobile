@@ -124,10 +124,15 @@
     "**/babel-runtime/regenerator-runtime": "^0.13.8",
     "redux-persist-filesystem-storage/react-native-blob-util": "^0.19.9",
     "xmldom": "npm:@xmldom/xmldom@0.7.13",
-    "socket.io-client/engine.io-client/ws": "^8.17.1",
     "@storybook/react-native/chokidar/braces": "^3.0.3",
     "lint-staged/micromatch/braces": "^3.0.3",
-    "@metamask/metamask-eth-abis": "3.1.1"
+    "@metamask/metamask-eth-abis": "3.1.1",
+    "**/@walletconnect/socket-transport/ws": "^7.5.10",
+    "**/@ethersproject/providers/ws": "^7.5.10",
+    "**/appium-base-driver/webdriverio/puppeteer-core/ws": "^7.5.10",
+    "**/puppeteer-core/ws": "^8.17.1",
+    "react-native/ws": "^6.2.3",
+    "socket.io-client/engine.io-client/ws": "^8.17.1"
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
