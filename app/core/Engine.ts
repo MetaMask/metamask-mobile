@@ -1379,7 +1379,6 @@ class Engine {
           'TokenListController:stateChange',
           'TokensController:stateChange',
           'TransactionController:stateChange',
-          'SignatureController:stateChange',
           'SnapController:stateChange',
           'SubjectMetadataController:stateChange',
         ],
