@@ -9,6 +9,7 @@ import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
+import ExperienceEnhancerModal from './pages/modals/ExperienceEnhancerModal';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/WalletView';
 import WhatsNewModal from './pages/modals/WhatsNewModal';
@@ -27,6 +28,7 @@ import LoginView from './pages/LoginView';
 import { getGanachePort } from './fixtures/utils';
 import Assertions from './utils/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
+import enContent from '../locales/languages/en.json';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 
@@ -43,7 +45,63 @@ export const acceptTermOfUse = async () => {
   await TermsOfUseModal.tapAgreeCheckBox();
   await TestHelpers.delay(3500);
   await TermsOfUseModal.tapAcceptButton();
-  await TermsOfUseModal.isNotDisplayed();
+  await Assertions.checkIfNotVisible(TermsOfUseModal.container);
+};
+export const closeOnboardingModals = async () => {
+  /*
+These onboarding modals are becoming a bit wild. We need less of these so we dont
+have to have all these work arounds in the tests
+  */
+  await TestHelpers.delay(1000);
+
+  try {
+    await WhatsNewModal.isVisible();
+    await WhatsNewModal.tapCloseButton();
+  } catch {
+    //
+  }
+
+  // Handle Onboarding wizard
+  try {
+    await Assertions.checkIfVisible(
+      await OnboardingWizardModal.stepOneContainer,
+    );
+    await OnboardingWizardModal.tapNoThanksButton();
+    await Assertions.checkIfNotVisible(
+      await OnboardingWizardModal.stepOneContainer,
+    );
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The onboarding modal is not visible');
+  }
+
+  try {
+    await WhatsNewModal.isVisible();
+    await WhatsNewModal.tapCloseButton();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The whats new modal is not visible');
+  }
+
+  try {
+    // Handle Marketing consent modal
+
+    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
+    await ExperienceEnhancerModal.tapNoThanks();
+  } catch {
+    console.log('The marketing consent modal is not visible');
+  }
+  try {
+    await TestHelpers.waitAndTapText(
+      enContent.privacy_policy.toast_action_button,
+    );
+  } catch {
+    /* eslint-disable no-undef */
+
+    console.log('The marketing toast is not visible');
+  }
 };
 
 export const importWalletWithRecoveryPhrase = async () => {
@@ -70,21 +128,20 @@ export const importWalletWithRecoveryPhrase = async () => {
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await TestHelpers.delay(1000);
-  try {
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
-    await OnboardingWizardModal.tapNoThanksButton();
-    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
-  } catch {
-    //
-  }
+  await closeOnboardingModals();
 
   // should tap on the close button to dismiss the whats new modal
-  await TestHelpers.delay(2500);
   try {
     await WhatsNewModal.isVisible();
     await WhatsNewModal.tapCloseButton();
   } catch {
-    //
+    /* eslint-disable no-console */
+    console.log('The whats new modal is not visible');
+  } finally {
+    // Handle Marketing consent modal
+
+    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
+    await ExperienceEnhancerModal.tapNoThanks();
   }
 };
 
@@ -135,10 +192,17 @@ export const CreateNewWallet = async () => {
   // dealing with flakiness on bitrise.
   await TestHelpers.delay(2000);
   try {
-    await WhatsNewModal.isVisible();
+    await Assertions.checkIfVisible(WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
   } catch {
-    //
+    /* eslint-disable no-console */ console.log(
+      'The whats new modal is not visible',
+    );
+  } finally {
+    // Handle Marketing consent modal
+
+    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
+    await ExperienceEnhancerModal.tapNoThanks();
   }
 
   // Dismissing the protect your wallet modal
@@ -197,9 +261,24 @@ export const loginToApp = async () => {
 
   await TestHelpers.delay(2500);
   try {
+    await TestHelpers.waitAndTapText(
+      enContent.privacy_policy.toast_action_button,
+    );
     await WhatsNewModal.isVisible();
     await WhatsNewModal.tapCloseButton();
+    await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
+    await ExperienceEnhancerModal.tapNoThanks();
   } catch {
-    //
+    /* eslint-disable no-console */ console.log(
+      'The onboarding modals is not visible',
+    );
+  }
+  // this is not ideal. The whats new modal usually pops up last?
+  try {
+    await Assertions.checkIfVisible(WhatsNewModal.container);
+    await WhatsNewModal.tapCloseButton();
+  } catch {
+    /* eslint-disable no-console */
+    console.log('The whats new modal is not visible');
   }
 };
