@@ -6,6 +6,19 @@ import { toTokenMinimalUnit } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
 
+
+/**
+ * This hook is used to parse and set the amount of the ramp intent in the view state.
+ * In case the amount can not be parsed, it logs the error and sets the amount to undefined.
+ * It takes four arguments: setAmount, setAmountNumber, setAmountBNMinimalUnit, and currentFiatCurrency.
+ *
+ * @param setAmount - A state setter function to update the amount as a string.
+ * @param setAmountNumber - A state setter function to update the amount as a number.
+ * @param setAmountBNMinimalUnit - A state setter function to update the amount in minimal unit as a BN (BigNumber).
+ * @param currentFiatCurrency - The current fiat currency.
+ *
+ * @returns {void} - This hook does not return a value. It performs side effects by setting the amount in different formats based on the intent and the current fiat currency.
+ */
 export default function useIntentAmount(
   setAmount: (amount: React.SetStateAction<string>) => void,
   setAmountNumber: (amount: React.SetStateAction<number>) => void,
