@@ -124,10 +124,12 @@
     "**/babel-runtime/regenerator-runtime": "^0.13.8",
     "redux-persist-filesystem-storage/react-native-blob-util": "^0.19.9",
     "xmldom": "npm:@xmldom/xmldom@0.7.13",
+    "react-native/ws": "6.2.3",
     "**/@walletconnect/socket-transport/ws": "7.5.10",
     "**/@ethersproject/providers/ws": "7.5.10",
+    "**/appium-base-driver/webdriverio/puppeteer-core/**/ws": "7.5.10",
     "**/puppeteer-core/ws": "8.17.1",
-    "react-native/ws": "6.2.3"
+    "**/engine.io-client/ws": "8.17.1"
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
@@ -333,6 +335,7 @@
     "redux-thunk": "^2.4.2",
     "reselect": "^4.0.0",
     "rxjs": "^7.8.1",
+    "socket.io-client": "^4.5.3",
     "stream-browserify": "3.0.0",
     "through2": "3.0.1",
     "unicode-confusables": "^0.1.1",
