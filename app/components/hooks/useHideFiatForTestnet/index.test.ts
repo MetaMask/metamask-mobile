@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { selectChainId } from '../../../selectors/networkController';
 import { TEST_NETWORK_IDS } from '../../../constants/network';
-import { selectShowFiatInTestnets } from '../../../reducers/settings';
+import selectShowFiatInTestnets from '../../../selectors/settings';
 import useHideFiatForTestnet from './index';
 
 jest.mock('react-redux', () => ({
@@ -12,8 +12,9 @@ jest.mock('../../../selectors/networkController', () => ({
   selectChainId: jest.fn(),
 }));
 
-jest.mock('../../../reducers/settings', () => ({
-  selectShowFiatInTestnets: jest.fn(),
+jest.mock('../../../selectors/settings', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 describe('useHideFiatForTestnet', () => {

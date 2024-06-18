@@ -62,6 +62,3 @@ const settingsReducer = (state = initialState, action) => {
   }
 };
 export default settingsReducer;
-
-export const selectShowFiatInTestnets = (state) =>
-  state.settings.showFiatOnTestnets;
