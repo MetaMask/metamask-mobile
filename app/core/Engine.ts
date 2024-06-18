@@ -397,7 +397,12 @@ class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  datamodel: any;
+  datamodel: ComposableController<
+    EngineState,
+    // TODO: Remove once `BaseControllerV1Instance` type is updated in composable-controller
+    // @ts-expect-error Hotfix for mismatch between `Controllers` type properties and `BaseControllerV1Instance` type
+    Controllers[keyof Controllers],
+  >;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -1354,7 +1359,9 @@ class Engine {
 
     this.datamodel = new ComposableController<
       EngineState,
-      Controllers[keyof Controllers]
+      // TODO: Remove once `BaseControllerV1Instance` type is updated in composable-controller
+      // @ts-expect-error Hotfix for mismatch between `Controllers` type properties and `BaseControllerV1Instance` type
+      Controllers[keyof Controllers],
     >({
       controllers,
       messenger: this.controllerMessenger.getRestricted({
