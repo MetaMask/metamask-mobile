@@ -23,6 +23,12 @@ const ERROR_URL_ALLOWLIST = [
 export const routingInstrumentation =
   new Sentry.ReactNavigationV5Instrumentation();
 
+/**
+ * Capture Sentry user feedback and associate ID of captured exception
+ *
+ * @param options.sentryId - ID of captured exception
+ * @param options.comments - User's feedback/comments
+ */
 export const captureSentryFeedback = ({ sentryId, comments }) => {
   const userFeedback = {
     event_id: sentryId,

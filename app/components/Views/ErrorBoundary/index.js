@@ -250,6 +250,8 @@ class ErrorBoundary extends Component {
   };
 
   componentDidCatch(error, errorInfo) {
+    // Note: Sentry briefly removed this in the next version but eventually added it back in later versions.
+    // Read more here - https://github.com/getsentry/sentry-javascript/issues/11951
     const sentryId = getLatestSentryId();
     this.setState({ sentryId });
     this.generateErrorReport(error, errorInfo?.componentStack);
