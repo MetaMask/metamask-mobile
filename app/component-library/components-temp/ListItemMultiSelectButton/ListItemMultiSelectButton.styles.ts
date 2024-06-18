@@ -28,7 +28,6 @@ const styleSheet = (params: {
         position: 'relative',
         opacity: isDisabled ? 0.5 : 1,
         padding: 16,
-        borderRadius: 4,
         backgroundColor: colors.background.default,
         width: '95%',
       } as ViewStyle,
@@ -47,13 +46,16 @@ const styleSheet = (params: {
       backgroundColor: colors.primary.default,
     },
     listItem: {
-      padding: 0,
+      paddingRight: 0,
+      paddingTop: 0,
+      paddingBottom: 0,
+      paddingLeft: 0,
     },
     container: {
       backgroundColor: isSelected
         ? colors.primary.muted
-        : colors.primary.inverse,
-      paddingRight: 24,
+        : colors.background.default,
+      paddingRight: 20,
       flexDirection: 'row',
       alignItems: 'center',
     },

@@ -17,16 +17,32 @@ const createStyles = (colors: any) =>
         ? 12
         : 0,
     },
-    // baseItem: Object.assign(
-    //   {
-    //     padding: 16,
-    //     borderRadius: 4,
-    //     alignItems: 'flex-start',
-    //     backgroundColor: colors.background.default,
-    //   } as ViewStyle,
-    //   style,
-    // ) as ViewStyle,
-
+    networkMenu: {
+      alignItems: 'center',
+    },
+    containerDeleteText: {
+      paddingLeft: 16,
+      paddingRight: 8,
+      alignItems: 'center',
+    },
+    textCentred: {
+      textAlign: 'center',
+    },
+    buttonWrapper: {
+      flexDirection: 'row',
+      flex: 1,
+      // display: 'flex',
+      // justifyContent: 'space-between',
+      // alignItems: 'center',
+      width: '80%',
+      // padding: 16,
+    },
+    buttonContainer: {
+      // margin: 2,
+    },
+    button: {
+      width: '100%',
+    },
     container: {
       flexDirection: 'row',
       justifyContent: 'space-around',
@@ -35,11 +51,8 @@ const createStyles = (colors: any) =>
     },
     item: {
       paddingLeft: 8,
-      // height: '100%',
-      // width: '100%',
     },
     buttonMenu: {
-      // paddingRight: 32,
       backgroundColor: colors.background.alternative,
     },
     switchContainer: {

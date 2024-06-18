@@ -372,15 +372,15 @@ exports[`Network Selector renders correctly 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
-                                "borderColor": "#D6D9DC",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#bbc0c566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001A",
+                                "shadowColor": "#0000001a",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -410,7 +410,7 @@ exports[`Network Selector renders correctly 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#D6D9DC",
+                                  "backgroundColor": "#bbc0c566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -429,7 +429,7 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#FFFFFF",
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "height": 32,
                                   "justifyContent": "space-between",
@@ -448,7 +448,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 18,
                                     "fontWeight": "700",
@@ -481,7 +481,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#FFFFFF",
+                                      "backgroundColor": "#ffffff",
                                       "borderRadius": 4,
                                       "opacity": 1,
                                       "padding": 16,
@@ -513,7 +513,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 16,
                                             "height": 32,
                                             "justifyContent": "center",
@@ -554,7 +554,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           numberOfLines={1}
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -574,7 +574,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#0376C919",
+                                        "backgroundColor": "#0376c91a",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -587,7 +587,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     <View
                                       style={
                                         {
-                                          "backgroundColor": "#0376C9",
+                                          "backgroundColor": "#0376c9",
                                           "borderRadius": 2,
                                           "marginLeft": 4,
                                           "marginVertical": 4,
@@ -602,7 +602,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   onPress={[Function]}
                                   style={
                                     {
-                                      "backgroundColor": "#FFFFFF",
+                                      "backgroundColor": "#ffffff",
                                       "borderRadius": 4,
                                       "opacity": 1,
                                       "padding": 16,
@@ -633,7 +633,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 16,
                                             "height": 32,
                                             "justifyContent": "center",
@@ -674,7 +674,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           numberOfLines={1}
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -696,7 +696,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#FFFFFF",
+                                      "backgroundColor": "#ffffff",
                                       "borderRadius": 4,
                                       "opacity": 1,
                                       "padding": 16,
@@ -728,7 +728,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 16,
                                             "height": 32,
                                             "justifyContent": "center",
@@ -771,7 +771,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           numberOfLines={1}
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -793,7 +793,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#FFFFFF",
+                                      "backgroundColor": "#ffffff",
                                       "borderRadius": 4,
                                       "opacity": 1,
                                       "padding": 16,
@@ -825,7 +825,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 16,
                                             "height": 32,
                                             "justifyContent": "center",
@@ -868,7 +868,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           numberOfLines={1}
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -890,7 +890,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#FFFFFF",
+                                      "backgroundColor": "#ffffff",
                                       "borderRadius": 4,
                                       "opacity": 1,
                                       "padding": 16,
@@ -922,7 +922,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#FFFFFF",
+                                            "backgroundColor": "#ffffff",
                                             "borderRadius": 16,
                                             "height": 32,
                                             "justifyContent": "center",
@@ -965,7 +965,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           numberOfLines={1}
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -987,7 +987,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#FFFFFF",
+                                      "backgroundColor": "#ffffff",
                                       "borderRadius": 4,
                                       "opacity": 1,
                                       "padding": 16,
@@ -1019,7 +1019,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#F2F4F6",
+                                            "backgroundColor": "#f2f4f6",
                                             "borderRadius": 16,
                                             "borderWidth": 1,
                                             "height": 32,
@@ -1035,7 +1035,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -1060,7 +1060,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           numberOfLines={1}
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -1091,7 +1091,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -1108,7 +1108,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     onChange={[Function]}
                                     onResponderTerminationRequest={[Function]}
                                     onStartShouldSetResponder={[Function]}
-                                    onTintColor="#0376C9"
+                                    onTintColor="#0376c9"
                                     style={
                                       [
                                         {
@@ -1116,13 +1116,14 @@ exports[`Network Selector renders correctly 1`] = `
                                           "width": 51,
                                         },
                                         {
-                                          "backgroundColor": "#D6D9DC",
+                                          "backgroundColor": "#bbc0c566",
                                           "borderRadius": 16,
                                         },
                                       ]
                                     }
                                     testID="test-network-switch-id"
-                                    tintColor="#D6D9DC"
+                                    thumbTintColor="#ffffff"
+                                    tintColor="#bbc0c566"
                                     value={false}
                                   />
                                 </View>
@@ -1140,7 +1141,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
                                   "backgroundColor": "transparent",
-                                  "borderColor": "#0376C9",
+                                  "borderColor": "#0376c9",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -1158,7 +1159,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#0376C9",
+                                    "color": "#0376c9",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 14,
                                     "fontWeight": "400",
