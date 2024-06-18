@@ -173,7 +173,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: mainnetName,
           imageSource: images.ETHEREUM,
-          size: AvatarSize.Sm,
+          size: isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined,
         }}
         isSelected={
           chainId === providerConfig.chainId && !providerConfig.rpcUrl
@@ -194,7 +194,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: lineaMainnetName,
           imageSource: images['LINEA-MAINNET'],
-          size: AvatarSize.Sm,
+          size: isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined,
         }}
         isSelected={chainId === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
@@ -219,7 +219,7 @@ const NetworkSelector = () => {
               variant: AvatarVariant.Network,
               name,
               imageSource: image,
-              size: AvatarSize.Sm,
+              size: isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined,
             }}
             isSelected={Boolean(
               chainId === providerConfig.chainId && providerConfig.rpcUrl,
@@ -246,7 +246,7 @@ const NetworkSelector = () => {
             variant: AvatarVariant.Network,
             name,
             imageSource,
-            size: AvatarSize.Sm,
+            size: isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined,
           }}
           isSelected={chainId === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
