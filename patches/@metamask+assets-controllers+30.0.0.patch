@@ -350,7 +350,7 @@ index b4fa939..29ff871 100644
  };
  _handle = new WeakMap();
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js b/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
-index 0dc70ec..3fcb94e 100644
+index 0dc70ec..461a210 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
 @@ -378,9 +378,10 @@ fetchAndMapExchangeRatesForSupportedNativeCurrency_fn = async function({
@@ -365,6 +365,15 @@ index 0dc70ec..3fcb94e 100644
        };
        return obj;
      },
+@@ -416,7 +417,7 @@ fetchAndMapExchangeRatesForUnsupportedNativeCurrency_fn = async function({
+       ...acc,
+       [tokenAddress]: {
+         ...token,
+-        value: token.value ? token.value * fallbackCurrencyToNativeCurrencyConversionRate : void 0
++        price: token.price ? token.price * fallbackCurrencyToNativeCurrencyConversionRate : void 0
+       }
+     };
+     return acc;
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js b/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
 index 76e3362..5ab79a4 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
@@ -586,6 +595,19 @@ index 06df77e..c1da685 100644
    const [tokensAddresses, detectedTokensAddresses, ignoredTokensAddresses] = [
      allTokens,
      allDetectedTokens,
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js b/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
+index 8c506d9..d1ec2d2 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
+@@ -182,7 +182,7 @@ async function fetchTokenContractExchangeRates({
+     (obj, [tokenAddress, tokenPrice]) => {
+       return {
+         ...obj,
+-        [_controllerutils.toChecksumHexAddress.call(void 0, tokenAddress)]: tokenPrice?.value
++        [_controllerutils.toChecksumHexAddress.call(void 0, tokenAddress)]: tokenPrice?.price
+       };
+     },
+     {}
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-PAJTKWEC.mjs b/node_modules/@metamask/assets-controllers/dist/chunk-PAJTKWEC.mjs
 index 58047d9..fb03d52 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-PAJTKWEC.mjs
@@ -636,10 +658,10 @@ index 245b7b3..1d1c9c5 100644
          }
          const { price } = marketData;
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-Z6TBQQE5.js b/node_modules/@metamask/assets-controllers/dist/chunk-Z6TBQQE5.js
-index 2f1b66f..eb28224 100644
+index 2f1b66f..60cbc0f 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-Z6TBQQE5.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-Z6TBQQE5.js
-@@ -295,7 +295,8 @@ var CodefiTokenPricesServiceV2 = class {
+@@ -295,13 +295,12 @@ var CodefiTokenPricesServiceV2 = class {
        (obj, tokenAddress) => {
          const lowercasedTokenAddress = tokenAddress.toLowerCase();
          const marketData = addressCryptoDataMap[lowercasedTokenAddress];
@@ -648,7 +670,13 @@ index 2f1b66f..eb28224 100644
 +        if (!marketData) {
            return obj;
          }
-         const { price } = marketData;
+-        const { price } = marketData;
+         const token = {
+           tokenAddress,
+-          value: price,
+           currency,
+           ...marketData
+         };
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
 index 42a321a..1393ca3 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts

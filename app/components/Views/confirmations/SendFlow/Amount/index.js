@@ -1078,7 +1078,7 @@ class Amount extends PureComponent {
       );
     } else {
       balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
-      const exchangeRate = contractExchangeRates[address];
+      const exchangeRate = contractExchangeRates[address].price;
       balanceFiat = balanceToFiat(
         balance,
         conversionRate,

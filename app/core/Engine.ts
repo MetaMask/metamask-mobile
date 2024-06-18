@@ -1514,7 +1514,7 @@ class Engine {
       tokens.forEach(
         (item: { address: string; balance?: string; decimals: number }) => {
           const exchangeRate =
-            item.address in tokenExchangeRates
+            tokenExchangeRates && item.address in tokenExchangeRates
               ? tokenExchangeRates[item.address as Hex]
               : undefined;
           const tokenBalance =

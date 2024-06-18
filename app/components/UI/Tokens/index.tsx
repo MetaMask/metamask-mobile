@@ -308,10 +308,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     // When the exchange rate of a token is not found, the return is undefined
     // We fallback to the TOKEN_RATE_UNDEFINED to handle it properly
-    const tokenMarketData =
-      itemAddress in tokenExchangeRates
+    const tokenMarketData = tokenExchangeRates
+      ? itemAddress in tokenExchangeRates
         ? tokenExchangeRates[itemAddress] || TOKEN_RATE_UNDEFINED
-        : undefined;
+        : undefined
+      : undefined;
 
     const balance =
       asset.balance ||
