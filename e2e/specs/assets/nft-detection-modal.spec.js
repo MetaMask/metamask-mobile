@@ -91,6 +91,9 @@ describe(SmokeCore('NFT Detection Modal'), () => {
         await TestHelpers.checkIfNotVisible(
           enContent.wallet.nfts_autodetection_desc,
         );
+
+        const tesNFTOnMainnet = "collectible-Life's A Joke #2875-2875";
+        await TestHelpers.checkIfVisible(tesNFTOnMainnet);
       },
     );
   });
