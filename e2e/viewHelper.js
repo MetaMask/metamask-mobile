@@ -73,6 +73,7 @@ have to have all these work arounds in the tests
   } catch {
     //
   }
+  await TestHelpers.delay(2000);
 
   try {
     await WhatsNewModal.isVisible();
