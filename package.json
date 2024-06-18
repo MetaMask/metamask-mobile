@@ -124,7 +124,8 @@
     "**/babel-runtime/regenerator-runtime": "^0.13.8",
     "redux-persist-filesystem-storage/react-native-blob-util": "^0.19.9",
     "xmldom": "npm:@xmldom/xmldom@0.7.13",
-    "@metamask/metamask-eth-abis": "3.1.1"
+    "@metamask/metamask-eth-abis": "3.1.1",
+    "socket.io-client/engine.io-client/ws": "^8.17.1"
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
