@@ -27,8 +27,8 @@ import { USER_INTENT } from '../../../constants/permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import UntypedEngine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectIdentities } from '../../../selectors/preferencesController';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectIdentities } from '../../../selectors/preferencesController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
@@ -51,11 +51,14 @@ import {
   MM_ETHERSCAN_URL,
   MM_PHISH_DETECT_URL,
 } from '../../../constants/urls';
+import AppConstants from '../../../core/AppConstants';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import { useTheme } from '../../../util/theme';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
+import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 import {
   AccountConnectProps,
   AccountConnectScreens,
@@ -63,7 +66,6 @@ import {
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
-import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -81,6 +83,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
+
+  const [isOriginWalletConnect, setIsOriginWalletConnect] = useState(false);
+  const [isOriginMMSDKRemoteConn, setIsOriginMMSDKRemoteConn] = useState(false);
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
@@ -122,6 +127,30 @@ const AccountConnect = (props: AccountConnectProps) => {
     origin: string;
   };
 
+  const isUUID = (str: string) => {
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  };
+
+  const isChannelId = isUUID(channelIdOrHostname);
+
+  useEffect(() => {
+    if (!channelIdOrHostname) {
+      setIsOriginWalletConnect(false);
+      setIsOriginMMSDKRemoteConn(false);
+
+      return;
+    }
+
+    setIsOriginWalletConnect(
+      channelIdOrHostname.startsWith(WALLET_CONNECT_ORIGIN),
+    );
+    setIsOriginMMSDKRemoteConn(
+      channelIdOrHostname.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN),
+    );
+  }, [channelIdOrHostname]);
+
   const sdkConnection = SDKConnect.getInstance().getConnection({
     channelId: channelIdOrHostname,
   });
@@ -132,12 +161,40 @@ const AccountConnect = (props: AccountConnectProps) => {
       : sdkConnection?.originatorInfo?.url ?? ''
     : inappBrowserOrigin;
 
-  const urlWithProtocol = hostname
-    ? prefixUrlWithProtocol(hostname)
-    : strings('sdk.unknown');
-
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
+
+  const domainTitle = useMemo(() => {
+    let title = '';
+
+    if (isOriginWalletConnect) {
+      title = getUrlObj(
+        (channelIdOrHostname as string).split(WALLET_CONNECT_ORIGIN)[1],
+      ).origin;
+    } else if (isOriginMMSDKRemoteConn) {
+      title = getUrlObj(
+        (channelIdOrHostname as string).split(
+          AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+        )[1],
+      ).origin;
+    } else if (!isChannelId && (dappUrl || channelIdOrHostname)) {
+      title = prefixUrlWithProtocol(dappUrl || channelIdOrHostname);
+    } else {
+      title = strings('sdk.unknown');
+    }
+
+    return title;
+  }, [
+    isOriginWalletConnect,
+    isOriginMMSDKRemoteConn,
+    isChannelId,
+    dappUrl,
+    channelIdOrHostname,
+  ]);
+
+  const urlWithProtocol = hostname
+    ? prefixUrlWithProtocol(hostname)
+    : domainTitle;
 
   const isAllowedUrl = useCallback(
     (url: string) => {
@@ -171,7 +228,12 @@ const AccountConnect = (props: AccountConnectProps) => {
   const faviconSource = useFavicon(inappBrowserOrigin);
 
   const actualIcon = useMemo(
-    () => (dappIconUrl ? { uri: dappIconUrl } : faviconSource),
+    () =>
+      dappIconUrl
+        ? { uri: dappIconUrl }
+        : faviconSource?.uri
+        ? faviconSource
+        : { uri: '' },
     [dappIconUrl, faviconSource],
   );
 

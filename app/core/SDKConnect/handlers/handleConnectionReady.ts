@@ -66,7 +66,12 @@ export const handleConnectionReady = async ({
 
   try {
     const urlObj = new URL(originatorInfo?.url);
-    dappUrl = `${urlObj.protocol}//${urlObj.hostname}`;
+    const hasPort = !!urlObj.port;
+    if (hasPort) {
+      dappUrl = `${urlObj.protocol}//${urlObj.hostname}:${urlObj.port}`;
+    } else {
+      dappUrl = `${urlObj.protocol}//${urlObj.hostname}`;
+    }
   } catch (e) {
     DevLogger.log('Invalid URL:', originatorInfo?.url);
   }

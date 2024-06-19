@@ -30,6 +30,7 @@ import {
 } from './ApproveTransactionHeader.constants';
 import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const ApproveTransactionHeader = ({
   from,
@@ -88,6 +89,7 @@ const ApproveTransactionHeader = ({
 
   const domainTitle = useMemo(() => {
     let title = '';
+
     if (isOriginWalletConnect) {
       title = getUrlObj(
         (origin as string).split(WALLET_CONNECT_ORIGIN)[1],
@@ -96,8 +98,10 @@ const ApproveTransactionHeader = ({
       title = getUrlObj(
         (origin as string).split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
       ).origin;
+    } else if (url || currentEnsName) {
+      title = prefixUrlWithProtocol(url || currentEnsName || '');
     } else {
-      title = prefixUrlWithProtocol(currentEnsName || origin || url);
+      title = strings('sdk.unknown');
     }
 
     return title;
@@ -135,7 +139,7 @@ const ApproveTransactionHeader = ({
         <TagUrl
           testID={APPROVE_TRANSACTION_ORIGIN_PILL}
           imageSource={imageSource}
-          label={sdkDappMetadata?.url || strings('sdk.unknown')}
+          label={sdkDappMetadata?.url || domainTitle}
           style={styles.tagUrl}
         />
       ) : null}
