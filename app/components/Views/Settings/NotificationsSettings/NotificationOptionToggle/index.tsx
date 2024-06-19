@@ -104,7 +104,7 @@ const NotificationOptionToggle = ({
       </View>
       <View style={styles.switchElement}>
         <Switch
-          value={data?.[address] ?? false}
+          value={!!data?.[address]}
           onValueChange={handleToggleAccountNotifications}
           trackColor={{
             true: colors.primary.default,
