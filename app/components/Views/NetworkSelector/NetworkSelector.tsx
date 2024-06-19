@@ -80,6 +80,8 @@ const NetworkSelector = () => {
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
+  const avatarSize = isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined;
+
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: string) => {
     const {
@@ -173,7 +175,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: mainnetName,
           imageSource: images.ETHEREUM,
-          size: isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined,
+          size: avatarSize,
         }}
         isSelected={
           chainId === providerConfig.chainId && !providerConfig.rpcUrl
@@ -194,7 +196,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: lineaMainnetName,
           imageSource: images['LINEA-MAINNET'],
-          size: isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined,
+          size: avatarSize,
         }}
         isSelected={chainId === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
@@ -219,7 +221,7 @@ const NetworkSelector = () => {
               variant: AvatarVariant.Network,
               name,
               imageSource: image,
-              size: isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined,
+              size: avatarSize,
             }}
             isSelected={Boolean(
               chainId === providerConfig.chainId && providerConfig.rpcUrl,
@@ -246,7 +248,7 @@ const NetworkSelector = () => {
             variant: AvatarVariant.Network,
             name,
             imageSource,
-            size: isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined,
+            size: avatarSize,
           }}
           isSelected={chainId === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
@@ -295,7 +297,6 @@ const NetworkSelector = () => {
         selectedNetwork={popularNetwork}
         toggleWarningModal={toggleWarningModal}
         showNetworkModal={showNetworkModal}
-        switchTab={undefined}
         shouldNetworkSwitchPopToWallet={false}
       />
     </View>
