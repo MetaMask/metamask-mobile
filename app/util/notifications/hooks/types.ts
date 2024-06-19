@@ -56,7 +56,7 @@ export interface EnableProfileSyncingReturn {
 
 export interface DisableProfileSyncingReturn {
   disableProfileSyncing: () => void;
-  error: string | undefined;
+  error?: string;
 }
 
 export interface SetIsProfileSyncingEnabledReturn {
