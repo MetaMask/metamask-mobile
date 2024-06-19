@@ -120,7 +120,10 @@ function getTokenTransfer(args) {
   const renderTokenAmount = token
     ? `${renderFromTokenMinimalUnit(amount, token.decimals)} ${token.symbol}`
     : undefined;
-  const exchangeRate = token ? contractExchangeRates[token.address] : undefined;
+  const exchangeRate =
+    token && contractExchangeRates
+      ? contractExchangeRates[token.address]?.price
+      : undefined;
   let renderTokenFiatAmount, renderTokenFiatNumber;
   if (exchangeRate) {
     renderTokenFiatAmount = balanceToFiat(
@@ -286,9 +289,10 @@ export function decodeIncomingTransfer(args) {
   const renderTokenAmount = token
     ? `${renderFromTokenMinimalUnit(amount, token.decimals)} ${token.symbol}`
     : undefined;
-  const exchangeRate = token
-    ? contractExchangeRates[toChecksumAddress(token.address)]
-    : undefined;
+  const exchangeRate =
+    token && contractExchangeRates
+      ? contractExchangeRates[toChecksumAddress(token.address)]?.price
+      : undefined;
 
   let renderTokenFiatAmount, renderTokenFiatNumber;
   if (exchangeRate) {
@@ -769,7 +773,8 @@ function decodeSwapsTx(args) {
 
   const sourceExchangeRate = isSwapsNativeAsset(sourceToken)
     ? 1
-    : contractExchangeRates[safeToChecksumAddress(sourceToken.address)];
+    : contractExchangeRates?.[safeToChecksumAddress(sourceToken.address)]
+        ?.price;
   const renderSourceTokenFiatNumber = balanceToFiatNumber(
     decimalSourceAmount,
     conversionRate,
@@ -778,7 +783,8 @@ function decodeSwapsTx(args) {
 
   const destinationExchangeRate = isSwapsNativeAsset(destinationToken)
     ? 1
-    : contractExchangeRates[safeToChecksumAddress(destinationToken.address)];
+    : contractExchangeRates?.[safeToChecksumAddress(destinationToken.address)]
+        .price;
   const renderDestinationTokenFiatNumber = balanceToFiatNumber(
     decimalDestinationAmount,
     conversionRate,
