@@ -3,11 +3,8 @@ import { WalletDevice } from '@metamask/transaction-controller';
 import * as TransactionControllerUtils from './index';
 import Engine from '../../core/Engine';
 
-const {
-  addTransaction,
-  estimateGas,
-  ...proxyMethods
-} = TransactionControllerUtils;
+const { addTransaction, estimateGas, ...proxyMethods } =
+  TransactionControllerUtils;
 
 const TRANSACTION_MOCK = { from: '0x0', to: '0x1', value: '0x0' };
 const TRANSACTION_OPTIONS_MOCK = {
