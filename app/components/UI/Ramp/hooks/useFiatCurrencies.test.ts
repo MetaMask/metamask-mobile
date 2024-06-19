@@ -33,7 +33,7 @@ describe('useFiatCurrencies', () => {
     };
   });
 
-  it('should call useSDKMethod with the correct parameters for buy', () => {
+  it('calls useSDKMethod with the correct parameters for buy', () => {
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
         data: [],
@@ -57,7 +57,7 @@ describe('useFiatCurrencies', () => {
     );
   });
 
-  it('should call useSDKMethod with the correct parameters for sell', () => {
+  it('calls useSDKMethod with the correct parameters for sell', () => {
     mockUseRampSDKValues.isBuy = false;
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
@@ -82,7 +82,7 @@ describe('useFiatCurrencies', () => {
     );
   });
 
-  it('should return loading state if fetching default fiat currency', () => {
+  it('returns loading state if fetching default fiat currency', () => {
     const mockQueryDefaultFiatCurrency = jest.fn();
     const mockQueryGetFiatCurrencies = jest.fn();
     // Mocked return values for getDefaultFiatCurrency and getFiatCurrencies
@@ -123,7 +123,7 @@ describe('useFiatCurrencies', () => {
     });
   });
 
-  it('should return loading state if fetching fiat currencies', () => {
+  it('returns loading state if fetching fiat currencies', () => {
     const mockQueryDefaultFiatCurrency = jest.fn();
     const mockQueryGetFiatCurrencies = jest.fn();
     // Mocked return values for getDefaultFiatCurrency and getFiatCurrencies
@@ -156,7 +156,7 @@ describe('useFiatCurrencies', () => {
     });
   });
 
-  it('should return error state if there is an error fetching default fiat currency', () => {
+  it('returns error state if there is an error fetching default fiat currency', () => {
     const mockQueryDefaultFiatCurrency = jest.fn();
     const mockQueryGetFiatCurrencies = jest.fn();
     // Mocked return values for getDefaultFiatCurrency and getFiatCurrencies
@@ -197,7 +197,7 @@ describe('useFiatCurrencies', () => {
     });
   });
 
-  it('should return error state if there is an error fetching fiat currencies', () => {
+  it('returns error state if there is an error fetching fiat currencies', () => {
     const mockQueryDefaultFiatCurrency = jest.fn();
     const mockQueryGetFiatCurrencies = jest.fn();
     // Mocked return values for getDefaultFiatCurrency and getFiatCurrencies
@@ -230,7 +230,7 @@ describe('useFiatCurrencies', () => {
     });
   });
 
-  it('should select the default fiat currency if none is selected', () => {
+  it('selects the default fiat currency if none is selected', () => {
     mockUseRampSDKValues.selectedFiatCurrencyId = null;
 
     // Mocked return values for getDefaultFiatCurrency and getFiatCurrencies
@@ -262,7 +262,7 @@ describe('useFiatCurrencies', () => {
     );
   });
 
-  it('should select the default fiat currency if current selection is not available', () => {
+  it('selects the default fiat currency if current selection is not available', () => {
     mockUseRampSDKValues.selectedFiatCurrencyId = 'test-fiat-currency-id-3';
 
     // Mocked return values for getDefaultFiatCurrency and getFiatCurrencies
@@ -294,7 +294,7 @@ describe('useFiatCurrencies', () => {
     );
   });
 
-  it('should not select the default fiat currency if current selection is available', () => {
+  it('does not select the default fiat currency if current selection is available', () => {
     mockUseRampSDKValues.selectedFiatCurrencyId = 'test-fiat-currency-id-2';
 
     // Mocked return values for getDefaultFiatCurrency and getFiatCurrencies
