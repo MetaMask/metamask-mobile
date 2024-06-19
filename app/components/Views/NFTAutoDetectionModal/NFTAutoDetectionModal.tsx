@@ -25,10 +25,12 @@ import { selectChainId } from '../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 
+// eslint-disable-next-line import/no-commonjs
+const walletImage = require('../../../images/wallet-alpha.png');
+
 const NFTAutoDetectionModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
-  const walletImage = require('../../../images/wallet-alpha.png'); // eslint-disable-line
   const navigation = useNavigation();
   const chainId = useSelector(selectChainId);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
