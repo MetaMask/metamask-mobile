@@ -75,7 +75,7 @@ export interface SwitchFeatureAnnouncementsChangeReturn {
 
 export interface SwitchPushNotificationsReturn {
   onChange: (UUIDS: string[], state: boolean) => void;
-  error: string | undefined;
+  error?: string;
 }
 
 export interface UseSwitchAccountNotificationsData {
