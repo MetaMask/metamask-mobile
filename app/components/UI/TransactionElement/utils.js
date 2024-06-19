@@ -607,6 +607,8 @@ function decodeConfirmTx(args) {
     transactionType = TRANSACTION_TYPES.APPROVE;
   else if (actionKey === strings('transactions.increase_allowance'))
     transactionType = TRANSACTION_TYPES.INCREASE_ALLOWANCE;
+  else if (actionKey === strings('transactions.set_approval_for_all'))
+    transactionType = TRANSACTION_TYPES.SET_APPROVAL_FOR_ALL;
   else if (actionKey === strings('transactions.swaps_transaction'))
     transactionType = TRANSACTION_TYPES.SWAPS_TRANSACTION;
   else if (
