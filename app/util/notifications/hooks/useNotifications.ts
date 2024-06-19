@@ -39,8 +39,8 @@ export function useListNotifications(): ListNotificationsReturn {
 
     try {
       const data = dispatch(fetchAndUpdateMetamaskNotificationsRequest());
-      setNotificationsData(data as unknown as Notification[]);
-      return data as unknown as Notification[];
+      setNotificationsData(data);
+      return data;
     } catch (e) {
       setError(getErrorMessage(e));
       throw e;
