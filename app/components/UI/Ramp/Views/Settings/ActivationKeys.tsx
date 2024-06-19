@@ -1,6 +1,6 @@
 // Third party dependencies
 import React, { useCallback } from 'react';
-import { ActivityIndicator, Switch, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Switch } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
 // External dependencies
@@ -8,10 +8,13 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+import {
   IconName,
-  IconSize,
+  IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -118,7 +121,7 @@ function ActivationKeys() {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white['000']}
+              thumbColor={theme.brandColors.white}
               ios_backgroundColor={colors.border.muted}
               disabled={isLoadingKeys}
             />
@@ -142,10 +145,9 @@ function ActivationKeys() {
             </Text>
           </ListItemColumn>
           <ListItemColumn>
-            <TouchableOpacity
-              accessible
-              accessibilityRole="button"
+            <ButtonIcon
               accessibilityLabel="Edit Activation Key"
+              accessibilityRole="button"
               disabled={isLoadingKeys}
               onPress={() =>
                 handleEditPress(
@@ -155,35 +157,22 @@ function ActivationKeys() {
                 )
               }
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-            >
-              <Icon
-                name={IconName.Edit}
-                size={IconSize.Lg}
-                color={
-                  isLoadingKeys
-                    ? colors.primary.disabled
-                    : colors.primary.default
-                }
-              />
-            </TouchableOpacity>
+              iconName={IconName.Edit}
+              iconColor={IconColor.Primary}
+              size={ButtonIconSizes.Lg}
+            />
           </ListItemColumn>
           <ListItemColumn>
-            <TouchableOpacity
-              accessible
+            <ButtonIcon
               accessibilityRole="button"
               accessibilityLabel="Delete Activation Key"
               disabled={isLoadingKeys}
               onPress={() => removeActivationKey(activationKey.key)}
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-            >
-              <Icon
-                name={IconName.Trash}
-                size={IconSize.Lg}
-                color={
-                  isLoadingKeys ? colors.error.disabled : colors.error.default
-                }
-              />
-            </TouchableOpacity>
+              iconName={IconName.Trash}
+              iconColor={IconColor.Error}
+              size={ButtonIconSizes.Lg}
+            />
           </ListItemColumn>
         </ListItem>
       ))}

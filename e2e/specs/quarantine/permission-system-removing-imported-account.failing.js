@@ -20,7 +20,7 @@ import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
 import Assertions from '../../utils/Assertions';
 
-const SEPOLIA = 'Sepolia Test Network';
+const SEPOLIA = 'Sepolia';
 
 const accountPrivateKey = Accounts.getAccountPrivateKey();
 describe(

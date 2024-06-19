@@ -7,8 +7,8 @@ import React from 'react';
 
 // External dependencies.
 import Button, { ButtonVariants } from '../Buttons/Button';
-import ButtonIcon, { ButtonIconVariants } from '../Buttons/ButtonIcon';
-import { IconName } from '../Icons/Icon';
+import ButtonIcon from '../Buttons/ButtonIcon';
+import { IconName, IconColor } from '../Icons/Icon';
 
 // Internal dependencies.
 import { default as HeaderBaseComponent } from './HeaderBase';
@@ -25,7 +25,7 @@ export const HeaderBase = {
     <HeaderBaseComponent
       startAccessory={
         <ButtonIcon
-          variant={ButtonIconVariants.Secondary}
+          iconColor={IconColor.Default}
           iconName={IconName.ArrowLeft}
           onPress={() => {
             console.log('clicked');
