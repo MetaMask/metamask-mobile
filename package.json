@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.24.0",
+  "version": "7.24.1",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -123,7 +123,14 @@
     "react-native-ble-plx": "3.1.2",
     "**/babel-runtime/regenerator-runtime": "^0.13.8",
     "redux-persist-filesystem-storage/react-native-blob-util": "^0.19.9",
-    "xmldom": "npm:@xmldom/xmldom@0.7.13"
+    "xmldom": "npm:@xmldom/xmldom@0.7.13",
+    "@metamask/metamask-eth-abis": "3.1.1",
+    "**/@walletconnect/socket-transport/ws": "^7.5.10",
+    "**/@ethersproject/providers/ws": "^7.5.10",
+    "**/appium-base-driver/webdriverio/puppeteer-core/ws": "^7.5.10",
+    "**/puppeteer-core/ws": "^8.17.1",
+    "react-native/ws": "^6.2.3",
+    "socket.io-client/engine.io-client/ws": "^8.17.1"
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",

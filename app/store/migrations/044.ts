@@ -1,96 +1,166 @@
-import { isObject, hasProperty } from '@metamask/utils';
+import { hasProperty, isObject } from '@metamask/utils';
+import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
-import { ValidState, ensureValidState } from './util';
-import {
-  AccountsControllerState,
-  getUUIDFromAddressOfNormalAccount,
-} from '@metamask/accounts-controller';
-import { InternalAccount } from '@metamask/keyring-api';
-import { isDefaultAccountName } from '../../util/ENSUtils';
+import { AccountsControllerState } from '@metamask/accounts-controller';
 
+/**
+ * Synchronize `AccountsController` names with `PreferencesController` identities.
+ *
+ * There was a bug in versions below v7.23.0 that resulted in the account `name` state in the
+ * `AccountsController` being reset. However, users account names were preserved in the
+ * `identities` state in the `PreferencesController`. This migration restores the names to the
+ * `AccountsController` if they are found.
+ *
+ * @param state Persisted Redux state that is potentially corrupted
+ * @returns Valid persisted Redux state
+ */
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 44)) {
     return state;
   }
 
-  if (!isObject(state.engine.backgroundState.AccountsController)) {
+  const accountsControllerState =
+    state.engine.backgroundState.AccountsController;
+
+  if (!isObject(accountsControllerState)) {
     captureException(
       new Error(
-        `Migration 44: Invalid AccountsController state: '${typeof state.engine
-          .backgroundState.AccountsController}'`,
+        `FATAL ERROR: Migration 44: Invalid AccountsController state error: '${typeof accountsControllerState}'`,
       ),
     );
     return state;
   }
 
   if (
-    !hasProperty(
-      state.engine.backgroundState.AccountsController,
-      'internalAccounts',
-    )
+    !hasProperty(accountsControllerState, 'internalAccounts') ||
+    !isObject(accountsControllerState.internalAccounts)
   ) {
     captureException(
       new Error(
-        `Migration 44: Missing internalAccounts property from AccountsController: '${typeof state
-          .engine.backgroundState.AccountsController}'`,
+        `FATAL ERROR: Migration 44: Invalid AccountsController internalAccounts state error: '${typeof accountsControllerState.internalAccounts}'`,
       ),
     );
     return state;
   }
-  mergeInternalAccounts(state);
-  return state;
-}
 
-function deriveAccountName(existingName: string, currentName: string): string {
-  const isExistingNameDefault = isDefaultAccountName(existingName);
-  const isCurrentNameDefault = isDefaultAccountName(currentName);
-
-  return isExistingNameDefault && !isCurrentNameDefault
-    ? currentName
-    : existingName;
-}
-
-function mergeInternalAccounts(state: ValidState) {
-  const accountsController: AccountsControllerState = state.engine
-    .backgroundState.AccountsController as AccountsControllerState;
-  const internalAccounts = accountsController.internalAccounts.accounts;
-  const selectedAccountId = accountsController.internalAccounts.selectedAccount;
-
-  const selectedAddress =
-    internalAccounts[selectedAccountId]?.address.toLowerCase();
-
-  const mergedAccounts: Record<string, InternalAccount> = {};
-  const addressMap: Record<string, string> = {};
-
-  for (const [, account] of Object.entries(internalAccounts)) {
-    const lowerCaseAddress = account.address.toLowerCase();
-    const accountID = addressMap[lowerCaseAddress];
-    if (accountID) {
-      const existingAccount = mergedAccounts[accountID];
-      existingAccount.metadata = {
-        ...existingAccount.metadata,
-        ...account.metadata,
-        name: deriveAccountName(
-          existingAccount.metadata.name,
-          account.metadata.name,
-        ),
-      };
-      existingAccount.methods = Array.from(
-        new Set([...existingAccount.methods, ...account.methods]),
-      );
-    } else {
-      const newId = getUUIDFromAddressOfNormalAccount(lowerCaseAddress);
-      addressMap[lowerCaseAddress] = newId;
-      mergedAccounts[newId] = {
-        ...account,
-        address: lowerCaseAddress,
-        id: newId,
-      };
-    }
+  if (
+    !hasProperty(accountsControllerState.internalAccounts, 'accounts') ||
+    !isObject(accountsControllerState.internalAccounts.accounts)
+  ) {
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 44: Invalid AccountsController internalAccounts accounts state error: '${typeof accountsControllerState
+          .internalAccounts.accounts}'`,
+      ),
+    );
+    return state;
   }
 
-  const newSelectedAccountId =
-    addressMap[selectedAddress] || Object.keys(mergedAccounts)[0]; // Default to the first account in the list
-  accountsController.internalAccounts.accounts = mergedAccounts;
-  accountsController.internalAccounts.selectedAccount = newSelectedAccountId;
+  if (
+    Object.values(accountsControllerState.internalAccounts.accounts).some(
+      (account) => !isObject(account),
+    )
+  ) {
+    const invalidEntry = Object.entries(
+      accountsControllerState.internalAccounts.accounts,
+    ).find(([_, account]) => !isObject(account));
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 44: Invalid AccountsController account entry with id: '${
+          invalidEntry?.[0]
+        }', type: '${typeof invalidEntry?.[1]}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (
+    Object.values(accountsControllerState.internalAccounts.accounts).some(
+      (account) => isObject(account) && !isObject(account.metadata),
+    )
+  ) {
+    const invalidEntry = Object.entries(
+      accountsControllerState.internalAccounts.accounts,
+    ).find(([_, account]) => isObject(account) && !isObject(account.metadata));
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 44: Invalid AccountsController account metadata entry with id: '${
+          invalidEntry?.[0]
+        }', type: '${typeof invalidEntry?.[1]}'`,
+      ),
+    );
+    return state;
+  }
+
+  const preferencesControllerState =
+    state.engine.backgroundState.PreferencesController;
+
+  if (!isObject(preferencesControllerState)) {
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 44: Invalid PreferencesController state error: '${typeof preferencesControllerState}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (
+    !hasProperty(preferencesControllerState, 'identities') ||
+    !isObject(preferencesControllerState.identities)
+  ) {
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 44: Invalid PreferencesController identities state error: '${typeof preferencesControllerState.identities}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (
+    Object.values(preferencesControllerState.identities).some(
+      (identity) => !isObject(identity),
+    )
+  ) {
+    const invalidEntry = Object.entries(
+      preferencesControllerState.identities,
+    ).find(([_, identity]) => !isObject(identity));
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 44: Invalid PreferencesController identity entry with type: '${typeof invalidEntry?.[1]}'`,
+      ),
+    );
+    return state;
+  }
+
+  const accounts = accountsControllerState.internalAccounts.accounts;
+  const identities = preferencesControllerState.identities;
+  Object.entries(accounts).forEach(([accountId, account]) => {
+    if (
+      isObject(account) &&
+      isObject(account.metadata) &&
+      typeof account.address === 'string'
+    ) {
+      if (Object.keys(identities).length) {
+        Object.entries(identities).forEach(([identityAddress, identity]) => {
+          if (
+            identityAddress.toLowerCase() ===
+            (account.address as string).toLowerCase()
+          ) {
+            if (
+              isObject(identity) &&
+              isObject(account.metadata) &&
+              identity?.name !== account.metadata.name
+            ) {
+              (
+                accountsControllerState as AccountsControllerState
+              ).internalAccounts.accounts[accountId].metadata.name =
+                identity.name as string;
+            }
+          }
+        });
+      }
+    }
+  });
+
+  return state;
 }

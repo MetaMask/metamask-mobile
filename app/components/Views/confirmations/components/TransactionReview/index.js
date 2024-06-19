@@ -14,9 +14,9 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   getTransactionReviewActionKey,
   getNormalizedTxState,
-  APPROVE_FUNCTION_SIGNATURE,
   decodeTransferData,
   getTicker,
+  isApprovalTransaction,
 } from '../../../../../util/transactions';
 import {
   weiToFiat,
@@ -315,9 +315,7 @@ class TransactionReview extends PureComponent {
     let assetAmount, conversionRate, fiatValue;
     showHexData = showHexData || data;
     const approveTransaction =
-      data &&
-      data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-      (!value || isZeroValue(value));
+      isApprovalTransaction(data) && (!value || isZeroValue(value));
     const actionKey = await getTransactionReviewActionKey(transaction, chainId);
     if (approveTransaction) {
       let contract = tokenList[safeToChecksumAddress(to)];
