@@ -12,7 +12,7 @@ import NftDetectionModal from '../../pages/modals/NftDetectionModal';
 import { SmokeCore } from '../../tags';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
-import enContent from '../../../locales/languages/en.json';
+import { CommonSelectorsText } from '../../selectors/Common.selectors';
 
 describe(SmokeCore('NFT Detection Modal'), () => {
   const ETHEREUM = 'Ethereum Main Network';
@@ -48,14 +48,16 @@ describe(SmokeCore('NFT Detection Modal'), () => {
 
         // Go to NFTs tab and check that the banner is visible
         await WalletView.tapNftTab();
-        await TestHelpers.checkIfElementByTextIsVisible(
-          enContent.wallet.nfts_autodetection_desc,
+        await Assertions.checkIfTextIsDisplayed(
+          CommonSelectorsText.NFT_AUTO_DETECTION,
         );
       },
     );
   });
 
   it('should show nft detection modal after switching to mainnet and when nftDetection toggle is off and tap allow', async () => {
+    const testNftOnMainnet = 'LifesAJokeNFT';
+
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -82,12 +84,11 @@ describe(SmokeCore('NFT Detection Modal'), () => {
 
         // Go to NFTs tab and check that the banner is NOT visible
         await WalletView.tapNftTab();
-        await TestHelpers.checkIfNotVisible(
-          enContent.wallet.nfts_autodetection_desc,
+        await Assertions.checkIfTextIsNotDisplayed(
+          CommonSelectorsText.NFT_AUTO_DETECTION,
         );
 
-        const tesNFTOnMainnet = "collectible-Life's A Joke #2875-2875";
-        await TestHelpers.checkIfVisible(tesNFTOnMainnet);
+        await Assertions.checkIfTextIsDisplayed(testNftOnMainnet);
       },
     );
   });
