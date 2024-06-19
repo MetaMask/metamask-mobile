@@ -24,7 +24,7 @@ describe('useFetchRampNetworks', () => {
     jest.clearAllMocks();
   });
 
-  it('should call useFetchRampNetworks and update with received value', async () => {
+  it('calls useFetchRampNetworks and update with received value', async () => {
     const mockResponse: AggregatorNetwork[] = [
       {
         active: true,
@@ -64,7 +64,7 @@ describe('useFetchRampNetworks', () => {
     );
   });
 
-  it('should call useFetchRampNetworks and update with default value', async () => {
+  it('calls useFetchRampNetworks and update with default value', async () => {
     const mockResponse = undefined;
     (SDK.getNetworks as jest.Mock).mockResolvedValue(mockResponse);
 
@@ -83,7 +83,7 @@ describe('useFetchRampNetworks', () => {
     expect(mockDispatch).toHaveBeenCalledWith(updateOnRampNetworks([]));
   });
 
-  it('should return error state if SDK.getNetworks fails', async () => {
+  it('returns error state if SDK.getNetworks fails', async () => {
     const error = new Error('test error');
     (SDK.getNetworks as jest.Mock).mockRejectedValue(error);
 
