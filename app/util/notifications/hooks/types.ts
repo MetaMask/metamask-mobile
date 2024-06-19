@@ -9,7 +9,7 @@ export interface UseCreateSessionReturn {
 export interface EnableMetametricsReturn {
   enableMetametrics: () => void;
   loading: boolean;
-  error: string | undefined;
+  error?: string;
 }
 export interface DisableMetametricsReturn {
   disableMetametrics: () => void;
