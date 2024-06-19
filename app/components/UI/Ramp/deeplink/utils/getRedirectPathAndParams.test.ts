@@ -21,7 +21,7 @@ describe('getRedirectPathsAndParams', () => {
     ${'//example/path?chainId=1&amount=4.20'}        | ${[['example', 'path'], { chainId: '1', amount: '4.20' }]}
     ${'////example////path?chainId=1&amount=4.20&&'} | ${[['example', 'path'], { chainId: '1', amount: '4.20' }]}
   `(
-    'should return the expected value for rampPath $rampPath',
+    'returns the expected value for rampPath $rampPath',
     ({ rampPath, expected }) => {
       expect(getRedirectPathsAndParams(rampPath)).toStrictEqual(expected);
     },

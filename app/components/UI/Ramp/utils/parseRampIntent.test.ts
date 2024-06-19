@@ -7,7 +7,7 @@ describe('parseRampIntent', () => {
     expect(result).toBeUndefined();
   });
 
-  it('return a RampIntent object if pathParams contain necessary fields', () => {
+  it('returns a RampIntent object if pathParams contain necessary fields', () => {
     const pathParams = {
       address: '0x1234567890',
       chainId: '1',
