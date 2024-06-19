@@ -73,7 +73,11 @@ import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
-const useSwapConfirmedEvent = ({ swapsTransactions, trackSwaps }) => {
+export const useSwapConfirmedEvent = ({
+  TransactionController,
+  swapsTransactions,
+  trackSwaps,
+}) => {
   const [transactionMetaIdsForListening, setTransactionMetaIdsForListening] =
     useState([]);
 
@@ -86,7 +90,6 @@ const useSwapConfirmedEvent = ({ swapsTransactions, trackSwaps }) => {
 
   useEffect(() => {
     // Cannot directly call trackSwaps from the event listener in autoSign due to stale closure of swapsTransactions
-    const { TransactionController } = Engine.context;
     const [txMetaId, ...restTxMetaIds] = transactionMetaIdsForListening;
 
     if (txMetaId && swapsTransactions[txMetaId]) {
@@ -107,10 +110,16 @@ const useSwapConfirmedEvent = ({ swapsTransactions, trackSwaps }) => {
       );
       setTransactionMetaIdsForListening(restTxMetaIds);
     }
-  }, [trackSwaps, transactionMetaIdsForListening, swapsTransactions]);
+  }, [
+    trackSwaps,
+    transactionMetaIdsForListening,
+    swapsTransactions,
+    TransactionController,
+  ]);
 
   return {
     addTransactionMetaIdForListening,
+    transactionMetaIdsForListening,
   };
 };
 
@@ -244,6 +253,7 @@ const RootRPCMethodsUI = (props) => {
   );
 
   const { addTransactionMetaIdForListening } = useSwapConfirmedEvent({
+    TransactionController: Engine.context.TransactionController,
     swapsTransactions: props.swapsTransactions,
     trackSwaps,
   });
