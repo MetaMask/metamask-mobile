@@ -1337,6 +1337,9 @@ app:
       MM_NOTIFICATIONS_UI_ENABLED: false
     - opts:
         is_expand: false
+      MM_NETWORK_UI_REDESIGN_ENABLED: false
+    - opts:
+        is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
