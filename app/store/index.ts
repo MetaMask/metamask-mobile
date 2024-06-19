@@ -75,4 +75,6 @@ const createStoreAndPersistor = async () => {
   await createStoreAndPersistor();
 })();
 
+export type AppDispatch = typeof store.dispatch;
+
 export { store, persistor };
