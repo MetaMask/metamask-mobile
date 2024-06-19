@@ -30,9 +30,6 @@ export function useListNotifications(): ListNotificationsReturn {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
-  const [notificationsData, setNotificationsData] = useState<
-    Notification[] | undefined
-  >(undefined);
 
   const listNotifications = useCallback(() => {
     setLoading(true);
@@ -49,7 +46,6 @@ export function useListNotifications(): ListNotificationsReturn {
 
   return {
     listNotifications,
-    notificationsData,
     isLoading: loading,
     error,
   };
