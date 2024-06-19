@@ -36,7 +36,7 @@ describe('useCryptoCurrencies', () => {
     };
   });
 
-  it('should call useSDKMethod with the correct parameters for buy', () => {
+  it('calls useSDKMethod with the correct parameters for buy', () => {
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
         data: [],
@@ -56,7 +56,7 @@ describe('useCryptoCurrencies', () => {
     );
   });
 
-  it('should call useSDKMethod with the correct parameters for sell', () => {
+  it('calls useSDKMethod with the correct parameters for sell', () => {
     mockUseRampSDKValues.isBuy = false;
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
@@ -77,7 +77,7 @@ describe('useCryptoCurrencies', () => {
     );
   });
 
-  it('should return loading state', () => {
+  it('returns loading state', () => {
     const mockQueryGetCryptoCurrencies = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
@@ -98,7 +98,7 @@ describe('useCryptoCurrencies', () => {
     });
   });
 
-  it('should return error state', () => {
+  it('returns error state', () => {
     const mockQueryGetCryptoCurrencies = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
@@ -119,7 +119,7 @@ describe('useCryptoCurrencies', () => {
     });
   });
 
-  it('should filter list by selectedChainId', () => {
+  it('filters list by selectedChainId', () => {
     const mockQueryGetCryptoCurrencies = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
@@ -160,7 +160,7 @@ describe('useCryptoCurrencies', () => {
     });
   });
 
-  it('should not call setSelectedAsset if current selection is available', () => {
+  it('does not call setSelectedAsset if current selection is available', () => {
     const mockQueryGetCryptoCurrencies = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
@@ -196,7 +196,7 @@ describe('useCryptoCurrencies', () => {
     });
   });
 
-  it('should select the native crypto currency if available and current selection is null', () => {
+  it('selects the native crypto currency if available and current selection is null', () => {
     const mockQueryGetCryptoCurrencies = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
@@ -229,7 +229,7 @@ describe('useCryptoCurrencies', () => {
     });
   });
 
-  it('should select the native crypto currency if available and current selection is not available', () => {
+  it('selects the native crypto currency if available and current selection is not available', () => {
     const mockQueryGetCryptoCurrencies = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
@@ -270,7 +270,7 @@ describe('useCryptoCurrencies', () => {
     });
   });
 
-  it('should select the first available crypto currency if native is not available and current selection is null', () => {
+  it('selects the first available crypto currency if native is not available and current selection is null', () => {
     const mockQueryGetCryptoCurrencies = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
@@ -301,7 +301,7 @@ describe('useCryptoCurrencies', () => {
     });
   });
 
-  it('should select the first available crypto currency if native is not available and current selection is not found', () => {
+  it('selects the first available crypto currency if native is not available and current selection is not found', () => {
     const mockQueryGetCryptoCurrencies = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
@@ -340,7 +340,7 @@ describe('useCryptoCurrencies', () => {
     });
   });
 
-  it('should set selectedAsset to undefined if no crypto currencies are available', () => {
+  it('sets selectedAsset to undefined if no crypto currencies are available', () => {
     const mockQueryGetCryptoCurrencies = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
