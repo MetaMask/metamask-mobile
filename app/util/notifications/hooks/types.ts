@@ -20,7 +20,7 @@ export interface ListNotificationsReturn {
   listNotifications: () => void;
   notificationsData?: Notification[];
   isLoading: boolean;
-  error: string | undefined;
+  error?: string;
 }
 export interface CreateNotificationsReturn {
   createNotifications: (accounts: string[]) => void;
