@@ -32,7 +32,6 @@ describe(SmokeConfirmations('Send ETH'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        disableGanache: false,
         ganacheOptions: defaultGanacheOptions,
       },
       async () => {

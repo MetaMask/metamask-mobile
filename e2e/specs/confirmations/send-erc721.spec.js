@@ -32,7 +32,6 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        disableGanache: false,
         ganacheOptions: defaultGanacheOptions,
         smartContract: NFT_CONTRACT,
       },

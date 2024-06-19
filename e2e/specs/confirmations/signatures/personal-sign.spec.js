@@ -27,7 +27,6 @@ describe(SmokeConfirmations('Personal Sign'), () => {
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp()
           .build(),
-        disableGanache: false,
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
