@@ -51,7 +51,7 @@ export interface MarkNotificationAsReadReturn {
 
 export interface EnableProfileSyncingReturn {
   enableProfileSyncing: () => void;
-  error: string | undefined;
+  error?: string;
 }
 
 export interface DisableProfileSyncingReturn {
