@@ -61,7 +61,7 @@ export interface DisableProfileSyncingReturn {
 
 export interface SetIsProfileSyncingEnabledReturn {
   setIsProfileSyncingEnabled: () => void;
-  error: string | undefined;
+  error?: string;
 }
 
 export interface SwitchSnapNotificationsChangeReturn {
