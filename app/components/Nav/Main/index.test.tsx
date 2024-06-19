@@ -85,12 +85,7 @@ describe('Main', () => {
           TransactionController: {
             hub: eventEmitter,
           },
-          swapsTransactions: {
-            [txMetaId]: {
-              analytics: 'hello',
-              paramsForAnalytics: 'world',
-            },
-          },
+          swapsTransactions,
           trackSwaps: jest.fn(),
         }),
       );
