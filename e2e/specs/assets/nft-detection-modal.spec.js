@@ -12,7 +12,7 @@ import NftDetectionModal from '../../pages/modals/NftDetectionModal';
 import { SmokeCore } from '../../tags';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
-import { CommonSelectorsText } from '../../selectors/Common.selectors';
+import { NftDetectionModalSelectorsText } from '../../selectors/Modals/NftDetectionModal.selectors';
 
 describe(SmokeCore('NFT Detection Modal'), () => {
   const ETHEREUM = 'Ethereum Main Network';
@@ -49,7 +49,7 @@ describe(SmokeCore('NFT Detection Modal'), () => {
         // Go to NFTs tab and check that the banner is visible
         await WalletView.tapNftTab();
         await Assertions.checkIfTextIsDisplayed(
-          CommonSelectorsText.NFT_AUTO_DETECTION,
+          NftDetectionModalSelectorsText.NFT_AUTO_DETECTION_BANNER,
         );
       },
     );
@@ -85,7 +85,7 @@ describe(SmokeCore('NFT Detection Modal'), () => {
         // Go to NFTs tab and check that the banner is NOT visible
         await WalletView.tapNftTab();
         await Assertions.checkIfTextIsNotDisplayed(
-          CommonSelectorsText.NFT_AUTO_DETECTION,
+          NftDetectionModalSelectorsText.NFT_AUTO_DETECTION_BANNER,
         );
 
         await Assertions.checkIfTextIsDisplayed(testNftOnMainnet);

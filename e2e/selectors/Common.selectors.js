@@ -23,5 +23,4 @@ export const CommonSelectorsText = {
   TOAST_REVOKE_ACCOUNTS: enContent.toast.revoked_all,
   TOAST_CONNECTED_ACCOUNTS: enContent.toast.connected_and_active,
   YES_ALERT_BUTTON: enContent.drawer.lock_ok,
-  NFT_AUTO_DETECTION: enContent.wallet.nfts_autodetection_desc,
 };
