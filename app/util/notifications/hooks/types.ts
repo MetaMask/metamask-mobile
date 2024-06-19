@@ -25,7 +25,7 @@ export interface ListNotificationsReturn {
 export interface CreateNotificationsReturn {
   createNotifications: (accounts: string[]) => void;
   loading: boolean;
-  error: string | undefined;
+  error?: string;
 }
 export interface EnableNotificationsReturn {
   enableNotifications: () => void;
