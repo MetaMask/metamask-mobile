@@ -25,7 +25,10 @@ import { store } from '../../../store';
 import { renderFromWei } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
-import Creators from 'app/store/ducks/notifications';
+import {
+  disablePushNotificationsRequest,
+  enablePushNotificationsRequest,
+} from '../../../actions/notification/pushNotifications';
 
 export interface ViewOnEtherscanProps {
   navigation: any;
@@ -528,7 +531,7 @@ export const requestPushNotificationsPermission = async () => {
           {
             text: strings('notifications.prompt_cancel'),
             onPress: () => {
-              store.dispatch(Creators.disablePushNotificationsRequest());
+              store.dispatch(disablePushNotificationsRequest(UUIDS));
               mmStorage.saveLocal(
                 STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
                 times,
@@ -550,7 +553,7 @@ export const requestPushNotificationsPermission = async () => {
               } else {
                 permissionStatus = await notifee.requestPermission();
               }
-              store.dispatch(Creators.enablePushNotificationsRequest());
+              store.dispatch(enablePushNotificationsRequest(UUIDS));
             },
           },
         ],
