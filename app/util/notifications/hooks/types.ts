@@ -14,7 +14,7 @@ export interface EnableMetametricsReturn {
 export interface DisableMetametricsReturn {
   disableMetametrics: () => void;
   loading: boolean;
-  error: string | undefined;
+  error?: string;
 }
 export interface ListNotificationsReturn {
   listNotifications: () => void;
