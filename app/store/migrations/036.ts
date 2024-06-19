@@ -38,6 +38,16 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
+
+  const keyringControllerState = state.engine.backgroundState.KeyringController;
+  if (!isObject(keyringControllerState)) {
+    captureException(
+      new Error(
+        `Migration 36: Invalid vault in KeyringController: '${typeof keyringControllerState}'`,
+      ),
+    );
+  }
+
   if (!isObject(state.engine.backgroundState.PreferencesController)) {
     captureException(
       new Error(

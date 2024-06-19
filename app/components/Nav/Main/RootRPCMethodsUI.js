@@ -73,6 +73,56 @@ import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
+export const useSwapConfirmedEvent = ({
+  TransactionController,
+  swapsTransactions,
+  trackSwaps,
+}) => {
+  const [transactionMetaIdsForListening, setTransactionMetaIdsForListening] =
+    useState([]);
+
+  const addTransactionMetaIdForListening = (txMetaId) => {
+    setTransactionMetaIdsForListening([
+      ...transactionMetaIdsForListening,
+      txMetaId,
+    ]);
+  };
+
+  useEffect(() => {
+    // Cannot directly call trackSwaps from the event listener in autoSign due to stale closure of swapsTransactions
+    const [txMetaId, ...restTxMetaIds] = transactionMetaIdsForListening;
+
+    if (txMetaId && swapsTransactions[txMetaId]) {
+      TransactionController.hub.once(
+        `${txMetaId}:confirmed`,
+        (transactionMeta) => {
+          if (
+            swapsTransactions[transactionMeta.id]?.analytics &&
+            swapsTransactions[transactionMeta.id]?.paramsForAnalytics
+          ) {
+            trackSwaps(
+              MetaMetricsEvents.SWAP_COMPLETED,
+              transactionMeta,
+              swapsTransactions,
+            );
+          }
+        },
+      );
+      setTransactionMetaIdsForListening(restTxMetaIds);
+    }
+  }, [
+    trackSwaps,
+    transactionMetaIdsForListening,
+    swapsTransactions,
+    TransactionController,
+  ]);
+
+  return {
+    addTransactionMetaIdForListening,
+    transactionMetaIdsForListening,
+  };
+};
+
 const RootRPCMethodsUI = (props) => {
   const { trackEvent, trackAnonymousEvent } = useMetrics();
   const [transactionModalType, setTransactionModalType] = useState(undefined);
@@ -202,10 +252,17 @@ const RootRPCMethodsUI = (props) => {
     ],
   );
 
+  const { addTransactionMetaIdForListening } = useSwapConfirmedEvent({
+    TransactionController: Engine.context.TransactionController,
+    swapsTransactions: props.swapsTransactions,
+    trackSwaps,
+  });
+
   const autoSign = useCallback(
     async (transactionMeta) => {
       const { TransactionController, KeyringController } = Engine.context;
       const swapsTransactions = props.swapsTransactions;
+
       try {
         TransactionController.hub.once(
           `${transactionMeta.id}:finished`,
@@ -227,21 +284,10 @@ const RootRPCMethodsUI = (props) => {
             }
           },
         );
-        TransactionController.hub.once(
-          `${transactionMeta.id}:confirmed`,
-          (transactionMeta) => {
-            if (
-              swapsTransactions[transactionMeta.id]?.analytics &&
-              swapsTransactions[transactionMeta.id]?.paramsForAnalytics
-            ) {
-              trackSwaps(
-                MetaMetricsEvents.SWAP_COMPLETED,
-                transactionMeta,
-                swapsTransactions,
-              );
-            }
-          },
-        );
+
+        // Queue txMetaId to listen for confirmation event
+        addTransactionMetaIdForListening(transactionMeta.id);
+
         await KeyringController.resetQRKeyringState();
 
         const isLedgerAccount = isHardwareAccount(
@@ -281,7 +327,13 @@ const RootRPCMethodsUI = (props) => {
         }
       }
     },
-    [props.navigation, props.swapsTransactions, trackSwaps, trackEvent],
+    [
+      props.navigation,
+      trackSwaps,
+      trackEvent,
+      props.swapsTransactions,
+      addTransactionMetaIdForListening,
+    ],
   );
 
   const onUnapprovedTransaction = useCallback(
