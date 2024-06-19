@@ -3,7 +3,6 @@ import { useDispatch } from 'react-redux';
 import {
   SwitchSnapNotificationsChangeReturn,
   SwitchFeatureAnnouncementsChangeReturn,
-  UseSwitchAccountNotificationsData,
   SwitchAccountNotificationsChangeReturn,
   SwitchPushNotificationsReturn,
 } from './types';
@@ -83,9 +82,7 @@ export function useSwitchPushNotificationsChange(): SwitchPushNotificationsRetur
 }
 
 export function useSwitchAccountNotifications(): {
-  switchAccountNotifications: (
-    accounts: string[],
-  ) => UseSwitchAccountNotificationsData | undefined;
+  switchAccountNotifications: (accounts: string[]) => void;
   isLoading: boolean;
   error: string | undefined;
 } {
@@ -94,12 +91,11 @@ export function useSwitchAccountNotifications(): {
   const [error, setError] = useState<string>();
 
   const switchAccountNotifications = useCallback(
-    (accounts: string[]): UseSwitchAccountNotificationsData | undefined => {
+    (accounts: string[]) => {
       setIsLoading(true);
 
       try {
-        const data = dispatch(checkAccountsPresenceRequest(accounts));
-        return data as unknown as UseSwitchAccountNotificationsData;
+        dispatch(checkAccountsPresenceRequest(accounts));
       } catch (e) {
         setError(getErrorMessage(e));
         throw e;

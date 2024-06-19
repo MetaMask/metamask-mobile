@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -32,7 +32,6 @@ import {
   useSwitchPushNotificationsChange,
 } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { SessionHeader } from './sectionHeader';
-import { UseSwitchAccountNotificationsData } from '../../../../util/notifications/hooks/types';
 import { useListNotifications } from '../../../../util/notifications/hooks/useNotifications';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
@@ -52,12 +51,11 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   // Style
   const { colors } = theme;
   const styles = createStyles(colors);
-  const addresses = accounts.map((account) => account.address);
-  // Local state
-  const [data, setData] = useState<
-    UseSwitchAccountNotificationsData | undefined
-  >(undefined);
-
+  const addresses = useCallback(
+    () => accounts.map((account) => account.address),
+    [accounts],
+  );
+  //TODO: Need to refetch notifications once account is switched
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -72,11 +70,10 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const fetchedData = await switchAccountNotifications(addresses);
-      setData(fetchedData || {});
+      switchAccountNotifications(addresses());
     };
     fetchData();
-  }, [accounts, addresses, switchAccountNotifications]);
+  }, [addresses, switchAccountNotifications]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -141,7 +138,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               key={account.address}
               title={account.name}
               address={account.address}
-              setData={setData}
               listNotifications={listNotifications}
               data={data}
             />

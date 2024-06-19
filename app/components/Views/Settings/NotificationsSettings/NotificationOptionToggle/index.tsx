@@ -30,11 +30,10 @@ import { UseSwitchAccountNotificationsData } from '../../../../../util/notificat
 interface NotificationOptionsToggleProps {
   address: string;
   title: string;
-  setData: (data: UseSwitchAccountNotificationsData) => void;
   listNotifications: () => void;
   icon?: AvatarAccountType | IconName;
   type?: string;
-  data?: UseSwitchAccountNotificationsData | undefined;
+  data?: UseSwitchAccountNotificationsData;
   testId?: string;
   disabled?: boolean;
 }
@@ -48,7 +47,6 @@ const NotificationOptionToggle = ({
   title,
   icon,
   type,
-  setData,
   listNotifications,
   data,
   testId,
@@ -69,11 +67,10 @@ const NotificationOptionToggle = ({
 
   useEffect(() => {
     const updateData = async () => {
-      const fetchedData = switchAccountNotifications([address]);
-      setData(fetchedData || {});
+      switchAccountNotifications([address]);
     };
     updateData();
-  }, [address, setData, switchAccountNotifications]);
+  }, [address, switchAccountNotifications]);
 
   return (
     <View style={styles.container}>

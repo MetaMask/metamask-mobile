@@ -4,6 +4,7 @@ import { RootState } from '../../reducers';
 import { TRIGGER_TYPES } from '../../util/notifications';
 
 import { IPushNotificationsState } from '../../reducers/pushNotifications';
+import { createDeepEqualSelector } from '../util';
 
 const selectPushNotificationsState = (state: RootState) =>
   state.pushNotifications;
@@ -32,7 +33,7 @@ export const selectIsFeatureAnnouncementsEnabled = createSelector(
   (pushNotificationsState: IPushNotificationsState) =>
     pushNotificationsState.isFeatureAnnouncementsEnabled,
 );
-export const selectAccountsPresence = createSelector(
+export const selectAccountsPresence = createDeepEqualSelector(
   selectPushNotificationsState,
   (pushNotificationsState: IPushNotificationsState) =>
     pushNotificationsState.accounts,

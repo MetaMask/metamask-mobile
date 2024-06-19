@@ -83,9 +83,7 @@ export interface UseSwitchAccountNotificationsData {
 }
 
 export interface SwitchAccountNotificationsReturn {
-  switchAccountNotifications: () => Promise<
-    UseSwitchAccountNotificationsData | undefined
-  >;
+  switchAccountNotifications: () => void;
   isLoading: boolean;
   error: string | undefined;
 }
