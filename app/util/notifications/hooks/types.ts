@@ -4,7 +4,7 @@ import type { Notification } from '../../../util/notifications/types/notificatio
 
 export interface UseCreateSessionReturn {
   createSession: () => void;
-  error: string | undefined;
+  error?: string;
 }
 export interface EnableMetametricsReturn {
   enableMetametrics: () => void;
