@@ -437,6 +437,7 @@ class Engine {
         'wallet_watchAsset',
       ],
     });
+    console.warn('***KYLAN*** ApprovalController created');
 
     const preferencesController = new PreferencesController({
       messenger: this.controllerMessenger.getRestricted({
@@ -454,7 +455,7 @@ class Engine {
         ...initialState.PreferencesController,
       },
     });
-
+    console.warn('***KYLAN*** PreferencesController created');
     const networkControllerOpts = {
       infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
       state: initialState.NetworkController,
@@ -470,7 +471,7 @@ class Engine {
       },
     };
     const networkController = new NetworkController(networkControllerOpts);
-
+    console.warn('***KYLAN*** NetworkController created');
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
@@ -486,6 +487,7 @@ class Engine {
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
+    console.warn('***KYLAN*** AssetsContractController created');
     const nftController = new NftController(
       {
         //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
@@ -534,7 +536,7 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
       },
     );
-
+    console.warn('***KYLAN*** NftController created');
     const loggingController = new LoggingController({
       messenger: this.controllerMessenger.getRestricted<
         'LoggingController',
@@ -547,7 +549,7 @@ class Engine {
       }),
       state: initialState.LoggingController,
     });
-
+    console.warn('***KYLAN*** LoggingController created');
     //@ts-expect-error Misalign types because of Base Controller version
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
@@ -575,6 +577,7 @@ class Engine {
       messenger: accountsControllerMessenger,
       state: initialState.AccountsController ?? defaultAccountsControllerState,
     });
+    console.warn('***KYLAN*** TokensController about to start');
     const tokensController = new TokensController({
       chainId: networkController.state.providerConfig.chainId,
       config: {
@@ -594,6 +597,7 @@ class Engine {
         ],
       }),
     });
+    console.warn('***KYLAN*** TokensController created');
     const tokenListController = new TokenListController({
       chainId: networkController.state.providerConfig.chainId,
       onNetworkStateChange: (listener) =>
@@ -608,6 +612,7 @@ class Engine {
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
+    console.warn('***KYLAN*** TokenListController created');
     const currencyRateController = new CurrencyRateController({
       //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
@@ -644,8 +649,13 @@ class Engine {
         );
       },
       clientId: AppConstants.SWAPS.CLIENT_ID,
-      infuraAPIKey: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+      legacyAPIEndpoint:
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
+      EIP1559APIEndpoint:
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
+
+    console.warn('***KYLAN*** GasFeeController about just finished');
 
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
@@ -654,6 +664,7 @@ class Engine {
         allowedEvents: [],
       }),
     });
+    console.warn('***KYLAN*** PhishingController created');
     phishingController.maybeUpdateState();
 
     const qrKeyringBuilder = () => {
@@ -681,7 +692,7 @@ class Engine {
       // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
       keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
     });
-
+    console.warn('***KYLAN*** KeyringController created');
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     /**
      * Gets the mnemonic of the user's primary keyring.
@@ -788,6 +799,7 @@ class Engine {
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
+    console.warn('***KYLAN*** AccountTrackerController created');
     const permissionController = new PermissionController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
@@ -849,7 +861,7 @@ class Engine {
       },
       unrestrictedMethods,
     });
-
+    console.warn('***KYLAN*** PermissionController created');
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     const subjectMetadataController = new SubjectMetadataController({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -862,7 +874,7 @@ class Engine {
       state: initialState.SubjectMetadataController || {},
       subjectCacheLimit: 100,
     });
-
+    console.warn('***KYLAN*** SubjectMetadataController created');
     const setupSnapProvider = (snapId: string, connectionStream: Duplex) => {
       Logger.log(
         '[ENGINE LOG] Engine+setupSnapProvider: Setup stream for Snap',
@@ -994,6 +1006,7 @@ class Engine {
       encryptor,
       getMnemonic: getPrimaryKeyringMnemonic.bind(this),
     });
+    console.warn('***KYLAN*** SnapController created');
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
@@ -1066,6 +1079,7 @@ class Engine {
         },
       },
     });
+    console.warn('***KYLAN*** TransactionController created');
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
@@ -1121,163 +1135,184 @@ class Engine {
       },
       initialState.SmartTransactionsController,
     );
+    console.warn('***KYLAN*** SmartTransactionsController created');
+
+    const tokenDetectionController = new TokenDetectionController({
+      //@ts-expect-error Misalign types because of Base Controller version
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'TokenDetectionController',
+        allowedActions: [
+          'AccountsController:getSelectedAccount',
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getNetworkConfigurationByNetworkClientId',
+          'NetworkController:getState',
+          'KeyringController:getState',
+          'PreferencesController:getState',
+          'TokenListController:getState',
+          'TokensController:getState',
+          'TokensController:addDetectedTokens',
+        ],
+        allowedEvents: [
+          'AccountsController:selectedAccountChange',
+          'KeyringController:lock',
+          'KeyringController:unlock',
+          'PreferencesController:stateChange',
+          'NetworkController:networkDidChange',
+          'TokenListController:stateChange',
+          'TokensController:stateChange',
+        ],
+      }),
+      trackMetaMetricsEvent: () =>
+        MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
+          token_standard: 'ERC20',
+          asset_type: 'token',
+          chain_id: getDecimalChainId(
+            networkController.state.providerConfig.chainId,
+          ),
+        }),
+      // Remove this when TokensController is extending Base Controller v2
+      getTokensState: () => tokensController.state,
+      getBalancesInSingleCall:
+        assetsContractController.getBalancesInSingleCall.bind(
+          assetsContractController,
+        ),
+    });
+    console.warn('***KYLAN*** TokenDetectionController created');
+
+    const addressBookController = new AddressBookController();
+    console.warn('***KYLAN*** addressBookController created');
+
+    const nftDetectionController = new NftDetectionController({
+      onNftsStateChange: (listener) => nftController.subscribe(listener),
+      //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
+      onPreferencesStateChange,
+      onNetworkStateChange: (listener) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          listener,
+        ),
+      chainId: networkController.state.providerConfig.chainId,
+      getOpenSeaApiKey: () => nftController.openSeaApiKey,
+      addNft: nftController.addNft.bind(nftController),
+      getNftApi: nftController.getNftApi.bind(nftController),
+      getNftState: () => nftController.state,
+      //@ts-expect-error - Network Controller mismatch version
+      getNetworkClientById:
+        networkController.getNetworkClientById.bind(networkController),
+    });
+
+    console.warn('***KYLAN*** NftDetectionController created');
+
+    const tokenBalancesController = new TokenBalancesController({
+      //@ts-expect-error Misalign types because of Base Controller version
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'TokenBalancesController',
+        allowedActions: ['PreferencesController:getState'],
+        allowedEvents: ['TokensController:stateChange'],
+      }),
+      // onTokensStateChange will be removed when Tokens Controller extends Base Controller v2
+      onTokensStateChange: (listener) => tokensController.subscribe(listener),
+      getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
+        assetsContractController,
+      ),
+      interval: 180000,
+    });
+
+    console.warn('***KYLAN*** TokenBalancesController created');
+
+    const tokenRatesController = new TokenRatesController({
+      onTokensStateChange: (listener) => tokensController.subscribe(listener),
+      onNetworkStateChange: (listener) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          listener,
+        ),
+      //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
+      onPreferencesStateChange,
+      chainId: networkController.state.providerConfig.chainId,
+      ticker: networkController.state.providerConfig.ticker,
+      selectedAddress: preferencesController.state.selectedAddress,
+      tokenPricesService: codefiTokenApiV2,
+      interval: 30 * 60 * 1000,
+      //@ts-expect-error - Network Controller mismatch version
+      getNetworkClientById:
+        networkController.getNetworkClientById.bind(networkController),
+    });
+
+    const newSwapsController = new SwapsController(
+      {
+        fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+        // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
+        fetchEstimatedMultiLayerL1Fee,
+      },
+      {
+        clientId: AppConstants.SWAPS.CLIENT_ID,
+        fetchAggregatorMetadataThreshold:
+          AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
+        fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+        fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
+        supportedChainIds: [
+          swapsUtils.ETH_CHAIN_ID,
+          swapsUtils.BSC_CHAIN_ID,
+          swapsUtils.SWAPS_TESTNET_CHAIN_ID,
+          swapsUtils.POLYGON_CHAIN_ID,
+          swapsUtils.AVALANCHE_CHAIN_ID,
+          swapsUtils.ARBITRUM_CHAIN_ID,
+          swapsUtils.OPTIMISM_CHAIN_ID,
+          swapsUtils.ZKSYNC_ERA_CHAIN_ID,
+          swapsUtils.LINEA_CHAIN_ID,
+          swapsUtils.BASE_CHAIN_ID,
+        ],
+      },
+    );
+
+    console.warn('***kylan*** newSwapsController created');
+
+    const signatureController = new SignatureController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'SignatureController',
+        allowedActions: [
+          `${approvalController.name}:addRequest`,
+          `${keyringController.name}:signPersonalMessage`,
+          `${keyringController.name}:signMessage`,
+          `${keyringController.name}:signTypedMessage`,
+          `${loggingController.name}:add`,
+        ],
+        allowedEvents: [],
+      }),
+      isEthSignEnabled: () =>
+        Boolean(
+          preferencesController.state?.disabledRpcMethodPreferences?.eth_sign,
+        ),
+      getAllState: () => store.getState(),
+      getCurrentChainId: () => networkController.state.providerConfig.chainId,
+    });
+
+    console.warn('***kylan*** signatureController created');
 
     const controllers: Controllers[keyof Controllers][] = [
       keyringController,
       accountTrackerController,
-      new AddressBookController(),
+      addressBookController,
       assetsContractController,
       nftController,
       tokensController,
       tokenListController,
-      new TokenDetectionController({
-        //@ts-expect-error Misalign types because of Base Controller version
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenDetectionController',
-          allowedActions: [
-            'AccountsController:getSelectedAccount',
-            'NetworkController:getNetworkClientById',
-            'NetworkController:getNetworkConfigurationByNetworkClientId',
-            'NetworkController:getState',
-            'KeyringController:getState',
-            'PreferencesController:getState',
-            'TokenListController:getState',
-            'TokensController:getState',
-            'TokensController:addDetectedTokens',
-          ],
-          allowedEvents: [
-            'AccountsController:selectedAccountChange',
-            'KeyringController:lock',
-            'KeyringController:unlock',
-            'PreferencesController:stateChange',
-            'NetworkController:networkDidChange',
-            'TokenListController:stateChange',
-            'TokensController:stateChange',
-          ],
-        }),
-        trackMetaMetricsEvent: () =>
-          MetaMetrics.getInstance().trackEvent(
-            MetaMetricsEvents.TOKEN_DETECTED,
-            {
-              token_standard: 'ERC20',
-              asset_type: 'token',
-              chain_id: getDecimalChainId(
-                networkController.state.providerConfig.chainId,
-              ),
-            },
-          ),
-        // Remove this when TokensController is extending Base Controller v2
-        getTokensState: () => tokensController.state,
-        getBalancesInSingleCall:
-          assetsContractController.getBalancesInSingleCall.bind(
-            assetsContractController,
-          ),
-      }),
-      new NftDetectionController({
-        onNftsStateChange: (listener) => nftController.subscribe(listener),
-        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
-        onPreferencesStateChange,
-        onNetworkStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            listener,
-          ),
-        chainId: networkController.state.providerConfig.chainId,
-        getOpenSeaApiKey: () => nftController.openSeaApiKey,
-        addNft: nftController.addNft.bind(nftController),
-        getNftApi: nftController.getNftApi.bind(nftController),
-        getNftState: () => nftController.state,
-        //@ts-expect-error - Network Controller mismatch version
-        getNetworkClientById:
-          networkController.getNetworkClientById.bind(networkController),
-      }),
+      tokenDetectionController,
+      nftDetectionController,
       currencyRateController,
       networkController,
       phishingController,
       preferencesController,
-      new TokenBalancesController({
-        //@ts-expect-error Misalign types because of Base Controller version
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenBalancesController',
-          allowedActions: ['PreferencesController:getState'],
-          allowedEvents: ['TokensController:stateChange'],
-        }),
-        // onTokensStateChange will be removed when Tokens Controller extends Base Controller v2
-        onTokensStateChange: (listener) => tokensController.subscribe(listener),
-        getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
-          assetsContractController,
-        ),
-        interval: 180000,
-      }),
-      new TokenRatesController({
-        onTokensStateChange: (listener) => tokensController.subscribe(listener),
-        onNetworkStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            listener,
-          ),
-        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
-        onPreferencesStateChange,
-        chainId: networkController.state.providerConfig.chainId,
-        ticker: networkController.state.providerConfig.ticker,
-        selectedAddress: preferencesController.state.selectedAddress,
-        tokenPricesService: codefiTokenApiV2,
-        interval: 30 * 60 * 1000,
-        //@ts-expect-error - Network Controller mismatch version
-        getNetworkClientById:
-          networkController.getNetworkClientById.bind(networkController),
-      }),
+      tokenBalancesController,
+      tokenRatesController,
       this.transactionController,
       this.smartTransactionsController,
-      new SwapsController(
-        {
-          fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-          // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
-          fetchEstimatedMultiLayerL1Fee,
-        },
-        {
-          clientId: AppConstants.SWAPS.CLIENT_ID,
-          fetchAggregatorMetadataThreshold:
-            AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
-          fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-          fetchTopAssetsThreshold:
-            AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-          supportedChainIds: [
-            swapsUtils.ETH_CHAIN_ID,
-            swapsUtils.BSC_CHAIN_ID,
-            swapsUtils.SWAPS_TESTNET_CHAIN_ID,
-            swapsUtils.POLYGON_CHAIN_ID,
-            swapsUtils.AVALANCHE_CHAIN_ID,
-            swapsUtils.ARBITRUM_CHAIN_ID,
-            swapsUtils.OPTIMISM_CHAIN_ID,
-            swapsUtils.ZKSYNC_ERA_CHAIN_ID,
-            swapsUtils.LINEA_CHAIN_ID,
-            swapsUtils.BASE_CHAIN_ID,
-          ],
-        },
-      ),
+      newSwapsController,
       gasFeeController,
       approvalController,
       permissionController,
-      new SignatureController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'SignatureController',
-          allowedActions: [
-            `${approvalController.name}:addRequest`,
-            `${keyringController.name}:signPersonalMessage`,
-            `${keyringController.name}:signMessage`,
-            `${keyringController.name}:signTypedMessage`,
-            `${loggingController.name}:add`,
-          ],
-          allowedEvents: [],
-        }),
-        isEthSignEnabled: () =>
-          Boolean(
-            preferencesController.state?.disabledRpcMethodPreferences?.eth_sign,
-          ),
-        getAllState: () => store.getState(),
-        getCurrentChainId: () => networkController.state.providerConfig.chainId,
-      }),
+      signatureController,
       loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       snapController,
@@ -1285,6 +1320,8 @@ class Engine {
       ///: END:ONLY_INCLUDE_IF
       accountsController,
     ];
+
+    console.warn('***kylan*** controllers created');
 
     if (isBlockaidFeatureEnabled()) {
       const ppomController = new PPOMController({
@@ -1317,6 +1354,8 @@ class Engine {
       controllers.push(ppomController);
     }
 
+    console.warn('***kylan*** controllers pushed');
+
     // set initial state
     // TODO: Pass initial state into each controller constructor instead
     // This is being set post-construction for now to ensure it's functionally equivalent with
@@ -1336,8 +1375,9 @@ class Engine {
       }
     }
 
+    console.warn('***kylan*** initial state set');
+
     this.datamodel = new ComposableController(
-      // @ts-expect-error The ComposableController needs to be updated to support BaseControllerV2
       controllers,
       this.controllerMessenger,
     );
@@ -1348,6 +1388,8 @@ class Engine {
       }),
       {},
     ) as typeof this.context;
+
+    console.warn('***kylan*** datamodel created');
 
     const {
       NftController: nfts,
@@ -1382,7 +1424,7 @@ class Engine {
         }
       },
     );
-
+    console.warn('***kylan*** network state change event subscribed');
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       async () => {
@@ -1397,14 +1439,14 @@ class Engine {
         }
       },
     );
-
+    console.warn('***kylan*** network id updated event subscribed');
     this.controllerMessenger.subscribe(
       `${networkController.name}:networkWillChange`,
       () => {
         store.dispatch(networkIdWillUpdate());
       },
     );
-
+    console.warn('***kylan*** network will change event subscribed');
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
