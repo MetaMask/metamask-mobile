@@ -410,10 +410,6 @@ TransactionNotification.propTypes = {
    */
   exchangeRate: PropTypes.number,
   /**
-   * Object containing token exchange rates in the format address => exchangeRate
-   */
-  contractExchangeRates: PropTypes.object,
-  /**
    * An array that represents the user collectible contracts
    */
   collectibleContracts: PropTypes.array,
