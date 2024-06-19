@@ -564,7 +564,8 @@
       "react-native-svg-asset-plugin>sharp": true,
       "ts-node>@swc/core": false,
       "@metamask/sdk-communication-layer>bufferutil": false,
-      "@metamask/sdk-communication-layer>utf-8-validate": false
+      "@metamask/sdk-communication-layer>utf-8-validate": false,
+      "@metamask/notification-services-controller>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false
     }
   },
   "packageManager": "yarn@1.22.22"
