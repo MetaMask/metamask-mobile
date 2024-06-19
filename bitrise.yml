@@ -206,10 +206,24 @@ workflows:
                 #!/usr/bin/env bash
                 echo "Gems being installed with bundler gem"
                 bundle install
-                echo "Node $NODE_VERSION being installed with asdf"
-                asdf list all nodejs
-                asdf install nodejs "$NODE_VERSION"
-                asdf global nodejs "$NODE_VERSION"
+                echo "Node $NODE_VERSION being installed"
+
+                set -e
+
+                # Install and enable NVM
+                wget -O install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
+                echo "${NVM_SHA256SUM} install-nvm.sh" > install-nvm.sh.SHA256SUM
+                sha256sum -c install-nvm.sh.SHA256SUM
+                chmod +x install-nvm.sh && ./install-nvm.sh && rm ./install-nvm.sh
+                source "${HOME}/.nvm/nvm.sh"
+                echo 'source "${HOME}/.nvm/nvm.sh"' | tee -a ${HOME}/.{bashrc,profile}
+
+                nvm install ${NODE_VERSION}
+
+                envman add --key PATH --value $PATH
+
+                node --version
+
                 echo "Corepack being installed with npm"
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
@@ -1389,6 +1403,12 @@ app:
     - opts:
         is_expand: false
       IOS_APP_LINK: ''
+    - opts:
+        is_expand: false
+      NVM_VERSION: 0.39.7
+    - opts:
+        is_expand: false
+      NVM_SHA256SUM: '8e45fa547f428e9196a5613efad3bfa4d4608b74ca870f930090598f5af5f643'
     - opts:
         is_expand: false
       NODE_VERSION: 20.12.2
