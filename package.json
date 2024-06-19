@@ -173,6 +173,7 @@
     "@metamask/preferences-controller": "^11.0.0",
     "@metamask/profile-sync-controller": "^0.1.3",
     "@metamask/react-native-actionsheet": "2.4.2",
+    "@metamask/react-native-aes-crypto": "^1.2.2",
     "@metamask/react-native-button": "^3.0.0",
     "@metamask/react-native-payments": "^2.0.0",
     "@metamask/react-native-search-api": "1.0.1",
