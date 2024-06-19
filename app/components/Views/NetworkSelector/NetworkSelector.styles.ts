@@ -24,6 +24,13 @@ const createStyles = (colors: any) =>
       marginVertical: 16,
       marginHorizontal: 16,
     },
+    popularNetworkTitleContainer: {
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      marginVertical: 16,
+      marginHorizontal: 16,
+    },
     addtionalNetworksContainer: {
       marginHorizontal: 16,
     },
@@ -98,6 +105,18 @@ const createStyles = (colors: any) =>
     searchContainer: {
       marginLeft: 16,
       marginRight: 16,
+    },
+    gasInfoContainer: {
+      paddingHorizontal: 4,
+    },
+    gasInfoIcon: {
+      color: colors.icon.alternative,
+    },
+    hitSlop: {
+      top: 10,
+      left: 10,
+      bottom: 10,
+      right: 10,
     },
   });
 

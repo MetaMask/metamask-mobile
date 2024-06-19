@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useRef, useState } from 'react';
-import { Linking, Switch, View } from 'react-native';
+import { Linking, Switch, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -67,6 +67,7 @@ import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNe
 import { NetworksSelectorSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { PopularList } from '../../../util/networks/customNetworks';
 import NetworkSearchTextInput from './NetworkSearchTextInput';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
@@ -83,6 +84,17 @@ const NetworkSelector = () => {
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const avatarSize = isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined;
+  const modalTitle = isNetworkUiRedesignEnabled
+    ? 'networks.additional_network_information_title'
+    : 'networks.network_warning_title';
+  const modalDescription = isNetworkUiRedesignEnabled
+    ? 'networks.additonial_network_information_desc'
+    : 'networks.network_warning_desc';
+  const buttonLabelAddNetwork = isNetworkUiRedesignEnabled
+    ? 'app_settings.network_add_custom_network'
+    : 'app_settings.network_add_network';
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: string) => {
@@ -192,7 +204,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: mainnetName,
           imageSource: images.ETHEREUM,
-          size: AvatarSize.Sm,
+          size: avatarSize,
         }}
         isSelected={
           chainId === providerConfig.chainId && !providerConfig.rpcUrl
@@ -221,7 +233,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: lineaMainnetName,
           imageSource: images['LINEA-MAINNET'],
-          size: AvatarSize.Sm,
+          size: avatarSize,
         }}
         isSelected={chainId === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
@@ -250,7 +262,7 @@ const NetworkSelector = () => {
               variant: AvatarVariant.Network,
               name,
               imageSource: image,
-              size: AvatarSize.Sm,
+              size: avatarSize,
             }}
             isSelected={Boolean(
               chainId === providerConfig.chainId && providerConfig.rpcUrl,
@@ -280,7 +292,7 @@ const NetworkSelector = () => {
             variant: AvatarVariant.Network,
             name,
             imageSource,
-            size: AvatarSize.Sm,
+            size: avatarSize,
           }}
           isSelected={chainId === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
@@ -344,15 +356,36 @@ const NetworkSelector = () => {
             searchString.length > 0 ? filteredNetworks : undefined
           }
           showCompletionMessage={false}
+          hideWarningIcons
         />
       </View>
     );
   };
 
-  const renderTitle = (title: string) => (
+  const renderPopularNetworksTitle = () => (
+    <View style={styles.popularNetworkTitleContainer}>
+      <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>
+        {strings('networks.additional_networks')}
+      </Text>
+      <TouchableOpacity
+        testID={NetworkListModalSelectorsIDs.TOOLTIP}
+        style={styles.gasInfoContainer}
+        onPress={toggleWarningModal}
+        hitSlop={styles.hitSlop}
+      >
+        <MaterialCommunityIcons
+          name="information"
+          size={14}
+          style={styles.gasInfoIcon}
+        />
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderEnabledNetworksTitle = () => (
     <View style={styles.switchContainer}>
       <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>
-        {strings(title)}
+        {strings('networks.enabled_networks')}
       </Text>
     </View>
   );
@@ -385,20 +418,20 @@ const NetworkSelector = () => {
           )}
           {isNetworkUiRedesignEnabled &&
             searchString.length === 0 &&
-            renderTitle('networks.enabled_networks')}
+            renderEnabledNetworksTitle()}
           {renderMainnet()}
           {renderLineaMainnet()}
           {renderRpcNetworks()}
           {isNetworkUiRedesignEnabled &&
             searchString.length === 0 &&
-            renderTitle('networks.additional_networks')}
+            renderPopularNetworksTitle()}
           {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
           {searchString.length === 0 && renderTestNetworksSwitch()}
           {showTestNetworks && renderOtherNetworks()}
         </ScrollView>
         <Button
           variant={ButtonVariants.Secondary}
-          label={strings('app_settings.network_add_custom_network')}
+          label={strings(buttonLabelAddNetwork)}
           onPress={goToNetworkSettings}
           width={ButtonWidthTypes.Full}
           size={ButtonSize.Lg}
@@ -409,13 +442,11 @@ const NetworkSelector = () => {
       {showWarningModal ? (
         <InfoModal
           isVisible={showWarningModal}
-          title={strings('networks.network_warning_title')}
+          title={strings(modalTitle)}
           body={
             <Text>
-              <Text style={styles.desc}>
-                {strings('networks.network_warning_desc')}
-              </Text>{' '}
-              <Text style={[styles.blueText]} onPress={goToLearnMore}>
+              <Text style={styles.desc}>{strings(modalDescription)}</Text>{' '}
+              <Text style={styles.blueText} onPress={goToLearnMore}>
                 {strings('networks.learn_more')}
               </Text>
             </Text>

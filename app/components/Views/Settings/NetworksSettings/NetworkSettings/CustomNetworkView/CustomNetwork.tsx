@@ -28,6 +28,7 @@ const CustomNetwork = ({
   showAddedNetworks,
   customNetworksList,
   showCompletionMessage = true,
+  hideWarningIcons = false,
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -95,7 +96,9 @@ const CustomNetwork = ({
             </CustomText>
           </View>
           <View style={styles.popularWrapper}>
-            {toggleWarningModal && networkConfiguration.warning ? (
+            {!hideWarningIcons &&
+            toggleWarningModal &&
+            networkConfiguration.warning ? (
               <WarningIcon
                 name="warning"
                 size={14}
