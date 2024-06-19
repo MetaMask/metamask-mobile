@@ -66,7 +66,7 @@ export interface SetIsProfileSyncingEnabledReturn {
 
 export interface SwitchSnapNotificationsChangeReturn {
   onChange: (state: boolean) => void;
-  error: string | undefined;
+  error?: string;
 }
 export interface SwitchFeatureAnnouncementsChangeReturn {
   onChange: (state: boolean) => void;
