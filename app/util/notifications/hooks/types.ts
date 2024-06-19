@@ -90,5 +90,5 @@ export interface SwitchAccountNotificationsReturn {
 
 export interface SwitchAccountNotificationsChangeReturn {
   onChange: (addresses: string[], state: boolean) => void;
-  error: string | undefined;
+  error?: string;
 }
