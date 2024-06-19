@@ -70,7 +70,7 @@ export interface SwitchSnapNotificationsChangeReturn {
 }
 export interface SwitchFeatureAnnouncementsChangeReturn {
   onChange: (state: boolean) => void;
-  error: string | undefined;
+  error?: string;
 }
 
 export interface SwitchPushNotificationsReturn {
