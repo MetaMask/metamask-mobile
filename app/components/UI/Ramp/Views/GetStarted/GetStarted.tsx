@@ -84,6 +84,10 @@ const GetStarted: React.FC = () => {
 
   useEffect(() => {
     if (getStarted) {
+      // Redirects to Network Switcher view if the current network is not supported by Ramp
+      // or if the chainId from the URL params doesn't match the selected chainId.
+      // The Network Switcher handles adding or switching to the network specified in the URL params
+      // and continues the intent with any additional params (like token and amount).
       if (
         !isNetworkRampSupported ||
         (params?.chainId && params.chainId !== selectedChainId)
