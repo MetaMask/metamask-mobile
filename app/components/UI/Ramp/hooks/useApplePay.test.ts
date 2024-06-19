@@ -14,7 +14,7 @@ describe('useApplePay', () => {
     jest.clearAllMocks();
   });
 
-  it('should throw an error if quote does not support Apple Pay', async () => {
+  it('throws an error if quote does not support Apple Pay', async () => {
     const quote = {
       getApplePayRequestInfo: undefined,
       purchaseWithApplePay: undefined,
@@ -26,7 +26,7 @@ describe('useApplePay', () => {
     );
   });
 
-  it('should create a PaymentRequest with applePayInfo and return expected if successful', async () => {
+  it('creates a PaymentRequest with applePayInfo and returns result if successful', async () => {
     const quote = {
       getApplePayRequestInfo: jest.fn().mockReturnValue({
         methodData: 'test-method-data',
@@ -100,7 +100,7 @@ describe('useApplePay', () => {
     });
   });
 
-  it('should throw if the paymentResponse is falsy', async () => {
+  it('throws if the paymentResponse is falsy', async () => {
     const quote = {
       getApplePayRequestInfo: jest.fn().mockReturnValue({
         methodData: 'test-method-data',
@@ -132,7 +132,7 @@ describe('useApplePay', () => {
     expect(mockAbort).toHaveBeenCalled();
   });
 
-  it('should throw if purchaseWithApplePay status is FAILURE with error', async () => {
+  it('throws if purchaseWithApplePay status is FAILURE with error', async () => {
     const quote = {
       getApplePayRequestInfo: jest.fn().mockReturnValue({
         methodData: 'test-method-data',
@@ -164,7 +164,7 @@ describe('useApplePay', () => {
     expect(mockAbort).toHaveBeenCalled();
   });
 
-  it('should throw if purchaseWithApplePay status is FAILURE with error object', async () => {
+  it('throws if purchaseWithApplePay status is FAILURE with error object', async () => {
     const quote = {
       getApplePayRequestInfo: jest.fn().mockReturnValue({
         methodData: 'test-method-data',
@@ -193,7 +193,7 @@ describe('useApplePay', () => {
     expect(mockPaymentRequestComplete).toHaveBeenCalledWith('fail');
   });
 
-  it('should return ABORTED if error message includes AbortError', async () => {
+  it('returns ABORTED if error message includes AbortError', async () => {
     const quote = {
       getApplePayRequestInfo: jest.fn().mockReturnValue({
         methodData: 'test-method-data',
