@@ -83,8 +83,8 @@ import {
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
-  selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
@@ -1683,7 +1683,8 @@ BrowserTab.defaultProps = {
 const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
-  selectedAddress: selectSelectedAddress(state)?.toLowerCase(),
+  selectedAddress:
+    selectSelectedInternalAccountChecksummedAddress(state)?.toLowerCase(),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,

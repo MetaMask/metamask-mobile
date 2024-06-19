@@ -48,7 +48,7 @@ import {
 } from '../../../../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../../selectors/gasFeeController';
 
@@ -967,7 +967,7 @@ const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   contractBalances: selectContractBalances(state),
   networkType: selectProviderType(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),
