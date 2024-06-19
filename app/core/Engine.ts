@@ -437,7 +437,6 @@ class Engine {
         'wallet_watchAsset',
       ],
     });
-    console.warn('***KYLAN*** ApprovalController created');
 
     const preferencesController = new PreferencesController({
       messenger: this.controllerMessenger.getRestricted({
@@ -455,7 +454,6 @@ class Engine {
         ...initialState.PreferencesController,
       },
     });
-    console.warn('***KYLAN*** PreferencesController created');
     const networkControllerOpts = {
       infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
       state: initialState.NetworkController,
@@ -471,7 +469,6 @@ class Engine {
       },
     };
     const networkController = new NetworkController(networkControllerOpts);
-    console.warn('***KYLAN*** NetworkController created');
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
@@ -487,7 +484,6 @@ class Engine {
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
-    console.warn('***KYLAN*** AssetsContractController created');
     const nftController = new NftController(
       {
         //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
@@ -536,7 +532,6 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
       },
     );
-    console.warn('***KYLAN*** NftController created');
     const loggingController = new LoggingController({
       messenger: this.controllerMessenger.getRestricted<
         'LoggingController',
@@ -549,7 +544,6 @@ class Engine {
       }),
       state: initialState.LoggingController,
     });
-    console.warn('***KYLAN*** LoggingController created');
     //@ts-expect-error Misalign types because of Base Controller version
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
@@ -577,7 +571,6 @@ class Engine {
       messenger: accountsControllerMessenger,
       state: initialState.AccountsController ?? defaultAccountsControllerState,
     });
-    console.warn('***KYLAN*** TokensController about to start');
     const tokensController = new TokensController({
       chainId: networkController.state.providerConfig.chainId,
       config: {
@@ -597,7 +590,6 @@ class Engine {
         ],
       }),
     });
-    console.warn('***KYLAN*** TokensController created');
     const tokenListController = new TokenListController({
       chainId: networkController.state.providerConfig.chainId,
       onNetworkStateChange: (listener) =>
@@ -612,7 +604,6 @@ class Engine {
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
-    console.warn('***KYLAN*** TokenListController created');
     const currencyRateController = new CurrencyRateController({
       //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
@@ -655,7 +646,6 @@ class Engine {
         'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
 
-    console.warn('***KYLAN*** GasFeeController about just finished');
 
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
@@ -664,7 +654,6 @@ class Engine {
         allowedEvents: [],
       }),
     });
-    console.warn('***KYLAN*** PhishingController created');
     phishingController.maybeUpdateState();
 
     const qrKeyringBuilder = () => {
@@ -692,7 +681,6 @@ class Engine {
       // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
       keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
     });
-    console.warn('***KYLAN*** KeyringController created');
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     /**
      * Gets the mnemonic of the user's primary keyring.
@@ -799,7 +787,6 @@ class Engine {
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
-    console.warn('***KYLAN*** AccountTrackerController created');
     const permissionController = new PermissionController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
@@ -861,7 +848,6 @@ class Engine {
       },
       unrestrictedMethods,
     });
-    console.warn('***KYLAN*** PermissionController created');
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     const subjectMetadataController = new SubjectMetadataController({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -874,7 +860,6 @@ class Engine {
       state: initialState.SubjectMetadataController || {},
       subjectCacheLimit: 100,
     });
-    console.warn('***KYLAN*** SubjectMetadataController created');
     const setupSnapProvider = (snapId: string, connectionStream: Duplex) => {
       Logger.log(
         '[ENGINE LOG] Engine+setupSnapProvider: Setup stream for Snap',
@@ -1006,7 +991,6 @@ class Engine {
       encryptor,
       getMnemonic: getPrimaryKeyringMnemonic.bind(this),
     });
-    console.warn('***KYLAN*** SnapController created');
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
@@ -1079,7 +1063,6 @@ class Engine {
         },
       },
     });
-    console.warn('***KYLAN*** TransactionController created');
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
@@ -1135,7 +1118,6 @@ class Engine {
       },
       initialState.SmartTransactionsController,
     );
-    console.warn('***KYLAN*** SmartTransactionsController created');
 
     const tokenDetectionController = new TokenDetectionController({
       //@ts-expect-error Misalign types because of Base Controller version
@@ -1177,10 +1159,8 @@ class Engine {
           assetsContractController,
         ),
     });
-    console.warn('***KYLAN*** TokenDetectionController created');
 
     const addressBookController = new AddressBookController();
-    console.warn('***KYLAN*** addressBookController created');
 
     const nftDetectionController = new NftDetectionController({
       onNftsStateChange: (listener) => nftController.subscribe(listener),
@@ -1201,7 +1181,6 @@ class Engine {
         networkController.getNetworkClientById.bind(networkController),
     });
 
-    console.warn('***KYLAN*** NftDetectionController created');
 
     const tokenBalancesController = new TokenBalancesController({
       //@ts-expect-error Misalign types because of Base Controller version
@@ -1218,7 +1197,6 @@ class Engine {
       interval: 180000,
     });
 
-    console.warn('***KYLAN*** TokenBalancesController created');
 
     const tokenRatesController = new TokenRatesController({
       onTokensStateChange: (listener) => tokensController.subscribe(listener),
@@ -1266,7 +1244,6 @@ class Engine {
       },
     );
 
-    console.warn('***kylan*** newSwapsController created');
 
     const signatureController = new SignatureController({
       messenger: this.controllerMessenger.getRestricted({
@@ -1288,7 +1265,6 @@ class Engine {
       getCurrentChainId: () => networkController.state.providerConfig.chainId,
     });
 
-    console.warn('***kylan*** signatureController created');
 
     const controllers: Controllers[keyof Controllers][] = [
       keyringController,
@@ -1321,7 +1297,6 @@ class Engine {
       accountsController,
     ];
 
-    console.warn('***kylan*** controllers created');
 
     if (isBlockaidFeatureEnabled()) {
       const ppomController = new PPOMController({
@@ -1354,7 +1329,6 @@ class Engine {
       controllers.push(ppomController);
     }
 
-    console.warn('***kylan*** controllers pushed');
 
     // set initial state
     // TODO: Pass initial state into each controller constructor instead
@@ -1375,7 +1349,6 @@ class Engine {
       }
     }
 
-    console.warn('***kylan*** initial state set');
 
     this.datamodel = new ComposableController(
       controllers,
@@ -1389,7 +1362,6 @@ class Engine {
       {},
     ) as typeof this.context;
 
-    console.warn('***kylan*** datamodel created');
 
     const {
       NftController: nfts,
@@ -1424,7 +1396,6 @@ class Engine {
         }
       },
     );
-    console.warn('***kylan*** network state change event subscribed');
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       async () => {
@@ -1439,14 +1410,12 @@ class Engine {
         }
       },
     );
-    console.warn('***kylan*** network id updated event subscribed');
     this.controllerMessenger.subscribe(
       `${networkController.name}:networkWillChange`,
       () => {
         store.dispatch(networkIdWillUpdate());
       },
     );
-    console.warn('***kylan*** network will change event subscribed');
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
