@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import type { Notification } from '../../../util/notifications/types/notification';
 import {
@@ -18,6 +18,10 @@ import {
   setMetamaskNotificationsFeatureSeenRequest,
   updateOnChainTriggersByAccountRequest,
 } from '../../../actions/notification/pushNotifications';
+import {
+  selectNotificationsList,
+  selectIsMetamaskNotificationsEnabled,
+} from '../../../selectors/pushNotifications';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -27,7 +31,7 @@ import {
  */
 export function useListNotifications(): ListNotificationsReturn {
   const dispatch = useDispatch();
-
+  const notifications = useSelector(selectNotificationsList);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
@@ -36,16 +40,18 @@ export function useListNotifications(): ListNotificationsReturn {
 
     try {
       dispatch(fetchAndUpdateMetamaskNotificationsRequest());
+      return notifications;
     } catch (e) {
       setError(getErrorMessage(e));
       throw e;
     } finally {
       setLoading(false);
     }
-  }, [dispatch]);
+  }, [dispatch, notifications]);
 
   return {
     listNotifications,
+    notificationsData: notifications,
     isLoading: loading,
     error,
   };
@@ -58,7 +64,6 @@ export function useListNotifications(): ListNotificationsReturn {
  */
 export function useCreateNotifications(): CreateNotificationsReturn {
   const dispatch = useDispatch();
-
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
@@ -97,7 +102,9 @@ export function useCreateNotifications(): CreateNotificationsReturn {
  */
 export function useEnableNotifications(): EnableNotificationsReturn {
   const dispatch = useDispatch();
-
+  const isMetamaskNotificationsEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
@@ -107,13 +114,15 @@ export function useEnableNotifications(): EnableNotificationsReturn {
     try {
       dispatch(enableNotificationsServicesRequest());
       dispatch(setMetamaskNotificationsFeatureSeenRequest());
+
+      return isMetamaskNotificationsEnabled;
     } catch (e) {
       setError(getErrorMessage(e));
       throw e;
     } finally {
       setLoading(false);
     }
-  }, [dispatch]);
+  }, [dispatch, isMetamaskNotificationsEnabled]);
 
   return {
     enableNotifications,
@@ -129,7 +138,9 @@ export function useEnableNotifications(): EnableNotificationsReturn {
  */
 export function useDisableNotifications(): DisableNotificationsReturn {
   const dispatch = useDispatch();
-
+  const isMetamaskNotificationsEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
@@ -138,13 +149,14 @@ export function useDisableNotifications(): DisableNotificationsReturn {
 
     try {
       dispatch(disableNotificationsServicesRequest());
+      return isMetamaskNotificationsEnabled;
     } catch (e) {
       setError(getErrorMessage(e));
       throw e;
     } finally {
       setLoading(false);
     }
-  }, [dispatch]);
+  }, [dispatch, isMetamaskNotificationsEnabled]);
 
   return {
     disableNotifications,

@@ -277,9 +277,12 @@ export function markMetamaskNotificationsAsReadRequest(
   };
 }
 
-export function markMetamaskNotificationsAsReadSuccess(): NotificationsActionTypes {
+export function markMetamaskNotificationsAsReadSuccess(
+  notifications: Notification[],
+): NotificationsActionTypes {
   return {
     type: notificationsAction.MARK_METAMASK_NOTIFICATIONS_AS_READ_SUCCESS,
+    payload: { notifications },
   };
 }
 

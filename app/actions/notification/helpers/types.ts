@@ -153,6 +153,7 @@ interface MarkMetamaskNotificationsAsReadRequest {
 
 interface MarkMetamaskNotificationsAsReadSuccess {
   type: typeof notificationsAction.MARK_METAMASK_NOTIFICATIONS_AS_READ_SUCCESS;
+  payload: { notifications: Notification[] };
 }
 
 interface MarkMetamaskNotificationsAsReadFailure {

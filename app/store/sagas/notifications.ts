@@ -269,7 +269,7 @@ export function* markMetamaskNotificationsAsRead(action: any) {
       );
       return;
     }
-    yield put(markMetamaskNotificationsAsReadSuccess());
+    yield put(markMetamaskNotificationsAsReadSuccess(result));
   } catch (error) {
     yield put(markMetamaskNotificationsAsReadFailure(getErrorMessage(error)));
   }

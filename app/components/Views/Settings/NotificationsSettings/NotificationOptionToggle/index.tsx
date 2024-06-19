@@ -59,17 +59,14 @@ const NotificationOptionToggle = ({
   const { colors } = theme;
   const styles = createStyles();
 
-  const handleToggleAccountNotifications = useCallback(async () => {
+  const handleToggleAccountNotifications = useCallback(() => {
     const originalValue = data?.[address];
-    await onChange([address], !originalValue);
+    onChange([address], !originalValue);
     listNotifications();
   }, [address, data, listNotifications, onChange]);
 
   useEffect(() => {
-    const updateData = async () => {
-      switchAccountNotifications([address]);
-    };
-    updateData();
+    switchAccountNotifications([address]);
   }, [address, switchAccountNotifications]);
 
   return (
