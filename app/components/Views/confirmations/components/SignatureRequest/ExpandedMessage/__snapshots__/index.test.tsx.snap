@@ -4,7 +4,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "minHeight": "70%",
@@ -30,7 +30,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
       size={30}
       style={
         {
-          "color": "#BBC0C5",
+          "color": "#9fa6ae",
           "flex": 1,
         }
       }
@@ -38,7 +38,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
     <Text
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "flex": 1,
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 16,
@@ -80,7 +80,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
     <Text
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 16,
           "fontWeight": "600",

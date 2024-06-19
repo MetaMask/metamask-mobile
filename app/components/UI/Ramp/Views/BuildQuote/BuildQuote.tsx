@@ -186,16 +186,19 @@ const BuildQuote = () => {
     estimateRange: 'high',
   });
 
-  const assetForBalance =
-    selectedAsset && selectedAsset.address !== NATIVE_ADDRESS
-      ? {
-          address: selectedAsset.address,
-          symbol: selectedAsset.symbol,
-          decimals: selectedAsset.decimals,
-        }
-      : {
-          isETH: true,
-        };
+  const assetForBalance = useMemo(
+    () =>
+      selectedAsset && selectedAsset.address !== NATIVE_ADDRESS
+        ? {
+            address: selectedAsset.address,
+            symbol: selectedAsset.symbol,
+            decimals: selectedAsset.decimals,
+          }
+        : {
+            isETH: true,
+          },
+    [selectedAsset],
+  );
 
   const { addressBalance } = useAddressBalance(
     assetForBalance as Asset,

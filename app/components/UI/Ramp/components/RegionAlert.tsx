@@ -41,7 +41,7 @@ interface Props {
 }
 
 const SUPPORT_URL =
-  'https://metamask.zendesk.com/hc/en-us/articles/4863623238683-My-country-region-isn-t-supported-for-MetaMask-on-ramps';
+  'https://support.metamask.io/metamask-portfolio/buy/my-country-region-isnt-supported-for-buying-crypto/';
 
 const RegionAlert: React.FC<Props> = ({
   isVisible,

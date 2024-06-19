@@ -1,11 +1,12 @@
 import { createSelector } from 'reselect';
 import { TokensState, Token } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
+import { createDeepEqualSelector } from './util';
 
 const selectTokensControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.TokensController;
 
-export const selectTokens = createSelector(
+export const selectTokens = createDeepEqualSelector(
   selectTokensControllerState,
   (tokensControllerState: TokensState) => tokensControllerState?.tokens,
 );
