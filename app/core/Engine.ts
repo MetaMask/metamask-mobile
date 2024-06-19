@@ -182,19 +182,16 @@ import { hasProperty, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 
+// START: Notifications related controllers
 import {
   AuthenticationController,
-  AuthenticationControllerState,
   UserStorageController,
-  UserStorageControllerState,
 } from '@metamask/profile-sync-controller';
-
 import {
   NotificationServicesController,
-  NotificationServicesControllerState,
-  NotificationServicesPushController,
-  NotificationServicesPushControllerState,
+  NotificationsServicesPushController,
 } from '@metamask/notification-services-controller';
+// END: Notifications related controllers
 
 import { providerErrors } from '@metamask/rpc-errors';
 
@@ -243,6 +240,13 @@ interface TestOrigin {
 
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
 
+type AuthenticationControllerActions = AuthenticationController.Actions;
+type UserStorageControllerActions = UserStorageController.Actions;
+type NotificationsServicesControllerActions =
+  NotificationServicesController.Actions;
+type NotificationsServicesPushControllerActions =
+  NotificationsServicesPushController.Actions;
+
 type SnapsGlobalActions =
   | SnapControllerActions
   | SubjectMetadataControllerActions
@@ -257,6 +261,7 @@ type SnapsGlobalEvents =
 
 type GlobalActions =
   | ApprovalControllerActions
+  | AuthenticationControllerActions
   | GetCurrencyRateState
   | GetGasFeeState
   | GetTokenListState
@@ -268,8 +273,11 @@ type GlobalActions =
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalActions
   ///: END:ONLY_INCLUDE_IF
+  | UserStorageControllerActions
   | KeyringControllerActions
   | AccountsControllerActions
+  | NotificationsServicesControllerActions
+  | NotificationsServicesPushControllerActions
   | PreferencesControllerActions
   | TokensControllerActions
   | TokenListControllerActions;
@@ -326,10 +334,10 @@ export interface EngineState {
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   // Notification Controllers
-  AuthenticationController: AuthenticationControllerState;
-  UserStorageController: UserStorageControllerState;
-  NotificationServicesController: NotificationServicesControllerState;
-  NotificationServicesPushController: NotificationServicesPushControllerState;
+  AuthenticationController: AuthenticationController.AuthenticationControllerState;
+  UserStorageController: UserStorageController.UserStorageControllerState;
+  NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
+  NotificationsServicesPushController: NotificationsServicesPushController.NotificationServicesPushControllerState;
 }
 
 /**
@@ -367,10 +375,10 @@ interface Controllers {
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   // Notification Controllers
-  AuthenticationController: AuthenticationController;
-  UserStorageController: UserStorageController;
-  NotificationServicesController: NotificationServicesController;
-  NotificationServicesPushController: NotificationServicesPushController;
+  AuthenticationController: AuthenticationController.Controller;
+  UserStorageController: UserStorageController.Controller;
+  NotificationServicesController: NotificationServicesController.Controller;
+  NotificationsServicesPushController: NotificationsServicesPushController.Controller;
 }
 
 /**
@@ -995,7 +1003,7 @@ class Engine {
       ],
     });
 
-    const authenticationController = new AuthenticationController({
+    const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
@@ -1003,13 +1011,11 @@ class Engine {
           'SnapController:handleRequest',
           'UserStorageController:disableProfileSyncing',
         ],
+        allowedEvents: [],
       }),
-      metametrics: {
-        getMetaMetricsId: () => MetaMetrics.getInstance().getMetaMetricsId(),
-      },
     });
 
-    const userStorageController = new UserStorageController({
+    const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       state: initialState.UserStorageController,
       messenger: this.controllerMessenger.getRestricted({
@@ -1021,44 +1027,47 @@ class Engine {
           'AuthenticationController:isSignedIn',
           'AuthenticationController:performSignOut',
           'AuthenticationController:performSignIn',
-          'NotificationServicesController:disableMetamaskNotifications',
-          'NotificationServicesController:selectIsMetamaskNotificationsEnabled',
+          'NotificationServicesController:disableNotificationServices',
+          'NotificationServicesController:selectIsNotificationServicesEnabled',
         ],
+        allowedEvents: [],
       }),
     });
 
     const notificationServicesPushController =
-      new NotificationServicesPushController({
-        state: initialState.NotificationServicesPushController,
+      new NotificationsServicesPushController.Controller({
+        state: initialState.NotificationsServicesPushController,
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationsServicesPushController',
           allowedActions: ['AuthenticationController:getBearerToken'],
+          allowedEvents: [],
         }),
-        NotificationServicesPushController,
+        NotificationsServicesPushController,
       });
 
-    const notificationServicesController = new NotificationServicesController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'NotificationServicesController',
-        allowedActions: [
-          'KeyringController:getAccounts',
-          'AuthenticationController:getBearerToken',
-          'AuthenticationController:isSignedIn',
-          'UserStorageController:enableProfileSyncing',
-          'UserStorageController:getStorageKey',
-          'UserStorageController:performGetStorage',
-          'UserStorageController:performSetStorage',
-          'NotificationServicesPushController:enablePushNotifications',
-          'NotificationServicesPushController:disablePushNotifications',
-          'NotificationServicesPushController:updateTriggerPushNotifications',
-        ],
-        allowedEvents: [
-          'KeyringController:stateChange',
-          'NotificationServicesPushController:onNewNotifications',
-        ],
-      }),
-      state: initialState.NotificationServicesController,
-    });
+    const notificationServicesController =
+      new NotificationServicesController.Controller({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'NotificationServicesController',
+          allowedActions: [
+            'KeyringController:getAccounts',
+            'AuthenticationController:getBearerToken',
+            'AuthenticationController:isSignedIn',
+            'UserStorageController:enableProfileSyncing',
+            'UserStorageController:getStorageKey',
+            'UserStorageController:performGetStorage',
+            'UserStorageController:performSetStorage',
+            'NotificationServicesPushController:enablePushNotifications',
+            'NotificationServicesPushController:disablePushNotifications',
+            'NotificationServicesPushController:updateTriggerPushNotifications',
+          ],
+          allowedEvents: [
+            'KeyringController:stateChange',
+            'NotificationServicesPushController:onNewNotifications',
+          ],
+        }),
+        state: initialState.NotificationServicesController,
+      });
 
     const snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
