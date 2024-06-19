@@ -1,5 +1,6 @@
-/* eslint-disable no-console */
-
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-var-requires */
 import React, { useRef, useCallback } from 'react';
 import BottomSheet, {
   BottomSheetRef,
@@ -25,7 +26,6 @@ import { selectChainId } from '../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 
-// eslint-disable-next-line import/no-commonjs
 const walletImage = require('../../../images/wallet-alpha.png');
 
 const NFTAutoDetectionModal = () => {
