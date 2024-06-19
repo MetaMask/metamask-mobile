@@ -21,7 +21,7 @@ describe('useAnalytics', () => {
     jest.clearAllMocks();
   });
 
-  it('should call trackEvent with the correct params', () => {
+  it('calls trackEvent with the correct params', () => {
     const { result } = renderHookWithProvider(() => useAnalytics());
 
     const testEvent = 'BUY_BUTTON_CLICKED';
@@ -40,7 +40,7 @@ describe('useAnalytics', () => {
     );
   });
 
-  it('should call trackAnonymousEvent with the correct params', () => {
+  it('calls trackAnonymousEvent with the correct params', () => {
     const { result } = renderHookWithProvider(() => useAnalytics());
 
     const testEvent = 'RAMP_REGION_SELECTED';
