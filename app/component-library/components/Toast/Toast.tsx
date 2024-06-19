@@ -195,7 +195,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             name={iconName}
             iconColor={iconColor}
             backgroundColor={backgroundColor}
-            //size={AvatarSize.Md}
             style={styles.avatar}
           />
         );

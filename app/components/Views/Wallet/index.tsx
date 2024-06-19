@@ -365,7 +365,7 @@ const Wallet = ({
     () => {
       requestAnimationFrame(async () => {
         const { TokenDetectionController, AccountTrackerController } =
-          Engine.context as any;
+          Engine.context;
         TokenDetectionController.detectTokens();
         AccountTrackerController.refresh();
       });
@@ -421,7 +421,7 @@ const Wallet = ({
       } else {
         trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
         // Call detect nfts
-        const { NftDetectionController } = Engine.context as any;
+        const { NftDetectionController } = Engine.context;
         showNftFetchingLoadingIndicator();
         await NftDetectionController.detectNfts();
         hideNftFetchingLoadingIndicator();
