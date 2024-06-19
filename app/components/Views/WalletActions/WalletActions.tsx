@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useRef } from 'react';
-import { View, Platform } from 'react-native';
+import { View } from 'react-native';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -27,21 +27,13 @@ import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import WalletAction from '../../../components/UI/WalletAction';
 import { useStyles } from '../../../component-library/hooks';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
 import { getDecimalChainId } from '../../../util/networks';
+import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
-import {
-  WALLET_BRIDGE,
-  WALLET_BUY,
-  WALLET_RECEIVE,
-  WALLET_SELL,
-  WALLET_SEND,
-  WALLET_SWAP,
-} from './WalletActions.constants';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const WalletActions = () => {
@@ -130,7 +122,7 @@ const WalletActions = () => {
             iconSize={AvatarSize.Md}
             onPress={onBuy}
             iconStyle={styles.icon}
-            {...generateTestId(Platform, WALLET_BUY)}
+            actionID={WalletActionsModalSelectorsIDs.BUY_BUTTON}
           />
         )}
 
@@ -142,7 +134,7 @@ const WalletActions = () => {
             iconSize={AvatarSize.Md}
             onPress={onSell}
             iconStyle={styles.icon}
-            {...generateTestId(Platform, WALLET_SELL)}
+            actionID={WalletActionsModalSelectorsIDs.SELL_BUTTON}
           />
         )}
 
@@ -156,7 +148,7 @@ const WalletActions = () => {
               iconSize={AvatarSize.Md}
               onPress={goToSwaps}
               iconStyle={styles.icon}
-              {...generateTestId(Platform, WALLET_SWAP)}
+              actionID={WalletActionsModalSelectorsIDs.SWAP_BUTTON}
             />
           )}
 
@@ -168,7 +160,7 @@ const WalletActions = () => {
             iconSize={AvatarSize.Md}
             onPress={goToBridge}
             iconStyle={styles.icon}
-            {...generateTestId(Platform, WALLET_BRIDGE)}
+            actionID={WalletActionsModalSelectorsIDs.BRIDGE_BUTTON}
           />
         )}
         <WalletAction
@@ -181,7 +173,7 @@ const WalletActions = () => {
             transform: [{ rotate: '-45deg' }],
             ...styles.icon,
           }}
-          {...generateTestId(Platform, WALLET_SEND)}
+          actionID={WalletActionsModalSelectorsIDs.SEND_BUTTON}
         />
         <WalletAction
           actionTitle={strings('asset_overview.receive_button')}
@@ -190,7 +182,7 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           onPress={onReceive}
           iconStyle={styles.icon}
-          {...generateTestId(Platform, WALLET_RECEIVE)}
+          actionID={WalletActionsModalSelectorsIDs.RECEIVE_BUTTON}
         />
       </View>
     </BottomSheet>
