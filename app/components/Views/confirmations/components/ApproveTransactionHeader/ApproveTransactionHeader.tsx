@@ -30,7 +30,6 @@ import {
 } from './ApproveTransactionHeader.constants';
 import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const ApproveTransactionHeader = ({
   from,
