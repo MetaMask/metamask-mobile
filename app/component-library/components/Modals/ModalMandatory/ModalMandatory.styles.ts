@@ -2,7 +2,7 @@
 import { StyleSheet, TextStyle, Dimensions } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
-const screenHeight = Dimensions.get('window').height;
+export const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 /**
  * Style sheet function for ModalConfirmation component.
@@ -32,7 +32,7 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
       marginBottom: 16,
     },
-    bodyContainer: { height: screenHeight / 2 },
+    bodyContainer: { height: SCREEN_HEIGHT / 2 },
     checkboxContainer: {
       flexDirection: 'row',
       marginTop: 16,

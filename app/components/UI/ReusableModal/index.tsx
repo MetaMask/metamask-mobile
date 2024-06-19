@@ -10,7 +10,12 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import {
+  Modal,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
@@ -43,11 +48,22 @@ import {
   ReusableModalProps,
   ReusableModalRef,
 } from './ReusableModal.types';
+import { TermsOfUseModalSelectorsIDs } from '../../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
 // Export to make compatible with components that use this file.
 export type { ReusableModalRef } from './ReusableModal.types';
 
 const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
-  ({ children, onDismiss, isInteractable = true, style, ...props }, ref) => {
+  (
+    {
+      children,
+      onDismiss,
+      isInteractable = true,
+      style,
+      isTermsModal,
+      ...props
+    },
+    ref,
+  ) => {
     const postCallback = useRef<ReusableModalPostCallback>();
     const { height: screenHeight } = useWindowDimensions();
     const { styles } = useStyles(styleSheet, {});
@@ -190,20 +206,33 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
 
     return (
       <View style={styles.absoluteFill} {...props}>
-        <Animated.View style={combinedOverlayStyle}></Animated.View>
-        <PanGestureHandler
-          enabled={isInteractable}
-          onGestureEvent={gestureHandler}
-        >
-          <Animated.View style={[combinedModalStyle, style]}>
-            <TouchableOpacity
-              disabled={!isInteractable}
-              style={styles.absoluteFill}
-              onPress={debouncedHide}
-            />
+        {isTermsModal ? (
+          <Modal
+            animationType="slide"
+            presentationStyle="pageSheet"
+            visible
+            testID={TermsOfUseModalSelectorsIDs.TERMS_MODAL}
+          >
             {children}
-          </Animated.View>
-        </PanGestureHandler>
+          </Modal>
+        ) : (
+          <>
+            <Animated.View style={combinedOverlayStyle}></Animated.View>
+            <PanGestureHandler
+              enabled={isInteractable}
+              onGestureEvent={gestureHandler}
+            >
+              <Animated.View style={[combinedModalStyle, style]}>
+                <TouchableOpacity
+                  disabled={!isInteractable}
+                  style={styles.absoluteFill}
+                  onPress={debouncedHide}
+                />
+                {children}
+              </Animated.View>
+            </PanGestureHandler>
+          </>
+        )}
       </View>
     );
   },

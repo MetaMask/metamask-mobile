@@ -58,6 +58,10 @@ export interface MandatoryModalParams {
      * Optional button test id for the button of the modal
      */
     buttonTestId?: string;
+    /**
+     * Optional boolean to check if it's a terms modal. Solution for expensive terms modal
+     */
+    isTermsModal?: boolean;
   };
 }
 

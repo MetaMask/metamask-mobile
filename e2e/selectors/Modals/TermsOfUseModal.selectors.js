@@ -5,4 +5,5 @@ export const TermsOfUseModalSelectorsIDs = {
   CONTAINER: 'terms-of-use-screen-id',
   SCROLL_ARROW_BUTTON: 'terms-of-use-scroll-end-arrow-button-id',
   WEBVIEW: 'terms-of-use-webview-id',
+  TERMS_MODAL: 'terms-of-use-modal',
 };
