@@ -43,7 +43,7 @@ export const selectIsMetamaskNotificationsFeatureSeen = createSelector(
   (pushNotificationsState: IPushNotificationsState) =>
     pushNotificationsState.isMetamaskNotificationsFeatureSeen,
 );
-export const selectNotificationsList = createSelector(
+export const selectNotificationsList = createDeepEqualSelector(
   selectPushNotificationsState,
   (pushNotificationsState: IPushNotificationsState) =>
     pushNotificationsState.notifications,

@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { capitalize } from 'lodash';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -48,10 +48,6 @@ const NotificationsDetails = ({ navigation, route }: Props) => {
   const theme = useTheme();
   const styles = createStyles(theme);
 
-  const markAsRead = useCallback(() => {
-    markNotificationAsRead([notification]);
-  }, [notification, markNotificationAsRead]);
-
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -60,9 +56,9 @@ const NotificationsDetails = ({ navigation, route }: Props) => {
 
   useEffect(() => {
     setTimeout(() => {
-      markAsRead();
+      markNotificationAsRead([notification]);
     }, 5000);
-  }, [markAsRead]);
+  }, [notification, markNotificationAsRead]);
 
   const handleShowAlert = (config: {
     isVisible: boolean;
