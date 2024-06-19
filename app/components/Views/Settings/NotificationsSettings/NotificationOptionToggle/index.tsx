@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
 import { Platform, Switch, View } from 'react-native';
-import { useSelector } from 'react-redux';
 import { createStyles } from './styles';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import Text, {
@@ -22,7 +21,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { selectIsUpdatingMetamaskNotificationsAccount } from '../../../../../selectors/pushNotifications';
 import {
   useSwitchAccountNotifications,
   useSwitchAccountNotificationsChange,
@@ -56,9 +54,6 @@ const NotificationOptionToggle = ({
   testId,
   disabled,
 }: NotificationOptionsToggleProps) => {
-  const isUpdatingMetamaskNotificationsAccount = useSelector(
-    selectIsUpdatingMetamaskNotificationsAccount,
-  );
   const { switchAccountNotifications } = useSwitchAccountNotifications();
   const { onChange } = useSwitchAccountNotificationsChange();
 
@@ -74,18 +69,11 @@ const NotificationOptionToggle = ({
 
   useEffect(() => {
     const updateData = async () => {
-      if (isUpdatingMetamaskNotificationsAccount.includes(address)) {
-        const fetchedData = await switchAccountNotifications([address]);
-        setData(fetchedData || {});
-      }
+      const fetchedData = switchAccountNotifications([address]);
+      setData(fetchedData || {});
     };
     updateData();
-  }, [
-    address,
-    isUpdatingMetamaskNotificationsAccount,
-    setData,
-    switchAccountNotifications,
-  ]);
+  }, [address, setData, switchAccountNotifications]);
 
   return (
     <View style={styles.container}>
