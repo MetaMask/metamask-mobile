@@ -95,7 +95,7 @@ describe('useInAppBrowser', () => {
     };
   });
 
-  it('should return render in app browser function', async () => {
+  it('returns render in app browser function', async () => {
     const { result } = renderHookWithProvider(() => useInAppBrowser(), {
       state: defaultState,
     });
@@ -108,7 +108,7 @@ describe('useInAppBrowser', () => {
       jest.restoreAllMocks();
     });
 
-    it('should call buyAction.createWidget with correct deeplinkRedirectUrl', async () => {
+    it('calls buyAction.createWidget with correct deeplinkRedirectUrl', async () => {
       const { result } = renderHookWithProvider(() => useInAppBrowser(), {
         state: defaultState,
       });
@@ -121,7 +121,7 @@ describe('useInAppBrowser', () => {
       );
     });
 
-    it('should create add dispatch customIdData if customOrderId is returned for buy', async () => {
+    it('creates and dispatches addFiatCustomIdData if customOrderId is returned for buy', async () => {
       const { result } = renderHookWithProvider(() => useInAppBrowser(), {
         state: defaultState,
       });
@@ -145,7 +145,7 @@ describe('useInAppBrowser', () => {
       );
     });
 
-    it('should create and dispatch to add customIdData if customOrderId is returned for sell', async () => {
+    it('creates and dispatches addFiatCustomIdData if customOrderId is returned for sell', async () => {
       mockUseRampSDKValues.isBuy = false;
 
       const { result } = renderHookWithProvider(() => useInAppBrowser(), {
@@ -171,7 +171,7 @@ describe('useInAppBrowser', () => {
       );
     });
 
-    it('should dispatch to remove customIdData if order is not Unknown', async () => {
+    it('dispatches removeFiatCustomIdData if order is not Unknown', async () => {
       jest
         .mocked((await SDK.orders()).getOrderFromCallback)
         .mockResolvedValueOnce({
@@ -201,7 +201,7 @@ describe('useInAppBrowser', () => {
       );
     });
 
-    it('should call Linking.openURL if device is android', async () => {
+    it('calls Linking.openURL if device is android', async () => {
       // mock Platform.OS to be android
       jest.mock('react-native/Libraries/Utilities/Platform', () => ({
         ...jest.requireActual('react-native/Libraries/Utilities/Platform'),
@@ -216,7 +216,7 @@ describe('useInAppBrowser', () => {
       expect(Linking.openURL).toHaveBeenCalledWith('test-url');
     });
 
-    it('should call Linking.openURL if InAppBrowser.isAvailable is false', async () => {
+    it('calls Linking.openURL if InAppBrowser.isAvailable is false', async () => {
       jest.mocked(InAppBrowser.isAvailable).mockResolvedValueOnce(false);
       const { result } = renderHookWithProvider(() => useInAppBrowser(), {
         state: defaultState,
@@ -227,7 +227,7 @@ describe('useInAppBrowser', () => {
       expect(Linking.openURL).toHaveBeenCalledWith('test-url');
     });
 
-    it('should set lockTime to -1 and restore it', async () => {
+    it('sets lockTime to -1 and restores it', async () => {
       const { result } = renderHookWithProvider(() => useInAppBrowser(), {
         state: defaultState,
       });
@@ -241,7 +241,7 @@ describe('useInAppBrowser', () => {
       );
     });
 
-    it('should return and track cancelled event if the result is not success for buy', async () => {
+    it('returns and tracks cancelled event if the result is not success for buy', async () => {
       jest.mocked(InAppBrowser.openAuth).mockResolvedValueOnce({
         type: 'cancel',
       });
@@ -267,7 +267,7 @@ describe('useInAppBrowser', () => {
       });
     });
 
-    it('should return and track cancelled event if the result is not success for sell', async () => {
+    it('returns and tracks cancelled event if the result is not success for sell', async () => {
       mockUseRampSDKValues.isBuy = false;
       jest.mocked(InAppBrowser.openAuth).mockResolvedValueOnce({
         type: 'cancel',
@@ -294,7 +294,7 @@ describe('useInAppBrowser', () => {
       });
     });
 
-    it('should return and track cancelled event if the result is success but url is falsy', async () => {
+    it('returns and tracks cancelled event if the result is success but url is falsy', async () => {
       jest.mocked(InAppBrowser.openAuth).mockResolvedValueOnce({
         type: 'success',
         url: '',
@@ -321,7 +321,7 @@ describe('useInAppBrowser', () => {
       });
     });
 
-    it('should call getOrderFromCallback to get order for buy', async () => {
+    it('calls getOrderFromCallback to get order for buy', async () => {
       const { result } = renderHookWithProvider(() => useInAppBrowser(), {
         state: defaultState,
       });
@@ -338,7 +338,7 @@ describe('useInAppBrowser', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('should call getSellOrderFromCallback to get order for sell', async () => {
+    it('calls getSellOrderFromCallback to get order for sell', async () => {
       mockUseRampSDKValues.isBuy = false;
       const { result } = renderHookWithProvider(() => useInAppBrowser(), {
         state: defaultState,
@@ -356,7 +356,7 @@ describe('useInAppBrowser', () => {
       expect((await SDK.orders()).getOrderFromCallback).not.toHaveBeenCalled();
     });
 
-    it('should return early if order is falsy', async () => {
+    it('returns early if order is falsy', async () => {
       const { result } = renderHookWithProvider(() => useInAppBrowser(), {
         state: defaultState,
       });
@@ -365,7 +365,7 @@ describe('useInAppBrowser', () => {
       expect(mockHandleSuccessfulOrder).not.toHaveBeenCalled();
     });
 
-    it('should return early if order status is Unknown', async () => {
+    it('returns early if order status is Unknown', async () => {
       jest
         .mocked((await SDK.orders()).getOrderFromCallback)
         .mockResolvedValueOnce({
@@ -381,7 +381,7 @@ describe('useInAppBrowser', () => {
       expect(mockHandleSuccessfulOrder).not.toHaveBeenCalled();
     });
 
-    it('should return early if order status is Precreated', async () => {
+    it('returns early if order status is Precreated', async () => {
       jest
         .mocked((await SDK.orders()).getOrderFromCallback)
         .mockResolvedValueOnce({
@@ -397,7 +397,7 @@ describe('useInAppBrowser', () => {
       expect(mockHandleSuccessfulOrder).not.toHaveBeenCalled();
     });
 
-    it('should return early if order status is Expired', async () => {
+    it('returns early if order status is Expired', async () => {
       jest
         .mocked((await SDK.orders()).getOrderFromCallback)
         .mockResolvedValueOnce({
@@ -413,7 +413,7 @@ describe('useInAppBrowser', () => {
       expect(mockHandleSuccessfulOrder).not.toHaveBeenCalled();
     });
 
-    it('should call handleSuccessfulOrder with an order', async () => {
+    it('calls handleSuccessfulOrder with an order', async () => {
       jest
         .mocked((await SDK.orders()).getOrderFromCallback)
         .mockResolvedValueOnce({
@@ -429,7 +429,7 @@ describe('useInAppBrowser', () => {
       expect(mockHandleSuccessfulOrder).toHaveBeenCalled();
     });
 
-    it('should log error if an error is thrown', async () => {
+    it('logs error if an error is thrown', async () => {
       jest
         .mocked((await SDK.orders()).getOrderFromCallback)
         .mockRejectedValueOnce(new Error('test-error'));
