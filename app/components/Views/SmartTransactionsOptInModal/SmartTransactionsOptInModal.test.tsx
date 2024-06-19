@@ -8,6 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import { updateOptInModalAppVersionSeen } from '../../../core/redux/slices/smartTransactions';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -95,7 +96,7 @@ describe('SmartTransactionsOptInModal', () => {
       Engine.context.PreferencesController.setSmartTransactionsOptInStatus,
     ).toHaveBeenCalledWith(true);
   });
-  it('should opt user out when secondary button is pressed', () => {
+  it('should opt user out when secondary button is pressed and navigate to Advanced Settings', () => {
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
       state: initialState,
     });
@@ -108,6 +109,9 @@ describe('SmartTransactionsOptInModal', () => {
     expect(
       Engine.context.PreferencesController.setSmartTransactionsOptInStatus,
     ).toHaveBeenCalledWith(false);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+      screen: Routes.SETTINGS.ADVANCED_SETTINGS,
+    });
   });
   it('should update last app version seen on primary button press', () => {
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {

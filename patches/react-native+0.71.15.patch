@@ -44,7 +44,7 @@ index 1379ffd..f2825f5 100644
  // We could just call GlobalPerformanceLogger.markPoint at the top of the file,
 diff --git a/node_modules/react-native/Libraries/Core/setUpSes.js b/node_modules/react-native/Libraries/Core/setUpSes.js
 new file mode 100644
-index 0000000..6013411
+index 0000000..5dc1859
 --- /dev/null
 +++ b/node_modules/react-native/Libraries/Core/setUpSes.js
 @@ -0,0 +1,60 @@
@@ -238,3 +238,18 @@ index 290bd23..20d85e0 100644
      }
      return inputConnection;
    }
+diff --git a/node_modules/react-native/scripts/react_native_pods.rb b/node_modules/react-native/scripts/react_native_pods.rb
+index 78b187a..d9d0be5 100644
+--- a/node_modules/react-native/scripts/react_native_pods.rb
++++ b/node_modules/react-native/scripts/react_native_pods.rb
+@@ -224,7 +224,9 @@ def react_native_post_install(installer, react_native_path = "../node_modules/re
+   ReactNativePodsUtils.exclude_i386_architecture_while_using_hermes(installer)
+   ReactNativePodsUtils.fix_library_search_paths(installer)
+   ReactNativePodsUtils.set_node_modules_user_settings(installer, react_native_path)
+-  ReactNativePodsUtils.apply_xcode_15_patch(installer)
++  if Environment.new().ruby_platform().include?('darwin')
++    ReactNativePodsUtils.apply_xcode_15_patch(installer)
++  end
+   ReactNativePodsUtils.updateIphoneOSDeploymentTarget(installer)
+ 
+   NewArchitectureHelper.set_clang_cxx_language_standard_if_needed(installer)

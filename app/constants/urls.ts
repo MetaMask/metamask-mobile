@@ -2,22 +2,27 @@ import AppConstants from '../core/AppConstants';
 
 // Support
 export const SRP_GUIDE_URL =
-  'https://metamask.zendesk.com/hc/en-us/articles/4404722782107-User-guide-Secret-Recovery-Phrase-password-and-private-keys';
+  'https://support.metamask.io/getting-started/user-guide-secret-recovery-phrase-password-and-private-keys/';
 export const NON_CUSTODIAL_WALLET_URL =
-  'https://metamask.zendesk.com/hc/en-us/articles/360059952212-MetaMask-is-a-non-custodial-wallet';
+  'https://support.metamask.io/getting-started/metamask-is-a-self-custodial-wallet/';
 export const KEEP_SRP_SAFE_URL =
-  'https://metamask.zendesk.com/hc/en-us/articles/4407169552667-Scammers-and-Phishers-Rugpulls-and-airdrop-scams';
+  'https://support.metamask.io/privacy-and-security/staying-safe-in-web3/scammers-and-phishers-rugpulls-and-airdrop-scams/';
 export const LEARN_MORE_URL =
-  'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask';
+  'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/';
 export const WHY_TRANSACTION_TAKE_TIME_URL =
   'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172';
+export const SIMULATION_DETALS_ARTICLE_URL =
+  'https://support.metamask.io/transactions-and-gas/transactions/simulations/';
 
-export const TOKEN_APPROVAL_SPENDING_CAP = `https://support.metamask.io/hc/en-us/articles/6055177143579-How-to-customize-token-approvals-with-a-spending-cap`;
+export const TOKEN_APPROVAL_SPENDING_CAP = `https://support.metamask.io/privacy-and-security/how-to-customize-token-approvals-with-a-spending-cap/`;
 export const CONNECTING_TO_A_DECEPTIVE_SITE =
-  'https://support.metamask.io/hc/en-us/articles/4428045875483--Deceptive-site-ahead-when-trying-to-connect-to-a-site';
+  'https://support.metamask.io/troubleshooting/deceptive-site-ahead-when-trying-to-connect-to-a-site/';
 
 export const CONNECTING_TO_DEPRECATED_NETWORK =
-  'https://support.metamask.io/hc/en-us/articles/360059213492-ETH-on-Sepolia-and-Goerli-networks-testnets';
+  'https://support.metamask.io/networks-and-sidechains/eth-on-testnets/';
+
+export const HOWTO_MANAGE_METAMETRICS =
+  'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings';
 
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
@@ -73,7 +78,7 @@ export const LINEA_FAUCET = 'https://www.infura.io/faucet/linea';
 
 // Add custom network
 export const ADD_CUSTOM_NETWORK_ARTCILE =
-  'https://support.metamask.io/hc/en-us/articles/360057142392-Verifying-custom-network-information';
+  'https://support.metamask.io/networks-and-sidechains/managing-networks/verifying-custom-network-information/';
 
 export const LEDGER_SUPPORT_LINK =
   'https://support.ledger.com/hc/en-us/articles/360009576554-Ethereum-ETH-?docs=true';
@@ -83,3 +88,6 @@ export const GOERLI_DEPRECATED_ARTICLE =
 
 export const ETHEREUM_LOGO =
   'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg';
+
+export const HOW_TO_MANAGE_METRAMETRICS_SETTINGS =
+  'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings';

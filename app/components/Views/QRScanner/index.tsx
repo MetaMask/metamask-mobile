@@ -68,7 +68,11 @@ const QRScanner = () => {
 
   const goBack = useCallback(() => {
     navigation.goBack();
-    onScanError?.('USER_CANCELLED');
+    try {
+      onScanError?.('USER_CANCELLED');
+    } catch (error: any) {
+      console.warn(`Error setting onScanError: ${error.message}`);
+    }
   }, [onScanError, navigation]);
 
   const end = useCallback(() => {

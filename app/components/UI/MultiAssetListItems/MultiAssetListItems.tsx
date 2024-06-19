@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import ListItemMultiSelect from '../../../component-library/components/List/ListItemMultiSelect';
 import stylesheet from './MultiAssetListItems.styles';
 import { useStyles } from '../../../component-library/hooks';
@@ -11,10 +11,8 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import AssetIcon from '../AssetIcon';
-import { getNetworkImageSource } from '../../../util/networks';
 import { useSelector } from 'react-redux';
-import { ProviderConfig } from '@metamask/network-controller';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectNetworkImageSource } from '../../../selectors/networkInfos';
 import { strings } from '../../../../locales/i18n';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/ImportTokenView.selectors';
 
@@ -54,16 +52,10 @@ const MultiAssetListItems = ({
   handleSelectAsset,
   selectedAsset,
   searchQuery,
-  chainId,
   networkName,
 }: Props) => {
   const { styles } = useStyles(stylesheet, {});
-  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
-
-  const networkImageSource = useMemo(() => {
-    const { type } = providerConfig;
-    return getNetworkImageSource({ networkType: type, chainId });
-  }, [providerConfig, chainId]);
+  const networkImageSource = useSelector(selectNetworkImageSource);
 
   return (
     <View style={styles.rowWrapper}>

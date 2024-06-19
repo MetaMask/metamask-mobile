@@ -29,7 +29,7 @@ export const PendingText = (props) => {
   return (
     <Text
       bold
-      style={[styles.status, { color: colors.secondary.default }]}
+      style={[styles.status, { color: colors.warning.default }]}
       {...props}
     />
   );

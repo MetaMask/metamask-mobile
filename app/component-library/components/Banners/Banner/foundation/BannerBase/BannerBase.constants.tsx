@@ -7,11 +7,8 @@ import React from 'react';
 import { TextVariant } from '../../../../Texts/Text';
 import { ButtonVariants, ButtonSize } from '../../../../Buttons/Button';
 import { ButtonProps } from '../../../../Buttons/Button/Button.types';
-import {
-  ButtonIconSizes,
-  ButtonIconVariants,
-} from '../../../../Buttons/ButtonIcon';
-import Icon, { IconName } from '../../../../Icons/Icon';
+import { ButtonIconSizes } from '../../../../Buttons/ButtonIcon';
+import Icon, { IconName, IconColor } from '../../../../Icons/Icon';
 import { SAMPLE_ICON_PROPS } from '../../../../Icons/Icon/Icon.constants';
 
 // Internal dependencies.
@@ -25,10 +22,12 @@ export const DEFAULT_BANNERBASE_TITLE_TEXTVARIANT = TextVariant.BodyLGMedium;
 export const DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT = TextVariant.BodyMD;
 export const DEFAULT_BANNERBASE_ACTIONBUTTON_VARIANT = ButtonVariants.Link;
 export const DEFAULT_BANNERBASE_ACTIONBUTTON_SIZE = ButtonSize.Auto;
-export const DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONVARIANT =
-  ButtonIconVariants.Secondary;
-export const DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONSIZE = ButtonIconSizes.Sm;
-export const DEFAULT_BANNERBASE_CLOSEBUTTON_ICONNAME = IconName.Close;
+export const DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICON_ICONCOLOR =
+  IconColor.Default;
+export const DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICON_SIZE =
+  ButtonIconSizes.Sm;
+export const DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICON_ICONNAME =
+  IconName.Close;
 
 // Samples
 const SAMPLE_BANNERBASE_STARTACCESSORY = <Icon {...SAMPLE_ICON_PROPS} />;
