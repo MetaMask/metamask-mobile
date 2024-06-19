@@ -45,6 +45,7 @@ import {
   updateTriggerPushNotificationsSuccess,
 } from '../../actions/notification/pushNotifications';
 import notificationsAction from '../../actions/notification/helpers/constants';
+import { getErrorMessage } from '../../util/errorHandling';
 
 function* signIn() {
   try {
@@ -57,8 +58,8 @@ function* signIn() {
     }
 
     yield put(performSignInSuccess(accessToken));
-  } catch (error: any) {
-    yield put(performSignInFailure(error));
+  } catch (error) {
+    yield put(performSignInFailure(getErrorMessage(error)));
   }
 }
 
@@ -70,8 +71,8 @@ function* signOut() {
       return;
     }
     yield put(performSignOutSuccess());
-  } catch (error: any) {
-    yield put(performSignOutFailure(error));
+  } catch (error) {
+    yield put(performSignOutFailure(getErrorMessage(error)));
   }
 }
 
@@ -87,8 +88,8 @@ function* enableProfileSyncing() {
       return;
     }
     yield put(enableProfileSyncingSuccess());
-  } catch (error: any) {
-    yield put(enableProfileSyncingFailure(error));
+  } catch (error) {
+    yield put(enableProfileSyncingFailure(getErrorMessage(error)));
   }
 }
 
@@ -106,8 +107,8 @@ function* disableProfileSyncing() {
       return;
     }
     yield put(disableProfileSyncingSuccess());
-  } catch (error: any) {
-    yield put(disableProfileSyncingFailure(error));
+  } catch (error) {
+    yield put(disableProfileSyncingFailure(getErrorMessage(error)));
   }
 }
 
@@ -128,8 +129,8 @@ function* enableNotificationServices() {
     yield put(setFeatureAnnouncementsEnabledSuccess());
     // yield put(setSnapNotificationsEnabledSuccess());
     yield put(enablePushNotificationsSuccess());
-  } catch (error: any) {
-    yield put(enableNotificationsServicesFailure(error));
+  } catch (error) {
+    yield put(enableNotificationsServicesFailure(getErrorMessage(error)));
   }
 }
 
@@ -147,8 +148,8 @@ function* disableNotificationServices() {
       return;
     }
     yield put(disableNotificationsServicesSuccess());
-  } catch (error: any) {
-    yield put(disableNotificationsServicesFailure(error));
+  } catch (error) {
+    yield put(disableNotificationsServicesFailure(getErrorMessage(error)));
   }
 }
 
@@ -166,8 +167,8 @@ function* setFeatureAnnouncementsEnabled() {
       return;
     }
     yield put(setFeatureAnnouncementsEnabledSuccess());
-  } catch (error: any) {
-    yield put(setFeatureAnnouncementsEnabledFailure(error));
+  } catch (error) {
+    yield put(setFeatureAnnouncementsEnabledFailure(getErrorMessage(error)));
   }
 }
 //TODO: Method not implemented in current version of NotificationServicesController
@@ -185,8 +186,8 @@ function* setFeatureAnnouncementsEnabled() {
 //       return;
 //     }
 //     yield put(setSnapNotificationsEnabledSuccess());
-//   } catch (error: any) {
-//     yield put(setSnapNotificationsEnabledFailure(error));
+//   } catch (error) {
+//     yield put(setSnapNotificationsEnabledFailure(getErrorMessage(error)));
 //   }
 // }
 
@@ -205,8 +206,8 @@ function* checkAccountsPresence(action: any) {
       return;
     }
     yield put(checkAccountsPresenceSuccess(presence));
-  } catch (error: any) {
-    yield put(checkAccountsPresenceFailure(error));
+  } catch (error) {
+    yield put(checkAccountsPresenceFailure(getErrorMessage(error)));
   }
 }
 
@@ -224,8 +225,10 @@ function* setMetamaskNotificationsFeatureSeen() {
       return;
     }
     yield put(setMetamaskNotificationsFeatureSeenSuccess());
-  } catch (error: any) {
-    yield put(setMetamaskNotificationsFeatureSeenFailure(error));
+  } catch (error) {
+    yield put(
+      setMetamaskNotificationsFeatureSeenFailure(getErrorMessage(error)),
+    );
   }
 }
 
@@ -243,8 +246,10 @@ function* fetchAndUpdateMetamaskNotifications() {
       return;
     }
     yield put(fetchAndUpdateMetamaskNotificationsSuccess(result.data));
-  } catch (error: any) {
-    yield put(fetchAndUpdateMetamaskNotificationsFailure(error));
+  } catch (error) {
+    yield put(
+      fetchAndUpdateMetamaskNotificationsFailure(getErrorMessage(error)),
+    );
   }
 }
 
@@ -265,8 +270,8 @@ function* markMetamaskNotificationsAsRead(action: any) {
       return;
     }
     yield put(markMetamaskNotificationsAsReadSuccess());
-  } catch (error: any) {
-    yield put(markMetamaskNotificationsAsReadFailure(error));
+  } catch (error) {
+    yield put(markMetamaskNotificationsAsReadFailure(getErrorMessage(error)));
   }
 }
 
@@ -285,8 +290,8 @@ function* updateOnChainTriggersByAccount(action: any) {
       return;
     }
     yield put(updateOnChainTriggersByAccountSuccess());
-  } catch (error: any) {
-    yield put(updateOnChainTriggersByAccountFailure(error));
+  } catch (error) {
+    yield put(updateOnChainTriggersByAccountFailure(getErrorMessage(error)));
   }
 }
 
@@ -305,8 +310,8 @@ function* deleteOnChainTriggersByAccount(action: any) {
       return;
     }
     yield put(deleteOnChainTriggersByAccountSuccess());
-  } catch (error: any) {
-    yield put(deleteOnChainTriggersByAccountFailure(error));
+  } catch (error) {
+    yield put(deleteOnChainTriggersByAccountFailure(getErrorMessage(error)));
   }
 }
 
@@ -325,8 +330,8 @@ function* enablePushNotifications(action: any) {
       return;
     }
     yield put(enablePushNotificationsSuccess());
-  } catch (error: any) {
-    yield put(enablePushNotificationsFailure(error));
+  } catch (error) {
+    yield put(enablePushNotificationsFailure(getErrorMessage(error)));
   }
 }
 
@@ -346,8 +351,8 @@ function* disablePushNotifications(action: any) {
       return;
     }
     yield put(disablePushNotificationsSuccess());
-  } catch (error: any) {
-    yield put(disablePushNotificationsFailure(error));
+  } catch (error) {
+    yield put(disablePushNotificationsFailure(getErrorMessage(error)));
   }
 }
 
@@ -367,8 +372,8 @@ function* updateTriggerPushNotifications(action: any) {
       return;
     }
     yield put(updateTriggerPushNotificationsSuccess(result));
-  } catch (error: any) {
-    yield put(updateTriggerPushNotificationsFailure(error));
+  } catch (error) {
+    yield put(updateTriggerPushNotificationsFailure(getErrorMessage(error)));
   }
 }
 export default all([

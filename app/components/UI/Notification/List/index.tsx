@@ -2,6 +2,8 @@ import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 import ScrollableTabView, {
   DefaultTabBar,
+  DefaultTabBarProps,
+  TabBarProps,
 } from 'react-native-scrollable-tab-view';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -43,7 +45,7 @@ const Notifications = ({
   const { trackEvent } = useMetrics();
 
   const onPress = useCallback(
-    (item: any) => {
+    (item: Notification) => {
       navigation.navigate(Routes.NOTIFICATIONS.DETAILS, { notification: item });
     },
     [navigation],
@@ -56,7 +58,7 @@ const Notifications = ({
   }, [allNotifications, markNotificationAsRead]);
 
   const renderTabBar = useCallback(
-    (props: any) => (
+    (props: TabBarProps<DefaultTabBarProps>) => (
       <View style={styles.base}>
         <DefaultTabBar
           underlineStyle={styles.tabUnderlineStyle}
@@ -65,7 +67,6 @@ const Notifications = ({
           backgroundColor={colors.background.default}
           tabStyle={styles.tabStyle}
           textStyle={styles.textStyle}
-          tabPadding={12}
           style={styles.tabBar}
           {...props}
         />

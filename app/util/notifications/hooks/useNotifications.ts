@@ -1,12 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 
-import Logger from '../../../util/Logger';
-import type {
-  Notification,
-  MarkAsReadNotificationsParam,
-} from '../../../util/notifications/types/notification';
-import Creators from '../../../store/ducks/notifications';
+import type { Notification } from '../../../util/notifications/types/notification';
 import {
   ListNotificationsReturn,
   CreateNotificationsReturn,
@@ -14,6 +9,15 @@ import {
   DisableNotificationsReturn,
   MarkNotificationAsReadReturn,
 } from './types';
+import { getErrorMessage } from '../../../util/errorHandling';
+import {
+  disableNotificationsServicesRequest,
+  enableNotificationsServicesRequest,
+  fetchAndUpdateMetamaskNotificationsRequest,
+  markMetamaskNotificationsAsReadRequest,
+  setMetamaskNotificationsFeatureSeenRequest,
+  updateOnChainTriggersByAccountRequest,
+} from '../../../actions/notification/pushNotifications';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -25,26 +29,20 @@ export function useListNotifications(): ListNotificationsReturn {
   const dispatch = useDispatch();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<unknown>(null);
+  const [error, setError] = useState<string>();
   const [notificationsData, setNotificationsData] = useState<
     Notification[] | undefined
   >(undefined);
 
-  const listNotifications = useCallback(async (): Promise<
-    Notification[] | undefined
-  > => {
+  const listNotifications = useCallback((): Notification[] | undefined => {
     setLoading(true);
-    setError(null);
 
     try {
-      const data = await dispatch(
-        Creators.fetchAndUpdateMetamaskNotificationsRequest(),
-      );
+      const data = dispatch(fetchAndUpdateMetamaskNotificationsRequest());
       setNotificationsData(data as unknown as Notification[]);
       return data as unknown as Notification[];
-    } catch (e: any) {
-      Logger.error(e);
-      setError(e instanceof Error ? e.message : 'An unexpected error occurred');
+    } catch (e) {
+      setError(getErrorMessage(e));
       throw e;
     } finally {
       setLoading(false);
@@ -68,23 +66,24 @@ export function useCreateNotifications(): CreateNotificationsReturn {
   const dispatch = useDispatch();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>();
 
-  const createNotifications = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const createNotifications = useCallback(
+    (accounts: string[]) => {
+      setLoading(true);
 
-    try {
-      await dispatch(Creators.createOnChainTriggersByAccountRequest());
-      dispatch(Creators.setMetamaskNotificationsFeatureSeenRequest());
-    } catch (e: any) {
-      setError(e instanceof Error ? e.message : 'An unexpected error occurred');
-      Logger.error(e);
-      throw e;
-    } finally {
-      setLoading(false);
-    }
-  }, [dispatch]);
+      try {
+        dispatch(updateOnChainTriggersByAccountRequest(accounts));
+        dispatch(setMetamaskNotificationsFeatureSeenRequest());
+      } catch (e) {
+        setError(getErrorMessage(e));
+        throw e;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [dispatch],
+  );
 
   return {
     createNotifications,
@@ -106,18 +105,16 @@ export function useEnableNotifications(): EnableNotificationsReturn {
   const dispatch = useDispatch();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>();
 
-  const enableNotifications = useCallback(async () => {
+  const enableNotifications = useCallback(() => {
     setLoading(true);
-    setError(null);
 
     try {
-      await dispatch(Creators.enablePushNotificationsRequest());
-      dispatch(Creators.setMetamaskNotificationsFeatureSeenRequest());
-    } catch (e: any) {
-      setError(e instanceof Error ? e.message : 'An unexpected error occurred');
-      Logger.error(e);
+      dispatch(enableNotificationsServicesRequest());
+      dispatch(setMetamaskNotificationsFeatureSeenRequest());
+    } catch (e) {
+      setError(getErrorMessage(e));
       throw e;
     } finally {
       setLoading(false);
@@ -140,17 +137,15 @@ export function useDisableNotifications(): DisableNotificationsReturn {
   const dispatch = useDispatch();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>();
 
-  const disableNotifications = useCallback(async () => {
+  const disableNotifications = useCallback(() => {
     setLoading(true);
-    setError(null);
 
     try {
-      await dispatch(Creators.disablePushNotificationsRequest());
-    } catch (e: any) {
-      setError(e instanceof Error ? e.message : 'An unexpected error occurred');
-      Logger.error(e);
+      dispatch(disableNotificationsServicesRequest());
+    } catch (e) {
+      setError(getErrorMessage(e));
       throw e;
     } finally {
       setLoading(false);
@@ -172,15 +167,14 @@ export function useDisableNotifications(): DisableNotificationsReturn {
  */
 export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
   const dispatch = useDispatch();
+  const [error, setError] = useState<string>();
 
   const markNotificationAsRead = useCallback(
-    async (notifications: MarkAsReadNotificationsParam) => {
+    (notifications: Notification[]) => {
       try {
-        dispatch(
-          Creators.markMetamaskNotificationsAsReadRequest(notifications),
-        );
-      } catch (e: any) {
-        Logger.error(e);
+        dispatch(markMetamaskNotificationsAsReadRequest(notifications));
+      } catch (e) {
+        setError(getErrorMessage(e));
         throw e;
       }
     },
@@ -189,5 +183,6 @@ export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
 
   return {
     markNotificationAsRead,
+    error,
   };
 }

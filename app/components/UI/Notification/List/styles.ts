@@ -31,6 +31,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
     tabStyle: {
       paddingBottom: 0,
       paddingVertical: 8,
+      paddingHorizontal: 12,
     },
     tabBar: {
       borderColor: colors.background.default,
@@ -38,6 +39,8 @@ export const createStyles = ({ colors, typography }: Theme) =>
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
       fontWeight: '500',
+      aspectRatio: undefined,
+      transform: [{ rotate: '0deg' }],
     },
     loader: {
       backgroundColor: colors.background.default,

@@ -1,38 +1,36 @@
 import type { InternalAccount } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import type {
-  MarkAsReadNotificationsParam,
-  Notification,
-} from '../../../util/notifications/types/notification';
+import type { Notification } from '../../../util/notifications/types/notification';
 
 export interface UseCreateSessionReturn {
-  createSession: () => Promise<void>;
+  createSession: () => void;
+  error: string | undefined;
 }
 export interface EnableMetametricsReturn {
-  enableMetametrics: () => Promise<void>;
+  enableMetametrics: () => void;
   loading: boolean;
-  error: string | null;
+  error: string | undefined;
 }
 export interface DisableMetametricsReturn {
-  disableMetametrics: () => Promise<void>;
+  disableMetametrics: () => void;
   loading: boolean;
-  error: string | null;
+  error: string | undefined;
 }
 export interface ListNotificationsReturn {
-  listNotifications: () => Promise<Notification[] | undefined>;
+  listNotifications: () => Notification[] | undefined;
   notificationsData?: Notification[];
   isLoading: boolean;
-  error?: unknown;
+  error: string | undefined;
 }
 export interface CreateNotificationsReturn {
-  createNotifications: () => Promise<void>;
+  createNotifications: (accounts: string[]) => void;
   loading: boolean;
-  error: string | null;
+  error: string | undefined;
 }
 export interface EnableNotificationsReturn {
-  enableNotifications: () => Promise<void>;
+  enableNotifications: () => void;
   loading: boolean;
-  error: string | null;
+  error: string | undefined;
 }
 export type AccountType = InternalAccount & {
   balance: string;
@@ -41,39 +39,43 @@ export type AccountType = InternalAccount & {
 };
 
 export interface DisableNotificationsReturn {
-  disableNotifications: () => Promise<void>;
+  disableNotifications: () => void;
   loading: boolean;
-  error: string | null;
+  error: string | undefined;
 }
 
 export interface MarkNotificationAsReadReturn {
-  markNotificationAsRead: (
-    notifications: MarkAsReadNotificationsParam,
-  ) => Promise<void>;
+  markNotificationAsRead: (notifications: Notification[]) => void;
+  error: string | undefined;
 }
 
 export interface EnableProfileSyncingReturn {
-  enableProfileSyncing: () => Promise<void>;
-  error: string | null;
+  enableProfileSyncing: () => void;
+  error: string | undefined;
 }
 
 export interface DisableProfileSyncingReturn {
-  disableProfileSyncing: () => Promise<void>;
-  error: string | null;
+  disableProfileSyncing: () => void;
+  error: string | undefined;
 }
 
 export interface SetIsProfileSyncingEnabledReturn {
-  setIsProfileSyncingEnabled: () => Promise<void>;
-  error: string | null;
+  setIsProfileSyncingEnabled: () => void;
+  error: string | undefined;
 }
 
 export interface SwitchSnapNotificationsChangeReturn {
-  onChange: (state: boolean) => Promise<void>;
-  error: null | string;
+  onChange: (state: boolean) => void;
+  error: string | undefined;
 }
 export interface SwitchFeatureAnnouncementsChangeReturn {
-  onChange: (state: boolean) => Promise<void>;
-  error: null | string;
+  onChange: (state: boolean) => void;
+  error: string | undefined;
+}
+
+export interface SwitchPushNotificationsReturn {
+  onChange: (UUIDS: string[], state: boolean) => void;
+  error: string | undefined;
 }
 
 export interface UseSwitchAccountNotificationsData {
@@ -85,10 +87,10 @@ export interface SwitchAccountNotificationsReturn {
     UseSwitchAccountNotificationsData | undefined
   >;
   isLoading: boolean;
-  error: string | null;
+  error: string | undefined;
 }
 
 export interface SwitchAccountNotificationsChangeReturn {
-  onChange: (addresses: string[], state: boolean) => Promise<void>;
-  error: string | null;
+  onChange: (addresses: string[], state: boolean) => void;
+  error: string | undefined;
 }

@@ -1,13 +1,14 @@
 import { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import Logger from '../../../util/Logger';
-import Creators from '../../../store/ducks/notifications';
 import {
   EnableProfileSyncingReturn,
   DisableProfileSyncingReturn,
-  SetIsProfileSyncingEnabledReturn,
 } from './types';
-
+import { getErrorMessage } from '../../../util/errorHandling';
+import {
+  disableProfileSyncingRequest,
+  enableProfileSyncingRequest,
+} from '../../../actions/notification/pushNotifications';
 /**
  * Custom hook to enable profile syncing. This hook handles the process of signing in
  * and enabling profile syncing via dispatch actions.
@@ -16,20 +17,14 @@ import {
  */
 export function useEnableProfileSyncing(): EnableProfileSyncingReturn {
   const dispatch = useDispatch();
+  const [error, setError] = useState<string>();
 
-  const [error, setError] = useState<string | null>(null);
-
-  const enableProfileSyncing = useCallback(async () => {
-    setError(null);
-
+  const enableProfileSyncing = useCallback(() => {
     try {
       // set profile syncing to true
-      await dispatch(Creators.enableProfileSyncingRequest());
+      dispatch(enableProfileSyncingRequest());
     } catch (e) {
-      const errorMessage =
-        e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
-      Logger.error(errorMessage);
-      setError(errorMessage);
+      setError(getErrorMessage(e));
       throw e;
     }
   }, [dispatch]);
@@ -45,49 +40,16 @@ export function useEnableProfileSyncing(): EnableProfileSyncingReturn {
  */
 export function useDisableProfileSyncing(): DisableProfileSyncingReturn {
   const dispatch = useDispatch();
+  const [error, setError] = useState<string>();
 
-  const [error, setError] = useState<string | null>(null);
-
-  const disableProfileSyncing = useCallback(async () => {
-    setError(null);
-
+  const disableProfileSyncing = useCallback(() => {
     try {
-      // disable profile syncing
-      await dispatch(Creators.disableProfileSyncingRequest());
+      dispatch(disableProfileSyncingRequest());
     } catch (e) {
-      const errorMessage =
-        e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
-      setError(errorMessage);
-      Logger.error(errorMessage);
+      setError(getErrorMessage(e));
       throw e;
-    } finally {
-      dispatch(Creators.hideLoadingIndication());
     }
   }, [dispatch]);
 
   return { disableProfileSyncing, error };
-}
-export function useSetIsProfileSyncingEnabled(
-  state: boolean,
-): SetIsProfileSyncingEnabledReturn {
-  const dispatch = useDispatch();
-
-  const [error, setError] = useState<string | null>(null);
-
-  const setIsProfileSyncingEnabled = useCallback(async () => {
-    setError(null);
-
-    try {
-      //TODO: check necessity of a separate action for this or not
-      await dispatch(Creators.setIsProfileSyncingEnabledAction(state));
-    } catch (e) {
-      const errorMessage =
-        e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
-      setError(errorMessage);
-      Logger.error(errorMessage);
-      throw e;
-    }
-  }, [dispatch, state]);
-
-  return { setIsProfileSyncingEnabled, error };
 }

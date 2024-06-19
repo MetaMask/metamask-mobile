@@ -13,10 +13,13 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import Avatar from '../../../../../component-library/components/Avatars/Avatar';
+import Avatar, {
+  AvatarAccountType,
+} from '../../../../../component-library/components/Avatars/Avatar';
 import { formatAddress } from '../../../../../util/address';
 import Icon, {
   IconColor,
+  IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { selectIsUpdatingMetamaskNotificationsAccount } from '../../../../../selectors/pushNotifications';
@@ -31,7 +34,7 @@ interface NotificationOptionsToggleProps {
   title: string;
   setData: (data: UseSwitchAccountNotificationsData) => void;
   listNotifications: () => void;
-  icon?: any;
+  icon?: AvatarAccountType | IconName;
   type?: string;
   data?: UseSwitchAccountNotificationsData | undefined;
   testId?: string;
@@ -86,9 +89,9 @@ const NotificationOptionToggle = ({
 
   return (
     <View style={styles.container}>
-      {type === NotificationsToggleTypes.ACTIONS ? (
+      {type === NotificationsToggleTypes.ACTIONS && icon ? (
         <Icon
-          name={icon}
+          name={icon as IconName}
           style={styles.icon}
           color={IconColor.Default}
           size={icon === 'Received' ? IconSize.Md : IconSize.Lg}
@@ -96,7 +99,7 @@ const NotificationOptionToggle = ({
       ) : (
         <Avatar
           variant={AvatarVariant.Account}
-          type={icon}
+          type={icon as AvatarAccountType}
           accountAddress={address}
           size={AvatarSize.Md}
           style={styles.accountAvatar}

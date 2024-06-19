@@ -1,35 +1,35 @@
 import { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import Logger from '../../../util/Logger';
-import Creators from '../../../store/ducks/notifications';
 import {
   SwitchSnapNotificationsChangeReturn,
   SwitchFeatureAnnouncementsChangeReturn,
   UseSwitchAccountNotificationsData,
   SwitchAccountNotificationsChangeReturn,
+  SwitchPushNotificationsReturn,
 } from './types';
+import { getErrorMessage } from '../../../util/errorHandling';
+import {
+  checkAccountsPresenceRequest,
+  deleteOnChainTriggersByAccountRequest,
+  disablePushNotificationsRequest,
+  enablePushNotificationsRequest,
+  setFeatureAnnouncementsEnabledRequest,
+  setSnapNotificationsEnabledRequest,
+  updateOnChainTriggersByAccountRequest,
+} from '../../../actions/notification/pushNotifications';
 
 export function useSwitchSnapNotificationsChange(): SwitchSnapNotificationsChangeReturn {
   const dispatch = useDispatch();
+  const [error, setError] = useState<string>();
 
-  const [error, setError] = useState<null | string>(null);
-
-  const onChange = useCallback(
-    async (state: boolean) => {
-      setError(null);
-
-      try {
-        await dispatch(Creators.setSnapNotificationsEnabledRequest(state));
-      } catch (e) {
-        const errorMessage =
-          e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
-        setError(errorMessage);
-        Logger.error(errorMessage);
-        throw e;
-      }
-    },
-    [dispatch],
-  );
+  const onChange = useCallback(() => {
+    try {
+      dispatch(setSnapNotificationsEnabledRequest());
+    } catch (e) {
+      setError(getErrorMessage(e));
+      throw e;
+    }
+  }, [dispatch]);
 
   return {
     onChange,
@@ -39,24 +39,16 @@ export function useSwitchSnapNotificationsChange(): SwitchSnapNotificationsChang
 
 export function useSwitchFeatureAnnouncementsChange(): SwitchFeatureAnnouncementsChangeReturn {
   const dispatch = useDispatch();
+  const [error, setError] = useState<string>();
 
-  const [error, setError] = useState<null | string>(null);
-
-  const onChange = useCallback(
-    async (state: boolean) => {
-      setError(null);
-
-      try {
-        await dispatch(Creators.setFeatureAnnouncementsEnabledRequest(state));
-      } catch (e) {
-        const errorMessage =
-          e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
-        setError(errorMessage);
-        throw e;
-      }
-    },
-    [dispatch],
-  );
+  const onChange = useCallback(() => {
+    try {
+      dispatch(setFeatureAnnouncementsEnabledRequest());
+    } catch (e) {
+      setError(getErrorMessage(e));
+      throw e;
+    }
+  }, [dispatch]);
 
   return {
     onChange,
@@ -64,25 +56,20 @@ export function useSwitchFeatureAnnouncementsChange(): SwitchFeatureAnnouncement
   };
 }
 
-export function useSwitchPushNotificationsChange(): SwitchFeatureAnnouncementsChangeReturn {
+export function useSwitchPushNotificationsChange(): SwitchPushNotificationsReturn {
   const dispatch = useDispatch();
-
-  const [error, setError] = useState<null | string>(null);
+  const [error, setError] = useState<string>();
 
   const onChange = useCallback(
-    async (state: boolean) => {
-      setError(null);
-
+    (UUIDS: string[], state: boolean) => {
       try {
         if (state === true) {
-          await dispatch(Creators.enablePushNotificationsRequest());
+          dispatch(enablePushNotificationsRequest(UUIDS));
         } else {
-          await dispatch(Creators.disablePushNotificationsRequest());
+          dispatch(disablePushNotificationsRequest(UUIDS));
         }
       } catch (e) {
-        const errorMessage =
-          e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
-        setError(errorMessage);
+        setError(getErrorMessage(e));
         throw e;
       }
     },
@@ -98,30 +85,23 @@ export function useSwitchPushNotificationsChange(): SwitchFeatureAnnouncementsCh
 export function useSwitchAccountNotifications(): {
   switchAccountNotifications: (
     accounts: string[],
-  ) => Promise<UseSwitchAccountNotificationsData | undefined>;
+  ) => UseSwitchAccountNotificationsData | undefined;
   isLoading: boolean;
-  error: string | null;
+  error: string | undefined;
 } {
   const dispatch = useDispatch();
-
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>();
 
   const switchAccountNotifications = useCallback(
-    async (
-      accounts: string[],
-    ): Promise<UseSwitchAccountNotificationsData | undefined> => {
+    (accounts: string[]): UseSwitchAccountNotificationsData | undefined => {
       setIsLoading(true);
-      setError(null);
 
       try {
-        const data = await dispatch(Creators.checkAccountsPresence(accounts));
+        const data = dispatch(checkAccountsPresenceRequest(accounts));
         return data as unknown as UseSwitchAccountNotificationsData;
       } catch (e) {
-        const errorMessage =
-          e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
-        setError(errorMessage);
-        Logger.error(errorMessage);
+        setError(getErrorMessage(e));
         throw e;
       } finally {
         setIsLoading(false);
@@ -135,31 +115,20 @@ export function useSwitchAccountNotifications(): {
 
 export function useSwitchAccountNotificationsChange(): SwitchAccountNotificationsChangeReturn {
   const dispatch = useDispatch();
-
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>();
 
   const onChange = useCallback(
-    async (accounts: string[], state: boolean) => {
-      setError(null);
-
+    (accounts: string[], state: boolean) => {
       try {
         if (state) {
-          await dispatch(
-            Creators.updateOnChainTriggersByAccountRequest(accounts),
-          );
+          dispatch(updateOnChainTriggersByAccountRequest(accounts));
         } else {
-          await dispatch(
-            Creators.deleteOnChainTriggersByAccountRequest(accounts),
-          );
+          dispatch(deleteOnChainTriggersByAccountRequest(accounts));
         }
       } catch (e) {
-        const errorMessage =
-          e instanceof Error ? e.message : (JSON.stringify(e ?? '') as any);
-        Logger.error(errorMessage);
-        setError(errorMessage);
+        setError(getErrorMessage(e));
         throw e;
       }
-      dispatch(Creators.hideLoadingIndication());
     },
     [dispatch],
   );
