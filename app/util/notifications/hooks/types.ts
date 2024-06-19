@@ -41,7 +41,7 @@ export type AccountType = InternalAccount & {
 export interface DisableNotificationsReturn {
   disableNotifications: () => void;
   loading: boolean;
-  error: string | undefined;
+  error?: string;
 }
 
 export interface MarkNotificationAsReadReturn {
