@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
+import { utils as ethersUtils } from 'ethers';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
-import { getBlockExplorerTxUrl } from '../../../util/networks';
 import {
   IconColor,
   IconName,
@@ -11,17 +11,23 @@ import { Theme } from '../../../util/theme/models';
 import {
   ChainId,
   HalRawNotification,
+  HalRawNotificationsWithNetworkFields,
   Notification,
   TRIGGER_TYPES,
   mmStorage,
 } from '../../../util/notifications';
+import { formatAmount } from '../../../components/UI/Ramp/utils';
+import images from '../../../images/image-icons';
 import { formatAddress } from '../../../util/address';
 import { STORAGE_IDS } from '../settings/storage/constants';
 import Device from '../../../util/device';
 import { store } from '../../../store';
-import { updateNotificationStatus } from '../../../actions/notification';
 import { renderFromWei } from '../../../util/number';
-interface ViewOnEtherscanProps {
+import { updateNotificationStatus } from '../../../actions/notification';
+import Engine from '../../../core/Engine';
+import { query } from '@metamask/controller-utils';
+
+export interface ViewOnEtherscanProps {
   navigation: any;
   transactionObject: {
     networkID: string;
@@ -35,7 +41,7 @@ interface ViewOnEtherscanProps {
   close?: () => void;
 }
 
-interface NotificationRowProps {
+export interface NotificationRowProps {
   row: {
     title: string;
     createdAt: string;
@@ -122,47 +128,18 @@ export function formatDate(createdAt: Date) {
   if (isYesterday) {
     return 'Yesterday';
   }
-
-  if (date.getFullYear() === now.getFullYear()) {
-    const options: Intl.DateTimeFormatOptions = {
-      month: 'short',
-      day: 'numeric',
-    };
-    return date.toLocaleDateString(undefined, options);
-  }
-
-  return date.toLocaleDateString('default', {
+  const options: Intl.DateTimeFormatOptions = {
     month: 'short',
     day: 'numeric',
-  });
-}
+  };
 
-export function viewOnEtherscan(props: ViewOnEtherscanProps, state: any) {
-  const {
-    navigation,
-    transactionObject: { networkID },
-    transactionDetails: { transactionHash },
-    providerConfig: { type },
-    close,
-  } = props;
-  const { rpcBlockExplorer } = state;
-  try {
-    const { url, title } = getBlockExplorerTxUrl(
-      type,
-      transactionHash,
-      rpcBlockExplorer,
-    );
-    navigation.push('Webview', {
-      screen: 'SimpleWebview',
-      params: { url, title },
-    });
-    close?.();
-  } catch (e: any) {
-    Logger.error(e, {
-      message: `can't get a block explorer link for network `,
-      networkID,
-    });
+  const month = strings(`date.months.${date.getMonth()}`);
+  const day = date.getDate();
+  if (date.getFullYear() === now.getFullYear()) {
+    return date.toLocaleDateString('default', options);
   }
+
+  return `${month} ${day}`;
 }
 
 export function getNetwork(chain_id: HalRawNotification['chain_id']) {
@@ -176,6 +153,18 @@ export function formatNotificationTitle(rawTitle: string): string {
   const words = rawTitle.split('_');
   words.shift();
   return words.join('_').toLowerCase();
+}
+
+export enum TxStatus {
+  UNAPPROVED = 'unapproved',
+  SUBMITTED = 'submitted',
+  SIGNED = 'signed',
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  APPROVED = 'approved',
+  FAILED = 'failed',
+  REJECTED = 'rejected',
 }
 
 export function getRowDetails(
@@ -201,13 +190,33 @@ export function getRowDetails(
           },
           createdAt: formatDate(notification.createdAt),
           imageUrl:
-            notification.data.stake_out.image ||
-            notification.data.stake_in.image, //using the stake_in image as a fallback,
+            notification.data.stake_out?.image ||
+            notification.data.stake_in?.image, //using the stake_in image as a fallback,
           value: `${renderFromWei(notification.data.stake_out.amount)} ${
             notification.data.stake_out.symbol
           }`,
         },
-        details: {},
+        details: {
+          type: notification.type,
+          stake_in: notification.data.stake_in,
+          stake_out: notification.data.stake_out,
+          tx_hash: notification.tx_hash,
+          status: notification.tx_hash
+            ? TxStatus.CONFIRMED
+            : TxStatus.UNAPPROVED,
+          network: {
+            name: getNetwork(notification.chain_id),
+            image:
+              notification.data.stake_out?.image ||
+              notification.data.stake_in?.image, //using the stake_in image as a fallback,
+          },
+          networkFee: {
+            gas_price: notification.data?.network_fee.gas_price,
+            native_token_price_in_usd:
+              notification.data?.network_fee.native_token_price_in_usd,
+            details: {},
+          },
+        },
       };
     case TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN:
       return {
@@ -226,7 +235,19 @@ export function getRowDetails(
           imageUrl: notification.data.staked_eth.image,
           value: `${notification.data.staked_eth.amount} ${notification.data.staked_eth.symbol}`,
         },
-        details: {},
+        details: {
+          type: notification.type,
+          request_id: notification.data.request_id,
+          staked_eth: notification.data.staked_eth,
+          tx_hash: notification.tx_hash,
+          status: notification.tx_hash
+            ? TxStatus.CONFIRMED
+            : TxStatus.UNAPPROVED,
+          network: {
+            name: getNetwork(notification.chain_id),
+            image: notification.data.staked_eth.image,
+          },
+        },
       };
     case TRIGGER_TYPES.METAMASK_SWAP_COMPLETED:
       return {
@@ -250,7 +271,26 @@ export function getRowDetails(
             notification.data.token_out.symbol
           }`,
         },
-        details: {},
+        details: {
+          type: notification.type,
+          rate: notification.data.rate,
+          token_in: notification.data.token_in,
+          token_out: notification.data.token_out,
+          tx_hash: notification.tx_hash,
+          status: notification.tx_hash
+            ? TxStatus.CONFIRMED
+            : TxStatus.UNAPPROVED,
+          network: {
+            name: getNetwork(notification.chain_id),
+            image: notification.data.token_in.image,
+          },
+          networkFee: {
+            gas_price: notification.data?.network_fee.gas_price,
+            native_token_price_in_usd:
+              notification.data?.network_fee.native_token_price_in_usd,
+            details: {},
+          },
+        },
       };
     case TRIGGER_TYPES.ETH_SENT:
     case TRIGGER_TYPES.ETH_RECEIVED:
@@ -277,7 +317,33 @@ export function getRowDetails(
           },
           value: `${notification.data.amount.eth} ETH`,
         },
-        details: {},
+        details: {
+          type: notification.type,
+          amount: notification.data.amount,
+          from: notification.data.from,
+          to: notification.data.to,
+          tx_hash: notification.tx_hash,
+          status: notification.tx_hash
+            ? TxStatus.CONFIRMED
+            : TxStatus.UNAPPROVED,
+          network: {
+            name: getNetwork(notification.chain_id),
+            image: images.ETHEREUM,
+          },
+          networkFee: {
+            gas_price: notification.data?.network_fee.gas_price,
+            native_token_price_in_usd:
+              notification.data?.network_fee.native_token_price_in_usd,
+            details: {},
+          },
+          token: {
+            name: 'Ethereum',
+            symbol: 'ETH',
+            image: images.ETHEREUM,
+            amount: notification.data.amount.eth,
+            address: '0xdb24b8170fc863c77f50a2b25297f642c5fe5010',
+          },
+        },
       };
     case TRIGGER_TYPES.ERC20_SENT:
     case TRIGGER_TYPES.ERC20_RECEIVED:
@@ -307,7 +373,26 @@ export function getRowDetails(
             notification.data.token.symbol
           }`,
         },
-        details: {},
+        details: {
+          type: notification.type,
+          token: notification.data.token,
+          from: notification.data.from,
+          to: notification.data.to,
+          tx_hash: notification.tx_hash,
+          status: notification.tx_hash
+            ? TxStatus.CONFIRMED
+            : TxStatus.UNAPPROVED,
+          network: {
+            name: getNetwork(notification.chain_id),
+            image: notification.data.token.image,
+          },
+          networkFee: {
+            gas_price: notification.data?.network_fee.gas_price,
+            native_token_price_in_usd:
+              notification.data?.network_fee.native_token_price_in_usd,
+            details: {},
+          },
+        },
       };
     case TRIGGER_TYPES.ERC721_SENT:
     case TRIGGER_TYPES.ERC721_RECEIVED:
@@ -334,7 +419,30 @@ export function getRowDetails(
           imageUrl: notification.data?.nft?.image,
           value: `#${notification.data?.nft?.token_id}`,
         },
-        details: {},
+        details: {
+          type: notification.type,
+          nft: {
+            name: notification.data?.nft?.name,
+            image: notification.data?.nft?.image,
+          },
+          from: notification.data.from,
+          to: notification.data.to,
+          tx_hash: notification.tx_hash,
+          status: notification.tx_hash
+            ? TxStatus.CONFIRMED
+            : TxStatus.UNAPPROVED,
+          collection: notification.data?.nft?.collection,
+          network: {
+            name: getNetwork(notification.chain_id),
+            image: notification.data.nft?.image,
+          },
+          networkFee: {
+            gas_price: notification.data?.network_fee.gas_price,
+            native_token_price_in_usd:
+              notification.data?.network_fee.native_token_price_in_usd,
+            details: {},
+          },
+        },
       };
 
     default:
@@ -355,18 +463,6 @@ export enum AvatarType {
   ASSET = 'asset',
   NETWORK = 'network',
   TXSTATUS = 'txstatus',
-}
-
-export enum TxStatus {
-  UNAPPROVED = 'unapproved',
-  SUBMITTED = 'submitted',
-  SIGNED = 'signed',
-  PENDING = 'pending',
-  CONFIRMED = 'confirmed',
-  CANCELLED = 'cancelled',
-  APPROVED = 'approved',
-  FAILED = 'failed',
-  REJECTED = 'rejected',
 }
 
 export const returnAvatarProps = (status: TxStatus, theme: Theme) => {
@@ -402,14 +498,6 @@ export const returnAvatarProps = (status: TxStatus, theme: Theme) => {
         iconColor: IconColor.Info,
       };
   }
-};
-
-export const networkFeeDetails = {
-  'transactions.gas_limit': 'gas',
-  'transactions.gas_used': 'gasUsed',
-  'transactions.base_fee': 'estimatedBaseFee',
-  'transactions.priority_fee': 'maxPriorityFeePerGas',
-  'transactions.max_fee': 'maxPriorityFeePerGas',
 };
 
 export const notificationSettings = {
@@ -522,5 +610,114 @@ export const requestPushNotificationsPermission = async () => {
     return permissionStatus;
   } catch (e: any) {
     Logger.error(e, strings('notifications.error_checking_permission'));
+  }
+};
+
+function hasNetworkFeeFields(
+  notification: HalRawNotification,
+): notification is HalRawNotificationsWithNetworkFields {
+  return 'network_fee' in notification.data;
+}
+
+async function fetchTxDetails(tx_hash: string) {
+  const { TransactionController } = Engine.context as any;
+
+  try {
+    const receipt = await query(
+      TransactionController.ethQuery,
+      'getTransactionReceipt',
+      [tx_hash],
+    );
+
+    if (!receipt) {
+      throw new Error('Transaction receipt not found');
+    }
+
+    const block = await query(
+      TransactionController.ethQuery,
+      'getBlockByHash',
+      [receipt.blockHash, false],
+    );
+
+    if (!block) {
+      throw new Error('Transaction block not found');
+    }
+
+    const transaction = await query(
+      TransactionController.ethQuery,
+      'eth_getTransactionByHash',
+      [receipt.blockHash],
+    );
+
+    if (!transaction) {
+      throw new Error('Transaction not found');
+    }
+
+    return {
+      receipt,
+      transaction,
+      block,
+    };
+  } catch (error) {
+    console.error('Error fetching transaction details:', error);
+    throw error;
+  }
+}
+
+export const getNetworkFees = async (notification: HalRawNotification) => {
+  if (!hasNetworkFeeFields(notification)) {
+    throw new Error('Invalid notification type');
+  }
+
+  try {
+    const { receipt, transaction, block } = await fetchTxDetails(
+      notification.tx_hash,
+    );
+    const calculateUsdAmount = (value: string, decimalPlaces = 4) =>
+      formatAmount(
+        (parseFloat(value) *
+          parseFloat(
+            notification.data?.network_fee.native_token_price_in_usd,
+          )) /
+          decimalPlaces,
+      );
+
+    const transactionFeeInEth = ethersUtils.formatUnits(
+      receipt.gasUsed.mul(receipt.effectiveGasPrice)._hex,
+    );
+    const transactionFeeInUsd = calculateUsdAmount(transactionFeeInEth);
+
+    const gasLimit = transaction.gasLimit.toNumber();
+    const gasUsed = receipt.gasUsed.toNumber();
+
+    const baseFee = block.baseFeePerGas
+      ? ethersUtils.formatUnits(block.baseFeePerGas._hex, 'gwei')
+      : null;
+    const priorityFee = block.baseFeePerGas
+      ? ethersUtils.formatUnits(
+          receipt.effectiveGasPrice.sub(block.baseFeePerGas)._hex,
+          'gwei',
+        )
+      : null;
+
+    const maxFeePerGas = transaction.maxFeePerGas
+      ? ethersUtils.formatUnits(transaction.maxFeePerGas._hex, 'gwei')
+      : null;
+
+    return {
+      transactionFeeInEth,
+      transactionFeeInUsd,
+      gasLimit,
+      gasUsed,
+      baseFee,
+      priorityFee,
+      maxFeePerGas,
+    };
+  } catch (error) {
+    console.error(
+      `Failed to get transaction network fees for ${notification.tx_hash}`,
+      error,
+    );
+    throw error;
   }
 };
