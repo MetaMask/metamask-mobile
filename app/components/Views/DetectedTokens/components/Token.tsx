@@ -97,7 +97,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const tokenBalances = useSelector(selectContractBalances);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const tokenMarketData = tokenExchangeRates[address];
+  const tokenMarketData = tokenExchangeRates?.[address] ?? null;
   const tokenBalance = renderFromTokenMinimalUnit(
     tokenBalances[address],
     decimals,
@@ -108,7 +108,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const fiatBalance = balanceToFiat(
     tokenBalance,
     conversionRate,
-    tokenMarketData?.price,
+    tokenMarketData?.price || undefined,
     currentCurrency,
   );
 

@@ -32,7 +32,6 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { speedUpTransaction } from '../../../../util/transaction-controller';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
@@ -227,7 +226,6 @@ function TransactionNotification(props) {
         conversionRate,
         currentCurrency,
         exchangeRate,
-        contractExchangeRates,
         collectibleContracts,
         tokens,
         primaryCurrency,
@@ -243,7 +241,6 @@ function TransactionNotification(props) {
         conversionRate,
         currentCurrency,
         exchangeRate,
-        contractExchangeRates,
         collectibleContracts,
         tokens,
         primaryCurrency,
@@ -453,7 +450,6 @@ const mapStateToProps = (state) => {
     chainId,
     tokens: selectTokensByAddress(state),
     collectibleContracts: collectibleContractsSelector(state),
-    contractExchangeRates: selectContractExchangeRates(state),
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
     primaryCurrency: state.settings.primaryCurrency,

@@ -553,7 +553,7 @@ class PaymentRequest extends PureComponent {
     const exchangeRate =
       selectedAsset &&
       selectedAsset.address &&
-      contractExchangeRates[selectedAsset.address];
+      contractExchangeRates?.[selectedAsset.address]?.price;
     if (selectedAsset.symbol !== 'ETH') {
       secondaryAmount = exchangeRate
         ? balanceToFiat(
@@ -587,7 +587,8 @@ class PaymentRequest extends PureComponent {
     const exchangeRate =
       selectedAsset &&
       selectedAsset.address &&
-      contractExchangeRates[selectedAsset.address];
+      contractExchangeRates &&
+      contractExchangeRates[selectedAsset.address]?.price;
     const undefAmount = (isDecimal(amount) && amount) || 0;
     let secondaryAmount, cryptoAmount;
     if (selectedAsset.symbol !== 'ETH' && exchangeRate && exchangeRate !== 0) {
@@ -631,7 +632,8 @@ class PaymentRequest extends PureComponent {
     const exchangeRate =
       selectedAsset &&
       selectedAsset.address &&
-      contractExchangeRates[selectedAsset.address];
+      contractExchangeRates &&
+      contractExchangeRates[selectedAsset.address]?.price;
     let res;
     // If primary currency is not crypo we need to know if there are conversion and exchange rates to handle0,
     // fiat conversion for the payment request
@@ -745,7 +747,8 @@ class PaymentRequest extends PureComponent {
     const exchangeRate =
       selectedAsset &&
       selectedAsset.address &&
-      contractExchangeRates[selectedAsset.address];
+      contractExchangeRates &&
+      contractExchangeRates[selectedAsset.address]?.price;
     let switchable = true;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';

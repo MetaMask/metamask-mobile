@@ -671,7 +671,9 @@ class Confirm extends PureComponent {
         decimals,
       );
       transactionValue = `${transferValue} ${symbol}`;
-      const exchangeRate = contractExchangeRates[address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[address]?.price
+        : undefined;
       transactionValueFiat =
         balanceToFiat(
           transferValue,

@@ -37,7 +37,6 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import { regex } from '../../../../../app/util/regex';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
@@ -118,7 +117,6 @@ class TransactionDetails extends PureComponent {
     transactions: PropTypes.array,
     ticker: PropTypes.string,
     tokens: PropTypes.object,
-    contractExchangeRates: PropTypes.object,
     conversionRate: PropTypes.number,
     currentCurrency: PropTypes.string,
     swapsTransactions: PropTypes.object,
@@ -158,7 +156,6 @@ class TransactionDetails extends PureComponent {
       chainId,
       conversionRate,
       currentCurrency,
-      contractExchangeRates,
       tokens,
       primaryCurrency,
       swapsTransactions,
@@ -191,7 +188,6 @@ class TransactionDetails extends PureComponent {
         conversionRate,
         currentCurrency,
         transactions,
-        contractExchangeRates,
         tokens,
         primaryCurrency,
         swapsTransactions,
@@ -427,7 +423,6 @@ const mapStateToProps = (state) => ({
   transactions: state.engine.backgroundState.TransactionController.transactions,
   ticker: selectTicker(state),
   tokens: selectTokensByAddress(state),
-  contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: state.settings.primaryCurrency,

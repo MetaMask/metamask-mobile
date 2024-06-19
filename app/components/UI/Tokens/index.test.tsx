@@ -68,11 +68,11 @@ const initialState = {
         ],
       },
       TokenRatesController: {
-        martketData: {
-          0x1: {
-            '0x0': 0.005,
-            '0x01': 0.005,
-            '0x02': 0.005,
+        marketData: {
+          '0x1': {
+            '0x0': { price: 0.005 },
+            '0x01': { price: 0.005 },
+            '0x02': { price: 0.005 },
           },
         },
       },

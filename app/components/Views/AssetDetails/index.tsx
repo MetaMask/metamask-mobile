@@ -253,7 +253,9 @@ const AssetDetails = (props: Props) => {
   const renderTokenBalance = () => {
     let balanceDisplay = '';
     const exchangeRate =
-      address in tokenExchangeRates ? tokenExchangeRates[address] : undefined;
+      tokenExchangeRates && address in tokenExchangeRates
+        ? tokenExchangeRates[address]?.price
+        : undefined;
     const balance =
       address in tokenBalances
         ? renderFromTokenMinimalUnit(tokenBalances[address], decimals)
