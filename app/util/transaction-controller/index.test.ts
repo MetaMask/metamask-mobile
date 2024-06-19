@@ -6,8 +6,6 @@ import Engine from '../../core/Engine';
 const {
   addTransaction,
   estimateGas,
-  isTransactionSimulationsFeatureEnabled:
-    _isTransactionSimulationsFeatureEnabled,
   ...proxyMethods
 } = TransactionControllerUtils;
 
