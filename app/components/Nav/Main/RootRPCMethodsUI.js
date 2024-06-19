@@ -73,15 +73,53 @@ import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
+const useSwapConfirmedEvent = ({ swapsTransactions, trackSwaps }) => {
+  const [transactionMetaIdsForListening, setTransactionMetaIdsForListening] =
+    useState([]);
+
+  const addTransactionMetaIdForListening = (txMetaId) => {
+    setTransactionMetaIdsForListening([
+      ...transactionMetaIdsForListening,
+      txMetaId,
+    ]);
+  };
+
+  useEffect(() => {
+    // Cannot directly call trackSwaps from the event listener in autoSign due to stale closure of swapsTransactions
+    const { TransactionController } = Engine.context;
+    const [txMetaId, ...restTxMetaIds] = transactionMetaIdsForListening;
+
+    if (txMetaId && swapsTransactions[txMetaId]) {
+      TransactionController.hub.once(
+        `${txMetaId}:confirmed`,
+        (transactionMeta) => {
+          if (
+            swapsTransactions[transactionMeta.id]?.analytics &&
+            swapsTransactions[transactionMeta.id]?.paramsForAnalytics
+          ) {
+            trackSwaps(
+              MetaMetricsEvents.SWAP_COMPLETED,
+              transactionMeta,
+              swapsTransactions,
+            );
+          }
+        },
+      );
+      setTransactionMetaIdsForListening(restTxMetaIds);
+    }
+  }, [trackSwaps, transactionMetaIdsForListening, swapsTransactions]);
+
+  return {
+    addTransactionMetaIdForListening,
+  };
+};
+
 const RootRPCMethodsUI = (props) => {
   const { trackEvent, trackAnonymousEvent } = useMetrics();
   const [transactionModalType, setTransactionModalType] = useState(undefined);
   const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
-
-  const [transactionMetaIdsForListening, setTransactionMetaIdsForListening] =
-    useState([]);
 
   const initializeWalletConnect = () => {
     WalletConnect.init();
@@ -205,31 +243,10 @@ const RootRPCMethodsUI = (props) => {
     ],
   );
 
-  useEffect(() => {
-    // Cannot directly call trackSwaps from the event listener in autoSign due to stale closure of swapsTransactions
-    const { TransactionController } = Engine.context;
-    const swapsTransactions = props.swapsTransactions;
-    const [txMetaId, ...restTxMetaIds] = transactionMetaIdsForListening;
-
-    if (txMetaId && swapsTransactions[txMetaId]) {
-      TransactionController.hub.once(
-        `${txMetaId}:confirmed`,
-        (transactionMeta) => {
-          if (
-            swapsTransactions[transactionMeta.id]?.analytics &&
-            swapsTransactions[transactionMeta.id]?.paramsForAnalytics
-          ) {
-            trackSwaps(
-              MetaMetricsEvents.SWAP_COMPLETED,
-              transactionMeta,
-              swapsTransactions,
-            );
-          }
-        },
-      );
-      setTransactionMetaIdsForListening(restTxMetaIds);
-    }
-  }, [trackSwaps, transactionMetaIdsForListening, props.swapsTransactions]);
+  const { addTransactionMetaIdForListening } = useSwapConfirmedEvent({
+    swapsTransactions: props.swapsTransactions,
+    trackSwaps,
+  });
 
   const autoSign = useCallback(
     async (transactionMeta) => {
@@ -259,10 +276,7 @@ const RootRPCMethodsUI = (props) => {
         );
 
         // Queue txMetaId to listen for confirmation event
-        setTransactionMetaIdsForListening([
-          ...transactionMetaIdsForListening,
-          transactionMeta.id,
-        ]);
+        addTransactionMetaIdForListening(transactionMeta.id);
 
         await KeyringController.resetQRKeyringState();
 
@@ -308,7 +322,7 @@ const RootRPCMethodsUI = (props) => {
       trackSwaps,
       trackEvent,
       props.swapsTransactions,
-      transactionMetaIdsForListening,
+      addTransactionMetaIdForListening,
     ],
   );
 
