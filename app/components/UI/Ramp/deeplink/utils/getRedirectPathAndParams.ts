@@ -1,4 +1,4 @@
-const dummyProtocol = 'ramp:';
+const dummyProtocol = 'dummy:';
 
 export default function getRedirectPathsAndParams(rampPath: string) {
   let pathnames: string[] = [];
