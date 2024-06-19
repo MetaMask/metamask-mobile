@@ -1,12 +1,5 @@
 import { call, put, takeLatest, all } from 'redux-saga/effects';
-import {
-  NotificationServicesController,
-  NotificationServicesPushController,
-} from '@metamask/notification-services-controller';
-import {
-  AuthenticationController,
-  UserStorageController,
-} from '@metamask/profile-sync-controller';
+import Engine from '../../core/Engine';
 import { NOTIFICATIONS_ERRORS } from './constants';
 import {
   checkAccountsPresenceFailure,
@@ -47,7 +40,14 @@ import {
 import notificationsAction from '../../actions/notification/helpers/constants';
 import { getErrorMessage } from '../../util/errorHandling';
 
-function* signIn() {
+const {
+  AuthenticationController,
+  UserStorageController,
+  NotificationServicesController,
+  NotificationsServicesPushController,
+}: any = Engine.context;
+
+export function* signIn() {
   try {
     const { accessToken } = yield call(
       AuthenticationController.performSignIn(),
@@ -63,7 +63,7 @@ function* signIn() {
   }
 }
 
-function* signOut() {
+export function* signOut() {
   try {
     const { result } = yield call(AuthenticationController.performSignOut());
     if (!result.ok) {
@@ -76,7 +76,7 @@ function* signOut() {
   }
 }
 
-function* enableProfileSyncing() {
+export function* enableProfileSyncing() {
   try {
     const { result } = yield call(UserStorageController.enableProfileSyncing());
     if (!result.ok) {
@@ -93,7 +93,7 @@ function* enableProfileSyncing() {
   }
 }
 
-function* disableProfileSyncing() {
+export function* disableProfileSyncing() {
   try {
     const { result } = yield call(
       UserStorageController.disableProfileSyncing(),
@@ -112,7 +112,7 @@ function* disableProfileSyncing() {
   }
 }
 
-function* enableNotificationServices() {
+export function* enableNotificationServices() {
   try {
     const { result } = yield call(
       NotificationServicesController.enableNotificationServices(),
@@ -134,7 +134,7 @@ function* enableNotificationServices() {
   }
 }
 
-function* disableNotificationServices() {
+export function* disableNotificationServices() {
   try {
     const { result } = yield call(
       NotificationServicesController.disableNotificationServices(),
@@ -153,7 +153,7 @@ function* disableNotificationServices() {
   }
 }
 
-function* setFeatureAnnouncementsEnabled() {
+export function* setFeatureAnnouncementsEnabled() {
   try {
     const { result } = yield call(
       NotificationServicesController.setFeatureAnnouncementsEnabled(),
@@ -172,7 +172,7 @@ function* setFeatureAnnouncementsEnabled() {
   }
 }
 //TODO: Method not implemented in current version of NotificationServicesController
-// function* setSnapNotificationsEnabled() {
+// export function* setSnapNotificationsEnabled() {
 //   try {
 //     const { result } = yield call(
 //       NotificationServicesController.setSnapNotificationsEnabled(),
@@ -191,7 +191,7 @@ function* setFeatureAnnouncementsEnabled() {
 //   }
 // }
 
-function* checkAccountsPresence(action: any) {
+export function* checkAccountsPresence(action: any) {
   const { accounts } = action.payload;
   try {
     const { presence } = yield call(
@@ -211,7 +211,7 @@ function* checkAccountsPresence(action: any) {
   }
 }
 
-function* setMetamaskNotificationsFeatureSeen() {
+export function* setMetamaskNotificationsFeatureSeen() {
   try {
     const { result } = yield call(
       NotificationServicesController.setMetamaskNotificationsFeatureSeen(),
@@ -232,7 +232,7 @@ function* setMetamaskNotificationsFeatureSeen() {
   }
 }
 
-function* fetchAndUpdateMetamaskNotifications() {
+export function* fetchAndUpdateMetamaskNotifications() {
   try {
     const { result } = yield call(
       NotificationServicesController.fetchAndUpdateMetamaskNotifications(),
@@ -253,7 +253,7 @@ function* fetchAndUpdateMetamaskNotifications() {
   }
 }
 
-function* markMetamaskNotificationsAsRead(action: any) {
+export function* markMetamaskNotificationsAsRead(action: any) {
   const { notifications } = action.payload;
   try {
     const { result } = yield call(
@@ -275,7 +275,7 @@ function* markMetamaskNotificationsAsRead(action: any) {
   }
 }
 
-function* updateOnChainTriggersByAccount(action: any) {
+export function* updateOnChainTriggersByAccount(action: any) {
   const { accounts } = action.payload;
   try {
     const { result } = yield call(
@@ -295,7 +295,7 @@ function* updateOnChainTriggersByAccount(action: any) {
   }
 }
 
-function* deleteOnChainTriggersByAccount(action: any) {
+export function* deleteOnChainTriggersByAccount(action: any) {
   const { account } = action.payload;
   try {
     const { result } = yield call(
@@ -315,11 +315,11 @@ function* deleteOnChainTriggersByAccount(action: any) {
   }
 }
 
-function* enablePushNotifications(action: any) {
+export function* enablePushNotifications(action: any) {
   const { UUIDs } = action.payload;
   try {
     const { result } = yield call(
-      NotificationServicesPushController.enablePushNotifications(UUIDs),
+      NotificationsServicesPushController.enablePushNotifications(UUIDs),
     );
     if (!result.ok) {
       yield put(
@@ -335,12 +335,12 @@ function* enablePushNotifications(action: any) {
   }
 }
 
-function* disablePushNotifications(action: any) {
+export function* disablePushNotifications(action: any) {
   const { UUIDs } = action.payload;
 
   try {
     const { result } = yield call(
-      NotificationServicesPushController.disablePushNotifications(UUIDs),
+      NotificationsServicesPushController.disablePushNotifications(UUIDs),
     );
     if (!result.ok) {
       yield put(
@@ -356,12 +356,12 @@ function* disablePushNotifications(action: any) {
   }
 }
 
-function* updateTriggerPushNotifications(action: any) {
+export function* updateTriggerPushNotifications(action: any) {
   const { UUIDs } = action.payload;
 
   try {
     const { result } = yield call(
-      NotificationServicesPushController.updateTriggerPushNotifications(UUIDs),
+      NotificationsServicesPushController.updateTriggerPushNotifications(UUIDs),
     );
     if (!result.ok) {
       yield put(

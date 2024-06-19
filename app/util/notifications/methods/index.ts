@@ -513,6 +513,11 @@ export const notificationSettings = {
 
 export const requestPushNotificationsPermission = async () => {
   let permissionStatus;
+  //TODO: Add UUIDs for the notifications from state
+  const UUIDS = [
+    'b1e2d0e1-0b6f-4c6f-9c8b-1b1b4f1d7b5e',
+    'b1e2d0e1-0b6f-4c6f-9c8b-1b1b4f1d7b5f',
+  ];
 
   const promptCount = mmStorage.getLocal(
     STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,

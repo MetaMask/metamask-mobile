@@ -1,5 +1,6 @@
 import { Notification } from '../../util/notifications';
 import notificationsAction from '../../actions/notification/helpers/constants';
+import { Action } from 'redux';
 
 interface SessionProfile {
   identifierId: string;
@@ -39,7 +40,20 @@ const initialState: IPushNotificationsState = {
   fcmToken: undefined,
 };
 
-const pushNotificationsReducer = (action: any, state = initialState) => {
+export interface iNotificationsAction extends Action {
+  type: (typeof notificationsAction)[keyof typeof notificationsAction];
+  profile?: string;
+  accessToken?: string;
+  accounts?: string[];
+  fcmToken?: string;
+  notifications?: Notification[];
+  error?: Error | unknown;
+}
+
+const pushNotificationsReducer = (
+  action: iNotificationsAction,
+  state = initialState,
+) => {
   switch (action.type) {
     case notificationsAction.PERFORM_SIGN_IN_SUCCESS:
       return {

@@ -240,12 +240,12 @@ interface TestOrigin {
 
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
 
-type AuthenticationControllerActions = AuthenticationController.Actions;
-type UserStorageControllerActions = UserStorageController.Actions;
+type AuthenticationControllerActions = AuthenticationController.AllowedActions;
+type UserStorageControllerActions = UserStorageController.AllowedActions;
 type NotificationsServicesControllerActions =
-  NotificationServicesController.Actions;
+  NotificationServicesController.AllowedActions;
 type NotificationsServicesPushControllerActions =
-  NotificationsServicesPushController.Actions;
+  NotificationsServicesPushController.AllowedActions;
 
 type SnapsGlobalActions =
   | SnapControllerActions
@@ -1005,6 +1005,8 @@ class Engine {
 
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: Resolve/patch mismatch between messenger types
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
@@ -1018,6 +1020,8 @@ class Engine {
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       state: initialState.UserStorageController,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: Resolve/patch mismatch between messenger types
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
@@ -1036,7 +1040,11 @@ class Engine {
 
     const notificationServicesPushController =
       new NotificationsServicesPushController.Controller({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore TODO: Resolve/patch mismatch between state requirements
         state: initialState.NotificationsServicesPushController,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore TODO: Resolve/patch mismatch between messenger types
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationsServicesPushController',
           allowedActions: ['AuthenticationController:getBearerToken'],
@@ -1047,6 +1055,8 @@ class Engine {
 
     const notificationServicesController =
       new NotificationServicesController.Controller({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore TODO: Resolve/patch mismatch between messenger types
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
@@ -1061,10 +1071,7 @@ class Engine {
             'NotificationServicesPushController:disablePushNotifications',
             'NotificationServicesPushController:updateTriggerPushNotifications',
           ],
-          allowedEvents: [
-            'KeyringController:stateChange',
-            'NotificationServicesPushController:onNewNotifications',
-          ],
+          allowedEvents: ['KeyringController:stateChange'],
         }),
         state: initialState.NotificationServicesController,
       });

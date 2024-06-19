@@ -61,7 +61,7 @@ export interface RootState {
   wizard: any;
   onboarding: any;
   notification: any;
-  pushNotifications: StateFromReducer<typeof pushNotificationsReducer>;
+  pushNotifications: any;
   swaps: any;
   fiatOrders: StateFromReducer<typeof fiatOrders>;
   infuraAvailability: any;

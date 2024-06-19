@@ -26,6 +26,7 @@ const initialRootState: RootState = {
   wizard: undefined,
   onboarding: undefined,
   notification: undefined,
+  pushNotifications: undefined,
   swaps: undefined,
   fiatOrders: initialFiatOrdersState,
   infuraAvailability: undefined,

@@ -34,13 +34,11 @@ export function useListNotifications(): ListNotificationsReturn {
     Notification[] | undefined
   >(undefined);
 
-  const listNotifications = useCallback((): Notification[] | undefined => {
+  const listNotifications = useCallback(() => {
     setLoading(true);
 
     try {
-      const data = dispatch(fetchAndUpdateMetamaskNotificationsRequest());
-      setNotificationsData(data);
-      return data;
+      dispatch(fetchAndUpdateMetamaskNotificationsRequest());
     } catch (e) {
       setError(getErrorMessage(e));
       throw e;
