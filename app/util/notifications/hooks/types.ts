@@ -30,7 +30,7 @@ export interface CreateNotificationsReturn {
 export interface EnableNotificationsReturn {
   enableNotifications: () => void;
   loading: boolean;
-  error: string | undefined;
+  error?: string;
 }
 export type AccountType = InternalAccount & {
   balance: string;
