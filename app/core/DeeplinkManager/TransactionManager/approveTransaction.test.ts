@@ -51,7 +51,7 @@ describe('approveTransaction', () => {
 
   const spyGenerateApproveData = jest.spyOn(
     TransactionsUtilsModule,
-    'generateApproveData',
+    'generateApprovalData',
   );
 
   const spySetProviderType = jest.spyOn(
@@ -91,7 +91,7 @@ describe('approveTransaction', () => {
     ).toHaveBeenCalledWith(fakeNetworkType);
   });
 
-  it('should call generateApproveData with the correct parameters', async () => {
+  it('calls generateApprovalData with the correct parameters', async () => {
     spyGetAddress.mockReturnValue('0xMockAddress');
 
     await approveTransaction({
