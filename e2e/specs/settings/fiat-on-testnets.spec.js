@@ -50,6 +50,7 @@ describe(SmokeCore('Fiat On Testnets Setting'), () => {
         // Enable fiat on testnets setting
         await TabBarComponent.tapSettings();
         await SettingsView.tapAdvancedTitle();
+        await AdvancedSettingsView.scrollToShowFiatOnTestnetsToggle();
         await AdvancedSettingsView.tapShowFiatOnTestnetsSwitch();
         await FiatOnTestnetsModal.tapContinueButton();
 

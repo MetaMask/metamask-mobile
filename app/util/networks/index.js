@@ -60,6 +60,8 @@ export const NetworkList = {
     shortName: 'Ethereum',
     networkId: 1,
     chainId: toHex('1'),
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#3cc29e',
     networkType: 'mainnet',
     imageSource: ethLogo,
@@ -69,6 +71,8 @@ export const NetworkList = {
     shortName: 'Linea',
     networkId: 59144,
     chainId: toHex('59144'),
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#121212',
     networkType: 'linea-mainnet',
     imageSource: lineaMainnetLogo,
@@ -78,24 +82,19 @@ export const NetworkList = {
     shortName: 'Sepolia',
     networkId: 11155111,
     chainId: toHex('11155111'),
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#cfb5f0',
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
-  },
-  [LINEA_GOERLI]: {
-    name: 'Linea Goerli Test Network',
-    shortName: 'Linea Goerli',
-    networkId: 59140,
-    chainId: toHex('59140'),
-    color: '#61dfff',
-    networkType: 'linea-goerli',
-    imageSource: lineaTestnetLogo,
   },
   [LINEA_SEPOLIA]: {
     name: 'Linea Sepolia',
     shortName: 'Linea Sepolia',
     networkId: 59141,
     chainId: toHex('59141'),
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
     networkType: 'linea-sepolia',
     imageSource: lineaTestnetLogo,
@@ -103,6 +102,8 @@ export const NetworkList = {
   [RPC]: {
     name: 'Private Network',
     shortName: 'Private',
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#f2f3f4',
     networkType: 'rpc',
   },
@@ -563,3 +564,6 @@ export const deprecatedGetNetworkId = async () => {
     });
   });
 };
+
+export const isNetworkUiRedesignEnabled =
+  process.env.MM_NETWORK_UI_REDESIGN_ENABLED === '1';

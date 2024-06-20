@@ -13,6 +13,8 @@ import { TURN_ON_REMEMBER_ME } from '../SecuritySettings.constants';
 const RememberMeOptionSection = () => {
   const { navigate } = useNavigation();
   const allowLoginWithRememberMe = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.security.allowLoginWithRememberMe,
   );
 

@@ -22,6 +22,8 @@ import {
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     logo: {
@@ -31,12 +33,16 @@ const createStyles = (colors: any) =>
     tokenContainer: { flexDirection: 'row', paddingVertical: 16 },
     tokenInfoContainer: { flex: 1, marginLeft: 8, marginRight: 16 },
     tokenUnitLabel: {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       fontSize: 18,
       color: colors.text.default,
       marginBottom: 4,
     },
     tokenDollarLabel: {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       fontSize: 14,
       color: colors.text.alternative,
@@ -47,6 +53,8 @@ const createStyles = (colors: any) =>
       marginBottom: 4,
     },
     tokenAddressLabel: {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       fontSize: 14,
       color: colors.text.alternative,
@@ -56,6 +64,8 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
     },
     addressLinkLabel: {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       fontSize: 14,
       color: colors.primary.default,
@@ -70,11 +80,15 @@ const createStyles = (colors: any) =>
       flexWrap: 'wrap',
     },
     tokenAggregatorLabel: {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       fontSize: 14,
       color: colors.text.default,
     },
     aggregatorLinkLabel: {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       fontSize: 14,
       color: colors.primary.default,

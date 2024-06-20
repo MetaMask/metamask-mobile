@@ -87,6 +87,8 @@ const Routes = {
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
+    DATA_COLLECTION: 'DataCollection',
+    EXPERIENCE_ENHANCER: 'ExperienceEnhancer',
     SDK_MANAGE_CONNECTIONS: 'SDKManageConnections',
     SDK_DISCONNECT: 'SDKDisconnect',
     ACCOUNT_CONNECT: 'AccountConnect',
@@ -125,6 +127,7 @@ const Routes = {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
     OPT_IN_STACK: 'OptInStack',
+    DETAILS: 'NotificationsDetails',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {

@@ -27,10 +27,8 @@ import { USER_INTENT } from '../../../constants/permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import UntypedEngine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
@@ -65,6 +63,8 @@ import {
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
+import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
+
 const createStyles = () =>
   StyleSheet.create({
     fullScreenModal: {
@@ -73,6 +73,8 @@ const createStyles = () =>
   });
 
 const AccountConnect = (props: AccountConnectProps) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
 
   const { colors } = useTheme();
@@ -84,7 +86,9 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
-  const selectedWalletAddress = useSelector(selectSelectedAddress);
+  const selectedWalletAddress = useSelector(
+    selectSelectedInternalAccountChecksummedAddress,
+  );
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([
     selectedWalletAddress,
   ]);
@@ -101,30 +105,36 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
 
   const { toastRef } = useContext(ToastContext);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
 
-  // on inappBrowser: hostname
-  // on walletConnect: hostname
-  // on sdk or walletconnect
+  // origin is set to the last active tab url in the browser which can conflict with sdk
+  const inappBrowserOrigin: string = useSelector(getActiveTabUrl, isEqual);
+  const accountsLength = useSelector(selectAccountsLength);
+
+  // TODO: pending transaction controller update, we need to have a parameter that can be extracted from the metadata to know the correct source (inappbrowser, walletconnect, sdk)
+  // on inappBrowser: hostname from inappBrowserOrigin
+  // on walletConnect: hostname from hostInfo
+  // on sdk: channelId
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
   };
 
-  const origin: string = useSelector(getActiveTabUrl, isEqual);
-  const accountsLength = useSelector(selectAccountsLength);
-
   const sdkConnection = SDKConnect.getInstance().getConnection({
     channelId: channelIdOrHostname,
   });
-  const hostname =
-    origin ?? channelIdOrHostname.indexOf('.') !== -1
+
+  const hostname = channelIdOrHostname
+    ? channelIdOrHostname.indexOf('.') !== -1
       ? channelIdOrHostname
-      : sdkConnection?.originatorInfo?.url ?? '';
+      : sdkConnection?.originatorInfo?.url ?? ''
+    : inappBrowserOrigin;
 
   const urlWithProtocol = prefixUrlWithProtocol(hostname);
 
@@ -160,7 +170,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [isAllowedUrl, dappUrl, channelIdOrHostname]);
 
-  const faviconSource = useFavicon(origin);
+  const faviconSource = useFavicon(inappBrowserOrigin);
 
   const actualIcon = useMemo(
     () => (dappIconUrl ? { uri: dappIconUrl } : faviconSource),
@@ -179,13 +189,15 @@ const AccountConnect = (props: AccountConnectProps) => {
     // walletconnect channelId format: app.name.org
     // sdk channelId format: uuid
     // inappbrowser channelId format: app.name.org but origin is set
-    if (sdkConnection) {
-      return 'sdk';
-    } else if (origin) {
-      return 'in-app browser';
+    if (channelIdOrHostname) {
+      if (sdkConnection) {
+        return SourceType.SDK;
+      }
+      return SourceType.WALLET_CONNECT;
     }
-    return 'walletconnect';
-  }, [sdkConnection, origin]);
+
+    return SourceType.IN_APP_BROWSER;
+  }, [sdkConnection, channelIdOrHostname]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -216,7 +228,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
       trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
         number_of_accounts: accountsLength,
-        source: 'permission system',
+        source: SourceType.PERMISSION_SYSTEM,
       });
     },
     [
@@ -328,6 +340,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         accountAddress: activeAddress,
         accountAvatarType,
       });
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       Logger.error(e, 'Error while trying to connect to a dApp.');
     } finally {
@@ -353,12 +367,14 @@ const AccountConnect = (props: AccountConnectProps) => {
       const { KeyringController } = Engine.context;
       try {
         setIsLoading(true);
-        const { addedAccountAddress } = await KeyringController.addNewAccount();
+        const addedAccountAddress = await KeyringController.addNewAccount();
         const checksummedAddress = safeToChecksumAddress(
           addedAccountAddress,
         ) as string;
         !isMultiSelect && setSelectedAddresses([checksummedAddress]);
         trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         Logger.error(e, 'error while trying to add a new account');
       } finally {

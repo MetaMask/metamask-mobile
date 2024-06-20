@@ -17,6 +17,8 @@ import { Theme } from '../theme/models';
 import configureStore from './configureStore';
 
 interface ProviderValues {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state?: Record<any, any>;
   theme?: Theme;
 }
@@ -46,7 +48,7 @@ export default function renderWithProvider(
     return <InnerProvider>{children}</InnerProvider>;
   };
 
-  return render(component, { wrapper: AllProviders });
+  return { ...render(component, { wrapper: AllProviders }), store };
 }
 
 export function renderScreen(
@@ -56,6 +58,8 @@ export function renderScreen(
     options?: StackNavigationOptions;
   },
   providerValues?: ProviderValues,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialParams: Record<string, any> = {},
 ) {
   const Stack = createStackNavigator();
@@ -75,6 +79,8 @@ export function renderScreen(
 export function renderHookWithProvider(
   hook: () => void,
   providerValues?: ProviderValues,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): RenderHookResult<any, any> {
   const { state = {} } = providerValues ?? {};
   const store = configureStore(state);

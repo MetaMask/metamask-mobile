@@ -15,7 +15,7 @@ import { strings } from '../../../../locales/i18n';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
-import { forgetLedger, getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import { forgetLedger, withLedgerKeyring } from '../../../core/Ledger/Ledger';
 import Device from '../../../util/device';
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { findBlockExplorerForRpc } from '../../../util/networks';
@@ -32,7 +32,10 @@ import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import type LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
@@ -88,12 +91,18 @@ const LedgerAccountInfo = () => {
     ledgerDeviceLightImage,
     ledgerDeviceDarkImage,
   );
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { AccountTrackerController } = Engine.context as any;
   const provider = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) =>
       state.engine.backgroundState.NetworkController.providerConfig,
   );
   const frequentRpcList = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
@@ -106,8 +115,9 @@ const LedgerAccountInfo = () => {
 
   useEffect(() => {
     const getAccount = async () => {
-      const ledgerKeyring = await getLedgerKeyring();
-      const accounts = await ledgerKeyring.getAccounts();
+      const accounts = await withLedgerKeyring(async (keyring: LedgerKeyring) =>
+        keyring.getAccounts(),
+      );
 
       setAccount(accounts[0]);
     };

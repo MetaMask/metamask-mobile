@@ -20,6 +20,7 @@ import { TransactionState } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { PPOMState } from '@metamask/ppom-validator';
 import { ApprovalControllerState } from '@metamask/approval-controller';
+import { AccountsControllerState } from '@metamask/accounts-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapController } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
@@ -49,6 +50,7 @@ export interface EngineState {
       TokenDetectionController: TokenDetectionController;
       NftDetectionController: NftDetectionController;
       ApprovalController: ApprovalControllerState;
+      AccountsController: AccountsControllerState;
     };
   };
 }
