@@ -14,6 +14,7 @@ import { CustomNetworkProps, Network } from './CustomNetwork.types';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import { isNetworkUiRedesignEnabled } from '../../../../../../util/networks';
 
 const CustomNetwork = ({
   isNetworkModalVisible,
@@ -88,7 +89,9 @@ const CustomNetwork = ({
                 }
               />
             </View>
-            <CustomText bold>{networkConfiguration.nickname}</CustomText>
+            <CustomText bold={!isNetworkUiRedesignEnabled}>
+              {networkConfiguration.nickname}
+            </CustomText>
           </View>
           <View style={styles.popularWrapper}>
             {toggleWarningModal && networkConfiguration.warning ? (
