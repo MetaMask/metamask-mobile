@@ -193,6 +193,7 @@ const MessageSign = ({
       type="eth_sign"
       showWarning
       fromAddress={messageParams.from}
+      origin={messageParams.origin}
       testID={SigningModalSelectorsIDs.ETH_REQUEST}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>

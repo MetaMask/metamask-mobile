@@ -130,7 +130,9 @@ const ApproveTransactionHeader = ({
     ? { uri: sdkDappMetadata.icon }
     : faviconSource?.uri
     ? faviconSource
-    : { uri: '' };
+    : {
+        uri: '',
+      };
 
   return (
     <View style={styles.transactionHeader}>

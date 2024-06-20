@@ -176,6 +176,8 @@ class SignatureRequest extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+
+    origin: PropTypes.string,
   };
 
   /**
@@ -250,19 +252,21 @@ class SignatureRequest extends PureComponent {
       truncateMessage,
       toggleExpandedMessage,
       fromAddress,
+      origin,
     } = this.props;
     const styles = this.getStyles();
     const url = currentPageInformation.url;
     const icon = currentPageInformation.icon;
     const title = getHost(url);
     const arrowIcon = truncateMessage ? this.renderArrowIcon() : null;
+
     return (
       <View style={styles.actionViewChild}>
         <View style={styles.accountInfoCardWrapper}>
           <AccountInfoCard
             operation="signing"
             fromAddress={fromAddress}
-            origin={title}
+            origin={origin}
           />
         </View>
         <TouchableOpacity
