@@ -366,9 +366,9 @@ const NetworkSelector = () => {
     setSearchString('');
   };
 
-  return (
-    <BottomSheet ref={sheetRef}>
-      <View style={styles.networkListContainer}>
+  const renderBottomSheetContent = () => {
+    return (
+      <>
         <SheetHeader title={strings('networks.select_network')} />
         <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
           {isNetworkUiRedesignEnabled && (
@@ -416,7 +416,19 @@ const NetworkSelector = () => {
           style={styles.addNetworkButton}
           testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
         />
-      </View>
+      </>
+    );
+  };
+  return (
+    <BottomSheet ref={sheetRef}>
+      {isNetworkUiRedesignEnabled ? (
+        <View style={styles.networkListContainer}>
+          {renderBottomSheetContent()}
+        </View>
+      ) : (
+        renderBottomSheetContent()
+      )}
+
       {showWarningModal ? (
         <InfoModal
           isVisible={showWarningModal}
