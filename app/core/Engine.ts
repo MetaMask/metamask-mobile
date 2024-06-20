@@ -1579,9 +1579,6 @@ class Engine {
   };
 
   resetState = async () => {
-    // eslint-disable-next-line no-console
-    console.log('ENTER RESET STATE');
-
     // Whenever we are gonna start a new wallet
     // either imported or created, we need to
     // get rid of the old data from state
@@ -1610,11 +1607,6 @@ class Engine {
       allNfts: {},
       ignoredNfts: [],
     });
-    // eslint-disable-next-line no-console
-    console.log(
-      'ENTER tokenbalances controller reset',
-      TokenBalancesController.reset,
-    );
 
     TokenBalancesController.reset();
     TokenRatesController.update({ marketData: {} });
