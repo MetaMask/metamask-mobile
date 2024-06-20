@@ -54,11 +54,15 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Wrapper = ({ children }: any) => (
   <Provider store={store}>{children}</Provider>
 );
 
 describe('useAddressBalance', () => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockGetERC20BalanceOf: any;
   beforeEach(() => {
     mockGetERC20BalanceOf = jest

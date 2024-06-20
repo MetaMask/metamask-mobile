@@ -16,6 +16,8 @@ const useTermsDisplayed = () => {
 };
 
 export default async function navigateTermsOfUse(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigate: (key: string, params: any) => void,
 ) {
   const isUseTermsAccepted = await AsyncStorage.getItem(USE_TERMS);

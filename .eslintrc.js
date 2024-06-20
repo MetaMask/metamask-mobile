@@ -33,6 +33,7 @@ module.exports = {
             ignoreRestSiblings: true, // this line is what has changed
           },
         ],
+        '@typescript-eslint/no-explicit-any': 'error',
       },
     },
     {

@@ -30,18 +30,30 @@ const pump = require('pump');
 interface ISnapBridgeProps {
   snapId: string;
   connectionStream: Duplex;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getRPCMethodMiddleware: (args: any) => any;
 }
 
 export default class SnapBridge {
   snapId: string;
   stream: Duplex;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getRPCMethodMiddleware: (args: any) => any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   provider: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   blockTracker: any;
 
   #mux: typeof ObjectMultiplex;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   #providerProxy: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   #blockTrackerProxy: any;
 
   constructor({
@@ -57,6 +69,8 @@ export default class SnapBridge {
     this.stream = connectionStream;
     this.getRPCMethodMiddleware = getRPCMethodMiddleware;
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { NetworkController } = Engine.context as any;
 
     const { provider, blockTracker } =
@@ -71,6 +85,8 @@ export default class SnapBridge {
     this.#mux = setupMultiplex(this.stream);
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   #setProvider = (provider: any): void => {
     if (this.#providerProxy) {
       this.#providerProxy.setTarget(provider);
@@ -80,6 +96,8 @@ export default class SnapBridge {
     this.provider = provider;
   };
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   #setBlockTracker = (blockTracker: any): void => {
     if (this.#blockTrackerProxy) {
       this.#blockTrackerProxy.setTarget(blockTracker);
@@ -104,8 +122,12 @@ export default class SnapBridge {
     const outStream = this.#mux.createStream('metamask-provider');
     const engine = this.setupProviderEngine();
     const providerStream = createEngineStream({ engine });
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     pump(outStream, providerStream, outStream, (err: any) => {
       // handle any middleware cleanup
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       engine._middleware.forEach((mid: any) => {
         if (mid.destroy && typeof mid.destroy === 'function') {
           mid.destroy();
@@ -130,6 +152,8 @@ export default class SnapBridge {
       blockTracker: this.#blockTrackerProxy,
     });
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     subscriptionManager.events.on('notification', (message: any) =>
       engine.emit('notification', message),
     );
@@ -138,6 +162,8 @@ export default class SnapBridge {
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { context, controllerMessenger } = Engine as any;
     const { PermissionController } = context;
 
@@ -170,6 +196,8 @@ export default class SnapBridge {
   };
 
   getNetworkState = ({ network }: { network: string }) => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { NetworkController } = Engine.context as any;
     const networkType = NetworkController.state.providerConfig.type;
     const networkProvider = NetworkController.state.providerConfig;
@@ -196,14 +224,20 @@ export default class SnapBridge {
   };
 
   isUnlocked = (): boolean => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController } = Engine.context as any;
     return KeyringController.isUnlocked();
   };
 
   getState = () => {
     const { context, datamodel } = Engine;
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController } = context as any;
     const vault = KeyringController.state.vault;
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { network, selectedAddress } = datamodel.flatState as any;
     return {
       isInitialized: !!vault,
@@ -214,6 +248,8 @@ export default class SnapBridge {
   };
 
   getProviderNetworkState({ network }: { network: string }) {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { NetworkController } = Engine.context as any;
     const networkType = NetworkController.state.providerConfig.type;
     const networkProvider = NetworkController.state.providerConfig;

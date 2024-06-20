@@ -78,14 +78,20 @@ const EditGasFeeLegacy = ({
   const gasFeeEstimate = useSelector(selectGasFeeEstimates);
 
   const primaryCurrency = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.settings.primaryCurrency,
   );
 
   const gasEstimateType = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) =>
       state.engine.backgroundState.GasFeeController.gasEstimateType,
   );
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chainId = useSelector((state: any) => selectChainId(state));
 
   const gasTransaction = useGasTransaction({

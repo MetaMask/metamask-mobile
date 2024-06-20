@@ -33,6 +33,8 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   /**
    * Current onboarding wizard step
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wizardStep = useSelector((reduxState: any) => reduxState.wizard.step);
   /**
    * Return current step of onboarding wizard if not step 5 nor 0
