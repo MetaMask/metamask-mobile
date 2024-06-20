@@ -9,7 +9,7 @@ import { ensureValidState } from './util';
  * @returns
  */
 export default function migrate(state: unknown) {
-  if (!ensureValidState(state, 47)) {
+  if (!ensureValidState(state, 48)) {
     return state;
   }
 
@@ -19,7 +19,7 @@ export default function migrate(state: unknown) {
   if (!isObject(tokenRatesControllerState)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 47: Invalid TokenRatesController state error: '${typeof tokenRatesControllerState}'`,
+        `FATAL ERROR: Migration 48: Invalid TokenRatesController state error: '${typeof tokenRatesControllerState}'`,
       ),
     );
     return state;
