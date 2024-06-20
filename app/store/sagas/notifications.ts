@@ -160,25 +160,6 @@ export function* setFeatureAnnouncementsEnabled() {
     yield put(setFeatureAnnouncementsEnabledFailure(getErrorMessage(error)));
   }
 }
-//TODO: Method not implemented in current version of NotificationServicesController
-// export function* setSnapNotificationsEnabled() {
-//   try {
-//     const { result } = yield call(
-//       NotificationServicesController.setSnapNotificationsEnabled(),
-//     );
-//     if (!result.ok) {
-//       yield put(
-//         setSnapNotificationsEnabledFailure(
-//           NOTIFICATIONS_ERRORS.FAILED_TO_ENABLE_SNAP_NOTIFICATIONS,
-//         ),
-//       );
-//       return;
-//     }
-//     yield put(setSnapNotificationsEnabledSuccess());
-//   } catch (error) {
-//     yield put(setSnapNotificationsEnabledFailure(getErrorMessage(error)));
-//   }
-// }
 
 export function* checkAccountsPresence(action: any) {
   const { accounts } = action.payload;

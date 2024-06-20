@@ -22,9 +22,7 @@ const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
 let store: Store<RootState, any>, persistor;
 const createStoreAndPersistor = async () => {
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
-  const initialState = isTest
-    ? await ReadOnlyNetworkStore.getState()
-    : undefined;
+  const initialState = isTest ? await ReadOnlyNetworkStore.getState() : null;
 
   const sagaMiddleware = createSagaMiddleware();
 

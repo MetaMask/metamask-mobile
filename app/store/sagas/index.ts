@@ -171,5 +171,5 @@ export function* basicFunctionalityToggle() {
 export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
-  yield notificationsSagas;
+  // yield notificationsSagas;
 }

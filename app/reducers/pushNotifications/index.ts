@@ -50,10 +50,7 @@ export interface iNotificationsAction extends Action {
   error?: Error | unknown;
 }
 
-const pushNotificationsReducer = (
-  action: iNotificationsAction,
-  state = initialState,
-) => {
+const pushNotificationsReducer = (action: any, state = initialState) => {
   switch (action.type) {
     case notificationsAction.PERFORM_SIGN_IN_SUCCESS:
       return {

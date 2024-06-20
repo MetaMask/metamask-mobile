@@ -9814,6 +9814,13 @@
   dependencies:
     redux "^4.0.5"
 
+"@types/redux@^3.6.0":
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/@types/redux/-/redux-3.6.0.tgz#f1ebe1e5411518072e4fdfca5c76e16e74c1399a"
+  integrity sha512-ic+60DXHW5seNyqFvfr7Sk5cnXs+HsF9tIeIaxjOuSP5kzgDXC+AzKTYmjAfuLx4Sccm/0vjwBQj3OOkUkwOqg==
+  dependencies:
+    redux "*"
+
 "@types/request@^2.48.4":
   version "2.48.8"
   resolved "https://registry.yarnpkg.com/@types/request/-/request-2.48.8.tgz#0b90fde3b655ab50976cb8c5ac00faca22f5a82c"
@@ -25908,6 +25915,11 @@ redux-thunk@^2.4.2:
   version "2.4.2"
   resolved "https://registry.yarnpkg.com/redux-thunk/-/redux-thunk-2.4.2.tgz#b9d05d11994b99f7a91ea223e8b04cf0afa5ef3b"
   integrity sha512-+P3TjtnP0k/FEjcBL5FZpoovtvrTNT/UXd4/sluaSyrURlSlhLSzEdfsTBW7WsKB6yPvgd7q/iZPICFjW4o57Q==
+
+redux@*:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/redux/-/redux-5.0.1.tgz#97fa26881ce5746500125585d5642c77b6e9447b"
+  integrity sha512-M9/ELqF6fy8FwmkpnF0S3YKOqMyoWJ4+CS5Efg2ct3oY9daQvd/Pc71FpGZsVsbl3Cpb+IIcjBDUnnyBdQbq4w==
 
 redux@^4.0.5, redux@^4.2.1:
   version "4.2.1"

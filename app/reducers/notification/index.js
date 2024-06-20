@@ -190,6 +190,8 @@ const notificationReducer = (state = initialState, action) => {
         notifications: visibleNotifications,
       };
     }
+    default:
+      return state;
   }
 };
 
