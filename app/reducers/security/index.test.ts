@@ -12,6 +12,8 @@ describe('securityReducer', () => {
   };
 
   it('should set allowLoginWithRememberMe to true', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const action: any = {
       type: ActionType.SET_ALLOW_LOGIN_WITH_REMEMBER_ME,
       enabled: true,
@@ -28,6 +30,8 @@ describe('securityReducer', () => {
   });
 
   it('should set automaticSecurityChecksEnabled to true', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const action: any = {
       type: ActionType.SET_AUTOMATIC_SECURITY_CHECKS,
       enabled: true,
@@ -44,6 +48,8 @@ describe('securityReducer', () => {
   });
 
   it('should set hasUserSelectedAutomaticSecurityCheckOption to true', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const action: any = {
       type: ActionType.USER_SELECTED_AUTOMATIC_SECURITY_CHECKS_OPTION,
       selected: true,
@@ -60,6 +66,8 @@ describe('securityReducer', () => {
   });
 
   it('should set isAutomaticSecurityChecksModalOpen to true', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const action: any = {
       type: ActionType.SET_AUTOMATIC_SECURITY_CHECKS_MODAL_OPEN,
       open: true,
@@ -76,6 +84,8 @@ describe('securityReducer', () => {
   });
 
   it('should set dataCollectionForMarketing to true', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const action: any = {
       type: ActionType.SET_DATA_COLLECTION_FOR_MARKETING,
       enabled: true,

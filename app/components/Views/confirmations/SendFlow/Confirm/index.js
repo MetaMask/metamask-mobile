@@ -113,7 +113,10 @@ import { createLedgerTransactionModalNavDetails } from '../../../../../component
 import CustomGasModal from './components/CustomGasModal';
 import { ResultType } from '../../components/BlockaidBanner/BlockaidBanner.types';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectTransactionGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
+import {
+  selectTransactionGasFeeEstimates,
+  selectCurrentTransactionMetadata,
+} from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
@@ -121,6 +124,8 @@ import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/TransactionConfirmView.selectors.js';
 import { selectTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
+import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
+import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -251,6 +256,15 @@ class Confirm extends PureComponent {
      * Object containing transaction metrics by id
      */
     transactionMetricsById: PropTypes.object,
+
+    /**
+     * Object containing the transaction simulation data
+     */
+    transactionSimulationData: PropTypes.object,
+    /**
+     * Indicates whether the transaction simulations feature is enabled
+     */
+    useTransactionSimulations: PropTypes.bool,
   };
 
   state = {
@@ -1228,6 +1242,9 @@ class Confirm extends PureComponent {
       gasEstimateType,
       isNativeTokenBuySupported,
       shouldUseSmartTransaction,
+      transactionSimulationData,
+      transactionState,
+      useTransactionSimulations,
     } = this.props;
     const { nonce } = this.props.transaction;
     const {
@@ -1323,6 +1340,15 @@ class Confirm extends PureComponent {
                   10,
                 )}`}</Text>
               </View>
+            </View>
+          )}
+          {useTransactionSimulations && transactionState?.id && (
+            <View style={styles.simulationWrapper}>
+              <SimulationDetails
+                enableMetrics
+                simulationData={transactionSimulationData}
+                transactionId={transactionState.id}
+              />
             </View>
           )}
           <TransactionReview
@@ -1464,6 +1490,9 @@ const mapStateToProps = (state) => ({
   ),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
   transactionMetricsById: selectTransactionMetrics(state),
+  transactionSimulationData:
+    selectCurrentTransactionMetadata(state)?.simulationData,
+  useTransactionSimulations: selectUseTransactionSimulations(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
