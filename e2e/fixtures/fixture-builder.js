@@ -744,6 +744,11 @@ class FixtureBuilder {
     return this;
   }
 
+  withKeyringController(data) {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, data);
+    return this;
+  }
+
   /**
    * Build and return the fixture object.
    * @returns {Object} - The built fixture object.
