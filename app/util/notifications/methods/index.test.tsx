@@ -195,6 +195,8 @@ describe('getRowDetails', () => {
       },
     } as Notification;
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expectedRow: any = {
       badgeIcon: IconName.Plant,
       title: 'Stake completed',
@@ -234,6 +236,8 @@ describe('getRowDetails', () => {
       },
     } as Notification;
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = {
       badgeIcon: IconName.SwapHorizontal,
       title: 'Swapped BTC for ETH',
@@ -267,6 +271,8 @@ describe('getRowDetails', () => {
       },
     } as Notification;
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = {
       badgeIcon: IconName.Arrow2Upright,
       title: 'Sent to 0xABC123',
@@ -304,6 +310,8 @@ describe('getRowDetails', () => {
       },
     } as Notification;
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = {
       badgeIcon: IconName.Received,
       title: 'Received NFT from 0xDEF456',

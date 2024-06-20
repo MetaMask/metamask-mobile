@@ -109,6 +109,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
@@ -127,15 +129,21 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const primaryCurrency = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.settings.primaryCurrency,
   );
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const hideZeroBalanceTokens = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.settings.hideZeroBalanceTokens,
   );
   const detectedTokens = useSelector(selectDetectedTokens);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
 
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
@@ -668,6 +676,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const removeToken = async () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { TokensController }: any = Engine.context;
     const tokenAddress = tokenToRemove?.address;
     const symbol = tokenToRemove?.symbol;

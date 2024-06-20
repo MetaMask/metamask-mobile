@@ -35,6 +35,8 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.security.dataCollectionForMarketing,
   );
   const navigation = useNavigation();

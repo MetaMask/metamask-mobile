@@ -15,6 +15,8 @@ import { TextColor, TextVariant } from './Text.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { theme, vars } = params;
   const { variant, style, color } = vars;
