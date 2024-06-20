@@ -550,7 +550,6 @@ class Engine {
       state: initialState.LoggingController,
     });
 
-    //@ts-expect-error Misalign types because of Base Controller version
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'AccountsController',
