@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Third party dependencies.
 import React, { useRef, useState } from 'react';
 import { Linking, Switch, TextInput, View } from 'react-native';
