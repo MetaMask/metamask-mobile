@@ -10,4 +10,4 @@ node content-script/build.js
 cat dist/inpage-bundle.js content-script/index.js > dist/index-raw.js
 ../../node_modules/.bin/webpack --config webpack.config.js
 cd ../..
-cp scripts/inpage-bridge/dist/index.js app/core/InpageBridgeWeb3.js
+cp scripts/inpage-bridge/dist/inpage-content.js app/core/InpageBridgeWeb3.js
