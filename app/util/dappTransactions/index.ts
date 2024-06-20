@@ -10,6 +10,8 @@ import { estimateGas as controllerEstimateGas } from '../transaction-controller'
 
 interface opts {
   amount?: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
   to?: string;
 }
@@ -150,6 +152,8 @@ export const validateTokenAmount = async (
       );
     } else {
       try {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { AssetsContractController }: any = Engine.context;
         contractBalanceForAddress =
           await AssetsContractController.getERC20BalanceOf(
@@ -173,6 +177,8 @@ export const validateCollectibleOwnership = async (
   tokenId: string,
   selectedAddress: string,
 ): Promise<string | undefined> => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { AssetsContractController }: any = Engine.context;
 
   try {

@@ -34,6 +34,8 @@ export const SelectOption = {
     isSelected: SAMPLE_SELECTOPTION_PROPS.isSelected,
     isDisabled: SAMPLE_SELECTOPTION_PROPS.isDisabled,
   },
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => (
     <SelectOptionComponent
       {...args}

@@ -7,12 +7,16 @@ import SignatureApproval from './SignatureApproval';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
   (
     useApprovalRequest as jest.MockedFn<typeof useApprovalRequest>
   ).mockReturnValue({
     approvalRequest,
     onConfirm: jest.fn(),
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 };
 
@@ -31,6 +35,8 @@ describe('SignatureApproval', () => {
       mockApprovalRequest({
         type: approvalType,
         requestData: { test: 'value' },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       const wrapper = shallow(<SignatureApproval />);
@@ -47,6 +53,8 @@ describe('SignatureApproval', () => {
   });
 
   it('provides no message params if incorrect approval request type', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
     const wrapper = shallow(<SignatureApproval />);

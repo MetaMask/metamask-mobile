@@ -38,8 +38,12 @@ import {
 const failedIcon = require('./images/TransactionIcon_Failed.png');
 
 // TODO: Convert into typescript and correctly type optionals
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = BaseListItem as any;
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     stage: {

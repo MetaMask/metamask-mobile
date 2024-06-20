@@ -77,6 +77,8 @@ export default function migrate(state: unknown) {
   return state;
 }
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createDefaultAccountsController(state: Record<string, any>) {
   state.engine.backgroundState.AccountsController = {
     internalAccounts: {
@@ -87,6 +89,8 @@ function createDefaultAccountsController(state: Record<string, any>) {
 }
 
 function createInternalAccountsForAccountsController(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: Record<string, any>,
 ) {
   const identities: {
@@ -131,6 +135,8 @@ function createInternalAccountsForAccountsController(
 }
 
 function findInternalAccountByAddress(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: Record<string, any>,
   address: string,
 ): InternalAccount | undefined {
@@ -143,6 +149,8 @@ function findInternalAccountByAddress(
 }
 
 function createSelectedAccountForAccountsController(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: Record<string, any>,
 ) {
   const selectedAddress =

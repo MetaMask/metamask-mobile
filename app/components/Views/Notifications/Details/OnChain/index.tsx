@@ -32,6 +32,8 @@ import useBlockExplorer from '../../../../../components/UI/Swaps/utils/useBlockE
 
 interface OnChainDetailsProps {
   notification: HalRawNotification;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: Record<string, any>;
   theme: Theme;
   accountAvatarType?: AvatarAccountType;

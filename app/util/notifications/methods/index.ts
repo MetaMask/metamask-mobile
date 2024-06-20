@@ -28,6 +28,8 @@ import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
 
 export interface ViewOnEtherscanProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   transactionObject: {
     networkID: string;
@@ -57,6 +59,8 @@ export interface NotificationRowProps {
     };
     value: string;
   };
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   details: Record<string, any>;
 }
 
@@ -608,6 +612,8 @@ export const requestPushNotificationsPermission = async () => {
     }
 
     return permissionStatus;
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     Logger.error(e, strings('notifications.error_checking_permission'));
   }
@@ -620,6 +626,8 @@ function hasNetworkFeeFields(
 }
 
 async function fetchTxDetails(tx_hash: string) {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { TransactionController } = Engine.context as any;
 
   try {
