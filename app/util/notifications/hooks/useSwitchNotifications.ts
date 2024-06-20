@@ -4,14 +4,11 @@ import {
   SwitchSnapNotificationsChangeReturn,
   SwitchFeatureAnnouncementsChangeReturn,
   SwitchAccountNotificationsChangeReturn,
-  SwitchPushNotificationsReturn,
 } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
   checkAccountsPresenceRequest,
   deleteOnChainTriggersByAccountRequest,
-  disablePushNotificationsRequest,
-  enablePushNotificationsRequest,
   setFeatureAnnouncementsEnabledRequest,
   setSnapNotificationsEnabledRequest,
   updateOnChainTriggersByAccountRequest,
@@ -48,32 +45,6 @@ export function useSwitchFeatureAnnouncementsChange(): SwitchFeatureAnnouncement
       throw e;
     }
   }, [dispatch]);
-
-  return {
-    onChange,
-    error,
-  };
-}
-
-export function useSwitchPushNotificationsChange(): SwitchPushNotificationsReturn {
-  const dispatch = useDispatch();
-  const [error, setError] = useState<string>();
-
-  const onChange = useCallback(
-    (UUIDS: string[], state: boolean) => {
-      try {
-        if (state === true) {
-          dispatch(enablePushNotificationsRequest(UUIDS));
-        } else {
-          dispatch(disablePushNotificationsRequest(UUIDS));
-        }
-      } catch (e) {
-        setError(getErrorMessage(e));
-        throw e;
-      }
-    },
-    [dispatch],
-  );
 
   return {
     onChange,

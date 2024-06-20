@@ -85,54 +85,6 @@ export function disableProfileSyncingFailure(
   };
 }
 
-export function enablePushNotificationsRequest(
-  UUIDs: string[],
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.ENABLE_PUSH_NOTIFICATIONS_REQUEST,
-    payload: { UUIDs },
-  };
-}
-
-export function enablePushNotificationsSuccess(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.ENABLE_PUSH_NOTIFICATIONS_SUCCESS,
-  };
-}
-
-export function enablePushNotificationsFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.ENABLE_PUSH_NOTIFICATIONS_FAILURE,
-    payload: { error },
-  };
-}
-
-export function disablePushNotificationsRequest(
-  UUIDs: string[],
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.DISABLE_PUSH_NOTIFICATIONS_REQUEST,
-    payload: { UUIDs },
-  };
-}
-
-export function disablePushNotificationsSuccess(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.DISABLE_PUSH_NOTIFICATIONS_SUCCESS,
-  };
-}
-
-export function disablePushNotificationsFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.DISABLE_PUSH_NOTIFICATIONS_FAILURE,
-    payload: { error },
-  };
-}
-
 export function updateTriggerPushNotificationsRequest(
   UUIDs: string[],
 ): NotificationsActionTypes {

@@ -3,8 +3,6 @@ import { useDispatch } from 'react-redux';
 import {
   setSnapNotificationsEnabledRequest,
   setFeatureAnnouncementsEnabledRequest,
-  enablePushNotificationsRequest,
-  disablePushNotificationsRequest,
   checkAccountsPresenceRequest,
   updateOnChainTriggersByAccountRequest,
   deleteOnChainTriggersByAccountRequest,
@@ -12,7 +10,6 @@ import {
 import {
   useSwitchSnapNotificationsChange,
   useSwitchFeatureAnnouncementsChange,
-  useSwitchPushNotificationsChange,
   useSwitchAccountNotifications,
   useSwitchAccountNotificationsChange,
 } from './useSwitchNotifications';
@@ -27,8 +24,6 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../actions/notification/pushNotifications', () => ({
   setSnapNotificationsEnabledRequest: jest.fn(),
   setFeatureAnnouncementsEnabledRequest: jest.fn(),
-  enablePushNotificationsRequest: jest.fn(),
-  disablePushNotificationsRequest: jest.fn(),
   checkAccountsPresenceRequest: jest.fn(),
   updateOnChainTriggersByAccountRequest: jest.fn(),
   deleteOnChainTriggersByAccountRequest: jest.fn(),
@@ -97,64 +92,6 @@ describe('useSwitchFeatureAnnouncementsChange', () => {
     const { result } = renderHook(() => useSwitchFeatureAnnouncementsChange());
     await act(async () => {
       result.current.onChange(true);
-    });
-    expect(result.current.error).toBe(errorMessage);
-  });
-});
-
-describe('useSwitchPushNotificationsChange', () => {
-  const dispatch = jest.fn();
-  const enablePushNotificationsRequestMock =
-    enablePushNotificationsRequest as jest.Mock;
-  const disablePushNotificationsRequestMock =
-    disablePushNotificationsRequest as jest.Mock;
-  beforeEach(() => {
-    useDispatchMock.mockReturnValue(dispatch);
-    enablePushNotificationsRequestMock.mockReturnValue(Promise.resolve());
-    disablePushNotificationsRequestMock.mockReturnValue(Promise.resolve());
-  });
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-  it('should enable push notifications', async () => {
-    const { result } = renderHook(() => useSwitchPushNotificationsChange());
-    await act(async () => {
-      result.current.onChange(['UUID1', 'UUID2'], true);
-    });
-    expect(dispatch).toHaveBeenCalledWith(
-      enablePushNotificationsRequest(['UUID1', 'UUID2']),
-    );
-    expect(result.current.error).toBeUndefined();
-  });
-  it('should disable push notifications', async () => {
-    const { result } = renderHook(() => useSwitchPushNotificationsChange());
-    await act(async () => {
-      result.current.onChange(['UUID1', 'UUID2'], false);
-    });
-    expect(dispatch).toHaveBeenCalledWith(
-      disablePushNotificationsRequest(['UUID1', 'UUID2']),
-    );
-    expect(result.current.error).toBeUndefined();
-  });
-  it('should set error state if an error occurs while enabling push notifications', async () => {
-    const errorMessage = 'Failed to enable push notifications';
-    enablePushNotificationsRequestMock.mockRejectedValue(
-      new Error(errorMessage),
-    );
-    const { result } = renderHook(() => useSwitchPushNotificationsChange());
-    await act(async () => {
-      result.current.onChange(['UUID1', 'UUID2'], true);
-    });
-    expect(result.current.error).toBe(errorMessage);
-  });
-  it('should set error state if an error occurs while disabling push notifications', async () => {
-    const errorMessage = 'Failed to disable push notifications';
-    disablePushNotificationsRequestMock.mockRejectedValue(
-      new Error(errorMessage),
-    );
-    const { result } = renderHook(() => useSwitchPushNotificationsChange());
-    await act(async () => {
-      result.current.onChange(['UUID1', 'UUID2'], false);
     });
     expect(result.current.error).toBe(errorMessage);
   });

@@ -187,10 +187,7 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
-import {
-  NotificationServicesController,
-  NotificationsServicesPushController,
-} from '@metamask/notification-services-controller';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 // END: Notifications related controllers
 
 import { providerErrors } from '@metamask/rpc-errors';
@@ -244,8 +241,6 @@ type AuthenticationControllerActions = AuthenticationController.AllowedActions;
 type UserStorageControllerActions = UserStorageController.AllowedActions;
 type NotificationsServicesControllerActions =
   NotificationServicesController.AllowedActions;
-type NotificationsServicesPushControllerActions =
-  NotificationsServicesPushController.AllowedActions;
 
 type SnapsGlobalActions =
   | SnapControllerActions
@@ -277,7 +272,6 @@ type GlobalActions =
   | KeyringControllerActions
   | AccountsControllerActions
   | NotificationsServicesControllerActions
-  | NotificationsServicesPushControllerActions
   | PreferencesControllerActions
   | TokensControllerActions
   | TokenListControllerActions;
@@ -337,7 +331,6 @@ export interface EngineState {
   AuthenticationController: AuthenticationController.AuthenticationControllerState;
   UserStorageController: UserStorageController.UserStorageControllerState;
   NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
-  NotificationsServicesPushController: NotificationsServicesPushController.NotificationServicesPushControllerState;
 }
 
 /**
@@ -378,7 +371,6 @@ interface Controllers {
   AuthenticationController: AuthenticationController.Controller;
   UserStorageController: UserStorageController.Controller;
   NotificationServicesController: NotificationServicesController.Controller;
-  NotificationsServicesPushController: NotificationsServicesPushController.Controller;
 }
 
 /**
@@ -1038,21 +1030,6 @@ class Engine {
       }),
     });
 
-    const notificationServicesPushController =
-      new NotificationsServicesPushController.Controller({
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore TODO: Resolve/patch mismatch between state requirements
-        state: initialState.NotificationsServicesPushController,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore TODO: Resolve/patch mismatch between messenger types
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'NotificationsServicesPushController',
-          allowedActions: ['AuthenticationController:getBearerToken'],
-          allowedEvents: [],
-        }),
-        NotificationsServicesPushController,
-      });
-
     const notificationServicesController =
       new NotificationServicesController.Controller({
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -1067,9 +1044,6 @@ class Engine {
             'UserStorageController:getStorageKey',
             'UserStorageController:performGetStorage',
             'UserStorageController:performSetStorage',
-            'NotificationServicesPushController:enablePushNotifications',
-            'NotificationServicesPushController:disablePushNotifications',
-            'NotificationServicesPushController:updateTriggerPushNotifications',
           ],
           allowedEvents: ['KeyringController:stateChange'],
         }),
@@ -1368,7 +1342,6 @@ class Engine {
       authenticationController,
       userStorageController,
       notificationServicesController,
-      notificationServicesPushController,
       new SignatureController({
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
@@ -1893,7 +1866,6 @@ export default {
       AuthenticationController,
       UserStorageController,
       NotificationServicesController,
-      NotificationServicesPushController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -1939,7 +1911,6 @@ export default {
       AuthenticationController,
       UserStorageController,
       NotificationServicesController,
-      NotificationServicesPushController,
     };
   },
   get datamodel() {

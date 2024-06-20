@@ -21,14 +21,9 @@ import images from '../../../images/image-icons';
 import { formatAddress } from '../../../util/address';
 import { STORAGE_IDS } from '../settings/storage/constants';
 import Device from '../../../util/device';
-import { store } from '../../../store';
 import { renderFromWei } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
-import {
-  disablePushNotificationsRequest,
-  enablePushNotificationsRequest,
-} from '../../../actions/notification/pushNotifications';
 
 export interface ViewOnEtherscanProps {
   navigation: any;
@@ -513,11 +508,6 @@ export const notificationSettings = {
 
 export const requestPushNotificationsPermission = async () => {
   let permissionStatus;
-  //TODO: Add UUIDs for the notifications from state
-  const UUIDS = [
-    'b1e2d0e1-0b6f-4c6f-9c8b-1b1b4f1d7b5e',
-    'b1e2d0e1-0b6f-4c6f-9c8b-1b1b4f1d7b5f',
-  ];
 
   const promptCount = mmStorage.getLocal(
     STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
@@ -536,7 +526,6 @@ export const requestPushNotificationsPermission = async () => {
           {
             text: strings('notifications.prompt_cancel'),
             onPress: () => {
-              store.dispatch(disablePushNotificationsRequest(UUIDS));
               mmStorage.saveLocal(
                 STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
                 times,
@@ -558,7 +547,6 @@ export const requestPushNotificationsPermission = async () => {
               } else {
                 permissionStatus = await notifee.requestPermission();
               }
-              store.dispatch(enablePushNotificationsRequest(UUIDS));
             },
           },
         ],

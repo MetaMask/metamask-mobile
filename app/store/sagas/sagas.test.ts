@@ -24,8 +24,6 @@ import {
   signOut,
   enableProfileSyncing,
   disableProfileSyncing,
-  enableNotificationServices,
-  disableNotificationServices,
   setFeatureAnnouncementsEnabled,
   checkAccountsPresence,
   setMetamaskNotificationsFeatureSeen,
@@ -175,22 +173,6 @@ describe('notifications', () => {
       take(notificationsAction.DISABLE_PROFILE_SYNCING_REQUEST),
     );
     expect(generator.next().value).toEqual(call(disableProfileSyncing));
-  });
-
-  it('should trigger enableNotificationServices when action ENABLE_PUSH_NOTIFICATIONS_REQUEST is dispatched', async () => {
-    const generator = enableNotificationServices();
-    expect(generator.next().value).toEqual(
-      take(notificationsAction.ENABLE_PUSH_NOTIFICATIONS_REQUEST),
-    );
-    expect(generator.next().value).toEqual(call(enableNotificationServices));
-  });
-
-  it('should trigger disableNotificationServices when action DISABLE_PUSH_NOTIFICATIONS_REQUEST is dispatched', async () => {
-    const generator = disableNotificationServices();
-    expect(generator.next().value).toEqual(
-      take(notificationsAction.DISABLE_PUSH_NOTIFICATIONS_REQUEST),
-    );
-    expect(generator.next().value).toEqual(call(disableNotificationServices));
   });
 
   it('should trigger setFeatureAnnouncementsEnabled when action SET_FEATURE_ANNOUNCEMENTS_ENABLED_REQUEST is dispatched', async () => {

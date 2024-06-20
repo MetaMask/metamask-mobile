@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useEffect } from 'react';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -27,17 +27,13 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  useSwitchAccountNotifications,
-  useSwitchPushNotificationsChange,
-} from '../../../../util/notifications/hooks/useSwitchNotifications';
+import { useSwitchAccountNotifications } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { SessionHeader } from './sectionHeader';
 import { useListNotifications } from '../../../../util/notifications/hooks/useNotifications';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   // Hooks
   const { accounts } = useAccounts();
-  const { onChange } = useSwitchPushNotificationsChange();
   const { switchAccountNotifications } = useSwitchAccountNotifications();
   const { listNotifications } = useListNotifications();
   const theme = useTheme();
@@ -63,9 +59,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   );
 
   const toggleNotificationsEnabled = () => {
-    !isMetamaskNotificationsEnabled
-      ? requestPushNotificationsPermission()
-      : onChange(false);
+    !isMetamaskNotificationsEnabled && requestPushNotificationsPermission();
   };
 
   useEffect(() => {
@@ -139,7 +133,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               title={account.name}
               address={account.address}
               listNotifications={listNotifications}
-              data={data}
+              // data={data}
             />
           ))}
         </>

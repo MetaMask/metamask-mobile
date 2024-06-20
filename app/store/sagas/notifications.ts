@@ -8,14 +8,10 @@ import {
   disableNotificationsServicesFailure,
   disableProfileSyncingFailure,
   disableProfileSyncingSuccess,
-  disablePushNotificationsFailure,
-  disablePushNotificationsSuccess,
   enableNotificationsServicesSuccess,
   enableNotificationsServicesFailure,
   enableProfileSyncingFailure,
   enableProfileSyncingSuccess,
-  enablePushNotificationsFailure,
-  enablePushNotificationsSuccess,
   fetchAndUpdateMetamaskNotificationsFailure,
   fetchAndUpdateMetamaskNotificationsSuccess,
   markMetamaskNotificationsAsReadFailure,
@@ -28,14 +24,10 @@ import {
   setFeatureAnnouncementsEnabledSuccess,
   setMetamaskNotificationsFeatureSeenFailure,
   setMetamaskNotificationsFeatureSeenSuccess,
-  // setSnapNotificationsEnabledFailure,
-  // setSnapNotificationsEnabledSuccess,
   updateOnChainTriggersByAccountSuccess,
   updateOnChainTriggersByAccountFailure,
   deleteOnChainTriggersByAccountSuccess,
   deleteOnChainTriggersByAccountFailure,
-  updateTriggerPushNotificationsFailure,
-  updateTriggerPushNotificationsSuccess,
 } from '../../actions/notification/pushNotifications';
 import notificationsAction from '../../actions/notification/helpers/constants';
 import { getErrorMessage } from '../../util/errorHandling';
@@ -44,7 +36,6 @@ const {
   AuthenticationController,
   UserStorageController,
   NotificationServicesController,
-  NotificationsServicesPushController,
 }: any = Engine.context;
 
 export function* signIn() {
@@ -127,8 +118,6 @@ export function* enableNotificationServices() {
     }
     yield put(enableNotificationsServicesSuccess());
     yield put(setFeatureAnnouncementsEnabledSuccess());
-    // yield put(setSnapNotificationsEnabledSuccess());
-    yield put(enablePushNotificationsSuccess());
   } catch (error) {
     yield put(enableNotificationsServicesFailure(getErrorMessage(error)));
   }
@@ -315,67 +304,6 @@ export function* deleteOnChainTriggersByAccount(action: any) {
   }
 }
 
-export function* enablePushNotifications(action: any) {
-  const { UUIDs } = action.payload;
-  try {
-    const { result } = yield call(
-      NotificationsServicesPushController.enablePushNotifications(UUIDs),
-    );
-    if (!result.ok) {
-      yield put(
-        enablePushNotificationsFailure(
-          NOTIFICATIONS_ERRORS.FAILED_TO_ENABLE_PUSH_NOTIFICATIONS,
-        ),
-      );
-      return;
-    }
-    yield put(enablePushNotificationsSuccess());
-  } catch (error) {
-    yield put(enablePushNotificationsFailure(getErrorMessage(error)));
-  }
-}
-
-export function* disablePushNotifications(action: any) {
-  const { UUIDs } = action.payload;
-
-  try {
-    const { result } = yield call(
-      NotificationsServicesPushController.disablePushNotifications(UUIDs),
-    );
-    if (!result.ok) {
-      yield put(
-        disablePushNotificationsFailure(
-          NOTIFICATIONS_ERRORS.FAILED_TO_DISABLE_PUSH_NOTIFICATIONS,
-        ),
-      );
-      return;
-    }
-    yield put(disablePushNotificationsSuccess());
-  } catch (error) {
-    yield put(disablePushNotificationsFailure(getErrorMessage(error)));
-  }
-}
-
-export function* updateTriggerPushNotifications(action: any) {
-  const { UUIDs } = action.payload;
-
-  try {
-    const { result } = yield call(
-      NotificationsServicesPushController.updateTriggerPushNotifications(UUIDs),
-    );
-    if (!result.ok) {
-      yield put(
-        updateTriggerPushNotificationsFailure(
-          NOTIFICATIONS_ERRORS.FAILED_TO_UPDATE_PUSH_NOTIFICATIONS_TRIGGERS,
-        ),
-      );
-      return;
-    }
-    yield put(updateTriggerPushNotificationsSuccess(result));
-  } catch (error) {
-    yield put(updateTriggerPushNotificationsFailure(getErrorMessage(error)));
-  }
-}
 export default all([
   takeLatest(notificationsAction.PERFORM_SIGN_IN_REQUEST, signIn),
   takeLatest(notificationsAction.PERFORM_SIGN_OUT_REQUEST, signOut),
@@ -396,21 +324,9 @@ export default all([
     disableNotificationServices,
   ),
   takeLatest(
-    notificationsAction.ENABLE_PUSH_NOTIFICATIONS_REQUEST,
-    enableNotificationServices,
-  ),
-  takeLatest(
-    notificationsAction.DISABLE_PUSH_NOTIFICATIONS_REQUEST,
-    disableNotificationServices,
-  ),
-  takeLatest(
     notificationsAction.SET_FEATURE_ANNOUNCEMENTS_ENABLED_REQUEST,
     setFeatureAnnouncementsEnabled,
   ),
-  // takeLatest(
-  //   notificationsAction.SET_SNAP_NOTIFICATIONS_ENABLED_REQUEST,
-  //   setSnapNotificationsEnabled,
-  // ),
   takeLatest(
     notificationsAction.CHECK_ACCOUNTS_PRESENCE_REQUEST,
     checkAccountsPresence,
@@ -436,19 +352,5 @@ export default all([
   takeLatest(
     notificationsAction.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_REQUEST,
     deleteOnChainTriggersByAccount,
-  ),
-
-  takeLatest(
-    notificationsAction.ENABLE_PUSH_NOTIFICATIONS_REQUEST,
-    enablePushNotifications,
-  ),
-
-  takeLatest(
-    notificationsAction.DISABLE_PUSH_NOTIFICATIONS_REQUEST,
-    disablePushNotifications,
-  ),
-  takeLatest(
-    notificationsAction.UPDATE_TRIGGER_PUSH_NOTIFICATIONS_REQUEST,
-    updateTriggerPushNotifications,
   ),
 ]);
