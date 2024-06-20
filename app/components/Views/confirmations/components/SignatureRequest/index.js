@@ -25,6 +25,16 @@ import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
 
+const getCleanUrl = (url) => {
+  try {
+    const urlObject = new URL(url);
+
+    return urlObject.origin;
+  } catch (error) {
+    return '';
+  }
+};
+
 const createStyles = (colors) =>
   StyleSheet.create({
     root: {
@@ -176,8 +186,6 @@ class SignatureRequest extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
-
-    origin: PropTypes.string,
   };
 
   /**
@@ -252,12 +260,12 @@ class SignatureRequest extends PureComponent {
       truncateMessage,
       toggleExpandedMessage,
       fromAddress,
-      origin,
     } = this.props;
     const styles = this.getStyles();
     const url = currentPageInformation.url;
     const icon = currentPageInformation.icon;
-    const title = getHost(url);
+
+    const title = getCleanUrl(url);
     const arrowIcon = truncateMessage ? this.renderArrowIcon() : null;
 
     return (
@@ -266,7 +274,7 @@ class SignatureRequest extends PureComponent {
           <AccountInfoCard
             operation="signing"
             fromAddress={fromAddress}
-            origin={origin}
+            origin={title}
           />
         </View>
         <TouchableOpacity

@@ -183,7 +183,12 @@ class AccountInfoCard extends PureComponent {
 
     return operation === 'signing' && transaction !== undefined ? (
       <ApproveTransactionHeader
-        origin={transaction.origin || origin}
+        origin={
+          (isOriginUrl
+            ? origin
+            : originatorInfo?.url ?? strings('sdk.unknown')) ||
+          transaction.origin
+        }
         url={activeTabUrl}
         from={rawFromAddress}
         sdkDappMetadata={sdkDappMetadata}
