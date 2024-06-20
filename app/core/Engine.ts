@@ -205,13 +205,14 @@ import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
-import { isTransactionSimulationsFeatureEnabled } from '../util/transaction-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
 });
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentChainId: any;
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -329,6 +330,8 @@ interface Controllers {
   NftController: NftController;
   NftDetectionController: NftDetectionController;
   // TODO: Fix permission types
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   PermissionController: PermissionController<any, any>;
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
@@ -378,12 +381,16 @@ class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   datamodel: any;
 
   /**
    * Object containing the info for the latest incoming tx block
    * for each address and network
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lastIncomingTxBlockInfo: any;
 
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -644,7 +651,10 @@ class Engine {
         );
       },
       clientId: AppConstants.SWAPS.CLIENT_ID,
-      infuraAPIKey: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+      legacyAPIEndpoint:
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
+      EIP1559APIEndpoint:
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
 
     const phishingController = new PhishingController({
@@ -687,6 +697,8 @@ class Engine {
      * Gets the mnemonic of the user's primary keyring.
      */
     const getPrimaryKeyringMnemonic = () => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const [keyring]: any = keyringController.getKeyringsByType(
         KeyringTypes.hd,
       );
@@ -755,7 +767,11 @@ class Engine {
           showDialog: (
             origin: string,
             type: EnumToUnion<DialogType>,
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             content: any, // should be Component from '@metamask/snaps-ui';
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             placeholder?: any,
           ) =>
             approvalController.addAndShowApprovalRequest({
@@ -978,6 +994,8 @@ class Engine {
         requireAllowlist,
       },
       state: initialState.SnapController || undefined,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       messenger: snapControllerMessenger as any,
       detectSnapLocation: (
         location: string | URL,
@@ -1024,7 +1042,6 @@ class Engine {
         updateTransactions: true,
       },
       isSimulationEnabled: () =>
-        isTransactionSimulationsFeatureEnabled() &&
         preferencesController.state.useTransactionSimulations,
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
@@ -1072,6 +1089,8 @@ class Engine {
     const smartTransactionsControllerTrackMetaMetricsEvent = (params: {
       event: string;
       category: string;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sensitiveProperties: any;
     }) => {
       const { event, category, ...restParams } = params;
@@ -1107,8 +1126,10 @@ class Engine {
             listener,
           ),
 
-        provider: networkController.getProviderAndBlockTracker()
-          .provider as any,
+        // TODO: Replace "any" with type
+        provider:
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          networkController.getProviderAndBlockTracker().provider as any,
 
         trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
       },
@@ -1302,9 +1323,13 @@ class Engine {
             `${preferencesController.name}:stateChange`,
             listener,
           ),
-        provider: networkController.getProviderAndBlockTracker()
-          .provider as any,
+        // TODO: Replace "any" with type
+        provider:
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          networkController.getProviderAndBlockTracker().provider as any,
         ppomProvider: {
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           PPOM: PPOM as any,
           ppomInit,
         },
@@ -1312,6 +1337,8 @@ class Engine {
         securityAlertsEnabled:
           initialState.PreferencesController?.securityAlertsEnabled ?? false,
         state: initialState.PPOMController,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         nativeCrypto: Crypto as any,
       });
       controllers.push(ppomController);
@@ -1640,6 +1667,8 @@ class Engine {
   }
 
   async destroyEngineInstance() {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Object.values(this.context).forEach((controller: any) => {
       if (controller.destroy) {
         controller.destroy();
@@ -1663,6 +1692,8 @@ class Engine {
 
     try {
       ApprovalController.reject(id, reason);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (opts.logErrors !== false) {
         Logger.error(

@@ -47,6 +47,8 @@ jest.mock('@metamask/controller-utils', () => ({
   query: jest.fn(),
 }));
 jest.mock('../../core/Engine');
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ENGINE_MOCK = Engine as jest.MockedClass<any>;
 
 jest.mock('../../util/transaction-controller');
@@ -135,6 +137,8 @@ describe('Transactions utils :: parseTransactionLegacy', () => {
     ticker: 'tBNB',
   };
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createTransactionState = (selectedAsset: any, transaction: any) => ({
     selectedAsset,
     transaction: {
@@ -608,6 +612,8 @@ describe('Transaction utils :: generateApprovalData', () => {
   it('throws an error if the spender is not defined', () => {
     expect(() => {
       generateApprovalData({
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         spender: undefined as any,
         value: '0x0',
         data: '0x095ea7b3',

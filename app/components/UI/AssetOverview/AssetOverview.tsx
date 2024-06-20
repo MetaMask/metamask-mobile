@@ -54,6 +54,8 @@ import { useStyles } from '../../../component-library/hooks';
 
 interface AssetOverviewProps {
   navigation: {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     navigate: (route: string, props?: any) => void;
   };
   asset: Asset;
@@ -89,10 +91,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { SwapsController } = Engine.context as { SwapsController: any };
     const fetchTokenWithCache = async () => {
       try {
         await SwapsController.fetchTokenWithCache();
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         Logger.error(
           error,

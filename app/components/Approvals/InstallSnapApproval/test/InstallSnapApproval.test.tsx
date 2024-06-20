@@ -20,6 +20,8 @@ jest.mock('../../../Views/confirmations/hooks/useApprovalRequest');
 const onConfirm = jest.fn();
 const onReject = jest.fn();
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
   (
     useApprovalRequest as jest.MockedFn<typeof useApprovalRequest>
@@ -27,6 +29,8 @@ const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
     approvalRequest,
     onConfirm,
     onReject,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 };
 

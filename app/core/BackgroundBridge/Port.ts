@@ -9,12 +9,16 @@ const EventEmitter = require('events').EventEmitter;
  * Module that listens for and responds to messages from an InpageBridge using postMessage for in-app browser
  */
 class Port extends EventEmitter {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(browserWindow: any, isMainFrame: boolean) {
     super();
     this._window = browserWindow;
     this._isMainFrame = isMainFrame;
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   postMessage = (msg: any, origin = '*') => {
     const js = this._isMainFrame
       ? JS_POST_MESSAGE_TO_PROVIDER(msg, origin)
