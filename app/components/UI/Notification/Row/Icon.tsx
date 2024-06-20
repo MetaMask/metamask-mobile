@@ -16,6 +16,8 @@ import { ETHEREUM_LOGO } from '../../../../constants/urls';
 const metamask_fox = require('../../../../images/fox.png'); // eslint-disable-line
 interface NotificationIconProps {
   notificationType: TRIGGER_TYPES;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: any;
   badgeIcon?: IconName;
   imageUrl?: string;

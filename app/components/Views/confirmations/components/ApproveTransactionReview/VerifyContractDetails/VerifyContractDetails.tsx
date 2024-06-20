@@ -47,6 +47,8 @@ const VerifyContractDetails = ({
   const tokenData = useMemo(
     () =>
       tokens.filter(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (token: any) => token.address === safeToChecksumAddress(tokenAddress),
       ),
     [tokens, tokenAddress],
@@ -59,6 +61,8 @@ const VerifyContractDetails = ({
   }, [tokenSymbol]);
 
   useEffect(() => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     savedContactListToArray.forEach((contact: any) => {
       if (contact.address === safeToChecksumAddress(contractAddress)) {
         setContractNickname(contact.name);

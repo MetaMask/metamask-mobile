@@ -12,6 +12,8 @@ jest.mock('../../../util/Logger');
 
 describe('handleDeeplink', () => {
   let sdkConnect = {} as unknown as SDKConnect;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let fakeConnections = {} as any;
 
   const mockWaitForCondition = waitForCondition as jest.MockedFunction<

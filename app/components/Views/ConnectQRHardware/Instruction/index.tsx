@@ -16,6 +16,8 @@ import { createStyles } from './styles';
 import StyledButton from '../../../UI/StyledButton';
 
 interface IConnectQRInstructionProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   onConnect: () => void;
   renderAlert: () => Element;

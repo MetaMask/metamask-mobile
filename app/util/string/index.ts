@@ -6,6 +6,8 @@ import { isString } from '../lodash';
  * @param {any} str
  * @returns {(string|*)} escaped string or original param value
  */
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default (str: any): any => {
   if (!str) {
     return str;

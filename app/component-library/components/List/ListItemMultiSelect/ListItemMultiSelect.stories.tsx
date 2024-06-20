@@ -27,6 +27,8 @@ const ListItemMultiSelectMeta = {
 export default ListItemMultiSelectMeta;
 
 export const ListItemMultiSelect = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => (
     <ListItemMultiSelectComponent {...args}>
       <ListItemColumn>

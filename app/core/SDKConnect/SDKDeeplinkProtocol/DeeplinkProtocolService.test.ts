@@ -35,6 +35,8 @@ describe('DeeplinkProtocolService', () => {
       addDappConnection: jest.fn().mockResolvedValue(null),
     });
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (Engine.context as any) = {
       PermissionController: {
         requestPermissions: jest.fn().mockResolvedValue(null),
@@ -112,6 +114,8 @@ describe('DeeplinkProtocolService', () => {
         scheme: 'test',
       };
       service.bridgeByClientId.client1 = {} as BackgroundBridge;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const setupBridgeSpy = jest.spyOn(service as any, 'setupBridge');
       service.setupBridge(clientInfo);
       expect(setupBridgeSpy).toHaveReturned();
@@ -144,6 +148,8 @@ describe('DeeplinkProtocolService', () => {
         url: 'test-url',
         isRemoteConn: true,
         sendMessage: jest.fn(),
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await service.sendMessage(mockMessage, true);
@@ -170,6 +176,8 @@ describe('DeeplinkProtocolService', () => {
         url: 'test-url',
         isRemoteConn: true,
         sendMessage: jest.fn(),
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await service.sendMessage(mockMessage, true);
@@ -212,6 +220,8 @@ describe('DeeplinkProtocolService', () => {
         url: 'test-url',
         isRemoteConn: true,
         sendMessage: jest.fn(),
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       service.rpcQueueManager.remove = jest.fn();
@@ -322,6 +332,8 @@ describe('DeeplinkProtocolService', () => {
         originatorInfo: 'info',
         request: JSON.stringify({ id: '1', method: 'test', params: [] }),
       };
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       service.bridgeByClientId.channel1 = { onMessage: jest.fn() } as any;
       await service.processDappRpcRequest(params);
       expect(handleCustomRpcCalls).toHaveBeenCalled();
@@ -347,6 +359,8 @@ describe('DeeplinkProtocolService', () => {
 
   describe('removeConnection', () => {
     it('should remove a connection', () => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       service.connections.channel1 = {} as any;
       service.removeConnection('channel1');
       expect(service.connections.channel1).toBeUndefined();
