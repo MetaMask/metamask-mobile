@@ -20,6 +20,7 @@ import { acceptTermOfUse } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
+import ExperienceEnhancerModal from '../../pages/modals/ExperienceEnhancerModal';
 
 const PASSWORD = '12345678';
 
@@ -54,6 +55,7 @@ describe(
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
       await SkipAccountSecurityModal.tapSkipButton();
       await OnboardingSuccessView.tapDone();
+
       await WalletView.isVisible();
     });
 
@@ -84,7 +86,29 @@ describe(
         await WhatsNewModal.isVisible();
         await WhatsNewModal.tapCloseButton();
       } catch {
-        //
+        /* eslint-disable no-console */
+
+        console.log('The whats new modal is not visible');
+      }
+    });
+    it('should dismiss the marketing consent bottom sheet', async () => {
+      // dealing with flakiness on bitrise.
+      await TestHelpers.delay(1000);
+      try {
+        await Assertions.checkIfVisible(
+          await ExperienceEnhancerModal.container,
+        );
+        await ExperienceEnhancerModal.tapIagree();
+      } catch {
+        console.log('The marketing consent sheet is not visible');
+      }
+      try {
+        await WhatsNewModal.isVisible();
+        await WhatsNewModal.tapCloseButton();
+      } catch {
+        /* eslint-disable no-console */
+
+        console.log('The whats new modal is not visible');
       }
     });
 
@@ -133,7 +157,9 @@ describe(
           OnboardingWizardModal.stepOneContainer,
         );
       } catch {
-        //
+        /* eslint-disable no-console */
+
+        console.log('The onboarding wizard is not visible');
       }
     });
 
