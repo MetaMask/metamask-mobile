@@ -1,6 +1,6 @@
 // Third party dependencies.
-import React, { useRef } from 'react';
-import { Switch, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Linking, Switch, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -11,7 +11,10 @@ import SheetHeader from '../../../component-library/components/Sheet/SheetHeader
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
-import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
 import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -28,6 +31,7 @@ import Networks, {
   getDecimalChainId,
   isTestNet,
   getNetworkImageSource,
+  isNetworkUiRedesignEnabled,
 } from '../../../util/networks';
 import {
   LINEA_MAINNET,
@@ -55,19 +59,28 @@ import { updateIncomingTransactions } from '../../../util/transaction-controller
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 // Internal dependencies
-import styles from './NetworkSelector.styles';
+import createStyles from './NetworkSelector.styles';
 import { TESTNET_TICKER_SYMBOLS } from '@metamask/controller-utils';
+import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
+import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
+import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 
 const NetworkSelector = () => {
+  const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
+  const [popularNetwork, setPopularNetwork] = useState(undefined);
+  const [showWarningModal, setShowWarningModal] = useState(false);
   const { navigate } = useNavigation();
   const theme = useTheme();
   const { trackEvent } = useMetrics();
   const { colors } = theme;
+  const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const avatarSize = isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined;
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: string) => {
@@ -129,6 +142,31 @@ const NetworkSelector = () => {
     }
   };
 
+  // TODO: type the any below to import { Network } from './CustomNetwork.types';
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const showNetworkModal = (networkConfiguration: any) => {
+    setShowPopularNetworkModal(true);
+    setPopularNetwork({
+      ...networkConfiguration,
+      formattedRpcUrl: networkConfiguration.warning
+        ? null
+        : hideKeyFromUrl(networkConfiguration.rpcUrl),
+    });
+  };
+
+  const onCancel = () => {
+    setShowPopularNetworkModal(false);
+    setPopularNetwork(undefined);
+  };
+
+  const toggleWarningModal = () => {
+    setShowWarningModal(!showWarningModal);
+  };
+  const goToLearnMore = () => {
+    Linking.openURL(strings('networks.learn_more_url'));
+  };
+
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
     return (
@@ -139,6 +177,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: mainnetName,
           imageSource: images.ETHEREUM,
+          size: avatarSize,
         }}
         isSelected={
           chainId === providerConfig.chainId && !providerConfig.rpcUrl
@@ -159,6 +198,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: lineaMainnetName,
           imageSource: images['LINEA-MAINNET'],
+          size: avatarSize,
         }}
         isSelected={chainId === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
@@ -183,6 +223,7 @@ const NetworkSelector = () => {
               variant: AvatarVariant.Network,
               name,
               imageSource: image,
+              size: avatarSize,
             }}
             isSelected={Boolean(
               chainId === providerConfig.chainId && providerConfig.rpcUrl,
@@ -198,6 +239,8 @@ const NetworkSelector = () => {
     const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((networkType) => {
       // TODO: Provide correct types for network.
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { name, imageSource, chainId } = (Networks as any)[networkType];
 
       return (
@@ -209,6 +252,7 @@ const NetworkSelector = () => {
             variant: AvatarVariant.Network,
             name,
             imageSource,
+            size: avatarSize,
           }}
           isSelected={chainId === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
@@ -241,7 +285,7 @@ const NetworkSelector = () => {
           true: colors.primary.default,
           false: colors.border.muted,
         }}
-        thumbColor={theme.brandColors.white000}
+        thumbColor={theme.brandColors.white}
         ios_backgroundColor={colors.border.muted}
         testID={NetworkListModalSelectorsIDs.TEST_NET_TOGGLE}
         disabled={isTestNet(providerConfig.chainId)}
@@ -249,13 +293,38 @@ const NetworkSelector = () => {
     </View>
   );
 
+  const renderAdditonalNetworks = () => (
+    <View style={styles.addtionalNetworksContainer}>
+      <CustomNetwork
+        isNetworkModalVisible={showPopularNetworkModal}
+        closeNetworkModal={onCancel}
+        selectedNetwork={popularNetwork}
+        toggleWarningModal={toggleWarningModal}
+        showNetworkModal={showNetworkModal}
+        shouldNetworkSwitchPopToWallet={false}
+      />
+    </View>
+  );
+
+  const renderTitle = (title: string) => (
+    <View style={styles.switchContainer}>
+      <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>
+        {strings(title)}
+      </Text>
+    </View>
+  );
+
   return (
     <BottomSheet ref={sheetRef}>
       <SheetHeader title={strings('networks.select_network')} />
       <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
+        {isNetworkUiRedesignEnabled && renderTitle('networks.enabled_networks')}
         {renderMainnet()}
         {renderLineaMainnet()}
         {renderRpcNetworks()}
+        {isNetworkUiRedesignEnabled &&
+          renderTitle('networks.additional_networks')}
+        {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
         {renderTestNetworksSwitch()}
         {showTestNetworks && renderOtherNetworks()}
       </ScrollView>
@@ -269,6 +338,23 @@ const NetworkSelector = () => {
         style={styles.addNetworkButton}
         testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
       />
+      {showWarningModal ? (
+        <InfoModal
+          isVisible={showWarningModal}
+          title={strings('networks.network_warning_title')}
+          body={
+            <Text>
+              <Text style={styles.desc}>
+                {strings('networks.network_warning_desc')}
+              </Text>{' '}
+              <Text style={[styles.blueText]} onPress={goToLearnMore}>
+                {strings('networks.learn_more')}
+              </Text>
+            </Text>
+          }
+          toggleModal={toggleWarningModal}
+        />
+      ) : null}
     </BottomSheet>
   );
 };

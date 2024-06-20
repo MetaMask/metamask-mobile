@@ -156,7 +156,7 @@ export default class AppInformation extends PureComponent {
   };
 
   onSupportCenter = () => {
-    const url = 'https://metamask.zendesk.com/hc/en-us';
+    const url = 'https://support.metamask.io';
     this.goTo(url, strings('drawer.metamask_support'));
   };
 
@@ -166,7 +166,7 @@ export default class AppInformation extends PureComponent {
   };
 
   onContactUs = () => {
-    const url = 'https://metamask.zendesk.com/hc/en-us';
+    const url = 'https://support.metamask.io';
     this.goTo(url, strings('drawer.metamask_support'));
   };
 

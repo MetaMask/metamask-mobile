@@ -54,7 +54,7 @@ exports[`GetStarted renders correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -144,7 +144,7 @@ exports[`GetStarted renders correctly 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -183,7 +183,7 @@ exports[`GetStarted renders correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -226,7 +226,7 @@ exports[`GetStarted renders correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -425,7 +425,7 @@ exports[`GetStarted renders correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -495,7 +495,7 @@ exports[`GetStarted renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -551,7 +551,7 @@ exports[`GetStarted renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -621,7 +621,7 @@ exports[`GetStarted renders correctly 1`] = `
                                       "padding": 15,
                                     },
                                     {
-                                      "backgroundColor": "#0376C9",
+                                      "backgroundColor": "#0376c9",
                                       "minHeight": 50,
                                     },
                                     undefined,
@@ -648,7 +648,7 @@ exports[`GetStarted renders correctly 1`] = `
                                         "textAlign": "center",
                                       },
                                       {
-                                        "color": "#FFFFFF",
+                                        "color": "#ffffff",
                                       },
                                       undefined,
                                     ],
@@ -729,7 +729,7 @@ exports[`GetStarted renders correctly 2`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -819,7 +819,7 @@ exports[`GetStarted renders correctly 2`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -858,7 +858,7 @@ exports[`GetStarted renders correctly 2`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -901,7 +901,7 @@ exports[`GetStarted renders correctly 2`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -1100,7 +1100,7 @@ exports[`GetStarted renders correctly 2`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -1170,7 +1170,7 @@ exports[`GetStarted renders correctly 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -1226,7 +1226,7 @@ exports[`GetStarted renders correctly 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -1296,7 +1296,7 @@ exports[`GetStarted renders correctly 2`] = `
                                       "padding": 15,
                                     },
                                     {
-                                      "backgroundColor": "#0376C9",
+                                      "backgroundColor": "#0376c9",
                                       "minHeight": 50,
                                     },
                                     undefined,
@@ -1323,7 +1323,7 @@ exports[`GetStarted renders correctly 2`] = `
                                         "textAlign": "center",
                                       },
                                       {
-                                        "color": "#FFFFFF",
+                                        "color": "#ffffff",
                                       },
                                       undefined,
                                     ],
@@ -1404,7 +1404,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -1494,7 +1494,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1533,7 +1533,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -1576,7 +1576,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -1775,7 +1775,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -1849,7 +1849,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -1939,7 +1939,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1978,7 +1978,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -2021,7 +2021,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -2220,7 +2220,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -2241,7 +2241,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                                 "justifyContent": "center",
                               }
@@ -2278,7 +2278,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#D73847",
+                                          "color": "#d73847",
                                         },
                                       ],
                                       {
@@ -2304,7 +2304,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -2335,7 +2335,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                       undefined,
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
@@ -2364,7 +2364,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -2379,7 +2379,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#535A61",
+                                        "color": "#6a737d",
                                       },
                                       undefined,
                                       undefined,
@@ -2425,7 +2425,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376C9",
+                                          "backgroundColor": "#0376c9",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -2452,7 +2452,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                             "textAlign": "center",
                                           },
                                           {
-                                            "color": "#FFFFFF",
+                                            "color": "#ffffff",
                                           },
                                           undefined,
                                         ],

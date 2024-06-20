@@ -16,7 +16,11 @@ import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 
 // TODO: Convert into typescript and correctly type
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Title = BaseTitle as any;
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Fox = FoxComponent as any;
 
 const ANIM_MULTIPLIER = 0.67;
@@ -94,6 +98,8 @@ const customStyle = (colors: Colors) => `
 interface Props {
   title: string;
   finish: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onAnimationEnd?: () => any;
   asScreen?: boolean;
 }

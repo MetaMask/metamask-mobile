@@ -19,6 +19,8 @@ import { isBridgeUrl } from '../../../../util/url';
  */
 export default function useGoToBridge(location: string) {
   const chainId = useSelector(selectChainId);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
   const { navigate } = useNavigation();
   const { trackEvent } = useMetrics();

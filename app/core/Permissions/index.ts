@@ -3,21 +3,31 @@ import { RestrictedMethods, CaveatTypes } from './constants';
 import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
 import { getUniqueList } from '../../util/general';
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAccountsCaveatFromPermission(accountsPermission: any = {}) {
   return (
     Array.isArray(accountsPermission.caveats) &&
     accountsPermission.caveats.find(
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (caveat: any) => caveat.type === CaveatTypes.restrictReturnedAccounts,
     )
   );
 }
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAccountsPermissionFromSubject(subject: any = {}) {
   return subject.permissions?.eth_accounts || {};
 }
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAccountsFromPermission(accountsPermission: any) {
   const accountsCaveat = getAccountsCaveatFromPermission(accountsPermission);
   return accountsCaveat && Array.isArray(accountsCaveat.value)
@@ -25,16 +35,22 @@ function getAccountsFromPermission(accountsPermission: any) {
     : [];
 }
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAccountsFromSubject(subject: any) {
   return getAccountsFromPermission(getAccountsPermissionFromSubject(subject));
 }
 
 export const getPermittedAccountsByHostname = (
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
   hostname: string,
 ) => {
   const subjects = state.subjects;
   const accountsByHostname = Object.keys(subjects).reduce(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (acc: any, subjectKey) => {
       const accounts = getAccountsFromSubject(subjects[subjectKey]);
       if (accounts.length > 0) {
@@ -177,6 +193,8 @@ export const getPermittedAccounts = async (
         RestrictedMethods.eth_accounts,
       );
     return accounts;
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.code === rpcErrorCodes.provider.unauthorized) {
       return [];

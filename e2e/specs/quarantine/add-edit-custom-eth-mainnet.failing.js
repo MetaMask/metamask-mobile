@@ -21,6 +21,7 @@ import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../../pages/modals/WhatsNewModal';
 import TestHelpers from '../../helpers';
+import ExperienceEnhancerModal from '../../pages/modals/ExperienceEnhancerModal';
 
 const validAccount = Accounts.getValidAccount();
 
@@ -66,6 +67,7 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
     await OnboardingSuccessView.tapDone();
     await EnableAutomaticSecurityChecksView.tapNoThanks();
     await OnboardingWizardModal.tapNoThanksButton();
+    await ExperienceEnhancerModal.tapIagree();
   });
 
   it('should show custom default ETH Mainnet as active', async () => {
@@ -78,7 +80,7 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(2500);
     try {
-      await WhatsNewModal.isVisible();
+      await Assertions.checkIfVisible(WhatsNewModal.container);
       await WhatsNewModal.tapCloseButton();
     } catch {
       //
