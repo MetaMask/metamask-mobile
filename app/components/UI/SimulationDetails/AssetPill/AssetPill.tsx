@@ -25,7 +25,11 @@ interface AssetPillProperties extends ViewProps {
 }
 
 const getNetworkImage = (chainId: Hex) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const network: any = Object.values(NetworkList).find(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (nw: any) => nw.chainId === chainId,
   );
   return network?.imageSource || null;

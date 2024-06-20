@@ -224,6 +224,8 @@ describe('shouldShowBlockExplorer', () => {
 });
 describe('isQRHardwareAccount', () => {
   it('should return false if argument address is undefined', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(isQRHardwareAccount(undefined as any)).toBeFalsy();
   });
   it('should return false if address does not exist on keyring', () => {
@@ -248,6 +250,8 @@ describe('isQRHardwareAccount', () => {
 });
 describe('getKeyringByAddress', () => {
   it('should return undefined if argument address is undefined', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(getKeyringByAddress(undefined as any)).toBeUndefined();
   });
   it('should return undefined if argument address is not hex address', () => {
@@ -302,6 +306,8 @@ describe('getLabelTextByAddress,', () => {
 });
 describe('getAddressAccountType', () => {
   it('should throw an error if argument address is undefined', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(() => getAddressAccountType(undefined as any)).toThrow(
       'Invalid address: undefined',
     );
@@ -324,6 +330,8 @@ describe('getAddressAccountType', () => {
 });
 describe('resemblesAddress', () => {
   it('should return false if argument address is undefined', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(resemblesAddress(undefined as any)).toBeFalsy();
   });
   it('should return false if address does not resemble an eth address', () => {

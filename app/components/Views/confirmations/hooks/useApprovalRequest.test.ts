@@ -14,6 +14,8 @@ jest.mock('react', () => {
 
   return {
     ...originalReact,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     useCallback: (fn: any) => fn,
   };
 });
@@ -101,12 +103,16 @@ describe('useApprovalRequest', () => {
     it('set to empty object if no request data', () => {
       mockSelector({
         [APPROVAL_REQUEST.id]: { ...APPROVAL_REQUEST, requestData: undefined },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(useApprovalRequest().pageMeta).toEqual({});
     });
 
     it('set to empty object if no approval request', () => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockSelector({} as any);
       expect(useApprovalRequest().pageMeta).toEqual({});
     });
@@ -127,6 +133,8 @@ describe('useApprovalRequest', () => {
     });
 
     it('does nothing if no approval request', () => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockSelector({} as any);
       useApprovalRequest().onConfirm();
 
@@ -148,6 +156,8 @@ describe('useApprovalRequest', () => {
     });
 
     it('does nothing if no approval request', () => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockSelector({} as any);
       useApprovalRequest().onReject();
 

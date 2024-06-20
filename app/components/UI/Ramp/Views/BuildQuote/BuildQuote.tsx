@@ -73,7 +73,11 @@ import {
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 
 // TODO: Convert into typescript and correctly type
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = BaseListItem as any;
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
 
 const TRANSFER_GAS_LIMIT = 21000;

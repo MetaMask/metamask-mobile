@@ -47,9 +47,13 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
   const [isVisible, setIsVisible] = useState(true);
 
   const { seedphraseBackedUp, backUpSeedphraseVisible } = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user,
   );
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onboardingWizardStep = useSelector((state: any) => state.wizard.step);
   const dispatch = useDispatch();
 

@@ -1,6 +1,8 @@
 import { Hex } from '@metamask/utils';
 
 export interface GasTransactionProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: any;
   estimatedBaseFee: string;
   estimatedBaseFeeHex: string;
@@ -77,6 +79,8 @@ export interface GasTransactionProps {
 }
 
 export interface GasFeeOptions {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   estimatedBaseFee: any;
   /**
    * This gasFeeEstimate object is returned from Codefi
@@ -211,9 +215,13 @@ export interface GetEIP1559TransactionDataProps extends TransactionSharedProps {
 }
 
 export interface LegacyProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   contractExchangeRates: any;
   conversionRate: number;
   currentCurrency: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transactionState: any;
   ticker: string;
   onlyGas?: boolean;

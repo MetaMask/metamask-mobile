@@ -31,6 +31,8 @@ const AesCryptoTestForm = () => {
 
   const [passwordEncryptedData, setPasswordEncryptedData] =
     useState<string>('');
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [keyEncryptedData, setKeyEncryptedData] = useState<any>();
 
   useEffect(() => {
@@ -53,11 +55,15 @@ const AesCryptoTestForm = () => {
   }, [colors, navigation]);
 
   const generateSalt = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (args: any[]) => await encryptor?.generateSalt(args[0]),
     [encryptor],
   );
 
   const generateEncryptionKey = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (args: any[]) => {
       const response = await encryptor?.keyFromPassword(args[0], args[1]);
       return response?.key;
@@ -66,6 +72,8 @@ const AesCryptoTestForm = () => {
   );
 
   const encrypt = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (args: any[]) => {
       const response = await encryptor?.encrypt(args[1], args[0]);
       if (!response) {
@@ -79,6 +87,8 @@ const AesCryptoTestForm = () => {
   );
 
   const decrypt = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (args: any[]) => {
       const response = await encryptor?.decrypt(args[0], passwordEncryptedData);
       return response;
@@ -87,6 +97,8 @@ const AesCryptoTestForm = () => {
   );
 
   const encryptWithKey = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (args: any[]) => {
       const response = await encryptor?.encryptWithKey(
         {
@@ -104,6 +116,8 @@ const AesCryptoTestForm = () => {
   );
 
   const decryptWithKey = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (args: any[]) => {
       const response = await encryptor?.decryptWithKey(
         {
