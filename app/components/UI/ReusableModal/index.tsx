@@ -204,35 +204,45 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
       [styles.absoluteFill],
     );
 
+    const renderModalType = () => {
+      switch (isTermsModal) {
+        case true:
+          return (
+            <Modal
+              animationType="slide"
+              presentationStyle="pageSheet"
+              visible
+              testID={TermsOfUseModalSelectorsIDs.TERMS_MODAL}
+            >
+              {children}
+            </Modal>
+          );
+        case false:
+        default:
+          return (
+            <>
+              <Animated.View style={combinedOverlayStyle}></Animated.View>
+              <PanGestureHandler
+                enabled={isInteractable}
+                onGestureEvent={gestureHandler}
+              >
+                <Animated.View style={[combinedModalStyle, style]}>
+                  <TouchableOpacity
+                    disabled={!isInteractable}
+                    style={styles.absoluteFill}
+                    onPress={debouncedHide}
+                  />
+                  {children}
+                </Animated.View>
+              </PanGestureHandler>
+            </>
+          );
+      }
+    };
+
     return (
       <View style={styles.absoluteFill} {...props}>
-        {isTermsModal ? (
-          <Modal
-            animationType="slide"
-            presentationStyle="pageSheet"
-            visible
-            testID={TermsOfUseModalSelectorsIDs.TERMS_MODAL}
-          >
-            {children}
-          </Modal>
-        ) : (
-          <>
-            <Animated.View style={combinedOverlayStyle}></Animated.View>
-            <PanGestureHandler
-              enabled={isInteractable}
-              onGestureEvent={gestureHandler}
-            >
-              <Animated.View style={[combinedModalStyle, style]}>
-                <TouchableOpacity
-                  disabled={!isInteractable}
-                  style={styles.absoluteFill}
-                  onPress={debouncedHide}
-                />
-                {children}
-              </Animated.View>
-            </PanGestureHandler>
-          </>
-        )}
+        {renderModalType()}
       </View>
     );
   },
