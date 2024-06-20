@@ -366,59 +366,58 @@ const NetworkSelector = () => {
     setSearchString('');
   };
 
-  const renderBottomSheetContent = () => {
-    return (
-      <>
-        <SheetHeader title={strings('networks.select_network')} />
-        <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
-          {isNetworkUiRedesignEnabled && (
-            <View style={styles.inputWrapper}>
-              <Icon name="ios-search" size={20} color={colors.icon.default} />
-              <TextInput
-                style={styles.input}
-                placeholder={strings('networks.search')}
-                placeholderTextColor={colors.text.default}
-                value={searchString}
-                onChangeText={handleSearchTextChange}
-                testID={NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID}
+  const renderBottomSheetContent = () => (
+    <>
+      <SheetHeader title={strings('networks.select_network')} />
+      <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
+        {isNetworkUiRedesignEnabled && (
+          <View style={styles.inputWrapper}>
+            <Icon name="ios-search" size={20} color={colors.icon.default} />
+            <TextInput
+              style={styles.input}
+              placeholder={strings('networks.search')}
+              placeholderTextColor={colors.text.default}
+              value={searchString}
+              onChangeText={handleSearchTextChange}
+              testID={NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID}
+            />
+            {searchString.length > 0 && (
+              <Icon
+                name="ios-close"
+                size={20}
+                color={colors.icon.default}
+                onPress={clearSearchInput}
+                testID={NetworksViewSelectorsIDs.CLOSE_ICON}
               />
-              {searchString.length > 0 && (
-                <Icon
-                  name="ios-close"
-                  size={20}
-                  color={colors.icon.default}
-                  onPress={clearSearchInput}
-                  testID={NetworksViewSelectorsIDs.CLOSE_ICON}
-                />
-              )}
-            </View>
-          )}
-          {isNetworkUiRedesignEnabled &&
-            searchString.length === 0 &&
-            renderTitle('networks.enabled_networks')}
-          {renderMainnet()}
-          {renderLineaMainnet()}
-          {renderRpcNetworks()}
-          {isNetworkUiRedesignEnabled &&
-            searchString.length === 0 &&
-            renderTitle('networks.additional_networks')}
-          {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
-          {searchString.length === 0 && renderTestNetworksSwitch()}
-          {showTestNetworks && renderOtherNetworks()}
-        </ScrollView>
+            )}
+          </View>
+        )}
+        {isNetworkUiRedesignEnabled &&
+          searchString.length === 0 &&
+          renderTitle('networks.enabled_networks')}
+        {renderMainnet()}
+        {renderLineaMainnet()}
+        {renderRpcNetworks()}
+        {isNetworkUiRedesignEnabled &&
+          searchString.length === 0 &&
+          renderTitle('networks.additional_networks')}
+        {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
+        {searchString.length === 0 && renderTestNetworksSwitch()}
+        {showTestNetworks && renderOtherNetworks()}
+      </ScrollView>
 
-        <Button
-          variant={ButtonVariants.Secondary}
-          label={strings('app_settings.network_add_network')}
-          onPress={goToNetworkSettings}
-          width={ButtonWidthTypes.Full}
-          size={ButtonSize.Lg}
-          style={styles.addNetworkButton}
-          testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
-        />
-      </>
-    );
-  };
+      <Button
+        variant={ButtonVariants.Secondary}
+        label={strings('app_settings.network_add_network')}
+        onPress={goToNetworkSettings}
+        width={ButtonWidthTypes.Full}
+        size={ButtonSize.Lg}
+        style={styles.addNetworkButton}
+        testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
+      />
+    </>
+  );
+
   return (
     <BottomSheet ref={sheetRef}>
       {isNetworkUiRedesignEnabled ? (
