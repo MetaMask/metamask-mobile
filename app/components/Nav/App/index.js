@@ -5,6 +5,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import {
+  PerformanceProfiler,
+} from '@shopify/react-native-performance';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -311,6 +314,11 @@ const App = ({ userLoggedIn }) => {
       dispatch(setCurrentBottomNavRoute(route));
     }
   };
+
+  const onReportPrepared = useCallback((report) => {
+    // send report to analytics
+    console.log(' ======== REPORT ========:', report);
+  }, []);
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
@@ -763,120 +771,125 @@ const App = ({ userLoggedIn }) => {
     (route && (
       <>
         {isBlockaidFeatureEnabled() && <PPOMView />}
-        <NavigationContainer
-          // Prevents artifacts when navigating between screens
-          theme={{
-            colors: {
-              background: colors.background.default,
-            },
-          }}
-          ref={setNavigatorRef}
-          onStateChange={(state) => {
-            // Updates redux with latest route. Used by DrawerView component.
-            const currentRoute = findRouteNameFromNavigatorState(state.routes);
-            triggerSetCurrentRoute(currentRoute);
-          }}
-        >
-          <Stack.Navigator
-            initialRouteName={route}
-            mode={'modal'}
-            screenOptions={{
-              headerShown: false,
-              cardStyle: { backgroundColor: importedColors.transparent },
-              animationEnabled: false,
+        <PerformanceProfiler onReportPrepared={onReportPrepared}>
+          <NavigationContainer
+            // Prevents artifacts when navigating between screens
+            theme={{
+              colors: {
+                background: colors.background.default,
+              },
+            }}
+            ref={setNavigatorRef}
+            onStateChange={(state) => {
+              // Updates redux with latest route. Used by DrawerView component.
+              const currentRoute = findRouteNameFromNavigatorState(
+                state.routes,
+              );
+              triggerSetCurrentRoute(currentRoute);
             }}
           >
-            <Stack.Screen
-              name={Routes.ONBOARDING.LOGIN}
-              component={Login}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="OnboardingRootNav"
-              component={OnboardingRootNav}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.ONBOARDING.SUCCESS_FLOW}
-              component={OnboardingSuccessFlow}
-              options={{ headerShown: false }}
-            />
-            {userLoggedIn && (
+            <Stack.Navigator
+              initialRouteName={route}
+              mode={'modal'}
+              screenOptions={{
+                headerShown: false,
+                cardStyle: { backgroundColor: importedColors.transparent },
+                animationEnabled: false,
+              }}
+            >
               <Stack.Screen
-                name={Routes.ONBOARDING.HOME_NAV}
-                component={Main}
+                name={Routes.ONBOARDING.LOGIN}
+                component={Login}
                 options={{ headerShown: false }}
               />
-            )}
-            <Stack.Screen
-              name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
-              component={VaultRecoveryFlow}
-            />
-            <Stack.Screen
-              name={Routes.MODAL.ROOT_MODAL_FLOW}
-              component={RootModalFlow}
-            />
-            <Stack.Screen
-              name="ImportPrivateKeyView"
-              component={ImportPrivateKeyView}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name="ConnectQRHardwareFlow"
-              component={ConnectQRHardwareFlow}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name={Routes.HW.CONNECT_LEDGER}
-              component={LedgerConnectFlow}
-            />
-            <Stack.Screen
-              name={Routes.HW.CONNECT}
-              component={ConnectHardwareWalletFlow}
-            />
-            <Stack.Screen
-              options={{
-                //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-                cardStyle: { backgroundColor: importedColors.transparent },
-                cardStyleInterpolator: () => ({
-                  overlayStyle: {
-                    opacity: 0,
-                  },
-                }),
-              }}
-              name={Routes.LEDGER_TRANSACTION_MODAL}
-              component={LedgerTransactionModal}
-            />
-            <Stack.Screen
-              options={{
-                //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-                cardStyle: { backgroundColor: importedColors.transparent },
-                cardStyleInterpolator: () => ({
-                  overlayStyle: {
-                    opacity: 0,
-                  },
-                }),
-              }}
-              name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
-              component={LedgerMessageSignModal}
-            />
-            <Stack.Screen
-              name="EditAccountName"
-              component={EditAccountNameFlow}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name={Routes.ADD_NETWORK}
-              component={AddNetworkFlow}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name={Routes.LOCK_SCREEN}
-              component={LockScreen}
-              options={{ gestureEnabled: false }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
+              <Stack.Screen
+                name="OnboardingRootNav"
+                component={OnboardingRootNav}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name={Routes.ONBOARDING.SUCCESS_FLOW}
+                component={OnboardingSuccessFlow}
+                options={{ headerShown: false }}
+              />
+              {userLoggedIn && (
+                <Stack.Screen
+                  name={Routes.ONBOARDING.HOME_NAV}
+                  component={Main}
+                  options={{ headerShown: false }}
+                />
+              )}
+              <Stack.Screen
+                name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+                component={VaultRecoveryFlow}
+              />
+              <Stack.Screen
+                name={Routes.MODAL.ROOT_MODAL_FLOW}
+                component={RootModalFlow}
+              />
+              <Stack.Screen
+                name="ImportPrivateKeyView"
+                component={ImportPrivateKeyView}
+                options={{ animationEnabled: true }}
+              />
+              <Stack.Screen
+                name="ConnectQRHardwareFlow"
+                component={ConnectQRHardwareFlow}
+                options={{ animationEnabled: true }}
+              />
+              <Stack.Screen
+                name={Routes.HW.CONNECT_LEDGER}
+                component={LedgerConnectFlow}
+              />
+              <Stack.Screen
+                name={Routes.HW.CONNECT}
+                component={ConnectHardwareWalletFlow}
+              />
+              <Stack.Screen
+                options={{
+                  //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+                  cardStyle: { backgroundColor: importedColors.transparent },
+                  cardStyleInterpolator: () => ({
+                    overlayStyle: {
+                      opacity: 0,
+                    },
+                  }),
+                }}
+                name={Routes.LEDGER_TRANSACTION_MODAL}
+                component={LedgerTransactionModal}
+              />
+              <Stack.Screen
+                options={{
+                  //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+                  cardStyle: { backgroundColor: importedColors.transparent },
+                  cardStyleInterpolator: () => ({
+                    overlayStyle: {
+                      opacity: 0,
+                    },
+                  }),
+                }}
+                name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
+                component={LedgerMessageSignModal}
+              />
+              <Stack.Screen
+                name="EditAccountName"
+                component={EditAccountNameFlow}
+                options={{ animationEnabled: true }}
+              />
+              <Stack.Screen
+                name={Routes.ADD_NETWORK}
+                component={AddNetworkFlow}
+                options={{ animationEnabled: true }}
+              />
+              <Stack.Screen
+                name={Routes.LOCK_SCREEN}
+                component={LockScreen}
+                options={{ gestureEnabled: false }}
+              />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </PerformanceProfiler>
+
         {renderSplash()}
         <Toast ref={toastRef} />
       </>

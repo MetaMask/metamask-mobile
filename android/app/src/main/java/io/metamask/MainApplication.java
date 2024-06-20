@@ -24,6 +24,8 @@ import java.lang.reflect.Field;
 import io.metamask.nativesdk.NativeSDKPackage;
 import io.metamask.nativeModules.RNTar.RNTarPackage;
 
+import com.shopify.reactnativeperformance.ReactNativePerformance;
+
 public class MainApplication extends Application implements ShareApplication, ReactApplication {
 
   @Override
@@ -73,6 +75,7 @@ public class MainApplication extends Application implements ShareApplication, Re
 
 	@Override
 	public void onCreate() {
+		ReactNativePerformance.onAppStarted();
 		super.onCreate();
 		RNBranchModule.getAutoInstance(this);
 
