@@ -110,12 +110,12 @@ describe('AccountSelectorList', () => {
     onRemoveImportedAccount.mockClear();
   });
 
-  it('should render correctly', async () => {
+  it('renders correctly', async () => {
     const { toJSON } = renderComponent(initialState);
     await waitFor(() => expect(toJSON()).toMatchSnapshot());
   });
 
-  it('should render all accounts with balances', async () => {
+  it('renders all accounts with balances', async () => {
     const { queryByTestId, getAllByTestId, toJSON } =
       renderComponent(initialState);
 
@@ -176,7 +176,7 @@ describe('AccountSelectorList', () => {
     });
   });
 
-  it('should render all accounts with right acessory', async () => {
+  it('renders all accounts with right accessory', async () => {
     const { getAllByTestId, toJSON } = renderComponent(
       initialState,
       AccountSelectorListRightAccessoryUseAccounts,
@@ -189,7 +189,7 @@ describe('AccountSelectorList', () => {
       expect(toJSON()).toMatchSnapshot();
     });
   });
-  it('should render correct account names', async () => {
+  it('renders correct account names', async () => {
     const { getAllByTestId } = renderComponent(initialState);
 
     await waitFor(() => {

@@ -470,7 +470,7 @@ class DrawerView extends PureComponent {
   previousBalance = null;
   processedNewBalance = false;
   animatingNetworksModal = false;
-  selectedCheckSummedAddress = toChecksumHexAddress(
+  selectedChecksummedAddress = toChecksumHexAddress(
     this.props.selectedInternalAccount.address,
   );
 
@@ -482,7 +482,7 @@ class DrawerView extends PureComponent {
         ? keyrings
         : Engine.context.KeyringController.state.keyrings;
     for (const keyring of allKeyrings) {
-      if (keyring.accounts.includes(this.selectedCheckSummedAddress)) {
+      if (keyring.accounts.includes(this.selectedChecksummedAddress)) {
         ret = keyring.type !== 'HD Key Tree';
         break;
       }
@@ -494,7 +494,7 @@ class DrawerView extends PureComponent {
   renderTag() {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const label = getLabelTextByAddress(this.selectedCheckSummedAddress);
+    const label = getLabelTextByAddress(this.selectedChecksummedAddress);
 
     return label ? (
       <View style={[styles.importedWrapper]}>
@@ -583,11 +583,11 @@ class DrawerView extends PureComponent {
     const accountName = selectedInternalAccount.metadata.name;
     if (
       currentChainId !== providerConfig.chainId ||
-      address !== this.selectedCheckSummedAddress ||
+      address !== this.selectedChecksummedAddress ||
       name !== accountName
     ) {
       const ens = await doENSReverseLookup(
-        this.selectedCheckSummedAddress,
+        this.selectedChecksummedAddress,
         providerConfig.chainId,
       );
       this.setState((state) => ({
@@ -595,7 +595,7 @@ class DrawerView extends PureComponent {
           ens,
           name: accountName,
           currentChainId: providerConfig.chainId,
-          address: this.selectedCheckSummedAddress,
+          address: this.selectedChecksummedAddress,
         },
       }));
     }
@@ -702,13 +702,13 @@ class DrawerView extends PureComponent {
         providerConfig.rpcUrl,
         networkConfigurations,
       );
-      const url = `${blockExplorer}/address/${this.selectedCheckSummedAddress}`;
+      const url = `${blockExplorer}/address/${this.selectedChecksummedAddress}`;
       const title = new URL(blockExplorer).hostname;
       this.goToBrowserUrl(url, title);
     } else {
       const url = getEtherscanAddressUrl(
         providerConfig.type,
-        this.selectedCheckSummedAddress,
+        this.selectedChecksummedAddress,
       );
       const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
         'https://',
@@ -893,7 +893,7 @@ class DrawerView extends PureComponent {
   };
 
   copyAccountToClipboard = async () => {
-    await ClipboardManager.setString(this.selectedCheckSummedAddress);
+    await ClipboardManager.setString(this.selectedChecksummedAddress);
     this.toggleReceiveModal();
     InteractionManager.runAfterInteractions(() => {
       this.props.showAlert({
@@ -907,7 +907,7 @@ class DrawerView extends PureComponent {
 
   onShare = () => {
     Share.open({
-      message: this.selectedCheckSummedAddress,
+      message: this.selectedChecksummedAddress,
     })
       .then(() => {
         this.props.protectWalletModalVisible();
@@ -1009,16 +1009,16 @@ class DrawerView extends PureComponent {
     } = this.state;
 
     const account = {
-      address: this.selectedCheckSummedAddress,
+      address: this.selectedChecksummedAddress,
       name: nameFromState,
       ens: ensFromState,
       ...selectedInternalAccount,
-      ...accounts[this.selectedCheckSummedAddress],
+      ...accounts[this.selectedChecksummedAddress],
     };
     const { name, ens } = account;
     account.balance =
-      (accounts[this.selectedCheckSummedAddress] &&
-        renderFromWei(accounts[this.selectedCheckSummedAddress].balance)) ||
+      (accounts[this.selectedChecksummedAddress] &&
+        renderFromWei(accounts[this.selectedChecksummedAddress].balance)) ||
       0;
     const fiatBalance = Engine.getTotalFiatAccountBalance();
     const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.tokenFiat;
@@ -1056,7 +1056,7 @@ class DrawerView extends PureComponent {
                 <View style={styles.identiconBorder}>
                   <Identicon
                     diameter={48}
-                    address={this.selectedCheckSummedAddress}
+                    address={this.selectedChecksummedAddress}
                   />
                 </View>
               </TouchableOpacity>
