@@ -37,7 +37,7 @@ const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 
 /* eslint-enable */
-import PopularList from './customNetworks';
+import { PopularList, UnpopularNetworkList } from './customNetworks';
 import { strings } from '../../../locales/i18n';
 import {
   getEtherscanAddressUrl,
@@ -54,12 +54,14 @@ import { getNonceLock } from '../../util/transaction-controller';
  * This values are used in certain places like
  * navbar and the network switcher.
  */
-const NetworkList = {
+export const NetworkList = {
   [MAINNET]: {
     name: 'Ethereum Main Network',
     shortName: 'Ethereum',
     networkId: 1,
     chainId: toHex('1'),
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#3cc29e',
     networkType: 'mainnet',
     imageSource: ethLogo,
@@ -69,24 +71,30 @@ const NetworkList = {
     shortName: 'Linea',
     networkId: 59144,
     chainId: toHex('59144'),
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#121212',
     networkType: 'linea-mainnet',
     imageSource: lineaMainnetLogo,
   },
   [SEPOLIA]: {
-    name: 'Sepolia Test Network',
+    name: 'Sepolia',
     shortName: 'Sepolia',
     networkId: 11155111,
     chainId: toHex('11155111'),
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#cfb5f0',
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
   },
   [LINEA_SEPOLIA]: {
-    name: 'Linea Sepolia Test Network',
+    name: 'Linea Sepolia',
     shortName: 'Linea Sepolia',
     networkId: 59141,
     chainId: toHex('59141'),
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
     networkType: 'linea-sepolia',
     imageSource: lineaTestnetLogo,
@@ -94,6 +102,8 @@ const NetworkList = {
   [RPC]: {
     name: 'Private Network',
     shortName: 'Private',
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#f2f3f4',
     networkType: 'rpc',
   },
@@ -111,17 +121,19 @@ export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.AVAXCCHAIN,
   NETWORKS_CHAIN_ID.LINEA_MAINNET,
   NETWORKS_CHAIN_ID.SEPOLIA,
+  NETWORKS_CHAIN_ID.OPBNB,
 ];
 
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
   [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
-  [NETWORKS_CHAIN_ID.BASE]: 'Base Mainnet',
+  [NETWORKS_CHAIN_ID.BASE]: 'Base',
   [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
   [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
   [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
   [NETWORKS_CHAIN_ID.LINEA_MAINNET]: 'Linea',
   [NETWORKS_CHAIN_ID.SEPOLIA]: 'Sepolia',
+  [NETWORKS_CHAIN_ID.OPBNB]: 'opBNB',
 };
 
 export default NetworkList;
@@ -403,11 +415,17 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
     return defaultNetwork.imageSource;
   }
 
+  const unpopularNetwork = UnpopularNetworkList.find(
+    (networkConfig) => networkConfig.chainId === chainId,
+  );
+
   const popularNetwork = PopularList.find(
     (networkConfig) => networkConfig.chainId === chainId,
   );
-  if (popularNetwork) {
-    return popularNetwork.rpcPrefs.imageSource;
+
+  const network = unpopularNetwork || popularNetwork;
+  if (network) {
+    return network.rpcPrefs.imageSource;
   }
   return getTestNetImage(networkType);
 };
@@ -546,3 +564,6 @@ export const deprecatedGetNetworkId = async () => {
     });
   });
 };
+
+export const isNetworkUiRedesignEnabled =
+  process.env.MM_NETWORK_UI_REDESIGN_ENABLED === '1';

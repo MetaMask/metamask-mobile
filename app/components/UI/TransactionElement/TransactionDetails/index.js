@@ -38,8 +38,9 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import { regex } from '../../../../../app/util/regex';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -113,7 +114,6 @@ class TransactionDetails extends PureComponent {
      */
     showSpeedUpModal: PropTypes.func,
     showCancelModal: PropTypes.func,
-    transaction: PropTypes.object,
     selectedAddress: PropTypes.string,
     transactions: PropTypes.array,
     ticker: PropTypes.string,
@@ -124,6 +124,11 @@ class TransactionDetails extends PureComponent {
     swapsTransactions: PropTypes.object,
     swapsTokens: PropTypes.array,
     primaryCurrency: PropTypes.string,
+
+    /**
+     * Boolean that indicates if smart transaction should be used
+     */
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -161,11 +166,11 @@ class TransactionDetails extends PureComponent {
       transactions,
     } = this.props;
     const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
-    const transactionHash = transactionDetails?.transactionHash;
+    const transactionHash = transactionDetails?.hash;
     if (
       !multiLayerFeeNetwork ||
       !transactionHash ||
-      !transactionObject.transaction
+      !transactionObject.txParams
     ) {
       this.setState({ updatedTransactionDetails: transactionDetails });
       return;
@@ -177,7 +182,7 @@ class TransactionDetails extends PureComponent {
       if (!multiLayerL1FeeTotal) {
         multiLayerL1FeeTotal = '0x0'; // Sets it to 0 if it's not available in a txReceipt yet.
       }
-      transactionObject.transaction.multiLayerL1FeeTotal = multiLayerL1FeeTotal;
+      transactionObject.txParams.multiLayerL1FeeTotal = multiLayerL1FeeTotal;
       const decodedTx = await decodeTransaction({
         tx: transactionObject,
         selectedAddress,
@@ -218,7 +223,7 @@ class TransactionDetails extends PureComponent {
     const {
       navigation,
       transactionObject: { networkID },
-      transactionDetails: { transactionHash },
+      transactionDetails: { hash },
       providerConfig: { type },
       close,
     } = this.props;
@@ -226,7 +231,7 @@ class TransactionDetails extends PureComponent {
     try {
       const { url, title } = getBlockExplorerTxUrl(
         type,
-        transactionHash,
+        hash,
         rpcBlockExplorer,
       );
       navigation.push('Webview', {
@@ -300,12 +305,15 @@ class TransactionDetails extends PureComponent {
   render = () => {
     const {
       chainId,
-      transactionObject: { status, time, transaction },
+      transactionObject: { status, time, txParams },
+      shouldUseSmartTransaction,
     } = this.props;
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
 
-    const renderTxActions = status === 'submitted' || status === 'approved';
+    const renderTxActions =
+      (status === 'submitted' || status === 'approved') &&
+      !shouldUseSmartTransaction;
     const { rpcBlockExplorer } = this.state;
 
     return updatedTransactionDetails ? (
@@ -332,7 +340,7 @@ class TransactionDetails extends PureComponent {
             </Text>
           </DetailsModal.Column>
         </DetailsModal.Section>
-        <DetailsModal.Section borderBottom={!!transaction?.nonce}>
+        <DetailsModal.Section borderBottom={!!txParams?.nonce}>
           <DetailsModal.Column>
             <DetailsModal.SectionTitle>
               {strings('transactions.from')}
@@ -361,9 +369,9 @@ class TransactionDetails extends PureComponent {
             <DetailsModal.SectionTitle upper>
               {strings('transactions.nonce')}
             </DetailsModal.SectionTitle>
-            {!!transaction?.nonce && (
+            {!!txParams?.nonce && (
               <Text small primary>{`#${parseInt(
-                transaction.nonce.replace(regex.transactionNonce, ''),
+                txParams.nonce.replace(regex.transactionNonce, ''),
                 16,
               )}`}</Text>
             )}
@@ -372,7 +380,7 @@ class TransactionDetails extends PureComponent {
         <View
           style={[
             styles.summaryWrapper,
-            !transaction?.nonce && styles.touchableViewOnEtherscan,
+            !txParams?.nonce && styles.touchableViewOnEtherscan,
           ]}
         >
           <TransactionSummary
@@ -390,7 +398,7 @@ class TransactionDetails extends PureComponent {
           />
         </View>
 
-        {updatedTransactionDetails.transactionHash &&
+        {updatedTransactionDetails.hash &&
           status !== 'cancelled' &&
           rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
             <TouchableOpacity
@@ -415,7 +423,7 @@ const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   chainId: selectChainId(state),
   networkConfigurations: selectNetworkConfigurations(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   ticker: selectTicker(state),
   tokens: selectTokensByAddress(state),
@@ -426,6 +434,7 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 TransactionDetails.contextType = ThemeContext;

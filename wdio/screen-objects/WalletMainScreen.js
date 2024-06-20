@@ -18,7 +18,7 @@ import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 import { TabBarSelectorIDs } from '../../e2e/selectors/TabBar.selectors';
 
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
-import { WalletViewSelectorsIDs } from "../../e2e/selectors/WalletView.selectors";
+import { WalletViewSelectorsIDs } from "../../e2e/selectors/wallet/WalletView.selectors.js";
 
 class WalletMainScreen {
   get noThanks() {
@@ -155,7 +155,7 @@ class WalletMainScreen {
 
   async isMainWalletViewVisible() {
     const element = await this.walletButton;
-    await element.waitForDisplayed({ timeout: 100000 });
+    await element.waitForDisplayed();
   }
 
   async isSubmittedNotificationDisplayed() {

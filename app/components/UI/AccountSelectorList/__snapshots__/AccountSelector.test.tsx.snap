@@ -13,7 +13,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         },
         "balanceError": undefined,
         "isSelected": true,
-        "name": "Business Account",
+        "name": "Account 1",
         "type": "HD Key Tree",
         "yOffset": 0,
       },
@@ -22,7 +22,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         "assets": undefined,
         "balanceError": undefined,
         "isSelected": false,
-        "name": "Personal Account",
+        "name": "Account 2",
         "type": "HD Key Tree",
         "yOffset": 78,
       },
@@ -59,7 +59,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -90,7 +90,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -126,7 +126,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -136,14 +136,14 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 }
                 testID="cellbase-avatar-title"
               >
-                Business Account
+                Account 1
               </Text>
               <Text
                 accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -174,7 +174,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -196,7 +196,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
           accessible={true}
           style={
             {
-              "backgroundColor": "#0376C919",
+              "backgroundColor": "#0376c91a",
               "bottom": 0,
               "flexDirection": "row",
               "left": 0,
@@ -209,7 +209,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
           <View
             style={
               {
-                "backgroundColor": "#0376C9",
+                "backgroundColor": "#0376c9",
                 "borderRadius": 2,
                 "marginLeft": 4,
                 "marginVertical": 4,
@@ -230,7 +230,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -261,7 +261,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -297,7 +297,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -307,14 +307,14 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 }
                 testID="cellbase-avatar-title"
               >
-                Personal Account
+                Account 2
               </Text>
               <Text
                 accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -347,7 +347,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
         },
         "balanceError": undefined,
         "isSelected": true,
-        "name": "Business Account",
+        "name": "Account 1",
         "type": "HD Key Tree",
         "yOffset": 0,
       },
@@ -359,7 +359,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
         },
         "balanceError": undefined,
         "isSelected": false,
-        "name": "Personal Account",
+        "name": "Account 2",
         "type": "HD Key Tree",
         "yOffset": 78,
       },
@@ -396,7 +396,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -427,7 +427,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -473,9 +473,21 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711651}
+                      fill={
+                        {
+                          "payload": 4294711651,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -497,7 +509,12 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4280576225}
+                      fill={
+                        {
+                          "payload": 4280576225,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -519,7 +536,12 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278407261}
+                      fill={
+                        {
+                          "payload": 4278407261,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -557,7 +579,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -567,14 +589,14 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 }
                 testID="cellbase-avatar-title"
               >
-                Business Account
+                Account 1
               </Text>
               <Text
                 accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -605,7 +627,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -627,7 +649,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
           accessible={true}
           style={
             {
-              "backgroundColor": "#0376C919",
+              "backgroundColor": "#0376c91a",
               "bottom": 0,
               "flexDirection": "row",
               "left": 0,
@@ -640,7 +662,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#0376C9",
+                "backgroundColor": "#0376c9",
                 "borderRadius": 2,
                 "marginLeft": 4,
                 "marginVertical": 4,
@@ -661,7 +683,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -692,7 +714,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -738,9 +760,21 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711643}
+                      fill={
+                        {
+                          "payload": 4294711643,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -762,7 +796,12 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278289804}
+                      fill={
+                        {
+                          "payload": 4278289804,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -784,7 +823,12 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4294394881}
+                      fill={
+                        {
+                          "payload": 4294394881,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -822,7 +866,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -832,14 +876,14 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 }
                 testID="cellbase-avatar-title"
               >
-                Personal Account
+                Account 2
               </Text>
               <Text
                 accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -870,7 +914,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -906,7 +950,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
         },
         "balanceError": undefined,
         "isSelected": true,
-        "name": "Business Account",
+        "name": "Account 1",
         "type": "HD Key Tree",
         "yOffset": 0,
       },
@@ -918,7 +962,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
         },
         "balanceError": undefined,
         "isSelected": false,
-        "name": "Personal Account",
+        "name": "Account 2",
         "type": "HD Key Tree",
         "yOffset": 78,
       },
@@ -956,7 +1000,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -987,7 +1031,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -1033,9 +1077,21 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711651}
+                      fill={
+                        {
+                          "payload": 4294711651,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -1057,7 +1113,12 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4280576225}
+                      fill={
+                        {
+                          "payload": 4280576225,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -1079,7 +1140,12 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278407261}
+                      fill={
+                        {
+                          "payload": 4278407261,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -1117,7 +1183,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -1127,14 +1193,14 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                 }
                 testID="cellbase-avatar-title"
               >
-                Business Account
+                Account 1
               </Text>
               <Text
                 accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -1156,7 +1222,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
               <View
                 testID="right-accessory"
               >
-                0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272 - Business Account
+                0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272 - Account 1
               </View>
             </View>
           </View>
@@ -1174,7 +1240,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
         onPress={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 4,
             "opacity": 1,
             "padding": 16,
@@ -1205,7 +1271,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "marginRight": 16,
@@ -1251,9 +1317,21 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711643}
+                      fill={
+                        {
+                          "payload": 4294711643,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -1275,7 +1353,12 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278289804}
+                      fill={
+                        {
+                          "payload": 4278289804,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -1297,7 +1380,12 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4294394881}
+                      fill={
+                        {
+                          "payload": 4294394881,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -1335,7 +1423,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 16,
                     "fontWeight": "400",
@@ -1345,14 +1433,14 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                 }
                 testID="cellbase-avatar-title"
               >
-                Personal Account
+                Account 2
               </Text>
               <Text
                 accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#535A61",
+                    "color": "#6a737d",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -1374,7 +1462,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
               <View
                 testID="right-accessory"
               >
-                0xd018538C87232FF95acbCe4870629b75640a78E7 - Personal Account
+                0xd018538C87232FF95acbCe4870629b75640a78E7 - Account 2
               </View>
             </View>
           </View>
@@ -1388,7 +1476,34 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
 exports[`AccountSelectorList should render correctly 1`] = `
 <RCTScrollView
   collapsable={false}
-  data={[]}
+  data={
+    [
+      {
+        "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+        "assets": {
+          "fiatBalance": "$3200.00
+1 ETH",
+        },
+        "balanceError": undefined,
+        "isSelected": true,
+        "name": "Account 1",
+        "type": "HD Key Tree",
+        "yOffset": 0,
+      },
+      {
+        "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
+        "assets": {
+          "fiatBalance": "$6400.00
+2 ETH",
+        },
+        "balanceError": undefined,
+        "isSelected": false,
+        "name": "Account 2",
+        "type": "HD Key Tree",
+        "yOffset": 78,
+      },
+    ]
+  }
   getItem={[Function]}
   getItemCount={[Function]}
   initialNumToRender={999}
@@ -1409,6 +1524,554 @@ exports[`AccountSelectorList should render correctly 1`] = `
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
-  <View />
+  <View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableOpacity
+        onLongPress={[Function]}
+        onPress={[Function]}
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderRadius": 4,
+            "opacity": 1,
+            "padding": 16,
+            "position": "relative",
+          }
+        }
+        testID="cellselect"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "padding": 0,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "opacity": 1,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "marginRight": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+              testID="cellbase-avatar"
+            >
+              <View
+                style={
+                  [
+                    {
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#C7144F",
+                      "borderRadius": 16,
+                      "height": 32,
+                      "width": 32,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <RNSVGSvgView
+                  bbHeight={32}
+                  bbWidth={32}
+                  focusable={false}
+                  height={32}
+                  style={
+                    [
+                      {
+                        "backgroundColor": "transparent",
+                        "borderWidth": 0,
+                      },
+                      {
+                        "flex": 0,
+                        "height": 32,
+                        "width": 32,
+                      },
+                    ]
+                  }
+                  width={32}
+                >
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
+                    <RNSVGRect
+                      fill={
+                        {
+                          "payload": 4294711651,
+                          "type": 0,
+                        }
+                      }
+                      height={32}
+                      matrix={
+                        [
+                          0.46329603511986217,
+                          0.8862035792312145,
+                          -0.8862035792312145,
+                          0.46329603511986217,
+                          29.06767649409735,
+                          -8.290603334655817,
+                        ]
+                      }
+                      propList={
+                        [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                    <RNSVGRect
+                      fill={
+                        {
+                          "payload": 4280576225,
+                          "type": 0,
+                        }
+                      }
+                      height={32}
+                      matrix={
+                        [
+                          -0.5778576243835052,
+                          0.8161375900801603,
+                          -0.8161375900801603,
+                          -0.5778576243835052,
+                          51.62016714634118,
+                          17.239003094412087,
+                        ]
+                      }
+                      propList={
+                        [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                    <RNSVGRect
+                      fill={
+                        {
+                          "payload": 4278407261,
+                          "type": 0,
+                        }
+                      }
+                      height={32}
+                      matrix={
+                        [
+                          0.7046342099635947,
+                          -0.7095707365365209,
+                          0.7095707365365209,
+                          0.7046342099635947,
+                          -25.225718686778755,
+                          -4.611026307883787,
+                        ]
+                      }
+                      propList={
+                        [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                  </RNSVGGroup>
+                </RNSVGSvgView>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="cellbase-avatar-title"
+              >
+                Account 1
+              </Text>
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0xC495...D272
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                  }
+                }
+                testID="account-balance-by-address-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                      "textAlign": "right",
+                    }
+                  }
+                >
+                  $3200.00
+1 ETH
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          accessibilityRole="checkbox"
+          accessible={true}
+          style={
+            {
+              "backgroundColor": "#0376c91a",
+              "bottom": 0,
+              "flexDirection": "row",
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "backgroundColor": "#0376c9",
+                "borderRadius": 2,
+                "marginLeft": 4,
+                "marginVertical": 4,
+                "width": 4,
+              }
+            }
+          />
+        </View>
+      </TouchableOpacity>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableOpacity
+        onLongPress={[Function]}
+        onPress={[Function]}
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderRadius": 4,
+            "opacity": 1,
+            "padding": 16,
+            "position": "relative",
+          }
+        }
+        testID="cellselect"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "padding": 0,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "opacity": 1,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "marginRight": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+              testID="cellbase-avatar"
+            >
+              <View
+                style={
+                  [
+                    {
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#2461E1",
+                      "borderRadius": 16,
+                      "height": 32,
+                      "width": 32,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <RNSVGSvgView
+                  bbHeight={32}
+                  bbWidth={32}
+                  focusable={false}
+                  height={32}
+                  style={
+                    [
+                      {
+                        "backgroundColor": "transparent",
+                        "borderWidth": 0,
+                      },
+                      {
+                        "flex": 0,
+                        "height": 32,
+                        "width": 32,
+                      },
+                    ]
+                  }
+                  width={32}
+                >
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
+                    <RNSVGRect
+                      fill={
+                        {
+                          "payload": 4294711643,
+                          "type": 0,
+                        }
+                      }
+                      height={32}
+                      matrix={
+                        [
+                          -0.4210358133674908,
+                          -0.9070440142914651,
+                          0.9070440142914651,
+                          -0.4210358133674908,
+                          8.266156821330682,
+                          42.79486424435327,
+                        ]
+                      }
+                      propList={
+                        [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                    <RNSVGRect
+                      fill={
+                        {
+                          "payload": 4278289804,
+                          "type": 0,
+                        }
+                      }
+                      height={32}
+                      matrix={
+                        [
+                          -0.8241261886220156,
+                          -0.5664062369248329,
+                          0.5664062369248329,
+                          -0.8241261886220156,
+                          29.655077569991498,
+                          50.077446101884746,
+                        ]
+                      }
+                      propList={
+                        [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                    <RNSVGRect
+                      fill={
+                        {
+                          "payload": 4294394881,
+                          "type": 0,
+                        }
+                      }
+                      height={32}
+                      matrix={
+                        [
+                          0.6704266189587993,
+                          -0.7419758409756162,
+                          0.7419758409756162,
+                          0.6704266189587993,
+                          8.152366664413217,
+                          -0.7899246956676649,
+                        ]
+                      }
+                      propList={
+                        [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                  </RNSVGGroup>
+                </RNSVGSvgView>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="cellbase-avatar-title"
+              >
+                Account 2
+              </Text>
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0xd018...78E7
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                  }
+                }
+                testID="account-balance-by-address-0xd018538C87232FF95acbCe4870629b75640a78E7"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                      "textAlign": "right",
+                    }
+                  }
+                >
+                  $6400.00
+2 ETH
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </View>
+  </View>
 </RCTScrollView>
 `;

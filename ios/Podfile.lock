@@ -443,6 +443,8 @@ PODS:
   - react-native-blob-jsi-helper (0.3.1):
     - React
     - React-Core
+  - react-native-blob-util (0.19.9):
+    - React-Core
   - react-native-blur (4.3.2):
     - React-Core
   - react-native-branch (5.6.2):
@@ -456,7 +458,7 @@ PODS:
     - React-Core
   - react-native-camera/RN (3.44.3):
     - React-Core
-  - react-native-compat (2.11.3):
+  - react-native-compat (2.13.0):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
   - react-native-cookies (6.2.1):
@@ -587,10 +589,8 @@ PODS:
     - React-jsi (= 0.71.15)
     - React-logger (= 0.71.15)
     - React-perflogger (= 0.71.15)
-  - ReactNativePayments (1.5.0):
+  - ReactNativePayments (2.0.0):
     - React
-  - rn-fetch-blob (0.12.0):
-    - React-Core
   - RNCAsyncStorage (1.23.1):
     - React-Core
   - RNCCheckbox (0.5.12):
@@ -663,8 +663,8 @@ PODS:
     - Sentry/HybridSDK (= 8.21.0)
   - RNShare (7.3.7):
     - React-Core
-  - RNSVG (12.1.1):
-    - React
+  - RNSVG (15.3.0):
+    - React-Core
   - RNVectorIcons (6.4.2):
     - React
   - segment-analytics-react-native (2.17.0):
@@ -723,7 +723,7 @@ DEPENDENCIES:
   - Permission-BluetoothPeripheral (from `../node_modules/react-native-permissions/ios/BluetoothPeripheral`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
-  - RCTSearchApi (from `../node_modules/react-native-search-api`)
+  - "RCTSearchApi (from `../node_modules/@metamask/react-native-search-api`)"
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
   - React (from `../node_modules/react-native/`)
   - React-callinvoker (from `../node_modules/react-native/ReactCommon/callinvoker`)
@@ -742,6 +742,7 @@ DEPENDENCIES:
   - react-native-background-timer (from `../node_modules/react-native-background-timer`)
   - react-native-ble-plx (from `../node_modules/react-native-ble-plx`)
   - react-native-blob-jsi-helper (from `../node_modules/react-native-blob-jsi-helper`)
+  - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - react-native-branch (from `../node_modules/react-native-branch`)
   - react-native-camera (from `../node_modules/react-native-camera`)
@@ -776,8 +777,7 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - "ReactNativePayments (from `../node_modules/@exodus/react-native-payments/lib/ios/`)"
-  - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
+  - "ReactNativePayments (from `../node_modules/@metamask/react-native-payments/lib/ios/`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
@@ -866,7 +866,7 @@ EXTERNAL SOURCES:
   RCTRequired:
     :path: "../node_modules/react-native/Libraries/RCTRequired"
   RCTSearchApi:
-    :path: "../node_modules/react-native-search-api"
+    :path: "../node_modules/@metamask/react-native-search-api"
   RCTTypeSafety:
     :path: "../node_modules/react-native/Libraries/TypeSafety"
   React:
@@ -899,6 +899,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-ble-plx"
   react-native-blob-jsi-helper:
     :path: "../node_modules/react-native-blob-jsi-helper"
+  react-native-blob-util:
+    :path: "../node_modules/react-native-blob-util"
   react-native-blur:
     :path: "../node_modules/@react-native-community/blur"
   react-native-branch:
@@ -968,9 +970,7 @@ EXTERNAL SOURCES:
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativePayments:
-    :path: "../node_modules/@exodus/react-native-payments/lib/ios/"
-  rn-fetch-blob:
-    :path: "../node_modules/rn-fetch-blob"
+    :path: "../node_modules/@metamask/react-native-payments/lib/ios/"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCCheckbox:
@@ -1028,7 +1028,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Base64: cecfb41a004124895a7bcee567a89bae5a89d49b
-  boost: 57d2868c099736d80fcd648bf211b4431e51a558
+  boost: 7dcd2de282d72e344012f7d6564d024930a6a440
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
   BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
@@ -1084,10 +1084,11 @@ SPEC CHECKSUMS:
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
   react-native-ble-plx: 669899d2fd4d360d541b05ce19c6ee77d95853bf
   react-native-blob-jsi-helper: 13c10135af4614dbc0712afba5960784cd44f043
+  react-native-blob-util: 18b510205c080a453574a7d2344d64673d0ad9af
   react-native-blur: cfdad7b3c01d725ab62a8a729f42ea463998afa2
   react-native-branch: 4e42fda662d96893afbbd02839806931398e3d2e
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
-  react-native-compat: 4da17905c26471d956dae70f9912a60d7da7fad2
+  react-native-compat: 48b6ca3c825447ac09902339d827e7ab35089564
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-gzip: c5e87ee9e359f02350e3a2ee52eb35eddc398868
@@ -1118,8 +1119,7 @@ SPEC CHECKSUMS:
   React-RCTVibration: a97783e3645ddf852e34da2e015656e309f3a083
   React-runtimeexecutor: 8f2ddd9db7874ec7de84f5c55d73aeaaf82908e2
   ReactCommon: 4a6ace8e5bd40d585223775ba56d002173e72fb2
-  ReactNativePayments: a4e3ac915256a4e759c8a04338b558494a63a0f5
-  rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
+  ReactNativePayments: db62ee22a825e9e9c3e19c276d8d020881dd0630
   RNCAsyncStorage: 826b603ae9c0f88b5ac4e956801f755109fa4d5c
   RNCCheckbox: ed1b4ca295475b41e7251ebae046360a703b6eb5
   RNCClipboard: ddd4d291537f1667209c9c405aaa4307297e252e
@@ -1139,9 +1139,9 @@ SPEC CHECKSUMS:
   RNReanimated: b1220a0e5168745283ff5d53bfc7d2144b2cee1b
   RNScreens: ea4cd3a853063cda19a4e3c28d2e52180c80f4eb
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
-  RNSentry: 1b70955af02f86efc3c9a09989f0d0695b0d237d
+  RNSentry: 98e170b6eedc5c54e3ac88b6140fffb8b496deb4
   RNShare: f116bbb04f310c665ca483d0bd1e88cf59b3b334
-  RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
+  RNSVG: a48668fd382115bc89761ce291a81c4ca5f2fd2e
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
   segment-analytics-react-native: dbdd08d96fec78132e96bda092562e41c2ce0ce0
   Sentry: ebc12276bd17613a114ab359074096b6b3725203
@@ -1152,6 +1152,6 @@ SPEC CHECKSUMS:
   Yoga: 68c9c592c3e80ec37ff28db20eedb13d84aae5df
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 6c1ebc1c49e824e5d559b52f89962406257a7f5c
+PODFILE CHECKSUM: 9fbad5d11f3fd3d334c7bd651b28783ab9300999
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.15.2

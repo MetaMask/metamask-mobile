@@ -6,8 +6,8 @@ exports[`PickerAccount should render correctly 1`] = `
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
-      "borderColor": "#BBC0C5",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#bbc0c5",
       "borderRadius": 4,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -26,7 +26,7 @@ exports[`PickerAccount should render correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "borderRadius": 16,
           "height": 32,
           "marginRight": 16,
@@ -71,9 +71,21 @@ exports[`PickerAccount should render correctly 1`] = `
           }
           width={32}
         >
-          <RNSVGGroup>
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
             <RNSVGRect
-              fill={4294034178}
+              fill={
+                {
+                  "payload": 4294034178,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
                 [
@@ -95,7 +107,12 @@ exports[`PickerAccount should render correctly 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4294711613}
+              fill={
+                {
+                  "payload": 4294711613,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
                 [
@@ -117,7 +134,12 @@ exports[`PickerAccount should render correctly 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4294745088}
+              fill={
+                {
+                  "payload": 4294745088,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
                 [
@@ -155,7 +177,7 @@ exports[`PickerAccount should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
             "fontWeight": "400",
@@ -171,7 +193,7 @@ exports[`PickerAccount should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#535A61",
+            "color": "#6a737d",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -185,7 +207,7 @@ exports[`PickerAccount should render correctly 1`] = `
     </View>
   </View>
   <SvgMock
-    color="#6A737D"
+    color="#6a737d"
     height={20}
     name="ArrowDown"
     style={

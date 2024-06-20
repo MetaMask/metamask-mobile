@@ -9,7 +9,7 @@ import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../../pages/WalletView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
-import Browser from '../../pages/Browser';
+import Browser from '../../pages/Browser/BrowserView';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import WhatsNewModal from '../../pages/modals/WhatsNewModal';
@@ -114,15 +114,18 @@ describe(SmokeCore('Start Exploring'), () => {
     // Ensure step 6 is shown correctly
     await Assertions.checkIfVisible(OnboardingWizardModal.stepSixContainer);
     await OnboardingWizardModal.tapGotItButton();
+    // Ensure step 7 is shown correctly
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepSevenContainer);
+    await OnboardingWizardModal.tapGotItButton();
     // Check that we are on the Browser page
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(2500);
     try {
-      await WhatsNewModal.isVisible();
+      await Assertions.checkIfVisible(WhatsNewModal.container);
       await WhatsNewModal.tapCloseButton();
     } catch {
       //
     }
-    await Browser.isVisible();
+    await Assertions.checkIfVisible(Browser.browserScreenID);
   });
 });

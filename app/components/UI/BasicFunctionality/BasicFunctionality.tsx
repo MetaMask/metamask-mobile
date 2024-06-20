@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Switch } from 'react-native';
+import { View, Switch, Linking } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../app/reducers';
 import styles from './BasicFunctionality.styles';
 import { BasicFunctionalityComponentProps } from './BasicFunctionality.types';
+import AppConstants from '../../../core/AppConstants';
 
 export default function BasicFunctionalityComponent({
   handleSwitchToggle,
@@ -19,6 +20,10 @@ export default function BasicFunctionalityComponent({
   const isEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
+
+  const handleLink = () => {
+    Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024);
+  };
 
   return (
     <View style={styles.setting}>
@@ -33,12 +38,16 @@ export default function BasicFunctionalityComponent({
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={theme.brandColors.white['000']}
+          thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
         />
       </View>
       <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {strings('default_settings.functionality_body')}
+        <Text color={TextColor.Info} onPress={handleLink}>
+          {strings('default_settings.privacy_policy')}
+        </Text>
+        {strings('default_settings.functionality_body2')}
       </Text>
     </View>
   );

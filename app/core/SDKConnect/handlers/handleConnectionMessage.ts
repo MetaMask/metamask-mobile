@@ -114,13 +114,15 @@ export const handleConnectionMessage = async ({
   // It will wait until user accept/reject the connection request.
   try {
     await checkPermissions({ message, connection, engine });
-    if (!connection.receivedDisconnect) {
-      await waitForConnectionReadiness({ connection });
-      connection.sendAuthorized();
-    } else {
-      // Reset state to continue communication after reconnection.
-      connection.isReady = true;
-      connection.receivedDisconnect = false;
+    if (!connection.remote.hasRelayPersistence()) {
+      if (!connection.receivedDisconnect) {
+        await waitForConnectionReadiness({ connection });
+        connection.sendAuthorized();
+      } else {
+        // Reset state to continue communication after reconnection.
+        connection.isReady = true;
+        connection.receivedDisconnect = false;
+      }
     }
   } catch (error) {
     // Approval failed - redirect to app with error.
@@ -151,6 +153,8 @@ export const handleConnectionMessage = async ({
     rpc: {
       id: message.id,
       method: message.method,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params: message.params as any,
     },
   });

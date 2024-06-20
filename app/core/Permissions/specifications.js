@@ -59,13 +59,16 @@ export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
     type: CaveatTypes.restrictReturnedAccounts,
 
     decorator: (method, caveat) => async (args) => {
+      const permittedAccounts = [];
       const allAccounts = await method(args);
-      const res = caveat.value.filter(({ address }) => {
+      caveat.value.forEach((address) => {
         const addressToCompare = address.toLowerCase();
-        return allAccounts.includes(addressToCompare);
+        const isPermittedAccount = allAccounts.includes(addressToCompare);
+        if (isPermittedAccount) {
+          permittedAccounts.push(addressToCompare);
+        }
       });
-
-      return res;
+      return permittedAccounts;
     },
 
     validator: (caveat, _origin, _target) =>
@@ -203,8 +206,7 @@ function validateCaveatAccounts(accounts, getInternalAccounts) {
   }
 
   const internalAccounts = getInternalAccounts();
-  accounts.forEach((account) => {
-    const address = account?.address;
+  accounts.forEach((address) => {
     if (!address || typeof address !== 'string') {
       throw new Error(
         `${PermissionKeys.eth_accounts} error: Expected an array of objects that contains an Ethereum addresses. Received: "${address}".`,
@@ -234,8 +236,6 @@ function validateCaveatAccounts(accounts, getInternalAccounts) {
 export const unrestrictedMethods = Object.freeze([
   'eth_blockNumber',
   'eth_call',
-  'eth_chainId',
-  'eth_coinbase',
   'eth_decrypt',
   'eth_estimateGas',
   'eth_feeHistory',
@@ -252,9 +252,6 @@ export const unrestrictedMethods = Object.freeze([
   'eth_getLogs',
   'eth_getProof',
   'eth_getStorageAt',
-  'eth_getTransactionByBlockHashAndIndex',
-  'eth_getTransactionByBlockNumberAndIndex',
-  'eth_getTransactionByHash',
   'eth_getTransactionCount',
   'eth_getTransactionReceipt',
   'eth_getUncleByBlockHashAndIndex',
@@ -262,31 +259,50 @@ export const unrestrictedMethods = Object.freeze([
   'eth_getUncleCountByBlockHash',
   'eth_getUncleCountByBlockNumber',
   'eth_getWork',
-  'eth_hashrate',
-  'eth_mining',
   'eth_newBlockFilter',
   'eth_newFilter',
   'eth_newPendingTransactionFilter',
   'eth_protocolVersion',
   'eth_sendRawTransaction',
-  'eth_sendTransaction',
-  'eth_sign',
-  'eth_signTypedData',
   'eth_signTypedData_v1',
-  'eth_signTypedData_v3',
-  'eth_signTypedData_v4',
   'eth_submitHashrate',
   'eth_submitWork',
   'eth_syncing',
   'eth_uninstallFilter',
-  'metamask_getProviderState',
   'metamask_watchAsset',
-  'net_listening',
   'net_peerCount',
-  'net_version',
-  'personal_ecRecover',
-  'personal_sign',
-  'wallet_watchAsset',
-  'web3_clientVersion',
   'web3_sha3',
+  // Define unrestricted methods below to bypass PermissionController. These are eventually handled by RPCMethodMiddleware (User facing RPC methods)
+  'wallet_getPermissions',
+  'wallet_requestPermissions',
+  'eth_getTransactionByHash',
+  'eth_getTransactionByBlockHashAndIndex',
+  'eth_getTransactionByBlockNumberAndIndex',
+  'eth_chainId',
+  'eth_hashrate',
+  'eth_mining',
+  'net_listening',
+  'net_version',
+  'eth_requestAccounts',
+  'eth_coinbase',
+  'parity_defaultAccount',
+  'eth_sendTransaction',
+  'eth_sign',
+  'personal_sign',
+  'personal_ecRecover',
+  'parity_checkRequest',
+  'eth_signTypedData',
+  'eth_signTypedData_v3',
+  'eth_signTypedData_v4',
+  'web3_clientVersion',
+  'wallet_scanQRCode',
+  'wallet_watchAsset',
+  'metamask_removeFavorite',
+  'metamask_showTutorial',
+  'metamask_showAutocomplete',
+  'metamask_injectHomepageScripts',
+  'metamask_getProviderState',
+  'metamask_logWeb3ShimUsage',
+  'wallet_switchEthereumChain',
+  'wallet_addEthereumChain',
 ]);

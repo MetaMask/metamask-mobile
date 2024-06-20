@@ -115,6 +115,8 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_swaps_ios: {}
@@ -135,6 +137,8 @@ stages:
       - android_run_regression_tests: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
@@ -200,10 +204,26 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo "Node $NODE_VERSION being installed with asdf"
-                asdf list all nodejs
-                asdf install nodejs "$NODE_VERSION"
-                asdf global nodejs "$NODE_VERSION"
+                echo "Gems being installed with bundler gem"
+                bundle install
+                echo "Node $NODE_VERSION being installed"
+
+                set -e
+
+                # Install and enable NVM
+                wget -O install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
+                echo "${NVM_SHA256SUM} install-nvm.sh" > install-nvm.sh.SHA256SUM
+                sha256sum -c install-nvm.sh.SHA256SUM
+                chmod +x install-nvm.sh && ./install-nvm.sh && rm ./install-nvm.sh
+                source "${HOME}/.nvm/nvm.sh"
+                echo 'source "${HOME}/.nvm/nvm.sh"' | tee -a ${HOME}/.{bashrc,profile}
+
+                nvm install ${NODE_VERSION}
+
+                envman add --key PATH --value $PATH
+
+                node --version
+
                 echo "Corepack being installed with npm"
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
@@ -424,16 +444,32 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://3f81fdb66cba8140909d1ff0a05bc2ace97b307f' # Last production's QA build
-      - PRODUCTION_BUILD_VERSION_NAME: 7.20.0
-      - PRODUCTION_BUILD_VERSION_NUMBER: 1308
+      - PRODUCTION_APP_URL: 'bs://ba40e5b7b4210a06c659b5c6818a3efec2624513' # Last production's QA build
+      - PRODUCTION_BUILD_VERSION_NAME: 7.22.0
+      - PRODUCTION_BUILD_VERSION_NUMBER: 1325
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_VERSION_NAME ($PRODUCTION_BUILD_VERSION_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
     after_run:
       - run_android_appium_test
 
-  ### Seperating workflows so they run concurrently during smoke runs
+  ### Separating workflows so they run concurrently during smoke runs
+  run_tag_smoke_accounts_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
+      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_accounts_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
+      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - android_e2e_test
   run_tag_smoke_confirmations_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
@@ -524,15 +560,10 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
-      - restore-cache@2:
-          title: Restore build from cache
-          inputs:
-            - key: apk-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
           timeout: 1200
-          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
-          is_always_run: false
+          is_always_run: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -554,11 +585,10 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
-      - save-cache@1:
-          title: Save build
+      - deploy-to-bitrise-io@2.2.3:
           inputs:
-            - key: apk-cache-{{ .CommitHash }}
-            - paths: android/app/build/outputs
+            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
+          title: Save Android build
       - save-cache@1:
           title: Save node_modules
           inputs:
@@ -576,10 +606,23 @@ workflows:
       - notify_failure
     steps:
       - restore-gradle-cache@2: {}
-      - restore-cache@2:
-          title: Restore cache build
+      - pull-intermediate-files@1:
           inputs:
-            - key: apk-cache-{{ .CommitHash }}
+            - artifact_sources: .*
+          title: Pull Android build
+      - script@1:
+          title: Copy Android build for Detox
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/android/app/build/outputs"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_ANDROID_BUILD_DIR is the cached directory from android_e2e_build's "Save Android build" step
+                cp -r "$INTERMEDIATE_ANDROID_BUILD_DIR" "$BITRISE_SOURCE_DIR/android/app/build"
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
@@ -683,7 +726,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                brew install ccache
+                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
                 ln -s $(which ccache) /usr/local/bin/gcc
                 ln -s $(which ccache) /usr/local/bin/g++
                 ln -s $(which ccache) /usr/local/bin/cc
@@ -701,15 +744,10 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
-      - restore-cache@2:
-          title: Restore build from cache
-          inputs:
-            - key: ipa-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
           timeout: 1200
-          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
-          is_always_run: false
+          is_always_run: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -731,13 +769,12 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
-      - save-cache@1:
-          title: Save build
+      - deploy-to-bitrise-io@2.2.3:
           inputs:
-            - key: ipa-cache-{{ .CommitHash }}
-            - paths: |-
-                ios/build/Build
-                ../Library/Detox/ios
+            - pipeline_intermediate_files: |-
+                ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
+                ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
+          title: Save iOS build
       - save-cache@1:
           title: Save node_modules
           inputs:
@@ -750,10 +787,25 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - restore-cache@2:
-          title: Restore cache build
+      - pull-intermediate-files@1:
           inputs:
-            - key: ipa-cache-{{ .CommitHash }}
+            - artifact_sources: .*
+          title: Pull iOS build
+      - script@1:
+          title: Copy iOS build for Detox
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build"
+                mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
+                cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
       - restore-cocoapods-cache@2: {}
       - restore-cache@2:
           title: Restore cache node_modules
@@ -773,7 +825,9 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - script@1:
+          title: Run detox test
           timeout: 1200
+          is_always_run: false
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -793,8 +847,6 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
-          title: Run detox test
-          is_always_run: false
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -1296,6 +1348,9 @@ app:
       MM_NOTIFICATIONS_UI_ENABLED: false
     - opts:
         is_expand: false
+      MM_NETWORK_UI_REDESIGN_ENABLED: false
+    - opts:
+        is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
@@ -1326,16 +1381,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.21.0
+      VERSION_NAME: 7.24.2
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1317
+      VERSION_NUMBER: 1348
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.21.0
+      FLASK_VERSION_NAME: 7.24.2
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1317
+      FLASK_VERSION_NUMBER: 1348
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1347,7 +1402,13 @@ app:
       IOS_APP_LINK: ''
     - opts:
         is_expand: false
-      NODE_VERSION: 18.18.2
+      NVM_VERSION: 0.39.7
+    - opts:
+        is_expand: false
+      NVM_SHA256SUM: '8e45fa547f428e9196a5613efad3bfa4d4608b74ca870f930090598f5af5f643'
+    - opts:
+        is_expand: false
+      NODE_VERSION: 20.12.2
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.22

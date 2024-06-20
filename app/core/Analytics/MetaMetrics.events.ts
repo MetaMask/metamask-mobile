@@ -22,13 +22,14 @@ const generateOpt = (
   return { category: name };
 };
 
-const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
+const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
   1: 'Welcome',
   2: 'Accounts',
   3: 'Account Name',
-  4: 'Main Navigation',
-  5: 'Browser',
-  6: 'Search',
+  4: 'Notifications',
+  5: 'Main Navigation',
+  6: 'Browser',
+  7: 'Search',
 };
 
 /**
@@ -37,6 +38,7 @@ const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
 enum EVENT_NAME {
   // Error
   ERROR = 'Error occurred',
+  ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
 
   // Approval
   APPROVAL_STARTED = 'Approval Started',
@@ -355,8 +357,15 @@ enum EVENT_NAME {
   LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
   LEDGER_HARDWARE_WALLET_FORGOTTEN = 'Ledger hardware wallet forgotten',
 
+  //Notifications
+  ALL_NOTIFICATIONS = 'All Notifications',
+  WALLET_NOTIFICATIONS = 'Wallet Notifications',
+  ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
+
+  // Simulations
+  INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
 }
 
 enum ACTIONS {
@@ -405,10 +414,15 @@ enum ACTIONS {
   ADVANCED_SETTINGS_ETH_SIGN_ENABLED = 'eth_sign_enabled',
   ADVANCED_SETTINGS_ETH_SIGN_DISABLED = 'eth_sign_disabled',
   STAKE = 'Stake',
+  // Notifications
+  SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
+  SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
+  SELECTS_ANNOUCEMENTS_NOTIFICATIONS = 'Selects Annoucements Notifications',
 }
 
 const events = {
   ERROR: generateOpt(EVENT_NAME.ERROR),
+  ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),
@@ -837,6 +851,24 @@ const events = {
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
+
+  // Notifications
+  ALL_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.ALL_NOTIFICATIONS,
+    ACTIONS.SELECTS_ALL_NOTIFICATIONS,
+  ),
+  WALLET_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.WALLET_NOTIFICATIONS,
+    ACTIONS.SELECTS_WALLET_NOTIFICATIONS,
+  ),
+  ANNOUCEMENTS_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.ANNOUCEMENTS_NOTIFICATIONS,
+    ACTIONS.SELECTS_ANNOUCEMENTS_NOTIFICATIONS,
+  ),
+  // Simulations
+  INCOMPLETE_ASSET_DISPLAYED: generateOpt(
+    EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
+  ),
 };
 
 /**
@@ -935,6 +967,7 @@ enum DESCRIPTION {
   SWAPS = 'Swaps',
   BRIDGE = 'Bridge',
   STAKE = 'Stake',
+  NOTIFICATIONS = 'Notifications',
 }
 
 const legacyMetaMetricsEvents = {

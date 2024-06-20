@@ -39,6 +39,8 @@ const RequestInProgress = {
   description: 'Validating the confirmation in progress.',
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const validateRequest = async (req: any, transactionId?: string) => {
   let securityAlertResponse;
 
@@ -49,6 +51,7 @@ const validateRequest = async (req: any, transactionId?: string) => {
   } = Engine.context;
   const currentChainId = NetworkController.state.providerConfig.chainId;
   if (
+    !ppomController ||
     !isBlockaidFeatureEnabled() ||
     !PreferencesController.state.securityAlertsEnabled ||
     !ConfirmationMethods.includes(req.method) ||
@@ -77,6 +80,8 @@ const validateRequest = async (req: any, transactionId?: string) => {
         );
       }
       const normalizedRequest = normalizeRequest(req);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       securityAlertResponse = await ppomController.usePPOM((ppom: any) =>
         ppom.validateJsonRpc(normalizedRequest),
       );
@@ -104,10 +109,12 @@ const validateRequest = async (req: any, transactionId?: string) => {
       );
       updateSecurityAlertResponse(
         transactionId as string,
+        // @ts-expect-error TODO: fix types
         securityAlertResponse,
       );
     } else {
       store.dispatch(
+        // @ts-expect-error TODO: fix types
         setSignatureRequestSecurityAlertResponse(securityAlertResponse),
       );
     }
@@ -116,6 +123,8 @@ const validateRequest = async (req: any, transactionId?: string) => {
   return securityAlertResponse;
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeRequest(request: any) {
   if (request.method !== TRANSACTION_METHOD) {
     return request;

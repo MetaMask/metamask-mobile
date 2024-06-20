@@ -53,7 +53,7 @@ import {
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -186,7 +186,8 @@ function TokenSelectModal({
       initialTokens?.length > 0
         ? initialTokens.filter(
             (token) =>
-              !excludedAddresses.includes(token.address?.toLowerCase()),
+              typeof token !== 'undefined' &&
+              !excludedAddresses.includes(token?.address?.toLowerCase()),
           )
         : filteredTokens,
     [excludedAddresses, filteredTokens, initialTokens],
@@ -569,7 +570,7 @@ const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   tokenExchangeRates: selectContractExchangeRates(state),
   balances: selectContractBalances(state),
   chainId: selectChainId(state),

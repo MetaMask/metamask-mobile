@@ -22,13 +22,15 @@ const useTokenBalance = (
     useState<boolean>(true);
   const [error, setError]: [boolean, Dispatch<SetStateAction<boolean>>] =
     useState<boolean>(false);
-  const { TokenBalancesController }: any = Engine.context;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { AssetsContractController }: any = Engine.context;
 
   const fetchBalance = async (
     tokenAddress: string,
     userAddress: string,
   ): Promise<void> => {
-    TokenBalancesController.getERC20BalanceOf(tokenAddress, userAddress)
+    AssetsContractController.getERC20BalanceOf(tokenAddress, userAddress)
       .then((balance: BN) => setTokenBalance(balance))
       .catch(() => setError(true))
       .finally(() => setLoading(false));

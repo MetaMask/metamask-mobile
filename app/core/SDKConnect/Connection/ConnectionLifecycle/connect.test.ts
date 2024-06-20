@@ -35,10 +35,10 @@ describe('connect', () => {
     connect({ instance: mockConnection, withKeyExchange: true });
 
     expect(mockConnectToChannel).toHaveBeenCalledTimes(1);
-    expect(mockConnectToChannel).toHaveBeenCalledWith(
-      mockConnection.channelId,
-      true,
-    );
+    expect(mockConnectToChannel).toHaveBeenCalledWith({
+      channelId: mockConnection.channelId,
+      withKeyExchange: true,
+    });
   });
 
   it('should set receivedDisconnect to false', () => {
@@ -61,22 +61,22 @@ describe('connect', () => {
       connect({ instance: mockConnection, withKeyExchange: true });
 
       expect(mockConnectToChannel).toHaveBeenCalledTimes(1);
-      expect(mockConnectToChannel).toHaveBeenCalledWith(
-        mockConnection.channelId,
-        true,
-      );
+      expect(mockConnectToChannel).toHaveBeenCalledWith({
+        channelId: mockConnection.channelId,
+        withKeyExchange: true,
+      });
     });
   });
 
   describe('Without Key Exchange', () => {
-    it('should initiate connection without key exchange when withKeyExchange is false', () => {
+    it('should not initiate connection with key exchange when withKeyExchange is false', () => {
       connect({ instance: mockConnection, withKeyExchange: false });
 
       expect(mockConnectToChannel).toHaveBeenCalledTimes(1);
-      expect(mockConnectToChannel).toHaveBeenCalledWith(
-        mockConnection.channelId,
-        false,
-      );
+      expect(mockConnectToChannel).toHaveBeenCalledWith({
+        channelId: mockConnection.channelId,
+        withKeyExchange: false,
+      });
     });
   });
 });

@@ -7,8 +7,8 @@ import {
   View,
   ActivityIndicator,
   Keyboard,
-  InteractionManager,
   Platform,
+  Linking,
 } from 'react-native';
 import AsyncStorage from '../../../../store/async-storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,6 +18,7 @@ import { clearHistory } from '../../../../actions/browser';
 import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
+import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
@@ -61,6 +62,7 @@ import {
   selectShowIncomingTransactionNetworks,
   selectShowTestNetworks,
   selectUseSafeChainsListValidation,
+  selectUseTransactionSimulations,
 } from '../../../../selectors/preferencesController';
 import {
   SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
@@ -88,7 +90,6 @@ import {
   HASH_STRING,
   HASH_TO_TEST,
   IPFS_GATEWAY_SECTION,
-  META_METRICS_SECTION,
   NFT_AUTO_DETECT_MODE_SECTION,
   NFT_DISPLAY_MEDIA_MODE_SECTION,
   PASSCODE_CHOICE_STRING,
@@ -106,9 +107,6 @@ import Networks, {
 import images from 'images/image-icons';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
-import generateDeviceAnalyticsMetaData, {
-  UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
-} from '../../../../util/metrics';
 import Text, {
   TextVariant,
   TextColor,
@@ -122,6 +120,8 @@ import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
+import { MetaMetrics } from '../../../../core/Analytics';
+import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -136,7 +136,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
-  const { trackEvent, isEnabled, enable, addTraitsToUser } = useMetrics();
+  const { trackEvent, isEnabled } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -155,8 +155,12 @@ const Settings: React.FC = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserHistory = useSelector((state: any) => state.browser.history);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lockTime = useSelector((state: any) => state.settings.lockTime);
   const showTestNetworks = useSelector(selectShowTestNetworks);
   const showIncomingTransactionsNetworks = useSelector(
@@ -167,10 +171,15 @@ const Settings: React.FC = () => {
   const useSafeChainsListValidation = useSelector(
     selectUseSafeChainsListValidation,
   );
+  const useTransactionSimulations = useSelector(
+    selectUseTransactionSimulations,
+  );
 
   const useNftDetection = useSelector(selectUseNftDetection);
 
   const seedphraseBackedUp = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.seedphraseBackedUp,
   );
   const type = useSelector(selectProviderType);
@@ -180,7 +189,6 @@ const Settings: React.FC = () => {
   const ipfsGateway = useSelector(selectIpfsGateway);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS as EtherscanNetworksType;
-
   const isMainnet = type === MAINNET;
 
   const updateNavBar = useCallback(() => {
@@ -250,6 +258,8 @@ const Settings: React.FC = () => {
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {
       detectNftComponentRef.current?.measureLayout(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         scrollViewRef.current as any,
         (_, y) => {
           scrollViewRef.current?.scrollTo({
@@ -449,63 +459,6 @@ const Settings: React.FC = () => {
     </View>
   );
 
-  const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
-    if (metricsEnabled) {
-      const consolidatedTraits = {
-        ...generateDeviceAnalyticsMetaData(),
-        ...generateUserSettingsAnalyticsMetaData(),
-      };
-      await enable();
-      setAnalyticsEnabled(true);
-
-      InteractionManager.runAfterInteractions(async () => {
-        await addTraitsToUser(consolidatedTraits);
-        trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-          analytics_option_selected: 'Metrics Opt in',
-          updated_after_onboarding: true,
-        });
-      });
-    } else {
-      await enable(false);
-      setAnalyticsEnabled(false);
-      Alert.alert(
-        strings('app_settings.metametrics_opt_out'),
-        strings('app_settings.metametrics_restart_required'),
-      );
-    }
-  };
-
-  const renderMetaMetricsSection = () => (
-    <View style={styles.halfSetting} testID={META_METRICS_SECTION}>
-      <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-          {strings('app_settings.metametrics_title')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={analyticsEnabled}
-            onValueChange={toggleMetricsOptIn}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white['000']}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-            testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
-          />
-        </View>
-      </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.desc}
-      >
-        {strings('app_settings.metametrics_description')}
-      </Text>
-    </View>
-  );
-
   const toggleIsMultiAccountBalancesEnabled = (
     multiAccountBalancesEnabled: boolean,
   ) => {
@@ -529,7 +482,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white['000']}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
             {...generateTestId(
@@ -613,7 +566,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white['000']}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
               testID="display-nft-toggle"
@@ -647,7 +600,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white['000']}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
               testID={DISPLAY_SAFE_CHAINS_LIST_VALIDATION}
@@ -666,7 +619,61 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     ),
-    [colors, styles, useSafeChainsListValidation, theme.brandColors.white],
+    [colors, styles, useSafeChainsListValidation, theme.brandColors],
+  );
+
+  const toggleUseTransactionSimulations = (value: boolean) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setUseTransactionSimulations(value);
+  };
+
+  const renderUseTransactionSimulations = useCallback(
+    () => (
+      <View style={styles.halfSetting}>
+        <View style={styles.titleContainer}>
+          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+            {strings('app_settings.simulation_details')}
+          </Text>
+          <View style={styles.switchElement}>
+            <Switch
+              value={useTransactionSimulations}
+              onValueChange={toggleUseTransactionSimulations}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={theme.brandColors.white}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+            />
+          </View>
+        </View>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
+        >
+          {strings('app_settings.simulation_details_description')}
+          <Button
+            variant={ButtonVariants.Link}
+            size={ButtonSize.Auto}
+            onPress={() => {
+              Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
+              MetaMetrics.getInstance().trackEvent(
+                MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
+                {
+                  location: 'app_settings',
+                  text: strings('app_settings.simulation_details_learn_more'),
+                  url_domain: SIMULATION_DETALS_ARTICLE_URL,
+                },
+              );
+            }}
+            label={strings('app_settings.simulation_details_learn_more')}
+          />
+        </Text>
+      </View>
+    ),
+    [colors, styles, useTransactionSimulations, theme.brandColors.white],
   );
 
   const renderAutoDetectNft = useCallback(
@@ -688,7 +695,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white['000']}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />
@@ -730,7 +737,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white['000']}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -809,7 +816,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white['000']}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -841,7 +848,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white['000']}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -882,7 +889,7 @@ const Settings: React.FC = () => {
                   true: colors.primary.default,
                   false: colors.border.muted,
                 }}
-                thumbColor={theme.brandColors.white['000']}
+                thumbColor={theme.brandColors.white}
                 style={styles.switch}
                 ios_backgroundColor={colors.border.muted}
               />
@@ -902,7 +909,7 @@ const Settings: React.FC = () => {
             key={chainId}
             variant={CellVariant.Display}
             title={name}
-            secondaryText={myNetworks[chainId].domain}
+            secondaryText={myNetworks[chainId]?.domain}
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -919,7 +926,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white['000']}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />
@@ -1034,6 +1041,7 @@ const Settings: React.FC = () => {
         {renderMultiAccountBalancesSection()}
         {renderShowIncomingTransactions()}
         {renderHistoryModal()}
+        {renderUseTransactionSimulations()}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -1061,7 +1069,7 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.analytics_subheading')}
         </Text>
-        {renderMetaMetricsSection()}
+        <MetaMetricsAndDataCollectionSection />
         <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
         <DeleteWalletData />
         {renderHint()}

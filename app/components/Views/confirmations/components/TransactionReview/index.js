@@ -14,9 +14,9 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   getTransactionReviewActionKey,
   getNormalizedTxState,
-  APPROVE_FUNCTION_SIGNATURE,
   decodeTransferData,
   getTicker,
+  isApprovalTransaction,
 } from '../../../../../util/transactions';
 import {
   weiToFiat,
@@ -51,12 +51,16 @@ import {
 } from '../../../../../selectors/currencyRateController';
 import { selectTokenList } from '../../../../../selectors/tokenListController';
 import { selectTokens } from '../../../../../selectors/tokensController';
+import { selectCurrentTransactionMetadata } from '../../../../../selectors/confirmTransaction';
 import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../../../core/AppConstants';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
+import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -109,6 +113,11 @@ const createStyles = (colors) =>
       marginBottom: 10,
       marginTop: 20,
       marginHorizontal: 10,
+    },
+    transactionSimulations: {
+      marginLeft: 24,
+      marginRight: 24,
+      marginBottom: 24,
     },
   });
 
@@ -247,6 +256,18 @@ class TransactionReview extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Boolean that indicates if smart transaction should be used
+     */
+    shouldUseSmartTransaction: PropTypes.bool,
+    /**
+     * Transaction simulation data
+     */
+    transactionSimulationData: PropTypes.object,
+    /**
+     * Boolean that indicates if transaction simulations should be enabled
+     */
+    useTransactionSimulations: PropTypes.bool,
   };
 
   state = {
@@ -292,14 +313,13 @@ class TransactionReview extends PureComponent {
       chainId,
       tokenList,
       metrics,
+      shouldUseSmartTransaction,
     } = this.props;
     let { showHexData } = this.props;
     let assetAmount, conversionRate, fiatValue;
     showHexData = showHexData || data;
     const approveTransaction =
-      data &&
-      data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-      (!value || isZeroValue(value));
+      isApprovalTransaction(data) && (!value || isZeroValue(value));
     const actionKey = await getTransactionReviewActionKey(transaction, chainId);
     if (approveTransaction) {
       let contract = tokenList[safeToChecksumAddress(to)];
@@ -323,7 +343,9 @@ class TransactionReview extends PureComponent {
       approveTransaction,
     });
 
-    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
+    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED, {
+      is_smart_transaction: shouldUseSmartTransaction,
+    });
 
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();
@@ -492,6 +514,8 @@ class TransactionReview extends PureComponent {
       transaction,
       transaction: { to, origin, from, ensRecipient, id: transactionId },
       error,
+      transactionSimulationData,
+      useTransactionSimulations,
     } = this.props;
 
     const {
@@ -559,6 +583,15 @@ class TransactionReview extends PureComponent {
                         <AccountFromToInfoCard
                           transactionState={transaction}
                           layout="vertical"
+                        />
+                      </View>
+                    )}
+                    {useTransactionSimulations && (
+                      <View style={styles.transactionSimulations}>
+                        <SimulationDetails
+                          simulationData={transactionSimulationData}
+                          enableMetrics
+                          transactionId={transactionId}
                         />
                       </View>
                     )}
@@ -656,6 +689,10 @@ const mapStateToProps = (state) => ({
   browser: state.browser,
   primaryCurrency: state.settings.primaryCurrency,
   tokenList: selectTokenList(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  transactionSimulationData:
+    selectCurrentTransactionMetadata(state)?.simulationData,
+  useTransactionSimulations: selectUseTransactionSimulations(state),
 });
 
 TransactionReview.contextType = ThemeContext;

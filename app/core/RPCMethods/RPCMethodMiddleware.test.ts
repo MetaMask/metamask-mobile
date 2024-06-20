@@ -6,7 +6,7 @@ import {
   JsonRpcResponse,
   JsonRpcSuccess,
 } from 'json-rpc-engine';
-import type { Transaction } from '@metamask/transaction-controller';
+import type { TransactionParams } from '@metamask/transaction-controller';
 import type { ProviderConfig } from '@metamask/network-controller';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import Engine from '../Engine';
@@ -15,12 +15,22 @@ import { getPermittedAccounts } from '../Permissions';
 import { RPC } from '../../constants/network';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import AppConstants from '../AppConstants';
-import { PermissionConstraint } from '@metamask/permission-controller';
+import {
+  PermissionConstraint,
+  PermissionController,
+} from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import initialBackgroundState from '../../util/test/initial-background-state.json';
 import { Store } from 'redux';
 import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
+import { ControllerMessenger } from '@metamask/base-controller';
+import {
+  getCaveatSpecifications,
+  getPermissionSpecifications,
+  unrestrictedMethods,
+} from '../Permissions/specifications';
+import { EthAccountType, EthMethod } from '@metamask/keyring-api';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -43,14 +53,7 @@ jest.mock('../Engine', () => ({
     },
   },
 }));
-const MockEngine = Engine as Omit<typeof Engine, 'context'> & {
-  context: {
-    NetworkController: Record<string, any>;
-    PreferencesController: Record<string, any>;
-    TransactionController: Record<string, any>;
-    PermissionController: Record<string, any>;
-  };
-};
+const MockEngine = jest.mocked(Engine);
 
 jest.mock('../../util/transaction-controller', () => ({
   __esModule: true,
@@ -227,6 +230,8 @@ function setupGlobalState({
 }) {
   // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
   jest
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .spyOn(store as Store<Partial<RootState>, any>, 'getState')
     .mockImplementation(() => ({
       browser: activeTab
@@ -242,6 +247,8 @@ function setupGlobalState({
           },
           PreferencesController: selectedAddress ? { selectedAddress } : {},
         },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
     }));
   mockStore.dispatch.mockImplementation((obj) => obj);
@@ -293,7 +300,7 @@ function setupSignature() {
 }
 
 describe('getRpcMethodMiddleware', () => {
-  it('allows unrecognized methods to pass through', async () => {
+  it('allows unrecognized methods to pass through without PermissionController middleware', async () => {
     const engine = new JsonRpcEngine();
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
     engine.push(middleware);
@@ -315,11 +322,85 @@ describe('getRpcMethodMiddleware', () => {
     expect(response.result).toBe('success');
   });
 
-  const accountMethods = [
-    'eth_accounts',
-    'eth_coinbase',
-    'parity_defaultAccount',
-  ];
+  describe('with permission middleware before', () => {
+    const engine = new JsonRpcEngine();
+    const controllerMessenger = new ControllerMessenger();
+    const baseEoaAccount = {
+      type: EthAccountType.Eoa,
+      options: {},
+      methods: [
+        EthMethod.PersonalSign,
+        EthMethod.Sign,
+        EthMethod.SignTransaction,
+        EthMethod.SignTypedDataV1,
+        EthMethod.SignTypedDataV3,
+        EthMethod.SignTypedDataV4,
+      ],
+    };
+    const mockGetInternalAccounts = jest.fn().mockImplementationOnce(() => [
+      {
+        address: '0x1',
+        id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
+        metadata: {
+          name: 'Test Account 1',
+          lastSelected: 1,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+        ...baseEoaAccount,
+      },
+    ]);
+    const permissionController = new PermissionController({
+      messenger: controllerMessenger.getRestricted({
+        name: 'PermissionController',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
+      caveatSpecifications: getCaveatSpecifications({
+        getInternalAccounts: mockGetInternalAccounts,
+      }),
+      // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
+      permissionSpecifications: {
+        ...getPermissionSpecifications({
+          getAllAccounts: jest.fn().mockImplementation(async () => ['0x1']),
+          getInternalAccounts: mockGetInternalAccounts,
+          captureKeyringTypesWithMissingIdentities: jest
+            .fn()
+            .mockImplementation(() => []),
+        }),
+      },
+      unrestrictedMethods,
+    });
+    const permissionMiddleware =
+      permissionController.createPermissionMiddleware({
+        origin: hostMock,
+      });
+    // @ts-expect-error JsonRpcId (number | string | void) doesn't match PS middleware's id, which is (string | number | null)
+    engine.push(permissionMiddleware);
+    const middleware = getRpcMethodMiddleware(getMinimalOptions());
+    engine.push(middleware);
+
+    it('returns method not found error', async () => {
+      const fakeMethodName = 'this-is-a-fake-method';
+      const response = await engine.handle({
+        jsonrpc,
+        id: 1,
+        method: fakeMethodName,
+      });
+
+      const expectedError = rpcErrors.methodNotFound(
+        `The method "${fakeMethodName}" does not exist / is not available.`,
+      );
+
+      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      expect((response as JsonRpcFailure).error.message).toBe(
+        expectedError.message,
+      );
+    });
+  });
+
+  const accountMethods = ['eth_coinbase', 'parity_defaultAccount'];
   for (const method of accountMethods) {
     describe(method, () => {
       describe('browser', () => {
@@ -451,13 +532,31 @@ describe('getRpcMethodMiddleware', () => {
 
   describe('wallet_requestPermissions', () => {
     it('can requestPermissions for eth_accounts', async () => {
+      const mockOrigin = 'example.metamask.io';
+      const mockPermission: Awaited<
+        ReturnType<
+          typeof MockEngine.context.PermissionController.requestPermissions
+        >
+      >[0] = {
+        eth_accounts: {
+          id: 'id',
+          date: 1,
+          invoker: mockOrigin,
+          parentCapability: 'eth_accounts',
+          caveats: [
+            {
+              type: 'restrictReturnedAccounts',
+              value: [addressMock],
+            },
+          ],
+        },
+      };
       MockEngine.context.PermissionController.requestPermissions.mockImplementation(
         async () => [
+          mockPermission,
           {
-            eth_accounts: {
-              parentCapability: 'eth_accounts',
-              caveats: [],
-            },
+            id: 'id',
+            origin: mockOrigin,
           },
         ],
       );
@@ -478,19 +577,33 @@ describe('getRpcMethodMiddleware', () => {
       const response = await callMiddleware({ middleware, request });
       expect(
         (response as JsonRpcSuccess<PermissionConstraint[]>).result,
-      ).toEqual([{ parentCapability: 'eth_accounts', caveats: [] }]);
+      ).toEqual([mockPermission.eth_accounts]);
     });
   });
 
   describe('wallet_getPermissions', () => {
     it('can getPermissions', async () => {
+      const mockOrigin = 'example.metamask.io';
+      const mockPermission: Awaited<
+        ReturnType<
+          typeof MockEngine.context.PermissionController.getPermissions
+        >
+      > = {
+        eth_accounts: {
+          id: 'id',
+          date: 1,
+          invoker: mockOrigin,
+          parentCapability: 'eth_accounts',
+          caveats: [
+            {
+              type: 'restrictReturnedAccounts',
+              value: [addressMock],
+            },
+          ],
+        },
+      };
       MockEngine.context.PermissionController.getPermissions.mockImplementation(
-        () => ({
-          eth_accounts: {
-            parentCapability: 'eth_accounts',
-            caveats: [],
-          },
-        }),
+        () => mockPermission,
       );
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -505,7 +618,7 @@ describe('getRpcMethodMiddleware', () => {
       const response = await callMiddleware({ middleware, request });
       expect(
         (response as JsonRpcSuccess<PermissionConstraint[]>).result,
-      ).toEqual([{ parentCapability: 'eth_accounts', caveats: [] }]);
+      ).toEqual([mockPermission.eth_accounts]);
     });
   });
 
@@ -830,7 +943,7 @@ describe('getRpcMethodMiddleware', () => {
     it('returns a JSON-RPC error if an error is thrown when adding this transaction', async () => {
       // Omit `from` and `chainId` here to skip validation for simplicity
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as Transaction;
+      const mockTransactionParameters = {} as TransactionParams;
       // Transaction fails before returning a result
       mockAddTransaction.mockImplementation(async () => {
         throw new Error('Failed to add transaction');
@@ -858,7 +971,7 @@ describe('getRpcMethodMiddleware', () => {
     it('returns a JSON-RPC error if an error is thrown after approval', async () => {
       // Omit `from` and `chainId` here to skip validation for simplicity
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as Transaction;
+      const mockTransactionParameters = {} as TransactionParams;
       setupGlobalState({
         addTransactionResult: Promise.reject(
           new Error('Failed to process transaction'),
@@ -1009,6 +1122,8 @@ describe('getRpcMethodMiddleware', () => {
         params: [addressMock, data],
       };
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 
@@ -1034,7 +1149,7 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('returns resolved value from message promise', async () => {
-      Engine.context.SignatureController.newUnsignedMessage.mockResolvedValue(
+      MockEngine.context.SignatureController.newUnsignedMessage.mockResolvedValue(
         signatureMock,
       );
 
@@ -1073,10 +1188,12 @@ describe('getRpcMethodMiddleware', () => {
         params: [dataMock, addressMock],
       };
 
-      Engine.context.SignatureController.newUnsignedPersonalMessage.mockResolvedValue(
+      MockEngine.context.SignatureController.newUnsignedPersonalMessage.mockResolvedValue(
         signatureMock,
       );
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 
@@ -1110,7 +1227,7 @@ describe('getRpcMethodMiddleware', () => {
     ['eth_signTypedData_v4', 'V4', true],
   ])('%s', (methodName, version, addressFirst) => {
     async function sendRequest() {
-      Engine.context.SignatureController.newUnsignedTypedMessage.mockReset();
+      MockEngine.context.SignatureController.newUnsignedTypedMessage.mockReset();
 
       const { middleware } = setupSignature();
 
@@ -1124,10 +1241,12 @@ describe('getRpcMethodMiddleware', () => {
         ],
       };
 
-      Engine.context.SignatureController.newUnsignedTypedMessage.mockResolvedValue(
+      MockEngine.context.SignatureController.newUnsignedTypedMessage.mockResolvedValue(
         signatureMock,
       );
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 

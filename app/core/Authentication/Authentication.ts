@@ -1,9 +1,6 @@
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
-import { recreateVaultWithSamePassword } from '../Vault';
 import {
-  ENCRYPTION_LIB,
-  ORIGINAL,
   EXISTING_USER,
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
@@ -27,7 +24,6 @@ import {
   AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
   AUTHENTICATION_FAILED_TO_LOGIN,
   AUTHENTICATION_FAILED_WALLET_CREATION,
-  AUTHENTICATION_LOGIN_VAULT_CREATION_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
   AUTHENTICATION_STORE_PASSWORD_FAILED,
@@ -94,31 +90,14 @@ class AuthenticationService {
   /**
    * This method recreates the vault upon login if user is new and is not using the latest encryption lib
    * @param password - password entered on login
-   * @param selectedAddress - current address pulled from persisted state
    */
-  private loginVaultCreation = async (
-    password: string,
-    selectedAddress: string,
-  ): Promise<void> => {
+  private loginVaultCreation = async (password: string): Promise<void> => {
     // Restore vault with user entered password
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     await KeyringController.submitPassword(password);
-    const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-    if (encryptionLib !== ORIGINAL && existingUser) {
-      try {
-        await recreateVaultWithSamePassword(password, selectedAddress);
-        await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-      } catch (e: any) {
-        throw new AuthenticationError(
-          (e as Error).message,
-          AUTHENTICATION_LOGIN_VAULT_CREATION_FAILED,
-          this.authData,
-        );
-      }
-    }
     password = this.wipeSensitiveData();
-    selectedAddress = this.wipeSensitiveData();
   };
 
   /**
@@ -133,6 +112,8 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<void> => {
     // Restore vault with user entered password
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     if (clearEngine) await Engine.resetState();
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
@@ -147,6 +128,8 @@ class AuthenticationService {
   private createWalletVaultAndKeychain = async (
     password: string,
   ): Promise<void> => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
@@ -168,6 +151,8 @@ class AuthenticationService {
    * @returns @AuthData
    */
   private checkAuthenticationMethod = async (): Promise<AuthData> => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
     const biometryPreviouslyDisabled = await AsyncStorage.getItem(
@@ -213,6 +198,8 @@ class AuthenticationService {
    * Reset vault will empty password used to clear/reset vault upon errors during login/creation
    */
   resetVault = async (): Promise<void> => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     // Restore vault with empty password
     await KeyringController.submitPassword('');
@@ -295,6 +282,8 @@ class AuthenticationService {
     biometryChoice: boolean,
     rememberMe: boolean,
   ): Promise<AuthData> => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
     const biometryPreviouslyDisabled = await AsyncStorage.getItem(
@@ -353,6 +342,8 @@ class AuthenticationService {
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       this.lockApp(false);
       throw new AuthenticationError(
@@ -384,6 +375,8 @@ class AuthenticationService {
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       this.lockApp(false);
       throw new AuthenticationError(
@@ -398,21 +391,21 @@ class AuthenticationService {
 
   /**
    * Manual user password entry for login
-   * @param selectedAddress - current address pulled from persisted state
    * @param password - password provided by user
    * @param authData - type of authentication required to fetch password from keychain
    */
   userEntryAuth = async (
     password: string,
     authData: AuthData,
-    selectedAddress: string,
   ): Promise<void> => {
     try {
-      await this.loginVaultCreation(password, selectedAddress);
+      await this.loginVaultCreation(password);
       await this.storePassword(password, authData.currentAuthType);
       this.dispatchLogin();
       this.authData = authData;
       this.dispatchPasswordSet();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       this.lockApp(false);
       throw new AuthenticationError(
@@ -426,20 +419,20 @@ class AuthenticationService {
 
   /**
    * Attempts to use biometric/pin code/remember me to login
-   * @param selectedAddress - current address pulled from persisted state
    * @param bioStateMachineId - ID associated with each biometric session.
    * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
    */
-  appTriggeredAuth = async ({
-    selectedAddress,
-    bioStateMachineId,
-    disableAutoLogout = false,
-  }: {
-    selectedAddress: string;
-    bioStateMachineId?: string;
-    disableAutoLogout?: boolean;
-  }): Promise<void> => {
+  appTriggeredAuth = async (
+    options: {
+      bioStateMachineId?: string;
+      disableAutoLogout?: boolean;
+    } = {},
+  ): Promise<void> => {
+    const bioStateMachineId = options?.bioStateMachineId;
+    const disableAutoLogout = options?.disableAutoLogout;
     try {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const credentials: any = await SecureKeychain.getGenericPassword();
       const password = credentials?.password;
       if (!password) {
@@ -449,10 +442,12 @@ class AuthenticationService {
           this.authData,
         );
       }
-      await this.loginVaultCreation(password, selectedAddress);
+      await this.loginVaultCreation(password);
       this.dispatchLogin();
       this.store?.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       this.store?.dispatch(authError(bioStateMachineId));
       !disableAutoLogout && this.lockApp(false);
@@ -462,13 +457,14 @@ class AuthenticationService {
         this.authData,
       );
     }
-    selectedAddress = this.wipeSensitiveData();
   };
 
   /**
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
   lockApp = async (reset = true): Promise<void> => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     if (reset) await this.resetPassword();
     if (KeyringController.isUnlocked()) {

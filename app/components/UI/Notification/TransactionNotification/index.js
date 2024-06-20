@@ -34,8 +34,8 @@ import {
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { speedUpTransaction } from '../../../../util/transaction-controller';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -110,6 +110,7 @@ function TransactionNotification(props) {
     onClose,
     transactions,
     animatedTimingStart,
+    smartTransactions,
   } = props;
 
   const [transactionDetails, setTransactionDetails] = useState(undefined);
@@ -249,9 +250,7 @@ function TransactionNotification(props) {
         swapsTransactions,
         swapsTokens,
       });
-      const existingGasPrice = new BigNumber(
-        tx?.transaction?.gasPrice || '0x0',
-      );
+      const existingGasPrice = new BigNumber(tx?.txParams?.gasPrice || '0x0');
       const gasFeeValue = fastSplit(
         existingGasPrice
           .times(
@@ -267,12 +266,22 @@ function TransactionNotification(props) {
     getTransactionInfo();
   }, [
     transactions,
+    smartTransactions,
     currentNotification.transaction.id,
     transactionAction,
     props,
   ]);
 
   useEffect(() => onCloseNotification(), [onCloseNotification]);
+
+  // Don't show submitted notification for STX b/c we only know when it's confirmed,
+  // o/w a submitted notification will show up after it's confirmed, then a confirmed notification will show up immediately after
+  if (tx.status === 'submitted') {
+    const smartTx = smartTransactions.find((stx) => stx.txHash === tx.hash);
+    if (smartTx) {
+      return null;
+    }
+  }
 
   return (
     <>
@@ -289,7 +298,7 @@ function TransactionNotification(props) {
           <BaseNotification
             status={currentNotification.status}
             data={{
-              ...tx?.transaction,
+              ...tx?.txParams,
               ...currentNotification.transaction,
               title: transactionElement?.notificationKey,
             }}
@@ -374,6 +383,10 @@ TransactionNotification.propTypes = {
    * An array that represents the user transactions on chain
    */
   transactions: PropTypes.array,
+  /**
+   * An array that represents the user smart transactions on chain
+   */
+  smartTransactions: PropTypes.array,
 
   /**
    * String of selected address
@@ -418,21 +431,36 @@ TransactionNotification.propTypes = {
   primaryCurrency: PropTypes.string,
 };
 
-const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  selectedAddress: selectSelectedAddress(state),
-  transactions: state.engine.backgroundState.TransactionController.transactions,
-  ticker: selectTicker(state),
-  chainId: selectChainId(state),
-  tokens: selectTokensByAddress(state),
-  collectibleContracts: collectibleContractsSelector(state),
-  contractExchangeRates: selectContractExchangeRates(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  primaryCurrency: state.settings.primaryCurrency,
-  swapsTransactions:
-    state.engine.backgroundState.TransactionController.swapsTransactions || {},
-  swapsTokens: state.engine.backgroundState.SwapsController.tokens,
-});
+const mapStateToProps = (state) => {
+  const chainId = selectChainId(state);
+
+  const {
+    SmartTransactionsController,
+    TransactionController,
+    SwapsController,
+  } = state.engine.backgroundState;
+
+  const smartTransactions =
+    SmartTransactionsController?.smartTransactionsState?.smartTransactions?.[
+      chainId
+    ] || [];
+
+  return {
+    accounts: selectAccounts(state),
+    selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+    transactions: TransactionController.transactions,
+    ticker: selectTicker(state),
+    chainId,
+    tokens: selectTokensByAddress(state),
+    collectibleContracts: collectibleContractsSelector(state),
+    contractExchangeRates: selectContractExchangeRates(state),
+    conversionRate: selectConversionRate(state),
+    currentCurrency: selectCurrentCurrency(state),
+    primaryCurrency: state.settings.primaryCurrency,
+    swapsTransactions: TransactionController.swapsTransactions || {},
+    swapsTokens: SwapsController.tokens,
+    smartTransactions,
+  };
+};
 
 export default connect(mapStateToProps)(TransactionNotification);

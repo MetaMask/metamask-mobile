@@ -33,7 +33,7 @@ const useTokenHistoricalPrices = ({
     const fetchPrices = async () => {
       setIsLoading(true);
       try {
-        const baseUri = 'https://price-api.metafi.codefi.network/v1';
+        const baseUri = 'https://price.api.cx.metamask.io/v1';
         const uri = new URL(
           `${baseUri}/chains/${getDecimalChainId(
             chainId,
@@ -53,6 +53,8 @@ const useTokenHistoricalPrices = ({
         const data: { prices: TokenPrice[] } = await response.json();
 
         setPrices(data.prices as TokenPrice[]);
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         setError(e);
       } finally {

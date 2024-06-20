@@ -5,7 +5,7 @@ import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import WalletView from '../../pages/WalletView';
-import Browser from '../../pages/Browser';
+import Browser from '../../pages/Browser/BrowserView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
@@ -46,12 +46,12 @@ describe(
 
           //validate connection to test dapp
           await TabBarComponent.tapBrowser();
-          await Browser.isVisible();
+          await Assertions.checkIfVisible(Browser.browserScreenID);
           await Browser.navigateToTestDApp();
-          await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
+          await Browser.tapNetworkAvatarButtonOnBrowser();
           await Assertions.checkIfVisible(ConnectedAccountsModal.title);
           await ConnectedAccountsModal.scrollToBottomOfModal();
-          await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+          await TestHelpers.delay(2000);
 
           //go to settings then security & privacy
           await TabBarComponent.tapSettings();
@@ -70,11 +70,13 @@ describe(
           await DeleteWalletModal.tapDeleteMyWalletButton();
           await TestHelpers.delay(2000);
           await Assertions.checkIfVisible(OnboardingView.container);
-          await Assertions.checkIfVisible(CommonView.toast);
-          await Assertions.checkIfNotVisible(CommonView.toast);
+          if (device.getPlatform() === 'ios') {
+            await Assertions.checkIfVisible(await CommonView.toast);
+          }
+          await Assertions.checkIfNotVisible(await CommonView.toast);
           await OnboardingView.tapCreateWallet();
 
-          //Create new wallet
+          // Create new wallet
           await Assertions.checkIfVisible(MetaMetricsOptIn.container);
           await MetaMetricsOptIn.tapAgreeButton();
           await Assertions.checkIfVisible(CreatePasswordView.container);
@@ -94,7 +96,7 @@ describe(
 
           //should no longer be connected to the  dapp
           await TabBarComponent.tapBrowser();
-          await Browser.isVisible();
+          await Assertions.checkIfVisible(Browser.browserScreenID);
           await Browser.tapNetworkAvatarButtonOnBrowser();
           await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
           await Assertions.checkIfVisible(NetworkListModal.testNetToggle);

@@ -5,7 +5,7 @@ import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 
 class CommonScreen {
   get toast() {
-    return Selectors.getElementByPlatform(TOAST_ID);
+    return Selectors.getXpathElementByResourceId(TOAST_ID);
   }
 
   get androidProgressBar() {

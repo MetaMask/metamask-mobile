@@ -86,6 +86,8 @@ export function getHost(url: string, defaultProtocol = 'https://') {
  * @param error - Represents the error of handleIpfsContent
  * @returns - True if its a TLD, false if it's not
  */
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const isTLD = (hostname: string, error: any) =>
   (hostname.slice(-4) !== '.eth' &&
     error.toString().indexOf('is not standard') !== -1) ||
@@ -106,6 +108,7 @@ export const trustedProtocolToDeeplink = [
   'metamask:',
   'ethereum:',
   'dapp:',
+  'market:',
 ];
 
 /**

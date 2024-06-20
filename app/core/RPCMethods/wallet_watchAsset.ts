@@ -28,6 +28,8 @@ const wallet_watchAsset = async ({
     };
     type: string;
   }>;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   res: PendingJsonRpcResponse<any>;
   hostname: string;
   checkTabActive: () => true | undefined;
@@ -87,6 +89,7 @@ const wallet_watchAsset = async ({
     asset: {
       address,
       symbol: finalTokenSymbol,
+      // @ts-expect-error TODO: Fix decimal type
       decimals: finalTokenDecimals,
       image,
     },

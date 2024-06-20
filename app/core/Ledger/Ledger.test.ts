@@ -1,6 +1,5 @@
+import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 import {
-  addLedgerKeyring,
-  getLedgerKeyring,
   connectLedgerHardware,
   openEthereumAppOnLedger,
   closeRunningAppOnLedger,
@@ -8,75 +7,52 @@ import {
   ledgerSignTypedMessage,
   unlockLedgerDefaultAccount,
   getDeviceId,
+  withLedgerKeyring,
 } from './Ledger';
 import Engine from '../../core/Engine';
-import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import {
+  KeyringTypes,
+  SignTypedDataVersion,
+} from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 
-const ledgerKeyring = {
-  setTransport: jest.fn(),
-  getAppAndVersion: jest.fn().mockResolvedValue({ appName: 'appName' }),
-  getDefaultAccount: jest.fn().mockResolvedValue('defaultAccount'),
-  openEthApp: jest.fn(),
-  quitApp: jest.fn(),
-  forgetDevice: jest.fn(),
-  deserialize: jest.fn(),
-  deviceId: 'deviceId',
-  getName: jest.fn().mockResolvedValue('name'),
-  openEthereumAppOnLedger: jest.fn(),
-};
+jest.mock('../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      signTypedMessage: jest.fn(),
+      withKeyring: jest.fn(),
+    },
+  },
+}));
+const MockEngine = jest.mocked(Engine);
 
 describe('Ledger core', () => {
-  const ledgerKeyringClone = {
-    ...ledgerKeyring,
-    deviceId: 'deviceIdClone',
-  };
-  const mockAddNewKeyring = jest.fn().mockReturnValue(ledgerKeyring);
-  const mockGetKeyringsByType = jest.fn().mockReturnValue([ledgerKeyringClone]);
-  const mockGetAccounts = jest
-    .fn()
-    .mockReturnValue(['0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2']);
-  const mockPersistAllKeyrings = jest.fn().mockReturnValue(Promise.resolve());
-  const mockSDignTypedMessage = jest
-    .fn()
-    .mockReturnValue(Promise.resolve('signature'));
-  const mockAddNewAccountForKeyring = jest.fn();
-  Engine.context.KeyringController = {
-    addNewKeyring: mockAddNewKeyring,
-    getKeyringsByType: mockGetKeyringsByType,
-    getAccounts: mockGetAccounts,
-    persistAllKeyrings: mockPersistAllKeyrings,
-    signTypedMessage: mockSDignTypedMessage,
-    addNewAccountForKeyring: mockAddNewAccountForKeyring,
-  };
+  let ledgerKeyring: LedgerKeyring;
 
-  const mockUpdateIdentities = jest.fn();
-  Engine.context.PreferencesController = {
-    updateIdentities: mockUpdateIdentities,
-  };
+  beforeEach(() => {
+    jest.resetAllMocks();
 
-  describe('addLedgerKeyring', () => {
-    it('should call addNewKeyring from keyring controller', () => {
-      addLedgerKeyring();
-      expect(mockAddNewKeyring).toHaveBeenCalled();
-      expect(mockAddNewKeyring).toReturnWith(ledgerKeyring);
-    });
-  });
+    // @ts-expect-error This is a partial mock, not completely identical
+    // TODO: Replace this with a type-safe mock
+    ledgerKeyring = {
+      addAccounts: jest.fn(),
+      setTransport: jest.fn(),
+      getAppAndVersion: jest.fn().mockResolvedValue({ appName: 'appName' }),
+      getDefaultAccount: jest.fn().mockResolvedValue('defaultAccount'),
+      openEthApp: jest.fn(),
+      quitApp: jest.fn(),
+      forgetDevice: jest.fn(),
+      deserialize: jest.fn(),
+      deviceId: 'deviceId',
+      getName: jest.fn().mockResolvedValue('name'),
+    };
+    const mockKeyringController = MockEngine.context.KeyringController;
 
-  describe('getLedgerKeyring', () => {
-    it('should call getKeyringsByType from keyring controller', async () => {
-      const value = await getLedgerKeyring();
-      expect(mockGetKeyringsByType).toHaveBeenCalled();
-      expect(value).toBe(ledgerKeyringClone);
-    });
-
-    it('should add a keyring if none could be found', async () => {
-      mockGetKeyringsByType.mockReturnValue([]);
-      const value = await getLedgerKeyring();
-      expect(mockGetKeyringsByType).toHaveBeenCalled();
-      expect(mockAddNewKeyring).toHaveBeenCalled();
-      expect(value).toBe(ledgerKeyring);
-    });
+    mockKeyringController.withKeyring.mockImplementation(
+      // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
+      (_selector, operation) => operation(ledgerKeyring),
+    );
+    mockKeyringController.signTypedMessage.mockResolvedValue('signature');
   });
 
   describe('connectLedgerHardware', () => {
@@ -97,12 +73,36 @@ describe('Ledger core', () => {
     });
   });
 
+  describe('withLedgerKeyring', () => {
+    it('runs the operation with a Ledger keyring', async () => {
+      const mockOperation = jest.fn();
+      const mockLedgerKeyring = {};
+      MockEngine.context.KeyringController.withKeyring.mockImplementation(
+        async (
+          selector: Record<string, unknown>,
+          operation: Parameters<
+            typeof MockEngine.context.KeyringController.withKeyring
+          >[1],
+          options?: Record<string, unknown>,
+        ) => {
+          expect(selector).toStrictEqual({ type: KeyringTypes.ledger });
+          expect(options).toStrictEqual({ createIfMissing: true });
+          // @ts-expect-error This mock keyring is not type compatible
+          await operation(mockLedgerKeyring);
+        },
+      );
+
+      await withLedgerKeyring(mockOperation);
+
+      expect(mockOperation).toHaveBeenCalledWith(mockLedgerKeyring);
+    });
+  });
+
   describe('unlockLedgerDefaultAccount', () => {
     it('should not call KeyringController.addNewAccountForKeyring if isAccountImportReq is false', async () => {
       const account = await unlockLedgerDefaultAccount(false);
-      expect(mockAddNewAccountForKeyring).not.toHaveBeenCalled();
-      expect(ledgerKeyring.getDefaultAccount).toHaveBeenCalled();
 
+      expect(ledgerKeyring.getDefaultAccount).toHaveBeenCalled();
       expect(account).toEqual({
         address: 'defaultAccount',
         balance: '0x0',
@@ -111,9 +111,8 @@ describe('Ledger core', () => {
 
     it('should call KeyringController.addNewAccountForKeyring if isAccountImportReq is true', async () => {
       const account = await unlockLedgerDefaultAccount(true);
-      expect(mockAddNewAccountForKeyring).toHaveBeenCalledWith(ledgerKeyring);
-      expect(ledgerKeyring.getDefaultAccount).toHaveBeenCalled();
 
+      expect(ledgerKeyring.getDefaultAccount).toHaveBeenCalled();
       expect(account).toEqual({
         address: 'defaultAccount',
         balance: '0x0',
@@ -139,14 +138,6 @@ describe('Ledger core', () => {
     it('should call keyring.forgetDevice', async () => {
       await forgetLedger();
       expect(ledgerKeyring.forgetDevice).toHaveBeenCalled();
-      expect(mockGetAccounts).toHaveBeenCalled();
-      expect(mockPersistAllKeyrings).toHaveBeenCalled();
-      mockGetAccounts.mockReturnValue([
-        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
-      ]);
-      expect(mockUpdateIdentities).toBeCalledWith([
-        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
-      ]);
     });
   });
 
@@ -167,10 +158,9 @@ describe('Ledger core', () => {
         expectedArg,
         SignTypedDataVersion.V4,
       );
-      expect(mockSDignTypedMessage).toHaveBeenCalledWith(
-        expectedArg,
-        SignTypedDataVersion.V4,
-      );
+      expect(
+        MockEngine.context.KeyringController.signTypedMessage,
+      ).toHaveBeenCalledWith(expectedArg, SignTypedDataVersion.V4);
       expect(value).toBe('signature');
     });
   });

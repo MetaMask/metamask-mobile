@@ -5,7 +5,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
   style={
     {
       "alignItems": "center",
-      "borderColor": "#BBC0C5",
+      "borderColor": "#bbc0c5",
       "borderRadius": 10,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -17,7 +17,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
   <View
     placeholderStyle={
       {
-        "backgroundColor": "#F2F4F6",
+        "backgroundColor": "#f2f4f6",
       }
     }
     useNativeDriver={true}
@@ -66,9 +66,21 @@ exports[`AccountInfoCard should match snapshot 1`] = `
           }
           width={40}
         >
-          <RNSVGGroup>
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
             <RNSVGRect
-              fill={4294711651}
+              fill={
+                {
+                  "payload": 4294711651,
+                  "type": 0,
+                }
+              }
               height={40}
               matrix={
                 [
@@ -90,7 +102,12 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4280576225}
+              fill={
+                {
+                  "payload": 4280576225,
+                  "type": 0,
+                }
+              }
               height={40}
               matrix={
                 [
@@ -112,7 +129,12 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4278407261}
+              fill={
+                {
+                  "payload": 4278407261,
+                  "type": 0,
+                }
+              }
               height={40}
               matrix={
                 [
@@ -160,7 +182,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               "backgroundColor": "#eee",
             },
             {
-              "backgroundColor": "#F2F4F6",
+              "backgroundColor": "#f2f4f6",
             },
           ]
         }
@@ -193,7 +215,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
         style={
           {
             "0": {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 16,
               "fontWeight": "600",
@@ -201,7 +223,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               "maxWidth": "45%",
             },
             "1": undefined,
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -218,14 +240,14 @@ exports[`AccountInfoCard should match snapshot 1`] = `
         style={
           {
             "0": {
-              "color": "#24272A",
+              "color": "#141618",
               "flexGrow": 1,
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 16,
               "fontWeight": "600",
             },
             "1": undefined,
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -246,13 +268,13 @@ exports[`AccountInfoCard should match snapshot 1`] = `
         {
           "0": {
             "alignSelf": "flex-start",
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "100",
           },
           "1": undefined,
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -263,9 +285,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
     >
       Balance:
        
-      0 INR
-       
-      (&lt; 0.00001 ETH)
+      &lt; 0.00001 ETH
     </Text>
   </View>
 </View>

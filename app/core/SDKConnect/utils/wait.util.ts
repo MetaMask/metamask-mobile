@@ -4,7 +4,8 @@ import RPCQueueManager from '../RPCQueueManager';
 import { SDKConnect } from '../SDKConnect';
 import DevLogger from './DevLogger';
 import { Connection } from '../Connection';
-import { isTest } from '../../../util/test/utils';
+import { isE2E } from '../../../util/test/utils';
+import { store } from '../../../../app/store/index';
 
 export const MAX_QUEUE_LOOP = Infinity;
 export const wait = (ms: number) =>
@@ -84,14 +85,14 @@ export const waitForKeychainUnlocked = async ({
   keyringController: KeyringController;
   context?: string;
 }) => {
+  // Disable during e2e tests otherwise Detox fails
+  if (isE2E) {
+    return true;
+  }
+
   let i = 1;
   if (!keyringController) {
     console.warn('Keyring controller not found');
-  }
-
-  // Disable during e2e tests otherwise Detox fails
-  if (isTest) {
-    return true;
   }
 
   let unlocked = keyringController.isUnlocked();
@@ -100,8 +101,8 @@ export const waitForKeychainUnlocked = async ({
   );
   while (!unlocked) {
     await wait(1000);
-    if (i % 60 === 0) {
-      console.warn(
+    if (i % 5 === 0) {
+      DevLogger.log(
         `SDKConnect [${context}] Waiting for keychain unlock... attempt ${i}`,
       );
     }
@@ -110,6 +111,38 @@ export const waitForKeychainUnlocked = async ({
   }
 
   return unlocked;
+};
+
+export const waitForUserLoggedIn = async ({
+  context,
+}: {
+  context?: string;
+}) => {
+  let i = 1;
+
+  // Disable during e2e tests otherwise Detox fails
+  if (isE2E) {
+    return true;
+  }
+
+  const state = store.getState();
+  let isLoggedIn = state.user.isLoggedIn ?? false;
+
+  DevLogger.log(
+    `wait:: waitForUserLoggedIn[${context}] isLoggedIn: ${isLoggedIn}`,
+  );
+  while (!isLoggedIn) {
+    await wait(1000);
+    if (i % 60 === 0) {
+      DevLogger.log(
+        `[wait.util] [${context}] Waiting for userLoggedIn... attempt ${i}`,
+      );
+    }
+    isLoggedIn = state.user.isLoggedIn ?? false;
+    i += 1;
+  }
+
+  return isLoggedIn;
 };
 
 export const waitForAndroidServiceBinding = async () => {

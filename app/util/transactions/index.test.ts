@@ -4,6 +4,8 @@ import { BN } from 'ethereumjs-util';
 /* eslint-disable-next-line import/no-namespace */
 import * as controllerUtilsModule from '@metamask/controller-utils';
 
+import { handleMethodData } from '../../util/transaction-controller';
+
 import { BNToHex } from '../number';
 import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
 import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
@@ -20,6 +22,21 @@ import {
   TOKEN_METHOD_TRANSFER_FROM,
   calculateEIP1559Times,
   parseTransactionLegacy,
+  getIsNativeTokenTransferred,
+  getIsSwapApproveOrSwapTransaction,
+  getIsSwapApproveTransaction,
+  getIsSwapTransaction,
+  INCREASE_ALLOWANCE_SIGNATURE,
+  TOKEN_METHOD_INCREASE_ALLOWANCE,
+  getTransactionActionKey,
+  generateApprovalData,
+  getFourByteSignature,
+  APPROVE_FUNCTION_SIGNATURE,
+  isApprovalTransaction,
+  SET_APPROVAL_FOR_ALL_SIGNATURE,
+  TOKEN_METHOD_SET_APPROVAL_FOR_ALL,
+  TOKEN_METHOD_APPROVE,
+  getTransactionReviewActionKey,
 } from '.';
 import buildUnserializedTransaction from './optimismTransaction';
 import Engine from '../../core/Engine';
@@ -30,7 +47,11 @@ jest.mock('@metamask/controller-utils', () => ({
   query: jest.fn(),
 }));
 jest.mock('../../core/Engine');
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ENGINE_MOCK = Engine as jest.MockedClass<any>;
+
+jest.mock('../../util/transaction-controller');
 
 ENGINE_MOCK.context = {
   TransactionController: {
@@ -116,6 +137,8 @@ describe('Transactions utils :: parseTransactionLegacy', () => {
     ticker: 'tBNB',
   };
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createTransactionState = (selectedAsset: any, transaction: any) => ({
     selectedAsset,
     transaction: {
@@ -275,20 +298,50 @@ describe('Transactions utils :: parseTransactionLegacy', () => {
 
 describe('Transactions utils :: getMethodData', () => {
   it('getMethodData', async () => {
+    const invalidData = '0x';
     const transferData =
       '0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001';
-    const contractData =
+    const deployData =
       '0x60a060405260046060527f48302e31000000000000000000000000000000000000000000000000000000006080526006805460008290527f48302e310000000000000000000000000000000000000000000000000000000882556100b5907ff652222313e28459528d920b65115c16c04f3efc82aaedc97be59f3f377c0d3f602060026001841615610100026000190190931692909204601f01919091048101905b8082111561017957600081556001016100a1565b505060405161094b38038061094b833981';
     const randomData = '0x987654321000000000';
     const transferFromData = '0x23b872dd0000000000000000000000000000';
-    const firstMethodData = await getMethodData(transferData);
-    const secondtMethodData = await getMethodData(contractData);
-    const thirdMethodData = await getMethodData(transferFromData);
-    const fourthMethodData = await getMethodData(randomData);
-    expect(firstMethodData.name).toEqual(TOKEN_METHOD_TRANSFER);
-    expect(secondtMethodData.name).toEqual(CONTRACT_METHOD_DEPLOY);
-    expect(thirdMethodData.name).toEqual(TOKEN_METHOD_TRANSFER_FROM);
-    expect(fourthMethodData).toEqual({});
+    const increaseAllowanceDataMock = `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000000000`;
+    const setApprovalForAllDataMock = `${SET_APPROVAL_FOR_ALL_SIGNATURE}0000000000000000000000000000`;
+    const approveDataMock = `${APPROVE_FUNCTION_SIGNATURE}000000000000000000000000`;
+    const invalidMethodData = await getMethodData(invalidData);
+    const transferMethodData = await getMethodData(transferData);
+    const deployMethodData = await getMethodData(deployData);
+    const transferFromMethodData = await getMethodData(transferFromData);
+    const randomMethodData = await getMethodData(randomData);
+    const approvalMethodData = await getMethodData(approveDataMock);
+    const increaseAllowanceMethodData = await getMethodData(
+      increaseAllowanceDataMock,
+    );
+    const setApprovalForAllMethodData = await getMethodData(
+      setApprovalForAllDataMock,
+    );
+    expect(invalidMethodData).toEqual({});
+    expect(transferMethodData.name).toEqual(TOKEN_METHOD_TRANSFER);
+    expect(deployMethodData.name).toEqual(CONTRACT_METHOD_DEPLOY);
+    expect(transferFromMethodData.name).toEqual(TOKEN_METHOD_TRANSFER_FROM);
+    expect(randomMethodData).toEqual({});
+    expect(approvalMethodData.name).toEqual(TOKEN_METHOD_APPROVE);
+    expect(increaseAllowanceMethodData.name).toEqual(
+      TOKEN_METHOD_INCREASE_ALLOWANCE,
+    );
+    expect(setApprovalForAllMethodData.name).toEqual(
+      TOKEN_METHOD_SET_APPROVAL_FOR_ALL,
+    );
+  });
+
+  it('calls handleMethodData with the correct data', async () => {
+    (handleMethodData as jest.Mock).mockResolvedValue({
+      parsedRegistryMethod: { name: TOKEN_METHOD_TRANSFER },
+    });
+    const transferData =
+      '0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a';
+    await getMethodData(transferData);
+    expect(handleMethodData).toHaveBeenCalledWith('0x98765432');
   });
 });
 
@@ -302,7 +355,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be "Sent Yourself Ether"', async () => {
     spyOnQueryMethod(undefined);
     const tx = {
-      transaction: {
+      txParams: {
         from: MOCK_ADDRESS1,
         to: MOCK_ADDRESS1,
       },
@@ -319,7 +372,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be labeled as "Sent Yourself UNI"', async () => {
     spyOnQueryMethod(undefined);
     const tx = {
-      transaction: {
+      txParams: {
         from: MOCK_ADDRESS1,
         to: MOCK_ADDRESS1,
       },
@@ -338,7 +391,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be labeled as "Sent Ether"', async () => {
     spyOnQueryMethod(undefined);
     const tx = {
-      transaction: {
+      txParams: {
         from: MOCK_ADDRESS1,
         to: MOCK_ADDRESS2,
       },
@@ -356,7 +409,7 @@ describe('Transactions utils :: getActionKey', () => {
     spyOnQueryMethod(undefined);
 
     const tx = {
-      transaction: {
+      txParams: {
         from: MOCK_ADDRESS1,
         to: MOCK_ADDRESS2,
       },
@@ -376,7 +429,7 @@ describe('Transactions utils :: getActionKey', () => {
     spyOnQueryMethod(undefined);
 
     const tx = {
-      transaction: {
+      txParams: {
         from: MOCK_ADDRESS1,
         to: MOCK_ADDRESS2,
       },
@@ -393,7 +446,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be labeled as "Received UNI"', async () => {
     spyOnQueryMethod(undefined);
     const tx = {
-      transaction: {
+      txParams: {
         from: MOCK_ADDRESS1,
         to: MOCK_ADDRESS2,
       },
@@ -412,7 +465,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be labeled as "Smart Contract Interaction" if the receiver is a smart contract', async () => {
     spyOnQueryMethod(UNI_ADDRESS);
     const tx = {
-      transaction: {
+      txParams: {
         to: UNI_ADDRESS,
       },
     };
@@ -428,7 +481,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be labeled as "Smart Contract Interaction" if the tx is to a smart contract', async () => {
     spyOnQueryMethod(UNI_ADDRESS);
     const tx = {
-      transaction: {
+      txParams: {
         to: UNI_ADDRESS,
       },
       toSmartContract: true,
@@ -445,7 +498,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be labeled as "Contract Deployment" if the tx has no receiver', async () => {
     spyOnQueryMethod(UNI_ADDRESS);
     const tx = {
-      transaction: {},
+      txParams: {},
       toSmartContract: true,
     };
     const result = await getActionKey(
@@ -461,7 +514,7 @@ describe('Transactions utils :: getActionKey', () => {
 describe('Transactions utils :: generateTxWithNewTokenAllowance', () => {
   const mockDecimal = 18;
   const mockTx = {
-    transaction: {
+    txParams: {
       from: MOCK_ADDRESS1,
       to: MOCK_ADDRESS3,
     },
@@ -530,6 +583,42 @@ describe('Transactions utils :: generateTxWithNewTokenAllowance', () => {
       '0x0000000000000000000000000000000000000000000000000000000000000001';
     const decodedHexValue = decodeAmount(newTx.data);
     expect(expectedHexValue).toBe(decodedHexValue);
+  });
+});
+
+describe('Transaction utils :: generateApprovalData', () => {
+  it('generates the correct data for a token increase allowance transaction', () => {
+    const increaseAllowanceDataMock = `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000000000`;
+    const data = generateApprovalData({
+      spender: MOCK_ADDRESS3,
+      value: '0x1',
+      data: increaseAllowanceDataMock,
+    });
+    expect(data).toBe(
+      '0x39509351000000000000000000000000b794f5ea0ba39494ce839613fffba742795792680000000000000000000000000000000000000000000000000000000000000001',
+    );
+  });
+  it('generates the correct data for a approve transaction with a value of 0', () => {
+    const data = generateApprovalData({
+      spender: MOCK_ADDRESS3,
+      value: '0x0',
+      data: '0x095ea7b3',
+    });
+    expect(data).toBe(
+      '0x095ea7b3000000000000000000000000b794f5ea0ba39494ce839613fffba742795792680000000000000000000000000000000000000000000000000000000000000000',
+    );
+  });
+
+  it('throws an error if the spender is not defined', () => {
+    expect(() => {
+      generateApprovalData({
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        spender: undefined as any,
+        value: '0x0',
+        data: '0x095ea7b3',
+      });
+    }).toThrow();
   });
 });
 
@@ -673,5 +762,370 @@ describe('Transactions utils :: buildUnserializedTransaction', () => {
       value: '0x9184e72a000',
       data: '0x00',
     });
+  });
+});
+
+const dappTxMeta = {
+  chainId: '0x1',
+  origin: 'pancakeswap.finance',
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: '0x5ae401dc0000000000000000000000000000000000000000000000000000000065e8dac400000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e404e45aaf000000000000000000000000b4fbf271143f4fbf7b91a5ded31805e42b2208d600000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f00000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000c5fe6ef47965741f6f7a4734bf784bf3ae3f245200000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000f666eed80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+    gas: '0x2e7b1',
+    nonce: '0xeb',
+    to: '0x9a489505a00ce272eaa5e07dba6491314cae3796',
+    value: '0x38d7ea4c68000',
+    maxFeePerGas: '0x59682f0a',
+    maxPriorityFeePerGas: '0x59682f00',
+  },
+};
+const sendEthTxMeta = {
+  chainId: '0x1',
+  origin: 'MetaMask Mobile',
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: undefined,
+    gas: '0x5208',
+    nonce: '0xf3',
+    to: '0xdc738206f559bdae106894a62876a119e470aee2',
+    value: '0x2386f26fc10000',
+    maxFeePerGas: '0x59682f0a',
+    maxPriorityFeePerGas: '0x59682f00',
+    estimatedBaseFee: '0x7',
+  },
+};
+const sendERC20TxMeta = {
+  chainId: '0x1',
+  origin: 'MetaMask Mobile',
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: '0xa9059cbb000000000000000000000000dc738206f559bdae106894a62876a119e470aee20000000000000000000000000000000000000000000000000000000005f5e100',
+    gas: '0x10a3e',
+    nonce: '0xf4',
+    to: '0x07865c6e87b9f70255377e024ace6630c1eaa37f',
+    value: '0x0',
+    maxFeePerGas: '0x59682f0b',
+    maxPriorityFeePerGas: '0x59682f00',
+    estimatedBaseFee: '0x8',
+  },
+};
+
+const swapFlowApproveERC20TxMeta = {
+  chainId: '0x1',
+  origin: process.env.MM_FOX_CODE,
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: '0x095ea7b3000000000000000000000000881d40237659c251811cec9c364ef91dc08d300c00000000000000000000000000000000000000000000000000000000000f4240',
+    gas: '0xdd87',
+    nonce: '0x3c',
+    to: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    value: '0x0',
+    maxFeePerGas: '0x19dd8c2510',
+    maxPriorityFeePerGas: '0x9e3311',
+    estimatedBaseFee: '0xf36aa15e1',
+  },
+};
+const swapFlowSwapERC20TxMeta = {
+  chainId: '0x1',
+  origin: process.env.MM_FOX_CODE,
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: '0x5f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f424000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e3cb0338a1e400000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000020d440d83ed000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e5cdc5e9b7a80000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b5dc1003926a168c11a816e10c13977f75f488bfffe88e4ab4991fe00000000000000000000000000000000000000000000000000bd',
+    gas: '0x3dad5',
+    nonce: '0x3e',
+    to: '0x881d40237659c251811cec9c364ef91dc08d300c',
+    value: '0x0',
+    maxFeePerGas: '0x1bbbdf536e',
+    maxPriorityFeePerGas: '0x120a5d1',
+    estimatedBaseFee: '0x104fbb752f',
+  },
+};
+const swapFlowSwapEthTxMeta = {
+  chainId: '0x1',
+  origin: process.env.MM_FOX_CODE,
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: '0x5f57552900000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002386f26fc1000000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d69630000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000023375dc15608000000000000000000000000000000000000000000000000000000000002477ac5000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000004f94ae6af800000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c80502b1c500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000023375dc15608000000000000000000000000000000000000000000000000000000000002477ac40000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000180000000000000003b6d0340b4e16d0168e52d35cacd2c6185b44281ec28c9dcab4991fe000000000000000000000000000000000000000000000000001e',
+    gas: '0x333c5',
+    nonce: '0x3c',
+    to: '0x881d40237659c251811cec9c364ef91dc08d300c',
+    value: '0x2386f26fc10000',
+    maxFeePerGas: '0x1b6bf7e1c3',
+    maxPriorityFeePerGas: '0x200a3b7',
+    estimatedBaseFee: '0x1020371570',
+  },
+};
+
+describe('Transactions utils :: getIsSwapApproveOrSwapTransaction', () => {
+  it('returns true if the transaction is an approve tx in the swap flow for ERC20 from token', () => {
+    const result = getIsSwapApproveOrSwapTransaction(
+      swapFlowApproveERC20TxMeta.transaction.data,
+      swapFlowApproveERC20TxMeta.origin,
+      swapFlowApproveERC20TxMeta.transaction.to,
+      swapFlowApproveERC20TxMeta.chainId,
+    );
+    expect(result).toBe(true);
+  });
+  it('returns true if the transaction is a swap tx in the swap flow for ERC20 from token', () => {
+    const result = getIsSwapApproveOrSwapTransaction(
+      swapFlowSwapERC20TxMeta.transaction.data,
+      swapFlowSwapERC20TxMeta.origin,
+      swapFlowSwapERC20TxMeta.transaction.to,
+      swapFlowSwapERC20TxMeta.chainId,
+    );
+    expect(result).toBe(true);
+  });
+  it('returns true if the transaction is a swap tx in the swap flow for ETH from token', () => {
+    const result = getIsSwapApproveOrSwapTransaction(
+      swapFlowSwapEthTxMeta.transaction.data,
+      swapFlowSwapEthTxMeta.origin,
+      swapFlowSwapEthTxMeta.transaction.to,
+      swapFlowSwapEthTxMeta.chainId,
+    );
+    expect(result).toBe(true);
+  });
+  it('returns false if the transaction is a send ERC20 tx', () => {
+    const result = getIsSwapApproveOrSwapTransaction(
+      sendERC20TxMeta.transaction.data,
+      sendERC20TxMeta.origin,
+      sendERC20TxMeta.transaction.to,
+      sendERC20TxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a send ETH tx', () => {
+    const result = getIsSwapApproveOrSwapTransaction(
+      sendEthTxMeta.transaction.data,
+      sendEthTxMeta.origin,
+      sendEthTxMeta.transaction.to,
+      sendEthTxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a dapp tx', () => {
+    const result = getIsSwapApproveOrSwapTransaction(
+      dappTxMeta.transaction.data,
+      dappTxMeta.origin,
+      dappTxMeta.transaction.to,
+      dappTxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getIsSwapApproveTransaction', () => {
+  it('returns true if the transaction is an approve ERC20 tx in the swap flow', () => {
+    const result = getIsSwapApproveTransaction(
+      swapFlowApproveERC20TxMeta.transaction.data,
+      swapFlowApproveERC20TxMeta.origin,
+      swapFlowApproveERC20TxMeta.transaction.to,
+      swapFlowApproveERC20TxMeta.chainId,
+    );
+    expect(result).toBe(true);
+  });
+  it('returns false if the transaction is a swap ERC20 tx in the swap flow', () => {
+    const result = getIsSwapApproveTransaction(
+      swapFlowSwapERC20TxMeta.transaction.data,
+      swapFlowSwapERC20TxMeta.origin,
+      swapFlowSwapERC20TxMeta.transaction.to,
+      swapFlowSwapERC20TxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a send ETH tx', () => {
+    const result = getIsSwapApproveTransaction(
+      sendEthTxMeta.transaction.data,
+      sendEthTxMeta.origin,
+      sendEthTxMeta.transaction.to,
+      sendEthTxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a send ERC20 tx', () => {
+    const result = getIsSwapApproveTransaction(
+      sendERC20TxMeta.transaction.data,
+      sendERC20TxMeta.origin,
+      sendERC20TxMeta.transaction.to,
+      sendERC20TxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a dapp tx', () => {
+    const result = getIsSwapApproveTransaction(
+      dappTxMeta.transaction.data,
+      dappTxMeta.origin,
+      dappTxMeta.transaction.to,
+      dappTxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getIsSwapTransaction', () => {
+  it('returns false if the transaction is an approve ERC20 tx in the swap flow', () => {
+    const result = getIsSwapTransaction(
+      swapFlowApproveERC20TxMeta.transaction.data,
+      swapFlowApproveERC20TxMeta.origin,
+      swapFlowApproveERC20TxMeta.transaction.to,
+      swapFlowApproveERC20TxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns true if the transaction is a swap ERC20 tx in the swap flow', () => {
+    const result = getIsSwapTransaction(
+      swapFlowSwapERC20TxMeta.transaction.data,
+      swapFlowSwapERC20TxMeta.origin,
+      swapFlowSwapERC20TxMeta.transaction.to,
+      swapFlowSwapERC20TxMeta.chainId,
+    );
+    expect(result).toBe(true);
+  });
+  it('returns true if the transaction is a swap ETH tx in the swap flow', () => {
+    const result = getIsSwapTransaction(
+      swapFlowSwapEthTxMeta.transaction.data,
+      swapFlowSwapEthTxMeta.origin,
+      swapFlowSwapEthTxMeta.transaction.to,
+      swapFlowSwapEthTxMeta.chainId,
+    );
+    expect(result).toBe(true);
+  });
+  it('returns false if the transaction is a send tx', () => {
+    const result = getIsSwapTransaction(
+      sendEthTxMeta.transaction.data,
+      sendEthTxMeta.origin,
+      sendEthTxMeta.transaction.to,
+      sendEthTxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a dapp tx', () => {
+    const result = getIsSwapTransaction(
+      dappTxMeta.transaction.data,
+      dappTxMeta.origin,
+      dappTxMeta.transaction.to,
+      dappTxMeta.chainId,
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getIsNativeTokenTransferred', () => {
+  it('should return true if the transaction does not have a value of 0x0', () => {
+    const tx = {
+      nonce: '0x0',
+      gasPrice: `0x${new BN('100').toString(16)}`,
+      gas: `0x${new BN('21000').toString(16)}`,
+      to: '0x0000000000000000000000000000000000000000',
+      value: `0x${new BN('10000000000000').toString(16)}`,
+      data: '0x0',
+    };
+    const result = getIsNativeTokenTransferred(tx);
+    expect(result).toBe(true);
+  });
+  it('should return false if the transaction has a value of 0x0', () => {
+    const tx = {
+      nonce: '0x0',
+      gasPrice: `0x${new BN('100').toString(16)}`,
+      gas: `0x${new BN('21000').toString(16)}`,
+      to: '0x0000000000000000000000000000000000000000',
+      value: `0x0`,
+      data: '0x0',
+    };
+    const result = getIsNativeTokenTransferred(tx);
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getTransactionActionKey', () => {
+  it('returns increase allowance method when receiving increase allowance signature', async () => {
+    const transaction = {
+      txParams: {
+        data: `${INCREASE_ALLOWANCE_SIGNATURE}000000000000000000000000000000000000000000000`,
+        to: '0xAddress',
+      },
+    };
+    const chainId = '1';
+
+    const actionKey = await getTransactionActionKey(transaction, chainId);
+    expect(actionKey).toBe(TOKEN_METHOD_INCREASE_ALLOWANCE);
+  });
+});
+
+describe('Transactions utils :: getFourByteSignature', () => {
+  const testCases = [
+    {
+      data: '0xa9059cbb0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5',
+      expected: '0xa9059cbb',
+    },
+    {
+      data: undefined,
+      expected: undefined,
+    },
+    {
+      data: '',
+      expected: '',
+    },
+  ];
+
+  it.each(testCases)(
+    `extracts the four-byte signature from transaction data`,
+    ({ data, expected }) => {
+      expect(getFourByteSignature(data)).toBe(expected);
+    },
+  );
+});
+
+describe('Transactions utils :: isApprovalTransaction', () => {
+  const testCases: {
+    data: string;
+    expectedResult: boolean;
+    method: string;
+  }[] = [
+    {
+      data: `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5`,
+      expectedResult: true,
+      method: 'increaseAllowance',
+    },
+    {
+      data: `${APPROVE_FUNCTION_SIGNATURE}0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5`,
+      expectedResult: true,
+      method: 'approve',
+    },
+    {
+      data: `${SET_APPROVAL_FOR_ALL_SIGNATURE}0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5`,
+      expectedResult: true,
+      method: 'decreaseAllowance',
+    },
+    {
+      data: '0x0a19b14a0000000000000000000000002f318C334780961FB129D2a6c30D076E7C9C2fa5',
+      expectedResult: false,
+      method: 'otherTransactionType',
+    },
+  ];
+
+  it.each(testCases)(
+    'returns $expectedResult for transaction data: $method',
+    ({ data, expectedResult }) => {
+      expect(isApprovalTransaction(data)).toBe(expectedResult);
+    },
+  );
+});
+
+describe('Transactions utils :: getTransactionReviewActionKey', () => {
+  const transaction = { to: '0xContractAddress' };
+  const chainId = '1';
+  it('returns `Unknown Method` review action key when transaction action key exists', async () => {
+    const expectedReviewActionKey = 'Unknown Method';
+    const result = await getTransactionReviewActionKey(transaction, chainId);
+    expect(result).toEqual(expectedReviewActionKey);
+  });
+
+  it('returns correct review action key', async () => {
+    const expectedReviewActionKey = 'Increase Allowance';
+    const result = await getTransactionReviewActionKey(
+      { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE },
+      chainId,
+    );
+    expect(result).toEqual(expectedReviewActionKey);
   });
 });

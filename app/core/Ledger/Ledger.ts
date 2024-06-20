@@ -5,30 +5,29 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../Engine';
 
 /**
- * Add LedgerKeyring.
+ * Perform an operation with the Ledger keyring.
  *
- * @returns The Ledger Keyring
- */
-export const addLedgerKeyring = async (): Promise<LedgerKeyring> => {
-  const keyringController = Engine.context.KeyringController;
-  return (await keyringController.addNewKeyring(
-    ExtendedKeyringTypes.ledger,
-  )) as LedgerKeyring;
-};
-
-/**
- * Retrieve the existing LedgerKeyring or create a new one.
+ * If no Ledger keyring is found, one is created.
  *
+ * Note that the `operation` function should only be used for interactions with the ledger keyring.
+ * If you call KeyringController methods within this function, it could result in a deadlock.
+ *
+ * @param operation - The keyring operation to perform.
  * @returns The stored Ledger Keyring
  */
-export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
+export const withLedgerKeyring = async <CallbackResult = void>(
+  operation: (keyring: LedgerKeyring) => Promise<CallbackResult>,
+): Promise<CallbackResult> => {
   const keyringController = Engine.context.KeyringController;
-  // There should only be one ledger keyring.
-  const keyring = keyringController.getKeyringsByType(
-    ExtendedKeyringTypes.ledger,
+  return await keyringController.withKeyring(
+    { type: ExtendedKeyringTypes.ledger },
+    // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
+    operation,
+    // TODO: Refactor this to stop creating the keyring on-demand
+    // Instead create it only in response to an explicit user action, and do
+    // not allow Ledger interactions until after that has been done.
+    { createIfMissing: true },
   );
-
-  return keyring.length ? keyring[0] : await addLedgerKeyring();
 };
 
 /**
@@ -42,10 +41,16 @@ export const connectLedgerHardware = async (
   transport: BleTransport,
   deviceId: string,
 ): Promise<string> => {
-  const keyring = await getLedgerKeyring();
-  keyring.setTransport(transport as unknown as any, deviceId);
-  const { appName } = await keyring.getAppAndVersion();
-  return appName;
+  const appAndVersion = await withLedgerKeyring(
+    async (keyring: LedgerKeyring) => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      keyring.setTransport(transport as unknown as any, deviceId);
+      return await keyring.getAppAndVersion();
+    },
+  );
+
+  return appAndVersion.appName;
 };
 
 /**
@@ -59,14 +64,12 @@ export const unlockLedgerDefaultAccount = async (
   address: string;
   balance: string;
 }> => {
-  const keyringController = Engine.context.KeyringController;
-
-  const keyring = await getLedgerKeyring();
-
-  if (isAccountImportReq) {
-    await keyringController.addNewAccountForKeyring(keyring);
-  }
-  const address = await keyring.getDefaultAccount();
+  const address = await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    if (isAccountImportReq) {
+      await keyring.addAccounts(1);
+    }
+    return await keyring.getDefaultAccount();
+  });
 
   return {
     address,
@@ -78,29 +81,27 @@ export const unlockLedgerDefaultAccount = async (
  * Automatically opens the Ethereum app on the Ledger device.
  */
 export const openEthereumAppOnLedger = async (): Promise<void> => {
-  const keyring = await getLedgerKeyring();
-  await keyring.openEthApp();
+  await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    await keyring.openEthApp();
+  });
 };
 
 /**
  * Automatically closes the current app on the Ledger device.
  */
 export const closeRunningAppOnLedger = async (): Promise<void> => {
-  const keyring = await getLedgerKeyring();
-  await keyring.quitApp();
+  await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    await keyring.quitApp();
+  });
 };
 
 /**
  * Forgets the ledger keyring's previous device specific state.
  */
 export const forgetLedger = async (): Promise<void> => {
-  const { KeyringController, PreferencesController } = Engine.context;
-
-  const keyring = await getLedgerKeyring();
-  keyring.forgetDevice();
-
-  await KeyringController.persistAllKeyrings();
-  PreferencesController.updateIdentities(await KeyringController.getAccounts());
+  await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    await keyring.forgetDevice();
+  });
 };
 
 /**
@@ -108,10 +109,8 @@ export const forgetLedger = async (): Promise<void> => {
  *
  * @returns The DeviceId
  */
-export const getDeviceId = async (): Promise<string> => {
-  const ledgerKeyring = await getLedgerKeyring();
-  return ledgerKeyring.deviceId;
-};
+export const getDeviceId = async (): Promise<string> =>
+  await withLedgerKeyring(async (keyring: LedgerKeyring) => keyring.deviceId);
 
 /**
  * signTypedMessage from Ledger Keyring
@@ -125,14 +124,15 @@ export const ledgerSignTypedMessage = async (
   },
   version: SignTypedDataVersion,
 ): Promise<string> => {
-  await getLedgerKeyring();
+  await withLedgerKeyring(async (_keyring: LedgerKeyring) => {
+    // This is just to trigger the keyring to get created if it doesn't exist already
+  });
   const keyringController = Engine.context.KeyringController;
   return await keyringController.signTypedMessage(
     {
       from: messageParams.from,
-      data: messageParams.data as
-        | Record<string, unknown>
-        | Record<string, unknown>[],
+      // @ts-expect-error TODO: Fix types
+      data: messageParams.data,
     },
     version,
   );

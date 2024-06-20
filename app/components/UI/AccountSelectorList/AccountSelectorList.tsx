@@ -46,10 +46,16 @@ const AccountSelectorList = ({
   isAutoScrollEnabled = true,
   ...props
 }: AccountSelectorListProps) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountListRef = useRef<any>(null);
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -154,7 +160,12 @@ const AccountSelectorList = ({
         : CellVariant.Select;
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
-        isSelectedAccount = selectedAddresses.includes(address);
+        const lowercasedSelectedAddresses = selectedAddresses.map(
+          (selectedAddress: string) => selectedAddress.toLowerCase(),
+        );
+        isSelectedAccount = lowercasedSelectedAddresses.includes(
+          address.toLowerCase(),
+        );
       }
 
       const cellStyle = {

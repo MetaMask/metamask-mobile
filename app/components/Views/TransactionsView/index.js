@@ -28,13 +28,13 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
+import { selectPendingSmartTransactionsBySender } from '../../../selectors/smartTransactionsController';
+import { selectNonReplacedTransactions } from '../../../selectors/transactionController';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -66,7 +66,6 @@ const TransactionsView = ({
       const addedAccountTime = identities[selectedAddress]?.importTime;
 
       const submittedTxs = [];
-      const newPendingTxs = [];
       const confirmedTxs = [];
       const submittedNonces = [];
 
@@ -97,11 +96,9 @@ const TransactionsView = ({
           case TX_SUBMITTED:
           case TX_SIGNED:
           case TX_UNAPPROVED:
+          case TX_PENDING:
             submittedTxs.push(tx);
             return false;
-          case TX_PENDING:
-            newPendingTxs.push(tx);
-            break;
           case TX_CONFIRMED:
             confirmedTxs.push(tx);
             break;
@@ -110,8 +107,8 @@ const TransactionsView = ({
         return filter;
       });
 
-      const submittedTxsFiltered = submittedTxs.filter(({ transaction }) => {
-        const { from, nonce } = transaction;
+      const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
+        const { from, nonce } = txParams;
         if (!toLowerCaseEquals(from, selectedAddress)) {
           return false;
         }
@@ -119,9 +116,9 @@ const TransactionsView = ({
         const alreadyConfirmed = confirmedTxs.find(
           (tx) =>
             toLowerCaseEquals(
-              safeToChecksumAddress(tx.transaction.from),
+              safeToChecksumAddress(tx.txParams.from),
               selectedAddress,
-            ) && tx.transaction.nonce === nonce,
+            ) && tx.txParams.nonce === nonce,
         );
         if (alreadyConfirmed) {
           return false;
@@ -220,16 +217,32 @@ TransactionsView.propTypes = {
   chainId: PropTypes.string,
 };
 
-const mapStateToProps = (state) => ({
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  tokens: selectTokens(state),
-  selectedAddress: selectSelectedAddress(state),
-  identities: selectIdentities(state),
-  transactions: state.engine.backgroundState.TransactionController.transactions,
-  networkType: selectProviderType(state),
-  chainId: selectChainId(state),
-});
+const mapStateToProps = (state) => {
+  const selectedAddress =
+    selectSelectedInternalAccountChecksummedAddress(state);
+  const chainId = selectChainId(state);
+
+  // Remove duplicate confirmed STX
+  // for replaced txs, only hide the ones that are confirmed
+  const nonReplacedTransactions = selectNonReplacedTransactions(state);
+
+  const pendingSmartTransactions =
+    selectPendingSmartTransactionsBySender(state);
+
+  return {
+    conversionRate: selectConversionRate(state),
+    currentCurrency: selectCurrentCurrency(state),
+    tokens: selectTokens(state),
+    selectedAddress,
+    identities: selectIdentities(state),
+    transactions: [
+      ...nonReplacedTransactions,
+      ...pendingSmartTransactions,
+    ].sort((a, b) => b.time - a.time),
+    networkType: selectProviderType(state),
+    chainId,
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),

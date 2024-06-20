@@ -16,6 +16,8 @@ jest.mock('../../store', () => ({
 
 jest.mock('../Engine', () => {
   // Do not need to mock entire Engine. Only need subset of data for testing purposes.
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let instance: any;
   return {
     get context() {
@@ -52,6 +54,7 @@ jest.mock('../Engine', () => {
           TokenBalancesController: { subscribe: jest.fn() },
           TokenRatesController: { subscribe: jest.fn() },
           TransactionController: { subscribe: jest.fn() },
+          SmartTransactionsController: { subscribe: jest.fn() },
           SwapsController: { subscribe: jest.fn() },
           TokenListController: { subscribe: jest.fn() },
           CurrencyRateController: { subscribe: jest.fn() },

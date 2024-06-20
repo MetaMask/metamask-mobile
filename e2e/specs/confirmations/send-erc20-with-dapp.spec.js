@@ -7,14 +7,17 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
+import {
+  SMART_CONTRACTS,
+  contractConfiguration,
+} from '../../../app/util/test/smart-contracts';
+import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
+
 import TabBarComponent from '../../pages/TabBarComponent';
-import { TestDApp } from '../../pages/TestDApp';
-import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import enContent from '../../../locales/languages/en.json';
+import TestDApp from '../../pages/Browser/TestDApp';
+import Assertions from '../../utils/Assertions';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
-const SENT_TOKENS_MESSAGE_TEXT = enContent.transactions.sent_tokens;
-const WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID = 'transferTokens';
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {
@@ -42,12 +45,13 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
 
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
-
-        // Transfer ERC20 tokens
-        await TestDApp.tapButtonWithContract({
-          buttonId: WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID,
+        await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });
+        await TestHelpers.delay(3000);
+
+        // Transfer ERC20 tokens
+        await TestDApp.tapERC20TransferButton();
         await TestHelpers.delay(3000);
 
         // Tap confirm button
@@ -57,8 +61,10 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TabBarComponent.tapActivity();
 
         // Assert "Sent Tokens" transaction is displayed
-        await TestHelpers.checkIfElementByTextIsVisible(
-          SENT_TOKENS_MESSAGE_TEXT,
+        await Assertions.checkIfTextIsDisplayed(
+          ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(
+            contractConfiguration[HST_CONTRACT].tokenName,
+          ),
         );
       },
     );

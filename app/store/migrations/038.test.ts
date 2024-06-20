@@ -2,23 +2,18 @@ import migration from './038';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
-import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
 
 const oldState = {
   engine: {
     backgroundState: {
-      NetworkController: {
-        isCustomNetwork: true,
-        networkConfigurations: {},
-        networkDetails: { EIPS: { '1559': true } },
-        networkStatus: 'available',
-        selectedNetworkClientId: 'linea-goerli',
-        providerConfig: {
-          chainId: CHAIN_IDS.LINEA_GOERLI,
-          rpcPrefs: { blockExplorerUrl: 'https://explorer.goerli.linea.build' },
-          ticker: 'LineaETH',
-          type: 'linea-goerli',
-        },
+      CurrencyRateController: {
+        conversionDate: 1684232393.997,
+        conversionRate: 1815.41,
+        nativeCurrency: 'ETH',
+        currentCurrency: 'usd',
+        pendingCurrentCurrency: null,
+        pendingNativeCurrency: null,
+        usdConversionRate: 1900,
       },
     },
   },
@@ -27,17 +22,14 @@ const oldState = {
 const expectedNewState = {
   engine: {
     backgroundState: {
-      NetworkController: {
-        isCustomNetwork: true,
-        networkConfigurations: {},
-        networkDetails: { EIPS: { '1559': true } },
-        networkStatus: 'available',
-        selectedNetworkClientId: 'linea-sepolia',
-        providerConfig: {
-          chainId: CHAIN_IDS.LINEA_SEPOLIA,
-          ticker: 'LineaETH',
-          type: 'linea-sepolia',
-          rpcPrefs: { blockExplorerUrl: 'https://sepolia.lineascan.build' },
+      CurrencyRateController: {
+        currentCurrency: 'usd',
+        currencyRates: {
+          ETH: {
+            conversionDate: 1684232393.997,
+            conversionRate: 1815.41,
+            usdConversionRate: 1900,
+          },
         },
       },
     },
@@ -60,7 +52,8 @@ describe('Migration #38', () => {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 38: Invalid engine state error: 'object'",
+      errorMessage:
+        "FATAL ERROR: Migration 38: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -70,32 +63,20 @@ describe('Migration #38', () => {
         },
       }),
       errorMessage:
-        "Migration 38: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 38: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            NetworkController: null,
+            CurrencyRateController: null,
           },
         },
       }),
       errorMessage:
-        "Migration 38: Invalid NetworkController state error: 'object'",
-      scenario: 'NetworkController state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: { providerConfig: { chainId: null } },
-          },
-        },
-      }),
-      errorMessage:
-        "Migration 38: NetworkController providerConfig chainId not found: 'null'",
-      scenario: 'chainId is invalid',
+        "Migration 38: Invalid CurrencyRateController state error: 'null'",
+      scenario: 'CurrencyRateController state is invalid',
     },
   ];
 
@@ -111,7 +92,7 @@ describe('Migration #38', () => {
     });
   }
 
-  it('All states changing as expected', async () => {
+  it('must change state property structure of currency rate controller state', async () => {
     const newState = await migration(oldState);
     expect(newState).toStrictEqual(expectedNewState);
   });

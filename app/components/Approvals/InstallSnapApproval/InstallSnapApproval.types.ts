@@ -1,5 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 interface InstallSnapFlowProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   approvalRequest: any;
   snapName: string;
   onConfirm: () => void;

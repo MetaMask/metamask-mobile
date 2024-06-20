@@ -12,8 +12,8 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
   secondaryText="0x2990079bcdEe240329a520d2444386FC119da21a"
   style={
     {
-      "backgroundColor": "#FFFFFF",
-      "borderColor": "#BBC0C5",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#bbc0c5",
       "borderRadius": 4,
       "borderWidth": 1,
       "padding": 16,
@@ -34,7 +34,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "borderRadius": 16,
           "height": 32,
           "marginRight": 16,
@@ -80,9 +80,21 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
           }
           width={32}
         >
-          <RNSVGGroup>
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
             <RNSVGRect
-              fill={4294034178}
+              fill={
+                {
+                  "payload": 4294034178,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
                 [
@@ -104,7 +116,12 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4294711613}
+              fill={
+                {
+                  "payload": 4294711613,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
                 [
@@ -126,7 +143,12 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4294745088}
+              fill={
+                {
+                  "payload": 4294745088,
+                  "type": 0,
+                }
+              }
               height={32}
               matrix={
                 [
@@ -164,7 +186,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
             "fontWeight": "400",
@@ -181,7 +203,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#535A61",
+            "color": "#6a737d",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -197,7 +219,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#535A61",
+            "color": "#6a737d",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -211,8 +233,8 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#BBC0C5",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bbc0c5",
             "borderRadius": 10,
             "borderWidth": 1,
             "height": 24,
@@ -226,7 +248,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -249,7 +271,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
   style={
     {
       "alignItems": "flex-start",
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "borderRadius": 4,
       "opacity": 1,
       "padding": 16,
@@ -285,8 +307,8 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#24272A",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#141618",
             "borderRadius": 4,
             "borderWidth": 2,
             "height": 20,
@@ -316,7 +338,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 16,
             "height": 32,
             "marginRight": 16,
@@ -362,9 +384,21 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
             }
             width={32}
           >
-            <RNSVGGroup>
+            <RNSVGGroup
+              fill={
+                {
+                  "payload": 4278190080,
+                  "type": 0,
+                }
+              }
+            >
               <RNSVGRect
-                fill={4294034178}
+                fill={
+                  {
+                    "payload": 4294034178,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
@@ -386,7 +420,12 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294711613}
+                fill={
+                  {
+                    "payload": 4294711613,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
@@ -408,7 +447,12 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294745088}
+                fill={
+                  {
+                    "payload": 4294745088,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
@@ -446,7 +490,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
               "fontWeight": "400",
@@ -463,7 +507,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#535A61",
+              "color": "#6a737d",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -479,7 +523,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#535A61",
+              "color": "#6a737d",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -493,8 +537,8 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#BBC0C5",
+              "backgroundColor": "#ffffff",
+              "borderColor": "#bbc0c5",
               "borderRadius": 10,
               "borderWidth": 1,
               "height": 24,
@@ -508,7 +552,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -531,7 +575,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
   disabled={false}
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "borderRadius": 4,
       "opacity": 1,
       "padding": 16,
@@ -561,7 +605,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 16,
             "height": 32,
             "marginRight": 16,
@@ -607,9 +651,21 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
             }
             width={32}
           >
-            <RNSVGGroup>
+            <RNSVGGroup
+              fill={
+                {
+                  "payload": 4278190080,
+                  "type": 0,
+                }
+              }
+            >
               <RNSVGRect
-                fill={4294034178}
+                fill={
+                  {
+                    "payload": 4294034178,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
@@ -631,7 +687,12 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294711613}
+                fill={
+                  {
+                    "payload": 4294711613,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
@@ -653,7 +714,12 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294745088}
+                fill={
+                  {
+                    "payload": 4294745088,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
@@ -691,7 +757,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
               "fontWeight": "400",
@@ -708,7 +774,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#535A61",
+              "color": "#6a737d",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -724,7 +790,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#535A61",
+              "color": "#6a737d",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -738,8 +804,8 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#BBC0C5",
+              "backgroundColor": "#ffffff",
+              "borderColor": "#bbc0c5",
               "borderRadius": 10,
               "borderWidth": 1,
               "height": 24,
@@ -753,7 +819,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",

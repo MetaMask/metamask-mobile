@@ -14,14 +14,14 @@ const MAKER_ADDRESS = '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2';
 
 describe('Activity utils :: isFromOrToSelectedAddress', () => {
   const tx = {
-    transaction: {
+    txParams: {
       from: TEST_ADDRESS_ONE,
       to: TEST_ADDRESS_TWO,
     },
   };
   it('should return true if the transaction is from the selected address', () => {
     const {
-      transaction: { from, to },
+      txParams: { from, to },
     } = tx;
     const selectedAddress = TEST_ADDRESS_ONE;
     const result = isFromOrToSelectedAddress(from, to, selectedAddress);
@@ -29,7 +29,7 @@ describe('Activity utils :: isFromOrToSelectedAddress', () => {
   });
   it('should return true if the transaction is to the selected address', () => {
     const {
-      transaction: { from, to },
+      txParams: { from, to },
     } = tx;
     const selectedAddress = TEST_ADDRESS_TWO;
     const result = isFromOrToSelectedAddress(from, to, selectedAddress);
@@ -37,7 +37,7 @@ describe('Activity utils :: isFromOrToSelectedAddress', () => {
   });
   it('should return false if the transaction is not from nor to the selected address', () => {
     const {
-      transaction: { from, to },
+      txParams: { from, to },
     } = tx;
     const selectedAddress = TEST_ADDRESS_THREE;
     const result = isFromOrToSelectedAddress(from, to, selectedAddress);
@@ -45,7 +45,7 @@ describe('Activity utils :: isFromOrToSelectedAddress', () => {
   });
   it('should return false if no address is provided', () => {
     const {
-      transaction: { from, to },
+      txParams: { from, to },
     } = tx;
     const selectedAddress = '';
     const result = isFromOrToSelectedAddress(from, to, selectedAddress);
@@ -103,13 +103,15 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
     const transaction = {
       chainId,
       status: TX_SUBMITTED,
-      transaction: {
+      txParams: {
         from: TEST_ADDRESS_ONE,
         to: TEST_ADDRESS_TWO,
       },
       isTransfer: false,
       transferInformation: undefined,
     };
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tokens: any[] = [];
 
     const result = filterByAddressAndNetwork(
@@ -126,7 +128,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
     const transaction = {
       chainId,
       status: TX_SUBMITTED,
-      transaction: {
+      txParams: {
         from: TEST_ADDRESS_ONE,
         to: TEST_ADDRESS_TWO,
       },
@@ -151,7 +153,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
     const transaction = {
       chainId,
       status: TX_SUBMITTED,
-      transaction: {
+      txParams: {
         from: TEST_ADDRESS_ONE,
         to: TEST_ADDRESS_TWO,
       },
@@ -174,7 +176,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
     const transaction = {
       chainId: '4',
       status: TX_SUBMITTED,
-      transaction: {
+      txParams: {
         from: TEST_ADDRESS_ONE,
         to: TEST_ADDRESS_TWO,
       },
@@ -197,7 +199,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
     const transaction = {
       chainId: '4',
       status: TX_SUBMITTED,
-      transaction: {
+      txParams: {
         from: TEST_ADDRESS_ONE,
         to: TEST_ADDRESS_TWO,
       },

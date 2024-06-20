@@ -92,7 +92,7 @@ class FixtureBuilder {
                   decimals: 18,
                   name: 'Synthetix Network Token',
                   iconUrl:
-                    'https://static.metafi.codefi.network/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
+                    'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
                   type: 'erc20',
                   aggregators: [
                     'Aave',
@@ -173,7 +173,7 @@ class FixtureBuilder {
               networkConfigurations: {
                 networkId1: {
                   rpcUrl: `http://localhost:${getGanachePort()}`,
-                  chainId: '1337',
+                  chainId: '1338',
                   ticker: 'ETH',
                   nickname: 'Localhost',
                 },
@@ -200,6 +200,33 @@ class FixtureBuilder {
               whitelist: [],
               hotlistLastFetched: 1684231917,
               stalelistLastFetched: 1684231917,
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  1: {
+                    address: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+                    id: '1',
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    options: {},
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: 1,
+              },
             },
             PreferencesController: {
               featureFlags: {},
@@ -261,6 +288,7 @@ class FixtureBuilder {
                   '0xfa2': true,
                   '0xaa36a7': true,
                   '0xe704': true,
+                  '0xe705': true,
                   '0xe708': true,
                   '0x504': true,
                   '0x507': true,
@@ -347,6 +375,7 @@ class FixtureBuilder {
               estimatedGasFeeTimeBounds: {},
               gasEstimateType: 'none',
               gasFeeEstimatesByChainId: {},
+              nonRPCGasFeeApisDisabled: false,
             },
             TokenDetectionController: {},
             NftDetectionController: {},
@@ -535,7 +564,7 @@ class FixtureBuilder {
             },
             {
               active: true,
-              chainId: 1337,
+              chainId: 1338,
               chainName: 'Localhost',
               shortName: 'Localhost',
               nativeTokenSupported: true,
@@ -620,6 +649,17 @@ class FixtureBuilder {
     return this;
   }
 
+  withAddressBookController(data) {
+    merge(
+      this.fixture.state.engine.backgroundState.AddressBookController
+        ? this.fixture.state.engine.backgroundState.AddressBookController
+        : (this.fixture.state.engine.backgroundState.AddressBookController =
+            {}),
+      data,
+    );
+    return this;
+  }
+
   /**
    * Connects the PermissionController to a test dapp with specific permissions and origins.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
@@ -637,12 +677,7 @@ class FixtureBuilder {
               caveats: [
                 {
                   type: 'restrictReturnedAccounts',
-                  value: [
-                    {
-                      address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
-                      lastUsed: 1692603404804,
-                    },
-                  ],
+                  value: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
                 },
               ],
               date: 1664388714636,
@@ -671,7 +706,7 @@ class FixtureBuilder {
       isCustomNetwork: true,
       providerConfig: {
         type: 'rpc',
-        chainId: '0x539',
+        chainId: '0x53a',
         rpcUrl: `http://localhost:${getGanachePort()}`,
         nickname: 'Localhost',
         ticker: 'ETH',

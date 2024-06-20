@@ -5,11 +5,14 @@
     ".*api2.branch.io/.*",
     ".*api.etherscan.io/.*",
     ".*static.metafi.codefi.network/.*",
+    ".*static.cx.metamask.io/.*",
     ".*rpc.tenderly.co/.*",
     ".*api-goerli.etherscan.io/.*",
     ".*cloudflare-ipfs.com/.*",
     ".*stale.*",
     ".*phishing-detection.metafi.codefi.network/.*",
+    ".*phishing-detection.cx.metamask.io/.*",
+    ".*eth.llamarpc.com/.*",
     ".*token-api.metaswap.codefi.network/.*"
   ]
 }

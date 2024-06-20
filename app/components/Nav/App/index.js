@@ -10,6 +10,7 @@ import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
+import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import ChoosePassword from '../../Views/ChoosePassword';
@@ -26,7 +27,6 @@ import OptinMetrics from '../../UI/OptinMetrics';
 import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
-import Engine from '../../../core/Engine';
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
@@ -77,12 +77,13 @@ import ModalMandatory from '../../../component-library/components/Modals/ModalMa
 import { RestoreWallet } from '../../Views/RestoreWallet';
 import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
 import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
-import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
-import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
+import SDKLoadingModal from '../../Views/SDK/SDKLoadingModal/SDKLoadingModal';
+import SDKFeedbackModal from '../../Views/SDK/SDKFeedbackModal/SDKFeedbackModal';
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 import AccountActions from '../../../components/Views/AccountActions';
 import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
+import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
@@ -98,8 +99,9 @@ import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
-import SDKDisconnectModal from '../../../../app/components/Views/SDKDisconnectModal/SDKDisconnectModal';
-import SDKSessionModal from '../../../../app/components/Views/SDKSessionModal/SDKSessionModal';
+import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnectModal';
+import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
+import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
@@ -107,6 +109,7 @@ import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSet
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
+import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -312,12 +315,10 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
-      const { PreferencesController } = Engine.context;
-      const selectedAddress = PreferencesController.state.selectedAddress;
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
-        if (existingUser && selectedAddress) {
-          await Authentication.appTriggeredAuth({ selectedAddress });
+        if (existingUser) {
+          await Authentication.appTriggeredAuth();
           // we need to reset the navigator here so that the user cannot go back to the login screen
           navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         }
@@ -594,6 +595,10 @@ const App = ({ userLoggedIn }) => {
       />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
       <Stack.Screen
+        name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
+        component={SmartTransactionsOptInModal}
+      />
+      <Stack.Screen
         name={Routes.SHEET.ACCOUNT_SELECTOR}
         component={AccountSelector}
       />
@@ -608,6 +613,14 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
         component={SDKSessionModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.EXPERIENCE_ENHANCER}
+        component={ExperienceEnhancerModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.DATA_COLLECTION}
+        component={DataCollectionModal}
       />
       <Stack.Screen
         name={Routes.SHEET.SDK_DISCONNECT}
@@ -663,6 +676,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ETH_SIGN_FRICTION}
         component={EthSignFriction}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.FIAT_ON_TESTNETS_FRICTION}
+        component={FiatOnTestnetsFriction}
       />
       <Stack.Screen
         name={Routes.SHEET.SHOW_IPFS}

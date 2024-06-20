@@ -33,10 +33,8 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -219,14 +217,12 @@ class TransactionElement extends PureComponent {
 
   renderTxTime = () => {
     const { tx, selectedAddress } = this.props;
-    const incoming =
-      safeToChecksumAddress(tx.transaction.to) === selectedAddress;
+    const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
     const selfSent =
-      incoming &&
-      safeToChecksumAddress(tx.transaction.from) === selectedAddress;
+      incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
     return `${
       (!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
-        ? `#${parseInt(tx.transaction.nonce, 16)} - ${toDateFormat(
+        ? `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
             tx.time,
           )} ${strings(
             'transactions.from_device_label',
@@ -299,6 +295,8 @@ class TransactionElement extends PureComponent {
           : transactionIconSwap;
         break;
       case TRANSACTION_TYPES.APPROVE:
+      case TRANSACTION_TYPES.INCREASE_ALLOWANCE:
+      case TRANSACTION_TYPES.SET_APPROVAL_FOR_ALL:
         icon = isFailedTransaction
           ? transactionIconApproveFailed
           : transactionIconApprove;
@@ -319,14 +317,15 @@ class TransactionElement extends PureComponent {
       selectedAddress,
       isQRHardwareAccount,
       isLedgerAccount,
-      tx: { time, status },
+      tx: { time, status, isSmartTransaction },
     } = this.props;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
     const renderNormalActions =
-      status === 'submitted' ||
-      (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount);
+      (status === 'submitted' ||
+        (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
+      !isSmartTransaction;
     const renderUnsignedQRActions =
       status === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
@@ -402,7 +401,7 @@ class TransactionElement extends PureComponent {
     const { tx } = this.props;
 
     let existingGas = {};
-    const transaction = tx?.transaction;
+    const transaction = tx?.txParams;
     if (transaction) {
       if (isEIP1559Transaction(transaction)) {
         existingGas = {
@@ -413,9 +412,7 @@ class TransactionElement extends PureComponent {
           ),
         };
       } else {
-        const existingGasPrice = tx.transaction
-          ? tx.transaction.gasPrice
-          : '0x0';
+        const existingGasPrice = tx.txParams ? tx.txParams.gasPrice : '0x0';
         const existingGasPriceDecimal = parseInt(
           existingGasPrice === undefined ? '0x0' : existingGasPrice,
           16,
@@ -610,7 +607,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   identities: selectIdentities(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   swapsTokens: state.engine.backgroundState.SwapsController.tokens,

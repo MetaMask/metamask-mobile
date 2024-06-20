@@ -6,6 +6,8 @@ import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
 import { NetworkAddedModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/NetworkAddedModal.selectors';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     buttonView: {

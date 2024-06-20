@@ -11,6 +11,10 @@ const mockEngine = Engine;
 jest.mock('../Engine', () => ({
   init: () => mockEngine.init({}),
   context: {
+    AssetsContractController: {
+      getERC20TokenDecimals: jest.fn(),
+      getERC721AssetSymbol: jest.fn().mockResolvedValue('WBTC'),
+    },
     NetworkController: {
       state: {
         networkConfigurations: {},
@@ -38,11 +42,9 @@ jest.mock('../Engine', () => ({
         selectedAddress: '0x123',
       },
     },
-    AssetsContractController: {
-      getERC721AssetSymbol: jest.fn().mockResolvedValue('WBTC'),
-    },
   },
 }));
+const MockEngine = jest.mocked(Engine);
 
 jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest.fn(),
@@ -90,7 +92,11 @@ describe('wallet_watchAsset', () => {
           method: '',
           id: '',
         },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         res: {} as any,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         checkTabActive: () => null as any,
         hostname: '',
       }),
@@ -116,7 +122,11 @@ describe('wallet_watchAsset', () => {
           method: '',
           id: '',
         },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         res: {} as any,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         checkTabActive: () => null as any,
         hostname: '',
       }),
@@ -127,10 +137,12 @@ describe('wallet_watchAsset', () => {
     jest
       .spyOn(transactionsUtils, 'isSmartContractAddress')
       .mockResolvedValue(true);
-    Engine.context.AssetsContractController = {
-      getERC20TokenDecimals: jest.fn().mockResolvedValue(correctWBTC.decimals),
-      getERC721AssetSymbol: jest.fn().mockResolvedValue(correctWBTC.symbol),
-    };
+    MockEngine.context.AssetsContractController.getERC20TokenDecimals.mockResolvedValue(
+      correctWBTC.decimals,
+    );
+    MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
+      correctWBTC.symbol,
+    );
     const spyOnWatchAsset = jest.spyOn(
       Engine.context.TokensController,
       'watchAsset',
@@ -145,7 +157,11 @@ describe('wallet_watchAsset', () => {
         method: '',
         id: '',
       },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       res: {} as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       checkTabActive: () => null as any,
       hostname: '',
     });
@@ -166,10 +182,12 @@ describe('wallet_watchAsset', () => {
     jest
       .spyOn(transactionsUtils, 'isSmartContractAddress')
       .mockResolvedValue(true);
-    Engine.context.AssetsContractController = {
-      getERC20TokenDecimals: jest.fn().mockResolvedValue(correctWBTC.decimals),
-      getERC721AssetSymbol: jest.fn().mockResolvedValue(correctWBTC.symbol),
-    };
+    MockEngine.context.AssetsContractController.getERC20TokenDecimals.mockResolvedValue(
+      correctWBTC.decimals,
+    );
+    MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
+      correctWBTC.symbol,
+    );
     const spyOnWatchAsset = jest.spyOn(
       Engine.context.TokensController,
       'watchAsset',
@@ -184,7 +202,11 @@ describe('wallet_watchAsset', () => {
         method: '',
         id: '',
       },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       res: {} as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       checkTabActive: () => null as any,
       hostname: '',
     });

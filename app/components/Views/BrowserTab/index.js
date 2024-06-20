@@ -47,7 +47,7 @@ import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
-import SearchApi from 'react-native-search-api';
+import SearchApi from '@metamask/react-native-search-api';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
@@ -83,8 +83,8 @@ import {
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
-  selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
@@ -97,7 +97,7 @@ import CLText from '../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
 import { selectChainId } from '../../../selectors/networkController';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
@@ -873,6 +873,7 @@ export const BrowserTab = (props) => {
     // Continue request loading it the protocol is whitelisted
     const { protocol } = new URL(url);
     if (protocolAllowList.includes(protocol)) return true;
+    Logger.message(`Protocol not allowed ${protocol}`);
 
     // If it is a trusted deeplink protocol, do not show the
     // warning alert. Allow the OS to deeplink the URL
@@ -882,6 +883,9 @@ export const BrowserTab = (props) => {
       return false;
     }
 
+    // TODO: add logging for untrusted protocol being used
+    // Sentry
+    //
     const alertMsg = getAlertMessage(protocol, strings);
 
     // Pop up an alert dialog box to prompt the user for permission
@@ -1420,7 +1424,7 @@ export const BrowserTab = (props) => {
    */
   const renderOnboardingWizard = () => {
     const { wizardStep } = props;
-    if ([6].includes(wizardStep)) {
+    if ([7].includes(wizardStep)) {
       if (!wizardScrollAdjusted.current) {
         setTimeout(() => {
           reload();
@@ -1500,7 +1504,15 @@ export const BrowserTab = (props) => {
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <>
               <WebView
-                originWhitelist={['*']}
+                originWhitelist={[
+                  'https://',
+                  'http://',
+                  'metamask://',
+                  'dapp://',
+                  'wc://',
+                  'ethereum://',
+                  'file://',
+                ]}
                 decelerationRate={'normal'}
                 ref={webviewRef}
                 renderError={() => (
@@ -1520,7 +1532,7 @@ export const BrowserTab = (props) => {
                 javascriptEnabled
                 allowsInlineMediaPlayback
                 useWebkit
-                testID={BrowserViewSelectorsIDs.ANDROID_CONTAINER}
+                testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
               />
@@ -1643,7 +1655,8 @@ BrowserTab.defaultProps = {
 const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
-  selectedAddress: selectSelectedAddress(state)?.toLowerCase(),
+  selectedAddress:
+    selectSelectedInternalAccountChecksummedAddress(state)?.toLowerCase(),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,

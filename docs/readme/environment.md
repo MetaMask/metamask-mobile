@@ -4,11 +4,10 @@
 
 ### Package Manager
 
-Install `brew` package manager. 
-_NOTE:_ To successfully run the iOS e2e tests, it is essential to install the brew package manager.  
+Install `brew` package manager.
+_NOTE:_ To successfully run the iOS e2e tests, it is essential to install the brew package manager.
 
 [How to install brew](https://brew.sh/#install)
-
 
 ### watchman
 
@@ -22,16 +21,16 @@ brew install watchman
 
 MacOS ships with an old ruby version that is incompatible with this project
 
-It is recommended to install a Ruby version manager such as [rbenv](https://github.com/rbenv/rbenv?tab=readme-ov-file#installation), [rvm](https://github.com/rvm/rvm?tab=readme-ov-file#installing-rvm), [asdf](https://asdf-vm.com/guide/getting-started.html#_3-install-asdf)
+It is recommended to install a Ruby version manager such as [rbenv](https://github.com/rbenv/rbenv?tab=readme-ov-file#installation)
 
 Install ruby version defined in the file `.ruby-version`
 
-### CocoaPods
+### Gems
 
-With the correct version of ruby installed, CocoaPods can be installed sudo-less in your system using `gem`
+Install [`bundler`](https://bundler.io/) gem to manage and install gems such as Cocoapods. The `bundle install` command, which is run during `yarn setup` handles installing gem versions as specified in the project's `GemFile`
+
 ```bash
-gem install activesupport -v 7.0.8 && \
-gem install cocoapods -v 1.12.1
+gem install bundler -v 2.5.8 && bundle install
 ```
 
 ### Xcode
@@ -57,6 +56,7 @@ Install node version defined in the file `.nvmrc`
 ### Yarn v1
 
 With the correct Node version installed, Yarn v1 can be installed sudo-less in your system using `npm`
+
 ```bash
 npm install -g yarn
 ```
@@ -65,21 +65,19 @@ npm install -g yarn
 
 Install [Android Studio](https://developer.android.com/studio)
 
-Set environment variable `JAVA_HOME=/Applications/Android Studio.app/Contents/jbr/Contents/Home` to use java version shipped on the Android Studio App 
-
-   
-   - Go to Settings > Languages & Frameworks > Android SDK
-   - Shortcut: Selecting `More Actions` > `SDK Manager` from the "Welcome to Android Studio" page will also bring you here.
-     - Select `SDK Tools` tab
-     - Check `Show Package Details` option below the tools list to show available versions
-     - Locate `NDK (Side-by-side)` option in the tools list
-     - Check NDK version `24.0.8215888`
-     - Locate `CMake` option in the tools list
-     - Check CMake version `3.22.1`
-     - Click "Apply" or "OK" to download
-   - Finally, start the emulator from Android Studio:
-     - Open "Virtual Device Manager"
-     - Launch emulator for "Pixel 5 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/environment-setup#installing-dependencies)>"
+- Set environment variable `JAVA_HOME=/Applications/Android Studio.app/Contents/jbr/Contents/Home` to use the Java version shipped with Android Studio
+- Go to Settings > Languages & Frameworks > Android SDK
+- Shortcut: Selecting `More Actions` > `SDK Manager` from the "Welcome to Android Studio" page will also bring you here.
+  - Select `SDK Tools` tab
+  - Check `Show Package Details` option below the tools list to show available versions
+  - Locate `NDK (Side-by-side)` option in the tools list
+  - Check NDK version `24.0.8215888`
+  - Locate `CMake` option in the tools list
+  - Check CMake version `3.22.1`
+  - Click "Apply" or "OK" to download
+- Finally, start the emulator from Android Studio:
+  - Open "Virtual Device Manager"
+  - Launch emulator for "Pixel 5 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/environment-setup#installing-dependencies)>"
 
 WIP
 

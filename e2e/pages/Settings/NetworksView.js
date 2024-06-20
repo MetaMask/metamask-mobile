@@ -88,6 +88,10 @@ class NetworkView {
     return Matchers.getElementByLabel(NetworkViewSelectorsText.BLOCK_EXPLORER);
   }
 
+  get chainIdLabel() {
+    return Matchers.getElementByLabel(NetworkViewSelectorsText.CHAIN_ID_LABEL);
+  }
+
   get rpcWarningBanner() {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_WARNING_BANNER);
   }
@@ -100,6 +104,10 @@ class NetworkView {
 
   get removeNetwork() {
     return Matchers.getElementByText(NetworkViewSelectorsText.REMOVE_NETWORK);
+  }
+
+  get saveButton() {
+    return Matchers.getElementByText(NetworkViewSelectorsText.SAVE_BUTTON);
   }
 
   async getnetworkName(networkName) {
@@ -167,9 +175,19 @@ class NetworkView {
     await Gestures.waitAndTap(this.rpcAddButton);
   }
 
-  async swipeToRPCTitleAndDismissKeyboard() {
+  async tapChainIDLabel() {
     // Because in bitrise the keyboard is blocking the "Add" CTA
-    await Gestures.waitAndTap(this.blockExplorer);
+    await Gestures.waitAndTap(this.chainIdLabel);
+  }
+
+  async tapSave() {
+    device.getPlatform() === 'ios'
+      ? await (async () => {
+          //swipe to dismiss iOS keypad
+          await Gestures.swipe(this.chainIDInput, 'up', 'fast', 0.3);
+          await Gestures.doubleTap(this.saveButton);
+        })()
+      : await Gestures.waitAndTap(this.saveButton);
   }
 }
 

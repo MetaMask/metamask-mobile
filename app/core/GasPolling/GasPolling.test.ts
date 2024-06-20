@@ -7,6 +7,7 @@ import {
 import { parseTransactionEIP1559 } from '../../util/transactions';
 import { GasFeeOptions, GetEIP1559TransactionDataProps } from './types';
 import AppConstants from '../AppConstants';
+import { Hex } from '@metamask/utils';
 jest.mock('../../util/transactions');
 const mockedParseTransactionEIP1559 =
   parseTransactionEIP1559 as jest.MockedFunction<
@@ -89,6 +90,8 @@ const transactionState = {
 
 describe('GasPolling', () => {
   const token = undefined;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { GasFeeController }: any = Engine.context;
   it('should call the start gas polling controller', async () => {
     await startGasPolling(token);
@@ -133,6 +136,8 @@ describe('GetEIP1559TransactionData', () => {
 
     try {
       const result = getEIP1559TransactionData(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         incompleteTransactionData as any,
       );
       expect(result).toEqual('Incomplete data for EIP1559 transaction');
@@ -150,7 +155,7 @@ describe('GetEIP1559TransactionData', () => {
       gasFeeMaxNative: '0.00005',
       gasFeeMinConversion: '0.09',
       gasFeeMinNative: '0.00005',
-      gasLimitHex: '0x8163',
+      gasLimitHex: '0x8163' as Hex,
       maxPriorityFeeConversion: '0.09',
       maxPriorityFeeNative: '0.00005',
       renderableGasFeeMaxConversion: '$0.09',

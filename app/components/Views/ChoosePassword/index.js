@@ -63,7 +63,6 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -227,10 +226,6 @@ class ChoosePassword extends PureComponent {
      * in the redux store
      */
     setLockTime: PropTypes.func,
-    /**
-     * A string representing the selected address => account
-     */
-    selectedAddress: PropTypes.string,
     /**
      * Action to reset the flag seedphraseBackedUp in redux
      */
@@ -433,7 +428,7 @@ class ChoosePassword extends PureComponent {
    * @param password - Password to recreate and set the vault with
    */
   recreateVault = async (password, authType) => {
-    const { KeyringController, PreferencesController } = Engine.context;
+    const { KeyringController } = Engine.context;
     const seedPhrase = await this.getSeedPhrase();
     let importedAccounts = [];
     try {
@@ -473,8 +468,6 @@ class ChoosePassword extends PureComponent {
     // Get props to restore vault
     const hdKeyring = KeyringController.state.keyrings[0];
     const existingAccountCount = hdKeyring.accounts.length;
-    const selectedAddress = this.props.selectedAddress;
-    let preferencesControllerState = PreferencesController.state;
 
     // Create previous accounts again
     for (let i = 0; i < existingAccountCount - 1; i++) {
@@ -493,18 +486,6 @@ class ChoosePassword extends PureComponent {
         e,
         'error while trying to import accounts on recreate vault',
       );
-    }
-
-    // Reset preferencesControllerState
-    preferencesControllerState = PreferencesController.state;
-
-    // Set preferencesControllerState again
-    await PreferencesController.update(preferencesControllerState);
-    // Reselect previous selected account if still available
-    if (hdKeyring.accounts.includes(selectedAddress)) {
-      Engine.setSelectedAddress(selectedAddress);
-    } else {
-      Engine.setSelectedAddress(hdKeyring.accounts[0]);
     }
   };
 
@@ -559,8 +540,8 @@ class ChoosePassword extends PureComponent {
     this.props.navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-',
-        title: 'metamask.zendesk.com',
+        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        title: 'support.metamask.io',
       },
     });
   };
@@ -789,10 +770,6 @@ class ChoosePassword extends PureComponent {
 
 ChoosePassword.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
-});
-
 const mapDispatchToProps = (dispatch) => ({
   passwordSet: () => dispatch(passwordSet()),
   passwordUnset: () => dispatch(passwordUnset()),
@@ -800,4 +777,4 @@ const mapDispatchToProps = (dispatch) => ({
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ChoosePassword);
+export default connect(null, mapDispatchToProps)(ChoosePassword);

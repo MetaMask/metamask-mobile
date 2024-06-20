@@ -27,6 +27,7 @@ jest.mock('../../core/Engine', () => ({
     },
   },
 }));
+const MockEngine = jest.mocked(Engine);
 
 jest.mock('@metamask/transaction-controller', () => ({
   ...jest.requireActual('@metamask/transaction-controller'),
@@ -70,8 +71,8 @@ describe('validateResponse', () => {
   );
 
   beforeEach(() => {
-    Engine.context.PreferencesController.state.securityAlertsEnabled = true;
-    Engine.context.NetworkController.state.providerConfig.chainId = '0x1';
+    MockEngine.context.PreferencesController.state.securityAlertsEnabled = true;
+    MockEngine.context.NetworkController.state.providerConfig.chainId = '0x1';
 
     normalizeTransactionParamsMock.mockImplementation((params) => params);
   });
@@ -85,9 +86,10 @@ describe('validateResponse', () => {
       TransactionActions,
       'setTransactionSecurityAlertResponse',
     );
-    Engine.context.PreferencesController.state.securityAlertsEnabled = false;
+    MockEngine.context.PreferencesController.state.securityAlertsEnabled =
+      false;
     await PPOMUtil.validateRequest(mockRequest, '123');
-    expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
+    expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
     expect(spyTransactionAction).toBeCalledTimes(0);
   });
 
@@ -96,9 +98,9 @@ describe('validateResponse', () => {
       TransactionActions,
       'setTransactionSecurityAlertResponse',
     );
-    Engine.context.NetworkController.state.providerConfig.chainId = '0xfa';
+    MockEngine.context.NetworkController.state.providerConfig.chainId = '0xfa';
     await PPOMUtil.validateRequest(mockRequest, '123');
-    expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
+    expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
     expect(spyTransactionAction).toBeCalledTimes(0);
   });
 
@@ -107,7 +109,8 @@ describe('validateResponse', () => {
       TransactionActions,
       'setTransactionSecurityAlertResponse',
     );
-    Engine.context.PreferencesController.state.securityAlertsEnabled = false;
+    MockEngine.context.PreferencesController.state.securityAlertsEnabled =
+      false;
     await PPOMUtil.validateRequest(
       {
         ...mockRequest,
@@ -115,7 +118,7 @@ describe('validateResponse', () => {
       },
       '123',
     );
-    expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
+    expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
     expect(spyTransactionAction).toBeCalledTimes(0);
   });
 
@@ -124,15 +127,14 @@ describe('validateResponse', () => {
       TransactionActions,
       'setTransactionSecurityAlertResponse',
     );
-    const spy = jest.spyOn(Engine.context.PPOMController, 'usePPOM');
     await PPOMUtil.validateRequest(mockRequest);
-    expect(spy).toBeCalledTimes(0);
+    expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
     expect(spyTransactionAction).toBeCalledTimes(1);
   });
 
   it('should invoke PPOMController usePPOM if securityAlertsEnabled is true', async () => {
     await PPOMUtil.validateRequest(mockRequest, '123');
-    expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(1);
+    expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(1);
   });
 
   it('should update transaction with validation result', async () => {
@@ -162,8 +164,10 @@ describe('validateResponse', () => {
       validateJsonRpc: validateMock,
     };
 
-    Engine.context.PPOMController.usePPOM.mockImplementation((callback: any) =>
-      callback(ppomMock),
+    MockEngine.context.PPOMController?.usePPOM.mockImplementation(
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (callback: any) => callback(ppomMock),
     );
 
     normalizeTransactionParamsMock.mockReturnValue(
@@ -191,8 +195,10 @@ describe('validateResponse', () => {
       validateJsonRpc: validateMock,
     };
 
-    Engine.context.PPOMController.usePPOM.mockImplementation((callback: any) =>
-      callback(ppomMock),
+    MockEngine.context.PPOMController?.usePPOM.mockImplementation(
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (callback: any) => callback(ppomMock),
     );
 
     await PPOMUtil.validateRequest(

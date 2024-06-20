@@ -6,6 +6,7 @@ import {
   getURLProtocol,
   isIPFSUri,
   deepJSONParse,
+  getUniqueList,
 } from '.';
 
 describe('capitalize', () => {
@@ -188,5 +189,31 @@ describe('deepJSONParse function', () => {
       name: 'John ETH',
       age: '30',
     });
+  });
+});
+
+describe('getUniqueList function', () => {
+  it('should throw error if no arguments are passed in', async () => {
+    const expectedError = 'At least one array must be defined.';
+    expect(() => getUniqueList()).toThrow(expectedError);
+  });
+  it('should throw type error if an argument is not an array', async () => {
+    const testArray = ['0x1', '0x2', '0x3'];
+    const notAnArray = 'X' as unknown as string[];
+    const expectedErrorMessage = `Argument at position 1 is not an array. Found ${typeof notAnArray}`;
+    expect(() => getUniqueList(testArray, notAnArray)).toThrow(
+      expectedErrorMessage,
+    );
+  });
+  it('should return an array with unique items', async () => {
+    const testArray = ['0x1', '0x2'];
+    const testArray2 = ['0x2', '0x3'];
+    const expectedArray = ['0x1', '0x2', '0x3'];
+    expect(getUniqueList(testArray, testArray2)).toEqual(expectedArray);
+  });
+  it('should return the same array if all arrays from the arguments are the same', async () => {
+    const testArray = ['0x1', '0x2', '0x3'];
+    const sameTestArray = [...testArray];
+    expect(getUniqueList(testArray, sameTestArray)).toEqual(testArray);
   });
 });

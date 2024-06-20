@@ -117,7 +117,7 @@ interface ProviderProps<T> {
 
 export const callbackBaseUrl = isDevelopment
   ? 'https://on-ramp.uat-api.cx.metamask.io/regions/fake-callback'
-  : 'https://on-ramp-content.metaswap.codefi.network/regions/fake-callback';
+  : 'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback';
 
 export const callbackBaseDeeplink = 'metamask://';
 
@@ -300,6 +300,8 @@ export const useRampSDK = () => {
   return contextValue as RampSDK;
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const withRampSDK = (Component: React.FC) => (props: any) =>
   (
     <RampSDKProvider>

@@ -46,6 +46,10 @@ const BasicFunctionalityModal = () => {
     closeBottomSheet();
   };
 
+  const handleCancel = () => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  };
+
   const renderTurnOffContent = () => (
     <View style={styles.container}>
       <Icon
@@ -74,7 +78,7 @@ const BasicFunctionalityModal = () => {
             accessibilityRole={'button'}
             accessible
             label={strings('default_settings.sheet.buttons.cancel')}
-            onPress={closeBottomSheet}
+            onPress={handleCancel}
           />
           <View style={styles.spacer} />
           <Button
@@ -109,7 +113,7 @@ const BasicFunctionalityModal = () => {
           accessibilityRole={'button'}
           accessible
           label={strings('default_settings.sheet.buttons.cancel')}
-          onPress={closeBottomSheet}
+          onPress={handleCancel}
         />
         <View style={styles.spacer} />
         <Button

@@ -2,13 +2,16 @@
 // Ex. This makes it so that when you import CloseIcon from './close-icon.svg, CloseIcon, will be detected as a React.FC component.
 declare module '*.mp4';
 
-declare module '@exodus/react-native-payments/lib/js/__mocks__';
+declare module '@metamask/react-native-payments/lib/js/__mocks__';
 
 declare module 'react-native-fade-in-image';
 
 declare module 'react-native-minimizer';
 
+declare module 'xhr2';
 declare module 'react-native-scrollable-tab-view/DefaultTabBar' {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const content: React.FC<any>;
   export default content;
 }

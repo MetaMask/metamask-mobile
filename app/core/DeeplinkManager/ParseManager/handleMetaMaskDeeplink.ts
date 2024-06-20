@@ -55,10 +55,18 @@ export function handleMetaMaskDeeplink({
           request: params.request,
         });
       } else {
+        const protocolVersion = parseInt(params.v ?? '1', 10);
+
+        DevLogger.log(
+          `handleMetaMaskDeeplink:: deeplink_scheme typeof(protocolVersion)=${typeof protocolVersion} protocolVersion=${protocolVersion} v=${
+            params.v
+          }`,
+        );
         handleDeeplink({
           channelId: params.channelId,
           origin,
           url,
+          protocolVersion,
           context: 'deeplink_scheme',
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),
@@ -81,14 +89,13 @@ export function handleMetaMaskDeeplink({
       );
     }
 
-    DevLogger.log('DeepLinkManager:: ===> params from deeplink', params);
-
     SDKConnect.getInstance().state.deeplinkingService?.handleMessage({
       channelId: params.channelId,
       url,
       message: params.message,
       dappPublicKey: params.pubkey,
       scheme: params.scheme,
+      account: params.account ?? '@',
     });
   } else if (
     url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`) ||

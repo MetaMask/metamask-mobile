@@ -4,11 +4,15 @@ import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState: {
+      ...initialBackgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    },
   },
   settings: {
     primaryCurrency: 'USD',
@@ -28,7 +32,7 @@ describe('Transactions', () => {
               networkID: '3',
               status: 'confirmed',
               time: 1551327802000,
-              transaction: {
+              txParams: {
                 data: '0x',
                 from: '0xb2d191b6fe03c5b8a1ab249cfe88c37553357a23',
                 gas: '0x5208',
@@ -37,8 +41,7 @@ describe('Transactions', () => {
                 to: '0xe46abaf75cfbff815c0b7ffed6f02b0760ea27f1',
                 value: '0xfa1c6d5030000',
               },
-              transactionHash:
-                '0x79ce2d56aaa4735b2bb602ae3a501d9055350a6ec3fb3bd457ba18e8fa4aa2ae',
+              hash: '0x79ce2d56aaa4735b2bb602ae3a501d9055350a6ec3fb3bd457ba18e8fa4aa2ae',
             },
           ]}
           loading={false}

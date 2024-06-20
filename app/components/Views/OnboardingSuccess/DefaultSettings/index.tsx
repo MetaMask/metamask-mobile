@@ -53,7 +53,7 @@ const DefaultSettings = () => {
   };
 
   const handleLink = () => {
-    Linking.openURL(AppConstants.URLS.WHAT_IS_SRP);
+    Linking.openURL(AppConstants.URLS.PRIVACY_BEST_PRACTICES);
   };
 
   return (

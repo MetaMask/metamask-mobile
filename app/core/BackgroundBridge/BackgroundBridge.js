@@ -38,6 +38,8 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getPermittedAccounts } from '../Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
+import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
+import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -111,7 +113,11 @@ export class BackgroundBridge extends EventEmitter {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-    Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
+
+    Engine.controllerMessenger.subscribe(
+      'PreferencesController:stateChange',
+      this.sendStateUpdate,
+    );
 
     Engine.controllerMessenger.subscribe(
       'KeyringController:lock',
@@ -124,7 +130,7 @@ export class BackgroundBridge extends EventEmitter {
 
     try {
       const pc = Engine.context.PermissionController;
-      const controllerMessenger = Engine.context.controllerMessenger;
+      const controllerMessenger = Engine.controllerMessenger;
       controllerMessenger.subscribe(
         `${pc.name}:stateChange`,
         (subjectWithPermission) => {
@@ -325,7 +331,10 @@ export class BackgroundBridge extends EventEmitter {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-    Engine.context.PreferencesController.unsubscribe(this.sendStateUpdate);
+    Engine.controllerMessenger.unsubscribe(
+      'PreferencesController:stateChange',
+      this.sendStateUpdate,
+    );
     this.port.emit('disconnect', { name: this.port.name, data: null });
   };
 
@@ -378,7 +387,26 @@ export class BackgroundBridge extends EventEmitter {
     // filter and subscription polyfills
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
-    // watch asset
+
+    // Handle unsupported RPC Methods
+    engine.push(createUnsupportedMethodMiddleware());
+
+    // Legacy RPC methods that need to be implemented ahead of the permission middleware
+    engine.push(
+      createLegacyMethodMiddleware({
+        getAccounts: async () =>
+          await getPermittedAccounts(this.isMMSDK ? this.channelId : origin),
+      }),
+    );
+
+    // Append PermissionController middleware
+    engine.push(
+      Engine.context.PermissionController.createPermissionMiddleware({
+        // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
+        // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
+        origin: this.isMMSDK ? this.channelId : origin,
+      }),
+    );
 
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // Snaps middleware
@@ -402,6 +430,7 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     engine.push(createSanitizationMiddleware());
+
     // forward to metamask primary provider
     engine.push(providerAsMiddleware(provider));
     return engine;

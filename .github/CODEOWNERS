@@ -4,8 +4,32 @@
 *                                    @MetaMask/mobile-devs
 app/component-library/               @MetaMask/design-system-engineers @MetaMask/mobile-platform
 patches/                             @MetaMask/mobile-platform
-bitrise.yml                          @MetaMask/mobile-platform
+bitrise.yml                          @MetaMask/supply-chain @MetaMask/mobile-platform
+yarn.lock                            @MetaMask/supply-chain @MetaMask/mobile-platform
+ios/Podfile.lock                     @MetaMask/supply-chain @MetaMask/mobile-platform
 app/components/UI/Ramp/              @MetaMask/ramp @MetaMask/mobile-platform
 app/reducers/fiatOrders/             @MetaMask/ramp @MetaMask/mobile-platform
-app/components/Views/confirmations   @MetaMask/confirmations-ux @MetaMask/mobile-platform
-ppom                                 @MetaMask/confirmations-ux @MetaMask/mobile-platform
+app/components/Views/confirmations   @MetaMask/confirmations @MetaMask/mobile-platform
+ppom                                 @MetaMask/confirmations @MetaMask/mobile-platform
+
+# All below files are maintained by the SDK team because they contain SDK related code, WalletConnect integrations, or critical SDK flows.
+app/actions/sdk   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/components/Approvals/WalletConnectApproval   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/components/Views/SDK   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/components/Views/WalletConnectSessions   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/core/BackgroundBridge/WalletConnectPort.ts   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/core/DeeplinkManager   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/core/RPCMethods/RPCMethodMiddleware.ts   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/core/SDKConnect   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/core/WalletConnect   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/reducers/sdk   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/util/walletconnect.js   @MetaMask/sdk-devs @MetaMask/mobile-platform
+# Accounts Team
+app/core/Encryptor/                  @MetaMask/accounts-engineers
+
+# Swaps Team
+app/components/UI/Swaps              @MetaMask/swaps-engineers @MetaMask/mobile-platform
+
+# LavaMoat Team
+ses.cjs                              @MetaMask/supply-chain
+patches/react-native+0.*.patch       @MetaMask/supply-chain

@@ -6,13 +6,11 @@ import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
 import TransactionTypes from '../../../../../core/TransactionTypes';
-import {
-  FIAT_CONVERSION_WARNING_TEXT,
-  NEXT_BUTTON,
-  TRANSACTION_AMOUNT_CONVERSION_VALUE,
-  TRANSACTION_AMOUNT_INPUT,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
+
+import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
+
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 
 const mockEngine = Engine;
 const mockTransactionTypes = TransactionTypes;
@@ -75,8 +73,12 @@ jest.mock('../../../../../util/transaction-controller', () => ({
 
 const mockNavigate = jest.fn();
 
-const CURRENT_ACCOUNT = '0x1a';
+const CURRENT_ACCOUNT = '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 const RECEIVER_ACCOUNT = '0x2a';
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  CURRENT_ACCOUNT,
+]);
 
 const initialState = {
   engine: {
@@ -93,15 +95,7 @@ const initialState = {
       AccountTrackerController: {
         accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
       },
-      PreferencesController: {
-        selectedAddress: CURRENT_ACCOUNT,
-        identities: {
-          [CURRENT_ACCOUNT]: {
-            address: CURRENT_ACCOUNT,
-            name: 'Account 1',
-          },
-        },
-      },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NftController: {
         allNfts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
         allNftContracts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
@@ -115,6 +109,8 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>
@@ -234,14 +230,16 @@ describe('Amount', () => {
     const balanceText = getByText(/Balance:/);
     expect(balanceText.props.children).toBe('Balance: 5 ETH');
 
-    const nextButton = getByTestId(NEXT_BUTTON);
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
     await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('$1.00');
 
@@ -296,14 +294,16 @@ describe('Amount', () => {
     const balanceText = getByText(/Balance:/);
     expect(balanceText.props.children).toBe('Balance: 0 ETH');
 
-    const nextButton = getByTestId(NEXT_BUTTON);
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
     await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('$1.00');
 
@@ -351,12 +351,14 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
 
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('$3000.00');
     expect(toJSON()).toMatchSnapshot();
@@ -401,12 +403,14 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
 
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('$15.00');
     expect(toJSON()).toMatchSnapshot();
@@ -451,12 +455,14 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
 
     fireEvent.changeText(textInput, '10');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('0.00333 ETH');
     expect(toJSON()).toMatchSnapshot();
@@ -504,12 +510,14 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
 
     fireEvent.changeText(textInput, '10');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('0.66667 LINK');
     expect(toJSON()).toMatchSnapshot();
@@ -547,7 +555,9 @@ describe('Amount', () => {
       },
     });
 
-    const fiatConversionWarningText = getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+    const fiatConversionWarningText = getByTestId(
+      AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT,
+    );
     expect(fiatConversionWarningText.props.children).toBe(
       'Fiat conversions are not available at this moment',
     );
@@ -589,9 +599,11 @@ describe('Amount', () => {
     });
 
     try {
-      await getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+      await getByTestId(AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
+      const expectedErrorMessage = `Unable to find an element with testID: ${AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT}`;
       const hasErrorMessage = error.message.includes(expectedErrorMessage);
       expect(hasErrorMessage).toBeTruthy();
     }
@@ -629,9 +641,11 @@ describe('Amount', () => {
     });
 
     try {
-      getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+      getByTestId(AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
+      const expectedErrorMessage = `Unable to find an element with testID: ${AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT}`;
       const hasErrorMessage = error.message.includes(expectedErrorMessage);
       expect(hasErrorMessage).toBeTruthy();
     }

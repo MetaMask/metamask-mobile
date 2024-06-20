@@ -6,14 +6,14 @@ import { fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
-import ActionSheet from 'react-native-actionsheet';
+import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import Icon, {
   IconName,
   IconColor,
@@ -73,7 +73,7 @@ const createStyles = (colors, brandColors) =>
       width: 32,
       height: 32,
       borderRadius: 16,
-      backgroundColor: brandColors.yellow['500'],
+      backgroundColor: brandColors.yellow500,
     },
   });
 
@@ -315,7 +315,7 @@ CollectibleContractElement.propTypes = {
 const mapStateToProps = (state) => ({
   collectibleContracts: collectibleContractsSelector(state),
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
