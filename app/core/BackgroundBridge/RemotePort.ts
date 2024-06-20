@@ -7,6 +7,8 @@ class RemotePort extends EventEmitter {
     this.sendMessage = sendMessage;
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   postMessage = (msg: any) => {
     this.sendMessage(msg);
   };

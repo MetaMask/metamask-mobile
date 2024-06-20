@@ -50,6 +50,8 @@ const AccountPermissionsRevoke = ({
   secureIcon,
   accountAvatarType,
 }: AccountPermissionsRevokeProps) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent } = useMetrics();
@@ -59,6 +61,8 @@ const AccountPermissionsRevoke = ({
   const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => Object.keys(selectNetworkConfigurations(state)).length + 1,
   );
 

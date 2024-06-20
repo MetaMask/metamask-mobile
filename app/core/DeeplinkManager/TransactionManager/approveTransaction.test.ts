@@ -81,7 +81,11 @@ describe('approveTransaction', () => {
     spyGetNetworkTypeById.mockReturnValue(fakeNetworkType);
 
     await approveTransaction({
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       deeplinkManager: mockDeeplinkManager as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
       origin: mockOrigin,
     });
@@ -95,7 +99,11 @@ describe('approveTransaction', () => {
     spyGetAddress.mockReturnValue('0xMockAddress');
 
     await approveTransaction({
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       deeplinkManager: mockDeeplinkManager as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
       origin: mockOrigin,
     });
@@ -108,7 +116,11 @@ describe('approveTransaction', () => {
 
   it('should call addTransaction with the correct parameters', async () => {
     await approveTransaction({
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       deeplinkManager: mockDeeplinkManager as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
       origin: mockOrigin,
     });
@@ -129,7 +141,11 @@ describe('approveTransaction', () => {
 
   it('should call getAddress with the correct parameters', async () => {
     await approveTransaction({
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       deeplinkManager: mockDeeplinkManager as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
       origin: mockOrigin,
     });
@@ -144,7 +160,11 @@ describe('approveTransaction', () => {
     spyGetAddress.mockReturnValue('');
 
     await approveTransaction({
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       deeplinkManager: mockDeeplinkManager as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
       origin: mockOrigin,
     });
@@ -161,7 +181,11 @@ describe('approveTransaction', () => {
     spyGetAddress.mockReturnValue('');
 
     await approveTransaction({
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       deeplinkManager: mockDeeplinkManager as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
       origin: mockOrigin,
     });
@@ -175,7 +199,11 @@ describe('approveTransaction', () => {
     spyGetAddress.mockReturnValue('0xMockAddress');
 
     await approveTransaction({
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       deeplinkManager: mockDeeplinkManager as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
       origin: mockOrigin,
     });
@@ -187,7 +215,11 @@ describe('approveTransaction', () => {
     spyGetAddress.mockReturnValue('0xMockAddress');
 
     await approveTransaction({
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       deeplinkManager: mockDeeplinkManager as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
       origin: mockOrigin,
     });
@@ -203,7 +235,11 @@ describe('approveTransaction', () => {
 
     await expect(
       approveTransaction({
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         deeplinkManager: mockDeeplinkManager as any,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ethUrl: mockEthUrlWithInvalidUint256 as any,
         origin: mockOrigin,
       }),
@@ -218,7 +254,11 @@ describe('approveTransaction', () => {
 
     await expect(
       approveTransaction({
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         deeplinkManager: mockDeeplinkManager as any,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ethUrl: mockEthUrlWithInvalidUint256 as any,
         origin: mockOrigin,
       }),
@@ -236,7 +276,11 @@ describe('approveTransaction', () => {
     spyGetNetworkTypeById.mockReturnValue(fakeNetworkType);
 
     await approveTransaction({
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       deeplinkManager: mockDeeplinkManager as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrlWithInvalidChainId as any,
       origin: mockOrigin,
     });

@@ -67,6 +67,8 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 jest.mock('../SignatureRequest', () => (props: any) => (
   <div {...{ ...props, testID: 'SignatureRequest' }}>
     <span>SignatureRequest Component</span>
@@ -74,6 +76,8 @@ jest.mock('../SignatureRequest', () => (props: any) => (
   </div>
 ));
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 jest.mock('../SignatureRequest/ExpandedMessage', () => (props: any) => (
   <div {...{ ...props, testID: 'ExpandedMessage' }}>
     <span>ExpandedMessage Component</span>
@@ -167,8 +171,12 @@ describe('MessageSign', () => {
       ])('shows notification if origin is %s', async (_title, origin) => {
         jest
           .spyOn(InteractionManager, 'runAfterInteractions')
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .mockImplementation((callback: any) => callback());
 
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (NotificationManager.showSimpleNotification as any).mockReset();
 
         const container = createContainer({ origin });
@@ -219,9 +227,15 @@ describe('MessageSign', () => {
       ])('shows notification if origin is %s', async (_title, origin) => {
         jest
           .spyOn(InteractionManager, 'runAfterInteractions')
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .mockImplementation((callback: any) => callback());
 
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (NotificationManager.showSimpleNotification as any).mockReset();
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (Engine.context.SignatureController.hub.on as any).mockReset();
 
         const container = createContainer({ origin });
