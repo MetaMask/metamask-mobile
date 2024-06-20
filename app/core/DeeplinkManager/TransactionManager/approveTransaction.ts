@@ -51,16 +51,11 @@ async function approveTransaction({
     deeplinkManager.navigation.navigate('WalletView');
   }
 
-  const selectedAccountId =
-    AccountsController.state.internalAccounts.selectedAccount;
-
-  const selectedAddress =
-    AccountsController.state.internalAccounts.accounts[selectedAccountId]
-      .address;
+  const selectedAccount = AccountsController.getSelectedAccount();
 
   const txParams = {
     to: target_address.toString(),
-    from: toChecksumHexAddress(selectedAddress),
+    from: toChecksumHexAddress(selectedAccount.address),
     value: '0x0',
     data: generateApprovalData({ spender: spenderAddress, value }),
   };

@@ -6,6 +6,15 @@ import Engine from '../../Engine';
 import NotificationManager from '../../NotificationManager';
 import approveTransaction from './approveTransaction';
 import { addTransaction } from '../../../util/transaction-controller';
+import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
+
+const MOCK_SENDER_ADDRESS = '0xMockSenderAddress';
+const MOCK_TARGET_ADDRESS = '0xTargetAddress';
+
+const MOCK_INTERNAL_ACCOUNT = createMockInternalAccount(
+  MOCK_SENDER_ADDRESS,
+  'Account 1',
+);
 
 jest.mock('../../../util/networks');
 jest.mock('../../../util/transactions');
@@ -14,10 +23,14 @@ jest.mock('../../Engine', () => ({
   context: {
     NetworkController: { setProviderType: jest.fn() },
     PreferencesController: {
-      state: { selectedAddress: '0xMockSenderAddress' },
+      state: { selectedAddress: MOCK_SENDER_ADDRESS },
     },
     TransactionController: {
       addTransaction: jest.fn(),
+    },
+    AccountsController: {
+      internalAccounts: MOCK_INTERNAL_ACCOUNT,
+      getSelectedAccount: jest.fn(() => MOCK_INTERNAL_ACCOUNT),
     },
   },
 }));
@@ -32,7 +45,7 @@ jest.mock('../../../util/transaction-controller', () => ({
 
 const mockEthUrl = {
   parameters: { uint256: '123', address: '0xMockAddress' },
-  target_address: '0xTargetAddress',
+  target_address: MOCK_TARGET_ADDRESS,
   chain_id: '1',
 };
 const mockDeeplinkManager = {
@@ -127,8 +140,8 @@ describe('approveTransaction', () => {
 
     expect(spyAddTransaction).toHaveBeenCalledWith(
       {
-        to: '0xTargetAddress',
-        from: '0xMockSenderAddress',
+        to: MOCK_TARGET_ADDRESS,
+        from: MOCK_SENDER_ADDRESS,
         value: '0x0',
         data: 'fakeApproveData',
       },
