@@ -49,7 +49,7 @@ import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
-import { useTheme, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import {
   TextColor,
@@ -77,7 +77,7 @@ const NetworkSelector = () => {
   const theme = useTheme();
   const { trackEvent } = useMetrics();
   const { colors } = theme;
-  const styles = createStyles(colors || mockTheme.colors);
+  const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
 
@@ -177,14 +177,25 @@ const NetworkSelector = () => {
     return searchResult;
   };
 
+  const isNoSearchResults = (networkIdenfier: string) => {
+    if (!searchString || !networkIdenfier) {
+      return false;
+    }
+
+    if (networkIdenfier === MAINNET || networkIdenfier === LINEA_MAINNET) {
+      return (
+        filterNetworksByName([Networks[networkIdenfier]], searchString)
+          .length === 0
+      );
+    }
+
+    return !networkIdenfier.includes(searchString);
+  };
+
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
 
-    if (
-      isNetworkUiRedesignEnabled &&
-      filterNetworksByName([Networks.mainnet], searchString).length === 0
-    )
-      return null;
+    if (isNetworkUiRedesignEnabled && isNoSearchResults(MAINNET)) return null;
 
     return (
       <Cell
@@ -208,11 +219,7 @@ const NetworkSelector = () => {
   const renderLineaMainnet = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
 
-    if (
-      isNetworkUiRedesignEnabled &&
-      filterNetworksByName([Networks['linea-mainnet']], searchString).length ===
-        0
-    )
+    if (isNetworkUiRedesignEnabled && isNoSearchResults('linea-mainnet'))
       return null;
 
     return (
@@ -237,8 +244,7 @@ const NetworkSelector = () => {
         if (!chainId) return null;
         const { name } = { name: nickname || rpcUrl };
 
-        if (isNetworkUiRedesignEnabled && !name.includes(searchString))
-          return null;
+        if (isNetworkUiRedesignEnabled && isNoSearchResults(name)) return null;
 
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         const image = getNetworkImageSource({ chainId: chainId?.toString() });
@@ -270,8 +276,7 @@ const NetworkSelector = () => {
       // TODO: Provide correct types for network.
       const { name, imageSource, chainId } = (Networks as any)[networkType];
 
-      if (isNetworkUiRedesignEnabled && !name.includes(searchString))
-        return null;
+      if (isNetworkUiRedesignEnabled && isNoSearchResults(name)) return null;
 
       return (
         <Cell
