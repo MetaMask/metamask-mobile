@@ -100,6 +100,7 @@ const WalletActions = () => {
         screen: 'SwapsAmountView',
         params: {
           sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          sourcePage: 'MainView',
         },
       });
       trackEvent(MetaMetricsEvents.SWAP_BUTTON_CLICKED, {

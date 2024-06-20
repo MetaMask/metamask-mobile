@@ -1247,6 +1247,7 @@ class Amount extends PureComponent {
         params: {
           sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
           destinationToken: selectedAsset.address,
+          sourcePage: 'SendFlow',
         },
       });
     };

@@ -70,7 +70,8 @@ const CollectibleModal = () => {
     trackEvent(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED, {
       chain_id: getDecimalChainId(chainId),
     });
-    // If `trackEvent` is added as a dependency, it fires twice
+    // The linter wants `trackEvent` to be added as a dependency,
+    // But the event fires twice if I do that.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chainId]);
 
