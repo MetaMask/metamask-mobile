@@ -16,6 +16,8 @@ const useDeleteWallet = () => {
       });
       await resetVaultBackup();
       await Authentication.lockApp();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;
       Logger.log(error, errorMsg);
@@ -26,6 +28,8 @@ const useDeleteWallet = () => {
     try {
       await AsyncStorage.removeItem(EXISTING_USER);
       await metrics.createDataDeletionTask();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const errorMsg = `Failed to remove key: ${EXISTING_USER} from AsyncStorage`;
       Logger.log(error, errorMsg);

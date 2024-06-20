@@ -145,6 +145,8 @@ const SnapPermissions = ({
     [],
   );
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const isSnapsDerivationPath = (object: any): object is SnapsDerivationPath =>
     typeof object === 'object' &&
     object !== null &&

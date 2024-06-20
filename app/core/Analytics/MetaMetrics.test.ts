@@ -134,6 +134,8 @@ describe('MetaMetrics', () => {
       metaMetrics.trackEvent(event, properties);
 
       expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
         anonymous: false,
@@ -150,6 +152,8 @@ describe('MetaMetrics', () => {
       metaMetrics.trackEvent(event);
 
       expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
         anonymous: false,
@@ -166,6 +170,8 @@ describe('MetaMetrics', () => {
       metaMetrics.trackEvent(event, properties);
 
       expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.track).not.toHaveBeenCalled();
     });
@@ -178,6 +184,8 @@ describe('MetaMetrics', () => {
 
       metaMetrics.trackAnonymousEvent(event, properties);
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       // the anonymous part should not have a user id
       expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
@@ -197,6 +205,8 @@ describe('MetaMetrics', () => {
 
       metaMetrics.trackAnonymousEvent(event);
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       // the anonymous part should not have a user id
       expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
@@ -216,6 +226,8 @@ describe('MetaMetrics', () => {
 
       metaMetrics.trackAnonymousEvent(event, properties);
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.track).not.toHaveBeenCalled();
     });
@@ -230,6 +242,8 @@ describe('MetaMetrics', () => {
       metaMetrics.trackEvent(event, properties, false);
 
       expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
         anonymous: false,
@@ -250,6 +264,8 @@ describe('MetaMetrics', () => {
 
         metaMetrics.trackEvent(event);
 
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { segmentMockClient } = global as any;
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: false,
@@ -269,6 +285,8 @@ describe('MetaMetrics', () => {
 
         metaMetrics.trackEvent(event, properties);
 
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { segmentMockClient } = global as any;
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: false,
@@ -287,6 +305,8 @@ describe('MetaMetrics', () => {
         // @ts-expect-error: Testing untyped legacy JS call with undefined event
         metaMetrics.trackEvent(event);
 
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { segmentMockClient } = global as any;
         expect(segmentMockClient.track).toHaveBeenCalledWith(undefined, {
           anonymous: false,
@@ -303,6 +323,8 @@ describe('MetaMetrics', () => {
       const groupId = 'group1';
       const groupTraits = { trait1: 'value1' };
       metaMetrics.group(groupId, groupTraits);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.group).toHaveBeenCalledWith(
         groupId,
@@ -315,6 +337,8 @@ describe('MetaMetrics', () => {
       const groupId = 'group1';
       const groupTraits = { trait1: 'value1' };
       metaMetrics.group(groupId, groupTraits);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.group).not.toHaveBeenCalled();
     });
@@ -327,6 +351,8 @@ describe('MetaMetrics', () => {
       await metaMetrics.enable();
       const userTraits = { trait1: 'value1' };
       await metaMetrics.addTraitsToUser(userTraits);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.identify).toHaveBeenCalledWith(
         expect.any(String),
@@ -338,6 +364,8 @@ describe('MetaMetrics', () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       const userTraits = { trait1: 'value1' };
       await metaMetrics.addTraitsToUser(userTraits);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.identify).not.toHaveBeenCalled();
     });
@@ -347,6 +375,8 @@ describe('MetaMetrics', () => {
     it('resets', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       await metaMetrics.reset();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.reset).toHaveBeenCalledWith(true);
       expect(DefaultPreference.set).toHaveBeenCalledWith(METAMETRICS_ID, '');
@@ -355,6 +385,8 @@ describe('MetaMetrics', () => {
     it('flushes the segment client', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       await metaMetrics.flush();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.flush).toHaveBeenCalled();
     });
@@ -453,6 +485,8 @@ describe('MetaMetrics', () => {
       );
 
       // Check MetaMerics class calls the Segment SDK reset
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.reset).toHaveBeenCalledTimes(1);
       expect(segmentMockClient.reset).toHaveBeenCalledWith(true);
@@ -473,6 +507,8 @@ describe('MetaMetrics', () => {
         (axios as jest.MockedFunction<typeof axios>).mockResolvedValue({
           status: 200,
           data: { data: { regulateId: 'TWV0YU1hc2t1c2Vzbm9wb2ludCE' } },
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as AxiosResponse<any>);
 
         const result = await metaMetrics.createDataDeletionTask();
@@ -640,6 +676,8 @@ describe('MetaMetrics', () => {
               },
             },
           },
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as AxiosResponse<any>);
 
         const {

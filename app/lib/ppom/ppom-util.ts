@@ -39,6 +39,8 @@ const RequestInProgress = {
   description: 'Validating the confirmation in progress.',
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const validateRequest = async (req: any, transactionId?: string) => {
   let securityAlertResponse;
 
@@ -78,6 +80,8 @@ const validateRequest = async (req: any, transactionId?: string) => {
         );
       }
       const normalizedRequest = normalizeRequest(req);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       securityAlertResponse = await ppomController.usePPOM((ppom: any) =>
         ppom.validateJsonRpc(normalizedRequest),
       );
@@ -119,6 +123,8 @@ const validateRequest = async (req: any, transactionId?: string) => {
   return securityAlertResponse;
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeRequest(request: any) {
   if (request.method !== TRANSACTION_METHOD) {
     return request;
