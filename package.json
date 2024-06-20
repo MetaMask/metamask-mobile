@@ -396,6 +396,7 @@
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.14.184",
     "@types/node": "^20.12.8",
+    "@types/punycode": "^2.1.4",
     "@types/qs": "^6.9.15",
     "@types/react": "^17.0.11",
     "@types/react-native": "^0.64.10",
