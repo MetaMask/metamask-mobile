@@ -1,6 +1,104 @@
 # Changelog
 
 ## Current Main Branch
+- [#10044](https://github.com/MetaMask/metamask-mobile/pull/10044): chore: Patch GasFeeController to revert API URL
+- [#9934](https://github.com/MetaMask/metamask-mobile/pull/9934): fix: flakey CI asdf node version
+- [#10041](https://github.com/MetaMask/metamask-mobile/pull/10041): chore: Update ppom package to 1.4.8
+- [#10033](https://github.com/MetaMask/metamask-mobile/pull/10033): fix: swap completed event not firing
+- [#9785](https://github.com/MetaMask/metamask-mobile/pull/9785): feat: Log the validity of the keyringController in the top 3 Migrations that appear in Sentry
+- [#10014](https://github.com/MetaMask/metamask-mobile/pull/10014): feat: v7.24.2
+- [#9937](https://github.com/MetaMask/metamask-mobile/pull/9937): feat: modification of the network bottom sheet to use the new UI redesign by adding the popular network section as additional network
+- [#9888](https://github.com/MetaMask/metamask-mobile/pull/9888): feat: add set approve for all screen
+- [#10023](https://github.com/MetaMask/metamask-mobile/pull/10023): feat: Feat/1673 bug report
+- [#10021](https://github.com/MetaMask/metamask-mobile/pull/10021): test: fix failing e2e tests because of marketing consent sheet
+- [#9952](https://github.com/MetaMask/metamask-mobile/pull/9952): chore: update code owners
+- [#10018](https://github.com/MetaMask/metamask-mobile/pull/10018): fix: bump ws resolutions; dedupe ws@7.x, ws@8.x
+- [#9794](https://github.com/MetaMask/metamask-mobile/pull/9794): feat: add increase allowance screen
+- [#9945](https://github.com/MetaMask/metamask-mobile/pull/9945): feat: 7.24.1
+- [#9993](https://github.com/MetaMask/metamask-mobile/pull/9993): fix: Fix/re order internal accounts
+- [#10002](https://github.com/MetaMask/metamask-mobile/pull/10002): fix: synchronize account name
+- [#9915](https://github.com/MetaMask/metamask-mobile/pull/9915): test: 1454 refactor modal pages batch 4
+- [#9999](https://github.com/MetaMask/metamask-mobile/pull/9999): fix: new locales
+- [#9970](https://github.com/MetaMask/metamask-mobile/pull/9970): fix: error 'Invalid character in NaN' while gas editing
+- [#9905](https://github.com/MetaMask/metamask-mobile/pull/9905): fix: "data collection for marketing" from PR #9687
+- [#9980](https://github.com/MetaMask/metamask-mobile/pull/9980): fix: add migration to fix engine does not exist and
+- [#9986](https://github.com/MetaMask/metamask-mobile/pull/9986): test: fix `TransactionReview` snapshots
+- [#9070](https://github.com/MetaMask/metamask-mobile/pull/9070): feat: remove selectSelectedAddress in favour of selectSelectedInternalAccount
+- [#9968](https://github.com/MetaMask/metamask-mobile/pull/9968): fix(ramp): memoize asset before passing it to balance hook
+- [#9828](https://github.com/MetaMask/metamask-mobile/pull/9828): feat: enable transaction simulations
+- [#9659](https://github.com/MetaMask/metamask-mobile/pull/9659): chore(deps): bump rexml from 3.2.6 to 3.2.8 in the bundler group across 1 directory
+- [#9965](https://github.com/MetaMask/metamask-mobile/pull/9965): test: comment out flaky test from `encryption-with-key`
+- [#9964](https://github.com/MetaMask/metamask-mobile/pull/9964): test: fix snapshots from `AesCryptoTestForm`
+- [#9898](https://github.com/MetaMask/metamask-mobile/pull/9898): test: AES module E2E tests
+- [#9845](https://github.com/MetaMask/metamask-mobile/pull/9845): feat: updated design-tokens to v4
+- [#9943](https://github.com/MetaMask/metamask-mobile/pull/9943): fix: Duplicate accounts
+- [#9946](https://github.com/MetaMask/metamask-mobile/pull/9946): fix: Update help center URLs
+- [#9885](https://github.com/MetaMask/metamask-mobile/pull/9885): feat: Feat/9492 add unsupported method and legacy method middlewares
+- [#9949](https://github.com/MetaMask/metamask-mobile/pull/9949): chore: add SmokeAccounts E2E tag
+- [#9882](https://github.com/MetaMask/metamask-mobile/pull/9882): fix: edit account name screen display incorrect account name
+- [#9473](https://github.com/MetaMask/metamask-mobile/pull/9473): feat: notifications details screen
+- [#9788](https://github.com/MetaMask/metamask-mobile/pull/9788): feat: v7.24.0
+- [#9942](https://github.com/MetaMask/metamask-mobile/pull/9942): refactor: updated cellbase to allow size changes
+- [#9941](https://github.com/MetaMask/metamask-mobile/pull/9941): chore: Revert "chore: fitness quality gate to only allow TS & TSX files in app directory"
+- [#9913](https://github.com/MetaMask/metamask-mobile/pull/9913): chore: Update signature controller to v16
+- [#9922](https://github.com/MetaMask/metamask-mobile/pull/9922): refactor: replace secondary colors with warning colors
+- [#9723](https://github.com/MetaMask/metamask-mobile/pull/9723): chore: fitness quality gate to only allow TS & TSX files in app directory
+- [#9926](https://github.com/MetaMask/metamask-mobile/pull/9926): chore: Resolve braces package to address audit issue
+- [#9902](https://github.com/MetaMask/metamask-mobile/pull/9902): fix: Update PPOM controller to fix handling of HTTP status codes
+- [#9920](https://github.com/MetaMask/metamask-mobile/pull/9920): chore: remove update-attributions.yml
+- [#9826](https://github.com/MetaMask/metamask-mobile/pull/9826): fix: add migration for linea goerli
+- [#9584](https://github.com/MetaMask/metamask-mobile/pull/9584): fix: @metamask/swaps-controller v6 -> v9
+- [#9718](https://github.com/MetaMask/metamask-mobile/pull/9718): chore: upgrade snaps-controller and adapts its usage
+- [#9899](https://github.com/MetaMask/metamask-mobile/pull/9899): chore: align ButtonIcons with design
+- [#9814](https://github.com/MetaMask/metamask-mobile/pull/9814): chore: Update Preferences Controller v^11
+- [#9714](https://github.com/MetaMask/metamask-mobile/pull/9714): test: import tokens detected
+- [#9693](https://github.com/MetaMask/metamask-mobile/pull/9693): chore: update gas fee controller to 15.1.2
+- [#9868](https://github.com/MetaMask/metamask-mobile/pull/9868): chore: add source to setup script
+- [#9894](https://github.com/MetaMask/metamask-mobile/pull/9894): fix: Update bitrise.yml with correct Browserstack url
+- [#9893](https://github.com/MetaMask/metamask-mobile/pull/9893): fix: contributor docs link is not correct in pr template
+- [#9867](https://github.com/MetaMask/metamask-mobile/pull/9867): fix: only remove SES from exception if exception exists
+- [#9891](https://github.com/MetaMask/metamask-mobile/pull/9891): fix: bug report template - remove reference to recordit
+- [#9234](https://github.com/MetaMask/metamask-mobile/pull/9234): chore: update the 'CODEOWNERS' file to include directories relevant to the 'sdk-devs' team
+- [#9884](https://github.com/MetaMask/metamask-mobile/pull/9884): feat(pr template + readme): add link to contributor docs
+- [#9887](https://github.com/MetaMask/metamask-mobile/pull/9887): fix: Update Browserstack url as old link deprecated
+- [#9886](https://github.com/MetaMask/metamask-mobile/pull/9886): test: Update Browserstack url as old link deprecated
+- [#9876](https://github.com/MetaMask/metamask-mobile/pull/9876): fix: update patch for updateNftMetadata fct
+- [#9648](https://github.com/MetaMask/metamask-mobile/pull/9648): feat: add transaction simulations preference
+- [#9883](https://github.com/MetaMask/metamask-mobile/pull/9883): chore: Update ppom package to 1.4.7
+- [#9783](https://github.com/MetaMask/metamask-mobile/pull/9783): feat: add transaction simulation metrics
+- [#9875](https://github.com/MetaMask/metamask-mobile/pull/9875): refactor: update brandColors to be imported from design system
+- [#9856](https://github.com/MetaMask/metamask-mobile/pull/9856): feat: new attribution github workflow
+- [#9842](https://github.com/MetaMask/metamask-mobile/pull/9842): fix: error validating wallet connect signature with security provider
+- [#9866](https://github.com/MetaMask/metamask-mobile/pull/9866): chore: commit changes to project.pgxproj caused by known issue in xcode 15
+- [#9855](https://github.com/MetaMask/metamask-mobile/pull/9855): fix: Undefined balance when fetching from chain
+- [#9863](https://github.com/MetaMask/metamask-mobile/pull/9863): chore: Revert "fix: swaps quote nan to bnjs (#9848)"
+- [#9848](https://github.com/MetaMask/metamask-mobile/pull/9848): fix: swaps quote nan to bnjs
+- [#9759](https://github.com/MetaMask/metamask-mobile/pull/9759): fix: remove unecessary calls to third party apis
+- [#9839](https://github.com/MetaMask/metamask-mobile/pull/9839): feat: Add the "Manage in settings" link for the STX Opt In modal, update STX controller version
+- [#9852](https://github.com/MetaMask/metamask-mobile/pull/9852): test: fix Assertion only working on IOS
+- [#9847](https://github.com/MetaMask/metamask-mobile/pull/9847): Fix/release testing issues
+- [#9570](https://github.com/MetaMask/metamask-mobile/pull/9570): chore: Update `@metamask/keyring-controller` to v16
+- [#9653](https://github.com/MetaMask/metamask-mobile/pull/9653): feat: added design tokens eslint rules to mobile
+- [#9755](https://github.com/MetaMask/metamask-mobile/pull/9755): fix: display the DApp URL in connect screen for MetaMask IOS-SDK
+- [#9838](https://github.com/MetaMask/metamask-mobile/pull/9838): test: E2e Regression failure fix
+- [#9844](https://github.com/MetaMask/metamask-mobile/pull/9844): fix: confirmations failing ci tests
+- [#9687](https://github.com/MetaMask/metamask-mobile/pull/9687): feat: adds "data collection for marketing" toggles
+- [#9812](https://github.com/MetaMask/metamask-mobile/pull/9812): fix: main token balance not updating when switching accounts
+- [#9831](https://github.com/MetaMask/metamask-mobile/pull/9831): fix: Fix audit ci
+- [#9805](https://github.com/MetaMask/metamask-mobile/pull/9805): chore: Upgrade address-book-controller
+- [#9790](https://github.com/MetaMask/metamask-mobile/pull/9790): chore(ci): update @rhysd/actionlint to 1.7.1
+- [#9674](https://github.com/MetaMask/metamask-mobile/pull/9674): fix: update Delete MetaMetrics Data copy to 30 days
+- [#9819](https://github.com/MetaMask/metamask-mobile/pull/9819): fix: Add .e2e as part of the setup script
+- [#9743](https://github.com/MetaMask/metamask-mobile/pull/9743): feat: Metrics/1803 emit error viewed event
+- [#9746](https://github.com/MetaMask/metamask-mobile/pull/9746): fix: render images of networks removed from popularNetwork list
+- [#9793](https://github.com/MetaMask/metamask-mobile/pull/9793): feat: add fiat support to simulations
+- [#9768](https://github.com/MetaMask/metamask-mobile/pull/9768): feat: add MetaMetrics delete on Wallet delete
+- [#9781](https://github.com/MetaMask/metamask-mobile/pull/9781): fix: Update Basic Functionality settings description.json
+- [#9763](https://github.com/MetaMask/metamask-mobile/pull/9763): fix: JS "pseudo protocol" works when pasted on mobile browser
+- [#9791](https://github.com/MetaMask/metamask-mobile/pull/9791): fix: Disable segment in E2E mode
+- [#9613](https://github.com/MetaMask/metamask-mobile/pull/9613): feat: v7.23.0
+- [#9410](https://github.com/MetaMask/metamask-mobile/pull/9410): feat: add SimulationDetails component
+- [#9545](https://github.com/MetaMask/metamask-mobile/pull/9545): chore: Fix CocoaPods install on Linux
 
 ## 7.24.2 - Jun 13, 2024
 ### Added
