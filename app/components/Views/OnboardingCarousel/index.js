@@ -9,6 +9,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
+import { PerformanceMeasureView } from '@shopify/react-native-performance';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles, baseStyles } from '../../../styles/common';
@@ -183,82 +184,87 @@ class OnboardingCarousel extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View
-        style={baseStyles.flexGrow}
-        testID={OnboardingCarouselSelectorIDs.CONTAINER_ID}
+      <PerformanceMeasureView
+        interactive={true}
+        screenName="OnboardingCarousel"
       >
-        <OnboardingScreenWithBg screen={'carousel'}>
-          <ScrollView
-            style={baseStyles.flexGrow}
-            contentContainerStyle={styles.scroll}
-          >
-            <View
-              style={styles.wrapper}
-              testID={OnboardingCarouselSelectorIDs.CAROUSEL_CONTAINER_ID}
+        <View
+          style={baseStyles.flexGrow}
+          testID={OnboardingCarouselSelectorIDs.CONTAINER_ID}
+        >
+          <OnboardingScreenWithBg screen={'carousel'}>
+            <ScrollView
+              style={baseStyles.flexGrow}
+              contentContainerStyle={styles.scroll}
             >
-              <ScrollableTabView
-                style={styles.scrollTabs}
-                renderTabBar={this.renderTabBar}
-                onChangeTab={this.onChangeTab}
+              <View
+                style={styles.wrapper}
+                testID={OnboardingCarouselSelectorIDs.CAROUSEL_CONTAINER_ID}
               >
-                {['one', 'two', 'three'].map((value, index) => {
-                  const key = index + 1;
-                  const imgStyleKey = `carouselImage${key}`;
-                  return (
-                    <View key={key} style={baseStyles.flexGrow}>
-                      <View
-                        style={styles.tab}
-                        {...generateTestId(
-                          Platform,
-                          WELCOME_SCREEN_CAROUSEL_TITLE_ID(key),
-                        )}
-                      >
-                        <Text style={styles.title}>
-                          {strings(`onboarding_carousel.title${key}`)}
-                        </Text>
-                        <Text style={styles.subtitle}>
-                          {strings(`onboarding_carousel.subtitle${key}`)}
-                        </Text>
+                <ScrollableTabView
+                  style={styles.scrollTabs}
+                  renderTabBar={this.renderTabBar}
+                  onChangeTab={this.onChangeTab}
+                >
+                  {['one', 'two', 'three'].map((value, index) => {
+                    const key = index + 1;
+                    const imgStyleKey = `carouselImage${key}`;
+                    return (
+                      <View key={key} style={baseStyles.flexGrow}>
+                        <View
+                          style={styles.tab}
+                          {...generateTestId(
+                            Platform,
+                            WELCOME_SCREEN_CAROUSEL_TITLE_ID(key),
+                          )}
+                        >
+                          <Text style={styles.title}>
+                            {strings(`onboarding_carousel.title${key}`)}
+                          </Text>
+                          <Text style={styles.subtitle}>
+                            {strings(`onboarding_carousel.subtitle${key}`)}
+                          </Text>
+                        </View>
+                        <View style={styles.carouselImageWrapper}>
+                          <Image
+                            source={carousel_images[index]}
+                            style={[styles.carouselImage, styles[imgStyleKey]]}
+                            resizeMethod={'auto'}
+                            testID={`carousel-${value}-image`}
+                          />
+                        </View>
                       </View>
-                      <View style={styles.carouselImageWrapper}>
-                        <Image
-                          source={carousel_images[index]}
-                          style={[styles.carouselImage, styles[imgStyleKey]]}
-                          resizeMethod={'auto'}
-                          testID={`carousel-${value}-image`}
-                        />
-                      </View>
-                    </View>
-                  );
-                })}
-              </ScrollableTabView>
+                    );
+                  })}
+                </ScrollableTabView>
 
-              <View style={styles.progessContainer}>
-                {[1, 2, 3].map((i) => (
-                  <View
-                    key={i}
-                    style={[
-                      styles.circle,
-                      currentTab === i ? styles.solidCircle : {},
-                    ]}
-                  />
-                ))}
+                <View style={styles.progessContainer}>
+                  {[1, 2, 3].map((i) => (
+                    <View
+                      key={i}
+                      style={[
+                        styles.circle,
+                        currentTab === i ? styles.solidCircle : {},
+                      ]}
+                    />
+                  ))}
+                </View>
+              </View>
+            </ScrollView>
+            <View
+              style={styles.ctas}
+              testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
+            >
+              <View style={styles.ctaWrapper}>
+                <StyledButton type={'normal'} onPress={this.onPressGetStarted}>
+                  {strings('onboarding_carousel.get_started')}
+                </StyledButton>
               </View>
             </View>
-          </ScrollView>
-          <View
-            style={styles.ctas}
-            testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
-          >
-            <View style={styles.ctaWrapper}>
-              <StyledButton type={'normal'} onPress={this.onPressGetStarted}>
-                {strings('onboarding_carousel.get_started')}
-              </StyledButton>
-            </View>
-          </View>
-        </OnboardingScreenWithBg>
-        <FadeOutOverlay />
-      </View>
+          </OnboardingScreenWithBg>
+          <FadeOutOverlay />
+        </View>
+      </PerformanceMeasureView>
     );
   }
 }
