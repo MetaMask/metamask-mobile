@@ -970,6 +970,8 @@ class Confirm extends PureComponent {
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
+      resetTransaction();
+      navigation?.dangerouslyGetParent()?.pop();
     }
     this.setState({ transactionConfirmed: false });
   };
