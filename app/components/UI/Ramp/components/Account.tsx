@@ -56,13 +56,15 @@ const Account = ({
   );
 
   const internalAccounts = useSelector(selectInternalAccounts);
-  const selectedInternalAccount =
-    internalAccounts.find((account) =>
-      toLowerCaseEquals(account.address, address),
-    ) ||
-    internalAccounts.find((account) =>
-      toLowerCaseEquals(account.address, selectedAddress),
-    );
+
+  const selectedInternalAccount = address
+    ? internalAccounts.find((account) =>
+        toLowerCaseEquals(account.address, address),
+      )
+    : internalAccounts.find((account) =>
+        toLowerCaseEquals(account.address, selectedAddress),
+      );
+
   const accountName = selectedInternalAccount?.metadata?.name || '';
   return (
     <View

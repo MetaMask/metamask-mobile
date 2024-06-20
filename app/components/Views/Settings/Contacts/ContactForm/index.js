@@ -122,9 +122,9 @@ class ContactForm extends PureComponent {
      */
     navigation: PropTypes.object,
     /**
-     * An object containing each account with metadata
+     * An array containing each account with metadata
      */
-    internalAccounts: PropTypes.object,
+    internalAccounts: PropTypes.array,
     /**
      * Map representing the address book
      */
@@ -184,13 +184,14 @@ class ContactForm extends PureComponent {
       const address = this.props.route.params?.address ?? '';
       const contact =
         networkAddressBook[address] ||
-        internalAccounts.find((account) =>
-          toLowerCaseEquals(account.address, address),
-        );
+        (address &&
+          internalAccounts.find((account) =>
+            toLowerCaseEquals(account.address, address),
+          ));
       this.setState({
         address,
-        name: contact.name,
-        memo: contact.memo,
+        name: contact?.name || '',
+        memo: contact?.memo || '',
         addressReady: true,
         editable: false,
       });
