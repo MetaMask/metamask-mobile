@@ -121,7 +121,6 @@ import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErro
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
-import { isTransactionSimulationsFeatureEnabled } from '../../../../util/transaction-controller';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
@@ -1042,8 +1041,7 @@ const Settings: React.FC = () => {
         {renderMultiAccountBalancesSection()}
         {renderShowIncomingTransactions()}
         {renderHistoryModal()}
-        {isTransactionSimulationsFeatureEnabled() &&
-          renderUseTransactionSimulations()}
+        {renderUseTransactionSimulations()}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
