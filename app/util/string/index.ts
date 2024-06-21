@@ -3,10 +3,10 @@ import { isString } from '../lodash';
 /**
  * The method escape RTL character in string
  *
- * @param {any} str
+ * @param {string} str
  * @returns {(string|*)} escaped string or original param value
  */
-export const sanitizeString = (str: any): any => {
+export const sanitizeString = (str: string): string => {
   if (!str) {
     return str;
   }
@@ -80,13 +80,25 @@ const stripOneLayerofNesting = (potentialArrayType: string) =>
 const isArrayType = (potentialArrayType: string) =>
   potentialArrayType.match(/\[[[0-9]*\]*/u) !== null;
 
-const isSolidityType = (type: any) => SOLIDITY_TYPES.includes(type);
+const isSolidityType = (type: string) => SOLIDITY_TYPES.includes(type);
+
+interface BaseType {
+  name: string;
+  type: string;
+}
+
+type FieldValue = string | string[] | Record<string, string>;
+
+interface ValueType {
+  value: FieldValue | ValueType[];
+  type: string;
+}
 
 const sanitizeMessage = (
-  message: any,
+  message: FieldValue,
   primaryType: string,
-  types: Record<string, any>,
-) => {
+  types: Record<string, BaseType[]>,
+): ValueType => {
   if (!types) {
     throw new Error(`Invalid types definition`);
   }
@@ -95,13 +107,17 @@ const sanitizeMessage = (
   const isArray = primaryType && isArrayType(primaryType);
   if (isArray) {
     return {
-      value: message.map((value: any) =>
-        sanitizeMessage(value, stripOneLayerofNesting(primaryType), types),
+      value: (message as string[]).map(
+        (value: string): ValueType =>
+          sanitizeMessage(value, stripOneLayerofNesting(primaryType), types),
       ),
       type: primaryType,
     };
   } else if (isSolidityType(primaryType)) {
-    return { value: stripMultipleNewlines(message), type: primaryType };
+    return {
+      value: stripMultipleNewlines(message as string),
+      type: primaryType,
+    };
   }
 
   // If not, assume to be struct
@@ -114,17 +130,19 @@ const sanitizeMessage = (
 
   const sanitizedStruct = {};
   const msgKeys = Object.keys(message);
-  msgKeys.forEach((msgKey) => {
-    const definedType: any = Object.values(baseTypeDefinitions).find(
-      (baseTypeDefinition: any) => baseTypeDefinition.name === msgKey,
+  msgKeys.forEach((msgKey: string) => {
+    const definedType: BaseType | undefined = Object.values(
+      baseTypeDefinitions,
+    ).find(
+      (baseTypeDefinition: BaseType) => baseTypeDefinition.name === msgKey,
     );
 
     if (!definedType) {
       return;
     }
 
-    (sanitizedStruct as Record<string, any>)[msgKey] = sanitizeMessage(
-      message[msgKey],
+    (sanitizedStruct as Record<string, ValueType>)[msgKey] = sanitizeMessage(
+      (message as Record<string, string>)[msgKey],
       definedType.type,
       types,
     );
