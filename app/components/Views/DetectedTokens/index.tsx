@@ -25,7 +25,10 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/DetectedTokensView.selectors';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     fill: {
@@ -47,6 +50,8 @@ const createStyles = (colors: any) =>
     },
     headerLabel: {
       textAlign: 'center',
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       fontSize: 18,
       paddingVertical: 16,
@@ -85,6 +90,8 @@ const DetectedTokens = () => {
 
   const dismissModalAndTriggerAction = useCallback(
     (ignoreAllTokens?: boolean) => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { TokensController } = Engine.context as any;
       let title = '';
       let description = '';
@@ -238,6 +245,7 @@ const DetectedTokens = () => {
           containerStyle={styles.fill}
           type={'confirm'}
           disabled={importTokenCount <= 0}
+          testID={DetectedTokensSelectorIDs.IMPORT_BUTTON_ID}
         >
           {strings('detected_tokens.import_cta', {
             tokenCount: importTokenCount,

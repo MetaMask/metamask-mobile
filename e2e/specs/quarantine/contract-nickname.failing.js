@@ -4,8 +4,7 @@ import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 
 import ContractNickNameView from '../../pages/ContractNickNameView';
-import SendView from '../../pages/SendView';
-
+import SendView from '../../pages/Send/SendView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../../pages/WalletView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
@@ -28,12 +27,12 @@ import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
+import { CustomNetworks } from '../../resources/networks.e2e';
 
 describe('Adding Contract Nickname', () => {
   const APPROVAL_DEEPLINK_URL =
     'https://metamask.app.link/send/0x326C977E6efc84E512bB9C30f76E30c160eD06FB@5/approve?address=0x178e3e6c9f547A00E33150F7104427ea02cfc747&uint256=5e8';
   const CONTRACT_NICK_NAME_TEXT = 'Ace RoMaIn';
-  const SEPOLIA = 'Sepolia Test Network';
 
   //FIXME Deep linking to a contract address does not work on a sim.
 
@@ -92,7 +91,7 @@ describe('Adding Contract Nickname', () => {
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(2500);
     try {
-      await WhatsNewModal.isVisible();
+      await Assertions.checkIfVisible(WhatsNewModal.container);
       await WhatsNewModal.tapCloseButton();
     } catch {
       //
@@ -101,9 +100,13 @@ describe('Adding Contract Nickname', () => {
 
   it('should switch to SEPOLIA', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.changeNetwork(SEPOLIA);
+    await NetworkListModal.changeNetworkTo(
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
 
-    await WalletView.isNetworkNameVisible(SEPOLIA);
+    await WalletView.isNetworkNameVisible(
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
     await TestHelpers.delay(1500);
   });
 
@@ -186,11 +189,11 @@ describe('Adding Contract Nickname', () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
-    await SendView.isMyAccountsVisible();
+    await Assertions.checkIfVisible(await SendView.CurrentAccountElement);
   });
 
   it('should verify the contract nickname does not appear in send flow', async () => {
-    await SendView.isSavedAliasIsNotVisible('Ace');
+    await Assertions.checkIfTextIsNotDisplayed('Ace');
   });
 
   it('should deep link to the approval modal and approve transaction', async () => {
@@ -210,6 +213,6 @@ describe('Adding Contract Nickname', () => {
   });
 
   it('should verify the contract nickname does not appear in recents', async () => {
-    await SendView.isSavedAliasIsNotVisible('Ace');
+    await Assertions.checkIfTextIsNotDisplayed('Ace');
   });
 });

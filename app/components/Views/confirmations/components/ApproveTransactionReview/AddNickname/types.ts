@@ -6,6 +6,8 @@ export interface AddNicknameProps {
   addressNickname: string;
   networkConfigurations: NetworkState['networkConfigurations'];
   nicknameExists: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   showModalAlert: (config: any) => void;
   providerType: string;
   providerChainId: string;
@@ -19,5 +21,7 @@ export interface AddNicknameProps {
       name: string;
     };
   };
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   identities: any;
 }

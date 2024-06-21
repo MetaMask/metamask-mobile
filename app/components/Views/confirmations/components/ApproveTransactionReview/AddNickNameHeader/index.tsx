@@ -7,8 +7,14 @@ import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 interface HeaderProps {
   closeModal: () => void;
   nicknameExists: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   headerWrapperStyle?: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   headerTextStyle?: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   iconStyle?: any;
 }
 

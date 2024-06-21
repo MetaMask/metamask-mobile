@@ -364,6 +364,19 @@
   "receive": {
     "title": "Receive"
   },
+  "experience_enhancer_modal": {
+    "title": "Help us enhance your experience",
+    "paragraph1a": "In addition to ",
+    "paragraph1b": ", we'd like to use data (like information from cookies) to learn how you interact with our marketing communications.",
+    "link": "MetaMetrics",
+    "paragraph2": "This helps us personalize what we share with you, like:",
+    "bullet1": "Latest developments",
+    "bullet2": "Product features",
+    "bullet3": "Other relevant promotional materials",
+    "footer": "Remember, we never sell the data you provide and you can opt out any time.",
+    "accept": "I agree",
+    "cancel": "No thanks"
+  },
   "wallet": {
     "title": "Wallet",
     "tokens": "Tokens",
@@ -374,7 +387,7 @@
     "no_available_tokens": "Don't see your token?",
     "add_tokens": "Import tokens",
     "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved":"Your search information will not be saved.",
+    "search_information_not_saved": "Your search information will not be saved.",
     "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} new {{tokensLabel}} found in this account",
     "token_toast": {
@@ -400,12 +413,11 @@
     "no_tokens": "You don't have any tokens!",
     "no_nfts_yet": "No NFTs yet",
     "nfts_autodetection_title": "NFT detection",
-    "nfts_autodetection_desc": "Allow MetaMask to automatically detect NFTs from OpenSea and display in your MetaMask wallet.",
+    "nfts_autodetection_desc": "Let MetaMask automatically detect and display NFTs in your wallet.",
     "network_details_check": "Network details check",
     "network_with_chain_id": "The network with chain ID",
-    "chain_list_returned_different_ticker_symbol":
-   "This token symbol doesn't match the network name or chain ID entered. Many popular tokens use similar symbols, which scammers can use to trick you into sending them a more valuable token in return. Verify everything before you continue.",
-   "suggested_token_symbol":"Suggested ticker symbol:",
+    "chain_list_returned_different_ticker_symbol": "This token symbol doesn't match the network name or chain ID entered. Many popular tokens use similar symbols, which scammers can use to trick you into sending them a more valuable token in return. Verify everything before you continue.",
+    "suggested_token_symbol": "Suggested ticker symbol:",
     "potential_scam": "This is a potential scam",
     "network_not_matching": "This network doesn't match its associated chain ID or name. Many popular tokens use the name",
     "target_scam_network": "making it a target for scams. Scammers may trick you into sending them more valuable currency in return. Verify everything before you continue.",
@@ -442,7 +454,7 @@
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
     "nfts_autodetect_title": "NFT autodetection",
-    "nfts_autodetect_cta": "Turn on Autodetect NFTs in Settings",
+    "nfts_autodetect_cta": "Enable NFT autodetection",
     "turn_on_network_check_cta": "Turn on network details check",
     "display_nft_media_cta_new_1": "To see an NFT, turn on Display NFT media in",
     "display_nft_media_cta_new_2": "Settings > Security and Privacy.",
@@ -508,6 +520,7 @@
     "description_title": "Help us improve MetaMask",
     "description_content_1": "We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.",
     "description_content_2": "When we gather metrics, it will always be...",
+    "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relavent news (like product features).",
     "action_description_1_prefix": "Private:",
     "action_description_2_prefix": "General:",
     "action_description_3_prefix": "Optional:",
@@ -554,7 +567,7 @@
     "symbol_cant_be_empty": "Token symbol can't be empty.",
     "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Token decimals can't be empty.",
-    "decimals_is_required":"Decimal is required. Find it on:",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "We couldn't find any tokens with that name.",
     "select_token": "Select Token",
     "address_must_be_smart_contract": "Personal address detected. Enter the token contract address."
@@ -637,7 +650,8 @@
     "revoked_all": "All accounts revoked.",
     "accounts_connected": "accounts connected.",
     "disconnected": "disconnected.",
-    "disconnected_all": "All accounts disconnected."
+    "disconnected_all": "All accounts disconnected.",
+    "nft_detection_enabled": "NFT autodetection enabled"
   },
   "connect_qr_hardware": {
     "title": "Connect a QR-based hardware wallet",
@@ -656,6 +670,10 @@
     "purpose_sign": "confirm the transaction",
     "select_accounts": "Select an Account",
     "please_wait": "Please wait"
+  },
+  "data_collection_modal": {
+    "accept": "Okay",
+    "content": "You turned off data collection for our marketing purposes. This only applies to this device. If you use MetaMask on other devices, make sure to opt out there as well."
   },
   "account_selector": {
     "prev": "PREV",
@@ -764,7 +782,7 @@
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
     "allow_notifications_desc": "Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices. Learn how we protect your privacy while using this feature.",
-    "notifications_opts" :{
+    "notifications_opts": {
       "customize_session_title": "Customize your notifications",
       "customize_session_desc": "Turn on the types of notifications you want to receive:",
       "account_session_title": "Account activity",
@@ -828,7 +846,9 @@
     "clear_history_desc": "Choose this option to clear your entire browsing history.",
     "clear_cookies_desc": "Choose this option to clear your browser's cookies.",
     "metametrics_title": "Participate in MetaMetrics",
-    "metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
+    "metametrics_description": "Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.",
+    "data_collection_title": "Data collection for marketing",
+    "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
     "batch_balance_requests_title": "Batch account balance requests",
     "batch_balance_requests_description": "We batch accounts and query Infura to responsively show your balances. If you turn this off, only active accounts will be queried. Some dApps won’t work unless you connect your wallet.",
     "third_party_title": "Get incoming transactions",
@@ -869,12 +889,13 @@
     "delete": "Delete",
     "network_exists": "This network has already been added.",
     "delete_metrics_title": "Delete MetaMetrics data",
-    "delete_metrics_description_part_one": "This will delete historical MetaMetrics data associated with your wallet.",
-    "delete_metrics_description_part_two": "MetaMetrics data is anonymized usage and diagnostic data.",
-    "delete_metrics_description_part_three": "Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 60 days. View the",
-    "delete_metrics_description_part_four": "You initiated this action on",
-    "delete_metrics_description_part_five": ". This process can take up to 60 days. View the",
-    "consensys_privacy_policy": "ConsenSys Privacy Policy.",
+    "delete_metrics_description_part_one": "This will delete historical",
+    "delete_metrics_description_part_two": "MetaMetrics",
+    "delete_metrics_description_part_three": "data associated with your wallet.",
+    "delete_metrics_description_before_delete": "Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 30 days. View our",
+    "delete_metrics_description_after_delete_part_one": "You initiated this action on",
+    "delete_metrics_description_after_delete_part_two": ". This process can take up to 30 days. View our",
+    "delete_metrics_description_privacy_policy": "Privacy Policy.",
     "delete_metrics_button": "Delete MetaMetrics data",
     "check_status_button": "Check Status",
     "delete_metrics_confirm_modal_title": "Delete MetaMetrics data?",
@@ -977,8 +998,27 @@
     "security_alerts": "Security alerts",
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
-    "smart_transactions_opt_in_desc": "Turn on Smart Transactions for more reliable and secure transactions, and adjustable fees on ETH Mainnet.",
-    "smart_transactions_learn_more": "Learn more."
+    "smart_transactions_opt_in_desc": "Turn on Smart Transactions for more reliable and secure transactions on Ethereum Mainnet.",
+    "smart_transactions_learn_more": "Learn more.",
+    "simulation_details": "Estimate balance changes",
+    "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
+    "simulation_details_learn_more": "Learn more.",
+    "aes_crypto_test_form_title": "AES Crypto - Test Form",
+    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support."
+  },
+  "aes_crypto_test_form": {
+    "generate_random_salt": "Generate Random Salt",
+    "salt_bytes_count": "Salt bytes count",
+    "generate": "Generate",
+    "generate_encryption_key": "Generate encryption key from password",
+    "password": "Password",
+    "salt": "Salt",
+    "encrypt_with_key": "Encrypt with key",
+    "encrypt": "Encrypt",
+    "encryption_key": "Encryption Key",
+    "data": "Data",
+    "decrypt_with_key": "Decrypt with key",
+    "decrypt": "Decrypt"
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1158,6 +1198,15 @@
     "show_private_key": "Show private key",
     "account_copied_to_clipboard": "Public address copied to clipboard",
     "share_public_key": "Sharing my public key: "
+  },
+  "enable_nft-auto-detection": {
+    "title": "Enable NFT autodetection",
+    "description": "Allow MetaMask to detect and display your NFTs with autodetection. You’ll be able to:",
+    "immediateAccess": "Immediately access your NFTs",
+    "navigate": "Effortlessly navigate your digital assets",
+    "dive": "Dive straight into using your NFTs",
+    "allow": "Allow",
+    "notRightNow": "Not right now"
   },
   "detected_tokens": {
     "title": "{{tokenCount}} new token found",
@@ -1357,10 +1406,12 @@
     "approve": "Approve",
     "allow_to_access": "Give permission to access your",
     "allow_to_address_access": "Give this address access your",
+    "allow_to_transfer_all": "Allow access to and transfer of all your",
     "spend_cap": "Spending cap request for your",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "By granting permission, you're allowing the following third party to access your funds.",
+    "you_trust_this_third_party" : "This allows a third party to access and transfer your NFTs without further notice until you revoke its access.",
     "you_trust_this_address": "Do you trust this address? By granting this permission, you're allowing this address to access your funds.",
     "edit_permission": "Edit permission",
     "edit": "Edit",
@@ -1424,7 +1475,7 @@
     "yes": "Yes",
     "undefined_account": "Undefined account",
     "close_tab": "Close tab",
-    "switch_tab": "Switch tab", 
+    "switch_tab": "Switch tab",
     "protocol_alert_options": {
       "ignore": "Ignore",
       "allow": "Allow"
@@ -1464,6 +1515,8 @@
     "tx_review_transfer_from": "Transfer From",
     "tx_review_unknown": "Unknown Method",
     "tx_review_approve": "Approve",
+    "tx_review_increase_allowance": "Increase Allowance",
+    "tx_review_set_approval_for_all": "Set Approval For All",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -1485,11 +1538,17 @@
     "smart_contract_interaction": "Smart contract interaction",
     "swaps_transaction": "Swaps transaction",
     "approve": "Approve",
+    "increase_allowance": "Increase Allowance",
+    "set_approval_for_all": "Set Approval For All",
     "hash": "Hash",
     "from": "From",
     "to": "To",
     "details": "Details",
     "amount": "Amount",
+    "fee": {
+      "transaction_fee_in_ether": "Transaction Fee",
+      "transaction_fee_in_usd": "Transaction Fee (USD)"
+    },
     "gas_used": "Gas Used (Units)",
     "gas_limit": "Gas Limit (Units)",
     "gas_price": "Gas Price (GWEI)",
@@ -1523,18 +1582,13 @@
   "smart_transactions": {
     "status_submitting_header": "Submitting your transaction",
     "status_submitting_description": "Estimated completion {{timeLeft}}",
-    
     "status_success_header": "Your transaction is complete",
-
     "status_submitting_past_estimated_deadline_header": "Sorry for the wait",
     "status_submitting_past_estimated_deadline_description": "If your transaction is not finalized within {{timeLeft}}, it will be canceled and you will not be charged for gas.",
-    
     "status_cancelled_header": "Your transaction was canceled",
     "status_cancelled_description": "Your transaction couldn't be completed, so it was canceled to save you from paying unnecessary gas fees.",
-    
     "status_failed_header": "Your transaction failed",
     "status_failed_description": "Sudden market changes can cause failures. If the problem continues, reach out to MetaMask customer support.",
-    
     "view_transaction": "View transaction",
     "view_activity": "View activity",
     "return_to_dapp": "Return to {{dappName}}",
@@ -1605,11 +1659,11 @@
     "approve": "Approve",
     "edit_network_details": "Edit network details",
     "malicious_network_warning": "A malicious network provider can lie about the state of the blockchain and record your network activity. Only add custom networks you trust.",
-    "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
+    "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "Network Information",
     "network_warning_desc": "This network connection relies on third parties. This connection may be less reliable or enable third-parties to track activity.",
     "learn_more": "Learn more",
-    "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
+    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Switch to network",
     "switch": "Switch",
     "new_network": "New network added",
@@ -1622,6 +1676,8 @@
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
     "select_network": "Select a network",
+    "enabled_networks": "Enabled networks",
+    "additional_networks": "Additional networks",
     "show_test_networks": "Show test networks",
     "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
     "network_deprecated_title": "This network is deprecated",
@@ -1890,15 +1946,26 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "staked": "Staked",
+    "received": "Received",
+    "unstaked": "Unstaked",
+    "to": "To",
+    "rate": "Rate(fees included)",
+    "unstaking_requested": "Unstaking requested",
     "stake_completed": "Stake completed",
     "withdrawal_completed": "Withdrawal completed",
     "unstake_completed": "Unstake completed",
     "withdrawal_requested": "Withdrawal requested",
     "stake_ready_to_be_withdrawn": "Stake ready to be withdrawn",
     "swap_completed": "Swapped {{from}} for {{to}}",
+    "swap": "Swapped",
     "sent": "Sent to {{address}}",
-    "received": "Received from {{address}}",
-    "sent_nft": "Sent NFT to {{address}}",
+    "received_from": "Received from {{address}}",
+    "nft_sent": "Sent NFT to {{address}}",
+    "erc721_sent": "Sent NFT to {{address}}",
+    "erc1155_sent": "Sent NFT to {{address}}",
+    "erc721_received": "Received NFT from {{address}}",
+    "erc1155_received": "Received NFT from {{address}}",
     "received_nft": "Received NFT from {{address}}",
     "pending_title": "Transaction submitted",
     "pending_deposit_title": "Deposit in progress!",
@@ -1940,6 +2007,7 @@
     "wc_description": "Please check the application",
     "wallet": "Wallet",
     "web3": "Web3",
+    "staking_provider": "Staking Provider",
     "empty": {
       "title": "Nothing to see here",
       "message": "This is where you can find notifications once there’s activity in your wallet. "
@@ -1960,7 +2028,7 @@
       "manage_preferences_2": "Settings > Notifications.",
       "cancel": "Cancel",
       "cta": "Turn on"
-  }
+    }
   },
   "protect_your_wallet_modal": {
     "title": "Protect your wallet",
@@ -2549,11 +2617,18 @@
     "submit_ticket_5": "Submit a ticket",
     "submit_ticket_6": "here.",
     "submit_ticket_7": "Please include the error message and the screenshot.",
+    "submit_ticket_8": "Send us a bug report",
+    "submit_ticket_9": "Please include details about what happened.",
+    "bug_report_prompt_title": "Tell us what happened",
+    "bug_report_prompt_description": "Add details so we can figure out what went wrong.",
+    "bug_report_thanks": "Thanks! We’ll take a look soon.",
     "save_seedphrase_1": "If this error persists,",
     "save_seedphrase_2": "save your Secret Recovery Phrase",
     "save_seedphrase_3": "& re-install the app. Note: you can NOT restore your wallet without your Secret Recovery Phrase.",
     "copied_clipboard": "Copied to clipboard",
-    "ok": "OK"
+    "ok": "OK",
+    "cancel": "Cancel",
+    "send": "Send"
   },
   "whats_new": {
     "title": "What's new",
@@ -2573,7 +2648,7 @@
       "header": "Enhanced Transaction Protection",
       "description_1": "Unlock higher success rates, frontrunning protection, and better visibility with Smart Transactions.",
       "description_2": "Only available on Ethereum. Enable or disable any time in settings.",
-      "secondary_button": "Don't enable enhanced protection",
+      "secondary_button": "Manage in settings",
       "primary_button": "Enable",
       "learn_more": "Learn more.",
       "benefit_1_1": "99.5% success",
@@ -2582,6 +2657,11 @@
       "benefit_2_2": "money",
       "benefit_3_1": "Real-time",
       "benefit_3_2": "updates"
+    },
+    "transaction_simulation": {
+      "title": "Estimated balance changes",
+      "description_1": "Now you can see the potential outcome of your transactions before you make them!",
+      "description_2": "This is just a simulation, so we can’t guarantee the final outcome. You can turn this off anytime in Settings > Security & Privacy."
     }
   },
   "invalid_network": {
@@ -2753,7 +2833,7 @@
     "error_title": "Oops! Something went wrong.",
     "error_message": "There was an error loading the network information. Please try again later.",
     "private_network_third_description": "Please enter a name for this network to make it easy to identify.",
-    "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
+    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "enable_token_detection": "Enable auto token detection",
     "token_detection_mainnet_title": "Token detection is enabled so tokens will automatically show up in your wallet.",
     "token_detection_mainnet_link": "You can also add tokens manually.",
@@ -3013,7 +3093,8 @@
     "manage_networks": "Manage networks",
     "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
     "manage_networks_body2": " to learn more about how Infura handles data.",
-    "functionality_body": "Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.",
+    "functionality_body": "MetaMask offers basic features like token details and gas settings through internet services. When you use internet services, your IP address is shared, in this case with MetaMask. This is just like when you visit any website. MetaMask uses this data temporarily and never sells your data. You can use a VPN or turn off these services, but it may affect your MetaMask experience. Read our ",
+    "functionality_body2": " to learn more.",
     "sheet": {
       "title_off": "Turn off basic functionality",
       "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
@@ -3026,5 +3107,16 @@
         "turn_off": "Turn off"
       }
     }
+  },
+  "simulation_details": {
+    "failed": "There was an error loading your estimation.",
+    "fiat_not_available": "Not Available",
+    "incoming_heading": "You receive", 
+    "no_balance_changes": "No changes predicted for your wallet",
+    "outgoing_heading": "You send",
+    "reverted": "This transaction is likely to fail",
+    "title": "Estimated changes",
+    "tooltip_description": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
+    "total_fiat": "Total = {{currency}}"
   }
 }

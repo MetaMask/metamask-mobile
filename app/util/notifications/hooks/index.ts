@@ -1,53 +1,71 @@
-import { useEffect } from 'react';
-import notifee, { EventType, AndroidImportance } from '@notifee/react-native';
-import Device from '../../../util/device';
-import { STORAGE_IDS } from '../../../util/notifications/settings/storage/constants';
+import { useCallback, useEffect } from 'react';
+import notifee, {
+  Event as NotifeeEvent,
+  EventType,
+} from '@notifee/react-native';
 import NotificationManager from '../../../core/NotificationManager';
 import Routes from '../../../constants/navigation/Routes';
+import { setupAndroidChannel } from '../setupAndroidChannels';
+import { SimpleNotification } from '../types';
+import Device from '../../../util/device';
 
 const useNotificationHandler = (
-  bootstrapInitialNotification: () => Promise<void>,
+  bootstrapAndroidInitialNotification: () => Promise<void>,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any,
 ) => {
-  useEffect(() => {
-    notifee.decrementBadgeCount(1);
+  const performActionBasedOnOpenedNotificationType = useCallback(
+    async (notification: SimpleNotification) => {
+      const { data } = notification;
 
-    bootstrapInitialNotification();
+      if (data && data.action === 'tx') {
+        if (data.id) {
+          NotificationManager.setTransactionToView(data.id);
+        }
+        if (navigation) {
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        }
+      }
+    },
+    [navigation],
+  );
+
+  const handleOpenedNotification = useCallback(
+    (notification?: SimpleNotification) => {
+      if (!notification) {
+        return;
+      }
+      performActionBasedOnOpenedNotificationType(notification);
+    },
+    [performActionBasedOnOpenedNotificationType],
+  );
+
+  const handleNotificationPressed = useCallback(
+    (event: NotifeeEvent) => {
+      if (event.type === EventType.PRESS) {
+        handleOpenedNotification(event.detail.notification);
+      }
+    },
+    [handleOpenedNotification],
+  );
+
+  useEffect(() => {
+    // Reset badge count https://notifee.app/react-native/docs/ios/badges#removing-the-badge-count
+    notifee.setBadgeCount(0);
+
+    bootstrapAndroidInitialNotification();
     setTimeout(() => {
-      notifee.onForegroundEvent(
-        ({ type, detail }: { type: any; detail: any }) => {
-          // Reset badge count https://notifee.app/react-native/docs/ios/badges#removing-the-badge-count
-          notifee.setBadgeCount(0);
-          if (type !== EventType.DISMISSED) {
-            let data = null;
-            if (Device.isAndroid()) {
-              if (detail.notification.data) {
-                data = JSON.parse(detail.notification.data);
-              }
-            } else if (detail.notification.data) {
-              data = detail.notification.data;
-            }
-            if (data && data.action === 'tx') {
-              if (data.id) {
-                NotificationManager.setTransactionToView(data.id);
-              }
-              if (navigation) {
-                navigation.navigate(Routes.TRANSACTIONS_VIEW);
-              }
-            }
-          }
-        },
-      );
-      /**
-       * Creates a channel (required for Android)
-       */
-      notifee.createChannel({
-        id: STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID,
-        name: 'Default',
-        importance: AndroidImportance.HIGH,
-      });
+      if (Device.isAndroid()) {
+        setupAndroidChannel();
+      }
+      notifee.onForegroundEvent(handleNotificationPressed);
     }, 1000);
-  }, [bootstrapInitialNotification, navigation]);
+  }, [
+    bootstrapAndroidInitialNotification,
+    navigation,
+    handleNotificationPressed,
+  ]);
 };
 
 export default useNotificationHandler;

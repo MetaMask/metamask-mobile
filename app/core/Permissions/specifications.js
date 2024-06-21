@@ -287,7 +287,6 @@ export const unrestrictedMethods = Object.freeze([
   'eth_coinbase',
   'parity_defaultAccount',
   'eth_sendTransaction',
-  'eth_signTransaction',
   'eth_sign',
   'personal_sign',
   'personal_ecRecover',

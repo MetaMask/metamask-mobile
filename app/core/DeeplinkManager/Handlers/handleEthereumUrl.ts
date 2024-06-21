@@ -71,6 +71,8 @@ async function handleEthereumUrl({
         }
       }
     }
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     let alertMessage;
     switch (e.message) {

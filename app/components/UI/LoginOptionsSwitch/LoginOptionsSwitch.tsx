@@ -32,6 +32,8 @@ const LoginOptionsSwitch = ({
   const { colors } = theme;
   const styles = createStyles(colors);
   const allowLoginWithRememberMe = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.security.allowLoginWithRememberMe,
   );
   const [rememberMeEnabled, setRememberMeEnabled] = useState<boolean>(false);
@@ -66,7 +68,7 @@ const LoginOptionsSwitch = ({
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={theme.brandColors.white['000']}
+          thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
           testID={LoginOptionsSwitchSelectorsIDs.BIOMETRICS_SWITCH}
         />
@@ -86,7 +88,7 @@ const LoginOptionsSwitch = ({
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={theme.brandColors.white['000']}
+          thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
           {...generateTestId(Platform, LOGIN_WITH_REMEMBER_ME_SWITCH)}
         />
