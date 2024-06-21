@@ -32,6 +32,8 @@ describe('AnnouncementsDetails', () => {
   const store = mockStore(mockInitialState);
 
   let navigation: NavigationProp<ParamListBase>;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let styles: Record<string, any>;
   beforeEach(() => {
     navigation = {

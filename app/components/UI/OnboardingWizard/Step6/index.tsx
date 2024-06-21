@@ -32,6 +32,8 @@ const styles = StyleSheet.create({
 });
 
 interface Step6Props {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   onClose: () => Promise<void>;
 }

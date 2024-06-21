@@ -35,6 +35,8 @@ describe('Logger', () => {
   describe('error', () => {
     it('warns if error is not defined', async () => {
       const warn = jest.spyOn(console, 'warn');
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await Logger.error(undefined as any);
       expect(warn).toBeCalledWith('No error provided');
     });
@@ -66,6 +68,8 @@ describe('Logger', () => {
     });
 
     it('calls captureException when string is passed instead of Error object', async () => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const testError = 'testError' as any;
       await Logger.error(testError);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));

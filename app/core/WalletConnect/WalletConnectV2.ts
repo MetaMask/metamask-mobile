@@ -115,6 +115,8 @@ class WalletConnect2Session {
         getProviderState,
       }: {
         hostname: string;
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         getProviderState: any;
       }) =>
         getRpcMethodMiddleware({
@@ -313,6 +315,8 @@ class WalletConnect2Session {
         );
         const permissionController = (
           Engine.context as {
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             PermissionController: PermissionController<any, any>;
           }
         ).PermissionController;
@@ -373,6 +377,8 @@ class WalletConnect2Session {
     let method = requestEvent.params.request.method;
     const chainId = parseInt(requestEvent.params.chainId);
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const methodParams = requestEvent.params.request.params as any;
 
     DevLogger.log(
@@ -501,7 +507,11 @@ export class WC2Manager {
       this.navigation,
     );
     const permissionController = (
-      Engine.context as { PermissionController: PermissionController<any, any> }
+      Engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
     ).PermissionController;
 
     Object.keys(sessions).forEach(async (sessionKey) => {
@@ -634,6 +644,8 @@ export class WC2Manager {
     let web3Wallet;
     // Extract chainId from controller
     const options: SingleEthereumTypes.Options = {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       core: core as any,
       chainId,
       metadata: AppConstants.WALLET_CONNECT.METADATA,
@@ -708,6 +720,8 @@ export class WC2Manager {
       // Remove associated permissions
       const permissionsController = (
         Engine.context as {
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           PermissionController: PermissionController<any, any>;
         }
       ).PermissionController;
@@ -786,7 +800,11 @@ export class WC2Manager {
     hideWCLoadingState({ navigation: this.navigation });
 
     const permissionsController = (
-      Engine.context as { PermissionController: PermissionController<any, any> }
+      Engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
     ).PermissionController;
 
     const { proposer } = params;

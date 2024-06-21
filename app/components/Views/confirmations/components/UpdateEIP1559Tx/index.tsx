@@ -105,7 +105,11 @@ const UpdateEIP1559Tx = ({
       if (isNaN(updateTx.totalMaxHex)) {
         return strings('invalid_amount');
       }
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updateTxCost: any = hexToBN(`0x${updateTx.totalMaxHex}`);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const accountBalance: any = hexToBN(accounts[selectedAddress].balance);
       const isMaxFeePerGasMoreThanLegacyResult = isMaxFeePerGasMoreThanLegacy(
         new BigNumber(updateTx.suggestedMaxFeePerGas),
@@ -256,6 +260,8 @@ const UpdateEIP1559Tx = ({
   );
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   accounts: selectAccounts(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),

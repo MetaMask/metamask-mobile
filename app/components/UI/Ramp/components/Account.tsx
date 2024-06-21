@@ -11,6 +11,8 @@ import { selectIdentities } from '../../../../selectors/preferencesController';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 
 // TODO: Convert into typescript and correctly type
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Identicon = JSIdenticon as any;
 
 const createStyles = (colors: Colors) =>

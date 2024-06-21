@@ -9,6 +9,8 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   ...jest.requireActual('../../../components/hooks/useMetrics'),
   withMetricsAwareness: jest
     .fn()
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .mockImplementation((Children) => (props: any) => (
       <Children {...props} metrics={{ trackEvent: mockTrackEvent }} />
     )),

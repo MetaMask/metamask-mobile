@@ -9,7 +9,7 @@ import {
   waitForKeychainUnlocked,
 } from '../utils/wait.util';
 
-async function postInit(instance: SDKConnect) {
+async function postInit(instance: SDKConnect, callback?: () => void) {
   if (!instance.state._initialized) {
     throw new Error(`SDKConnect::postInit() - not initialized`);
   }
@@ -53,6 +53,8 @@ async function postInit(instance: SDKConnect) {
 
   instance.state._postInitialized = true;
   DevLogger.log(`SDKConnect::postInit() - done`);
+
+  callback?.();
 }
 
 export default postInit;

@@ -206,10 +206,24 @@ workflows:
                 #!/usr/bin/env bash
                 echo "Gems being installed with bundler gem"
                 bundle install
-                echo "Node $NODE_VERSION being installed with asdf"
-                asdf list all nodejs
-                asdf install nodejs "$NODE_VERSION"
-                asdf global nodejs "$NODE_VERSION"
+                echo "Node $NODE_VERSION being installed"
+
+                set -e
+
+                # Install and enable NVM
+                wget -O install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
+                echo "${NVM_SHA256SUM} install-nvm.sh" > install-nvm.sh.SHA256SUM
+                sha256sum -c install-nvm.sh.SHA256SUM
+                chmod +x install-nvm.sh && ./install-nvm.sh && rm ./install-nvm.sh
+                source "${HOME}/.nvm/nvm.sh"
+                echo 'source "${HOME}/.nvm/nvm.sh"' | tee -a ${HOME}/.{bashrc,profile}
+
+                nvm install ${NODE_VERSION}
+
+                envman add --key PATH --value $PATH
+
+                node --version
+
                 echo "Corepack being installed with npm"
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
@@ -1331,10 +1345,10 @@ app:
   envs:
     - opts:
         is_expand: false
-      MM_TRANSACTION_SIMULATIONS_ENABLED: false
+      MM_NOTIFICATIONS_UI_ENABLED: false
     - opts:
         is_expand: false
-      MM_NOTIFICATIONS_UI_ENABLED: false
+      MM_NETWORK_UI_REDESIGN_ENABLED: false
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -1367,16 +1381,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.24.1
+      VERSION_NAME: 7.24.2
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1346
+      VERSION_NUMBER: 1348
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.24.1
+      FLASK_VERSION_NAME: 7.24.2
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1346
+      FLASK_VERSION_NUMBER: 1348
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1386,6 +1400,12 @@ app:
     - opts:
         is_expand: false
       IOS_APP_LINK: ''
+    - opts:
+        is_expand: false
+      NVM_VERSION: 0.39.7
+    - opts:
+        is_expand: false
+      NVM_SHA256SUM: '8e45fa547f428e9196a5613efad3bfa4d4608b74ca870f930090598f5af5f643'
     - opts:
         is_expand: false
       NODE_VERSION: 20.12.2
