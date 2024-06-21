@@ -430,10 +430,10 @@ any) => {
         trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
         // Call detect nfts
         const { NftDetectionController } = Engine.context;
-        try{
+        try {
           showNftFetchingLoadingIndicator();
           await NftDetectionController.detectNfts();
-        } finally{
+        } finally {
           hideNftFetchingLoadingIndicator();
         }
       }

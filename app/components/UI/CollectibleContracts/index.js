@@ -296,7 +296,7 @@ const CollectibleContracts = ({
         NftDetectionController.detectNfts(),
         NftController.checkAndUpdateAllNftsOwnershipStatus(),
       ];
-      await Promise.all(actions);
+      await Promise.allSettled(actions);
       setRefreshing(false);
     });
   }, [setRefreshing]);
