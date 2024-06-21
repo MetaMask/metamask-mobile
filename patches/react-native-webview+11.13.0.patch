@@ -83,7 +83,7 @@ index 0000000..f4a6af9
 +  }
 +}
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..b520532 100644
+index f743bbc..26d4a88 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -5,6 +5,7 @@ import android.annotation.TargetApi;
@@ -931,7 +931,7 @@ index f743bbc..b520532 100644
  
        ArrayList<String> requestedAndroidPermissions = new ArrayList<>();
        for (String requestedResource : request.getResources()) {
-@@ -1220,36 +1536,74 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1220,36 +1536,77 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
          if (requestedResource.equals(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) {
            androidPermission = Manifest.permission.RECORD_AUDIO;
@@ -966,11 +966,14 @@ index f743bbc..b520532 100644
 -      }
 -
 -      // Otherwise, ask to Android System for native permissions asynchronously
++      Uri originUri = request.getOrigin();
++      String host = originUri.getHost();
++
 +      if (!requestedAndroidPermissions.isEmpty()) {
 +        // Show the dialog and request the permissions
 +        AlertDialog.Builder builder = new AlertDialog.Builder(mReactContext);
 +        String permissionsIdentifiers = TextUtils.join(" and ", requestPermissionIdentifiers);
-+        builder.setMessage("The app needs access to your " + permissionsIdentifiers + ". Allow?");
++        builder.setMessage("The " + host  + " needs access to your " + permissionsIdentifiers + ". Allow?");
 +        builder.setCancelable(false);
 +        builder.setPositiveButton("Allow", new DialogInterface.OnClickListener() {
 +          public void onClick(DialogInterface dialog, int which) {
@@ -994,7 +997,7 @@ index f743bbc..b520532 100644
 +        // If that happens and the permissions are already granted you need to ask again
 +        AlertDialog.Builder builder = new AlertDialog.Builder(mReactContext);
 +        String permissionsIdentifiers = TextUtils.join(" and ", requestPermissionIdentifiers);
-+        builder.setMessage("The app needs access to your " + permissionsIdentifiers + ". Allow?");
++        builder.setMessage("The " + host + " needs access to your " + permissionsIdentifiers + ". Allow?");
 +        builder.setCancelable(false);
 +        builder.setPositiveButton("Allow", new DialogInterface.OnClickListener() {
 +          public void onClick(DialogInterface dialog, int which) {
@@ -1022,7 +1025,7 @@ index f743bbc..b520532 100644
  
      @Override
      public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-@@ -1266,7 +1620,22 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1266,7 +1623,22 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
          requestPermissions(Collections.singletonList(Manifest.permission.ACCESS_FINE_LOCATION));
  
        } else {
@@ -1046,7 +1049,7 @@ index f743bbc..b520532 100644
        }
      }
  
-@@ -1402,6 +1771,15 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1402,6 +1774,15 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      }
  
@@ -1062,7 +1065,7 @@ index f743bbc..b520532 100644
      @Override
      public void onHostPause() { }
  
-@@ -1447,6 +1825,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1447,6 +1828,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      protected boolean nestedScrollEnabled = false;
      protected ProgressChangedFilter progressChangedFilter;
  
@@ -1076,7 +1079,7 @@ index f743bbc..b520532 100644
      /**
       * WebView must be created with an context of the current activity
       * <p>
-@@ -1475,6 +1860,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1475,6 +1863,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        this.nestedScrollEnabled = nestedScrollEnabled;
      }
  
@@ -1119,7 +1122,7 @@ index f743bbc..b520532 100644
      @Override
      public void onHostResume() {
        // do nothing
-@@ -1533,6 +1954,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1533,6 +1957,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      }
  
@@ -1128,7 +1131,7 @@ index f743bbc..b520532 100644
      public @Nullable
      RNCWebViewClient getRNCWebViewClient() {
        return mRNCWebViewClient;
-@@ -1609,8 +2032,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1609,8 +2035,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
      public void callInjectedJavaScriptBeforeContentLoaded() {
        if (getSettings().getJavaScriptEnabled() &&
@@ -1139,7 +1142,7 @@ index f743bbc..b520532 100644
          evaluateJavascriptWithFallback("(function() {\n" + injectedJSBeforeContentLoaded + ";\n})();");
        }
      }
-@@ -1672,16 +2095,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1672,16 +2098,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
        if (mOnScrollDispatchHelper.onScrollChanged(x, y)) {
          ScrollEvent event = ScrollEvent.obtain(
