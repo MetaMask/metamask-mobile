@@ -43,7 +43,7 @@ const findAllPaths = async (path: string): Promise<string[]> => {
   }
   const fileNames = await ReactNativeBlobUtil.fs.ls(path);
   const paths = fileNames.map((fileName) => `${path}/${fileName}`);
-  return (await Promise.all(paths.map(findAllPaths))).flat(Infinity);
+  return (await Promise.all(paths.map(findAllPaths))).flat(Infinity) as string[];
 };
 
 const readAndParseAt = async (path: string) => {
