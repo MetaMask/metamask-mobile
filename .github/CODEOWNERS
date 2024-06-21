@@ -48,3 +48,5 @@ app/store @MetaMask/notifications @MetaMask/mobile-platform
 ses.cjs                              @MetaMask/supply-chain
 patches/react-native+0.*.patch       @MetaMask/supply-chain
 
+# Snaps Team
+**/snaps/**                          @MetaMask/snaps-devs
