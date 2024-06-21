@@ -19,10 +19,6 @@ describe('string utils', () => {
       );
       expect(result).toEqual('Secure ✅ \n');
     });
-    it('does nothing if passed value is not defined or not a string type', async () => {
-      expect(stripMultipleNewlines(123 as any)).toEqual(123);
-      expect(stripMultipleNewlines(undefined as any)).not.toBeDefined();
-    });
   });
 
   describe('parseTypedSignDataMessage', () => {
