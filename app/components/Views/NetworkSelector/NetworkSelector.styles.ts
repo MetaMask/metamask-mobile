@@ -17,6 +17,31 @@ const createStyles = (colors: any) =>
         ? 12
         : 0,
     },
+    // baseItem: Object.assign(
+    //   {
+    //     padding: 16,
+    //     borderRadius: 4,
+    //     alignItems: 'flex-start',
+    //     backgroundColor: colors.background.default,
+    //   } as ViewStyle,
+    //   style,
+    // ) as ViewStyle,
+
+    container: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      backgroundColor: colors.background.default,
+    },
+    item: {
+      paddingLeft: 8,
+      // height: '100%',
+      // width: '100%',
+    },
+    buttonMenu: {
+      // paddingRight: 32,
+      backgroundColor: colors.background.alternative,
+    },
     switchContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
