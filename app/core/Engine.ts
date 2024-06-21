@@ -1142,7 +1142,6 @@ class Engine {
       tokensController,
       tokenListController,
       new TokenDetectionController({
-        //@ts-expect-error Misalign types because of Base Controller version
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
