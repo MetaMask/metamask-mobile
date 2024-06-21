@@ -784,7 +784,7 @@ function decodeSwapsTx(args) {
   const destinationExchangeRate = isSwapsNativeAsset(destinationToken)
     ? 1
     : contractExchangeRates?.[safeToChecksumAddress(destinationToken.address)]
-        .price;
+        ?.price;
   const renderDestinationTokenFiatNumber = balanceToFiatNumber(
     decimalDestinationAmount,
     conversionRate,
