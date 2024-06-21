@@ -393,7 +393,7 @@
     "@types/node": "^20.12.8",
     "@types/qs": "^6.9.15",
     "@types/react": "^17.0.11",
-    "@types/react-native": "^0.64.10",
+    "@types/react-native": "^0.70.13",
     "@types/react-native-background-timer": "^2.0.0",
     "@types/react-native-elevated-view": "^0.0.4",
     "@types/react-native-material-textfield": "^0.16.5",
