@@ -225,14 +225,16 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [isAllowedUrl, dappUrl, channelIdOrHostname]);
 
-  const faviconSource = useFavicon(inappBrowserOrigin);
+  const faviconSource = useFavicon(
+    inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
+  );
 
   const actualIcon = useMemo(
     () =>
-      dappIconUrl
-        ? { uri: dappIconUrl }
-        : faviconSource?.uri
+      faviconSource?.uri
         ? faviconSource
+        : dappIconUrl
+        ? { uri: dappIconUrl }
         : { uri: '' },
     [dappIconUrl, faviconSource],
   );

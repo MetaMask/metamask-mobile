@@ -98,9 +98,9 @@ const ApproveTransactionHeader = ({
         (origin as string).split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
       ).origin;
     } else if (url || currentEnsName) {
-      title = prefixUrlWithProtocol(url || currentEnsName || '');
+      title = prefixUrlWithProtocol(currentEnsName || url || '');
     } else {
-      title = strings('sdk.unknown');
+      title = '';
     }
 
     return title;
@@ -126,10 +126,10 @@ const ApproveTransactionHeader = ({
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
-  const imageSource = sdkDappMetadata?.icon
-    ? { uri: sdkDappMetadata.icon }
-    : faviconSource?.uri
+  const imageSource = faviconSource?.uri
     ? faviconSource
+    : sdkDappMetadata?.icon
+    ? { uri: sdkDappMetadata.icon }
     : {
         uri: '',
       };
@@ -140,7 +140,7 @@ const ApproveTransactionHeader = ({
         <TagUrl
           testID={APPROVE_TRANSACTION_ORIGIN_PILL}
           imageSource={imageSource}
-          label={sdkDappMetadata?.url || domainTitle}
+          label={domainTitle || sdkDappMetadata?.url || strings('sdk.unknown')}
           style={styles.tagUrl}
         />
       ) : null}
