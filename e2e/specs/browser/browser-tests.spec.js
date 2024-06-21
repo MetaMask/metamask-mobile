@@ -60,10 +60,10 @@ describe(SmokeCore('Browser Tests'), () => {
     await Browser.tapOptionsButton();
     await Browser.tapAddToFavoritesButton();
 
-    await Assertions.checkIfVisible(await AddBookmarkView.container);
+    await Assertions.checkIfVisible(AddBookmarkView.container);
 
     await AddBookmarkView.tapAddBookmarksButton();
-    await Assertions.checkIfNotVisible(await AddBookmarkView.container);
+    await Assertions.checkIfNotVisible(AddBookmarkView.container);
   });
 
   it('should tap on the test dapp in favorites on the home page', async () => {
