@@ -149,9 +149,6 @@ import {
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { EndowmentPermissions } from '../constants/permissions';
-///: END:ONLY_INCLUDE_IF
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents, MetaMetrics } from './Analytics';
 
@@ -160,6 +157,7 @@ import {
   SnapBridge,
   ExcludedSnapEndowments,
   ExcludedSnapPermissions,
+  EndowmentPermissions,
   detectSnapLocation,
   fetchFunction,
   DetectSnapLocationOptions,
