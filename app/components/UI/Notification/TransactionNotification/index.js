@@ -32,6 +32,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { speedUpTransaction } from '../../../../util/transaction-controller';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
@@ -226,6 +227,7 @@ function TransactionNotification(props) {
         conversionRate,
         currentCurrency,
         exchangeRate,
+        contractExchangeRates,
         collectibleContracts,
         tokens,
         primaryCurrency,
@@ -241,6 +243,7 @@ function TransactionNotification(props) {
         conversionRate,
         currentCurrency,
         exchangeRate,
+        contractExchangeRates,
         collectibleContracts,
         tokens,
         primaryCurrency,
@@ -410,6 +413,10 @@ TransactionNotification.propTypes = {
    */
   exchangeRate: PropTypes.number,
   /**
+   * Object containing token exchange rates in the format address => exchangeRate
+   */
+  contractExchangeRates: PropTypes.object,
+  /**
    * An array that represents the user collectible contracts
    */
   collectibleContracts: PropTypes.array,
@@ -446,6 +453,7 @@ const mapStateToProps = (state) => {
     chainId,
     tokens: selectTokensByAddress(state),
     collectibleContracts: collectibleContractsSelector(state),
+    contractExchangeRates: selectContractExchangeRates(state),
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
     primaryCurrency: state.settings.primaryCurrency,
