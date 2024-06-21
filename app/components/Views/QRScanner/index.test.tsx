@@ -15,7 +15,7 @@ describe('QrScanner', () => {
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
       QrScanner,
-      { name: Routes.QR_SCANNER },
+      { name: Routes.QR_TAB_SWITCHER },
       { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();

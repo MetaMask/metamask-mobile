@@ -31,10 +31,6 @@ import { selectChainId } from '../../../selectors/networkController';
 import { isValidAddressInputViaQRCode } from '../../../util/address';
 import { getURLProtocol } from '../../../util/general';
 import {
-  createNavigationDetails,
-  useParams,
-} from '../../../util/navigation/navUtils';
-import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
 } from '../../../util/validators';
@@ -43,23 +39,21 @@ import { useTheme } from '../../../util/theme';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
-export interface QRScannerParams {
+/**
+ * View that wraps the QR code scanner screen
+ */
+const QRScanner = ({
+  onScanSuccess,
+  onScanError,
+  onStartScan,
+  origin,
+}: {
   onScanSuccess: (data: any, content?: string) => void;
   onScanError?: (error: string) => void;
   onStartScan?: (data: any) => Promise<void>;
   origin?: string;
-}
-
-export const createQRScannerNavDetails =
-  createNavigationDetails<QRScannerParams>(Routes.QR_SCANNER);
-
-/**
- * View that wraps the QR code scanner screen
- */
-const QRScanner = () => {
+}) => {
   const navigation = useNavigation();
-  const { onScanError, onScanSuccess, onStartScan, origin } =
-    useParams<QRScannerParams>();
 
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
@@ -67,15 +61,6 @@ const QRScanner = () => {
   const currentChainId = useSelector(selectChainId);
   const theme = useTheme();
   const styles = createStyles(theme);
-
-  const goBack = useCallback(() => {
-    navigation.goBack();
-    try {
-      onScanError?.('USER_CANCELLED');
-    } catch (error: any) {
-      console.warn(`Error setting onScanError: ${error.message}`);
-    }
-  }, [onScanError, navigation]);
 
   const end = useCallback(() => {
     mountedRef.current = false;
@@ -296,7 +281,7 @@ const QRScanner = () => {
 
   return (
     <View style={styles.container}>
-      <RNCamera
+      {/* <RNCamera
         onMountError={onError}
         captureAudio={false}
         style={styles.preview}
@@ -310,12 +295,9 @@ const QRScanner = () => {
           buttonNegative: strings('qr_scanner.cancel'),
         }}
         onStatusChange={onStatusChange}
-      />
+      /> */}
       <SafeAreaView style={styles.overlayContainerColumn}>
         <View style={styles.overlay}>
-          <TouchableOpacity style={styles.closeIcon} onPress={goBack}>
-            <Icon name={'ios-close'} size={50} color={styles.closeIcon.color} />
-          </TouchableOpacity>
           <Text variant={TextVariant.BodyLGMedium} style={styles.overlayText}>
             {strings('qr_scanner.label')}
           </Text>

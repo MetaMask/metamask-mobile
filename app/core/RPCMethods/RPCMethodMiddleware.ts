@@ -724,7 +724,7 @@ export const getRpcMethodMiddleware = ({
       wallet_scanQRCode: () =>
         new Promise<void>((resolve, reject) => {
           checkTabActive();
-          navigation.navigate('QRScanner', {
+          navigation.navigate('QRTabSwitcher', {
             onScanSuccess: (data: any) => {
               if (!regex.exec(req.params[0], data)) {
                 reject({ message: 'NO_REGEX_MATCH', data });
