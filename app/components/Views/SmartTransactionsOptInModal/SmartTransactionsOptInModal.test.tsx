@@ -113,7 +113,7 @@ describe('SmartTransactionsOptInModal', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
         screen: Routes.SETTINGS.ADVANCED_SETTINGS,
-      });      
+      });
     });
   });
   it('should update last app version seen on primary button press', () => {
