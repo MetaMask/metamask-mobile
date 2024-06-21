@@ -57,6 +57,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import {
@@ -131,6 +132,10 @@ class Transactions extends PureComponent {
      * Callback to close the view
      */
     close: PropTypes.func,
+    /**
+     * Object containing token exchange rates in the format address => exchangeRate
+     */
+    contractExchangeRates: PropTypes.object,
     /**
      * Network configurations
      */
@@ -628,6 +633,7 @@ class Transactions extends PureComponent {
       selectedAddress={this.props.selectedAddress}
       tokens={this.props.tokens}
       collectibleContracts={this.props.collectibleContracts}
+      contractExchangeRates={this.props.contractExchangeRates}
       exchangeRate={this.props.exchangeRate}
       conversionRate={this.props.conversionRate}
       currentCurrency={this.props.currentCurrency}
@@ -857,6 +863,7 @@ const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   chainId: selectChainId(state),
   collectibleContracts: collectibleContractsSelector(state),
+  contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
