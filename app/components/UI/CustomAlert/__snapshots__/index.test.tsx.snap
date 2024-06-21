@@ -104,7 +104,7 @@ exports[`CustomAlert should render correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "borderRadius": 16,
         }
       }
@@ -164,7 +164,7 @@ exports[`CustomAlert should render correctly 1`] = `
                   "padding": 15,
                 },
                 {
-                  "backgroundColor": "#0376C9",
+                  "backgroundColor": "#0376c9",
                   "minHeight": 50,
                 },
                 undefined,

@@ -13,8 +13,8 @@ exports[`BackupAlert should render correctly 1`] = `
       },
       [
         {
-          "backgroundColor": "#FFFFFF",
-          "borderColor": "#BF5208",
+          "backgroundColor": "#ffffff",
+          "borderColor": "#bf5208",
           "borderRadius": 8,
           "borderWidth": 1,
           "left": 16,
@@ -31,7 +31,7 @@ exports[`BackupAlert should render correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#BF520819",
+        "backgroundColor": "#bf52081a",
         "flex": 1,
         "padding": 14,
       }
@@ -53,7 +53,7 @@ exports[`BackupAlert should render correctly 1`] = `
         }
       >
         <SvgMock
-          color="#24272A"
+          color="#141618"
           height={20}
           name="Notification"
           style={
@@ -76,7 +76,7 @@ exports[`BackupAlert should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "700",
@@ -105,7 +105,7 @@ exports[`BackupAlert should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376C9",
+                  "color": "#0376c9",
                   "flex": 1,
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
@@ -132,7 +132,7 @@ exports[`BackupAlert should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376C9",
+                  "color": "#0376c9",
                   "flex": 1,
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
