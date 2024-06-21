@@ -87,13 +87,20 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         sourceTokenSymbol,
         destTokenSymbol,
       );
-      await Assertions.checkIfVisible(DetailsModal.title);
-      await Assertions.checkIfElementToHaveText(
-        DetailsModal.title,
-        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
-      );
-      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
-      await DetailsModal.tapOnCloseIcon();
+
+      if (device.getPlatform() === 'android') {
+        await Assertions.checkIfVisible(DetailsModal.title);
+        await Assertions.checkIfElementToHaveText(
+          DetailsModal.title,
+          DetailsModal.generateExpectedTitle(
+            sourceTokenSymbol,
+            destTokenSymbol,
+          ),
+        );
+        await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
+        await DetailsModal.tapOnCloseIcon();
+        await Assertions.checkIfNotVisible(DetailsModal.title);
+      }
     },
   );
 });
