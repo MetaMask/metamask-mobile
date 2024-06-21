@@ -190,9 +190,9 @@ function NetworkSwitcher() {
       }
 
       const supportedNetworkConfigurations = rampNetworksDetails.map(
-        (networkConfiguration: Network) => {
+        (networkConfiguration) => {
           const isAdded = Object.values(networkConfigurations).some(
-            (savedNetwork: any) =>
+            (savedNetwork) =>
               savedNetwork.chainId === networkConfiguration.chainId,
           );
           return {
