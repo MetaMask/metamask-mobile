@@ -102,6 +102,8 @@ const persistTransform = createTransform(
 
 const persistUserTransform = createTransform(
   // TODO: Add types for the 'user' slice
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (inboundState: any) => {
     const { initialScreen, isAuthChecked, ...state } = inboundState;
     // Reconstruct data to persist

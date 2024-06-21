@@ -64,9 +64,13 @@ const PersonalSign = ({
   const { trackEvent } = useMetrics();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
   const { securityAlertResponse } = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (reduxState: any) => reduxState.signatureRequest,
   );
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { colors }: any = useTheme();
   const styles = createStyles(colors);
 
@@ -167,6 +171,8 @@ const PersonalSign = ({
     }
   };
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const shouldTruncateMessage = (e: any) => {
     if (e.nativeEvent.lines.length > 5) {
       setTruncateMessage(true);

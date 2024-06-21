@@ -19,6 +19,8 @@ const PLACEHOLDER_IMG_URI = require('../../../../../images/no-image-placeholder.
 
 interface Props {
   notification: FeatureAnnouncementRawNotification;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: Record<string, any>;
   navigation: NavigationProp<ParamListBase>;
 }

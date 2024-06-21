@@ -16,6 +16,8 @@ jest.mock('../../../../../util/blockaid', () => ({
 }));
 
 jest.mock('react-native-gzip', () => ({
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   deflate: (val: any) => val,
 }));
 

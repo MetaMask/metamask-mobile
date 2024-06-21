@@ -220,8 +220,14 @@ function FiatOrders() {
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const navigation = useNavigation();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pendingOrders = useSelector<any, FiatOrder[]>(getPendingOrders);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const customOrderIds = useSelector<any, CustomIdData[]>(getCustomOrderIds);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const authenticationUrls = useSelector<any, string[]>(getAuthenticationUrls);
 
   const dispatchAddFiatOrder = useCallback(
