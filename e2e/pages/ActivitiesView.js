@@ -3,6 +3,7 @@ import { ActivitiesViewSelectorsText } from '../selectors/ActivitiesView.selecto
 
 export default class ActivitiesView {
   static async isVisible() {
+    await TestHelpers.delay(5000);
     await TestHelpers.checkIfElementWithTextIsVisible(
       ActivitiesViewSelectorsText.TITLE,
     );
