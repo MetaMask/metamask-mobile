@@ -130,12 +130,12 @@ export default async function migrate(stateAsync: unknown) {
 
         if (
           !Object.prototype.hasOwnProperty.call(
-            //@ts-expect-error Assets Controllers version on the version this migration was applied, this property existed
+            //@ts-expect-error At the time of that migrations assets controllers version had those properties, so those users will have that property on their phone storage, the migration was casted and that where it's wrong, we shouldn't cast migrations because the structure and property names change over time.
             newTokenRatesControllerState.contractExchangeRatesByChainId,
             hexChainId,
           )
         ) {
-          //@ts-expect-error Assets Controllers version on the version this migration was applied, this property existed
+          //@ts-expect-error At the time of that migrations assets controllers version had those properties, so those users will have that property on their phone storage, the migration was casted and that where it's wrong, we shouldn't cast migrations because the structure and property names change over time.
           newTokenRatesControllerState.contractExchangeRatesByChainId[
             hexChainId
           ] =
