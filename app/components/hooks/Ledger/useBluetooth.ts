@@ -13,6 +13,8 @@ const useBluetooth = (hasBluetoothPermissions: boolean) => {
       let subscription: Subscription;
 
       import('@ledgerhq/react-native-hw-transport-ble').then(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (BluetoothTransport: any) => {
           subscription = BluetoothTransport.default.observeState({
             next: (e: { available: boolean; type: State }) => {

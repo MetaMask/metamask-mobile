@@ -32,7 +32,6 @@ import { SessionHeader } from './sectionHeader';
 import { useListNotifications } from '../../../../util/notifications/hooks/useNotifications';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
-  // Hooks
   const { accounts } = useAccounts();
   const { switchAccountNotifications } = useSwitchAccountNotifications();
   const { listNotifications } = useListNotifications();
@@ -52,6 +51,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     [accounts],
   );
   //TODO: Need to refetch notifications once account is switched
+
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -148,6 +148,8 @@ NotificationsSettings.navigationOptions = ({
   navigation,
   isNotificationEnabled,
 }: {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   isNotificationEnabled: boolean;
 }) => ({

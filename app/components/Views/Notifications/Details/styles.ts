@@ -56,6 +56,8 @@ export const createStyles = ({ colors }: Theme) =>
       alignItems: 'center',
     },
     addressLinkLabel: {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       color: colors.text.alternative,
     },

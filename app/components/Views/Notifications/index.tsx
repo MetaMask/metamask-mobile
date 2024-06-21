@@ -31,6 +31,8 @@ const NotificationsView = ({
   navigation,
   selectedAddress,
 }: {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   selectedAddress: string;
 }) => {
@@ -153,6 +155,8 @@ export default NotificationsView;
 NotificationsView.navigationOptions = ({
   navigation,
 }: {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 }) => ({
   headerRight: () => (

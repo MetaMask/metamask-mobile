@@ -14,11 +14,14 @@ import thunk from 'redux-thunk';
 import persistConfig from './persistConfig';
 
 // TODO: Improve type safety by using real Action types instead of `any`
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
 // TypeScript reducers have invalid actions
-// eslint-disable-next-line import/no-mutable-exports
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, import/no-mutable-exports
 let store: Store<RootState, any>, persistor;
 const createStoreAndPersistor = async () => {
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.

@@ -119,7 +119,9 @@ const Wallet = ({
   storePrivacyPolicyShownDate,
   shouldShowNewPrivacyToast,
   storePrivacyPolicyClickedOrClosed,
-}: any) => {
+}: // TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+any) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
@@ -158,6 +160,8 @@ const Wallet = ({
   /**
    * Current onboarding wizard step
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wizardStep = useSelector((state: any) => state.wizard.step);
   /**
    * Provider configuration for the current selected network
@@ -237,6 +241,8 @@ const Wallet = ({
    * Network onboarding state
    */
   const networkOnboardingState = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.networkOnboarded.networkOnboardedState,
   );
 
@@ -333,6 +339,8 @@ const Wallet = ({
           TokenDetectionController,
           NftDetectionController,
           AccountTrackerController,
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } = Engine.context as any;
         TokenDetectionController.detectTokens();
         NftDetectionController.detectNfts();
@@ -401,6 +409,8 @@ const Wallet = ({
   }, [navigation]);
 
   const renderContent = useCallback(() => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let balance: any = 0;
     let assets = tokens;
 
@@ -415,11 +425,15 @@ const Wallet = ({
           isETH: true,
           balance,
           balanceFiat: weiToFiat(
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             hexToBN(accountBalanceByChainId.balance) as any,
             conversionRate,
             currentCurrency,
           ),
           logo: '../images/eth-logo-new.png',
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
         ...(tokens || []),
       ];
@@ -519,10 +533,14 @@ const Wallet = ({
   );
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
 });
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapDispatchToProps = (dispatch: any) => ({
   storePrivacyPolicyShownDate: () =>
     dispatch(storePrivacyPolicyShownDateAction(Date.now())),

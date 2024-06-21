@@ -24,6 +24,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
 
 interface NotificationsList {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   allNotifications: Notification[];
   walletNotifications: HalRawNotification[];

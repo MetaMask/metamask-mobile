@@ -43,13 +43,19 @@ const SnapSettings = () => {
   const { snap } = useParams<SnapSettingsProps>();
 
   const permissionsState = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.engine.backgroundState.PermissionController,
   );
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getPermissionSubjects(state: any) {
     return state.subjects || {};
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getPermissions(state: any, origin: any) {
     return getPermissionSubjects(state)[origin]?.permissions;
   }
@@ -68,6 +74,8 @@ const SnapSettings = () => {
   }, [colors, navigation, snap.manifest.proposedName]);
 
   const removeSnap = useCallback(async () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { SnapController } = Engine.context as any;
     await SnapController.removeSnap(snap.id);
     navigation.goBack();

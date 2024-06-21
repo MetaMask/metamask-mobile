@@ -8,6 +8,8 @@ import { initialState as transactionMetrics } from '../../core/redux/slices/tran
 import initialBackgroundState from './initial-background-state.json';
 
 // Cast because TypeScript is incorrectly inferring the type of this JSON object
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const backgroundState: EngineState = initialBackgroundState as any;
 
 const initialRootState: RootState = {

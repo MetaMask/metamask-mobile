@@ -31,8 +31,12 @@ import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgappe
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 interface IConnectQRHardwareProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 }
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
@@ -131,6 +135,8 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const styles = createStyles(colors);
 
   const KeyringController = useMemo(() => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController: keyring } = Engine.context as any;
     return keyring;
   }, []);
@@ -166,6 +172,8 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     });
   }, [KeyringController]);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const subscribeKeyringState = useCallback((storeValue: any) => {
     setQRState(storeValue);
   }, []);

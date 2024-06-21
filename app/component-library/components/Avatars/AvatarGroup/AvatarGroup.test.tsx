@@ -11,6 +11,8 @@ import {
 
 describe('AvatarGroup', () => {
   const findOverflowCounter = (
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     node: ShallowWrapper<any, any, React.Component>,
   ) => node.prop('testID') === STACKED_AVATARS_OVERFLOW_COUNTER_ID;
 

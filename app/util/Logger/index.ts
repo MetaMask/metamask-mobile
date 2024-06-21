@@ -25,6 +25,8 @@ export class AsyncLogger {
    * @param {object} args - data to be logged
    * @returns - void
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async log(...args: any[]): Promise<void> {
     if (__DEV__) {
       args.unshift(DEBUG);
@@ -50,6 +52,8 @@ export class AsyncLogger {
    */
   static async error(
     error: Error,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     extra?: ExtraInfo | string | any,
   ): Promise<void> {
     if (__DEV__) {
@@ -74,6 +78,8 @@ export class AsyncLogger {
           // error is an object but not an Error instance
           exception = new Error(JSON.stringify(error));
         }
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (exception as any).originalError = error;
       }
 
@@ -118,6 +124,8 @@ export default class Logger {
    * @param {object} args - data to be logged
    * @returns - void
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static log(...args: any[]) {
     AsyncLogger.log(...args).catch(() => {
       // ignore error but avoid dangling promises
@@ -131,6 +139,8 @@ export default class Logger {
    * @param {string|object} extra - Extra error info
    * @returns - void
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static error(error: Error, extra?: ExtraInfo | string | any) {
     AsyncLogger.error(error, extra).catch(() => {
       // ignore error but avoid dangling promises
