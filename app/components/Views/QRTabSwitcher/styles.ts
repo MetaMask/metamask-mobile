@@ -1,63 +1,52 @@
-import { StyleSheet } from 'react-native';
-import { Theme } from '../../../util/theme/models';
-import { colors } from '../../../styles/common';
-
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.brandColors.black['000'],
-    },
-    preview: {
-      flex: 1,
-      width: '100%',
-      height: '100%',
-      position: 'absolute',
-      zIndex: 0,
-    },
-    innerView: {
-      flex: 1,
-    },
-    closeIcon: {
-      marginTop: 20,
-      marginRight: 20,
-      width: 40,
-      alignSelf: 'flex-end',
-      position: 'absolute',
-      color: theme.brandColors.white['000'],
-    },
-    overlayContainerColumn: {
-      display: 'flex',
-      width: '100%',
-      height: '100%',
-      flexDirection: 'column',
-      position: 'absolute',
-      zIndex: 1,
-    },
-    overlayContainerRow: {
-      display: 'flex',
-      flexDirection: 'row',
-    },
-    overlay: {
-      flex: 1,
-      flexBasis: 0,
-      backgroundColor: colors.overlay,
-    },
-    frame: {
-      width: 250,
-      height: 250,
-      alignSelf: 'center',
-      justifyContent: 'center',
-      margin: -4,
-    },
-    overlayText: {
-      color: colors.overlayText,
-      fontFamily: 'EuclidCircularB-Regular',
-      textAlign: 'center',
-      textAlignVertical: 'bottom',
-      paddingBottom: 28,
-      height: '100%',
-    },
-  });
+const createStyles = (theme: any) => ({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  overlayContainerColumn: {
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+  },
+  overlay: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    padding: 10,
+  },
+  closeIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  },
+  segmentedControlContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f7f7f7',
+    marginHorizontal: 10,
+    borderRadius: 25,
+    height: 40,
+    overflow: 'hidden',
+    marginVertical: 10,
+  },
+  segmentedControlItem: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  segmentedControlItemSelected: {
+    backgroundColor: 'white',
+    borderRadius: 25,
+    height: '100%',
+  },
+  text: {
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  selectedText: {
+    color: '#000',
+    fontWeight: 'bold',
+  },
+});
 
 export default createStyles;

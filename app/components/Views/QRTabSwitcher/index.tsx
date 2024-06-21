@@ -1,45 +1,46 @@
-/* eslint @typescript-eslint/no-var-requires: "off" */
-/* eslint @typescript-eslint/no-require-imports: "off" */
-
-'use strict';
-import { useNavigation } from '@react-navigation/native';
-import React, { useCallback } from 'react';
-import { SafeAreaView, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, TouchableOpacity, View, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import QRScanner from '../QRScanner';
+import ReceiveRequest from '../../UI/ReceiveRequest';
 import createStyles from './styles';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
 
-export interface QRTabSwitcherParams {
-  onScanSuccess: (data: any, content?: string) => void;
-  onScanError?: (error: string) => void;
-  onStartScan?: (data: any) => Promise<void>;
-  origin?: string;
-}
-
-export const createQRScannerNavDetails =
-  createNavigationDetails<QRTabSwitcherParams>(Routes.QR_TAB_SWITCHER);
-
-const QRTabSwitcher = () => {
-  const { onScanError, onScanSuccess, onStartScan, origin } =
-    useParams<QRTabSwitcherParams>();
+const QRTabSwitcher = ({ onScanError, onScanSuccess, onStartScan, origin }) => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const navigation = useNavigation();
   const theme = useTheme();
   const styles = createStyles(theme);
 
-  const goBack = useCallback(() => {
+  const goBack = () => {
     navigation.goBack();
     try {
       onScanError?.('USER_CANCELLED');
-    } catch (error: any) {
+    } catch (error) {
       console.warn(`Error setting onScanError: ${error.message}`);
     }
-  }, [onScanError, navigation]);
+  };
+
+  const renderContent = () => {
+    if (selectedIndex === 0) {
+      return (
+        <QRScanner
+          onScanError={onScanError}
+          onScanSuccess={onScanSuccess}
+          onStartScan={onStartScan}
+          origin={origin}
+        />
+      );
+    }
+    return (
+      <ReceiveRequest
+        navigation={navigation}
+        hideModal={false}
+        showReceiveModal
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -50,12 +51,31 @@ const QRTabSwitcher = () => {
           </TouchableOpacity>
         </View>
       </SafeAreaView>
-      <QRScanner
-        onScanError={onScanError}
-        onScanSuccess={onScanSuccess}
-        onStartScan={onStartScan}
-        origin={origin}
-      />
+      <View style={styles.segmentedControlContainer}>
+        <TouchableOpacity
+          style={[
+            styles.segmentedControlItem,
+            selectedIndex === 0 && styles.segmentedControlItemSelected,
+          ]}
+          onPress={() => setSelectedIndex(0)}
+        >
+          <Text style={selectedIndex === 0 ? styles.selectedText : styles.text}>
+            Scan QR code
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.segmentedControlItem,
+            selectedIndex === 1 && styles.segmentedControlItemSelected,
+          ]}
+          onPress={() => setSelectedIndex(1)}
+        >
+          <Text style={selectedIndex === 1 ? styles.selectedText : styles.text}>
+            My QR
+          </Text>
+        </TouchableOpacity>
+      </View>
+      {renderContent()}
     </View>
   );
 };
