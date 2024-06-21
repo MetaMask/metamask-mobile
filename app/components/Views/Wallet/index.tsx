@@ -349,6 +349,9 @@ any) => {
         } else {
           await checkWhatsNewModal();
         }
+        InteractionManager.runAfterInteractions(() => {
+          checkNftAutoDetectionModal();
+        });
       } catch (error) {
         Logger.log(
           error,
