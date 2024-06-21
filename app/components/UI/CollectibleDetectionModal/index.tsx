@@ -47,8 +47,11 @@ const CollectibleDetectionModal = () => {
       PreferencesController.setUseNftDetection(true);
       // Call detect nfts
       showNftFetchingLoadingIndicator();
-      await NftDetectionController.detectNfts();
-      hideNftFetchingLoadingIndicator();
+      try{
+        await NftDetectionController.detectNfts();
+      }finally{
+        hideNftFetchingLoadingIndicator();
+      }
     })();
   };
   return (

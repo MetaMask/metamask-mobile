@@ -178,7 +178,7 @@ import {
   SignatureControllerActions,
   SignatureControllerEvents,
 } from '@metamask/signature-controller';
-import { hasProperty, Json } from '@metamask/utils';
+import { hasProperty, Hex, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import { providerErrors } from '@metamask/rpc-errors';
@@ -481,7 +481,6 @@ class Engine {
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
-      //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
       onPreferencesStateChange,
       onNetworkDidChange: (listener) =>
         this.controllerMessenger.subscribe(
@@ -489,23 +488,19 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
-      //@ts-expect-error - Network Controller mismatch version
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
     const nftController = new NftController(
       {
-        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
         onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        //@ts-expect-error - Network Controller mismatch version
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
-        //@ts-expect-error Misalign types because of Base Controller version
         messenger: this.controllerMessenger.getRestricted({
           name: 'NftController',
           allowedActions: [
@@ -555,7 +550,6 @@ class Engine {
       state: initialState.LoggingController,
     });
 
-    //@ts-expect-error Misalign types because of Base Controller version
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'AccountsController',
@@ -585,15 +579,17 @@ class Engine {
     const tokensController = new TokensController({
       chainId: networkController.state.providerConfig.chainId,
       config: {
-        //@ts-expect-error - Network Controller mismatch version
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
         selectedAddress: preferencesController.state.selectedAddress,
       },
-      //@ts-expect-error Misalign types because of Base Controller version
+      state: initialState.TokensController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
-        allowedActions: [`${approvalController.name}:addRequest`],
+        allowedActions: [
+          `${approvalController.name}:addRequest`,
+          'NetworkController:getNetworkClientById',
+        ],
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
@@ -608,7 +604,6 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
-      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokenListController',
         allowedActions: [],
@@ -616,7 +611,6 @@ class Engine {
       }),
     });
     const currencyRateController = new CurrencyRateController({
-      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'CurrencyRateController',
         allowedActions: [`${networkController.name}:getNetworkClientById`],
@@ -792,7 +786,6 @@ class Engine {
     });
     ///: END:ONLY_INCLUDE_IF
     const accountTrackerController = new AccountTrackerController({
-      //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
       onPreferencesStateChange,
       getIdentities: () => preferencesController.state.identities,
       getSelectedAddress: () => accountsController.getSelectedAccount().address,
@@ -800,7 +793,6 @@ class Engine {
         preferencesController.state.isMultiAccountBalancesEnabled,
       getCurrentChainId: () =>
         toHexadecimal(networkController.state.providerConfig.chainId),
-      //@ts-expect-error - Network Controller mismatch version
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -1051,8 +1043,6 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          //@ts-expect-error This is because the network type is still missing linea-sepolia
-          // When transaction controller be updated to v^25
           listener,
         ),
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
@@ -1152,7 +1142,6 @@ class Engine {
       tokensController,
       tokenListController,
       new TokenDetectionController({
-        //@ts-expect-error Misalign types because of Base Controller version
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
@@ -1196,7 +1185,6 @@ class Engine {
       }),
       new NftDetectionController({
         onNftsStateChange: (listener) => nftController.subscribe(listener),
-        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
         onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -1208,22 +1196,22 @@ class Engine {
         addNft: nftController.addNft.bind(nftController),
         getNftApi: nftController.getNftApi.bind(nftController),
         getNftState: () => nftController.state,
-        //@ts-expect-error - Network Controller mismatch version
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
+        disabled: false,
+        selectedAddress: preferencesController.state.selectedAddress,
       }),
       currencyRateController,
       networkController,
       phishingController,
       preferencesController,
       new TokenBalancesController({
-        //@ts-expect-error Misalign types because of Base Controller version
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: ['PreferencesController:getState'],
           allowedEvents: ['TokensController:stateChange'],
         }),
-        // onTokensStateChange will be removed when Tokens Controller extends Base Controller v2
+        //@ts-expect-error onTokensStateChange will be removed when Tokens Controller extends Base Controller v2
         onTokensStateChange: (listener) => tokensController.subscribe(listener),
         getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
           assetsContractController,
@@ -1237,14 +1225,12 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
         onPreferencesStateChange,
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,
         selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
-        //@ts-expect-error - Network Controller mismatch version
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
       }),
@@ -1489,9 +1475,6 @@ class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
     AccountTrackerController.configure({ provider });
-    //@ts-expect-error This seems to be incosistency on the core repo between the provider type
-    // AssetsContractController provider type = Provider | undefined
-    // NetworkController provider type = SafeEventEmitterProvider
     AssetsContractController.configure({ provider });
 
     SwapsController.configure({
@@ -1547,13 +1530,13 @@ class Engine {
     }
     if (tokens.length > 0) {
       const { contractBalances: tokenBalances } = TokenBalancesController.state;
-      const { contractExchangeRates: tokenExchangeRates } =
-        TokenRatesController.state;
+      const { marketData } = TokenRatesController.state;
+      const tokenExchangeRates = marketData[chainId];
       tokens.forEach(
         (item: { address: string; balance?: string; decimals: number }) => {
           const exchangeRate =
-            item.address in tokenExchangeRates
-              ? tokenExchangeRates[item.address]
+            tokenExchangeRates && item.address in tokenExchangeRates
+              ? tokenExchangeRates[item.address as Hex]
               : undefined;
           const tokenBalance =
             item.balance ||
@@ -1647,7 +1630,7 @@ class Engine {
     });
 
     TokenBalancesController.reset();
-    TokenRatesController.update({ contractExchangeRates: {} });
+    TokenRatesController.update({ marketData: {} });
 
     TransactionController.update({
       methodData: {},
