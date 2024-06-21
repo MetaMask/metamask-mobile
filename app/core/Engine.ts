@@ -999,9 +999,10 @@ class Engine {
       //@ts-expect-error types need to be aligned between new encryptor and snaps-controllers
       encryptor,
       getMnemonic: getPrimaryKeyringMnemonic.bind(this),
-      getFeatureFlags: () => {
-        return { disableSnaps: store.getState().settings.basicFunctionalityEnabled === false };
-      }
+      getFeatureFlags: () => ({
+        disableSnaps:
+          store.getState().settings.basicFunctionalityEnabled === false,
+      }),
     });
     ///: END:ONLY_INCLUDE_IF
 

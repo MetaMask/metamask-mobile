@@ -1,3 +1,4 @@
+/* eslint-disable import/prefer-default-export */
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { VirtualFile } from '@metamask/snaps-utils';
 import { stringToBytes } from '@metamask/utils';
@@ -43,7 +44,9 @@ const findAllPaths = async (path: string): Promise<string[]> => {
   }
   const fileNames = await ReactNativeBlobUtil.fs.ls(path);
   const paths = fileNames.map((fileName) => `${path}/${fileName}`);
-  return (await Promise.all(paths.map(findAllPaths))).flat(Infinity) as string[];
+  return (await Promise.all(paths.map(findAllPaths))).flat(
+    Infinity,
+  ) as string[];
 };
 
 const readAndParseAt = async (path: string) => {
