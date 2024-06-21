@@ -83,7 +83,7 @@ describe(
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(2500);
       try {
-        await WhatsNewModal.isVisible();
+        await Assertions.checkIfVisible(WhatsNewModal.container);
         await WhatsNewModal.tapCloseButton();
       } catch {
         /* eslint-disable no-console */
@@ -95,15 +95,13 @@ describe(
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(1000);
       try {
-        await Assertions.checkIfVisible(
-          await ExperienceEnhancerModal.container,
-        );
+        await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
         await ExperienceEnhancerModal.tapIagree();
       } catch {
         console.log('The marketing consent sheet is not visible');
       }
       try {
-        await WhatsNewModal.isVisible();
+        await Assertions.checkIfVisible(WhatsNewModal.container);
         await WhatsNewModal.tapCloseButton();
       } catch {
         /* eslint-disable no-console */
