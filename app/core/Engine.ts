@@ -109,9 +109,10 @@ import {
   SnapControllerEvents,
   SnapControllerActions,
   PersistedSnapControllerState,
-  WebViewExecutionService,
   SnapsRegistryMessenger,
 } from '@metamask/snaps-controllers';
+
+import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
 import { getSnapsWebViewPromise } from '../lib/snaps';
 import {
@@ -210,6 +211,8 @@ const NON_EMPTY = 'NON_EMPTY';
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
 });
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentChainId: any;
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -243,6 +246,7 @@ type GlobalActions =
   | GetCurrencyRateState
   | GetGasFeeState
   | GetTokenListState
+  | KeyringControllerActions
   | NetworkControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
@@ -259,6 +263,7 @@ type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
   | GasFeeStateChange
+  | KeyringControllerEvents
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
@@ -325,6 +330,8 @@ interface Controllers {
   NftController: NftController;
   NftDetectionController: NftDetectionController;
   // TODO: Fix permission types
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   PermissionController: PermissionController<any, any>;
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
@@ -374,12 +381,16 @@ class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   datamodel: any;
 
   /**
    * Object containing the info for the latest incoming tx block
    * for each address and network
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lastIncomingTxBlockInfo: any;
 
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -435,7 +446,6 @@ class Engine {
     });
 
     const preferencesController = new PreferencesController({
-      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
         allowedActions: [],
@@ -471,6 +481,7 @@ class Engine {
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
+      //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
       onPreferencesStateChange,
       onNetworkDidChange: (listener) =>
         this.controllerMessenger.subscribe(
@@ -484,6 +495,7 @@ class Engine {
     });
     const nftController = new NftController(
       {
+        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
         onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -616,26 +628,20 @@ class Engine {
       networkController.state.selectedNetworkClientId,
     );
     const gasFeeController = new GasFeeController({
-      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
           `${networkController.name}:getNetworkClientById`,
           `${networkController.name}:getEIP1559Compatibility`,
+          `${networkController.name}:getState`,
         ],
         allowedEvents: [AppConstants.NETWORK_DID_CHANGE_EVENT],
       }),
       getProvider: () =>
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         networkController.getProviderAndBlockTracker().provider,
-      onNetworkDidChange: (listener) =>
-        this.controllerMessenger.subscribe(
-          AppConstants.NETWORK_DID_CHANGE_EVENT,
-          listener,
-        ),
       getCurrentNetworkEIP1559Compatibility: async () =>
         (await networkController.getEIP1559Compatibility()) ?? false,
-      getChainId: () => networkController.state.providerConfig.chainId,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
         const chainId = networkController.state.providerConfig.chainId;
         return (
@@ -676,7 +682,6 @@ class Engine {
         preferencesController,
       ),
       encryptor,
-      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
         allowedActions: [],
@@ -692,6 +697,8 @@ class Engine {
      * Gets the mnemonic of the user's primary keyring.
      */
     const getPrimaryKeyringMnemonic = () => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const [keyring]: any = keyringController.getKeyringsByType(
         KeyringTypes.hd,
       );
@@ -712,8 +719,6 @@ class Engine {
       ...buildSnapRestrictedMethodSpecifications(
         Object.keys(ExcludedSnapPermissions),
         {
-          encrypt: encryptor.encrypt.bind(encryptor),
-          decrypt: encryptor.decrypt.bind(encryptor),
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           clearSnapState: this.controllerMessenger.call.bind(
@@ -762,7 +767,11 @@ class Engine {
           showDialog: (
             origin: string,
             type: EnumToUnion<DialogType>,
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             content: any, // should be Component from '@metamask/snaps-ui';
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             placeholder?: any,
           ) =>
             approvalController.addAndShowApprovalRequest({
@@ -783,6 +792,7 @@ class Engine {
     });
     ///: END:ONLY_INCLUDE_IF
     const accountTrackerController = new AccountTrackerController({
+      //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
       onPreferencesStateChange,
       getIdentities: () => preferencesController.state.identities,
       getSelectedAddress: () => accountsController.getSelectedAccount().address,
@@ -908,7 +918,6 @@ class Engine {
 
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
-    //@ts-expect-error Misalign types because of Base Controller version
     const snapsRegistryMessenger: SnapsRegistryMessenger =
       this.controllerMessenger.getRestricted({
         name: 'SnapsRegistry',
@@ -919,7 +928,6 @@ class Engine {
       state: initialState.SnapsRegistry,
       messenger: snapsRegistryMessenger,
       refetchOnAllowlistMiss: requireAllowlist,
-      failOnUnavailableRegistry: requireAllowlist,
       url: {
         registry: 'https://acl.execution.metamask.io/latest/registry.json',
         signature: 'https://acl.execution.metamask.io/latest/signature.json',
@@ -929,7 +937,6 @@ class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
-      //@ts-expect-error Misalign types because of Base Controller version
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
         allowedActions: [],
@@ -987,6 +994,8 @@ class Engine {
         requireAllowlist,
       },
       state: initialState.SnapController || undefined,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       messenger: snapControllerMessenger as any,
       detectSnapLocation: (
         location: string | URL,
@@ -999,6 +1008,9 @@ class Engine {
         }),
       //@ts-expect-error types need to be aligned with snaps-controllers
       preinstalledSnaps: PREINSTALLED_SNAPS,
+      //@ts-expect-error types need to be aligned between new encryptor and snaps-controllers
+      encryptor,
+      getMnemonic: getPrimaryKeyringMnemonic.bind(this),
     });
     ///: END:ONLY_INCLUDE_IF
 
@@ -1029,6 +1041,8 @@ class Engine {
         },
         updateTransactions: true,
       },
+      isSimulationEnabled: () =>
+        preferencesController.state.useTransactionSimulations,
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
@@ -1075,6 +1089,8 @@ class Engine {
     const smartTransactionsControllerTrackMetaMetricsEvent = (params: {
       event: string;
       category: string;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sensitiveProperties: any;
     }) => {
       const { event, category, ...restParams } = params;
@@ -1110,8 +1126,10 @@ class Engine {
             listener,
           ),
 
-        provider: networkController.getProviderAndBlockTracker()
-          .provider as any,
+        // TODO: Replace "any" with type
+        provider:
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          networkController.getProviderAndBlockTracker().provider as any,
 
         trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
       },
@@ -1178,6 +1196,7 @@ class Engine {
       }),
       new NftDetectionController({
         onNftsStateChange: (listener) => nftController.subscribe(listener),
+        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
         onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -1218,7 +1237,7 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-
+        //@ts-expect-error mismatch version, will disappear when bump assets-controllers to >=29
         onPreferencesStateChange,
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,
@@ -1233,7 +1252,6 @@ class Engine {
       this.smartTransactionsController,
       new SwapsController(
         {
-          // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
           fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
           // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
           fetchEstimatedMultiLayerL1Fee,
@@ -1255,6 +1273,7 @@ class Engine {
             swapsUtils.OPTIMISM_CHAIN_ID,
             swapsUtils.ZKSYNC_ERA_CHAIN_ID,
             swapsUtils.LINEA_CHAIN_ID,
+            swapsUtils.BASE_CHAIN_ID,
           ],
         },
       ),
@@ -1304,9 +1323,13 @@ class Engine {
             `${preferencesController.name}:stateChange`,
             listener,
           ),
-        provider: networkController.getProviderAndBlockTracker()
-          .provider as any,
+        // TODO: Replace "any" with type
+        provider:
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          networkController.getProviderAndBlockTracker().provider as any,
         ppomProvider: {
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           PPOM: PPOM as any,
           ppomInit,
         },
@@ -1314,6 +1337,8 @@ class Engine {
         securityAlertsEnabled:
           initialState.PreferencesController?.securityAlertsEnabled ?? false,
         state: initialState.PPOMController,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         nativeCrypto: Crypto as any,
       });
       controllers.push(ppomController);
@@ -1329,7 +1354,7 @@ class Engine {
     for (const controller of controllers) {
       if (
         hasProperty(initialState, controller.name) &&
-        //@ts-expect-error Misalign types because of Base Controller version
+        hasProperty(controller, 'subscribe') &&
         controller.subscribe !== undefined
       ) {
         // The following type error can be addressed by passing initial state into controller constructors instead
@@ -1642,6 +1667,8 @@ class Engine {
   }
 
   async destroyEngineInstance() {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Object.values(this.context).forEach((controller: any) => {
       if (controller.destroy) {
         controller.destroy();
@@ -1665,6 +1692,8 @@ class Engine {
 
     try {
       ApprovalController.reject(id, reason);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (opts.logErrors !== false) {
         Logger.error(

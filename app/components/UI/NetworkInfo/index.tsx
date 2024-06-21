@@ -211,6 +211,8 @@ const NetworkInfo = (props: NetworkInfoProps) => {
   );
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   isTokenDetectionEnabled: selectUseTokenDetection(state),
 });

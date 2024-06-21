@@ -12,6 +12,8 @@ jest.mock('../util/address', () => ({
 
 // Default state is setup to be on mainnet, with smart transactions enabled and opted into
 const getDefaultState = () => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const defaultState: any = {
     engine: {
       backgroundState: cloneDeep(initialBackgroundState),

@@ -9,11 +9,11 @@ exports[`TagBase should render TagBase 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#FFFFFF",
-      "borderColor": "#BBC0C5",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#bbc0c5",
       "borderRadius": 999,
       "borderWidth": 0,
-      "color": "#24272A",
+      "color": "#141618",
       "flexDirection": "row",
       "padding": 16,
       "paddingHorizontal": 8,
@@ -23,7 +23,7 @@ exports[`TagBase should render TagBase 1`] = `
   testID="tagbase"
 >
   <SvgMock
-    color="#24272A"
+    color="#141618"
     height={20}
     name="Add"
     style={
@@ -47,7 +47,7 @@ exports[`TagBase should render TagBase 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#24272A",
+        "color": "#141618",
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
         "fontWeight": "400",
@@ -69,7 +69,7 @@ exports[`TagBase should render TagBase 1`] = `
     testID="listitem-gap"
   />
   <SvgMock
-    color="#24272A"
+    color="#141618"
     height={20}
     name="Add"
     style={

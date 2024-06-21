@@ -353,7 +353,7 @@ class AdvancedSettings extends PureComponent {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white['000']}
+              thumbColor={theme.brandColors.white}
               ios_backgroundColor={colors.border.muted}
               style={styles.switch}
             />
@@ -464,7 +464,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={theme.brandColors.white['000']}
+                    thumbColor={theme.brandColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                     accessibilityLabel={strings(
@@ -503,7 +503,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={theme.brandColors.white['000']}
+                    thumbColor={theme.brandColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                   />
@@ -543,7 +543,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={theme.brandColors.white['000']}
+                    thumbColor={theme.brandColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                     accessibilityRole={'switch'}
@@ -582,7 +582,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={theme.brandColors.white['000']}
+                    thumbColor={theme.brandColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                   />
@@ -622,7 +622,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={theme.brandColors.white['000']}
+                    thumbColor={theme.brandColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                   />

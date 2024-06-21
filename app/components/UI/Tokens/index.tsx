@@ -98,16 +98,19 @@ import { selectUseTokenDetection } from '../../../selectors/preferencesControlle
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import useIsOriginalNativeTokenSymbol from '../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import ButtonIcon, {
-  ButtonIconVariants,
+  ButtonIconSizes,
 } from '../../../../app/component-library/components/Buttons/ButtonIcon';
 import Box from '../../UI/Ramp/components/Box';
 import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
 import { isPortfolioUrl } from '../../../../app/util/url';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
@@ -126,15 +129,21 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const primaryCurrency = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.settings.primaryCurrency,
   );
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const hideZeroBalanceTokens = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.settings.hideZeroBalanceTokens,
   );
   const detectedTokens = useSelector(selectDetectedTokens);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
 
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
@@ -171,9 +180,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           onPressIn={() => {
             setShowScamWarningModal(true);
           }}
-          variant={ButtonIconVariants.Primary}
-          size={IconSize.Lg}
-          iconColorOverride={IconColor.Error}
+          iconColor={IconColor.Error}
+          size={ButtonIconSizes.Lg}
         />
       );
     }
@@ -508,7 +516,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         style={styles.tokensDetectedButton}
         onPress={showDetectedTokens}
       >
-        <Text style={styles.tokensDetectedText}>
+        <Text
+          style={styles.tokensDetectedText}
+          testID={WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON}
+        >
           {strings('wallet.tokens_detected_in_account', {
             tokenCount: detectedTokens.length,
             tokensLabel: detectedTokens.length > 1 ? 'tokens' : 'token',
@@ -664,6 +675,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const removeToken = async () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { TokensController }: any = Engine.context;
     const tokenAddress = tokenToRemove?.address;
     const symbol = tokenToRemove?.symbol;

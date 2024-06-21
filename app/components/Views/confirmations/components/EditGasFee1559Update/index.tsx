@@ -315,6 +315,8 @@ const EditGasFee1559Update = ({
         .filter(({ name }) => !shouldIgnore(name))
         .map(({ name, label, ...option }) => ({
           name,
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           label: function LabelComponent(selected: any, disabled: any) {
             return (
               <Text bold primary={selected && !disabled}>
