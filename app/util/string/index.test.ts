@@ -11,8 +11,12 @@ describe('string utils', () => {
       expect(result).toEqual('test \\u202E test \\u202E test');
     });
     it('should return a non-string value as it is', async () => {
-      const result = sanitizeString({ test: 'test \u202E test \u202E test' });
-      expect(result.test).toEqual('test \u202E test \u202E test');
+      const result = sanitizeString({
+        test: 'test \u202E test \u202E test',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((result as any).test).toEqual('test \u202E test \u202E test');
     });
   });
 
