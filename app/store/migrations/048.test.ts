@@ -78,7 +78,7 @@ describe('Migration #48', () => {
     });
   }
 
-  it('should remove TokenRatesController contractExchangeRates and contractExchangeRatesByChainId properties', async () => {
+  it('removes TokenRatesController contractExchangeRates and contractExchangeRatesByChainId properties', async () => {
     const newState = await migration(oldState);
     expect(newState).toStrictEqual(expectedNewState);
   });
