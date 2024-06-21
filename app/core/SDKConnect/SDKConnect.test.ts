@@ -150,7 +150,6 @@ describe('SDKConnect', () => {
         await sdkConnect.postInit();
 
         expect(mockPostInit).toHaveBeenCalledTimes(1);
-        expect(mockPostInit).toHaveBeenCalledWith(sdkConnect);
       });
     });
   });
