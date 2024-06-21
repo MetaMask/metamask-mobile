@@ -129,7 +129,8 @@ const Wallet = ({
   storePrivacyPolicyClickedOrClosed,
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
-}: any) => {
+}: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+any) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
@@ -266,6 +267,7 @@ const Wallet = ({
   const networkImageSource = useSelector(selectNetworkImageSource);
   const useNftDetection = useSelector(selectUseNftDetection);
   const isNFTAutoDetectionModalOpened = useSelector(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.security.isNFTAutoDetectionModalOpened,
   );
 

@@ -39,6 +39,7 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>
