@@ -53,6 +53,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
+import InpageProviderWeb3 from '../../../core/InpageProviderWeb3';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
@@ -261,6 +262,7 @@ export const BrowserTab = (props) => {
   const [error, setError] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
+  const [inpageContentWeb3, setInpageContentWeb3] = useState(null);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
@@ -644,11 +646,16 @@ export const BrowserTab = (props) => {
     const initialUrl = props.initialUrl || HOMEPAGE_URL;
     go(initialUrl, true);
 
+    const getInpageContentWeb3 = async () => {
+      const inpageContent = await InpageProviderWeb3.get();
+      setInpageContentWeb3(inpageContent);
+    };
+    getInpageContentWeb3();
+
     const getEntryScriptWeb3 = async () => {
       const entryScriptWeb3 = await EntryScriptWeb3.get();
       setEntryScriptWeb3(entryScriptWeb3 + SPA_urlChangeListener);
     };
-
     getEntryScriptWeb3();
 
     // Specify how to clean up after this effect:
@@ -1491,7 +1498,9 @@ export const BrowserTab = (props) => {
     </View>
   );
 
-  const js = `${entryScriptWeb3}; window._metamaskSetupProvider(); ${SPA_urlChangeListener}`;
+  const shouldLoadWebview = !!entryScriptWeb3 && !!inpageContentWeb3 && firstUrlLoaded;
+
+  const js = `${inpageContentWeb3};${entryScriptWeb3};`;
 
   /**
    * Main render
@@ -1503,7 +1512,7 @@ export const BrowserTab = (props) => {
         {...(Device.isAndroid() ? { collapsable: false } : {})}
       >
         <View style={styles.webview}>
-          {!!entryScriptWeb3 && firstUrlLoaded && (
+          {shouldLoadWebview && (
             <>
               <WebView
                 originWhitelist={[
