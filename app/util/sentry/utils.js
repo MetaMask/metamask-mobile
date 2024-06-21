@@ -23,6 +23,22 @@ const ERROR_URL_ALLOWLIST = [
 export const routingInstrumentation =
   new Sentry.ReactNavigationV5Instrumentation();
 
+/**
+ * Capture Sentry user feedback and associate ID of captured exception
+ *
+ * @param options.sentryId - ID of captured exception
+ * @param options.comments - User's feedback/comments
+ */
+export const captureSentryFeedback = ({ sentryId, comments }) => {
+  const userFeedback = {
+    event_id: sentryId,
+    name: '',
+    email: '',
+    comments,
+  };
+  Sentry.captureUserFeedback(userFeedback);
+};
+
 function getProtocolFromURL(url) {
   return new URL(url).protocol;
 }
@@ -92,11 +108,13 @@ function removeDeviceName(report) {
  * @param {*} report - the error event
  */
 function removeSES(report) {
-  const stacktraceFrames = report.exception.values[0].stacktrace.frames;
-  const filteredFrames = stacktraceFrames.filter(
-    (frame) => frame.filename !== 'app:///ses.cjs',
-  );
-  report.exception.values[0].stacktrace.frames = filteredFrames;
+  const stacktraceFrames = report?.exception?.values[0]?.stacktrace?.frames;
+  if (stacktraceFrames) {
+    const filteredFrames = stacktraceFrames.filter(
+      (frame) => frame.filename !== 'app:///ses.cjs',
+    );
+    report.exception.values[0].stacktrace.frames = filteredFrames;
+  }
 }
 
 function rewriteReport(report) {

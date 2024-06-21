@@ -2,7 +2,7 @@ import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
 import { Region } from '../../components/UI/Ramp/types';
 import { selectChainId } from '../../selectors/networkController';
-import { selectSelectedAddress } from '../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../selectors/accountsController';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -147,9 +147,10 @@ const ordersSelector = (state: RootState) =>
 export const chainIdSelector: (state: RootState) => string = (
   state: RootState,
 ) => getDecimalChainId(selectChainId(state));
-export const selectedAddressSelector: (state: RootState) => string = (
+export const selectedAddressSelector: (
   state: RootState,
-) => selectSelectedAddress(state);
+) => string | undefined = (state: RootState) =>
+  selectSelectedInternalAccountChecksummedAddress(state);
 export const fiatOrdersRegionSelectorAgg: (
   state: RootState,
 ) => FiatOrdersState['selectedRegionAgg'] = (state: RootState) =>

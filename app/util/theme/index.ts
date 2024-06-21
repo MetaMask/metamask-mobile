@@ -9,9 +9,8 @@ import {
 import { throttle } from 'lodash';
 import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
-import { lightTheme, darkTheme } from '@metamask/design-tokens';
+import { lightTheme, darkTheme, brandColor } from '@metamask/design-tokens';
 import Device from '../device';
-import brandColors from './temp-tokens/brandColors';
 
 /**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
@@ -22,9 +21,11 @@ export const mockTheme = {
   themeAppearance: 'light' as AppThemeKey.light,
   typography: lightTheme.typography,
   shadows: lightTheme.shadows,
-  brandColors,
+  brandColors: brandColor,
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const ThemeContext = React.createContext<any>(undefined);
 
 /**
@@ -39,7 +40,11 @@ export const ThemeContext = React.createContext<any>(undefined);
 export const getAssetFromTheme = (
   appTheme: AppThemeKey,
   osColorScheme: ColorSchemeName,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   light: any,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dark: any,
 ) => {
   let asset = light;
@@ -100,6 +105,8 @@ const useColorSchemeCustom = (
 export const useAppTheme = (): Theme => {
   const osThemeName = useColorSchemeCustom();
   const appTheme: AppThemeKey = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.appTheme,
   );
   const themeAppearance = getAssetFromTheme(
@@ -111,6 +118,7 @@ export const useAppTheme = (): Theme => {
   let colors: Theme['colors'];
   let typography: Theme['typography'];
   let shadows: Theme['shadows'];
+  const brandColors = brandColor;
 
   const setDarkStatusBar = () => {
     StatusBar.setBarStyle('light-content', true);
@@ -187,8 +195,12 @@ export const useTheme = (): Theme => {
  * @param dark Dark asset
  * @returns Asset based on theme
  */
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const useAssetFromTheme = (light: any, dark: any) => {
   const osColorScheme = useColorScheme();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const appTheme = useSelector((state: any) => state.user.appTheme);
   const asset = getAssetFromTheme(appTheme, osColorScheme, light, dark);
 

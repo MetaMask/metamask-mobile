@@ -12,7 +12,10 @@ import { store } from '../../store';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import Logger from '../../util/Logger';
 import { updateSecurityAlertResponse } from '../../util/transaction-controller';
-import { normalizeTransactionParams } from '@metamask/transaction-controller';
+import {
+  TransactionParams,
+  normalizeTransactionParams,
+} from '@metamask/transaction-controller';
 import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 import AppConstants from '../../core/AppConstants';
 import {
@@ -20,6 +23,12 @@ import {
   validateWithSecurityAlertsAPI,
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
+
+export interface PPOMRequest {
+  method: string;
+  params: unknown[];
+  origin?: string;
+}
 
 const TRANSACTION_METHOD = 'eth_sendTransaction';
 const TRANSACTION_METHODS = [TRANSACTION_METHOD, 'eth_sendRawTransaction'];
@@ -47,7 +56,7 @@ const SECURITY_ALERT_RESPONSE_IN_PROGRESS = {
   description: 'Validating the confirmation in progress.',
 };
 
-async function validateRequest(req: any, transactionId?: string) {
+async function validateRequest(req: PPOMRequest, transactionId?: string) {
   const {
     PPOMController: ppomController,
     PreferencesController,
@@ -94,7 +103,7 @@ async function validateRequest(req: any, transactionId?: string) {
 
     securityAlertResponse = {
       ...securityAlertResponse,
-      req,
+      req: req as unknown as Record<string, unknown>,
       chainId,
     };
   } catch (e) {
@@ -112,11 +121,11 @@ async function validateRequest(req: any, transactionId?: string) {
 
 async function validateWithController(
   ppomController: PPOMController,
-  request: any,
+  request: PPOMRequest,
 ): Promise<SecurityAlertResponse> {
-  const response: SecurityAlertResponse = await ppomController.usePPOM(
-    (ppom: any) => ppom.validateJsonRpc(request),
-  );
+  const response = (await ppomController.usePPOM((ppom) =>
+    ppom.validateJsonRpc(request as unknown as Record<string, unknown>),
+  )) as SecurityAlertResponse;
 
   return {
     ...response,
@@ -127,7 +136,7 @@ async function validateWithController(
 async function validateWithAPI(
   ppomController: PPOMController,
   chainId: string,
-  request: any,
+  request: PPOMRequest,
 ): Promise<SecurityAlertResponse> {
   try {
     const response = await validateWithSecurityAlertsAPI(chainId, request);
@@ -143,7 +152,7 @@ async function validateWithAPI(
 }
 
 function setSecurityAlertResponse(
-  request: any,
+  request: PPOMRequest,
   response: SecurityAlertResponse,
   transactionId?: string,
   { updateControllerState }: { updateControllerState?: boolean } = {},
@@ -154,6 +163,7 @@ function setSecurityAlertResponse(
     );
 
     if (updateControllerState) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       updateSecurityAlertResponse(transactionId as string, response as any);
     }
   } else {
@@ -161,11 +171,11 @@ function setSecurityAlertResponse(
   }
 }
 
-function isTransactionRequest(request: any) {
+function isTransactionRequest(request: PPOMRequest) {
   return TRANSACTION_METHODS.includes(request.method);
 }
 
-function normalizeRequest(request: any) {
+function normalizeRequest(request: PPOMRequest): PPOMRequest {
   if (request.method !== TRANSACTION_METHOD) {
     return request;
   }
@@ -174,7 +184,7 @@ function normalizeRequest(request: any) {
     ?.replace(WALLET_CONNECT_ORIGIN, '')
     ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
 
-  const transactionParams = request.params?.[0] || {};
+  const transactionParams = (request.params?.[0] || {}) as TransactionParams;
   const normalizedParams = normalizeTransactionParams(transactionParams);
 
   return {

@@ -47,6 +47,8 @@ export const isBlockaidFeatureEnabled = () =>
 export const getBlockaidMetricsParams = (
   securityAlertResponse?: SecurityAlertResponse,
 ) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const additionalParams: Record<string, any> = {};
 
   if (

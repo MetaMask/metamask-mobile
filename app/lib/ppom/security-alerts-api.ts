@@ -4,7 +4,7 @@ const ENDPOINT_VALIDATE = 'validate';
 
 export interface SecurityAlertsAPIRequest {
   method: string;
-  params: any[];
+  params: unknown[];
 }
 
 export function isSecurityAlertsAPIEnabled() {
@@ -19,7 +19,7 @@ export async function validateWithSecurityAlertsAPI(
   return postRequest(endpoint, request);
 }
 
-async function postRequest(endpoint: string, body: any) {
+async function postRequest(endpoint: string, body: unknown) {
   const url = getUrl(endpoint);
 
   const response = await fetch(url, {

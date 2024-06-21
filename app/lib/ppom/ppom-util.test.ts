@@ -183,6 +183,7 @@ describe('PPOM Utils', () => {
       };
 
       MockEngine.context.PPOMController?.usePPOM.mockImplementation(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (callback: any) => callback(ppomMock),
       );
 
@@ -212,6 +213,7 @@ describe('PPOM Utils', () => {
       };
 
       MockEngine.context.PPOMController?.usePPOM.mockImplementation(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (callback: any) => callback(ppomMock),
       );
 

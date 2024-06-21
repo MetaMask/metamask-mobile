@@ -11,6 +11,8 @@ import Device from '../../../util/device';
 
 const useNotificationHandler = (
   bootstrapAndroidInitialNotification: () => Promise<void>,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any,
 ) => {
   const performActionBasedOnOpenedNotificationType = useCallback(

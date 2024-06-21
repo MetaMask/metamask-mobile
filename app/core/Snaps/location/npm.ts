@@ -339,6 +339,8 @@ async function fetchNpmTarball(
       `${SNAPS_NPM_LOG_TAG} Failed to fetch package "${packageName}" metadata from npm.`,
     );
   }
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const versions = Object.keys((packageMetadata as any)?.versions ?? {}).map(
     (version) => {
       assertIsSemVerVersion(version);
@@ -354,6 +356,8 @@ async function fetchNpmTarball(
     );
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tarballUrlString = (packageMetadata as any)?.versions?.[targetVersion]
     ?.dist?.tarball;
 
