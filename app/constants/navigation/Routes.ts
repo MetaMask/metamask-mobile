@@ -34,7 +34,7 @@ const Routes = {
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
-  QR_SCANNER: 'QRScanner',
+  QR_TAB_SWITCHER: 'QRTabSwitcher',
   TRANSACTIONS_VIEW: 'TransactionsView',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',

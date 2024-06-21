@@ -30,7 +30,7 @@ import {
   SYMBOL_ERROR,
 } from '../../../../../constants/error';
 import Routes from '../../../../../constants/navigation/Routes';
-import { createQRScannerNavDetails } from '../../../QRScanner';
+import { createQRScannerNavDetails } from '../../../QRTabSwitcher';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { selectIdentities } from '../../../../../selectors/preferencesController';
 import { AddContactViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';

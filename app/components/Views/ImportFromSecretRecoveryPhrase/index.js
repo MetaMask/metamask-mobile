@@ -344,7 +344,7 @@ const ImportFromSecretRecoveryPhrase = ({
     }
 
     setHideSeedPhraseInput(false);
-    navigation.navigate(Routes.QR_SCANNER, {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
           setSeed(seed);
