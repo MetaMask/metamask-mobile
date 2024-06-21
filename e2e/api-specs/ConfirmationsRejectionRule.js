@@ -1,19 +1,20 @@
-import { device } from "detox";
+import { device } from 'detox';
 import { addToQueue } from './helpers';
 import paramsToObj from '@open-rpc/test-coverage/build/utils/params-to-obj';
 import TestHelpers from '../helpers';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 import ConnectModal from '../pages/modals/ConnectModal';
-import fs from "fs";
+import AssetWatchModal from '../pages/modals/AssetWatchModal';
+
+import fs from 'fs';
 
 import Assertions from '../utils/Assertions';
-import { SigningModalSelectorsIDs } from '../selectors/Modals/SigningModal.selectors';
 
 const getBase64FromPath = async (path) => {
   const data = await fs.promises.readFile(path);
   return data.toString('base64');
-}
+};
 
 export default class ConfirmationsRejectRule {
   constructor(options) {
@@ -125,14 +126,20 @@ export default class ConfirmationsRejectRule {
         reject,
         task: async () => {
           await TestHelpers.delay(3000);
-          const imagePath = await device.takeScreenshot(`afterRequest-${this.getTitle()}`);
+          const imagePath = await device.takeScreenshot(
+            `afterRequest-${this.getTitle()}`,
+          );
           const image = await getBase64FromPath(imagePath);
           call.attachments = call.attachments || [];
-          call.attachments.push({ data: `data:image/png;base64,${image}`, image, type: 'image' });
+          call.attachments.push({
+            data: `data:image/png;base64,${image}`,
+            image,
+            type: 'image',
+          });
           let cancelButton;
           await TestHelpers.delay(3000);
           if (this.allCapsCancel.includes(call.methodName)) {
-            await TestHelpers.waitAndTap(SigningModalSelectorsIDs.CANCEL_BUTTON);
+            await AssetWatchModal.tapCancelButton();
           } else {
             cancelButton = await Matchers.getElementByText('Cancel');
             await Gestures.waitAndTap(cancelButton);
