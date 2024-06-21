@@ -50,3 +50,4 @@ patches/react-native+0.*.patch       @MetaMask/supply-chain
 
 # Snaps Team
 **/snaps/**                          @MetaMask/snaps-devs
+**/Snaps/**                          @MetaMask/snaps-devs
