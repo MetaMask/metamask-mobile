@@ -117,6 +117,8 @@ stages:
     workflows:
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_assets_ios: {}
+      - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_swaps_ios: {}
@@ -139,6 +141,8 @@ stages:
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_assets_ios: {}
+      - run_tag_smoke_assets_android: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
@@ -468,6 +472,22 @@ workflows:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
       - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_assets_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
+      - TEST_SUITE_TAG: '.*SmokeAssets.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_assets_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
+      - TEST_SUITE_TAG: '.*SmokeAssets.*'
     after_run:
       - android_e2e_test
   run_tag_smoke_confirmations_ios:
