@@ -71,6 +71,8 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any) =>
   renderWithProvider(<EditAccountName />, { state });
 

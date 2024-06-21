@@ -20,6 +20,8 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 
 interface NotificationOptionsToggleProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon?: any;
   title: string;
   description?: string;

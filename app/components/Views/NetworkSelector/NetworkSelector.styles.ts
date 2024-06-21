@@ -7,6 +7,8 @@ import { isNetworkUiRedesignEnabled } from '../../../util/networks';
  * Style sheet function for NetworkSelector screen.
  * @returns StyleSheet object.
  */
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     addNetworkButton: {

@@ -2,7 +2,6 @@
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
-import { isTransactionSimulationsFeatureEnabled } from '../../../util/transaction-controller';
 import { WhatsNew } from './types';
 
 export const whatsNew: WhatsNew = {
@@ -53,31 +52,23 @@ export const whatsNew: WhatsNew = {
           ],
         ] as WhatsNew['slides'])
       : []),
-    ...(isTransactionSimulationsFeatureEnabled()
-      ? [
-          [
-            {
-              type: 'image',
-              image: require('../../../images/whats_new_transaction_simulation.png'),
-            },
-            {
-              type: 'title',
-              title: strings('whats_new.transaction_simulation.title'),
-            },
-            {
-              type: 'description',
-              description: strings(
-                'whats_new.transaction_simulation.description_1',
-              ),
-            },
-            {
-              type: 'description',
-              description: strings(
-                'whats_new.transaction_simulation.description_2',
-              ),
-            },
-          ],
-        ]
-      : []),
+    [
+      {
+        type: 'image',
+        image: require('../../../images/whats_new_transaction_simulation.png'),
+      },
+      {
+        type: 'title',
+        title: strings('whats_new.transaction_simulation.title'),
+      },
+      {
+        type: 'description',
+        description: strings('whats_new.transaction_simulation.description_1'),
+      },
+      {
+        type: 'description',
+        description: strings('whats_new.transaction_simulation.description_2'),
+      },
+    ],
   ],
 };

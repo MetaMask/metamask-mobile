@@ -49,6 +49,8 @@ interface IQRSigningDetails {
   fromAddress: string;
 }
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
@@ -132,6 +134,8 @@ const QRSigningDetails = ({
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const KeyringController = useMemo(() => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController: keyring } = Engine.context as any;
     return keyring;
   }, []);

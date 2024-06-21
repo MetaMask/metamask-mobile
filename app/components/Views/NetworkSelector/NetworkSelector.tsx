@@ -148,6 +148,8 @@ const NetworkSelector = () => {
   };
 
   // TODO: type the any below to import { Network } from './CustomNetwork.types';
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const showNetworkModal = (networkConfiguration: any) => {
     setShowPopularNetworkModal(true);
     setPopularNetwork({
@@ -275,6 +277,8 @@ const NetworkSelector = () => {
     const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((networkType) => {
       // TODO: Provide correct types for network.
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { name, imageSource, chainId } = (Networks as any)[networkType];
 
       if (isNetworkUiRedesignEnabled && isNoSearchResults(name)) return null;

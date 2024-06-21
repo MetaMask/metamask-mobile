@@ -38,6 +38,8 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
 
 jest.mock(
   '../../../../../components/UI/QRHardware/withQRHardwareAwareness',
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   () => (obj: any) => obj,
 );
 
@@ -69,11 +71,15 @@ jest.mock('@react-navigation/compat', () => {
   const actualNav = jest.requireActual('@react-navigation/compat');
   return {
     actualNav,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     withNavigation: (obj: any) => obj,
   };
 });
 
 jest.mock('react-native-gzip', () => ({
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   deflate: (val: any) => val,
 }));
 
@@ -149,6 +155,8 @@ jest.mock('react-redux', () => {
   };
   return {
     ...jest.requireActual('react-redux'),
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     useSelector: (fn: any) =>
       fn({
         ...mockState,
@@ -171,7 +179,13 @@ describe('TransactionReview', () => {
     const store = mockStore(mockState);
     const wrapper = shallow(
       <Provider store={store}>
-        <TransactionReview generateTransform={generateTransform as any} />
+        <TransactionReview
+          generateTransform={
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            generateTransform as any
+          }
+        />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
@@ -201,6 +215,8 @@ describe('TransactionReview', () => {
     const blockaidMetricsParamsSpy = jest
       .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
       .mockImplementation(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ({ result_type, reason, providerRequestsCount }: any) => ({
           security_alert_response: result_type,
           security_alert_reason: reason,
@@ -294,6 +310,8 @@ describe('TransactionReview', () => {
     };
     jest.mock('react-redux', () => ({
       ...jest.requireActual('react-redux'),
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       useSelector: (fn: any) => fn(mockNewState),
     }));
     const { getByRole } = renderWithProvider(
@@ -310,6 +328,8 @@ describe('TransactionReview', () => {
   it('should have confirm button disabled if error is defined', async () => {
     jest.mock('react-redux', () => ({
       ...jest.requireActual('react-redux'),
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       useSelector: (fn: any) => fn(mockState),
     }));
     const { getByRole } = renderWithProvider(
