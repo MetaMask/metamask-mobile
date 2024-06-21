@@ -283,7 +283,7 @@ any) => {
     });
   }, [navigate, providerConfig.chainId, trackEvent]);
 
-  const checkNftAutoDetectionModal = () => {
+  const checkNftAutoDetectionModal = useCallback(() => {
     const isOnMainnet = isMainNet(providerConfig.chainId);
     if (!useNftDetection && isOnMainnet && !isNFTAutoDetectionModalOpened) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -291,7 +291,13 @@ any) => {
       });
       dispatch(setNftAutoDetectionModalOpen(true));
     }
-  };
+  }, [
+    dispatch,
+    isNFTAutoDetectionModalOpened,
+    navigation,
+    providerConfig.chainId,
+    useNftDetection,
+  ]);
 
   useEffect(() => {
     const networkOnboarded = getIsNetworkOnboarded(
@@ -370,6 +376,7 @@ any) => {
     providerConfig.rpcUrl,
     networkOnboardingState,
     prevChainId,
+    checkNftAutoDetectionModal,
   ]);
 
   useEffect(
