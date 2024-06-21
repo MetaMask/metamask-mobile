@@ -21,6 +21,8 @@ export const handleCustomRpcCalls = async ({
   selectedAddress: string;
   selectedChainId: string;
   batchRPCManager: BatchRPCManager;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rpc: { id: string; method: string; params: any[] };
   store?: typeof import('../../../store').store;
   connection?: Connection;
@@ -46,6 +48,8 @@ export const handleCustomRpcCalls = async ({
 
     const targetRpc = params[0];
     const wrapedRpc = overwriteRPCWith({
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       rpc: targetRpc as any,
       accountAddress: selectedAddress,
       selectedChainId,

@@ -153,6 +153,8 @@ export const handleConnectionMessage = async ({
     rpc: {
       id: message.id,
       method: message.method,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params: message.params as any,
     },
   });

@@ -78,6 +78,8 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
 
   const prevNetwork = useRef<string>();
   const networkOnboardingState = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.networkOnboarded.networkOnboardedState,
   );
   const chainId = useSelector(selectChainId);

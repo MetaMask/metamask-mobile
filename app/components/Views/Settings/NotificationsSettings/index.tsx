@@ -65,6 +65,8 @@ const SessionHeader = ({ title, description, styles }: SessionHeaderProps) => (
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const notificationsSettingsState = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.notification.notificationsSettings,
   );
 
@@ -73,6 +75,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const dispatch = useDispatch();
   const { accounts } = useAccounts();
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -247,6 +251,8 @@ NotificationsSettings.navigationOptions = ({
   navigation,
   isNotificationEnabled,
 }: {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   isNotificationEnabled: boolean;
 }) => ({

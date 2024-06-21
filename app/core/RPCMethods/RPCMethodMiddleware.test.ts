@@ -230,6 +230,8 @@ function setupGlobalState({
 }) {
   // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
   jest
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .spyOn(store as Store<Partial<RootState>, any>, 'getState')
     .mockImplementation(() => ({
       browser: activeTab
@@ -245,6 +247,8 @@ function setupGlobalState({
           },
           PreferencesController: selectedAddress ? { selectedAddress } : {},
         },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
     }));
   mockStore.dispatch.mockImplementation((obj) => obj);
@@ -1118,6 +1122,8 @@ describe('getRpcMethodMiddleware', () => {
         params: [addressMock, data],
       };
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 
@@ -1186,6 +1192,8 @@ describe('getRpcMethodMiddleware', () => {
         signatureMock,
       );
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 
@@ -1237,6 +1245,8 @@ describe('getRpcMethodMiddleware', () => {
         signatureMock,
       );
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 

@@ -297,6 +297,8 @@ describe('checkSafeNetwork', () => {
     const result = await checkSafeNetwork(
       '10',
       'https://optimism-mainnet.infura.io/v3/1234',
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       undefined as any,
       'ETH',
     );
