@@ -1,34 +1,38 @@
 import type { InternalAccount } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import type { Notification } from '../../../util/notifications/types/notification';
+import type {
+  MarkAsReadNotificationsParam,
+  Notification,
+} from '../../../util/notifications/types/notification';
 
 export interface UseCreateSessionReturn {
-  createSession: () => void;
+  createSession: () => Promise<string | undefined>;
+  loading: boolean;
   error?: string;
 }
 export interface EnableMetametricsReturn {
-  enableMetametrics: () => void;
+  enableMetametrics: () => Promise<string | undefined>;
   loading: boolean;
   error?: string;
 }
 export interface DisableMetametricsReturn {
-  disableMetametrics: () => void;
+  disableMetametrics: () => Promise<string | undefined>;
   loading: boolean;
   error?: string;
 }
 export interface ListNotificationsReturn {
-  listNotifications: () => void;
+  listNotifications: () => Promise<string | undefined>;
   notificationsData?: Notification[];
   isLoading: boolean;
   error?: string;
 }
 export interface CreateNotificationsReturn {
-  createNotifications: (accounts: string[]) => void;
+  createNotifications: (accounts: string[]) => Promise<string | undefined>;
   loading: boolean;
   error?: string;
 }
 export interface EnableNotificationsReturn {
-  enableNotifications: () => void;
+  enableNotifications: () => Promise<string | boolean>;
   loading: boolean;
   error?: string;
 }
@@ -39,28 +43,33 @@ export type AccountType = InternalAccount & {
 };
 
 export interface DisableNotificationsReturn {
-  disableNotifications: () => void;
+  disableNotifications: () => Promise<string | boolean>;
   loading: boolean;
   error?: string;
 }
 
 export interface MarkNotificationAsReadReturn {
-  markNotificationAsRead: (notifications: Notification[]) => void;
+  markNotificationAsRead: (
+    notifications: MarkAsReadNotificationsParam[],
+  ) => Promise<string | undefined>;
+  loading: boolean;
   error?: string;
 }
 
 export interface EnableProfileSyncingReturn {
-  enableProfileSyncing: () => void;
+  enableProfileSyncing: () => Promise<string | undefined>;
+  loading: boolean;
   error?: string;
 }
 
 export interface DisableProfileSyncingReturn {
-  disableProfileSyncing: () => void;
+  disableProfileSyncing: () => Promise<string | undefined>;
+  loading: boolean;
   error?: string;
 }
 
 export interface SetIsProfileSyncingEnabledReturn {
-  setIsProfileSyncingEnabled: () => void;
+  setIsProfileSyncingEnabled: () => Promise<string | undefined>;
   error?: string;
 }
 
@@ -83,7 +92,7 @@ export interface UseSwitchAccountNotificationsData {
 }
 
 export interface SwitchAccountNotificationsReturn {
-  switchAccountNotifications: () => void;
+  switchAccountNotifications: () => Promise<string | undefined>;
   isLoading: boolean;
   error?: string;
 }

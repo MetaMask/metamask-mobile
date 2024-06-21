@@ -1,17 +1,16 @@
-import { Notification } from '../../util/notifications';
-import notificationsAction from '../../actions/notification/helpers/constants';
+/* eslint-disable @typescript-eslint/default-param-last */
+import { Notification, UserStorage } from '../../util/notifications';
+import { notificationsAction } from '../../actions/notification/helpers/constants';
 import { Action } from 'redux';
 
-interface SessionProfile {
+export interface SessionProfile {
   identifierId: string;
   profileId: string;
 }
-
-interface SessionData {
+export interface SessionData {
   profile: SessionProfile;
   accessToken: string;
 }
-
 export interface IPushNotificationsState {
   isSignedIn: boolean;
   isProfileSyncingEnabled: boolean;
@@ -20,13 +19,15 @@ export interface IPushNotificationsState {
   isFeatureAnnouncementsEnabled: boolean;
   setParticipateInMetaMetrics: boolean;
   isNotificationServicesEnabled: boolean;
+  isSnapNotificationsEnabled: boolean;
   accounts: string[];
   notifications: Notification[];
   fcmToken?: string;
   sessionData?: SessionData;
+  presence?: Record<string, boolean>;
+  userStorage?: UserStorage;
 }
-
-const initialState: IPushNotificationsState = {
+export const initialState: IPushNotificationsState = {
   isSignedIn: false,
   sessionData: undefined,
   isProfileSyncingEnabled: false,
@@ -35,114 +36,118 @@ const initialState: IPushNotificationsState = {
   isFeatureAnnouncementsEnabled: false,
   setParticipateInMetaMetrics: false,
   isNotificationServicesEnabled: false,
+  isSnapNotificationsEnabled: false,
   accounts: [],
   notifications: [],
   fcmToken: undefined,
+  presence: {},
+  userStorage: undefined,
 };
-
 export interface iNotificationsAction extends Action {
   type: (typeof notificationsAction)[keyof typeof notificationsAction];
   profile?: string;
   accessToken?: string;
   accounts?: string[];
+  presence?: Record<string, boolean>;
+  userStorage?: UserStorage;
   fcmToken?: string;
   notifications?: Notification[];
   error?: Error | unknown;
 }
-
-const pushNotificationsReducer = (action: any, state = initialState) => {
+const pushNotificationsReducer = (state = initialState, action: any) => {
   switch (action.type) {
-    case notificationsAction.PERFORM_SIGN_IN_SUCCESS:
+    case notificationsAction.PERFORM_SIGN_IN:
       return {
         ...state,
         isSignedIn: true,
         sessionData: {
-          profile: action.profile, //TODO: fetch profile from signIn response
-          accessToken: action.accessToken,
+          profile: action.payload.profile,
+          accessToken: action.payload.accessToken,
         },
       };
-    case notificationsAction.PERFORM_SIGN_OUT_SUCCESS:
+    case notificationsAction.PERFORM_SIGN_OUT:
       return {
         ...state,
         isSignedIn: false,
         sessionData: undefined,
       };
-    case notificationsAction.ENABLE_PROFILE_SYNCING_SUCCESS:
+    case notificationsAction.ENABLE_PROFILE_SYNCING:
       return {
         ...state,
         isProfileSyncingEnabled: true,
       };
-    case notificationsAction.DISABLE_PROFILE_SYNCING_SUCCESS:
+    case notificationsAction.DISABLE_PROFILE_SYNCING:
       return {
         ...state,
         isProfileSyncingEnabled: false,
       };
-    case notificationsAction.ENABLE_PUSH_NOTIFICATIONS_SUCCESS:
+    case notificationsAction.ENABLE_PUSH_NOTIFICATIONS:
       return {
         ...state,
         isPushNotificationEnabled: true,
       };
-    case notificationsAction.DISABLE_PUSH_NOTIFICATIONS_SUCCESS:
+    case notificationsAction.DISABLE_PUSH_NOTIFICATIONS:
       return {
         ...state,
         isPushNotificationEnabled: false,
       };
-    case notificationsAction.CHECK_ACCOUNTS_PRESENCE_SUCCESS:
+    case notificationsAction.CHECK_ACCOUNTS_PRESENCE:
       return {
         ...state,
-        accounts: action.accounts,
+        presence: action.payload.presence,
       };
-    case notificationsAction.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_SUCCESS:
+    case notificationsAction.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT:
       return {
         ...state,
+        userStorage: action.payload.userStorage,
       };
-    case notificationsAction.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_SUCCESS:
+    case notificationsAction.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT:
       return {
         ...state,
+        userStorage: action.payload.userStorage,
       };
-    case notificationsAction.UPDATE_TRIGGER_PUSH_NOTIFICATIONS_SUCCESS:
+    case notificationsAction.UPDATE_TRIGGER_PUSH_NOTIFICATIONS:
       return {
         ...state,
         fcmToken: action.fcmToken,
       };
-    case notificationsAction.SET_FEATURE_ANNOUNCEMENTS_ENABLED_SUCCESS:
+    case notificationsAction.SET_FEATURE_ANNOUNCEMENTS_ENABLED:
       return {
         ...state,
         isFeatureAnnouncementsEnabled: true,
       };
-    case notificationsAction.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN_SUCCESS:
+    case notificationsAction.SET_SNAP_NOTIFICATIONS_ENABLED:
+      return {
+        ...state,
+        isSnapNotificationsEnabled: true,
+      };
+    case notificationsAction.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN:
       return {
         ...state,
         isMetamaskNotificationsFeatureSeen: true,
       };
-    case notificationsAction.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS_SUCCESS:
+    case notificationsAction.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS:
       return {
         ...state,
-        notifications: action.notifications,
+        notifications: action.payload.metamaskNotifications,
       };
-    case notificationsAction.MARK_METAMASK_NOTIFICATIONS_AS_READ_SUCCESS:
+    case notificationsAction.MARK_METAMASK_NOTIFICATIONS_AS_READ:
       return {
         ...state,
-        notifications: action.notifications,
       };
-    case notificationsAction.DELETE_NOTIFICATION_STATUS_SUCCESS:
+    case notificationsAction.DELETE_NOTIFICATION_STATUS:
       return {
         ...state,
-        notifications: action.notifications,
+        notifications: action.payload.notifications,
       };
-    case notificationsAction.SET_PARTICIPATE_IN_META_METRICS_SUCCESS:
-      return {
-        ...state,
-        setParticipateInMetaMetrics: true,
-      };
-    case notificationsAction.ENABLE_NOTIFICATIONS_SERVICES_SUCCESS:
+    case notificationsAction.ENABLE_NOTIFICATIONS_SERVICES:
       return {
         ...state,
         isNotificationServicesEnabled: true,
         isFeatureAnnouncementsEnabled: true,
         isMetamaskNotificationsFeatureSeen: true,
       };
-    case notificationsAction.DISABLE_NOTIFICATIONS_SERVICES_SUCCESS:
+    case notificationsAction.DISABLE_NOTIFICATIONS_SERVICES:
       return {
         ...state,
         isNotificationServicesEnabled: false,

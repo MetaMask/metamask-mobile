@@ -1,207 +1,76 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useDispatch } from 'react-redux';
+import { useSwitchNotifications } from '../../../util/notifications/hooks/useSwitchNotifications';
 import {
-  setSnapNotificationsEnabledRequest,
-  setFeatureAnnouncementsEnabledRequest,
-  checkAccountsPresenceRequest,
-  updateOnChainTriggersByAccountRequest,
-  deleteOnChainTriggersByAccountRequest,
+  setSnapNotificationsEnabled,
+  setFeatureAnnouncementsEnabled,
+  updateOnChainTriggersByAccount,
+  deleteOnChainTriggersByAccount,
 } from '../../../actions/notification/pushNotifications';
-import {
-  useSwitchSnapNotificationsChange,
-  useSwitchFeatureAnnouncementsChange,
-  useSwitchAccountNotifications,
-  useSwitchAccountNotificationsChange,
-} from './useSwitchNotifications';
-import { AppDispatch } from '../../../store';
 
-const useDispatchMock = useDispatch as jest.Mock<AppDispatch>;
+jest.mock('../../../actions/notification/pushNotifications');
 
-jest.mock('react-redux', () => ({
-  useDispatch: jest.fn(),
-}));
-
-jest.mock('../../../actions/notification/pushNotifications', () => ({
-  setSnapNotificationsEnabledRequest: jest.fn(),
-  setFeatureAnnouncementsEnabledRequest: jest.fn(),
-  checkAccountsPresenceRequest: jest.fn(),
-  updateOnChainTriggersByAccountRequest: jest.fn(),
-  deleteOnChainTriggersByAccountRequest: jest.fn(),
-}));
-
-describe('useSwitchSnapNotificationsChange', () => {
-  const dispatch = jest.fn();
-  const setSnapNotificationsEnabledRequestMock =
-    setSnapNotificationsEnabledRequest as jest.Mock;
+describe('useSwitchNotifications', () => {
   beforeEach(() => {
-    useDispatchMock.mockReturnValue(dispatch);
-    setSnapNotificationsEnabledRequestMock.mockReturnValue(Promise.resolve());
-  });
-  afterEach(() => {
     jest.clearAllMocks();
   });
-  it('should set snap notifications enabled', async () => {
-    const { result } = renderHook(() => useSwitchSnapNotificationsChange());
-    await act(async () => {
-      result.current.onChange(true);
-    });
-    expect(dispatch).toHaveBeenCalledWith(setSnapNotificationsEnabledRequest());
-    expect(result.current.error).toBeUndefined();
-  });
-  it('should set error state if an error occurs while setting snap notifications enabled', async () => {
-    const errorMessage = 'Failed to set snap notifications enabled';
-    setSnapNotificationsEnabledRequestMock.mockRejectedValue(
-      new Error(errorMessage),
-    );
-    const { result } = renderHook(() => useSwitchSnapNotificationsChange());
-    await act(async () => {
-      result.current.onChange(true);
-    });
-    expect(result.current.error).toBe(errorMessage);
-  });
-});
 
-describe('useSwitchFeatureAnnouncementsChange', () => {
-  const dispatch = jest.fn();
-  const setFeatureAnnouncementsEnabledRequestMock =
-    setFeatureAnnouncementsEnabledRequest as jest.Mock;
-  beforeEach(() => {
-    useDispatchMock.mockReturnValue(dispatch);
-    setFeatureAnnouncementsEnabledRequestMock.mockReturnValue(
-      Promise.resolve(),
-    );
-  });
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-  it('should set feature announcements enabled', async () => {
-    const { result } = renderHook(() => useSwitchFeatureAnnouncementsChange());
-    await act(async () => {
-      result.current.onChange(true);
-    });
-    expect(dispatch).toHaveBeenCalledWith(
-      setFeatureAnnouncementsEnabledRequest(),
-    );
-    expect(result.current.error).toBeUndefined();
-  });
-  it('should set error state if an error occurs while setting feature announcements enabled', async () => {
-    const errorMessage = 'Failed to set feature announcements enabled';
-    setFeatureAnnouncementsEnabledRequestMock.mockRejectedValue(
-      new Error(errorMessage),
-    );
-    const { result } = renderHook(() => useSwitchFeatureAnnouncementsChange());
-    await act(async () => {
-      result.current.onChange(true);
-    });
-    expect(result.current.error).toBe(errorMessage);
-  });
-});
+  test('should switch snap notifications', async () => {
+    const { result } = renderHook(() => useSwitchNotifications());
+    const { switchSnapNotifications } = result.current;
 
-describe('useSwitchAccountNotifications', () => {
-  const dispatch = jest.fn();
-  const checkAccountsPresenceRequestMock =
-    checkAccountsPresenceRequest as jest.Mock;
-  beforeEach(() => {
-    useDispatchMock.mockReturnValue(dispatch);
-    checkAccountsPresenceRequestMock.mockReturnValue(Promise.resolve());
-  });
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-  it('should switch account notifications', async () => {
-    const { result } = renderHook(() => useSwitchAccountNotifications());
     await act(async () => {
-      result.current.switchAccountNotifications(['account1', 'account2']);
+      await switchSnapNotifications(true);
     });
-    expect(dispatch).toHaveBeenCalledWith(
-      checkAccountsPresenceRequest(['account1', 'account2']),
-    );
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBeUndefined();
-  });
-  it('should set loading state to true while switching account notifications', async () => {
-    const { result } = renderHook(() => useSwitchAccountNotifications());
-    await act(async () => {
-      result.current.switchAccountNotifications(['account1', 'account2']);
-    });
-    expect(result.current.isLoading).toBe(true);
-  });
-  it('should set loading state to false after switching account notifications', async () => {
-    const { result } = renderHook(() => useSwitchAccountNotifications());
-    await act(async () => {
-      result.current.switchAccountNotifications(['account1', 'account2']);
-    });
-    expect(result.current.isLoading).toBe(false);
-  });
-  it('should set error state if an error occurs while switching account notifications', async () => {
-    const errorMessage = 'Failed to switch account notifications';
-    checkAccountsPresenceRequestMock.mockRejectedValue(new Error(errorMessage));
-    const { result } = renderHook(() => useSwitchAccountNotifications());
-    await act(async () => {
-      result.current.switchAccountNotifications(['account1', 'account2']);
-    });
-    expect(result.current.error).toBe(errorMessage);
-  });
-});
 
-describe('useSwitchAccountNotificationsChange', () => {
-  const dispatch = jest.fn();
-  const updateOnChainTriggersByAccountRequestMock =
-    updateOnChainTriggersByAccountRequest as jest.Mock;
-  const deleteOnChainTriggersByAccountRequestMock =
-    deleteOnChainTriggersByAccountRequest as jest.Mock;
-  beforeEach(() => {
-    useDispatchMock.mockReturnValue(dispatch);
-    updateOnChainTriggersByAccountRequestMock.mockReturnValue(
-      Promise.resolve(),
-    );
-    deleteOnChainTriggersByAccountRequestMock.mockReturnValue(
-      Promise.resolve(),
-    );
-  });
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-  it('should update on-chain triggers by account', async () => {
-    const { result } = renderHook(() => useSwitchAccountNotificationsChange());
-    await act(async () => {
-      result.current.onChange(['account1', 'account2'], true);
-    });
-    expect(dispatch).toHaveBeenCalledWith(
-      updateOnChainTriggersByAccountRequest(['account1', 'account2']),
-    );
+    expect(setSnapNotificationsEnabled).toHaveBeenCalledWith(true);
+    expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeUndefined();
   });
-  it('should delete on-chain triggers by account', async () => {
-    const { result } = renderHook(() => useSwitchAccountNotificationsChange());
+
+  test('should switch feature announcements', async () => {
+    const { result } = renderHook(() => useSwitchNotifications());
+    const { switchFeatureAnnouncements } = result.current;
+
     await act(async () => {
-      result.current.onChange(['account1', 'account2'], false);
+      await switchFeatureAnnouncements(true);
     });
-    expect(dispatch).toHaveBeenCalledWith(
-      deleteOnChainTriggersByAccountRequest(['account1', 'account2']),
-    );
+
+    expect(setFeatureAnnouncementsEnabled).toHaveBeenCalledWith(true);
+    expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeUndefined();
   });
-  it('should set error state if an error occurs while updating on-chain triggers by account', async () => {
-    const errorMessage = 'Failed to update on-chain triggers by account';
-    updateOnChainTriggersByAccountRequestMock.mockRejectedValue(
-      new Error(errorMessage),
-    );
-    const { result } = renderHook(() => useSwitchAccountNotificationsChange());
+
+  test('should switch account notifications', async () => {
+    const { result } = renderHook(() => useSwitchNotifications());
+    const { switchAccountNotifications } = result.current;
+
+    const accounts = ['account1', 'account2'];
+    const state = true;
+
     await act(async () => {
-      result.current.onChange(['account1', 'account2'], true);
+      await switchAccountNotifications(accounts, state);
     });
-    expect(result.current.error).toBe(errorMessage);
+
+    expect(updateOnChainTriggersByAccount).toHaveBeenCalledWith(accounts);
+    expect(deleteOnChainTriggersByAccount).not.toHaveBeenCalled();
+    expect(result.current.loading).toBe(false);
+    expect(result.current.error).toBeUndefined();
   });
-  it('should set error state if an error occurs while deleting on-chain triggers by account', async () => {
-    const errorMessage = 'Failed to delete on-chain triggers by account';
-    deleteOnChainTriggersByAccountRequestMock.mockRejectedValue(
-      new Error(errorMessage),
-    );
-    const { result } = renderHook(() => useSwitchAccountNotificationsChange());
+
+  test('should delete account notifications', async () => {
+    const { result } = renderHook(() => useSwitchNotifications());
+    const { switchAccountNotifications } = result.current;
+
+    const accounts = ['account1', 'account2'];
+    const state = false;
+
     await act(async () => {
-      result.current.onChange(['account1', 'account2'], false);
+      await switchAccountNotifications(accounts, state);
     });
-    expect(result.current.error).toBe(errorMessage);
+
+    expect(deleteOnChainTriggersByAccount).toHaveBeenCalledWith(accounts);
+    expect(updateOnChainTriggersByAccount).not.toHaveBeenCalled();
+    expect(result.current.loading).toBe(false);
+    expect(result.current.error).toBeUndefined();
   });
 });

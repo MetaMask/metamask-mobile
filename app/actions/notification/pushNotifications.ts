@@ -1,365 +1,243 @@
-import notificationsAction from './helpers/constants';
-import { NotificationsActionTypes } from './helpers/types';
+import { Dispatch } from 'redux';
+import { ThunkAction } from 'redux-thunk';
+
+import { getErrorMessage } from '@metamask/utils';
+
+import { notificationsAction, notificationsErrors } from './helpers/constants';
+import Engine from '../../core/Engine';
 import { Notification } from '../../util/notifications';
+import { RootState } from '../../reducers';
+import { NotificationsActionTypes } from './helpers/types';
 
-export function performSignInRequest(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.PERFORM_SIGN_IN_REQUEST,
-  };
-}
+const {
+  AuthenticationController,
+  UserStorageController,
+  NotificationServicesController,
+}: any = Engine.context;
 
-export function performSignInSuccess(
-  accessToken: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.PERFORM_SIGN_IN_SUCCESS,
-    payload: { accessToken },
-  };
-}
+type ThunkDispatchReturn = ThunkAction<
+  Promise<string | undefined>,
+  RootState,
+  unknown,
+  NotificationsActionTypes
+>;
+type MarkAsReadNotificationsParam = Pick<
+  Notification,
+  'id' | 'type' | 'isRead'
+>[];
 
-export function performSignInFailure(error: string): NotificationsActionTypes {
-  return {
-    type: notificationsAction.PERFORM_SIGN_IN_FAILURE,
-    payload: { error },
-  };
-}
+export const signIn = (): ThunkDispatchReturn => async (dispatch: Dispatch) => {
+  try {
+    const { accessToken } = await AuthenticationController.performSignIn();
+    if (!accessToken) {
+      return getErrorMessage(notificationsErrors.PERFORM_SIGN_IN);
+    }
 
-export function performSignOutRequest(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.PERFORM_SIGN_OUT_REQUEST,
-  };
-}
+    const profile = await AuthenticationController.getSessionProfile();
 
-export function performSignOutSuccess(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.PERFORM_SIGN_OUT_SUCCESS,
-  };
-}
+    if (!profile) {
+      return getErrorMessage(notificationsErrors.PERFORM_SIGN_IN);
+    }
 
-export function performSignOutFailure(error: string): NotificationsActionTypes {
-  return {
-    type: notificationsAction.PERFORM_SIGN_OUT_FAILURE,
-    payload: { error },
+    dispatch({
+      type: notificationsAction.PERFORM_SIGN_IN,
+      payload: { accessToken, profile },
+    });
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
+export const signOut =
+  (): ThunkDispatchReturn => async (dispatch: Dispatch) => {
+    try {
+      await AuthenticationController.performSignOut();
+      dispatch({
+        type: notificationsAction.PERFORM_SIGN_OUT,
+      });
+    } catch (error) {
+      return getErrorMessage(error);
+    }
   };
-}
+export const enableProfileSyncing =
+  (): ThunkDispatchReturn => async (dispatch: Dispatch) => {
+    try {
+      await UserStorageController.enableProfileSyncing();
+      dispatch({
+        type: notificationsAction.ENABLE_PROFILE_SYNCING,
+      });
+    } catch (error) {
+      return getErrorMessage(error);
+    }
+  };
+export const disableProfileSyncing =
+  (): ThunkDispatchReturn => async (dispatch: Dispatch) => {
+    try {
+      await UserStorageController.disableProfileSyncing();
+      dispatch({
+        type: notificationsAction.DISABLE_PROFILE_SYNCING,
+      });
+    } catch (error) {
+      return getErrorMessage(error);
+    }
+  };
+export const enableNotificationServices =
+  (): ThunkDispatchReturn => async (dispatch: Dispatch) => {
+    try {
+      await NotificationServicesController.enableMetamaskNotifications();
 
-export function enableProfileSyncingRequest(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.ENABLE_PROFILE_SYNCING_REQUEST,
+      dispatch({
+        type: notificationsAction.ENABLE_NOTIFICATIONS_SERVICES,
+      });
+    } catch (error) {
+      return getErrorMessage(error);
+    }
   };
-}
+export const disableNotificationServices =
+  (): ThunkDispatchReturn => async (dispatch: Dispatch) => {
+    try {
+      await NotificationServicesController.disableNotificationServices();
+      dispatch({
+        type: notificationsAction.DISABLE_NOTIFICATIONS_SERVICES,
+      });
+    } catch (error) {
+      return getErrorMessage(error);
+    }
+  };
+export const checkAccountsPresence =
+  (accounts: string[]): ThunkDispatchReturn =>
+  async (dispatch: Dispatch) => {
+    try {
+      const { presence } =
+        await NotificationServicesController.checkAccountsPresence(accounts);
+      if (!presence) {
+        return getErrorMessage(notificationsErrors.CHECK_ACCOUNTS_PRESENCE);
+      }
+      dispatch({
+        type: notificationsAction.CHECK_ACCOUNTS_PRESENCE,
+        payload: { presence },
+      });
+    } catch (error) {
+      return getErrorMessage(error);
+    }
+  };
+export const deleteOnChainTriggersByAccount =
+  (accounts: string[]): ThunkDispatchReturn =>
+  async (dispatch: Dispatch) => {
+    try {
+      const { userStorage } =
+        await NotificationServicesController.deleteOnChainTriggersByAccount(
+          accounts,
+        );
+      if (!userStorage) {
+        return getErrorMessage(
+          notificationsErrors.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT,
+        );
+      }
+      dispatch({
+        type: notificationsAction.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT,
+        payload: { userStorage },
+      });
+    } catch (error) {
+      return getErrorMessage(error);
+    }
+  };
+export const updateOnChainTriggersByAccount =
+  (accounts: string[]): ThunkDispatchReturn =>
+  async (dispatch: Dispatch) => {
+    try {
+      const { userStorage } =
+        await NotificationServicesController.updateOnChainTriggersByAccount(
+          accounts,
+        );
+      if (!userStorage) {
+        return getErrorMessage(
+          notificationsErrors.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT,
+        );
+      }
+      dispatch({
+        type: notificationsAction.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT,
+        payload: { userStorage },
+      });
+    } catch (error) {
+      return getErrorMessage(error);
+    }
+  };
+export const setFeatureAnnouncementsEnabled =
+  (featureAnnouncementsEnabled: boolean): ThunkDispatchReturn =>
+  async (dispatch: Dispatch) => {
+    try {
+      await NotificationServicesController.setFeatureAnnouncementsEnabled(
+        featureAnnouncementsEnabled,
+      );
+      dispatch({
+        type: notificationsAction.SET_FEATURE_ANNOUNCEMENTS_ENABLED,
+      });
+    } catch (error) {
+      return getErrorMessage(error);
+    }
+  };
+export const setSnapNotificationsEnabled =
+  (snapNotificationsEnabled: boolean): ThunkDispatchReturn =>
+  async (dispatch: Dispatch) => {
+    try {
+      const { result } =
+        await NotificationServicesController.setSnapNotificationsEnabled(
+          snapNotificationsEnabled,
+        );
+      if (!result.ok) {
+        return getErrorMessage(
+          notificationsErrors.SET_SNAP_NOTIFICATIONS_ENABLED,
+        );
+      }
+      dispatch({
+        type: notificationsAction.SET_SNAP_NOTIFICATIONS_ENABLED,
+        payload: { result },
+      });
+    } catch (error) {
+      return getErrorMessage(error);
+    }
+  };
+export const setMetamaskNotificationsFeatureSeen =
+  (): ThunkDispatchReturn => async (dispatch: Dispatch) => {
+    try {
+      await NotificationServicesController.setMetamaskNotificationsFeatureSeen();
+      dispatch({
+        type: notificationsAction.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN,
+      });
+    } catch (error) {
+      return getErrorMessage(error);
+    }
+  };
+export const fetchAndUpdateMetamaskNotifications =
+  (): ThunkDispatchReturn => async (dispatch: Dispatch) => {
+    try {
+      const { metamaskNotifications } =
+        await NotificationServicesController.fetchAndUpdateMetamaskNotifications();
+      if (!metamaskNotifications) {
+        return getErrorMessage(
+          notificationsErrors.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS,
+        );
+      }
+      dispatch({
+        type: notificationsAction.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS,
+        payload: { metamaskNotifications },
+      });
+    } catch (error) {
+      return getErrorMessage(error);
+    }
+  };
+export const markMetamaskNotificationsAsRead =
+  (notifications: MarkAsReadNotificationsParam[]): ThunkDispatchReturn =>
+  async (dispatch: Dispatch) => {
+    try {
+      await NotificationServicesController.markMetamaskNotificationsAsRead(
+        notifications,
+      );
 
-export function enableProfileSyncingSuccess(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.ENABLE_PROFILE_SYNCING_SUCCESS,
+      dispatch({
+        type: notificationsAction.MARK_METAMASK_NOTIFICATIONS_AS_READ,
+      });
+    } catch (error) {
+      return getErrorMessage(error);
+    }
   };
-}
-
-export function enableProfileSyncingFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.ENABLE_PROFILE_SYNCING_FAILURE,
-    payload: { error },
-  };
-}
-
-export function disableProfileSyncingRequest(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.DISABLE_PROFILE_SYNCING_REQUEST,
-  };
-}
-
-export function disableProfileSyncingSuccess(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.DISABLE_PROFILE_SYNCING_SUCCESS,
-  };
-}
-
-export function disableProfileSyncingFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.DISABLE_PROFILE_SYNCING_FAILURE,
-    payload: { error },
-  };
-}
-
-export function updateTriggerPushNotificationsRequest(
-  UUIDs: string[],
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.UPDATE_TRIGGER_PUSH_NOTIFICATIONS_REQUEST,
-    payload: { UUIDs },
-  };
-}
-
-export function updateTriggerPushNotificationsSuccess(
-  fcmToken: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.UPDATE_TRIGGER_PUSH_NOTIFICATIONS_SUCCESS,
-    payload: { fcmToken },
-  };
-}
-
-export function updateTriggerPushNotificationsFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.UPDATE_TRIGGER_PUSH_NOTIFICATIONS_FAILURE,
-    payload: { error },
-  };
-}
-
-export function setFeatureAnnouncementsEnabledRequest(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.SET_FEATURE_ANNOUNCEMENTS_ENABLED_REQUEST,
-  };
-}
-
-export function setFeatureAnnouncementsEnabledSuccess(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.SET_FEATURE_ANNOUNCEMENTS_ENABLED_SUCCESS,
-  };
-}
-
-export function setFeatureAnnouncementsEnabledFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.SET_FEATURE_ANNOUNCEMENTS_ENABLED_FAILURE,
-    payload: { error },
-  };
-}
-
-export function setSnapNotificationsEnabledRequest(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.SET_SNAP_NOTIFICATIONS_ENABLED_REQUEST,
-  };
-}
-
-export function setSnapNotificationsEnabledSuccess(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.SET_SNAP_NOTIFICATIONS_ENABLED_SUCCESS,
-  };
-}
-
-export function setSnapNotificationsEnabledFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.SET_SNAP_NOTIFICATIONS_ENABLED_FAILURE,
-    payload: { error },
-  };
-}
-
-export function setParticipateInMetaMetricsRequest(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.SET_PARTICIPATE_IN_META_METRICS_REQUEST,
-  };
-}
-
-export function setParticipateInMetaMetricsSuccess(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.SET_PARTICIPATE_IN_META_METRICS_SUCCESS,
-  };
-}
-
-export function setParticipateInMetaMetricsFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.SET_PARTICIPATE_IN_META_METRICS_FAILURE,
-    payload: { error },
-  };
-}
-
-export function setMetamaskNotificationsFeatureSeenRequest(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN_REQUEST,
-  };
-}
-
-export function setMetamaskNotificationsFeatureSeenSuccess(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN_SUCCESS,
-  };
-}
-
-export function setMetamaskNotificationsFeatureSeenFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN_FAILURE,
-    payload: { error },
-  };
-}
-
-export function fetchAndUpdateMetamaskNotificationsRequest(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS_REQUEST,
-  };
-}
-
-export function fetchAndUpdateMetamaskNotificationsSuccess(
-  notifications: Notification[],
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS_SUCCESS,
-    payload: { notifications },
-  };
-}
-
-export function fetchAndUpdateMetamaskNotificationsFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS_FAILURE,
-    payload: { error },
-  };
-}
-
-export function markMetamaskNotificationsAsReadRequest(
-  notifications: Notification[],
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.MARK_METAMASK_NOTIFICATIONS_AS_READ_REQUEST,
-    payload: { notifications },
-  };
-}
-
-export function markMetamaskNotificationsAsReadSuccess(
-  notifications: Notification[],
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.MARK_METAMASK_NOTIFICATIONS_AS_READ_SUCCESS,
-    payload: { notifications },
-  };
-}
-
-export function markMetamaskNotificationsAsReadFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.MARK_METAMASK_NOTIFICATIONS_AS_READ_FAILURE,
-    payload: { error },
-  };
-}
-
-export function checkAccountsPresenceRequest(
-  accounts: string[],
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.CHECK_ACCOUNTS_PRESENCE_REQUEST,
-    payload: { accounts },
-  };
-}
-
-export function checkAccountsPresenceSuccess(
-  presence: Record<string, boolean>,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.CHECK_ACCOUNTS_PRESENCE_SUCCESS,
-    payload: { presence },
-  };
-}
-
-export function checkAccountsPresenceFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.CHECK_ACCOUNTS_PRESENCE_FAILURE,
-    payload: { error },
-  };
-}
-
-export function updateOnChainTriggersByAccountRequest(
-  accounts: string[],
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_REQUEST,
-    payload: { accounts },
-  };
-}
-
-export function updateOnChainTriggersByAccountSuccess(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_SUCCESS,
-  };
-}
-
-export function updateOnChainTriggersByAccountFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_FAILURE,
-    payload: { error },
-  };
-}
-
-export function deleteOnChainTriggersByAccountRequest(
-  accounts: string[],
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_REQUEST,
-    payload: { accounts },
-  };
-}
-
-export function deleteOnChainTriggersByAccountSuccess(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_SUCCESS,
-  };
-}
-
-export function deleteOnChainTriggersByAccountFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT_FAILURE,
-    payload: { error },
-  };
-}
-
-export function enableNotificationsServicesRequest(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.ENABLE_NOTIFICATIONS_SERVICES_REQUEST,
-  };
-}
-
-export function enableNotificationsServicesSuccess(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.ENABLE_NOTIFICATIONS_SERVICES_SUCCESS,
-  };
-}
-
-export function enableNotificationsServicesFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.ENABLE_NOTIFICATIONS_SERVICES_FAILURE,
-    payload: { error },
-  };
-}
-
-export function disableNotificationsServicesRequest(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.DISABLE_NOTIFICATIONS_SERVICES_REQUEST,
-  };
-}
-
-export function disableNotificationsServicesSuccess(): NotificationsActionTypes {
-  return {
-    type: notificationsAction.DISABLE_NOTIFICATIONS_SERVICES_SUCCESS,
-  };
-}
-
-export function disableNotificationsServicesFailure(
-  error: string,
-): NotificationsActionTypes {
-  return {
-    type: notificationsAction.DISABLE_NOTIFICATIONS_SERVICES_FAILURE,
-    payload: { error },
-  };
-}

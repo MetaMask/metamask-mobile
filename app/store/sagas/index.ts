@@ -1,4 +1,7 @@
+import { Task } from 'redux-saga';
 import { fork, take, cancel, put, call } from 'redux-saga/effects';
+import { XMLHttpRequest as _XMLHttpRequest } from 'xhr2';
+
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -10,13 +13,11 @@ import {
   LOGOUT,
   LOGIN,
 } from '../../actions/user';
-import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
+
 import LockManagerService from '../../core/LockManagerService';
 import AppConstants from '../../../app/core/AppConstants';
-import { XMLHttpRequest as _XMLHttpRequest } from 'xhr2';
-import notificationsSagas from './notifications';
 
 if (typeof global.XMLHttpRequest === 'undefined') {
   global.XMLHttpRequest = _XMLHttpRequest;
@@ -171,5 +172,4 @@ export function* basicFunctionalityToggle() {
 export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
-  // yield notificationsSagas;
 }

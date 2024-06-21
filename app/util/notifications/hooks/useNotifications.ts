@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
-import type { Notification } from '../../../util/notifications/types/notification';
+import type { MarkAsReadNotificationsParam } from '../../../util/notifications/types/notification';
 import {
   ListNotificationsReturn,
   CreateNotificationsReturn,
@@ -11,17 +11,18 @@ import {
 } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
-  disableNotificationsServicesRequest,
-  enableNotificationsServicesRequest,
-  fetchAndUpdateMetamaskNotificationsRequest,
-  markMetamaskNotificationsAsReadRequest,
-  setMetamaskNotificationsFeatureSeenRequest,
-  updateOnChainTriggersByAccountRequest,
+  disableNotificationServices,
+  enableNotificationServices,
+  fetchAndUpdateMetamaskNotifications,
+  markMetamaskNotificationsAsRead,
+  setMetamaskNotificationsFeatureSeen,
+  updateOnChainTriggersByAccount,
 } from '../../../actions/notification/pushNotifications';
 import {
   selectNotificationsList,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/pushNotifications';
+import { useThunkNotificationDispatch } from '../../../actions/notification/helpers/useThunkNotificationDispatch';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -30,24 +31,29 @@ import {
  * @returns An object containing the `listNotifications` function, loading state, and error state.
  */
 export function useListNotifications(): ListNotificationsReturn {
-  const dispatch = useDispatch();
+  const dispatch = useThunkNotificationDispatch();
   const notifications = useSelector(selectNotificationsList);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
-  const listNotifications = useCallback(() => {
+  const listNotifications = useCallback(async () => {
     setLoading(true);
-
     try {
-      dispatch(fetchAndUpdateMetamaskNotificationsRequest());
-      return notifications;
+      const errorMessage = await dispatch(
+        fetchAndUpdateMetamaskNotifications(),
+      );
+      if (errorMessage) {
+        setError(getErrorMessage(errorMessage));
+        return errorMessage;
+      }
     } catch (e) {
-      setError(getErrorMessage(e));
-      throw e;
+      const errorMessage = getErrorMessage(e);
+      setError(errorMessage);
+      return errorMessage;
     } finally {
       setLoading(false);
     }
-  }, [dispatch, notifications]);
+  }, [dispatch]);
 
   return {
     listNotifications,
@@ -63,20 +69,28 @@ export function useListNotifications(): ListNotificationsReturn {
  * @returns An object containing the `enableNotifications` function, loading state, and error state.
  */
 export function useCreateNotifications(): CreateNotificationsReturn {
-  const dispatch = useDispatch();
+  const dispatch = useThunkNotificationDispatch();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
   const createNotifications = useCallback(
-    (accounts: string[]) => {
+    async (accounts: string[]) => {
       setLoading(true);
 
       try {
-        dispatch(updateOnChainTriggersByAccountRequest(accounts));
-        dispatch(setMetamaskNotificationsFeatureSeenRequest());
+        const errorMessage = await dispatch(
+          updateOnChainTriggersByAccount(accounts),
+        );
+        if (errorMessage) {
+          setError(getErrorMessage(errorMessage));
+          return errorMessage;
+        }
+
+        await dispatch(setMetamaskNotificationsFeatureSeen());
       } catch (e) {
-        setError(getErrorMessage(e));
-        throw e;
+        const errorMessage = getErrorMessage(e);
+        setError(errorMessage);
+        return errorMessage;
       } finally {
         setLoading(false);
       }
@@ -101,24 +115,30 @@ export function useCreateNotifications(): CreateNotificationsReturn {
  * - `error`: A string or null value representing any error that occurred during the process.
  */
 export function useEnableNotifications(): EnableNotificationsReturn {
-  const dispatch = useDispatch();
+  const dispatch = useThunkNotificationDispatch();
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
-  const enableNotifications = useCallback(() => {
+  const enableNotifications = useCallback(async () => {
     setLoading(true);
 
     try {
-      dispatch(enableNotificationsServicesRequest());
-      dispatch(setMetamaskNotificationsFeatureSeenRequest());
+      const errorMessage = await dispatch(enableNotificationServices());
+
+      if (errorMessage) {
+        setError(getErrorMessage(errorMessage));
+        return errorMessage;
+      }
+      await dispatch(setMetamaskNotificationsFeatureSeen());
 
       return isMetamaskNotificationsEnabled;
     } catch (e) {
-      setError(getErrorMessage(e));
-      throw e;
+      const errorMessage = getErrorMessage(e);
+      setError(errorMessage);
+      return errorMessage;
     } finally {
       setLoading(false);
     }
@@ -137,22 +157,27 @@ export function useEnableNotifications(): EnableNotificationsReturn {
  * @returns An object containing the `disableNotifications` function, loading state, and error state.
  */
 export function useDisableNotifications(): DisableNotificationsReturn {
-  const dispatch = useDispatch();
+  const dispatch = useThunkNotificationDispatch();
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
-  const disableNotifications = useCallback(() => {
+  const disableNotifications = useCallback(async () => {
     setLoading(true);
 
     try {
-      dispatch(disableNotificationsServicesRequest());
+      const errorMessage = await dispatch(disableNotificationServices());
+      if (errorMessage) {
+        setError(getErrorMessage(errorMessage));
+        return errorMessage;
+      }
       return isMetamaskNotificationsEnabled;
     } catch (e) {
-      setError(getErrorMessage(e));
-      throw e;
+      const errorMessage = getErrorMessage(e);
+      setError(errorMessage);
+      return errorMessage;
     } finally {
       setLoading(false);
     }
@@ -172,16 +197,28 @@ export function useDisableNotifications(): DisableNotificationsReturn {
  * @returns An object containing the `markNotificationAsRead` function, loading state, and error state.
  */
 export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
-  const dispatch = useDispatch();
+  const dispatch = useThunkNotificationDispatch();
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
+  setLoading(true);
+
   const markNotificationAsRead = useCallback(
-    (notifications: Notification[]) => {
+    async (notifications: MarkAsReadNotificationsParam[]) => {
       try {
-        dispatch(markMetamaskNotificationsAsReadRequest(notifications));
+        const errorMessage = await dispatch(
+          markMetamaskNotificationsAsRead(notifications),
+        );
+        if (errorMessage) {
+          setError(getErrorMessage(errorMessage));
+          return errorMessage;
+        }
       } catch (e) {
-        setError(getErrorMessage(e));
-        throw e;
+        const errorMessage = getErrorMessage(e);
+        setError(errorMessage);
+        return errorMessage;
+      } finally {
+        setLoading(false);
       }
     },
     [dispatch],
@@ -189,6 +226,7 @@ export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
 
   return {
     markNotificationAsRead,
+    loading,
     error,
   };
 }

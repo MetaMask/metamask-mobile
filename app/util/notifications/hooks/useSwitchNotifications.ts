@@ -1,107 +1,103 @@
+/* eslint-disable import/prefer-default-export */
 import { useState, useCallback } from 'react';
-import { useDispatch } from 'react-redux';
-import {
-  SwitchSnapNotificationsChangeReturn,
-  SwitchFeatureAnnouncementsChangeReturn,
-  SwitchAccountNotificationsChangeReturn,
-} from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
-  checkAccountsPresenceRequest,
-  deleteOnChainTriggersByAccountRequest,
-  setFeatureAnnouncementsEnabledRequest,
-  setSnapNotificationsEnabledRequest,
-  updateOnChainTriggersByAccountRequest,
+  deleteOnChainTriggersByAccount,
+  setFeatureAnnouncementsEnabled,
+  setSnapNotificationsEnabled,
+  updateOnChainTriggersByAccount,
 } from '../../../actions/notification/pushNotifications';
+import { useThunkNotificationDispatch } from '../../../actions/notification/helpers/useThunkNotificationDispatch';
 
-export function useSwitchSnapNotificationsChange(): SwitchSnapNotificationsChangeReturn {
-  const dispatch = useDispatch();
+export function useSwitchNotifications() {
+  const dispatch = useThunkNotificationDispatch();
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
-  const onChange = useCallback(() => {
-    try {
-      dispatch(setSnapNotificationsEnabledRequest());
-    } catch (e) {
-      setError(getErrorMessage(e));
-      throw e;
-    }
-  }, [dispatch]);
-
-  return {
-    onChange,
-    error,
-  };
-}
-
-export function useSwitchFeatureAnnouncementsChange(): SwitchFeatureAnnouncementsChangeReturn {
-  const dispatch = useDispatch();
-  const [error, setError] = useState<string>();
-
-  const onChange = useCallback(() => {
-    try {
-      dispatch(setFeatureAnnouncementsEnabledRequest());
-    } catch (e) {
-      setError(getErrorMessage(e));
-      throw e;
-    }
-  }, [dispatch]);
-
-  return {
-    onChange,
-    error,
-  };
-}
-
-export function useSwitchAccountNotifications(): {
-  switchAccountNotifications: (accounts: string[]) => void;
-  isLoading: boolean;
-  error: string | undefined;
-} {
-  const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string>();
-
-  const switchAccountNotifications = useCallback(
-    (accounts: string[]) => {
-      setIsLoading(true);
+  const switchSnapNotifications = useCallback(
+    async (state: boolean) => {
+      setLoading(true);
 
       try {
-        dispatch(checkAccountsPresenceRequest(accounts));
-      } catch (e) {
-        setError(getErrorMessage(e));
-        throw e;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [dispatch],
-  );
-
-  return { switchAccountNotifications, isLoading, error };
-}
-
-export function useSwitchAccountNotificationsChange(): SwitchAccountNotificationsChangeReturn {
-  const dispatch = useDispatch();
-  const [error, setError] = useState<string>();
-
-  const onChange = useCallback(
-    (accounts: string[], state: boolean) => {
-      try {
-        if (state) {
-          dispatch(updateOnChainTriggersByAccountRequest(accounts));
-        } else {
-          dispatch(deleteOnChainTriggersByAccountRequest(accounts));
+        const errorMessage = await dispatch(setSnapNotificationsEnabled(state));
+        if (errorMessage) {
+          setError(getErrorMessage(errorMessage));
+          return errorMessage;
         }
       } catch (e) {
-        setError(getErrorMessage(e));
-        throw e;
+        const errorMessage = getErrorMessage(e);
+        setError(errorMessage);
+        return errorMessage;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [dispatch],
+  );
+
+  const switchFeatureAnnouncements = useCallback(
+    async (state: boolean) => {
+      setLoading(true);
+
+      try {
+        const errorMessage = await dispatch(
+          setFeatureAnnouncementsEnabled(state),
+        );
+        if (errorMessage) {
+          setError(getErrorMessage(errorMessage));
+          return errorMessage;
+        }
+      } catch (e) {
+        const errorMessage = getErrorMessage(e);
+        setError(errorMessage);
+        return errorMessage;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [dispatch],
+  );
+
+  const switchAccountNotifications = useCallback(
+    async (accounts: string[], state: boolean) => {
+      setLoading(true);
+
+      try {
+        if (state) {
+          const errorMessage = await dispatch(
+            updateOnChainTriggersByAccount(accounts),
+          );
+
+          if (errorMessage) {
+            setError(getErrorMessage(errorMessage));
+            return errorMessage;
+          }
+        } else {
+          const errorMessage = await dispatch(
+            deleteOnChainTriggersByAccount(accounts),
+          );
+
+          if (errorMessage) {
+            setError(getErrorMessage(errorMessage));
+            return errorMessage;
+          }
+        }
+      } catch (e) {
+        const errorMessage = getErrorMessage(e);
+        setError(errorMessage);
+        return errorMessage;
+      } finally {
+        setLoading(false);
       }
     },
     [dispatch],
   );
 
   return {
-    onChange,
+    switchSnapNotifications,
+    switchFeatureAnnouncements,
+    switchAccountNotifications,
+    loading,
     error,
   };
 }

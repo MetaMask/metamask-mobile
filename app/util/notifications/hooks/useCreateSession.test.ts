@@ -1,66 +1,93 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useDispatch, useSelector } from 'react-redux';
 import useCreateSession from './useCreateSession';
 import {
-  disableProfileSyncingRequest,
-  performSignInRequest,
+  signIn,
+  disableProfileSyncing,
 } from '../../../actions/notification/pushNotifications';
-import { AppDispatch } from '../../../store';
-
-const useDispatchMock = useDispatch as jest.Mock<AppDispatch>;
 
 jest.mock('react-redux', () => ({
-  useDispatch: jest.fn(),
   useSelector: jest.fn(),
 }));
+jest.mock(
+  '../../../actions/notification/helpers/useThunkNotificationDispatch',
+  () => ({
+    useThunkNotificationDispatch: jest.fn(),
+  }),
+);
 
 jest.mock('../../../actions/notification/pushNotifications', () => ({
-  disableProfileSyncingRequest: jest.fn(),
-  performSignInRequest: jest.fn(),
+  signIn: jest.fn(),
+  disableProfileSyncing: jest.fn(),
 }));
 
 describe('useCreateSession', () => {
-  const dispatch = jest.fn();
-  const isSignedIn = false;
-  const isProfileSyncingEnabled = true;
-  const selectIsSignedInMock = useSelector as jest.Mock;
-  const selectIsProfileSyncingEnabledMock = useSelector as jest.Mock;
-  const performSignInRequestMock = performSignInRequest as jest.Mock;
-
   beforeEach(() => {
-    useDispatchMock.mockReturnValue(dispatch);
-    selectIsSignedInMock.mockReturnValue(isSignedIn);
-    selectIsProfileSyncingEnabledMock.mockReturnValue(isProfileSyncingEnabled);
+    jest
+      .spyOn(require('react-redux'), 'useDispatch')
+      .mockReturnValue(jest.fn());
+    jest.spyOn(require('react-redux'), 'useSelector').mockReturnValue(false);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should not perform sign-in if user is already signed in', () => {
-    renderHook(() => useCreateSession());
-    expect(dispatch).not.toHaveBeenCalledWith(performSignInRequest());
-  });
-
-  it('should not perform sign-in if profile syncing is disabled', () => {
-    selectIsProfileSyncingEnabledMock.mockReturnValue(false);
-    renderHook(() => useCreateSession());
-    expect(dispatch).not.toHaveBeenCalledWith(performSignInRequest());
-  });
-
-  it('should perform sign-in if user is not signed in and profile syncing is enabled', () => {
-    renderHook(() => useCreateSession());
-    expect(dispatch).toHaveBeenCalledWith(performSignInRequest());
-  });
-
-  it('should disable profile syncing and set error if an error occurs during sign-in', () => {
-    const errorMessage = 'Failed to sign in';
-    performSignInRequestMock.mockRejectedValue(new Error(errorMessage));
+  it('should not initiate session creation if user is already signed in', () => {
+    jest.spyOn(require('react-redux'), 'useSelector').mockReturnValue(true);
+    const dispatch = jest.fn();
     const { result } = renderHook(() => useCreateSession());
+
     act(() => {
       result.current.createSession();
     });
-    expect(dispatch).toHaveBeenCalledWith(disableProfileSyncingRequest());
-    expect(result.current.error).toBe(errorMessage);
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('should not initiate session creation if profile syncing is disabled', () => {
+    const { result } = renderHook(() => useCreateSession());
+    const dispatch = jest.fn();
+
+    act(() => {
+      result.current.createSession();
+    });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('should initiate session creation if profile syncing is enabled', () => {
+    jest.spyOn(require('react-redux'), 'useSelector').mockReturnValue(true);
+    const dispatch = jest.fn();
+
+    const { result } = renderHook(() => useCreateSession());
+
+    act(() => {
+      result.current.createSession();
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(signIn());
+  });
+
+  it('should disable profile syncing and set error message if sign-in fails', async () => {
+    jest.spyOn(require('react-redux'), 'useSelector').mockReturnValue(true);
+    const dispatch = jest.fn();
+    jest
+      .spyOn(require('react-redux'), 'useDispatch')
+      .mockReturnValue(
+        jest.fn().mockRejectedValueOnce(new Error('Sign-in failed')),
+      );
+
+    const { result, waitForNextUpdate } = renderHook(() => useCreateSession());
+
+    act(() => {
+      result.current.createSession();
+    });
+
+    await waitForNextUpdate();
+
+    expect(dispatch).toHaveBeenCalledWith(disableProfileSyncing());
+    expect(result.current.error).toBe('Sign-in failed');
   });
 });

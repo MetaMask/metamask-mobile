@@ -1,14 +1,16 @@
 import { useState, useCallback } from 'react';
-import { useDispatch } from 'react-redux';
 import {
   EnableProfileSyncingReturn,
   DisableProfileSyncingReturn,
 } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
-  disableProfileSyncingRequest,
-  enableProfileSyncingRequest,
+  disableProfileSyncing as disableProfileSyncingAction,
+  enableProfileSyncing as enableProfileSyncingAction,
 } from '../../../actions/notification/pushNotifications';
+
+import { useThunkNotificationDispatch } from '../../../actions/notification/helpers/useThunkNotificationDispatch';
+
 /**
  * Custom hook to enable profile syncing. This hook handles the process of signing in
  * and enabling profile syncing via dispatch actions.
@@ -16,20 +18,29 @@ import {
  * @returns An object containing the `enableProfileSyncing` function, loading state, and error state.
  */
 export function useEnableProfileSyncing(): EnableProfileSyncingReturn {
-  const dispatch = useDispatch();
+  const dispatch = useThunkNotificationDispatch();
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
-  const enableProfileSyncing = useCallback(() => {
+  const enableProfileSyncing = useCallback(async () => {
+    setLoading(true);
     try {
       // set profile syncing to true
-      dispatch(enableProfileSyncingRequest());
+      const errorMessage = await dispatch(enableProfileSyncingAction());
+      if (errorMessage) {
+        setError(getErrorMessage(errorMessage));
+        return errorMessage;
+      }
     } catch (e) {
-      setError(getErrorMessage(e));
-      throw e;
+      const errorMessage = getErrorMessage(e);
+      setError(errorMessage);
+      return errorMessage;
+    } finally {
+      setLoading(false);
     }
   }, [dispatch]);
 
-  return { enableProfileSyncing, error };
+  return { enableProfileSyncing, loading, error };
 }
 /**
  * Custom hook to disable profile syncing. This hook handles the process of disabling notifications,
@@ -39,17 +50,27 @@ export function useEnableProfileSyncing(): EnableProfileSyncingReturn {
  * loading state, and error state.
  */
 export function useDisableProfileSyncing(): DisableProfileSyncingReturn {
-  const dispatch = useDispatch();
+  const dispatch = useThunkNotificationDispatch();
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
-  const disableProfileSyncing = useCallback(() => {
+  const disableProfileSyncing = useCallback(async () => {
+    setLoading(true);
+
     try {
-      dispatch(disableProfileSyncingRequest());
+      const errorMessage = await dispatch(disableProfileSyncingAction());
+      if (errorMessage) {
+        setError(getErrorMessage(errorMessage));
+        return errorMessage;
+      }
     } catch (e) {
-      setError(getErrorMessage(e));
-      throw e;
+      const errorMessage = getErrorMessage(e);
+      setError(errorMessage);
+      return errorMessage;
+    } finally {
+      setLoading(false);
     }
   }, [dispatch]);
 
-  return { disableProfileSyncing, error };
+  return { disableProfileSyncing, loading, error };
 }

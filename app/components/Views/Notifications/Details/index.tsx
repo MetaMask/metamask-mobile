@@ -55,9 +55,7 @@ const NotificationsDetails = ({ navigation, route }: Props) => {
   );
 
   useEffect(() => {
-    setTimeout(() => {
-      markNotificationAsRead([notification]);
-    }, 5000);
+    markNotificationAsRead([notification]);
   }, [notification, markNotificationAsRead]);
 
   const handleShowAlert = (config: {
