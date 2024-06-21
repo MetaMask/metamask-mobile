@@ -65,6 +65,7 @@ export enum ApprovalTypes {
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
+  SNAP_DIALOG = 'snap_dialog',
   ///: END:ONLY_INCLUDE_IF
 }
 

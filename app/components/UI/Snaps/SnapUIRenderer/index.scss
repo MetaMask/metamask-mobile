@@ -1,0 +1,34 @@
+.snap-ui-renderer {
+  &__error {
+    margin-top: 0 !important;
+  }
+
+  &__spinner {
+    width: 30px;
+  }
+
+  &__divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  &__panel {
+    height: 100%;
+    gap: 8px;
+  }
+
+  &__text {
+    i {
+      font-style: revert;
+    }
+
+    b {
+      font-weight: revert;
+    }
+
+    span {
+      font-style: inherit;
+      font-weight: inherit;
+    }
+  }
+}

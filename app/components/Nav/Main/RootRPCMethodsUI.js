@@ -69,6 +69,7 @@ import { getSmartTransactionMetricsProperties } from '../../../util/smart-transa
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
+import SnapDialogApproval from '../../Approvals/Snaps/SnapDialogApproval';
 ///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);
@@ -490,6 +491,7 @@ const RootRPCMethodsUI = (props) => {
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       }
       <InstallSnapApproval />
+      <SnapDialogApproval />
       {
         ///: END:ONLY_INCLUDE_IF
       }

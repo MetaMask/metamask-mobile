@@ -99,8 +99,12 @@ class EngineService {
         key: `${engine.context.SnapController.name}:stateChange`,
       },
       {
-        name: 'subjectMetadataController',
+        name: 'SubjectMetadataController',
         key: `${engine.context.SubjectMetadataController.name}:stateChange`,
+      },
+      {
+        name: 'SnapInterfaceController',
+        key: `${engine.context.SnapInterfaceController.name}:stateChange`,
       },
       ///: END:ONLY_INCLUDE_IF
       {
