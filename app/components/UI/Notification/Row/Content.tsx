@@ -16,6 +16,8 @@ interface NotificationContentProps {
   };
   createdAt: string;
   value: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: StyleSheet.NamedStyles<any>;
 }
 

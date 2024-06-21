@@ -361,8 +361,8 @@ export class SDKConnect {
     return init({ navigation, context, instance: this });
   }
 
-  async postInit() {
-    return postInit(this);
+  async postInit(callback?: () => void) {
+    return postInit(this, callback);
   }
 
   hasInitialized() {

@@ -29,6 +29,8 @@ const TabBarStorybook = () => {
     { name: 'WalletRoute', key: 'WalletRoute' },
     { name: 'BrowserRoute', key: 'BrowserRoute' },
   ];
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockTabBarProps: any = {
     state: {
       routes,
@@ -62,6 +64,8 @@ const TabBarStorybook = () => {
 const TabBarMeta = {
   title: 'Component Library / Navigation',
   decorators: [
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (Story: any) => (
       <Provider store={store}>
         <Story />

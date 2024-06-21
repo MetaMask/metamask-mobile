@@ -54,12 +54,16 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
   const {
     hostInfo: {
       metadata: { origin: hostname },
     },
   } = props.route.params;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -69,6 +73,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => Object.keys(selectNetworkConfigurations(state)).length + 1,
   );
 
@@ -89,6 +95,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
   const permittedAccountsList = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.engine.backgroundState.PermissionController,
   );
   const permittedAccountsByHostname = getPermittedAccountsByHostname(
@@ -177,6 +185,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           source: metricsSource,
           number_of_accounts: accounts?.length,
         });
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         Logger.error(e, 'Error while trying to add a new account.');
       } finally {
@@ -230,6 +240,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         number_of_accounts_connected: connectedAccounts,
         number_of_networks: nonTestnetNetworks,
       });
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       Logger.error(e, 'Error while trying to connect to a dApp.');
     } finally {

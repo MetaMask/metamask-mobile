@@ -13,6 +13,8 @@ const ClipboardText = ({
 }: {
   text: string;
   testID: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: any;
 }) => {
   const copy = useCallback(async () => {
