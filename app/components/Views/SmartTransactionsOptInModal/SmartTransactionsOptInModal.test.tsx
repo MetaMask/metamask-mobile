@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import SmartTransactionsOptInModal from './SmartTranactionsOptInModal';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
@@ -96,7 +96,7 @@ describe('SmartTransactionsOptInModal', () => {
       Engine.context.PreferencesController.setSmartTransactionsOptInStatus,
     ).toHaveBeenCalledWith(true);
   });
-  it('should opt user out when secondary button is pressed and navigate to Advanced Settings', () => {
+  it('should opt user out when secondary button is pressed and navigate to Advanced Settings', async () => {
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
       state: initialState,
     });
@@ -109,8 +109,11 @@ describe('SmartTransactionsOptInModal', () => {
     expect(
       Engine.context.PreferencesController.setSmartTransactionsOptInStatus,
     ).toHaveBeenCalledWith(false);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.ADVANCED_SETTINGS,
+    expect(updateOptInModalAppVersionSeen).toHaveBeenCalledWith(VERSION);
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+        screen: Routes.SETTINGS.ADVANCED_SETTINGS,
+      });      
     });
   });
   it('should update last app version seen on primary button press', () => {
