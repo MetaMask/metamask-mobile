@@ -979,9 +979,8 @@ class Engine {
     const snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
       featureFlags: {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         requireAllowlist,
+        allowLocalSnaps,
       },
       state: initialState.SnapController || undefined,
       // TODO: Replace "any" with type
@@ -993,7 +992,6 @@ class Engine {
       ) =>
         detectSnapLocation(location, {
           ...options,
-          allowLocal: allowLocalSnaps,
           fetch: fetchFunction,
         }),
       //@ts-expect-error types need to be aligned with snaps-controllers
@@ -1001,6 +999,9 @@ class Engine {
       //@ts-expect-error types need to be aligned between new encryptor and snaps-controllers
       encryptor,
       getMnemonic: getPrimaryKeyringMnemonic.bind(this),
+      getFeatureFlags: () => {
+        return { disableSnaps: store.getState().settings.basicFunctionalityEnabled === false };
+      }
     });
     ///: END:ONLY_INCLUDE_IF
 
