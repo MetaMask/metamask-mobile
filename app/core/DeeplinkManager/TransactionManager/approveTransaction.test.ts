@@ -95,7 +95,7 @@ describe('approveTransaction', () => {
     ).toHaveBeenCalledWith(fakeNetworkType);
   });
 
-  it('should call generateApprovalData with the correct parameters', async () => {
+  it('calls generateApprovalData with the correct parameters', async () => {
     spyGetAddress.mockReturnValue('0xMockAddress');
 
     await approveTransaction({
