@@ -13,7 +13,8 @@ const {
   AuthenticationController,
   UserStorageController,
   NotificationServicesController,
-}: any = Engine.context;
+}: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+any = Engine.context;
 
 type ThunkDispatchReturn = ThunkAction<
   Promise<string | undefined>,
@@ -220,7 +221,7 @@ export const fetchAndUpdateMetamaskNotifications =
       }
       dispatch({
         type: notificationsAction.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS,
-        payload: { metamaskNotifications },
+        payload: { notifications: metamaskNotifications },
       });
     } catch (error) {
       return getErrorMessage(error);

@@ -502,14 +502,6 @@ export const returnAvatarProps = (status: TxStatus, theme: Theme) => {
   }
 };
 
-export const notificationSettings = {
-  assetsReceived: false,
-  assetsSent: false,
-  deFi: false,
-  productAnnouncements: false,
-  snaps: false,
-};
-
 export const requestPushNotificationsPermission = async () => {
   let permissionStatus;
 
@@ -559,10 +551,14 @@ export const requestPushNotificationsPermission = async () => {
     }
 
     return permissionStatus;
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (e: any) {
-    Logger.error(e, strings('notifications.error_checking_permission'));
+  } catch (e) {
+    if (e instanceof Error) {
+      Logger.error(e, strings('notifications.error_checking_permission'));
+    } else {
+      Logger.error(
+        new Error(strings('notifications.error_checking_permission')),
+      );
+    }
   }
 };
 

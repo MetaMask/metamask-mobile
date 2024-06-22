@@ -45,24 +45,29 @@ export const initialState: IPushNotificationsState = {
 };
 export interface iNotificationsAction extends Action {
   type: (typeof notificationsAction)[keyof typeof notificationsAction];
-  profile?: string;
-  accessToken?: string;
-  accounts?: string[];
-  presence?: Record<string, boolean>;
-  userStorage?: UserStorage;
-  fcmToken?: string;
-  notifications?: Notification[];
-  error?: Error | unknown;
+  payload?: {
+    profile?: string;
+    accessToken?: string;
+    accounts?: string[];
+    presence?: Record<string, boolean>;
+    userStorage?: UserStorage;
+    fcmToken?: string;
+    notifications?: Notification[];
+    error?: Error | unknown;
+  };
 }
-const pushNotificationsReducer = (state = initialState, action: any) => {
+const pushNotificationsReducer = (
+  state = initialState,
+  action: iNotificationsAction,
+) => {
   switch (action.type) {
     case notificationsAction.PERFORM_SIGN_IN:
       return {
         ...state,
         isSignedIn: true,
         sessionData: {
-          profile: action.payload.profile,
-          accessToken: action.payload.accessToken,
+          profile: action.payload?.profile,
+          accessToken: action.payload?.accessToken,
         },
       };
     case notificationsAction.PERFORM_SIGN_OUT:
@@ -94,22 +99,22 @@ const pushNotificationsReducer = (state = initialState, action: any) => {
     case notificationsAction.CHECK_ACCOUNTS_PRESENCE:
       return {
         ...state,
-        presence: action.payload.presence,
+        presence: action.payload?.presence,
       };
     case notificationsAction.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT:
       return {
         ...state,
-        userStorage: action.payload.userStorage,
+        userStorage: action.payload?.userStorage,
       };
     case notificationsAction.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT:
       return {
         ...state,
-        userStorage: action.payload.userStorage,
+        userStorage: action.payload?.userStorage,
       };
     case notificationsAction.UPDATE_TRIGGER_PUSH_NOTIFICATIONS:
       return {
         ...state,
-        fcmToken: action.fcmToken,
+        fcmToken: action.payload?.fcmToken,
       };
     case notificationsAction.SET_FEATURE_ANNOUNCEMENTS_ENABLED:
       return {
@@ -129,7 +134,7 @@ const pushNotificationsReducer = (state = initialState, action: any) => {
     case notificationsAction.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS:
       return {
         ...state,
-        notifications: action.payload.metamaskNotifications,
+        notifications: action.payload?.notifications,
       };
     case notificationsAction.MARK_METAMASK_NOTIFICATIONS_AS_READ:
       return {
@@ -138,7 +143,7 @@ const pushNotificationsReducer = (state = initialState, action: any) => {
     case notificationsAction.DELETE_NOTIFICATION_STATUS:
       return {
         ...state,
-        notifications: action.payload.notifications,
+        notifications: action.payload?.notifications,
       };
     case notificationsAction.ENABLE_NOTIFICATIONS_SERVICES:
       return {

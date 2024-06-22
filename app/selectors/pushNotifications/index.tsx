@@ -18,6 +18,12 @@ export const selectSessionData = createSelector(
   (pushNotificationsState: IPushNotificationsState) =>
     pushNotificationsState.sessionData,
 );
+
+export const selectUserStorage = createSelector(
+  selectPushNotificationsState,
+  (pushNotificationsState: IPushNotificationsState) =>
+    pushNotificationsState.userStorage,
+);
 export const selectIsProfileSyncingEnabled = createSelector(
   selectPushNotificationsState,
   (pushNotificationsState: IPushNotificationsState) =>

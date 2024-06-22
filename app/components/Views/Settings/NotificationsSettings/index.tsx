@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
-import React, { FC, useCallback, useEffect } from 'react';
+import React, { FC, useEffect } from 'react';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -19,7 +19,10 @@ import createStyles from './NotificationsSettings.styles';
 import NotificationOptionToggle from './NotificationOptionToggle';
 import { NotificationsToggleTypes } from './NotificationsSettings.constants';
 
-import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/pushNotifications';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectUserStorage,
+} from '../../../../selectors/pushNotifications';
 
 import { requestPushNotificationsPermission } from '../../../../util/notifications';
 import Routes from '../../../../constants/navigation/Routes';
@@ -27,14 +30,16 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
-import { useSwitchAccountNotifications } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { SessionHeader } from './sectionHeader';
-import { useListNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import { selectChainId } from '../../../../selectors/networkController';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
-  const { switchAccountNotifications } = useSwitchAccountNotifications();
-  const { listNotifications } = useListNotifications();
+  const userStorage = useSelector(selectUserStorage);
+  const chainId = useSelector(selectChainId);
+  const { enableNotifications } = useEnableNotifications();
+
   const theme = useTheme();
   // Selectors
   const isMetamaskNotificationsEnabled = useSelector(
@@ -46,28 +51,26 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   // Style
   const { colors } = theme;
   const styles = createStyles(colors);
-  const addresses = useCallback(
-    () => accounts.map((account) => account.address),
-    [accounts],
-  );
-  //TODO: Need to refetch notifications once account is switched
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
 
-  const toggleNotificationsEnabled = () => {
-    !isMetamaskNotificationsEnabled && requestPushNotificationsPermission();
+  const toggleNotificationsEnabled = async () => {
+    if (!isMetamaskNotificationsEnabled) {
+      const notificationSettings = await requestPushNotificationsPermission();
+      if (
+        notificationSettings &&
+        notificationSettings.authorizationStatus > 1
+      ) {
+        await enableNotifications();
+      }
+    }
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      switchAccountNotifications(addresses());
-    };
-    fetchData();
-  }, [addresses, switchAccountNotifications]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -132,8 +135,9 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               key={account.address}
               title={account.name}
               address={account.address}
-              listNotifications={listNotifications}
-              // data={data}
+              triggerStatus={
+                userStorage?.[account.address]?.[chainId]?.triggerEnabled
+              }
             />
           ))}
         </>

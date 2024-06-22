@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { Platform, Switch, View } from 'react-native';
 import { createStyles } from './styles';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
@@ -21,19 +21,18 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import {
-  useSwitchAccountNotifications,
-  useSwitchAccountNotificationsChange,
-} from '../../../../../util/notifications/hooks/useSwitchNotifications';
-import { UseSwitchAccountNotificationsData } from '../../../../../util/notifications/hooks/types';
+import { useSwitchNotifications } from '../../../../../util/notifications/hooks/useSwitchNotifications';
+import { useListNotifications } from '../../../../../util/notifications/hooks/useNotifications';
+import { TRIGGER_TYPES } from '../../../../../util/notifications';
 
 interface NotificationOptionsToggleProps {
   address: string;
   title: string;
-  listNotifications: () => void;
   icon?: AvatarAccountType | IconName;
   type?: string;
-  data?: UseSwitchAccountNotificationsData;
+  triggerStatus?:
+    | { triggerTypes: TRIGGER_TYPES; triggerEnabled: boolean }
+    | undefined;
   testId?: string;
   disabled?: boolean;
 }
@@ -47,27 +46,21 @@ const NotificationOptionToggle = ({
   title,
   icon,
   type,
-  listNotifications,
-  data,
+  triggerStatus,
   testId,
   disabled,
 }: NotificationOptionsToggleProps) => {
-  const { switchAccountNotifications } = useSwitchAccountNotifications();
-  const { onChange } = useSwitchAccountNotificationsChange();
-
+  const { switchAccountNotifications } = useSwitchNotifications();
+  const { listNotifications } = useListNotifications();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles();
 
   const handleToggleAccountNotifications = useCallback(() => {
-    const originalValue = data?.[address];
-    onChange([address], !originalValue);
+    const originalValue = triggerStatus?.triggerEnabled;
+    switchAccountNotifications([address], !originalValue);
     listNotifications();
-  }, [address, data, listNotifications, onChange]);
-
-  useEffect(() => {
-    switchAccountNotifications([address]);
-  }, [address, switchAccountNotifications]);
+  }, [address, triggerStatus, listNotifications, switchAccountNotifications]);
 
   return (
     <View style={styles.container}>
@@ -101,7 +94,7 @@ const NotificationOptionToggle = ({
       </View>
       <View style={styles.switchElement}>
         <Switch
-          value={!!data?.[address]}
+          value={!!triggerStatus?.triggerEnabled}
           onValueChange={handleToggleAccountNotifications}
           trackColor={{
             true: colors.primary.default,
