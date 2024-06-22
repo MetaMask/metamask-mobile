@@ -28,13 +28,9 @@ import LoginView from './pages/LoginView';
 import { getGanachePort } from './fixtures/utils';
 import Assertions from './utils/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
-import enContent from '../locales/languages/en.json';
+import ToastModal from './pages/modals/ToastModal';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
-
-// detox on ios does not have a clean way of interacting with webview elements. You would need to tap by coordinates
-export const testDappConnectButtonCooridinates = { x: 170, y: 280 };
-export const testDappSendEIP1559ButtonCoordinates = { x: 320, y: 500 };
 const validAccount = Accounts.getValidAccount();
 
 export const acceptTermOfUse = async () => {
@@ -49,36 +45,37 @@ export const acceptTermOfUse = async () => {
 };
 export const closeOnboardingModals = async () => {
   /*
-These onboarding modals are becoming a bit wild. We need less of these so we dont
-have to have all these work arounds in the tests
+These onboarding modals are becoming a bit wild. We need less of these so we don't
+have to have all these workarounds in the tests
   */
   await TestHelpers.delay(1000);
 
   try {
-    await WhatsNewModal.isVisible();
+    await Assertions.checkIfVisible(WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
+    await Assertions.checkIfNotVisible(WhatsNewModal.container);
   } catch {
-    //
+    /* eslint-disable no-console */
+
+    console.log('The whats new modal is not visible');
   }
 
   // Handle Onboarding wizard
   try {
-    await Assertions.checkIfVisible(
-      await OnboardingWizardModal.stepOneContainer,
-    );
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
     await OnboardingWizardModal.tapNoThanksButton();
-    await Assertions.checkIfNotVisible(
-      await OnboardingWizardModal.stepOneContainer,
-    );
+    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
   } catch {
     /* eslint-disable no-console */
 
     console.log('The onboarding modal is not visible');
   }
 
+  // TODO: Define the correct order of onboarding modals to be displayed
   try {
-    await WhatsNewModal.isVisible();
+    await Assertions.checkIfVisible(WhatsNewModal.container);
     await WhatsNewModal.tapCloseButton();
+    await Assertions.checkIfNotVisible(WhatsNewModal.container);
   } catch {
     /* eslint-disable no-console */
 
@@ -88,15 +85,17 @@ have to have all these work arounds in the tests
   try {
     // Handle Marketing consent modal
 
-    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
+    await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
     await ExperienceEnhancerModal.tapNoThanks();
+    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.container);
   } catch {
     console.log('The marketing consent modal is not visible');
   }
+
   try {
-    await TestHelpers.waitAndTapText(
-      enContent.privacy_policy.toast_action_button,
-    );
+    await Assertions.checkIfVisible(ToastModal.container);
+    await ToastModal.tapToastCloseButton();
+    await Assertions.checkIfNotVisible(ToastModal.container);
   } catch {
     /* eslint-disable no-undef */
 
@@ -127,22 +126,7 @@ export const importWalletWithRecoveryPhrase = async () => {
 
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
-  await TestHelpers.delay(1000);
-  await closeOnboardingModals();
-
-  // should tap on the close button to dismiss the whats new modal
-  try {
-    await Assertions.checkIfVisible(WhatsNewModal.container);
-    await WhatsNewModal.tapCloseButton();
-  } catch {
-    /* eslint-disable no-console */
-    console.log('The whats new modal is not visible');
-  } finally {
-    // Handle Marketing consent modal
-
-    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
-    await ExperienceEnhancerModal.tapNoThanks();
-  }
+  await this.closeOnboardingModals();
 };
 
 export const CreateNewWallet = async () => {
@@ -179,25 +163,9 @@ export const CreateNewWallet = async () => {
 
   // 'should dismiss the onboarding wizard'
   // dealing with flakiness on bitrise.
-  await TestHelpers.delay(1000);
-  await closeOnboardingModals();
+  await this.closeOnboardingModals();
 
-  // should tap on the close button to dismiss the whats new modal
-  try {
-    await Assertions.checkIfVisible(WhatsNewModal.container);
-    await WhatsNewModal.tapCloseButton();
-  } catch {
-    /* eslint-disable no-console */ console.log(
-      'The whats new modal is not visible',
-    );
-  } finally {
-    // Handle Marketing consent modal
-
-    await Assertions.checkIfVisible(await ExperienceEnhancerModal.container);
-    await ExperienceEnhancerModal.tapNoThanks();
-  }
-
-  // Dismissing the protect your wallet modal
+  // Dismissing to protect your wallet modal
   await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
   await ProtectYourWalletModal.tapRemindMeLaterButton();
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
@@ -219,7 +187,7 @@ export const addLocalhostNetwork = async () => {
   await NetworkView.typeInNetworkSymbol('ETH\n');
 
   if (device.getPlatform() === 'ios') {
-    await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
+    // await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
     await NetworkView.tapRpcNetworkAddButton();
   }
   await TestHelpers.delay(3000);
@@ -251,26 +219,5 @@ export const loginToApp = async () => {
   await LoginView.isVisible();
   await LoginView.enterPassword(PASSWORD);
 
-  await TestHelpers.delay(2500);
-  try {
-    await TestHelpers.waitAndTapText(
-      enContent.privacy_policy.toast_action_button,
-    );
-    await WhatsNewModal.isVisible();
-    await WhatsNewModal.tapCloseButton();
-    await Assertions.checkIfVisible(ExperienceEnhancerModal.title);
-    await ExperienceEnhancerModal.tapNoThanks();
-  } catch {
-    /* eslint-disable no-console */ console.log(
-      'The onboarding modals is not visible',
-    );
-  }
-  // this is not ideal. The whats new modal usually pops up last?
-  try {
-    await Assertions.checkIfVisible(WhatsNewModal.container);
-    await WhatsNewModal.tapCloseButton();
-  } catch {
-    /* eslint-disable no-console */
-    console.log('The whats new modal is not visible');
-  }
+  await this.closeOnboardingModals();
 };

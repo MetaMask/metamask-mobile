@@ -25,7 +25,7 @@ const fixtureServer = new FixtureServer();
 describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder().build();
+    const fixture = new FixtureBuilder().withKeyringController().build();
     fixture.state.user.seedphraseBackedUp = false;
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
