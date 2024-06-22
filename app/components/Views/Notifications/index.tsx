@@ -2,7 +2,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { InteractionManager, View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../reducers';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
 import { createStyles } from './styles';
 import Notifications from '../../UI/Notification/List';
@@ -24,7 +23,10 @@ import Text, {
 import Empty from '../../UI/Notification/Empty';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/pushNotifications';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectNotificationsList,
+} from '../../../selectors/pushNotifications';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 
 const NotificationsView = ({
@@ -49,19 +51,13 @@ const NotificationsView = ({
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
-  const pushNotificationsState = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.NotificationServicesController,
-  );
-
-  const { metamaskNotificationsList } =
-    pushNotificationsState.pushNotifications;
+  const notifications = useSelector(selectNotificationsList);
 
   /**
    * Defines local state for notifications
    */
   const [allNotifications, setAllNotifications] = useState<Notification[]>([
-    ...metamaskNotificationsList,
+    ...notifications,
   ]);
   const [walletNotifications, setWalletNotifications] = useState<
     HalRawNotification[]
@@ -82,9 +78,7 @@ const NotificationsView = ({
       const annoucements: FeatureAnnouncementRawNotification[] = [];
       const uniqueNotifications: Notification[] = [];
 
-      const allNotificationsSorted = sortNotifications(
-        metamaskNotificationsList,
-      );
+      const allNotificationsSorted = sortNotifications(notifications);
       const seenIds = new Set();
 
       for (const notification of allNotificationsSorted) {
@@ -105,7 +99,7 @@ const NotificationsView = ({
 
       setLoading(false);
     },
-    [metamaskNotificationsList],
+    [notifications],
   );
 
   useEffect(() => {
