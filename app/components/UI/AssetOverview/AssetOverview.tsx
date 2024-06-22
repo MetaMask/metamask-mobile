@@ -169,7 +169,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const itemAddress = safeToChecksumAddress(asset.address);
   const exchangeRate =
     itemAddress && itemAddress in tokenExchangeRates
-      ? tokenExchangeRates[itemAddress]
+      ? tokenExchangeRates?.[itemAddress]?.price
       : undefined;
 
   let balance, balanceFiat;
