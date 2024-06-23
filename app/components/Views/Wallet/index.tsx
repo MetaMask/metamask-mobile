@@ -300,11 +300,10 @@ any) => {
   ]);
 
   useEffect(() => {
-    const networkOnboarded = getIsNetworkOnboarded(
-      providerConfig.chainId,
-      networkOnboardingState,
-    );
-    if (networkOnboarded || currentRouteName === 'SecuritySettings') {
+    if (
+      currentRouteName === 'Wallet' ||
+      currentRouteName === 'SecuritySettings'
+    ) {
       checkNftAutoDetectionModal();
     }
   });
@@ -355,9 +354,6 @@ any) => {
         } else {
           await checkWhatsNewModal();
         }
-        InteractionManager.runAfterInteractions(() => {
-          checkNftAutoDetectionModal();
-        });
       } catch (error) {
         Logger.log(
           error,
