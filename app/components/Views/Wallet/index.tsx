@@ -266,9 +266,9 @@ any) => {
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const useNftDetection = useSelector(selectUseNftDetection);
-  const isNFTAutoDetectionModalOpened = useSelector(
+  const isNFTAutoDetectionModalViewed = useSelector(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.security.isNFTAutoDetectionModalOpened,
+    (state: any) => state.security.isNFTAutoDetectionModalViewed,
   );
 
   /**
@@ -285,7 +285,7 @@ any) => {
 
   const checkNftAutoDetectionModal = useCallback(() => {
     const isOnMainnet = isMainNet(providerConfig.chainId);
-    if (!useNftDetection && isOnMainnet && !isNFTAutoDetectionModalOpened) {
+    if (!useNftDetection && isOnMainnet && !isNFTAutoDetectionModalViewed) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.NFT_AUTO_DETECTION_MODAL,
       });
@@ -293,7 +293,7 @@ any) => {
     }
   }, [
     dispatch,
-    isNFTAutoDetectionModalOpened,
+    isNFTAutoDetectionModalViewed,
     navigation,
     providerConfig.chainId,
     useNftDetection,

@@ -8,7 +8,7 @@ export const initialState: Readonly<SecuritySettingsState> = {
   hasUserSelectedAutomaticSecurityCheckOption: false,
   isAutomaticSecurityChecksModalOpen: false,
   dataCollectionForMarketing: null,
-  isNFTAutoDetectionModalOpened: false,
+  isNFTAutoDetectionModalViewed: false,
 };
 
 const securityReducer = (
@@ -39,7 +39,7 @@ const securityReducer = (
     case ActionType.SET_NFT_AUTO_DETECTION_MODAL_OPEN:
       return {
         ...state,
-        isNFTAutoDetectionModalOpened: action.open,
+        isNFTAutoDetectionModalViewed: action.open,
       };
     case ActionType.SET_DATA_COLLECTION_FOR_MARKETING:
       return {
