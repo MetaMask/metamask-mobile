@@ -77,8 +77,8 @@ import ModalMandatory from '../../../component-library/components/Modals/ModalMa
 import { RestoreWallet } from '../../Views/RestoreWallet';
 import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
 import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
-import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
-import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
+import SDKLoadingModal from '../../Views/SDK/SDKLoadingModal/SDKLoadingModal';
+import SDKFeedbackModal from '../../Views/SDK/SDKFeedbackModal/SDKFeedbackModal';
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 import AccountActions from '../../../components/Views/AccountActions';
@@ -99,8 +99,8 @@ import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
-import SDKDisconnectModal from '../../../../app/components/Views/SDKDisconnectModal/SDKDisconnectModal';
-import SDKSessionModal from '../../../../app/components/Views/SDKSessionModal/SDKSessionModal';
+import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnectModal';
+import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
@@ -344,15 +344,9 @@ const App = ({ userLoggedIn }) => {
         animationNameRef?.current?.play();
       }
     };
-    appTriggeredAuth()
-      .then(() => {
-        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
-
-        queueOfHandleDeeplinkFunctions.current = [];
-      })
-      .catch((error) => {
-        Logger.error(error, 'App: Error in appTriggeredAuth');
-      });
+    appTriggeredAuth().catch((error) => {
+      Logger.error(error, 'App: Error in appTriggeredAuth');
+    });
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
@@ -415,9 +409,11 @@ const App = ({ userLoggedIn }) => {
             handleDeeplink(opts);
           } else {
             queueOfHandleDeeplinkFunctions.current =
-              queueOfHandleDeeplinkFunctions.current.concat(() => {
-                handleDeeplink(opts);
-              });
+              queueOfHandleDeeplinkFunctions.current.concat([
+                () => {
+                  handleDeeplink(opts);
+                },
+              ]);
           }
         });
       }
@@ -456,7 +452,11 @@ const App = ({ userLoggedIn }) => {
         try {
           const sdkConnect = SDKConnect.getInstance();
           await sdkConnect.init({ navigation: navigator, context: 'Nav/App' });
-          await SDKConnect.getInstance().postInit();
+          await SDKConnect.getInstance().postInit(() => {
+            setTimeout(() => {
+              queueOfHandleDeeplinkFunctions.current = [];
+            }, 1000);
+          });
           sdkInit.current = true;
         } catch (err) {
           sdkInit.current = undefined;
@@ -464,9 +464,13 @@ const App = ({ userLoggedIn }) => {
         }
       }
     }
-    initSDKConnect().catch((err) => {
-      Logger.error(err, 'Error initializing SDKConnect');
-    });
+    initSDKConnect()
+      .then(() => {
+        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
+      })
+      .catch((err) => {
+        Logger.error(err, 'Error initializing SDKConnect');
+      });
   }, [navigator, onboarded, userLoggedIn]);
 
   useEffect(() => {

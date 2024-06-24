@@ -4,6 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 
 const StoryBookStack = createStackNavigator();
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withNavigation = (story: any) => {
   const StorybookScreen = () => story();
   return (

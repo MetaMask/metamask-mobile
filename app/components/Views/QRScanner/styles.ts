@@ -6,7 +6,7 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.brandColors.black['000'],
+      backgroundColor: theme.brandColors.black,
     },
     preview: {
       flex: 1,

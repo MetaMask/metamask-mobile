@@ -20,10 +20,7 @@ jest.mock('react-native', () => {
   return originalModule;
 });
 
-jest.mock('../../lib/snaps/preinstalled-snaps', () =>
-  // eslint-disable-next-line no-console
-  console.log("do nothing since we aren't testing the pre installed snaps"),
-);
+jest.mock('../../lib/snaps/preinstalled-snaps');
 
 const mockFs = {
   CachesDirectoryPath: jest.fn(),
@@ -227,6 +224,10 @@ NativeModules.AesForked = {
   pbkdf2: jest.fn().mockResolvedValue('mockedKeyForked'),
   decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainTextForked"}'),
 };
+
+NativeModules.RNTar = {
+  unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
+}
 
 jest.mock(
   'react-native/Libraries/Components/Touchable/TouchableOpacity',

@@ -2,6 +2,90 @@
 
 ## Current Main Branch
 
+## 7.24.3 - Jun 19, 2024
+### Fixed
+- [#10045](https://github.com/MetaMask/metamask-mobile/pull/10045): fix: Update ppom package to 1.4.8 (#10041)
+
+## 7.24.2 - Jun 13, 2024
+### Added
+- [#9687](https://github.com/MetaMask/metamask-mobile/pull/9687): feat: adds "data collection for marketing" toggles
+
+### Fixed 
+- [#9905](https://github.com/MetaMask/metamask-mobile/pull/9905): fix: remove metametrics redundant calls and improve compliance
+
+## 7.24.1 - Jun 13, 2024
+### Fixed
+- [#9943](https://github.com/MetaMask/metamask-mobile/pull/9943): fix: Remove duplicate accounts (#9943)
+- [#10006](https://github.com/MetaMask/metamask-mobile/pull/10006): fix: Fix order of accounts (#10006)
+- [#10004](https://github.com/MetaMask/metamask-mobile/pull/10004): fix: Synchronize account names (#10004)
+- [#9974](https://github.com/MetaMask/metamask-mobile/pull/9974): fix: Fix freeze on buy and sell flow (#9974)
+- [#9980](https://github.com/MetaMask/metamask-mobile/pull/9980): fix: Fix initialization crash / login error "Engine does not exist (#9980) 
+
+## 7.24.0 - Jun 11, 2024
+### Added
+- [#9767](https://github.com/MetaMask/metamask-mobile/pull/9767): feat: push Privacy policy date to 2024 Jun 18 12:00 UTC (#9767)
+- [#9707](https://github.com/MetaMask/metamask-mobile/pull/9707): feat: adds strings for the opt in toggles (#9707)
+- [#9661](https://github.com/MetaMask/metamask-mobile/pull/9661): feat: smart-tx opt in modal 2 (#9661)
+- [#9448](https://github.com/MetaMask/metamask-mobile/pull/9448): feat: smart tx small views (#9448)
+- [#9442](https://github.com/MetaMask/metamask-mobile/pull/9442): feat: smart-tx-small-logic (#9442)
+- [#9204](https://github.com/MetaMask/metamask-mobile/pull/9204): feat: Add new privacy policy alert toast (#9204)
+- [#9651](https://github.com/MetaMask/metamask-mobile/pull/9651): feat: Upgrade signature Controller to v14 (#9651)
+- [#9394](https://github.com/MetaMask/metamask-mobile/pull/9394): feat:  Network & Gas & Assets & Utils controllers update (#9394)
+- [#9625](https://github.com/MetaMask/metamask-mobile/pull/9625): feat: Update signature controller v13 (#9625)
+- [#9129](https://github.com/MetaMask/metamask-mobile/pull/9129): feat: setting to show fiat values on testnets (#9129)
+- [#9740](https://github.com/MetaMask/metamask-mobile/pull/9740): feat: Update checkbox to be able to override checkbox style (#9740)
+- [#9346](https://github.com/MetaMask/metamask-mobile/pull/9346): feat: notifications LIST screen UI - [9 of 10] (#9346)
+- [#9572](https://github.com/MetaMask/metamask-mobile/pull/9572): feat: notifications onboarding wizard - [8 of 10] (#9572)
+
+### Changed
+- [#9612](https://github.com/MetaMask/metamask-mobile/pull/9612): revert: feat(swaps): enable Base for swaps (#9286) (#9612)
+- [#9735](https://github.com/MetaMask/metamask-mobile/pull/9735): chore: add swaps team to swaps domain folder (#9735)
+- [#9683](https://github.com/MetaMask/metamask-mobile/pull/9683): refactor: the network name and image utils into selectors (#9683)
+- [#9639](https://github.com/MetaMask/metamask-mobile/pull/9639): chore: New Crowdin translations by Github Action (#9639)
+- [#9725](https://github.com/MetaMask/metamask-mobile/pull/9725): chore: make test code dev env only (#9725)
+- [#9574](https://github.com/MetaMask/metamask-mobile/pull/9574): chore: update confirmations codeowners (#9574)
+- [#9663](https://github.com/MetaMask/metamask-mobile/pull/9663): chore: update tx controller v13 patch notes (#9663)
+- [#9629](https://github.com/MetaMask/metamask-mobile/pull/9629): chore: apply string changes from #9565 (#9629)
+- [#9753](https://github.com/MetaMask/metamask-mobile/pull/9753): chore: Chore/optimize Wallet screen re-renders (#9753)
+- [#9771](https://github.com/MetaMask/metamask-mobile/pull/9771): chore: align main and flask build numbers (#9771)
+- [#9751](https://github.com/MetaMask/metamask-mobile/pull/9751): test: disable flakey test (#9751)
+- [#9708](https://github.com/MetaMask/metamask-mobile/pull/9708): test: add send to saved contact e2e test (#9708)
+- [#9690](https://github.com/MetaMask/metamask-mobile/pull/9690): test: Address App launch times failure test (#9690)
+- [#9694](https://github.com/MetaMask/metamask-mobile/pull/9694): test: send flow page object refactor (#9694)
+- [#9658](https://github.com/MetaMask/metamask-mobile/pull/9658): chore: Upgrade react-native-svg to 15.3 (#9658)
+- [#9657](https://github.com/MetaMask/metamask-mobile/pull/9657): chore: Update boost checksum (#9657)
+- [#9609](https://github.com/MetaMask/metamask-mobile/pull/9609): chore: add deprecated tag to the websiteicon component (#9609)
+- [#9619](https://github.com/MetaMask/metamask-mobile/pull/9619): chore(deps): remove unused react-native-v8 (#9619)
+- [#9599](https://github.com/MetaMask/metamask-mobile/pull/9599): chore: update Encryptor CODEOWNER to Accounts Team (#9599)
+- [#9734](https://github.com/MetaMask/metamask-mobile/pull/9734): test: Added swap ERC20->ETH  test case (#9734)
+- [#9712](https://github.com/MetaMask/metamask-mobile/pull/9712): chore: remove unnecessary patch imports and change the patch branch name (#9712)
+
+### Fixed
+- [#9301](https://github.com/MetaMask/metamask-mobile/pull/9301): fix: flaky tests issues template skip 2 (#9301)
+- [#9774](https://github.com/MetaMask/metamask-mobile/pull/9774): fix: unit tests (#9774)
+- [#9706](https://github.com/MetaMask/metamask-mobile/pull/9706): fix: QR scanner crash when user dismisses camera view in web view (#9706)
+- [#9787](https://github.com/MetaMask/metamask-mobile/pull/9787): fix: revert use of sponge not available in actions Ubuntu image (#9787)
+- [#9780](https://github.com/MetaMask/metamask-mobile/pull/9780): fix: make version setting script work with both main and flask (#9780)
+- [#9721](https://github.com/MetaMask/metamask-mobile/pull/9721): fix: App slower when changing account and switching network (#9721)
+- [#9775](https://github.com/MetaMask/metamask-mobile/pull/9775): fix: Update boost checksum (#9775)
+- [#9772](https://github.com/MetaMask/metamask-mobile/pull/9772): fix: Fix/ruby install (#9772)
+- [#9773](https://github.com/MetaMask/metamask-mobile/pull/9773): fix: e2e builds (#9773)
+- [#9742](https://github.com/MetaMask/metamask-mobile/pull/9742): fix: Selecting custom ethereum mainnet on fresh install (#9742)
+- [#9733](https://github.com/MetaMask/metamask-mobile/pull/9733): fix: Fix/9662 account section disappears (#9733)
+- [#9699](https://github.com/MetaMask/metamask-mobile/pull/9699): fix: Move permission middleware to be later than rpc method middleware (#9699)
+- [#9680](https://github.com/MetaMask/metamask-mobile/pull/9680): fix: Increase waiting for swaps and switch account on E2E (#9680)
+- [#9656](https://github.com/MetaMask/metamask-mobile/pull/9656): fix: Fix/1723 broken sign verification (#9656)
+- [#9630](https://github.com/MetaMask/metamask-mobile/pull/9630): fix: Fix/rn svg pod files (#9630)
+- [#9614](https://github.com/MetaMask/metamask-mobile/pull/9614): fix: migrations key numbers (#9614)
+- [#9611](https://github.com/MetaMask/metamask-mobile/pull/9611): fix: Fix/9345 bitrise cache failure (#9611)
+- [#9696](https://github.com/MetaMask/metamask-mobile/pull/9696): fix(devDeps): @lavamoat/allow-scripts@^2.3.1->^3.0.4 (#9696)
+- [#9685](https://github.com/MetaMask/metamask-mobile/pull/9685): fix(deps): @metamask/eth-sig-util@^4.0.1->^7.0.2 (#9685)
+- [#9682](https://github.com/MetaMask/metamask-mobile/pull/9682): fix: update base nickname (#9682)
+- [#9686](https://github.com/MetaMask/metamask-mobile/pull/9686): fix: update sepolia nickname (#9686)
+- [#9764](https://github.com/MetaMask/metamask-mobile/pull/9764): fix: selectSelectedInternalAccount: Account with ID not found (#9764)
+- [#9568](https://github.com/MetaMask/metamask-mobile/pull/9568): fix: 9559 issue android json parse (#9568)
+- [#9616](https://github.com/MetaMask/metamask-mobile/pull/9616): fix: fix the issue 9560 which QR code accounts has been reappeared aftter user `remove wallets` (#9616)
+
 ## 7.23.0 - May 10, 2024
 ### Added
 - [#9595](https://github.com/MetaMask/metamask-mobile/pull/9595): feat: Upgrade to react-native-svg to 15.2.0 (#9595)

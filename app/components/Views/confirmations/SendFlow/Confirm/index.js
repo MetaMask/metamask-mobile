@@ -113,13 +113,19 @@ import { createLedgerTransactionModalNavDetails } from '../../../../../component
 import CustomGasModal from './components/CustomGasModal';
 import { ResultType } from '../../components/BlockaidBanner/BlockaidBanner.types';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectTransactionGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
+import {
+  selectTransactionGasFeeEstimates,
+  selectCurrentTransactionMetadata,
+} from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/TransactionConfirmView.selectors.js';
+import { selectTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
+import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
+import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -245,6 +251,20 @@ class Confirm extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
+
+    /**
+     * Object containing transaction metrics by id
+     */
+    transactionMetricsById: PropTypes.object,
+
+    /**
+     * Object containing the transaction simulation data
+     */
+    transactionSimulationData: PropTypes.object,
+    /**
+     * Indicates whether the transaction simulations feature is enabled
+     */
+    useTransactionSimulations: PropTypes.bool,
   };
 
   state = {
@@ -653,7 +673,9 @@ class Confirm extends PureComponent {
         decimals,
       );
       transactionValue = `${transferValue} ${symbol}`;
-      const exchangeRate = contractExchangeRates[address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[address]?.price
+        : undefined;
       transactionValueFiat =
         balanceToFiat(
           transferValue,
@@ -886,6 +908,7 @@ class Confirm extends PureComponent {
                 {
                   ...this.getAnalyticsParams(),
                   ...getBlockaidTransactionMetricsParams(transaction),
+                  ...this.getTransactionMetrics(),
                 },
               ),
             type: 'signTransaction',
@@ -924,6 +947,7 @@ class Confirm extends PureComponent {
           {
             ...this.getAnalyticsParams(transactionMeta),
             ...getBlockaidTransactionMetricsParams(transaction),
+            ...this.getTransactionMetrics(),
           },
         );
         stopGasPolling();
@@ -950,6 +974,8 @@ class Confirm extends PureComponent {
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
+      resetTransaction();
+      navigation?.dangerouslyGetParent()?.pop();
     }
     this.setState({ transactionConfirmed: false });
   };
@@ -1201,6 +1227,15 @@ class Confirm extends PureComponent {
     await updateTransaction(updatedTx);
   }
 
+  getTransactionMetrics = () => {
+    const { transactionMeta } = this.state;
+    const { transactionMetricsById } = this.props;
+    const { id: transactionId } = transactionMeta;
+
+    // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
+    return transactionMetricsById[transactionId]?.properties || {};
+  };
+
   render = () => {
     const { selectedAsset, paymentRequest } = this.props.transactionState;
     const {
@@ -1211,6 +1246,9 @@ class Confirm extends PureComponent {
       gasEstimateType,
       isNativeTokenBuySupported,
       shouldUseSmartTransaction,
+      transactionSimulationData,
+      transactionState,
+      useTransactionSimulations,
     } = this.props;
     const { nonce } = this.props.transaction;
     const {
@@ -1306,6 +1344,15 @@ class Confirm extends PureComponent {
                   10,
                 )}`}</Text>
               </View>
+            </View>
+          )}
+          {useTransactionSimulations && transactionState?.id && (
+            <View style={styles.simulationWrapper}>
+              <SimulationDetails
+                enableMetrics
+                simulationData={transactionSimulationData}
+                transactionId={transactionState.id}
+              />
             </View>
           )}
           <TransactionReview
@@ -1446,6 +1493,10 @@ const mapStateToProps = (state) => ({
     getRampNetworks(state),
   ),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  transactionMetricsById: selectTransactionMetrics(state),
+  transactionSimulationData:
+    selectCurrentTransactionMetadata(state)?.simulationData,
+  useTransactionSimulations: selectUseTransactionSimulations(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

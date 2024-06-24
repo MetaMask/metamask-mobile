@@ -365,17 +365,17 @@
     "title": "接收"
   },
   "experience_enhancer_modal": {
-    "title": "Help us enhance your experience",
-    "paragraph1a": "In addition to ",
-    "paragraph1b": ", we'd like to use data (like information from cookies) to learn how you interact with our marketing communications.",
+    "title": "帮助我们改善您的体验",
+    "paragraph1a": "除了 ",
+    "paragraph1b": "，我们还想使用数据（例如来自 cookies 的信息）来了解您如何与我们的营销通信交互。",
     "link": "MetaMetrics",
-    "paragraph2": "This helps us personalize what we share with you, like:",
-    "bullet1": "Latest developments",
-    "bullet2": "Product features",
-    "bullet3": "Other relevant promotional materials",
-    "footer": "Remember, we never sell the data you provide and you can opt out any time.",
-    "accept": "I agree",
-    "cancel": "No thanks"
+    "paragraph2": "这可以帮助我们个性化与您分享的内容，例如：",
+    "bullet1": "最新发展动态",
+    "bullet2": "产品特点",
+    "bullet3": "其他相关宣传材料",
+    "footer": "请记住，我们绝不会出卖您提供的数据，并且您可以随时选择退出。",
+    "accept": "我同意",
+    "cancel": "不，谢谢"
   },
   "wallet": {
     "title": "钱包",
@@ -413,7 +413,7 @@
     "no_tokens": "您没有任何代币！",
     "no_nfts_yet": "尚无 NFT",
     "nfts_autodetection_title": "NFT 检测",
-    "nfts_autodetection_desc": "允许 MetaMask 自动检测 OpenSea 的 NFT，并显示在您的 MetaMask 钱包里。",
+    "nfts_autodetection_desc": "让 MetaMask 自动检测并显示您钱包中的 NFT。",
     "network_details_check": "网络详情检查",
     "network_with_chain_id": "网络及其链 ID",
     "chain_list_returned_different_ticker_symbol": "此代币符号与输入的网络名称或链 ID 不匹配。许多热门代币使用类似的符号，骗子可能会使用这些符号来欺骗您，让您向他们发送更有价值的代币作为回报。在您继续之前请先验证所有信息。",
@@ -454,7 +454,7 @@
     "display_nft_media_cta": "打开“显示NFT媒体”",
     "display_media_nft_warning": "显示NFT媒体和数据可能会导致您的IP地址被中心化服务器获悉。仅当您了解相关风险时才可导入NFT。",
     "nfts_autodetect_title": "NFT自动检测",
-    "nfts_autodetect_cta": "在设置中打开“自动检测NFT”",
+    "nfts_autodetect_cta": "启用 NFT 自动检测",
     "turn_on_network_check_cta": "开启网络详情检查",
     "display_nft_media_cta_new_1": "要查看NFT，请在此打开“显示NFT媒体”",
     "display_nft_media_cta_new_2": "设置>安全和隐私。",
@@ -520,7 +520,7 @@
     "description_title": "帮助我们改进 MetaMask",
     "description_content_1": "我们希望收集基本的使用数据，以改进 MetaMask。请注意，我们绝不会出卖您在此处提供的数据。",
     "description_content_2": "当我们收集指标时，总是...",
-    "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relavent news (like product features).",
+    "checkbox": "我们将使用此数据来了解您如何与我们的营销通信交互。我们可能会分享相关资讯（例如产品特点）。",
     "action_description_1_prefix": "私密：",
     "action_description_2_prefix": "通用：",
     "action_description_3_prefix": "可选：",
@@ -650,7 +650,8 @@
     "revoked_all": "已撤销所有账户。",
     "accounts_connected": "账户已连接。",
     "disconnected": "已断开连接。",
-    "disconnected_all": "所有账户都已断开连接。"
+    "disconnected_all": "所有账户都已断开连接。",
+    "nft_detection_enabled": "已启用 NFT 自动检测"
   },
   "connect_qr_hardware": {
     "title": "连接基于二维码的硬件钱包",
@@ -671,8 +672,8 @@
     "please_wait": "请稍候"
   },
   "data_collection_modal": {
-    "accept": "Okay",
-    "content": "You turned off data collection for our marketing purposes. This only applies to this device. If you use MetaMask on other devices, make sure to opt out there as well."
+    "accept": "好的",
+    "content": "您关闭了我们用于营销目的的数据收集。 这仅适用于此设备。如果您在其他设备上使用 MetaMask，请务必也在其他设备上选择退出。"
   },
   "account_selector": {
     "prev": "上一步",
@@ -845,9 +846,9 @@
     "clear_history_desc": "选择此选项可清除您的整个浏览历史记录。",
     "clear_cookies_desc": "选择此选项可清除您的浏览器的 Cookie。",
     "metametrics_title": "参加 MetaMetrics",
-    "metametrics_description": "Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.",
-    "data_collection_title": "Data collection for marketing",
-    "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
+    "metametrics_description": "允许 MetaMetrics 收集基本使用和诊断数据，以改进我们的产品。您可以为此设备禁用 MetaMetrics。",
+    "data_collection_title": "用于营销目的的数据收集",
+    "data_collection_description": "我们将使用 MetaMetrics 来了解您如何与我们的营销通信交互。我们可能会分享相关资讯（例如产品特点和其他内容）。",
     "batch_balance_requests_title": "批量账户余额请求",
     "batch_balance_requests_description": "我们对账户进行批量处理并查询 Infura ，以便对应地显示您的余额。如果关闭此选项，则仅限查询活跃账户。除非连接钱包，否则某些去中心化应用（dApp）将无法工作。",
     "third_party_title": "获取传入交易",
@@ -888,6 +889,13 @@
     "delete": "删除",
     "network_exists": "这个网络已经被添加。",
     "delete_metrics_title": "删除MetaMetrics数据",
+    "delete_metrics_description_part_one": "此操作将删除历史记录",
+    "delete_metrics_description_part_two": "MetaMetrics",
+    "delete_metrics_description_part_three": "与钱包相关的数据。",
+    "delete_metrics_description_before_delete": "删除此数据后，您的钱包和账户将保持原样。此过程可能需要长达 30 天的时间。查看我们的",
+    "delete_metrics_description_after_delete_part_one": "您在此处启动了此操作：",
+    "delete_metrics_description_after_delete_part_two": "。此过程可能需要长达 30 天的时间。查看我们的",
+    "delete_metrics_description_privacy_policy": "隐私政策。",
     "delete_metrics_button": "删除MetaMetrics数据",
     "check_status_button": "检查状态",
     "delete_metrics_confirm_modal_title": "要删除MetaMetrics数据吗？",
@@ -990,8 +998,27 @@
     "security_alerts": "安全提醒",
     "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。",
     "smart_transactions_opt_in_heading": "智能交易",
-    "smart_transactions_opt_in_desc": "开启智能交易，以实现更加安全可靠的交易，并在 ETH 主网上调整费用。",
-    "smart_transactions_learn_more": "了解更多。"
+    "smart_transactions_opt_in_desc": "开启智能交易，以便在以太坊主网上实现更加安全可靠的交易。",
+    "smart_transactions_learn_more": "了解更多。",
+    "simulation_details": "预计余额变化",
+    "simulation_details_description": "开启此选项，以便在确认交易之前估计交易余额的变化。这并不能保证交易的最终结果。 ",
+    "simulation_details_learn_more": "了解更多。",
+    "aes_crypto_test_form_title": "AES 加密 - 测试表",
+    "aes_crypto_test_form_description": "专为 E2E 测试开发的部分。如果这在您的应用程序中可见，请向 MetaMask 支持团队报告。"
+  },
+  "aes_crypto_test_form": {
+    "generate_random_salt": "生成随机盐",
+    "salt_bytes_count": "盐字节数",
+    "generate": "生成",
+    "generate_encryption_key": "从密码生成加密密钥",
+    "password": "密码",
+    "salt": "盐",
+    "encrypt_with_key": "使用密钥加密",
+    "encrypt": "加密",
+    "encryption_key": "加密密钥",
+    "data": "数据",
+    "decrypt_with_key": "使用密钥解密",
+    "decrypt": "解密"
   },
   "sdk": {
     "disconnect_title": "要断开所有网站的连接吗?",
@@ -1110,7 +1137,7 @@
   },
   "asset_overview": {
     "send_button": "发送",
-    "buy_button": "购买",
+    "buy_button": "买入",
     "sell_button": "卖出",
     "receive_button": "接收",
     "portfolio_button": "投资组合",
@@ -1171,6 +1198,15 @@
     "show_private_key": "显示私钥",
     "account_copied_to_clipboard": "公钥已复制到剪贴板",
     "share_public_key": "共享我的公钥："
+  },
+  "enable_nft-auto-detection": {
+    "title": "启用 NFT 自动检测",
+    "description": "允许 MetaMask 使用自动检测功能检测并显示您的 NFT。您将能够：",
+    "immediateAccess": "立即访问您的 NFT",
+    "navigate": "轻松浏览您的数字资产",
+    "dive": "直接开始使用您的 NFT",
+    "allow": "允许",
+    "notRightNow": "暂时不"
   },
   "detected_tokens": {
     "title": "找到{{tokenCount}}个新代币",
@@ -1370,10 +1406,12 @@
     "approve": "批准",
     "allow_to_access": "授予权限以访问您的",
     "allow_to_address_access": "准许此地址访问您的",
+    "allow_to_transfer_all": "允许访问并转移您所有的",
     "spend_cap": "下列项目的支出上限请求",
     "token": "代币",
     "nft": "NFT",
     "you_trust_this_site": "授予此权限，即表示您允许以下第三方存取您的资金。",
+    "you_trust_this_third_party": "这允许第三方访问并转移您的 NFT，而无需另行通知，直到您撤销其访问权限。",
     "you_trust_this_address": "您是否信任此地址？授予此权限，即表示您允许此地址访问您的资金。",
     "edit_permission": "编辑权限",
     "edit": "编辑",
@@ -1477,6 +1515,8 @@
     "tx_review_transfer_from": "转移自",
     "tx_review_unknown": "未知方法",
     "tx_review_approve": "批准",
+    "tx_review_increase_allowance": "增加限额",
+    "tx_review_set_approval_for_all": "设置批准所有",
     "sent_ether": "已发送以太币",
     "self_sent_ether": "已向自己发送以太币",
     "received_ether": "已接收以太币",
@@ -1498,11 +1538,17 @@
     "smart_contract_interaction": "智能合约交互",
     "swaps_transaction": "兑换交易",
     "approve": "批准",
+    "increase_allowance": "增加限额",
+    "set_approval_for_all": "设置批准所有",
     "hash": "哈希",
     "from": "自",
     "to": "至",
     "details": "详细信息",
     "amount": "数额",
+    "fee": {
+      "transaction_fee_in_ether": "交易费用",
+      "transaction_fee_in_usd": "交易费用 (USD)"
+    },
     "gas_used": "已使用燃料（单位）",
     "gas_limit": "燃料限额（单位）",
     "gas_price": "燃料价格 (GWEI)",
@@ -1613,11 +1659,11 @@
     "approve": "批准",
     "edit_network_details": "编辑网络详情",
     "malicious_network_warning": "恶意网络提供商可能会谎报区块链的状态，并记录您的网络活动。仅添加您信任的自定义网络。",
-    "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
+    "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "网络信息",
     "network_warning_desc": "此网络连接依赖于第三方。这种连接可靠程度可能会较低，或会使第三方能够跟踪活动。",
     "learn_more": "了解详情",
-    "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
+    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "切换到网络",
     "switch": "切换",
     "new_network": "已添加新网络",
@@ -1630,6 +1676,8 @@
     "you_can": "或者您可以",
     "add_network": "手动添加更多网络。",
     "select_network": "选择网络",
+    "enabled_networks": "启用的网络",
+    "additional_networks": "其他网络",
     "show_test_networks": "显示测试网络",
     "deprecated_goerli": "由于以太坊协议的变化：Goerli 测试网络可能无法可靠工作，很快就会弃用。",
     "network_deprecated_title": "该网络已弃用",
@@ -1898,19 +1946,26 @@
     "back_to_safety": "返回以确保安全"
   },
   "notifications": {
+    "staked": "已质押",
+    "received": "已收到",
+    "unstaked": "已解除质押",
+    "to": "至",
+    "rate": "价格（包括费用）",
+    "unstaking_requested": "已请求解除质押",
     "stake_completed": "质押已完成",
     "withdrawal_completed": "提取已完成",
     "unstake_completed": "取消质押已完成",
     "withdrawal_requested": "已请求提取",
     "stake_ready_to_be_withdrawn": "已准备好提取质押",
     "swap_completed": "已用 {{from}} 兑换 {{to}}",
+    "swap": "已兑换",
     "sent": "已发送至 {{address}}",
-    "received": "已从 {{address}} 收到",
-    "nft_sent": "Sent NFT to {{address}}",
-    "erc721_sent": "Sent NFT to {{address}}",
-    "erc1155_sent": "Sent NFT to {{address}}",
-    "erc721_received": "Received NFT from {{address}}",
-    "erc1155_received": "Received NFT from {{address}}",
+    "received_from": "已从 {{address}} 收到",
+    "nft_sent": "已发送 NFT 至 {{address}}",
+    "erc721_sent": "已发送 NFT 至 {{address}}",
+    "erc1155_sent": "已发送 NFT 至 {{address}}",
+    "erc721_received": "已从 {{address}} 收到 NFT",
+    "erc1155_received": "已从 {{address}} 收到 NFT",
     "received_nft": "已从 {{address}} 收到 NFT",
     "pending_title": "已提交交易",
     "pending_deposit_title": "保证经进行中！",
@@ -1952,6 +2007,7 @@
     "wc_description": "请检查应用程序",
     "wallet": "钱包",
     "web3": "Web3",
+    "staking_provider": "质押提供商",
     "empty": {
       "title": "此处无内容",
       "message": "当您的钱包有活动时，您可以在此处找到通知。"
@@ -2017,7 +2073,7 @@
     "qr_code_description": "能够读取您的地址的可扫描图像",
     "request_title": "请求",
     "request_description": "向朋友请求资产",
-    "buy_title": "购买",
+    "buy_title": "买入",
     "buy_description": "使用借记卡或银行转账购买加密币",
     "public_address": "公钥",
     "public_address_qr_code": "公钥",
@@ -2561,11 +2617,18 @@
     "submit_ticket_5": "在此处提交",
     "submit_ticket_6": "工单。",
     "submit_ticket_7": "请包含错误消息和屏幕截图。",
+    "submit_ticket_8": "向我们发送错误报告",
+    "submit_ticket_9": "请包含所发生情况的详细说明。",
+    "bug_report_prompt_title": "告诉我们发生了什么",
+    "bug_report_prompt_description": "添加详细信息，以便我们能够找出问题所在。",
+    "bug_report_thanks": "谢谢！我们很快会查看。",
     "save_seedphrase_1": "如果此错误持续存在，",
     "save_seedphrase_2": "请保存您的助记词",
     "save_seedphrase_3": "并重新安装应用。注：没有私钥助记词将无法恢复钱包。",
     "copied_clipboard": "已复制到剪贴板",
-    "ok": "确定"
+    "ok": "确定",
+    "cancel": "取消",
+    "send": "发送"
   },
   "whats_new": {
     "title": "最新动态",
@@ -2585,7 +2648,7 @@
       "header": "增强型交易保护",
       "description_1": "通过智能交易解锁更高的成功率、抢先交易保护和更高的透明度。",
       "description_2": "仅适用于以太坊。可随时在设置中启用或禁用。",
-      "secondary_button": "不启用增强型保护",
+      "secondary_button": "在设置中管理",
       "primary_button": "启用",
       "learn_more": "了解更多。",
       "benefit_1_1": "99.5% 的成功",
@@ -2594,6 +2657,11 @@
       "benefit_2_2": "钱",
       "benefit_3_1": "实时",
       "benefit_3_2": "更新"
+    },
+    "transaction_simulation": {
+      "title": "预计余额变化",
+      "description_1": "现在，您可以在进行交易之前看到交易的潜在结果！",
+      "description_2": "这只是一次模拟，所以我们不能保证最终的结果。您可以随时在“设置 >安全与隐私”中关闭。"
     }
   },
   "invalid_network": {
@@ -2765,7 +2833,7 @@
     "error_title": "哎呀！出了点问题。",
     "error_message": "加载网络信息时出错。请稍后再试。",
     "private_network_third_description": "请为此网络输入名称，以便于识别。  ",
-    "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
+    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "enable_token_detection": "启用自动代币检测",
     "token_detection_mainnet_title": "已启用代币检测，因此代币将会自动显示在您的钱包中。",
     "token_detection_mainnet_link": "您也可以手动添加代币。",
@@ -3025,7 +3093,8 @@
     "manage_networks": "管理网络",
     "manage_networks_body": "我们使用 Infura 作为我们的远程过程调用（RPC）提供商，以提供最可靠和最私密的以太坊数据访问。您可以选择自己的 RPC，但请谨记，任何 RPC 都可以接收您的 IP 地址和以太坊钱包以进行交易。请阅读我们的 ",
     "manage_networks_body2": " 以进一步了解 Infura 如何处理数据。",
-    "functionality_body": "包括代币数据和值、最优燃料设置、安全更新等。使用这些服务会与 MetaMask 共享您的 IP 地址，就像您访问网站一样。",
+    "functionality_body": "MetaMask 通过互联网服务提供代币详情和燃料设置等基本功能。当您使用互联网服务时，您的 IP 地址会共享，在本例中与 MetaMask 共享。这就像您访问任何网站一样。MetaMask 暂时使用这些数据，并且绝不会出卖您的数据。您可以使用 VPN 或关闭这些服务，但这可能会影响您的 MetaMask 体验。阅读我们的 ",
+    "functionality_body2": " 了解详情。",
     "sheet": {
       "title_off": "关闭基本功能",
       "description_off": "这意味着您不能充分优化您在 MetaMask 上的时间。您将无法使用基本功能（例如代币详情、最优燃料设置等）。",
@@ -3038,5 +3107,16 @@
         "turn_off": "关闭"
       }
     }
+  },
+  "simulation_details": {
+    "failed": "加载估算时出错。",
+    "fiat_not_available": "不可用",
+    "incoming_heading": "您收到",
+    "no_balance_changes": "预计您的钱包不会发生变化",
+    "outgoing_heading": "您发送",
+    "reverted": "这笔交易可能会失败",
+    "title": "预计变化",
+    "tooltip_description": "预计变化是指您完成该交易可能发生的变化。这只是一个预测，而不是保证。",
+    "total_fiat": "总计 = {{currency}}"
   }
 }

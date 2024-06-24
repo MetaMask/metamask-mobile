@@ -51,6 +51,8 @@ function setupGetStateMock() {
           },
         },
         // Cast to 'any' because we don't have a complete Redux mock to use
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any),
   );
 }

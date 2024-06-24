@@ -88,17 +88,6 @@ export const NetworkList = {
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
   },
-  [LINEA_GOERLI]: {
-    name: 'Linea Goerli Test Network',
-    shortName: 'Linea Goerli',
-    networkId: 59140,
-    chainId: toHex('59140'),
-    // Third party color
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    color: '#61dfff',
-    networkType: 'linea-goerli',
-    imageSource: lineaTestnetLogo,
-  },
   [LINEA_SEPOLIA]: {
     name: 'Linea Sepolia',
     shortName: 'Linea Sepolia',
@@ -575,3 +564,6 @@ export const deprecatedGetNetworkId = async () => {
     });
   });
 };
+
+export const isNetworkUiRedesignEnabled =
+  process.env.MM_NETWORK_UI_REDESIGN_ENABLED === '1';

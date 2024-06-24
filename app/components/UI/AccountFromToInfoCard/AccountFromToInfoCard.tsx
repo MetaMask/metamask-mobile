@@ -172,6 +172,8 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   );
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   identities: selectIdentities(state),
   chainId: selectChainId(state),

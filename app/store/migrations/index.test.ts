@@ -29,11 +29,15 @@ const recentMigrations = Object.entries(migrationList).reduce(
   {} as MigrationsList,
 );
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const synchronousMigration = (state: any) => {
   state.test = 'sync';
   return state;
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const asyncMigration = async (state: any) => {
   state.test = 'async';
   return state;
@@ -133,6 +137,8 @@ describe('migrations', () => {
     const asyncifiedMigrations = asyncifyMigrations(testMigrationList);
 
     // Perform migration
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const migratedStatePromise = createMigrate(asyncifiedMigrations as any);
 
     // Resolve migration

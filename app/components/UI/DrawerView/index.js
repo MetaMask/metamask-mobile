@@ -80,10 +80,8 @@ import { selectCurrentCurrency } from '../../../selectors/currencyRateController
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
@@ -1213,7 +1211,7 @@ class DrawerView extends PureComponent {
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   accounts: selectAccounts(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   identities: selectIdentities(state),
   networkConfigurations: selectNetworkConfigurations(state),
   currentCurrency: selectCurrentCurrency(state),

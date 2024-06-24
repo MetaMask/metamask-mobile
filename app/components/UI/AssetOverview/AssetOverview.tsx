@@ -27,7 +27,7 @@ import {
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
 import {
@@ -58,6 +58,8 @@ const trackEvent = (event, params = {}) => {
 
 interface AssetOverviewProps {
   navigation: {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     navigate: (route: string, props?: any) => void;
   };
   asset: Asset;
@@ -74,7 +76,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const primaryCurrency = useSelector(
     (state: RootStateOrAny) => state.settings.primaryCurrency,
   );
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountChecksummedAddress,
+  );
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
   const chainId = useSelector((state: RootStateOrAny) => selectChainId(state));
@@ -91,10 +95,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { SwapsController } = Engine.context as { SwapsController: any };
     const fetchTokenWithCache = async () => {
       try {
         await SwapsController.fetchTokenWithCache();
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         Logger.error(
           error,
@@ -168,7 +176,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const itemAddress = safeToChecksumAddress(asset.address);
   const exchangeRate =
     itemAddress && itemAddress in tokenExchangeRates
-      ? tokenExchangeRates[itemAddress]
+      ? tokenExchangeRates?.[itemAddress]?.price
       : undefined;
 
   let balance, balanceFiat;
