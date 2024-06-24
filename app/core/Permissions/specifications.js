@@ -287,7 +287,6 @@ export const unrestrictedMethods = Object.freeze([
   'eth_coinbase',
   'parity_defaultAccount',
   'eth_sendTransaction',
-  'eth_signTransaction',
   'eth_sign',
   'personal_sign',
   'personal_ecRecover',
@@ -306,4 +305,16 @@ export const unrestrictedMethods = Object.freeze([
   'metamask_logWeb3ShimUsage',
   'wallet_switchEthereumChain',
   'wallet_addEthereumChain',
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  'wallet_getAllSnaps',
+  'wallet_getSnaps',
+  'wallet_requestSnaps',
+  'wallet_invokeSnap',
+  'wallet_invokeKeyring',
+  'snap_getClientStatus',
+  'snap_getFile',
+  'snap_createInterface',
+  'snap_updateInterface',
+  'snap_getInterfaceState',
+  ///: END:ONLY_INCLUDE_IF
 ]);

@@ -9,6 +9,8 @@ const withQRHardwareAwareness = (
     isSyncingQRHardware?: boolean;
   }>,
 ) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const QRHardwareAwareness = (props: any) => {
     const [QRState, SetQRState] = useState<IQRState>({
       sync: {
@@ -17,6 +19,8 @@ const withQRHardwareAwareness = (
       sign: {},
     });
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const subscribeKeyringState = (value: any) => {
       SetQRState(value);
     };

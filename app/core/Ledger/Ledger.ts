@@ -43,6 +43,8 @@ export const connectLedgerHardware = async (
 ): Promise<string> => {
   const appAndVersion = await withLedgerKeyring(
     async (keyring: LedgerKeyring) => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       keyring.setTransport(transport as unknown as any, deviceId);
       return await keyring.getAppAndVersion();
     },

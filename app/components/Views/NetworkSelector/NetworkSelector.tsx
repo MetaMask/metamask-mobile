@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Third party dependencies.
 import React, { useRef, useState } from 'react';
 import { Linking, Switch, View } from 'react-native';
@@ -49,7 +50,7 @@ import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
-import { useTheme, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import {
   TextColor,
@@ -77,12 +78,14 @@ const NetworkSelector = () => {
   const theme = useTheme();
   const { trackEvent } = useMetrics();
   const { colors } = theme;
-  const styles = createStyles(colors || mockTheme.colors);
+  const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const avatarSize = isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined;
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: string) => {
@@ -144,7 +147,8 @@ const NetworkSelector = () => {
     }
   };
 
-  // TODO: type the any below to import { Network } from './CustomNetwork.types';
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const showNetworkModal = (networkConfiguration: any) => {
     setShowPopularNetworkModal(true);
     setPopularNetwork({
@@ -175,14 +179,25 @@ const NetworkSelector = () => {
     return searchResult;
   };
 
+  const isNoSearchResults = (networkIdenfier: string) => {
+    if (!searchString || !networkIdenfier) {
+      return false;
+    }
+
+    if (networkIdenfier === MAINNET || networkIdenfier === LINEA_MAINNET) {
+      return (
+        filterNetworksByName([Networks[networkIdenfier]], searchString)
+          .length === 0
+      );
+    }
+
+    return !networkIdenfier.includes(searchString);
+  };
+
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
 
-    if (
-      isNetworkUiRedesignEnabled &&
-      filterNetworksByName([Networks.mainnet], searchString).length === 0
-    )
-      return null;
+    if (isNetworkUiRedesignEnabled && isNoSearchResults(MAINNET)) return null;
 
     return (
       <Cell
@@ -192,7 +207,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: mainnetName,
           imageSource: images.ETHEREUM,
-          size: AvatarSize.Sm,
+          size: avatarSize,
         }}
         isSelected={
           chainId === providerConfig.chainId && !providerConfig.rpcUrl
@@ -206,11 +221,7 @@ const NetworkSelector = () => {
   const renderLineaMainnet = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
 
-    if (
-      isNetworkUiRedesignEnabled &&
-      filterNetworksByName([Networks['linea-mainnet']], searchString).length ===
-        0
-    )
+    if (isNetworkUiRedesignEnabled && isNoSearchResults('linea-mainnet'))
       return null;
 
     return (
@@ -221,7 +232,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: lineaMainnetName,
           imageSource: images['LINEA-MAINNET'],
-          size: AvatarSize.Sm,
+          size: avatarSize,
         }}
         isSelected={chainId === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
@@ -235,8 +246,7 @@ const NetworkSelector = () => {
         if (!chainId) return null;
         const { name } = { name: nickname || rpcUrl };
 
-        if (isNetworkUiRedesignEnabled && !name.includes(searchString))
-          return null;
+        if (isNetworkUiRedesignEnabled && isNoSearchResults(name)) return null;
 
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         const image = getNetworkImageSource({ chainId: chainId?.toString() });
@@ -250,7 +260,7 @@ const NetworkSelector = () => {
               variant: AvatarVariant.Network,
               name,
               imageSource: image,
-              size: AvatarSize.Sm,
+              size: avatarSize,
             }}
             isSelected={Boolean(
               chainId === providerConfig.chainId && providerConfig.rpcUrl,
@@ -266,10 +276,11 @@ const NetworkSelector = () => {
     const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((networkType) => {
       // TODO: Provide correct types for network.
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { name, imageSource, chainId } = (Networks as any)[networkType];
 
-      if (isNetworkUiRedesignEnabled && !name.includes(searchString))
-        return null;
+      if (isNetworkUiRedesignEnabled && isNoSearchResults(name)) return null;
 
       return (
         <Cell
@@ -280,7 +291,7 @@ const NetworkSelector = () => {
             variant: AvatarVariant.Network,
             name,
             imageSource,
-            size: AvatarSize.Sm,
+            size: avatarSize,
           }}
           isSelected={chainId === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
@@ -314,7 +325,7 @@ const NetworkSelector = () => {
           true: colors.primary.default,
           false: colors.border.muted,
         }}
-        thumbColor={theme.brandColors.white000}
+        thumbColor={theme.brandColors.white}
         ios_backgroundColor={colors.border.muted}
         testID={NetworkListModalSelectorsIDs.TEST_NET_TOGGLE}
         disabled={isTestNet(providerConfig.chainId)}
@@ -365,47 +376,59 @@ const NetworkSelector = () => {
     setSearchString('');
   };
 
+  const renderBottomSheetContent = () => (
+    <>
+      <SheetHeader title={strings('networks.select_network')} />
+      <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
+        {isNetworkUiRedesignEnabled && (
+          <View style={styles.searchContainer}>
+            <NetworkSearchTextInput
+              searchString={searchString}
+              handleSearchTextChange={handleSearchTextChange}
+              clearSearchInput={clearSearchInput}
+              testIdSearchInput={
+                NetworksSelectorSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID
+              }
+              testIdCloseIcon={NetworksSelectorSelectorsIDs.CLOSE_ICON}
+            />
+          </View>
+        )}
+        {isNetworkUiRedesignEnabled &&
+          searchString.length === 0 &&
+          renderTitle('networks.enabled_networks')}
+        {renderMainnet()}
+        {renderLineaMainnet()}
+        {renderRpcNetworks()}
+        {isNetworkUiRedesignEnabled &&
+          searchString.length === 0 &&
+          renderTitle('networks.additional_networks')}
+        {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
+        {searchString.length === 0 && renderTestNetworksSwitch()}
+        {showTestNetworks && renderOtherNetworks()}
+      </ScrollView>
+
+      <Button
+        variant={ButtonVariants.Secondary}
+        label={strings('app_settings.network_add_custom_network')}
+        onPress={goToNetworkSettings}
+        width={ButtonWidthTypes.Full}
+        size={ButtonSize.Lg}
+        style={styles.addNetworkButton}
+        testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
+      />
+    </>
+  );
+
   return (
     <BottomSheet ref={sheetRef}>
-      <View style={styles.networkListContainer}>
-        <SheetHeader title={strings('networks.select_network')} />
-        <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
-          {isNetworkUiRedesignEnabled && (
-            <View style={styles.searchContainer}>
-              <NetworkSearchTextInput
-                searchString={searchString}
-                handleSearchTextChange={handleSearchTextChange}
-                clearSearchInput={clearSearchInput}
-                testIdSearchInput={
-                  NetworksSelectorSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID
-                }
-                testIdCloseIcon={NetworksSelectorSelectorsIDs.CLOSE_ICON}
-              />
-            </View>
-          )}
-          {isNetworkUiRedesignEnabled &&
-            searchString.length === 0 &&
-            renderTitle('networks.enabled_networks')}
-          {renderMainnet()}
-          {renderLineaMainnet()}
-          {renderRpcNetworks()}
-          {isNetworkUiRedesignEnabled &&
-            searchString.length === 0 &&
-            renderTitle('networks.additional_networks')}
-          {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
-          {searchString.length === 0 && renderTestNetworksSwitch()}
-          {showTestNetworks && renderOtherNetworks()}
-        </ScrollView>
-        <Button
-          variant={ButtonVariants.Secondary}
-          label={strings('app_settings.network_add_custom_network')}
-          onPress={goToNetworkSettings}
-          width={ButtonWidthTypes.Full}
-          size={ButtonSize.Lg}
-          style={styles.addNetworkButton}
-          testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
-        />
-      </View>
+      {isNetworkUiRedesignEnabled ? (
+        <View style={styles.networkListContainer}>
+          {renderBottomSheetContent()}
+        </View>
+      ) : (
+        renderBottomSheetContent()
+      )}
+
       {showWarningModal ? (
         <InfoModal
           isVisible={showWarningModal}

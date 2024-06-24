@@ -22,6 +22,8 @@ const useTokenBalance = (
     useState<boolean>(true);
   const [error, setError]: [boolean, Dispatch<SetStateAction<boolean>>] =
     useState<boolean>(false);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { AssetsContractController }: any = Engine.context;
 
   const fetchBalance = async (

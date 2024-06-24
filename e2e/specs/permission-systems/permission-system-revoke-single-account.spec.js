@@ -9,7 +9,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
-import CommonView from '../../pages/CommonView';
+import ToastModal from '../../pages/modals/ToastModal';
 
 describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
   beforeAll(async () => {
@@ -37,7 +37,7 @@ describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
         await TestHelpers.delay(5500); // this is because the toast is delayed.
 
         await ConnectedAccountsModal.tapDisconnectAllButton();
-        await Assertions.checkIfNotVisible(await CommonView.toast);
+        await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
 
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);

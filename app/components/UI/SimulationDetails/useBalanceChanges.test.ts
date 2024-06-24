@@ -35,6 +35,8 @@ jest.mock('@metamask/assets-controllers', () => ({
   fetchTokenContractExchangeRates: jest.fn(),
 }));
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockSelectConversionRate = selectConversionRate as any;
 const mockGetTokenDetails = getTokenDetails as jest.Mock;
 const mockFetchTokenContractExchangeRates =

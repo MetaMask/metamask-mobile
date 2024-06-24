@@ -115,6 +115,10 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_assets_ios: {}
+      - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_swaps_ios: {}
@@ -135,6 +139,10 @@ stages:
       - android_run_regression_tests: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_assets_ios: {}
+      - run_tag_smoke_assets_android: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
@@ -202,10 +210,24 @@ workflows:
                 #!/usr/bin/env bash
                 echo "Gems being installed with bundler gem"
                 bundle install
-                echo "Node $NODE_VERSION being installed with asdf"
-                asdf list all nodejs
-                asdf install nodejs "$NODE_VERSION"
-                asdf global nodejs "$NODE_VERSION"
+                echo "Node $NODE_VERSION being installed"
+
+                set -e
+
+                # Install and enable NVM
+                wget -O install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
+                echo "${NVM_SHA256SUM} install-nvm.sh" > install-nvm.sh.SHA256SUM
+                sha256sum -c install-nvm.sh.SHA256SUM
+                chmod +x install-nvm.sh && ./install-nvm.sh && rm ./install-nvm.sh
+                source "${HOME}/.nvm/nvm.sh"
+                echo 'source "${HOME}/.nvm/nvm.sh"' | tee -a ${HOME}/.{bashrc,profile}
+
+                nvm install ${NODE_VERSION}
+
+                envman add --key PATH --value $PATH
+
+                node --version
+
                 echo "Corepack being installed with npm"
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
@@ -427,15 +449,47 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - PRODUCTION_APP_URL: 'bs://ba40e5b7b4210a06c659b5c6818a3efec2624513' # Last production's QA build
-      - PRODUCTION_BUILD_VERSION_NAME: 7.22.0 
-      - PRODUCTION_BUILD_VERSION_NUMBER: 1325
+      - PRODUCTION_BUILD_VERSION_NAME: 7.24.3
+      - PRODUCTION_BUILD_VERSION_NUMBER: 1351
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_VERSION_NAME ($PRODUCTION_BUILD_VERSION_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
     after_run:
       - run_android_appium_test
 
-  ### Seperating workflows so they run concurrently during smoke runs
+  ### Separating workflows so they run concurrently during smoke runs
+  run_tag_smoke_accounts_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
+      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_accounts_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
+      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_assets_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
+      - TEST_SUITE_TAG: '.*SmokeAssets.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_assets_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
+      - TEST_SUITE_TAG: '.*SmokeAssets.*'
+    after_run:
+      - android_e2e_test
   run_tag_smoke_confirmations_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
@@ -1347,16 +1401,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.23.0
+      VERSION_NAME: 7.24.3
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1333
+      VERSION_NUMBER: 1351
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.23.0
+      FLASK_VERSION_NAME: 7.24.3
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1333
+      FLASK_VERSION_NUMBER: 1351
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1366,6 +1420,12 @@ app:
     - opts:
         is_expand: false
       IOS_APP_LINK: ''
+    - opts:
+        is_expand: false
+      NVM_VERSION: 0.39.7
+    - opts:
+        is_expand: false
+      NVM_SHA256SUM: '8e45fa547f428e9196a5613efad3bfa4d4608b74ca870f930090598f5af5f643'
     - opts:
         is_expand: false
       NODE_VERSION: 20.12.2

@@ -3,11 +3,13 @@ import Device from '../../../util/device';
 import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks';
+import { Colors } from '../../../util/theme/models';
+
 /**
  * Style sheet function for NetworkSelector screen.
  * @returns StyleSheet object.
  */
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     addNetworkButton: {
       marginHorizontal: 16,
