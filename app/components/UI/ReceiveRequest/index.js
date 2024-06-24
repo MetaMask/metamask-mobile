@@ -14,7 +14,6 @@ import { toggleReceiveModal } from '../../../actions/modals';
 import { protectWalletModalVisible } from '../../../actions/user';
 
 import { fontStyles } from '../../../styles/common';
-import Text from '../../Base/Text';
 import GlobalAlert from '../GlobalAlert';
 import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -24,7 +23,7 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/utils';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
@@ -44,7 +43,7 @@ const createStyles = (theme) =>
     qrWrapper: {
       margin: 8,
       padding: 8,
-      backgroundColor: theme.brandColors.white['000'],
+      backgroundColor: theme.brandColors.white,
     },
     addressWrapper: {
       flexDirection: 'row',
@@ -241,7 +240,7 @@ ReceiveRequest.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   ticker: selectTicker(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   receiveAsset: state.modals.receiveAsset,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   isNetworkBuySupported: isNetworkRampSupported(
