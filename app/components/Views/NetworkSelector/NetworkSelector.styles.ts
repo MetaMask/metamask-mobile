@@ -100,6 +100,7 @@ const createStyles = (colors: Colors) =>
     searchContainer: {
       marginLeft: 16,
       marginRight: 16,
+      marginBottom: 8,
     },
   });
 

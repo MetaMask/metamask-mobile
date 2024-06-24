@@ -86,6 +86,9 @@ const NetworkSelector = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const avatarSize = isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined;
+  const buttonLabelAddNetwork = isNetworkUiRedesignEnabled
+    ? 'app_settings.network_add_custom_network'
+    : 'app_settings.network_add_network';
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: string) => {
@@ -409,7 +412,7 @@ const NetworkSelector = () => {
 
       <Button
         variant={ButtonVariants.Secondary}
-        label={strings('app_settings.network_add_custom_network')}
+        label={strings(buttonLabelAddNetwork)}
         onPress={goToNetworkSettings}
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
