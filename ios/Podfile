@@ -104,6 +104,9 @@ end
 
 target 'MetaMask' do
   common_target_logic
+  # https://rnfirebase.io/
+  use_frameworks! :linkage => :static
+  $RNFirebaseAsStaticFramework = true
 end
 
 target 'MetaMask-QA' do
