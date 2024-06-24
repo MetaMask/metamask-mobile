@@ -66,9 +66,7 @@ tests
 # app-specific
 /scripts/inpage-bridge/dist
 /android/app/src/main/assets/InpageBridgeWeb3.js
-/android/app/src/main/assets/InpageContentWeb3.js
 /app/core/InpageBridgeWeb3.js
-/app/core/InpageContentWeb3.js
 
 # environment variables instances
 # only version the example files
