@@ -196,7 +196,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                       }
                     }
                   >
-                    Unknown
+                    http://localhost:8545
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -486,7 +486,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                       ]
                     }
                   >
-                    l
+                    h
                   </Text>
                 </View>
               </View>
@@ -867,7 +867,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                       }
                     }
                   >
-                    Unknown
+                    http://localhost:8545
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -1157,7 +1157,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                       ]
                     }
                   >
-                    l
+                    h
                   </Text>
                 </View>
               </View>
