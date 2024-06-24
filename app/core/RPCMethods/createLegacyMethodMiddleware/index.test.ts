@@ -55,6 +55,8 @@ jest.mock('./util', () => {
 });
 
 describe('createLegacyMethodMiddleware', () => {
+  const INTERNAL_JSON_RPC_ERROR = 'Internal JSON-RPC error.';
+
   const method1 = 'method1';
 
   const getDefaultHooks = () => ({
@@ -150,7 +152,7 @@ describe('createLegacyMethodMiddleware', () => {
     });
     assertIsJsonRpcFailure(response);
 
-    expect(response.error.message).toBe('test error');
+    expect(response.error.message).toBe(INTERNAL_JSON_RPC_ERROR);
   });
 
   it('should handle errors thrown by the implementation', async () => {
@@ -166,7 +168,7 @@ describe('createLegacyMethodMiddleware', () => {
     });
     assertIsJsonRpcFailure(response);
 
-    expect(response.error.message).toBe('test error');
+    expect(response.error.message).toBe(INTERNAL_JSON_RPC_ERROR);
   });
 
   it('should handle non-errors thrown by the implementation', async () => {
@@ -183,7 +185,7 @@ describe('createLegacyMethodMiddleware', () => {
     assertIsJsonRpcFailure(response);
 
     expect(response.error).toMatchObject({
-      message: 'Internal JSON-RPC error.',
+      message: INTERNAL_JSON_RPC_ERROR,
       data: 'foo',
     });
   });
