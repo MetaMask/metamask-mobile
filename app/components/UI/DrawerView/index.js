@@ -628,7 +628,6 @@ class DrawerView extends PureComponent {
   };
 
   onReceive = () => {
-    console.log('openQRScanner');
     this.props.navigation.navigate('QRTabSwitcher', {
       // onScanSuccess,
     });

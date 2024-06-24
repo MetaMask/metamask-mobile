@@ -210,21 +210,11 @@ class ReceiveRequest extends PureComponent {
 
     return (
       <SafeAreaView style={styles.wrapper}>
-        <View style={styles.titleWrapper}>
-          <Text
-            style={styles.title}
-            testID={RequestPaymentModalSelectorsIDs.CONTAINER}
-          >
-            {strings('receive_request.title')}
-          </Text>
-        </View>
         <View style={styles.body}>
           <QRCode
             value={`ethereum:${this.props.selectedAddress}@${this.props.chainId}`}
             size={Dimensions.get('window').width / 2}
           />
-
-          <Text>{strings('receive_request.scan_address')}</Text>
 
           <QRAccountDisplay accountAddress={this.props.selectedAddress} />
 

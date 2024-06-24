@@ -2033,7 +2033,6 @@
     "request_payment": "Request Payment",
     "copy": "Copy",
     "copy_address": "Copy address",
-    "scan_address": "Scan address to receive payment"
   },
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnect Sessions",

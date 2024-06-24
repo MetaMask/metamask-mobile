@@ -8,6 +8,7 @@ import { useTheme } from '../../../util/theme';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
+import NavbarTitle from '../../../components/UI/NavbarTitle';
 
 export interface QRTabSwitcherParams {
   onScanSuccess: (data: any, content?: string) => void;
@@ -63,11 +64,15 @@ const QRTabSwitcher = ({
     <View style={styles.container}>
       <SafeAreaView style={styles.overlayContainerColumn}>
         <View style={styles.overlay}>
+          {selectedIndex === 1 ? (
+            <NavbarTitle title={'Receive'} translate={false} disableNetwork />
+          ) : null}
           <TouchableOpacity style={styles.closeIcon} onPress={goBack}>
             <Icon name={'ios-close'} size={30} color={'black'} />
           </TouchableOpacity>
         </View>
       </SafeAreaView>
+
       <View style={styles.segmentedControlContainer}>
         <TouchableOpacity
           style={[
