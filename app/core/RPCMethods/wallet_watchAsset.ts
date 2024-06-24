@@ -83,24 +83,18 @@ const wallet_watchAsset = async ({
 
   const finalTokenSymbol = fetchedSymbol ?? symbol;
   const finalTokenDecimals = fetchedDecimals ?? decimals;
-  console.log('about to call watchAsset');
 
-  try {
-    await TokensController.watchAsset({
-      asset: {
-        address,
-        symbol: finalTokenSymbol,
-        // @ts-expect-error TODO: Fix decimal type
-        decimals: finalTokenDecimals,
-        image,
-      },
-      type,
-      interactingAddress: safeToChecksumAddress(interactingAddress),
-    });
-  } catch (e) {
-    console.error('error calling watchAsset', e);
-  }
-  console.log('watchAsset finished');
+  await TokensController.watchAsset({
+    asset: {
+      address,
+      symbol: finalTokenSymbol,
+      // @ts-expect-error TODO: Fix decimal type
+      decimals: finalTokenDecimals,
+      image,
+    },
+    type,
+    interactingAddress: safeToChecksumAddress(interactingAddress),
+  });
 
   res.result = true;
 };
