@@ -33,8 +33,7 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import { selectIdentities } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -129,13 +128,9 @@ class TransactionElement extends PureComponent {
      */
     tx: PropTypes.object,
     /**
-     * String of selected address
-     */
-    selectedAddress: PropTypes.string,
-    /**
-    /* Identities object required to get import time name
+    /* InternalAccount object required to get import time name
     */
-    identities: PropTypes.object,
+    selectedInternalAccount: PropTypes.object,
     /**
      * Current element of the list index
      */
@@ -216,7 +211,10 @@ class TransactionElement extends PureComponent {
   };
 
   renderTxTime = () => {
-    const { tx, selectedAddress } = this.props;
+    const { tx, selectedInternalAccount } = this.props;
+    const selectedAddress = safeToChecksumAddress(
+      selectedInternalAccount?.address,
+    );
     const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
     const selfSent =
       incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
@@ -238,11 +236,10 @@ class TransactionElement extends PureComponent {
    * @returns Account added to wallet view
    */
   renderImportTime = () => {
-    const { tx, identities, selectedAddress } = this.props;
+    const { tx, selectedInternalAccount } = this.props;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
-    // TODO this can be removed in favour of selectInternalAccounts after @metamask/accounts-controller is updated to 14 or higher
-    const accountImportTime = identities[selectedAddress]?.importTime;
+    const accountImportTime = selectedInternalAccount?.metadata.importTime;
     if (tx.insertImportTime && accountImportTime) {
       return (
         <>
@@ -312,9 +309,8 @@ class TransactionElement extends PureComponent {
    */
   renderTxElement = (transactionElement) => {
     const {
-      identities,
+      selectedInternalAccount,
       chainId,
-      selectedAddress,
       isQRHardwareAccount,
       isLedgerAccount,
       tx: { time, status, isSmartTransaction },
@@ -329,8 +325,7 @@ class TransactionElement extends PureComponent {
     const renderUnsignedQRActions =
       status === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
-    // TODO this can be removed in favour of selectInternalAccounts after @metamask/accounts-controller is updated to 14 or higher
-    const accountImportTime = identities[selectedAddress]?.importTime;
+    const accountImportTime = selectedInternalAccount?.metadata.importTime;
     return (
       <>
         {accountImportTime > time && this.renderImportTime()}
@@ -606,9 +601,8 @@ class TransactionElement extends PureComponent {
 const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
   chainId: selectChainId(state),
-  identities: selectIdentities(state),
+  selectedInternalAccount: selectSelectedInternalAccount(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   swapsTokens: state.engine.backgroundState.SwapsController.tokens,
