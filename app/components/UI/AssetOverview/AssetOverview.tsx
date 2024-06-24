@@ -13,7 +13,6 @@ import {
   TOKEN_OVERVIEW_RECEIVE_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
@@ -51,6 +50,11 @@ import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+
+const trackEvent = (event, params = {}) => {
+  MetaMetrics.getInstance().trackEvent(event, params);
+};
 
 interface AssetOverviewProps {
   navigation: {
@@ -102,7 +106,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }, []);
 
   const onReceive = () => {
-    dispatch(toggleReceiveModal(asset));
+    navigation.navigate('QRTabSwitcher', {
+      // onScanSuccess,
+    });
+    trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
   };
 
   const onSend = async () => {

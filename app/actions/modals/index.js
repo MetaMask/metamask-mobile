@@ -12,13 +12,6 @@ export function toggleCollectibleContractModal() {
   };
 }
 
-export function toggleReceiveModal(asset) {
-  return {
-    type: 'TOGGLE_RECEIVE_MODAL',
-    asset,
-  };
-}
-
 export function toggleDappTransactionModal(show) {
   return {
     type: 'TOGGLE_DAPP_TRANSACTION_MODAL',

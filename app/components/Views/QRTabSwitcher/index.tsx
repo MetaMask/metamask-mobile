@@ -1,13 +1,30 @@
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { SafeAreaView, TouchableOpacity, View, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import QRScanner from '../QRScanner';
 import ReceiveRequest from '../../UI/ReceiveRequest';
-import createStyles from './styles';
-import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
+import { createNavigationDetails } from '../../../util/navigation/navUtils';
+import Routes from '../../../constants/navigation/Routes';
+import createStyles from './styles';
 
-const QRTabSwitcher = ({ onScanError, onScanSuccess, onStartScan, origin }) => {
+export interface QRTabSwitcherParams {
+  onScanSuccess: (data: any, content?: string) => void;
+  onScanError?: (error: string) => void;
+  onStartScan?: (data: any) => Promise<void>;
+  origin?: string;
+}
+
+export const createQRScannerNavDetails =
+  createNavigationDetails<QRTabSwitcherParams>(Routes.QR_TAB_SWITCHER);
+
+const QRTabSwitcher = ({
+  onScanError,
+  onScanSuccess,
+  onStartScan,
+  origin,
+}: QRTabSwitcherParams) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const navigation = useNavigation();
   const theme = useTheme();

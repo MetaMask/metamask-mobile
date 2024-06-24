@@ -18,7 +18,6 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { showAlert } from '../../../actions/alert';
-import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
@@ -195,10 +194,6 @@ class AccountOverview extends PureComponent {
     /* passed by the parent component
     */
     navigation: PropTypes.object,
-    /**
-     * Action that toggles the receive modal
-     */
-    toggleReceiveModal: PropTypes.func,
     /**
      * The chain ID for the current selected network
      */
@@ -474,7 +469,6 @@ const mapDispatchToProps = (dispatch) => ({
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
-  toggleReceiveModal: (asset) => dispatch(toggleReceiveModal(asset)),
 });
 
 AccountOverview.contextType = ThemeContext;

@@ -15,7 +15,6 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 import { swapsLivenessSelector } from '../../../reducers/swaps';
-import { toggleReceiveModal } from '../../../actions/modals';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
@@ -59,7 +58,12 @@ const WalletActions = () => {
   const { trackEvent } = useMetrics();
 
   const onReceive = () => {
-    sheetRef.current?.onCloseBottomSheet(() => dispatch(toggleReceiveModal()));
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigate('QRTabSwitcher', {
+        // onScanSuccess,
+      });
+    });
+
     trackEvent(MetaMetricsEvents.RECEIVE_BUTTON_CLICKED, {
       text: 'Receive',
       tokenSymbol: '',
