@@ -914,7 +914,6 @@ function SwapsQuotesView({
 
       try {
         resetTransaction();
-        console.log('ENTER hadnleSwapTRansaction');
         const { transactionMeta, result } = await addTransaction(
           {
             ...selectedQuote.trade,
@@ -929,10 +928,8 @@ function SwapsQuotesView({
             origin: process.env.MM_FOX_CODE,
           },
         );
-        console.log('ENTER hadnleSwapTRansaction before await result', result);
 
         await result;
-        console.log('ENTER hadnleSwapTRansaction before after result', result);
 
         updateSwapsTransactions(
           transactionMeta,
@@ -1047,7 +1044,6 @@ function SwapsQuotesView({
     const newSwapsTransactions =
       TransactionController.state.swapsTransactions || {};
     let approvalTransactionMetaId;
-    console.log('ENTER handleCompleteSwap', approvalTransaction);
     if (approvalTransaction) {
       await handleApprovaltransaction(
         TransactionController,
