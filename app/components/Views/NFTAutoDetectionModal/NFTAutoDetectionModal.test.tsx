@@ -53,12 +53,12 @@ describe('NFT Auto detection modal', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
-  it('should render correctly', () => {
+  it('render matches snapshot', () => {
     const { toJSON } = renderComponent(initialState);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should call setUseNftDetection and setDisplayNftMedia when clicking on allow button with nftDisplayMedia initially off', () => {
+  it('calls setUseNftDetection and setDisplayNftMedia when clicking on allow button with nftDisplayMedia initially off', () => {
     const { getByTestId } = renderComponent({
       engine: {
         backgroundState: {
@@ -75,7 +75,7 @@ describe('NFT Auto detection modal', () => {
     expect(setDisplayNftMediaSpy).toHaveBeenCalled();
   });
 
-  it('should call setDisplayNftMedia when clicking on allow button if displayNftMedia if on', () => {
+  it('calls setDisplayNftMedia when clicking on allow button if displayNftMedia if on', () => {
     const { getByTestId } = renderComponent(initialState);
     const allowButton = getByTestId('allow');
 
@@ -84,7 +84,7 @@ describe('NFT Auto detection modal', () => {
     expect(setDisplayNftMediaSpy).not.toHaveBeenCalled();
   });
 
-  it('should not call setUseNftDetection nor setDisplayNftMedia when clicking on not right now button', () => {
+  it('Does not call setUseNftDetection nor setDisplayNftMedia when clicking on not right now button', () => {
     const { getByTestId } = renderComponent(initialState);
     const cancelButton = getByTestId('cancel');
 

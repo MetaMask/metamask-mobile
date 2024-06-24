@@ -556,7 +556,7 @@ describe('CollectibleContracts', () => {
     expect(spinner).not.toBeNull();
   });
 
-  it('Should not show spinner if nfts are not still being fetched', async () => {
+  it('Does not show spinner if nfts are not still being fetched', async () => {
     const CURRENT_ACCOUNT = '0x1a';
     const mockState = {
       collectibles: {
