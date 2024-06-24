@@ -93,7 +93,7 @@ export function makeMethodMiddlewareMaker<U>(
             res,
             next,
             end,
-            selectHooks(hooks, hookNames),
+            selectHooks(hooks, hookNames) as U,
           );
         } catch (error) {
           if (process.env.METAMASK_DEBUG) {
