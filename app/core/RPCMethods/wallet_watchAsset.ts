@@ -45,7 +45,6 @@ const wallet_watchAsset = async ({
 
   const { TokensController } = Engine.context;
   const chainId = selectChainId(store.getState());
-  console.log('starting wallet_watchAsset inside mobile');
 
   checkTabActive();
 

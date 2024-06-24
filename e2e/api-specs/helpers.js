@@ -1,5 +1,5 @@
 import TestHelpers from '../helpers';
-import {v4 as uuid} from "uuid";
+import { v4 as uuid } from 'uuid';
 
 export const taskQueue = [];
 let isProcessing = false;
@@ -8,12 +8,9 @@ export const processQueue = async () => {
   if (isProcessing || taskQueue.length === 0) return;
 
   isProcessing = true;
-  const { task, resolve, reject, name } = taskQueue.shift();
+  const { task, resolve, reject } = taskQueue.shift();
   try {
-    console.log('processing', name);
-    const startTime = Date.now();
     const result = await task();
-    console.log('processed', name, Date.now() - startTime, 'ms');
     resolve(result);
   } catch (error) {
     reject(error);
@@ -36,16 +33,22 @@ const pollResult = async (driver, generatedKey) => {
       name: 'pollResult',
       task: async () => {
         await TestHelpers.delay(500);
-        const text = await driver.runScript((el, g) => window[g], [generatedKey]);
+        const text = await driver.runScript(
+          (el, g) => window[g],
+          [generatedKey],
+        );
         if (typeof text === 'string') {
           result = JSON.parse(text);
         } else {
           result = text;
         }
         if (result !== undefined) {
-          await driver.runScript((el, g) => {
-            delete window[g];
-          }, [generatedKey]);
+          await driver.runScript(
+            (el, g) => {
+              delete window[g];
+            },
+            [generatedKey],
+          );
         }
         return result;
       },
@@ -60,9 +63,7 @@ const pollResult = async (driver, generatedKey) => {
 };
 
 export const createDriverTransport = (driver) => (_, method, params) => {
-  console.log('starting transport call', method, params)
   const generatedKey = uuid();
-  const startTime = Date.now();
   return new Promise((resolve, reject) => {
     const execute = async () => {
       await addToQueue({
@@ -97,7 +98,6 @@ export const createDriverTransport = (driver) => (_, method, params) => {
     return execute();
   }).then(async () => {
     const result = await pollResult(driver, generatedKey);
-    console.log('transport execution time', Date.now() - startTime, 'ms', method, params);
     return result;
   });
-}
+};
