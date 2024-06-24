@@ -132,7 +132,7 @@ const initialState = {
         allNftContracts: {},
       },
       TokenRatesController: {
-        contractExchangeRates: {},
+        marketData: {},
       },
       TransactionController: {
         methodData: {},

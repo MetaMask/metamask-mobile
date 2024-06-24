@@ -365,17 +365,17 @@
     "title": "受取"
   },
   "experience_enhancer_modal": {
-    "title": "Help us enhance your experience",
-    "paragraph1a": "In addition to ",
-    "paragraph1b": ", we'd like to use data (like information from cookies) to learn how you interact with our marketing communications.",
+    "title": "エクスペリエンスの改善にご協力ください",
+    "paragraph1a": "さらに、",
+    "paragraph1b": "ユーザーによる当社のマーケティングコミュニケーションとのインタラクションについて把握するために、データ (Cookieからの情報など) を使用できればと思います。",
     "link": "MetaMetrics",
-    "paragraph2": "This helps us personalize what we share with you, like:",
-    "bullet1": "Latest developments",
-    "bullet2": "Product features",
-    "bullet3": "Other relevant promotional materials",
-    "footer": "Remember, we never sell the data you provide and you can opt out any time.",
-    "accept": "I agree",
-    "cancel": "No thanks"
+    "paragraph2": "これは、次のようなお伝えする情報のカスタマイズに役立ちます:",
+    "bullet1": "最新情報",
+    "bullet2": "製品の機能",
+    "bullet3": "その他関連プロモーション資料",
+    "footer": "ユーザーから提供されたデータが販売されることは一切なく、いつでもオプトアウトできます。",
+    "accept": "同意する",
+    "cancel": "いいえ、結構です"
   },
   "wallet": {
     "title": "ウォレット",
@@ -413,7 +413,7 @@
     "no_tokens": "トークンがありません！",
     "no_nfts_yet": "まだNFTがありません",
     "nfts_autodetection_title": "NFTの検出",
-    "nfts_autodetection_desc": "MetaMaskがOpenSeaからNFTを自動検出し、MetaMaskウォレットに表示できるように許可してください。",
+    "nfts_autodetection_desc": "MetaMaskによるウォレット内のNFTの自動検出と表示を許可します。",
     "network_details_check": "ネットワーク情報の確認",
     "network_with_chain_id": "チェーンIDを持つネットワーク",
     "chain_list_returned_different_ticker_symbol": "このトークンシンボルは、入力されたネットワーク名またはチェーンIDと一致しません。人気のトークンの多くはシンボルが似ているため、詐欺師がそれを利用してより価値の高いトークンを送り返すように仕向ける可能性があります。続行する前にすべてを確認してください。",
@@ -454,7 +454,7 @@
     "display_nft_media_cta": "NFTメディアの表示をオンにする",
     "display_media_nft_warning": "NFTのメディアとデータを表示した場合、IPアドレスが集中型のサーバーに公開される可能性があります。関連するリスクを理解できている場合のみ、NFTをインポートしてください。",
     "nfts_autodetect_title": "NFTの自動検出",
-    "nfts_autodetect_cta": "設定でNFTの検出をオンにする",
+    "nfts_autodetect_cta": "NFTの自動検出を有効にする",
     "turn_on_network_check_cta": "ネットワーク情報の確認をオンにする",
     "display_nft_media_cta_new_1": "NFTを表示するには、次の場所で「NFTメディアを表示」を有効にしてください",
     "display_nft_media_cta_new_2": "「設定」>「セキュリティとプライバシー」。",
@@ -520,7 +520,7 @@
     "description_title": "MetaMaskの改善にご協力ください",
     "description_content_1": "MetaMaskの改善を目的に、基本的な使用状況データを収集したいと思います。ここで提供されるデータが販売されることはありません。",
     "description_content_2": "指標を収集する際、常に次の条件が適用されます...",
-    "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relavent news (like product features).",
+    "checkbox": "このデータは、ユーザーによる当社のマーケティングコミュニケーションとのインタラクションを把握するために使用されます。また、関連ニュースをお伝えする場合もあります (製品の機能など)。",
     "action_description_1_prefix": "非公開:",
     "action_description_2_prefix": "一般:",
     "action_description_3_prefix": "任意:",
@@ -650,7 +650,8 @@
     "revoked_all": "すべてのアカウントが取り消されました。",
     "accounts_connected": "アカウントが接続されました。",
     "disconnected": "接続が解除されました。",
-    "disconnected_all": "すべてのアカウントの接続が解除されました。"
+    "disconnected_all": "すべてのアカウントの接続が解除されました。",
+    "nft_detection_enabled": "NFTの自動検出が有効になりました"
   },
   "connect_qr_hardware": {
     "title": "QRベースのハードウェアウォレットを接続",
@@ -673,8 +674,8 @@
     "please_wait": "お待ちください"
   },
   "data_collection_modal": {
-    "accept": "Okay",
-    "content": "You turned off data collection for our marketing purposes. This only applies to this device. If you use MetaMask on other devices, make sure to opt out there as well."
+    "accept": "OK",
+    "content": "マーケティング目的のデータ収集をオフにしました。これはこのデバイスにのみ適用されます。MetaMaskを他のデバイスで使用する場合は、そのデバイスでもオプトアウトしてください。"
   },
   "account_selector": {
     "prev": "前へ",
@@ -847,9 +848,9 @@
     "clear_history_desc": "ブラウザの履歴をすべて消去するにはこのオプションを選択します。",
     "clear_cookies_desc": "ブラウザのCookieを消去するにはこのオプションを選択します。",
     "metametrics_title": "MetaMetricsに参加",
-    "metametrics_description": "Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.",
-    "data_collection_title": "Data collection for marketing",
-    "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
+    "metametrics_description": "製品の改善を目的とするMetaMetricsによる基本的な使用状況および診断データの収集を許可してください。このデバイスのMetaMetricsを無効にすることができます。",
+    "data_collection_title": "マーケティング目的のデータ収集",
+    "data_collection_description": "当社はMetaMetricsを使用して、ユーザーによる当社のマーケティングコミュニケーションとのインタラクションを把握します。また、関連ニュースをお伝えする場合もあります (製品の機能、その他資料など)。",
     "batch_balance_requests_title": "アカウント残高の一括リクエスト",
     "batch_balance_requests_description": "当社は残高を素早く表示できるよう、アカウントをまとめてInfuraにクエリを送ります。この機能をオフにすると、アクティブなアカウントのみクエリの対象となります。DAppによっては、ウォレットを接続しないと機能しないものもあります。",
     "third_party_title": "受信トランザクションを取得",
@@ -890,6 +891,13 @@
     "delete": "削除",
     "network_exists": "このネットワークはすでに追加されています。",
     "delete_metrics_title": "MetaMetricsデータを削除",
+    "delete_metrics_description_part_one": "これにより、ウォレットに関連付けられている過去の",
+    "delete_metrics_description_part_two": "MetaMetrics",
+    "delete_metrics_description_part_three": "データが削除されます。",
+    "delete_metrics_description_before_delete": "このデータが削除されてもウォレットとアカウントに変化はありません。このプロセスには最長30日かかる場合があります。",
+    "delete_metrics_description_after_delete_part_one": "このアクションは次の日に開始されました:",
+    "delete_metrics_description_after_delete_part_two": "。このプロセスには最長30日かかる場合があります。",
+    "delete_metrics_description_privacy_policy": "プライバシー ポリシーをご覧ください。",
     "delete_metrics_button": "MetaMetricsデータを削除",
     "check_status_button": "ステータスを確認",
     "delete_metrics_confirm_modal_title": "MetaMetricsデータを削除しますか？",
@@ -992,8 +1000,27 @@
     "security_alerts": "セキュリティアラート",
     "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
     "smart_transactions_opt_in_heading": "スマートトランザクション",
-    "smart_transactions_opt_in_desc": "スマートトランザクションをオンにして、ETHメインネットでより信頼性が高く安全なトランザクションと、調整可能な手数料をご利用ください。",
-    "smart_transactions_learn_more": "詳細。"
+    "smart_transactions_opt_in_desc": "スマートトランザクションをオンにして、イーサリアムメインネット上でのトランザクションの信頼性と安全性を高めましょう。",
+    "smart_transactions_learn_more": "詳細。",
+    "simulation_details": "予測される残高の増減",
+    "simulation_details_description": "トランザクションを確定する前に残高の増減を予測するには、この機能をオンにします。これはトランザクションの最終的な結果を保証するものではありません。",
+    "simulation_details_learn_more": "詳細。",
+    "aes_crypto_test_form_title": "AES暗号化 - テストフォーム",
+    "aes_crypto_test_form_description": "E2Eテスト専用に開発されたセクションです。このセクションがアプリに表示される場合は、MetaMaskサポートに報告してください。"
+  },
+  "aes_crypto_test_form": {
+    "generate_random_salt": "ランダムなソルトを生成",
+    "salt_bytes_count": "ソルトのバイト数",
+    "generate": "生成",
+    "generate_encryption_key": "パスワードから暗号化キーを生成",
+    "password": "パスワード",
+    "salt": "ソルト",
+    "encrypt_with_key": "キーで暗号化",
+    "encrypt": "暗号化",
+    "encryption_key": "暗号化キー",
+    "data": "データ",
+    "decrypt_with_key": "キーで復号化",
+    "decrypt": "復号化"
   },
   "sdk": {
     "disconnect_title": "すべてのサイトとの接続を解除しますか？",
@@ -1173,6 +1200,15 @@
     "show_private_key": "秘密鍵を表示",
     "account_copied_to_clipboard": "パブリックアドレスがクリップボードにコピーされました",
     "share_public_key": "公開鍵を共有中:"
+  },
+  "enable_nft-auto-detection": {
+    "title": "NFTの自動検出を有効にする",
+    "description": "MetaMaskによる自動検出でのNFTの検出と表示を許可してください。これにより、次のことが可能になります:",
+    "immediateAccess": "NFTにすぐにアクセス",
+    "navigate": "デジタル資産を簡単に運用",
+    "dive": "NFTをすぐに使用開始",
+    "allow": "許可する",
+    "notRightNow": "また後で"
   },
   "detected_tokens": {
     "title": "{{tokenCount}}個の新しいトークンが見つかりました",
@@ -1372,10 +1408,12 @@
     "approve": "承認",
     "allow_to_access": "次へのアクセス許可を与えますか？",
     "allow_to_address_access": "このアドレスに次へのアクセス許可を与えますか？",
+    "allow_to_transfer_all": "次のすべてへのアクセスと転送を許可する:",
     "spend_cap": "使用上限のリクエスト:",
     "token": "トークン",
     "nft": "NFT",
     "you_trust_this_site": "許可を与えることで、次の第三者が資金にアクセスできるようになります。",
+    "you_trust_this_third_party": "これにより、アクセス許可を取り消すまで、第三者が今後通知なしにNFTにアクセスし、転送できるようになります。",
     "you_trust_this_address": "このアドレスは信用できますか？この許可を与えることで、このアドレスによる資金へのアクセスを許可することになります。",
     "edit_permission": "許可の編集",
     "edit": "編集",
@@ -1479,6 +1517,8 @@
     "tx_review_transfer_from": "送金元:",
     "tx_review_unknown": "不明な方法",
     "tx_review_approve": "承認",
+    "tx_review_increase_allowance": "許容額を増やす",
+    "tx_review_set_approval_for_all": "すべてを承認に設定",
     "sent_ether": "送信されたイーサ",
     "self_sent_ether": "自分に送信されたイーサ",
     "received_ether": "受け取ったイーサ",
@@ -1500,11 +1540,17 @@
     "smart_contract_interaction": "スマートコントラクトのインタラクション",
     "swaps_transaction": "スワップトランザクション",
     "approve": "承認",
+    "increase_allowance": "許容額を増やす",
+    "set_approval_for_all": "すべてを承認に設定",
     "hash": "ハッシュ",
     "from": "送信元",
     "to": "送信先",
     "details": "詳細",
     "amount": "金額",
+    "fee": {
+      "transaction_fee_in_ether": "トランザクション手数料",
+      "transaction_fee_in_usd": "トランザクション手数料 (USD)"
+    },
     "gas_used": "使用ガス (単位)",
     "gas_limit": "ガスリミット (単位)",
     "gas_price": "ガス価格 (gwei)",
@@ -1632,6 +1678,8 @@
     "you_can": "または",
     "add_network": "他のネットワークを手動で追加できます。",
     "select_network": "ネットワークを選択",
+    "enabled_networks": "ネットワークが有効になりました",
+    "additional_networks": "他のネットワーク",
     "show_test_networks": "テストネットワークを表示",
     "deprecated_goerli": "イーサリアムのプロトコルの変更により、Goerliテストネットワークは安定して動作しない可能性があり、近日中に非推奨になります。",
     "network_deprecated_title": "このネットワークはサポートされなくなりました",
@@ -1900,19 +1948,26 @@
     "back_to_safety": "安全な場所に戻る"
   },
   "notifications": {
+    "staked": "ステーキングしました",
+    "received": "受け取りました",
+    "unstaked": "ステーキングが解除されました",
+    "to": "送り先",
+    "rate": "レート (手数料込み)",
+    "unstaking_requested": "ステーキングの解除がリクエストされました",
     "stake_completed": "ステーキングが完了しました",
     "withdrawal_completed": "出金が完了しました",
     "unstake_completed": "ステーキングの解除が完了しました",
     "withdrawal_requested": "出金がリクエストされました",
     "stake_ready_to_be_withdrawn": "ステークの出金準備が完了しました",
     "swap_completed": "{{from}}を{{to}}にスワップしました",
+    "swap": "スワップしました",
     "sent": "{{address}}に送りました",
-    "received": "{{address}}から受け取りました",
-    "nft_sent": "Sent NFT to {{address}}",
-    "erc721_sent": "Sent NFT to {{address}}",
-    "erc1155_sent": "Sent NFT to {{address}}",
-    "erc721_received": "Received NFT from {{address}}",
-    "erc1155_received": "Received NFT from {{address}}",
+    "received_from": "{{address}}から受け取りました",
+    "nft_sent": "{{address}}にNFTを送りました",
+    "erc721_sent": "{{address}}にNFTを送りました",
+    "erc1155_sent": "{{address}}にNFTを送りました",
+    "erc721_received": "{{address}}からNFTを受け取りました",
+    "erc1155_received": "{{address}}からNFTを受け取りました",
     "received_nft": "{{address}}からNFTを受け取りました",
     "pending_title": "トランザクションが送信されました",
     "pending_deposit_title": "入金が進行中です。",
@@ -1954,6 +2009,7 @@
     "wc_description": "アプリケーションを確認してください",
     "wallet": "ウォレット",
     "web3": "Web3",
+    "staking_provider": "ステーキングプロバイダー",
     "empty": {
       "title": "ここに表示する内容はありません",
       "message": "ウォレットにアクティビティがあると、ここに通知が表示されます。"
@@ -2563,11 +2619,18 @@
     "submit_ticket_5": "チケットの送信は",
     "submit_ticket_6": "こちら。",
     "submit_ticket_7": "エラーメッセージとスクリーンショットを含めてください。",
+    "submit_ticket_8": "バグの報告をお送りください",
+    "submit_ticket_9": "何が起きたのか、詳細に説明してください。",
+    "bug_report_prompt_title": "何が起きたのか教えてください",
+    "bug_report_prompt_description": "何が問題だったか調査できるよう、詳細を追加してください。",
+    "bug_report_thanks": "ありがとうございます！すぐに調査いたします。",
     "save_seedphrase_1": "このエラーが解決されない場合は、",
     "save_seedphrase_2": "シークレットリカバリーフレーズを保存",
     "save_seedphrase_3": "して、アプリを再インストールしてください。注: シークレットリカバリーフレーズがないとウォレットを復元できません。",
     "copied_clipboard": "クリップボードにコピーされました",
-    "ok": "OK"
+    "ok": "OK",
+    "cancel": "キャンセル",
+    "send": "送金"
   },
   "whats_new": {
     "title": "新機能",
@@ -2587,7 +2650,7 @@
       "header": "強化されたトランザクション保護",
       "description_1": "スマートトランザクションで、成功率を上げ、フロントランニングを防ぎ、可視性を高めましょう。",
       "description_2": "イーサリアムでのみご利用いただけ、いつでも設定で有効・無効を切り替えられます。",
-      "secondary_button": "強化された保護を有効にしない",
+      "secondary_button": "設定で管理",
       "primary_button": "有効にする",
       "learn_more": "詳細。",
       "benefit_1_1": "99.5%の",
@@ -2596,6 +2659,11 @@
       "benefit_2_2": "節約できます",
       "benefit_3_1": "リアルタイム",
       "benefit_3_2": "最新情報"
+    },
+    "transaction_simulation": {
+      "title": "予測される残高の増減",
+      "description_1": "トランザクションを実行する前に、予測される結果を確認できるようになりました！",
+      "description_2": "これは単なるシミュレーションに過ぎないため、最終的な結果は保証できません。この機能は「設定」>「セキュリティとプライバシー」でいつでもオフにできます。"
     }
   },
   "invalid_network": {
@@ -3027,7 +3095,8 @@
     "manage_networks": "ネットワークの管理",
     "manage_networks_body": "当社では、遠隔手続き呼び出し (RPC) プロバイダーにInfuraを使用して、イーサリアムデータにできるだけ信頼性の高いプライベートな形でアクセスできるようにしています。独自のRPCをお選びいただくこともできますが、どのRPCもトランザクションを実行するために、ユーザーのIPアドレスとイーサリアムウォレットを取得する点にご注意ください。",
     "manage_networks_body2": "で、Infuraによるデータの取扱いに関する詳細をご覧ください。",
-    "functionality_body": "トークンのデータと値、最適なガス設定、セキュリティアップデートなどを含みます。これらのサービスを使用すると、Webサイトにアクセスした場合と同様に、MetaMaskにIPアドレスが共有されます。",
+    "functionality_body": "MetaMaskは、インターネットサービスを通じてトークンの詳細やガス設定などの基本的な機能を提供します。インターネットサービスを使用すると、この場合はMetaMaskに、ユーザーのIPアドレスが共有されます。これは他のどのWebサイトにアクセスした場合も同様で、MetaMaskはこのデータを一時的に使用し、ユーザーのデータを販売することは一切ありません。VPNを使用したりこのようなサービスをオフにできますが、MetaMaskでのエクスペリエンスに影響を与える可能性があります。詳細は",
+    "functionality_body2": "をお読みください。",
     "sheet": {
       "title_off": "基本機能をオフにする",
       "description_off": "これは、MetaMaskでの時間が完全に最適化されないことを意味します。基本機能 (トークンの詳細、最適なガス設定など) は利用できません。",
@@ -3040,5 +3109,16 @@
         "turn_off": "オフにする"
       }
     }
+  },
+  "simulation_details": {
+    "failed": "予測結果の読み込み中にエラーが発生しました。",
+    "fiat_not_available": "利用できません",
+    "incoming_heading": "受取額",
+    "no_balance_changes": "ウォレット残高の増減は予測されていません",
+    "outgoing_heading": "送金額",
+    "reverted": "このトランザクションはおそらく失敗します",
+    "title": "予測される増減額",
+    "tooltip_description": "予測される増減額は、このトランザクションを実行すると発生する可能性がある増減額です。これは単に予測に過ぎず、保証されたものではありません。",
+    "total_fiat": "合計 = {{currency}}"
   }
 }
