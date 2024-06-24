@@ -4,7 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
-import { Transaction, WalletDevice } from '@metamask/transaction-controller';
+import {
+  TransactionParams,
+  WalletDevice,
+} from '@metamask/transaction-controller';
 
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -120,7 +123,7 @@ function SendTransaction() {
     } catch {
       return;
     }
-    let transactionParams: Transaction;
+    let transactionParams: TransactionParams;
     const amount = addHexPrefix(
       new BN(
         toTokenMinimalUnit(
