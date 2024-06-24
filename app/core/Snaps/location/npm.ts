@@ -2,10 +2,8 @@
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { VirtualFile } from '@metamask/snaps-utils';
 import { stringToBytes } from '@metamask/utils';
-
 import { NativeModules } from 'react-native';
 import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
-import Logger from '../../../util/Logger';
 import {
   BaseNpmLocation,
   getNpmCanonicalBasePath,
@@ -14,12 +12,6 @@ import {
 const { RNTar } = NativeModules;
 
 const SNAPS_NPM_LOG_TAG = 'snaps/ NPM';
-
-/**
- * Reads and parses file from ReactNativeBlobUtil response
- * @param path The path to the file to read and parse.
- * @returns The parsed file data.
- */
 
 const decompressFile = async (
   path: string,
@@ -32,7 +24,6 @@ const decompressFile = async (
     }
     throw new Error('Was unable to decompress tgz file');
   } catch (error) {
-    Logger.error(error as Error, `${SNAPS_NPM_LOG_TAG} 'decompressFile error`);
     throw new Error(`${SNAPS_NPM_LOG_TAG} decompressFile error: ${error}`);
   }
 };
@@ -56,44 +47,29 @@ const readAndParseAt = async (path: string) => {
     );
     return { path, contents };
   } catch (error) {
-    Logger.error(error as Error, `${SNAPS_NPM_LOG_TAG} readAndParseAt error`);
     throw new Error(`${SNAPS_NPM_LOG_TAG} readAndParseAt error: ${error}`);
   }
 };
+
 const fetchAndStoreNPMPackage = async (
   inputRequest: RequestInfo,
 ): Promise<string> => {
-  const { config } = ReactNativeBlobUtil;
   const targetDir = ReactNativeBlobUtil.fs.dirs.DocumentDir;
   const filePath = `${targetDir}/archive.tgz`;
   const urlToFetch: string =
     typeof inputRequest === 'string' ? inputRequest : inputRequest.url;
 
   try {
-    const response: FetchBlobResponse = await config({
+    const response: FetchBlobResponse = await ReactNativeBlobUtil.config({
       fileCache: true,
       path: filePath,
     }).fetch('GET', urlToFetch);
     const dataPath = response.data;
-    try {
-      const decompressedPath = await decompressFile(dataPath, targetDir);
-      // remove response file from cache
-      response.flush();
-      return decompressedPath;
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        `${SNAPS_NPM_LOG_TAG} fetchAndStoreNPMPackage failed to decompress data`,
-      );
-      throw new Error(
-        `${SNAPS_NPM_LOG_TAG} fetchAndStoreNPMPackage failed to decompress data with error: ${error}`,
-      );
-    }
+    const decompressedPath = await decompressFile(dataPath, targetDir);
+    // remove response file from cache
+    response.flush();
+    return decompressedPath;
   } catch (error) {
-    Logger.error(
-      error as Error,
-      `${SNAPS_NPM_LOG_TAG} fetchAndStoreNPMPackage failed to fetch`,
-    );
     throw new Error(
       `${SNAPS_NPM_LOG_TAG} fetchAndStoreNPMPackage failed to fetch with error: ${error}`,
     );
