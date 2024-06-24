@@ -393,7 +393,9 @@ class TransactionReview extends PureComponent {
           value,
           selectedAsset.decimals,
         )} ${selectedAsset.symbol}`;
-        const conversionRate = contractExchangeRates[selectedAsset.address];
+        const conversionRate = contractExchangeRates
+          ? contractExchangeRates[selectedAsset.address]?.price
+          : undefined;
         const fiatValue = balanceToFiat(
           (value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0,
           this.props.conversionRate,
