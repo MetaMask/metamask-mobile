@@ -496,7 +496,7 @@ describe('CollectibleContracts', () => {
     expect(spyOnDetectNfts).toHaveBeenCalledTimes(1);
   });
 
-  it('Should show spinner if nfts are still being fetched', async () => {
+  it('shows spinner if nfts are still being fetched', async () => {
     const CURRENT_ACCOUNT = '0x1a';
     const mockState = {
       collectibles: {
