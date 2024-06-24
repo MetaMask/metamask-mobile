@@ -20,7 +20,10 @@ import { getDecimalChainId } from '../../../util/networks';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { selectDetectedTokens } from '../../../selectors/tokensController';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkClientId,
+} from '../../../selectors/networkController';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -77,6 +80,7 @@ const DetectedTokens = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const detectedTokens = useSelector(selectDetectedTokens);
   const chainId = useSelector(selectChainId);
+  const networkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );
@@ -130,7 +134,7 @@ const DetectedTokens = () => {
           tokensToIgnore.length > 0 &&
             (await TokensController.ignoreTokens(tokensToIgnore));
           if (tokensToImport.length > 0) {
-            await TokensController.addTokens(tokensToImport);
+            await TokensController.addTokens(tokensToImport, networkClientId);
             InteractionManager.runAfterInteractions(() =>
               tokensToImport.forEach(({ address, symbol }) =>
                 trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
@@ -153,7 +157,7 @@ const DetectedTokens = () => {
         }
       });
     },
-    [chainId, detectedTokens, ignoredTokens, trackEvent],
+    [chainId, detectedTokens, ignoredTokens, trackEvent, networkClientId],
   );
 
   const triggerIgnoreAllTokens = () => {

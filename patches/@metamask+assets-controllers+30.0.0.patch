@@ -1,0 +1,577 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js b/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
+index 0dc70ec..461a210 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
+@@ -378,9 +378,10 @@ fetchAndMapExchangeRatesForSupportedNativeCurrency_fn = async function({
+   }
+   return Object.entries(contractNativeInformations).reduce(
+     (obj, [tokenAddress, token]) => {
++      // This is fixed on v31 of assets controllers
+       obj = {
+         ...obj,
+-        [tokenAddress.toLowerCase()]: { ...token }
++        [tokenAddress]: { ...token }
+       };
+       return obj;
+     },
+@@ -416,7 +417,7 @@ fetchAndMapExchangeRatesForUnsupportedNativeCurrency_fn = async function({
+       ...acc,
+       [tokenAddress]: {
+         ...token,
+-        value: token.value ? token.value * fallbackCurrencyToNativeCurrencyConversionRate : void 0
++        price: token.price ? token.price * fallbackCurrencyToNativeCurrencyConversionRate : void 0
+       }
+     };
+     return acc;
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js b/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
+index 76e3362..5ab79a4 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
+@@ -34,7 +34,7 @@ var STATIC_MAINNET_TOKEN_LIST = Object.entries(
+   };
+ }, {});
+ var controllerName = "TokenDetectionController";
+-var _intervalId, _selectedAddress, _networkClientId, _tokenList, _disabled, _isUnlocked, _isDetectionEnabledFromPreferences, _isDetectionEnabledForNetwork, _getBalancesInSingleCall, _trackMetaMetricsEvent, _registerEventListeners, registerEventListeners_fn, _stopPolling, stopPolling_fn, _startPolling, startPolling_fn, _getCorrectChainIdAndNetworkClientId, getCorrectChainIdAndNetworkClientId_fn, _restartTokenDetection, restartTokenDetection_fn, _getSlicesOfTokensToDetect, getSlicesOfTokensToDetect_fn, _addDetectedTokens, addDetectedTokens_fn;
++var _intervalId, _selectedAddress, _networkClientId, _tokenList, _disabled, _isUnlocked, _isDetectionEnabledFromPreferences, _isDetectionEnabledForNetwork, _getBalancesInSingleCall, _getTokensState, _trackMetaMetricsEvent, _registerEventListeners, registerEventListeners_fn, _stopPolling, stopPolling_fn, _startPolling, startPolling_fn, _getCorrectChainIdAndNetworkClientId, getCorrectChainIdAndNetworkClientId_fn, _restartTokenDetection, restartTokenDetection_fn, _getSlicesOfTokensToDetect, getSlicesOfTokensToDetect_fn, _addDetectedTokens, addDetectedTokens_fn;
+ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPollingController {
+   /**
+    * Creates a TokenDetectionController instance.
+@@ -52,6 +52,7 @@ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPo
+     interval = DEFAULT_INTERVAL,
+     disabled = true,
+     getBalancesInSingleCall,
++    getTokensState,
+     trackMetaMetricsEvent,
+     messenger
+   }) {
+@@ -91,6 +92,7 @@ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPo
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _isDetectionEnabledFromPreferences, void 0);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _isDetectionEnabledForNetwork, void 0);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _getBalancesInSingleCall, void 0);
++    _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _getTokensState, void 0);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _trackMetaMetricsEvent, void 0);
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _disabled, disabled);
+     this.setIntervalLength(interval);
+@@ -101,6 +103,7 @@ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPo
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _isDetectionEnabledFromPreferences, defaultUseTokenDetection);
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _isDetectionEnabledForNetwork, _chunkNEXY7SE2js.isTokenDetectionSupportedForNetwork.call(void 0, chainId));
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _getBalancesInSingleCall, getBalancesInSingleCall);
++    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _getTokensState, getTokensState);
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _trackMetaMetricsEvent, trackMetaMetricsEvent);
+     const { isUnlocked } = this.messagingSystem.call(
+       "KeyringController:getState"
+@@ -203,6 +206,7 @@ _isDetectionEnabledFromPreferences = new WeakMap();
+ _isDetectionEnabledForNetwork = new WeakMap();
+ _getBalancesInSingleCall = new WeakMap();
+ _trackMetaMetricsEvent = new WeakMap();
++_getTokensState = new WeakMap();
+ _registerEventListeners = new WeakSet();
+ registerEventListeners_fn = function() {
+   this.messagingSystem.subscribe("KeyringController:unlock", async () => {
+@@ -324,7 +328,7 @@ getSlicesOfTokensToDetect_fn = function({
+   chainId,
+   selectedAddress
+ }) {
+-  const { allTokens, allDetectedTokens, allIgnoredTokens } = this.messagingSystem.call("TokensController:getState");
++  const { allTokens, allDetectedTokens, allIgnoredTokens } = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _getTokensState).call(this);
+   const [tokensAddresses, detectedTokensAddresses, ignoredTokensAddresses] = [
+     allTokens,
+     allDetectedTokens,
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-LAU6ZDZR.js b/node_modules/@metamask/assets-controllers/dist/chunk-LAU6ZDZR.js
+index d429be1..f5c1e2e 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-LAU6ZDZR.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-LAU6ZDZR.js
+@@ -33,6 +33,11 @@ var getDefaultNftState = () => {
+     ignoredNfts: []
+   };
+ };
++
++/**
++ * Changes regarding displayNftMedia, TokenURI and error nft metadata property are not on the core repo and needed to be refactor to be removed from the patch
++ * updateNftMetadata changes will be introduced on latest versions of changes of assets controllers, v^30 or next
++ */
+ var NftController = class extends _basecontroller.BaseControllerV1 {
+   /**
+    * Creates an NftController instance.
+@@ -82,7 +87,7 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+       selectedAddress: "",
+       chainId: initialChainId,
+       ipfsGateway: _controllerutils.IPFS_DEFAULT_GATEWAY_URL,
+-      openSeaEnabled: false,
++      displayNftMedia: false,
+       useIPFSSubdomains: true,
+       isIpfsGatewayEnabled: true
+     };
+@@ -101,16 +106,16 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+       async ({
+         selectedAddress,
+         ipfsGateway,
+-        openSeaEnabled,
++        displayNftMedia,
+         isIpfsGatewayEnabled
+       }) => {
+         this.configure({
+           selectedAddress,
+           ipfsGateway,
+-          openSeaEnabled,
++          displayNftMedia,
+           isIpfsGatewayEnabled
+         });
+-        const needsUpdateNftMetadata = isIpfsGatewayEnabled && ipfsGateway !== "" || openSeaEnabled;
++        const needsUpdateNftMetadata = isIpfsGatewayEnabled && ipfsGateway !== "" || displayNftMedia;
+         if (needsUpdateNftMetadata) {
+           const { chainId } = this.config;
+           const nfts = this.state.allNfts[selectedAddress]?.[chainId] ?? [];
+@@ -189,7 +194,8 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+         name: null,
+         description: null,
+         image: null,
+-        standard: null
++        standard: null,
++        error: 'Opensea import error',
+       };
+     }
+     const {
+@@ -234,7 +240,7 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+    * @returns Promise resolving to the current NFT name and image.
+    */
+   async getNftInformationFromTokenURI(contractAddress, tokenId, networkClientId) {
+-    const { ipfsGateway, useIPFSSubdomains, isIpfsGatewayEnabled } = this.config;
++    const { ipfsGateway, useIPFSSubdomains, isIpfsGatewayEnabled, displayNftMedia, } = this.config;
+     const result = await this.getNftURIAndStandard(
+       contractAddress,
+       tokenId,
+@@ -242,6 +248,18 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+     );
+     let tokenURI = result[0];
+     const standard = result[1];
++
++    if (!displayNftMedia && !isIpfsGatewayEnabled) {
++      return {
++        image: null,
++        name: null,
++        description: null,
++        standard: standard || null,
++        favorite: false,
++        tokenURI,
++      };
++    }
++
+     const hasIpfsTokenURI = tokenURI.startsWith("ipfs://");
+     if (hasIpfsTokenURI && !isIpfsGatewayEnabled) {
+       return {
+@@ -253,15 +271,15 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+         tokenURI: tokenURI ?? null
+       };
+     }
+-    const isDisplayNFTMediaToggleEnabled = this.config.openSeaEnabled;
+-    if (!hasIpfsTokenURI && !isDisplayNFTMediaToggleEnabled) {
++    if (!hasIpfsTokenURI && !displayNftMedia) {
+       return {
+         image: null,
+         name: null,
+         description: null,
+         standard: standard || null,
+         favorite: false,
+-        tokenURI: tokenURI ?? null
++        tokenURI: tokenURI ?? null,
++        error: 'URI import error',
+       };
+     }
+     if (hasIpfsTokenURI) {
+@@ -288,7 +306,8 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+         description: null,
+         standard: standard || null,
+         favorite: false,
+-        tokenURI: tokenURI ?? null
++        tokenURI: tokenURI ?? null,
++        error: 'URI import error',
+       };
+     }
+   }
+@@ -345,15 +364,28 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+           networkClientId
+         )
+       ),
+-      this.config.openSeaEnabled && chainId === "0x1" ? _controllerutils.safelyExecute.call(void 0, 
++      this.config.displayNftMedia && chainId === "0x1" ? _controllerutils.safelyExecute.call(void 0, 
+         () => this.getNftInformationFromApi(contractAddress, tokenId)
+       ) : void 0
+     ]);
++
++    if (blockchainMetadata?.error && nftApiMetadata?.error) {
++      return {
++        image: null,
++        name: null,
++        description: null,
++        standard: blockchainMetadata.standard ?? null,
++        favorite: false,
++        tokenURI: blockchainMetadata.tokenURI ?? null,
++        error: 'Both import failed',
++      };
++    }
++
+     return {
+       ...nftApiMetadata,
+       name: blockchainMetadata?.name ?? nftApiMetadata?.name ?? null,
+       description: blockchainMetadata?.description ?? nftApiMetadata?.description ?? null,
+-      image: blockchainMetadata?.image ?? nftApiMetadata?.image ?? null,
++      image: nftApiMetadata?.image ?? blockchainMetadata?.image ?? null,
+       standard: blockchainMetadata?.standard ?? nftApiMetadata?.standard ?? null,
+       tokenURI: blockchainMetadata?.tokenURI ?? null
+     };
+@@ -472,7 +504,8 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+           symbol: nftContract.symbol,
+           tokenId: tokenId.toString(),
+           standard: nftMetadata.standard,
+-          source
++          source,
++          tokenURI: nftMetadata.tokenURI,
+         });
+       }
+       return newNfts;
+@@ -850,7 +883,7 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+       );
+     }
+   }
+-  /**
++ /**
+    * Refetches NFT metadata and updates the state
+    *
+    * @param options - Options for refetching NFT metadata
+@@ -858,11 +891,13 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+    * @param options.userAddress - The current user address
+    * @param options.networkClientId - The networkClientId that can be used to identify the network client to use for this request.
+    */
+-  async updateNftMetadata({
+-    nfts,
+-    userAddress = this.config.selectedAddress,
+-    networkClientId
+-  }) {
++ async updateNftMetadata({
++  nfts,
++  userAddress = this.config.selectedAddress,
++  networkClientId
++}) {
++  const releaseLock = await this.mutex.acquire();
++  try {
+     const chainId = this.getCorrectChainId({ networkClientId });
+     const nftsWithChecksumAdr = nfts.map((nft) => {
+       return {
+@@ -870,7 +905,7 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+         address: _controllerutils.toChecksumHexAddress.call(void 0, nft.address)
+       };
+     });
+-    const nftMetadataResults = await Promise.allSettled(
++    const nftMetadataResults = await Promise.all(
+       nftsWithChecksumAdr.map(async (nft) => {
+         const resMetadata = await this.getNftInformation(
+           nft.address,
+@@ -883,19 +918,16 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+         };
+       })
+     );
+-    const successfulNewFetchedNfts = nftMetadataResults.filter(
+-      (result) => result.status === "fulfilled"
+-    );
+     const nftsWithDifferentMetadata = [];
+     const { allNfts } = this.state;
+     const stateNfts = allNfts[userAddress]?.[chainId] || [];
+-    successfulNewFetchedNfts.forEach((singleNft) => {
++    nftMetadataResults.forEach((singleNft) => {
+       const existingEntry = stateNfts.find(
+-        (nft) => nft.address.toLowerCase() === singleNft.value.nft.address.toLowerCase() && nft.tokenId === singleNft.value.nft.tokenId
++        (nft) => nft.address.toLowerCase() === singleNft.nft.address.toLowerCase() && nft.tokenId === singleNft.nft.tokenId
+       );
+       if (existingEntry) {
+         const differentMetadata = _chunkNEXY7SE2js.compareNftMetadata.call(void 0, 
+-          singleNft.value.newMetadata,
++          singleNft.newMetadata,
+           existingEntry
+         );
+         if (differentMetadata) {
+@@ -905,15 +937,13 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+     });
+     if (nftsWithDifferentMetadata.length !== 0) {
+       nftsWithDifferentMetadata.forEach(
+-        (elm) => this.updateNft(
+-          elm.value.nft,
+-          elm.value.newMetadata,
+-          userAddress,
+-          chainId
+-        )
++        (elm) => this.updateNft(elm.nft, elm.newMetadata, userAddress, chainId)
+       );
+     }
++  } finally {
++    releaseLock();
+   }
++}
+   /**
+    * Removes an NFT from the stored token list.
+    *
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-LD4GC7OR.js b/node_modules/@metamask/assets-controllers/dist/chunk-LD4GC7OR.js
+index cd8f792..b20db8a 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-LD4GC7OR.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-LD4GC7OR.js
+@@ -19,7 +19,7 @@ function getDefaultTokenBalancesState() {
+     contractBalances: {}
+   };
+ }
+-var _handle, _getERC20BalanceOf, _interval, _tokens, _disabled;
++var _handle, _getERC20BalanceOf, _interval, _tokens, _disabled, _updateInProgress;
+ var TokenBalancesController = class extends _basecontroller.BaseController {
+   /**
+    * Construct a Token Balances Controller.
+@@ -28,6 +28,7 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
+    * @param options.interval - Polling interval used to fetch new token balances.
+    * @param options.tokens - List of tokens to track balances for.
+    * @param options.disabled - If set to true, all tracked tokens contract balances updates are blocked.
++   * @param options.onTokensStateChange - Allows subscribing to token controller state changes.
+    * @param options.getERC20BalanceOf - Gets the balance of the given account at the given contract address.
+    * @param options.state - Initial state to set on this controller.
+    * @param options.messenger - The controller restricted messenger.
+@@ -36,6 +37,7 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
+     interval = DEFAULT_INTERVAL,
+     tokens = [],
+     disabled = false,
++    onTokensStateChange,
+     getERC20BalanceOf,
+     messenger,
+     state = {}
+@@ -54,16 +56,14 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _interval, void 0);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _tokens, void 0);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _disabled, void 0);
++    _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _updateInProgress, false);
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _disabled, disabled);
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _interval, interval);
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _tokens, tokens);
+-    this.messagingSystem.subscribe(
+-      "TokensController:stateChange",
+-      ({ tokens: newTokens, detectedTokens }) => {
+-        _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _tokens, [...newTokens, ...detectedTokens]);
+-        this.updateBalances();
+-      }
+-    );
++    onTokensStateChange(async ({ tokens: newTokens, detectedTokens }) => {
++      _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _tokens, [...newTokens, ...detectedTokens]);
++      await this.updateBalances();
++    });
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _getERC20BalanceOf, getERC20BalanceOf);
+     this.poll();
+   }
+@@ -96,39 +96,50 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
+       this.poll(_chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _interval));
+     }, _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _interval)));
+   }
+-  /**
++   /**
+    * Updates balances for all tokens.
+    */
+-  async updateBalances() {
+-    if (_chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _disabled)) {
++   async updateBalances() {
++    if (_chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _disabled) || _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _updateInProgress)) {
+       return;
+     }
++    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _updateInProgress, true);
+     const newContractBalances = {};
+-    for (const token of _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokens)) {
++    const balancePromises = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokens).map((token) => {
+       const { address } = token;
+       const { selectedAddress } = this.messagingSystem.call(
+         "PreferencesController:getState"
+       );
+-      try {
+-        newContractBalances[address] = _controllerutils.toHex.call(void 0, 
+-          await _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _getERC20BalanceOf).call(this, address, selectedAddress)
+-        );
++      return _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _getERC20BalanceOf).call(this, address, selectedAddress).then((balance) => {
++        newContractBalances[address] = _controllerutils.toHex.call(void 0, balance);
+         token.balanceError = null;
+-      } catch (error) {
++      }).catch((error) => {
+         newContractBalances[address] = _controllerutils.toHex.call(void 0, 0);
+         token.balanceError = error;
+-      }
+-    }
++      });
++    });
++    await Promise.all(balancePromises);
+     this.update((state) => {
+       state.contractBalances = newContractBalances;
+     });
++    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _updateInProgress, false);
+   }
++  /**
++   * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
++   * Resets to the default state
++   */
++    reset() {
++      this.update((state) => {
++        state.contractBalances = {};
++      });
++    }
+ };
+ _handle = new WeakMap();
+ _getERC20BalanceOf = new WeakMap();
+ _interval = new WeakMap();
+ _tokens = new WeakMap();
+ _disabled = new WeakMap();
++_updateInProgress = new WeakMap();
+ var TokenBalancesController_default = TokenBalancesController;
+ 
+ 
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js b/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
+index 8c506d9..d1ec2d2 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
+@@ -182,7 +182,7 @@ async function fetchTokenContractExchangeRates({
+     (obj, [tokenAddress, tokenPrice]) => {
+       return {
+         ...obj,
+-        [_controllerutils.toChecksumHexAddress.call(void 0, tokenAddress)]: tokenPrice?.value
++        [_controllerutils.toChecksumHexAddress.call(void 0, tokenAddress)]: tokenPrice?.price
+       };
+     },
+     {}
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-V4ZO3F2S.js b/node_modules/@metamask/assets-controllers/dist/chunk-V4ZO3F2S.js
+index 0430e5c..dee32be 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-V4ZO3F2S.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-V4ZO3F2S.js
+@@ -80,9 +80,11 @@ var AccountTrackerController = class extends _pollingcontroller.StaticIntervalPo
+             [chainId]: accountsForChain
+           }
+         });
+-      } catch (err) {
++      } finally {
++        /**
++         * This change is not present on the core repo
++         */
+         releaseLock();
+-        throw err;
+       }
+     };
+     this.defaultConfig = {
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-Z6TBQQE5.js b/node_modules/@metamask/assets-controllers/dist/chunk-Z6TBQQE5.js
+index 2f1b66f..60cbc0f 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-Z6TBQQE5.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-Z6TBQQE5.js
+@@ -295,13 +295,12 @@ var CodefiTokenPricesServiceV2 = class {
+       (obj, tokenAddress) => {
+         const lowercasedTokenAddress = tokenAddress.toLowerCase();
+         const marketData = addressCryptoDataMap[lowercasedTokenAddress];
+-        if (marketData === void 0) {
++        // This is fixed on v31 of assets controllers
++        if (!marketData) {
+           return obj;
+         }
+-        const { price } = marketData;
+         const token = {
+           tokenAddress,
+-          value: price,
+           currency,
+           ...marketData
+         };
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
+index 42a321a..1393ca3 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
+@@ -109,6 +109,7 @@ export interface NftMetadata {
+     creator?: string;
+     transactionId?: string;
+     tokenURI?: string | null;
++    error?: string;
+     collection?: Collection;
+     address?: string;
+     attributes?: Attributes;
+@@ -125,7 +126,7 @@ export interface NftConfig extends BaseConfig {
+     selectedAddress: string;
+     chainId: Hex;
+     ipfsGateway: string;
+-    openSeaEnabled: boolean;
++    displayNftMedia: boolean;
+     useIPFSSubdomains: boolean;
+     isIpfsGatewayEnabled: boolean;
+ }
+@@ -350,7 +351,7 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
+             source: string;
+         }) => void;
+         messenger: NftControllerMessenger;
+-    }, config?: Partial<BaseConfig>, state?: Partial<NftState>);
++    }, config?: Partial<NftConfig>, state?: Partial<NftState>);
+     private validateWatchNft;
+     private getCorrectChainId;
+     /**
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts
+index 52bb3ac..1f4d15d 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts
+@@ -56,11 +56,12 @@ export declare class TokenBalancesController extends BaseController<typeof contr
+      * @param options.interval - Polling interval used to fetch new token balances.
+      * @param options.tokens - List of tokens to track balances for.
+      * @param options.disabled - If set to true, all tracked tokens contract balances updates are blocked.
++     * @param options.onTokensStateChange -  Allows subscribing to token controller state changes.
+      * @param options.getERC20BalanceOf - Gets the balance of the given account at the given contract address.
+      * @param options.state - Initial state to set on this controller.
+      * @param options.messenger - The controller restricted messenger.
+      */
+-    constructor({ interval, tokens, disabled, getERC20BalanceOf, messenger, state, }: TokenBalancesControllerOptions);
++    constructor({ interval, tokens, disabled, onTokensStateChange, getERC20BalanceOf, messenger, state, }: TokenBalancesControllerOptions);
+     /**
+      * Allows controller to update tracked tokens contract balances.
+      */
+@@ -79,6 +80,11 @@ export declare class TokenBalancesController extends BaseController<typeof contr
+      * Updates balances for all tokens.
+      */
+     updateBalances(): Promise<void>;
++    /**
++     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
++     * Resets to the default state
++     */
++    reset(): void;
+ }
+ export default TokenBalancesController;
+ //# sourceMappingURL=TokenBalancesController.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/TokenDetectionController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/TokenDetectionController.d.ts
+index 220d78d..795b96e 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/TokenDetectionController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/TokenDetectionController.d.ts
+@@ -6,7 +6,7 @@ import { StaticIntervalPollingController } from '@metamask/polling-controller';
+ import type { PreferencesControllerGetStateAction, PreferencesControllerStateChangeEvent } from '@metamask/preferences-controller';
+ import type { AssetsContractController } from './AssetsContractController';
+ import type { GetTokenListState, TokenListMap, TokenListStateChange } from './TokenListController';
+-import type { TokensControllerAddDetectedTokensAction, TokensControllerGetStateAction } from './TokensController';
++import type { TokensControllerAddDetectedTokensAction, TokensControllerGetStateAction, TokensState } from './TokensController';
+ /**
+  * Compare 2 given strings and return boolean
+  * eg: "foo" and "FOO" => true
+@@ -54,11 +54,12 @@ export declare class TokenDetectionController extends StaticIntervalPollingContr
+      * @param options.getBalancesInSingleCall - Gets the balances of a list of tokens for the given address.
+      * @param options.trackMetaMetricsEvent - Sets options for MetaMetrics event tracking.
+      */
+-    constructor({ selectedAddress, interval, disabled, getBalancesInSingleCall, trackMetaMetricsEvent, messenger, }: {
++    constructor({ selectedAddress, interval, disabled, getBalancesInSingleCall, getTokensState, trackMetaMetricsEvent, messenger, }: {
+         selectedAddress?: string;
+         interval?: number;
+         disabled?: boolean;
+         getBalancesInSingleCall: AssetsContractController['getBalancesInSingleCall'];
++        getTokensState: () => TokensState;
+         trackMetaMetricsEvent: (options: {
+             event: string;
+             category: string;
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/index.d.ts b/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
+index a71f4a7..df1ddc9 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
+@@ -3,7 +3,7 @@ export * from './AssetsContractController';
+ export * from './CurrencyRateController';
+ export * from './NftController';
+ export * from './NftDetectionController';
+-export type { TokenBalancesControllerMessenger, TokenBalancesControllerActions, TokenBalancesControllerGetStateAction, TokenBalancesControllerEvents, TokenBalancesControllerStateChangeEvent, } from './TokenBalancesController';
++export type { TokenBalancesControllerMessenger, TokenBalancesControllerActions, TokenBalancesControllerGetStateAction, TokenBalancesControllerEvents, TokenBalancesControllerStateChangeEvent, TokenBalancesControllerState } from './TokenBalancesController';
+ export { TokenBalancesController } from './TokenBalancesController';
+ export type { TokenDetectionControllerMessenger, TokenDetectionControllerActions, TokenDetectionControllerGetStateAction, TokenDetectionControllerEvents, TokenDetectionControllerStateChangeEvent, } from './TokenDetectionController';
+ export { TokenDetectionController } from './TokenDetectionController';
