@@ -914,7 +914,7 @@ function SwapsQuotesView({
 
       try {
         resetTransaction();
-        const { transactionMeta } = await addTransaction(
+        const { transactionMeta, result } = await addTransaction(
           {
             ...selectedQuote.trade,
             ...getTransactionPropertiesFromGasEstimates(
@@ -928,6 +928,8 @@ function SwapsQuotesView({
             origin: process.env.MM_FOX_CODE,
           },
         );
+
+        await result;
 
         updateSwapsTransactions(
           transactionMeta,
@@ -965,7 +967,7 @@ function SwapsQuotesView({
     ) => {
       try {
         resetTransaction();
-        const { transactionMeta } = await addTransaction(
+        const { transactionMeta, result } = await addTransaction(
           {
             ...approvalTransaction,
             ...getTransactionPropertiesFromGasEstimates(
@@ -979,6 +981,7 @@ function SwapsQuotesView({
           },
         );
 
+        await result;
         setRecipient(selectedAddress);
 
         approvalTransactionMetaId = transactionMeta.id;
@@ -1041,9 +1044,8 @@ function SwapsQuotesView({
     const newSwapsTransactions =
       TransactionController.state.swapsTransactions || {};
     let approvalTransactionMetaId;
-
     if (approvalTransaction) {
-      handleApprovaltransaction(
+      await handleApprovaltransaction(
         TransactionController,
         newSwapsTransactions,
         approvalTransactionMetaId,
@@ -1060,7 +1062,7 @@ function SwapsQuotesView({
       !shouldUseSmartTransaction ||
       (shouldUseSmartTransaction && !approvalTransaction)
     ) {
-      handleSwapTransaction(
+      await handleSwapTransaction(
         TransactionController,
         newSwapsTransactions,
         approvalTransactionMetaId,
