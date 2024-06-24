@@ -400,6 +400,7 @@ describe('SendTransaction View', () => {
           },
           {
             "deviceConfirmedOn": "metamask_mobile",
+            "origin": "RAMPS_SEND",
           },
         ],
       ]
@@ -444,7 +445,7 @@ describe('SendTransaction View', () => {
           },
           {
             "deviceConfirmedOn": "metamask_mobile",
-            "origin": "RAMPS_SEND"
+            "origin": "RAMPS_SEND",
           },
         ],
       ]
