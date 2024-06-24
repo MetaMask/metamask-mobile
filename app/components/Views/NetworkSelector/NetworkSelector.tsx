@@ -118,6 +118,7 @@ const NetworkSelector = () => {
     isVisible: false,
     chainId: '',
     displayEdit: false,
+    networkTypeOrRpcUrl: '',
   });
 
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
@@ -184,11 +185,12 @@ const NetworkSelector = () => {
     }
   };
 
-  const openModal = useCallback((chainId, displayEdit) => {
+  const openModal = useCallback((chainId, displayEdit, networkTypeOrRpcUrl) => {
     setNetworkMenuModal({
       isVisible: true,
       chainId,
       displayEdit,
+      networkTypeOrRpcUrl,
     });
     networkMenuSheetRef.current?.onOpenBottomSheet();
   }, []);
@@ -198,6 +200,7 @@ const NetworkSelector = () => {
       chainId: '',
       isVisible: false,
       displayEdit: false,
+      networkTypeOrRpcUrl: '',
     }));
     networkMenuSheetRef.current?.onCloseBottomSheet();
   }, []);
@@ -271,7 +274,7 @@ const NetworkSelector = () => {
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
           onButtonClick={() => {
-            openModal(chainId, false);
+            openModal(chainId, false, MAINNET);
           }}
         />
       );
@@ -322,7 +325,7 @@ const NetworkSelector = () => {
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
           onButtonClick={() => {
-            openModal(chainId, false);
+            openModal(chainId, false, LINEA_MAINNET);
           }}
         />
       );
@@ -374,7 +377,7 @@ const NetworkSelector = () => {
               style={styles.networkCell}
               buttonIcon={IconName.MoreVertical}
               onButtonClick={() => {
-                openModal(chainId, true);
+                openModal(chainId, true, rpcUrl);
               }}
             />
           );
@@ -433,6 +436,7 @@ const NetworkSelector = () => {
       navigate(Routes.ADD_NETWORK, {
         shouldNetworkSwitchPopToWallet: false,
         shouldShowPopularNetworks: false,
+        network: 'mainnet',
       });
     });
   };
@@ -639,7 +643,13 @@ const NetworkSelector = () => {
             <AccountAction
               actionTitle={strings('transaction.edit')}
               iconName={IconName.Edit}
-              onPress={() => console.log('TODO EDIT HERE ...')}
+              onPress={() => {
+                navigate(Routes.ADD_NETWORK, {
+                  shouldNetworkSwitchPopToWallet: false,
+                  shouldShowPopularNetworks: false,
+                  network: showNetworkMenuModal.networkTypeOrRpcUrl,
+                });
+              }}
             />
             {showNetworkMenuModal.chainId !== providerConfig.chainId &&
             showNetworkMenuModal.displayEdit ? (
