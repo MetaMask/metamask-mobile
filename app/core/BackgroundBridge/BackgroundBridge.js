@@ -350,11 +350,7 @@ export class BackgroundBridge extends EventEmitter {
 
     pump(outStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
-      this.engine._middleware.forEach((mid) => {
-        if (mid.destroy && typeof mid.destroy === 'function') {
-          mid.destroy();
-        }
-      });
+      this.engine.destroy();
       if (err) Logger.log('Error with provider stream conn', err);
     });
   }
