@@ -59,6 +59,8 @@ interface SendTransactionParams {
   orderId?: string;
 }
 
+export const RAMPS_SEND = 'RAMPS_SEND';
+
 function SendTransaction() {
   const navigation = useNavigation();
   const params = useParams<SendTransactionParams>();
@@ -153,6 +155,7 @@ function SendTransaction() {
       );
       const response = await addTransaction(transactionParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        origin: RAMPS_SEND,
       });
       const hash = await response.result;
 

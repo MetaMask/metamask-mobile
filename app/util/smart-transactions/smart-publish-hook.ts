@@ -20,6 +20,7 @@ import {
 import { v1 as random } from 'uuid';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
+import { RAMPS_SEND } from '../../components/UI/Ramp/Views/SendTransaction/SendTransaction';
 
 export declare type Hex = `0x${string}`;
 
@@ -146,7 +147,10 @@ class SmartTransactionHook {
       this.#shouldUseSmartTransaction,
     );
     const useRegularTransactionSubmit = { transactionHash: undefined };
-    if (!this.#shouldUseSmartTransaction) {
+    if (
+      !this.#shouldUseSmartTransaction ||
+      this.#transactionMeta.origin === RAMPS_SEND
+    ) {
       return useRegularTransactionSubmit;
     }
 
