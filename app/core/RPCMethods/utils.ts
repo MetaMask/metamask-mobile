@@ -1,5 +1,4 @@
 import { query } from '@metamask/controller-utils';
-import { rpcErrors } from '@metamask/rpc-errors';
 import Engine from '../Engine';
 import { selectHooks } from '@metamask/snaps-rpc-methods';
 import { OptionalDataWithOptionalCause, rpcErrors } from '@metamask/rpc-errors';
@@ -135,7 +134,7 @@ export const polyfillGasPrice = async (method: string, params: any[] = []) => {
 };
 
 export const validateParams = (
-  obj: any,
+  obj: Record<string, unknown>,
   properties: string[],
   name: string,
 ): void => {

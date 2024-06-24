@@ -36,10 +36,7 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../selectors/preferencesController';
+import { selectIdentities } from '../../selectors/preferencesController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -49,6 +46,8 @@ import { fromWei } from '../../util/number/index.js';
 import Logger from '../../../app/util/Logger';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { addTransaction } from '../../util/transaction-controller';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../selectors/accountsController';
+import { parseCaip10Address } from '../../util/caip10Address';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -393,13 +392,21 @@ export const getRpcMethodMiddleware = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rpcMethods: any = {
       wallet_swapAsset: async () => {
-        const { from, to, user_address } = req.params[0];
+        const { fromToken, toToken, user_address } = req.params[0];
         const identities = selectIdentities(store.getState());
-        const selectedAddress = selectSelectedAddress(store.getState());
+        const selectedAddress = selectSelectedInternalAccountChecksummedAddress(
+          store.getState(),
+        );
+        let parsedCaip10UserAddress;
+        try {
+          parsedCaip10UserAddress = parseCaip10Address(user_address);
+        } catch (error) {
+          throw rpcErrors.invalidParams('Invalid caip-10 user address');
+        }
         const dappConnectedAccount = Object.keys(identities).find(
           (address) =>
             safeToChecksumAddress(address) ===
-            safeToChecksumAddress(user_address),
+            safeToChecksumAddress(parsedCaip10UserAddress.address),
         );
 
         if (!dappConnectedAccount) {
@@ -407,31 +414,57 @@ export const getRpcMethodMiddleware = ({
         }
 
         // This condition is only needed until we support multiple source tokens swap
-        if (from.length > 1) {
+        if (fromToken.length > 1) {
           throw rpcErrors.methodNotSupported(
             'Currently we de not support multiple tokens swap',
           );
         }
 
-        validateParams(from[0], ['token_address'], 'from');
-        validateParams(to, ['token_address'], 'to');
+        validateParams(fromToken[0], ['address'], 'fromToken');
+        validateParams(toToken, ['address'], 'toToken');
+
+        let parsedCaip10FromTokenAddress;
+        try {
+          parsedCaip10FromTokenAddress = parseCaip10Address(
+            fromToken[0].address,
+          );
+        } catch (error) {
+          throw rpcErrors.invalidParams('Invalid caip-10 fromToken address');
+        }
+
+        let parsedCaip10ToTokenAddress;
+        try {
+          parsedCaip10ToTokenAddress = parseCaip10Address(toToken.address);
+        } catch (error) {
+          throw rpcErrors.invalidParams('Invalid caip-10 toToken address');
+        }
+
+        if (
+          parsedCaip10FromTokenAddress.chainId !==
+          parsedCaip10ToTokenAddress.chainId
+        ) {
+          throw rpcErrors.methoddNotSupported(
+            'Cross-chain swaps are currently not supported. Both fromToken and toToken must be on the same blockchain.',
+          );
+        }
 
         const chainId = selectChainId(store.getState());
+
+        if (chainId !== toHex(parsedCaip10FromTokenAddress.chainId)) {
+          throw rpcErrors.invalidParams(
+            `Invalid parameters: active chainId is different than the one provided.`,
+          );
+        }
 
         const checksummedDappConnectedAccount =
           safeToChecksumAddress(dappConnectedAccount);
 
-        if (
-          safeToChecksumAddress(selectedAddress) !==
-          checksummedDappConnectedAccount
-        ) {
-          Engine.context.PreferencesController.setSelectedAddress(
-            checksummedDappConnectedAccount,
-          );
+        if (selectedAddress !== checksummedDappConnectedAccount) {
+          Engine.setSelectedAccount(checksummedDappConnectedAccount);
         }
 
         // switch to the chain id asked from the dapp
-        // validate if swaps is enable on that network
+        // validate if swaps is enable on that   network
         const swapsIsLive = swapsLivenessSelector(store.getState());
         const isSwappable = isSwapsAllowed(chainId) && swapsIsLive;
 
@@ -446,14 +479,14 @@ export const getRpcMethodMiddleware = ({
           );
         }
         //If value is not defined by the dapp it defaults to 0
-        const decimalWei = parseInt(from[0].value ?? 0, 16);
+        const decimalWei = parseInt(fromToken[0].value ?? 0, 16);
         const tokenAmount = fromWei(decimalWei);
 
         navigation.navigate('Swaps', {
           screen: 'SwapsAmountView',
           params: {
-            sourceToken: from[0].token_address,
-            destinationToken: to.token_address,
+            sourceToken: parsedCaip10FromTokenAddress.address,
+            destinationToken: parsedCaip10ToTokenAddress.address,
             amount: tokenAmount,
           },
         });
