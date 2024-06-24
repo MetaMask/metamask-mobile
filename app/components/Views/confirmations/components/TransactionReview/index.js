@@ -5,6 +5,7 @@ import React, { PureComponent } from 'react';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
@@ -18,6 +19,7 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../../../selectors/networkController';
+import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { selectTokenList } from '../../../../../selectors/tokenListController';
 import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
@@ -40,7 +42,6 @@ import {
   weiToFiat,
 } from '../../../../../util/number';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
-import { isTransactionSimulationsFeatureEnabled } from '../../../../../util/transaction-controller';
 import {
   decodeTransferData,
   getNormalizedTxState,
@@ -61,7 +62,6 @@ import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionB
 import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -265,6 +265,10 @@ class TransactionReview extends PureComponent {
      * Transaction simulation data
      */
     transactionSimulationData: PropTypes.object,
+    /**
+     * Boolean that indicates if transaction simulations should be enabled
+     */
+    useTransactionSimulations: PropTypes.bool,
   };
 
   state = {
@@ -390,7 +394,9 @@ class TransactionReview extends PureComponent {
           value,
           selectedAsset.decimals,
         )} ${selectedAsset.symbol}`;
-        const conversionRate = contractExchangeRates[selectedAsset.address];
+        const conversionRate = contractExchangeRates
+          ? contractExchangeRates[selectedAsset.address]?.price
+          : undefined;
         const fiatValue = balanceToFiat(
           (value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0,
           this.props.conversionRate,
@@ -512,6 +518,7 @@ class TransactionReview extends PureComponent {
       transaction: { to, origin, from, ensRecipient, id: transactionId },
       error,
       transactionSimulationData,
+      useTransactionSimulations,
     } = this.props;
 
     const {
@@ -594,7 +601,7 @@ class TransactionReview extends PureComponent {
                         />
                       </View>
                     )}
-                    {isTransactionSimulationsFeatureEnabled() && (
+                    {useTransactionSimulations && (
                       <View style={styles.transactionSimulations}>
                         <SimulationDetails
                           simulationData={transactionSimulationData}
@@ -700,6 +707,7 @@ const mapStateToProps = (state) => ({
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
   transactionSimulationData:
     selectCurrentTransactionMetadata(state)?.simulationData,
+  useTransactionSimulations: selectUseTransactionSimulations(state),
 });
 
 TransactionReview.contextType = ThemeContext;

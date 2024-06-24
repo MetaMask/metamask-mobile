@@ -98,6 +98,8 @@ export default class DeeplinkProtocolService {
       isMMSDK: true,
       url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       isRemoteConn: true,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sendMessage: (msg: any) => {
         const response = {
           ...msg,
@@ -116,6 +118,8 @@ export default class DeeplinkProtocolService {
     this.bridgeByClientId[clientInfo.clientId] = bridge;
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async sendMessage(message: any, forceRedirect?: boolean) {
     const id = message?.data?.id;
 
@@ -218,6 +222,8 @@ export default class DeeplinkProtocolService {
     clientId,
     scheme,
   }: {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     message: any;
     clientId: string;
     scheme?: string;
@@ -255,7 +261,11 @@ export default class DeeplinkProtocolService {
     channelId: string;
   }): Promise<unknown> {
     const permissionsController = (
-      Engine.context as { PermissionController: PermissionController<any, any> }
+      Engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
     ).PermissionController;
 
     return permissionsController.requestPermissions(
@@ -468,6 +478,8 @@ export default class DeeplinkProtocolService {
     const requestObject = JSON.parse(params.request!) as {
       id: string;
       method: string;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params: any;
     };
 
@@ -516,6 +528,8 @@ export default class DeeplinkProtocolService {
   public getSelectedAccounts() {
     const permissionController = (
       Engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         PermissionController: PermissionController<any, any>;
       }
     ).PermissionController;
@@ -622,6 +636,8 @@ export default class DeeplinkProtocolService {
       let data: {
         id: string;
         method: string;
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         params?: any;
       };
 

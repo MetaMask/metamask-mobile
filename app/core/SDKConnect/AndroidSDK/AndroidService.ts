@@ -259,7 +259,11 @@ export default class AndroidService extends EventEmitter2 {
     channelId: string;
   }): Promise<unknown> {
     const permissionsController = (
-      Engine.context as { PermissionController: PermissionController<any, any> }
+      Engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
     ).PermissionController;
 
     return permissionsController.requestPermissions(
@@ -294,6 +298,8 @@ export default class AndroidService extends EventEmitter2 {
 
         let sessionId: string,
           message: string,
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           data: { id: string; jsonrpc: string; method: string; params: any };
         try {
           parsedMsg = JSON.parse(jsonMessage); // handle message and redirect to corresponding bridge
@@ -466,6 +472,8 @@ export default class AndroidService extends EventEmitter2 {
     }
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async sendMessage(message: any, forceRedirect?: boolean) {
     const id = message?.data?.id;
     this.communicationClient.sendMessage(JSON.stringify(message));

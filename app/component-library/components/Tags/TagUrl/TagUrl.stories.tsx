@@ -26,6 +26,8 @@ const TagUrlMeta = {
 export default TagUrlMeta;
 
 export const TagUrl = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: ({ label, ctaLabel }: any) => (
     <View style={{ alignItems: 'flex-start' }}>
       <TagUrlComponent

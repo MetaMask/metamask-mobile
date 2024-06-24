@@ -23,6 +23,8 @@ const mockInitialState = {
 };
 
 // test reducer for the test store
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const testBalancesReducer = (state: any, action: any) => {
   if (action.type === 'add-balances') {
     return {
@@ -61,7 +63,11 @@ const DummyTestComponent = () => {
 };
 
 describe('useTokenBalancesController()', () => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let toJSON: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let testStore: Store<any, any>;
 
   beforeEach(async () => {
@@ -72,6 +78,8 @@ describe('useTokenBalancesController()', () => {
 
     // console.log('testStore', JSON.stringify(testStore.getState()));
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Wrapper = ({ children }: any) => (
       <Provider store={testStore}>{children}</Provider>
     );

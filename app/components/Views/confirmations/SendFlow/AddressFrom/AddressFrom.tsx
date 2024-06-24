@@ -48,15 +48,21 @@ const SendFlowAddressFrom = ({
   const dispatch = useDispatch();
 
   const selectedAsset = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.transaction.selectedAsset,
   );
 
   const selectedAssetAction = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (asset: any) => dispatch(setSelectedAsset(asset)),
     [dispatch],
   );
 
   const newAssetTransactionAction = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (asset: any) => dispatch(newAssetTransaction(asset)),
     [dispatch],
   );

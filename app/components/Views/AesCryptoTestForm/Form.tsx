@@ -25,11 +25,16 @@ const TestForm = ({
     testId: string;
   }[];
   buttonLabel: string;
-  callback:
-    | ((...args: any[]) => Promise<unknown>)
+  callback: // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  | ((...args: any[]) => Promise<unknown>)
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     | ((...args: any[]) => unknown);
   callbackTestId: string;
   responseTestId: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: any;
 }) => {
   const [result, setResult] = useState('');

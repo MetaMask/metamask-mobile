@@ -57,6 +57,8 @@ const ApproveTransactionHeader = ({
   const networkName = useSelector(selectNetworkName);
 
   const useBlockieIcon = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.settings.useBlockieIcon,
   );
 

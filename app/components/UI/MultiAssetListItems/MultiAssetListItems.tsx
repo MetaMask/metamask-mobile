@@ -20,14 +20,20 @@ interface Props {
   /**
    * Array of assets objects returned from the search
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   searchResults: any[];
   /**
    * Callback triggered when a token is selected
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handleSelectAsset: (asset: any) => void;
   /**
    * Object of the currently-selected token
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   selectedAsset: any[];
   /**
    * Search query that generated "searchResults"

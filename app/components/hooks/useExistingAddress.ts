@@ -15,6 +15,8 @@ export interface Address {
 
 const useExistingAddress = (address?: string): Address | undefined => {
   const chainId = useSelector(selectChainId);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { addressBook, identities } = useSelector((state: any) => ({
     addressBook: state.engine.backgroundState.AddressBookController.addressBook,
     identities: selectIdentities(state),
