@@ -96,7 +96,7 @@ describe('SmartTransactionsOptInModal', () => {
       Engine.context.PreferencesController.setSmartTransactionsOptInStatus,
     ).toHaveBeenCalledWith(true);
   });
-  it('should opt user out when secondary button is pressed and navigate to Advanced Settings', async () => {
+  it('opts user out when secondary button is pressed and navigate to Advanced Settings', async () => {
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
       state: initialState,
     });
