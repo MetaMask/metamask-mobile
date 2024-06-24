@@ -57,12 +57,11 @@ import { safeToChecksumAddress } from '../../../../../util/address';
 import { generateTransferData } from '../../../../../util/transactions';
 import useAnalytics from '../../hooks/useAnalytics';
 import { toHex } from '@metamask/controller-utils';
+import { RAMPS_SEND } from '../../constants';
 
 interface SendTransactionParams {
   orderId?: string;
 }
-
-export const RAMPS_SEND = 'RAMPS_SEND';
 
 function SendTransaction() {
   const navigation = useNavigation();
