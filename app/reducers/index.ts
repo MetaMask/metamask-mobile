@@ -28,6 +28,7 @@ import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
 import smartTransactionsReducer from '../core/redux/slices/smartTransactions';
 import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
+import dappSpamFilterReducer from '../core/redux/slices/dappSpamFilter';
 
 /**
  * Infer state from a reducer
@@ -120,6 +121,7 @@ export interface RootState {
   accounts: any;
   inpageProvider: StateFromReducer<typeof inpageProviderReducer>;
   transactionMetrics: StateFromReducer<typeof transactionMetricsReducer>;
+  dappSpamFilter: StateFromReducer<typeof dappSpamFilterReducer>;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -157,6 +159,7 @@ const rootReducer = combineReducers<RootState, any>({
   accounts: accountsReducer,
   inpageProvider: inpageProviderReducer,
   transactionMetrics: transactionMetricsReducer,
+  dappSpamFilter: dappSpamFilterReducer,
 });
 
 export default rootReducer;

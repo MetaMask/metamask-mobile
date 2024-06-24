@@ -32,6 +32,12 @@ import {
 } from '../Permissions/specifications';
 import { EthAccountType, EthMethod } from '@metamask/keyring-api';
 
+jest.mock('./utils', () => ({
+  ...jest.requireActual('./utils'),
+  processDappSpamRejection: jest.fn(),
+  validateDappRequestAgainstSpam: jest.fn(),
+}));
+
 jest.mock('../Engine', () => ({
   context: {
     PreferencesController: {

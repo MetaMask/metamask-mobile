@@ -1414,7 +1414,7 @@
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "By granting permission, you're allowing the following third party to access your funds.",
-    "you_trust_this_third_party" : "This allows a third party to access and transfer your NFTs without further notice until you revoke its access.",
+    "you_trust_this_third_party": "This allows a third party to access and transfer your NFTs without further notice until you revoke its access.",
     "you_trust_this_address": "Do you trust this address? By granting this permission, you're allowing this address to access your funds.",
     "edit_permission": "Edit permission",
     "edit": "Edit",
@@ -3124,5 +3124,15 @@
     "title": "Estimated changes",
     "tooltip_description": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
     "total_fiat": "Total = {{currency}}"
+  },
+  "spam_filter": {
+    "block_dapp_requests_for_1_minute": "Block DApp requests for 1 minute",
+    "continue": "Continue",
+    "description": "The site has sent you multiple requests. It might be a scam site trying to steal your assets by sending multiple requests. Do you want to disconnect from the site?",
+    "got_it": "Got it",
+    "proceed": "Proceed",
+    "site_blocked_description": "Site is blocked for 1 minute for sending requests.",
+    "site_blocked_title": "Site blocked successfully!",
+    "title": "Multiple requests detected"
   }
 }

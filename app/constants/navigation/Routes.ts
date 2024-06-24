@@ -101,6 +101,7 @@ const Routes = {
     FIAT_ON_TESTNETS_FRICTION: 'SettingsAdvancedFiatOnTestnetsFriction',
     SHOW_IPFS: 'ShowIpfs',
     SHOW_NFT_DISPLAY_MEDIA: 'ShowNftDisplayMedia',
+    DAPP_SPAM_MODAL: 'DappSpamModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',

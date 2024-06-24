@@ -1,0 +1,303 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DappSpamModal renders SiteBlockedContent if user opt in to block dapp 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "padding": 16,
+    }
+  }
+>
+  <SvgMock
+    color="#1c8234"
+    height={32}
+    name="Confirmation"
+    style={
+      {
+        "height": 32,
+        "width": 32,
+      }
+    }
+    width={32}
+  />
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+        "height": 32,
+        "justifyContent": "space-between",
+        "margin": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    />
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#141618",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 18,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Multiple requests detected
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": 1,
+        }
+      }
+    />
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#141618",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Site is blocked for 1 minute for sending requests.
+  </Text>
+  <View
+    style={
+      {
+        "alignSelf": "stretch",
+        "flexDirection": "column",
+        "gap": 16,
+        "paddingTop": 24,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#0376c9",
+          "borderRadius": 24,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="got-it-button"
+      variant="Primary"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Got it
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;
+
+exports[`DappSpamModal renders spam modal content by default 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "padding": 16,
+    }
+  }
+>
+  <SvgMock
+    color="#bf5208"
+    height={32}
+    name="Danger"
+    style={
+      {
+        "height": 32,
+        "width": 32,
+      }
+    }
+    width={32}
+  />
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+        "height": 32,
+        "justifyContent": "space-between",
+        "margin": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    />
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#141618",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 18,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Multiple requests detected
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": 1,
+        }
+      }
+    />
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#141618",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    The site has sent you multiple requests. It might be a scam site trying to steal your assets by sending multiple requests. Do you want to disconnect from the site?
+  </Text>
+  <View
+    style={
+      {
+        "alignSelf": "stretch",
+        "flexDirection": "column",
+        "gap": 16,
+        "paddingTop": 24,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "transparent",
+          "borderColor": "#0376c9",
+          "borderRadius": 24,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="continue-dapp-button"
+      variant="Secondary"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#0376c9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Continue
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#0376c9",
+          "borderRadius": 24,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="block-dapp-button"
+      variant="Primary"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Block DApp requests for 1 minute
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

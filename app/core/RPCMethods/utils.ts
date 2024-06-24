@@ -4,7 +4,22 @@ import { selectHooks } from '@metamask/snaps-rpc-methods';
 import { OptionalDataWithOptionalCause, rpcErrors } from '@metamask/rpc-errors';
 import { JsonRpcMiddleware } from 'json-rpc-engine';
 import { PermittedHandlerExport } from '@metamask/permission-controller';
-import { Json, JsonRpcParams, hasProperty } from '@metamask/utils';
+import {
+  Json,
+  JsonRpcParams,
+  hasProperty,
+  JsonRpcRequest,
+} from '@metamask/utils';
+import { Store } from 'redux';
+
+import { containsUserRejectedError } from '../../util/middlewares';
+import Routes from '../../constants/navigation/Routes';
+import { RPC_METHODS } from '../SDKConnect/SDKConnectConstants';
+import {
+  isDappBlockedForRPCRequests,
+  isSpamPromptActive,
+  onRPCRequestRejectedByUser,
+} from '../redux/slices/dappSpamFilter';
 
 export const UNSUPPORTED_RPC_METHODS = new Set([
   // This is implemented later in our middleware stack – specifically, in
@@ -132,6 +147,84 @@ export const polyfillGasPrice = async (method: string, params: any[] = []) => {
 
   return data;
 };
+
+export const BLOCKABLE_SPAM_RPC_METHODS = new Set([
+  RPC_METHODS.ETH_SENDTRANSACTION,
+  RPC_METHODS.ETH_SIGNTRANSACTION,
+  RPC_METHODS.ETH_SIGN,
+  RPC_METHODS.ETH_SIGNTRANSACTION,
+  RPC_METHODS.ETH_SIGNTYPEDEATAV3,
+  RPC_METHODS.ETH_SIGNTYPEDEATAV4,
+  RPC_METHODS.METAMASK_CONNECTSIGN,
+  RPC_METHODS.METAMASK_BATCH,
+  RPC_METHODS.PERSONAL_SIGN,
+  RPC_METHODS.WALLET_WATCHASSET,
+  RPC_METHODS.WALLET_ADDETHEREUMCHAIN,
+  RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN,
+  RPC_METHODS.WALLET_REQUESTPERMISSIONS,
+  RPC_METHODS.WALLET_GETPERMISSIONS,
+]);
+
+// Origin added in the createOriginMiddleware
+export type ExtendedJSONRPCRequest = JsonRpcRequest & { origin: string };
+
+export function validateDappRequestAgainstSpam({
+  req,
+  store,
+}: {
+  req: ExtendedJSONRPCRequest;
+  store: Store;
+}) {
+  const isBlockableRPCMethod = BLOCKABLE_SPAM_RPC_METHODS.has(req.method);
+  const appState = store.getState();
+
+  if (isBlockableRPCMethod) {
+    const hasActiveSpamPrompt = isSpamPromptActive(appState);
+    if (hasActiveSpamPrompt) {
+      const error = new Error('Request blocked due to active spam modal.');
+      throw error;
+    }
+
+    const isDappBlocked = isDappBlockedForRPCRequests(appState, req.origin);
+    if (isDappBlocked) {
+      const error = new Error(
+        'Request blocked as the user identified it as spam.',
+      );
+      throw error;
+    }
+  }
+}
+
+export function processDappSpamRejection({
+  req,
+  error,
+  store,
+  navigation,
+}: {
+  req: ExtendedJSONRPCRequest;
+  error: {
+    message: string;
+    code?: number;
+  };
+  store: Store;
+  navigation: {
+    navigate: (route: string, params: Record<string, unknown>) => void;
+  };
+}) {
+  const isBlockableRPCMethod = BLOCKABLE_SPAM_RPC_METHODS.has(req.method);
+  if (
+    isBlockableRPCMethod &&
+    containsUserRejectedError(error.message, error?.code)
+  ) {
+    store.dispatch(onRPCRequestRejectedByUser(req.origin));
+    if (isSpamPromptActive(store.getState())) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.DAPP_SPAM_MODAL,
+        params: { domain: req.origin },
+      });
+    }
+  }
+}
 
 export default {
   polyfillGasPrice,

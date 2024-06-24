@@ -19,7 +19,11 @@ import Networks, {
   blockTagParamIndex,
   getAllNetworks,
 } from '../../util/networks';
-import { polyfillGasPrice } from './utils';
+import {
+  polyfillGasPrice,
+  processDappSpamRejection,
+  validateDappRequestAgainstSpam,
+} from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
 import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
@@ -920,6 +924,8 @@ export const getRpcMethodMiddleware = ({
       return next();
     }
 
+    validateDappRequestAgainstSpam({ req, store });
+
     const isWhiteListedMethod = isWhitelistedRPC(req.method);
 
     try {
@@ -929,9 +935,19 @@ export const getRpcMethodMiddleware = ({
 
       isWhiteListedMethod &&
         store.dispatch(setEventStage(req.method, RPCStageTypes.COMPLETE));
-    } catch (e) {
-      isWhiteListedMethod && store.dispatch(setEventStageError(req.method, e));
-      throw e;
+    } catch (error: unknown) {
+      processDappSpamRejection({
+        req,
+        error: error as {
+          message: string;
+          code?: number;
+        },
+        store,
+        navigation,
+      });
+      isWhiteListedMethod &&
+        store.dispatch(setEventStageError(req.method, error));
+      throw error;
     }
   });
 };
