@@ -117,6 +117,8 @@ stages:
     workflows:
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_assets_ios: {}
+      - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_swaps_ios: {}
@@ -139,6 +141,8 @@ stages:
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_assets_ios: {}
+      - run_tag_smoke_assets_android: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
@@ -445,8 +449,8 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - PRODUCTION_APP_URL: 'bs://ba40e5b7b4210a06c659b5c6818a3efec2624513' # Last production's QA build
-      - PRODUCTION_BUILD_VERSION_NAME: 7.22.0
-      - PRODUCTION_BUILD_VERSION_NUMBER: 1325
+      - PRODUCTION_BUILD_VERSION_NAME: 7.24.3
+      - PRODUCTION_BUILD_VERSION_NUMBER: 1351
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_VERSION_NAME ($PRODUCTION_BUILD_VERSION_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
@@ -468,6 +472,22 @@ workflows:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
       - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_assets_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
+      - TEST_SUITE_TAG: '.*SmokeAssets.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_assets_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
+      - TEST_SUITE_TAG: '.*SmokeAssets.*'
     after_run:
       - android_e2e_test
   run_tag_smoke_confirmations_ios:
@@ -1381,16 +1401,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.24.2
+      VERSION_NAME: 7.24.3
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1348
+      VERSION_NUMBER: 1351
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.24.2
+      FLASK_VERSION_NAME: 7.24.3
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1348
+      FLASK_VERSION_NUMBER: 1351
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
