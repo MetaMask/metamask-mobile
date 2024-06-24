@@ -4,6 +4,8 @@ import { useRampSDK, SDK } from '../sdk';
 import Logger from '../../../../util/Logger';
 
 type NullifyOrPartial<T> = { [P in keyof T]?: T[P] | null };
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PartialParameters<T> = T extends (...args: infer P) => any
   ? NullifyOrPartial<P>
   : never;
@@ -83,7 +85,9 @@ export default function useSDKMethod<T extends keyof RegionsService>(
   },
   (
     ...customParams: PartialParameters<RegionsService[T]> | []
-  ) => Promise<any> | ReturnType<RegionsService[T]>,
+  ) => // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Promise<any> | ReturnType<RegionsService[T]>,
 ] {
   const method = typeof config === 'string' ? config : config.method;
   const onMount = typeof config === 'string' ? true : config.onMount ?? true;

@@ -18,7 +18,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { SnapPermissionCell } from '../SnapPermissionCell';
 import { RequestedPermissions } from '@metamask/permission-controller';
 import { RestrictedMethods } from '../../../../../core/Permissions/constants';
-import { EndowmentPermissions } from '../../../../../constants/permissions';
+import { EndowmentPermissions } from '../../../../../core/Snaps';
 import SNAP_PERMISSIONS from './SnapPermissions.contants';
 
 interface SnapPermissionsProps {
@@ -145,6 +145,8 @@ const SnapPermissions = ({
     [],
   );
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const isSnapsDerivationPath = (object: any): object is SnapsDerivationPath =>
     typeof object === 'object' &&
     object !== null &&

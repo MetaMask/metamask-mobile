@@ -50,6 +50,8 @@ const AccountConnectSingle = ({
   connection,
 }: AccountConnectSingleProps) => {
   const { styles } = useStyles(styleSheet, {});
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies

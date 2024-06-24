@@ -27,11 +27,12 @@ const DUMMY_BALANCE_CHANGE = {
 const CHAIN_ID_MOCK = '0x1';
 const ERC20_TOKEN_1_MOCK = '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599'; // WBTC
 const ERC20_TOKEN_2_MOCK = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'; // USDC
+const ERC20_TOKEN_3_MOCK = '0xabcd6991c6218b36c1d19d4a2e9eb0ce36056789'; // UNKOWN
 const ERC721_TOKEN_MOCK = '0x06012c8cf97bead5deae237070f9587f8e7a266d'; // CryptoKitties
 const ERC1155_TOKEN_MOCK = '0x60e4d786628fea6478f785a6d7e704777c86a7c6'; // MAYC
 
 const preloadedEngineState = {
-  settings: { useBlockieIcon: false },
+  settings: { useBlockieIcon: false, showFiatInTestnets: true },
   engine: {
     backgroundState: {
       PreferencesController: {
@@ -156,7 +157,7 @@ export const MultipleTokens: Story = {
         {
           ...DUMMY_BALANCE_CHANGE,
           address: ERC20_TOKEN_1_MOCK,
-          difference: '0x123456',
+          difference: '0x1323232333232320',
           isDecrease: false,
           standard: SimulationTokenStandard.erc20,
         },
@@ -182,6 +183,13 @@ export const MultipleTokens: Story = {
           isDecrease: false,
           id: '0x1155',
           standard: SimulationTokenStandard.erc1155,
+        },
+        {
+          ...DUMMY_BALANCE_CHANGE,
+          address: ERC20_TOKEN_3_MOCK,
+          difference: '0x123456901',
+          isDecrease: false,
+          standard: SimulationTokenStandard.erc20,
         },
       ],
     },

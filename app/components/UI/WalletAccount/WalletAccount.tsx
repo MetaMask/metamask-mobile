@@ -29,6 +29,8 @@ import Logger from '../../../util/Logger';
 import styleSheet from './WalletAccount.styles';
 import { WalletAccountProps } from './WalletAccount.types';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const { styles } = useStyles(styleSheet, { style });
 
@@ -50,6 +52,8 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
     accountActionsRef,
   }));
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies

@@ -1,5 +1,16 @@
 /* eslint-disable dot-notation */
-import { deriveSentryEnvironment, excludeEvents } from './utils';
+import { UserFeedback, captureUserFeedback } from '@sentry/react-native';
+import {
+  deriveSentryEnvironment,
+  excludeEvents,
+  captureSentryFeedback,
+} from './utils';
+
+jest.mock('@sentry/react-native', () => ({
+  ...jest.requireActual('@sentry/react-native'),
+  captureUserFeedback: jest.fn(),
+}));
+const mockedCaptureUserFeedback = jest.mocked(captureUserFeedback);
 
 describe('deriveSentryEnvironment', () => {
   test('returns production-flask for non-dev production environment and flask build type', async () => {
@@ -94,5 +105,25 @@ describe('deriveSentryEnvironment', () => {
   test('return performance event null if empty', async () => {
     const eventExcluded = excludeEvents(null);
     expect(eventExcluded).toBe(null);
+  });
+});
+
+describe('captureSentryFeedback', () => {
+  it('should capture Sentry user feedback', async () => {
+    const mockSentryId = '123';
+    const mockComments = 'Comment';
+    const expectedUserFeedback: UserFeedback = {
+      event_id: mockSentryId,
+      name: '',
+      email: '',
+      comments: mockComments,
+    };
+    captureSentryFeedback({
+      sentryId: expectedUserFeedback.event_id,
+      comments: expectedUserFeedback.comments,
+    });
+    expect(mockedCaptureUserFeedback).toHaveBeenCalledWith(
+      expectedUserFeedback,
+    );
   });
 });

@@ -27,10 +27,8 @@ import { USER_INTENT } from '../../../constants/permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import UntypedEngine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
@@ -75,6 +73,8 @@ const createStyles = () =>
   });
 
 const AccountConnect = (props: AccountConnectProps) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
 
   const { colors } = useTheme();
@@ -86,7 +86,9 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
-  const selectedWalletAddress = useSelector(selectSelectedAddress);
+  const selectedWalletAddress = useSelector(
+    selectSelectedInternalAccountChecksummedAddress,
+  );
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([
     selectedWalletAddress,
   ]);
@@ -103,6 +105,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
 
   const { toastRef } = useContext(ToastContext);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -336,6 +340,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         accountAddress: activeAddress,
         accountAvatarType,
       });
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       Logger.error(e, 'Error while trying to connect to a dApp.');
     } finally {
@@ -367,6 +373,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         ) as string;
         !isMultiSelect && setSelectedAddresses([checksummedAddress]);
         trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         Logger.error(e, 'error while trying to add a new account');
       } finally {

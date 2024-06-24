@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { SmokeAssets } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/WalletView';
 import AddCustomTokenView from '../../pages/AddCustomTokenView';
@@ -11,7 +11,7 @@ import {
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 
-describe(SmokeCore('Import NFT'), () => {
+describe(SmokeAssets('Import NFT'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });
