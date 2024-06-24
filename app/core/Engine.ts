@@ -149,9 +149,6 @@ import {
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { EndowmentPermissions } from '../constants/permissions';
-///: END:ONLY_INCLUDE_IF
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents, MetaMetrics } from './Analytics';
 
@@ -160,6 +157,7 @@ import {
   SnapBridge,
   ExcludedSnapEndowments,
   ExcludedSnapPermissions,
+  EndowmentPermissions,
   detectSnapLocation,
   fetchFunction,
   DetectSnapLocationOptions,
@@ -1006,9 +1004,8 @@ class Engine {
     const snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
       featureFlags: {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         requireAllowlist,
+        allowLocalSnaps,
       },
       state: initialState.SnapController || undefined,
       // TODO: Replace "any" with type
@@ -1020,7 +1017,6 @@ class Engine {
       ) =>
         detectSnapLocation(location, {
           ...options,
-          allowLocal: allowLocalSnaps,
           fetch: fetchFunction,
         }),
       //@ts-expect-error types need to be aligned with snaps-controllers
@@ -1028,6 +1024,10 @@ class Engine {
       //@ts-expect-error types need to be aligned between new encryptor and snaps-controllers
       encryptor,
       getMnemonic: getPrimaryKeyringMnemonic.bind(this),
+      getFeatureFlags: () => ({
+        disableSnaps:
+          store.getState().settings.basicFunctionalityEnabled === false,
+      }),
     });
     ///: END:ONLY_INCLUDE_IF
 
