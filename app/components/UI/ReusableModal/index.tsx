@@ -10,12 +10,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import {
-  Modal,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
@@ -48,22 +43,11 @@ import {
   ReusableModalProps,
   ReusableModalRef,
 } from './ReusableModal.types';
-import { TermsOfUseModalSelectorsIDs } from '../../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
 // Export to make compatible with components that use this file.
 export type { ReusableModalRef } from './ReusableModal.types';
 
 const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
-  (
-    {
-      children,
-      onDismiss,
-      isInteractable = true,
-      style,
-      isTermsModal,
-      ...props
-    },
-    ref,
-  ) => {
+  ({ children, onDismiss, isInteractable = true, style, ...props }, ref) => {
     const postCallback = useRef<ReusableModalPostCallback>();
     const { height: screenHeight } = useWindowDimensions();
     const { styles } = useStyles(styleSheet, {});
@@ -204,45 +188,22 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
       [styles.absoluteFill],
     );
 
-    const renderModalType = () => {
-      switch (isTermsModal) {
-        case true:
-          return (
-            <Modal
-              animationType="slide"
-              presentationStyle="pageSheet"
-              visible
-              testID={TermsOfUseModalSelectorsIDs.TERMS_MODAL}
-            >
-              {children}
-            </Modal>
-          );
-        case false:
-        default:
-          return (
-            <>
-              <Animated.View style={combinedOverlayStyle}></Animated.View>
-              <PanGestureHandler
-                enabled={isInteractable}
-                onGestureEvent={gestureHandler}
-              >
-                <Animated.View style={[combinedModalStyle, style]}>
-                  <TouchableOpacity
-                    disabled={!isInteractable}
-                    style={styles.absoluteFill}
-                    onPress={debouncedHide}
-                  />
-                  {children}
-                </Animated.View>
-              </PanGestureHandler>
-            </>
-          );
-      }
-    };
-
     return (
       <View style={styles.absoluteFill} {...props}>
-        {renderModalType()}
+        <Animated.View style={combinedOverlayStyle}></Animated.View>
+        <PanGestureHandler
+          enabled={isInteractable}
+          onGestureEvent={gestureHandler}
+        >
+          <Animated.View style={[combinedModalStyle, style]}>
+            <TouchableOpacity
+              disabled={!isInteractable}
+              style={styles.absoluteFill}
+              onPress={debouncedHide}
+            />
+            {children}
+          </Animated.View>
+        </PanGestureHandler>
       </View>
     );
   },

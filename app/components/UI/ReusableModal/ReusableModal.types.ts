@@ -17,11 +17,6 @@ export interface ReusableModalProps extends ViewProps {
    * @default true
    */
   isInteractable?: boolean;
-  /**
-   * Optional boolean that indicates if the modal is a terms modal. This affects the type of modal that is displayed as a workaround for the expensive terms modal.
-   * @default undefined (false)
-   */
-  isTermsModal?: boolean;
 }
 
 export type ReusableModalPostCallback = () => void;

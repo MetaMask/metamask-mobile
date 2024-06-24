@@ -28,7 +28,7 @@ import {
   WEBVIEW_SCROLL_NOT_END_EVENT,
 } from './ModalMandatory.constants';
 import { MandatoryModalProps } from './ModalMandatory.types';
-import stylesheet, { SCREEN_HEIGHT } from './ModalMandatory.styles';
+import stylesheet from './ModalMandatory.styles';
 import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
@@ -57,7 +57,6 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     scrollEndBottomMargin,
     containerTestId,
     buttonTestId,
-    isTermsModal,
   } = route.params;
 
   const scrollToEndJS = `window.scrollTo(0, document.body.scrollHeight - ${
@@ -209,19 +208,11 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   };
 
   return (
-    <ReusableModal
-      ref={modalRef}
-      style={styles.screen}
-      isInteractable={false}
-      isTermsModal={isTermsModal}
-    >
+    <ReusableModal ref={modalRef} style={styles.screen} isInteractable={false}>
       <View style={styles.modal} testID={containerTestId}>
         {renderHeader()}
         <View
-          style={[
-            styles.bodyContainer,
-            isTermsModal && { height: SCREEN_HEIGHT / 1.6 },
-          ]}
+          style={styles.bodyContainer}
           testID={TermsOfUseModalSelectorsIDs.WEBVIEW}
         >
           {body.source === 'WebView' ? renderWebView(body.uri) : renderBody()}
