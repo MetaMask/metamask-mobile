@@ -444,6 +444,7 @@ describe('SendTransaction View', () => {
           },
           {
             "deviceConfirmedOn": "metamask_mobile",
+            "origin": "RAMPS_SEND"
           },
         ],
       ]
