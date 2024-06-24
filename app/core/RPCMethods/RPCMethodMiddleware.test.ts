@@ -417,7 +417,6 @@ describe('getRpcMethodMiddleware', () => {
       permissionController.createPermissionMiddleware({
         origin: hostMock,
       });
-    // @ts-expect-error TODO
     engine.push(permissionMiddleware);
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
     engine.push(middleware);

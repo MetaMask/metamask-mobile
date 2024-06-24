@@ -77,7 +77,7 @@ export function makeMethodMiddlewareMaker<U>(
   const makeMethodMiddleware = (hooks: Record<string, unknown>) => {
     assertExpectedHook(hooks, expectedHookNames);
 
-    const methodMiddleware: JsonRpcMiddleware<JsonRpcParams, unknown> = async (
+    const methodMiddleware: JsonRpcMiddleware<JsonRpcParams, Json> = async (
       req,
       res,
       next,
@@ -89,7 +89,6 @@ export function makeMethodMiddlewareMaker<U>(
         try {
           // Implementations may or may not be async, so we must await them.
           return await implementation(
-            // @ts-expect-error JsonRpcId (number | string | void) doesn't match the permission middleware's id, which is (string | number | null)
             req,
             res,
             next,
