@@ -23,6 +23,7 @@ import { selectInternalAccounts } from '../../../../../selectors/accountsControl
 // Internal dependencies
 import { AddressListProps, Contact } from './AddressList.types';
 import styleSheet from './AddressList.styles';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -186,7 +187,7 @@ const AddressList: React.FC<AddressListProps> = ({
         {internalAccounts.map((account) => (
           <AddressElement
             key={account.id}
-            address={account.address}
+            address={toChecksumHexAddress(account.address)}
             name={account.metadata.name}
             onAccountPress={onAccountPress}
             onIconPress={onIconPress}

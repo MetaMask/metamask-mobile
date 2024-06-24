@@ -1,8 +1,6 @@
 import {
   toChecksumAddress,
   isValidAddress,
-  //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
-  isHexString,
   addHexPrefix,
   isValidChecksumAddress,
   //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
@@ -39,7 +37,7 @@ import { AddressBookState } from '@metamask/address-book-controller';
 import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
 import { NetworkState } from '@metamask/network-controller';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
-import { Hex } from '@metamask/utils';
+import { Hex, isHexString } from '@metamask/utils';
 
 const {
   ASSET: { ERC721, ERC1155 },
