@@ -55,7 +55,11 @@ import {
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
 import { selectTokens } from '../../../selectors/tokensController';
-import { useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
 import { WalletAccount } from '../../../components/UI/WalletAccount';
 import {
   selectConversionRate,
@@ -118,6 +122,16 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
   });
 
+interface WalletProps {
+  navigation: NavigationProp<ParamListBase>;
+  storePrivacyPolicyShownDate: () => void;
+  shouldShowNewPrivacyToast: boolean;
+  currentRouteName: string;
+  storePrivacyPolicyClickedOrClosed: () => void;
+  showNftFetchingLoadingIndicator: () => void;
+  hideNftFetchingLoadingIndicator: () => void;
+}
+
 /**
  * Main view for the wallet
  */
@@ -129,8 +143,7 @@ const Wallet = ({
   storePrivacyPolicyClickedOrClosed,
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
-}: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-any) => {
+}: WalletProps) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
@@ -267,8 +280,7 @@ any) => {
   const networkImageSource = useSelector(selectNetworkImageSource);
   const useNftDetection = useSelector(selectUseNftDetection);
   const isNFTAutoDetectionModalViewed = useSelector(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.security.isNFTAutoDetectionModalViewed,
+    (state: RootState) => state.security.isNFTAutoDetectionModalViewed,
   );
 
   /**
