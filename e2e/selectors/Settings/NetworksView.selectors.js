@@ -20,6 +20,11 @@ export const NetworksViewSelectorsIDs = {
   SEARCH_NETWORK_INPUT_BOX_ID: 'network-search-input',
 };
 
+export const NetworksSelectorSelectorsIDs = {
+  CLOSE_ICON: 'network-selector-close-network-icon',
+  SEARCH_NETWORK_INPUT_BOX_ID: 'network-selector-network-search-input',
+};
+
 export const NetworkViewSelectorsText = {
   BLOCK_EXPLORER: enContent.app_settings.network_block_explorer_label,
   CHAIN_ID_LABEL: enContent.app_settings.network_chain_id_label,

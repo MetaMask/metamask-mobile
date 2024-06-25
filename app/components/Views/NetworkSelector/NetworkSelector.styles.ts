@@ -3,13 +3,13 @@ import Device from '../../../util/device';
 import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks';
+import { Colors } from '../../../util/theme/models';
+
 /**
  * Style sheet function for NetworkSelector screen.
  * @returns StyleSheet object.
  */
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     addNetworkButton: {
       marginHorizontal: 16,
@@ -96,6 +96,11 @@ const createStyles = (colors: any) =>
       color: colors.text.default,
       fontSize: 10,
       marginTop: 4,
+    },
+    searchContainer: {
+      marginLeft: 16,
+      marginRight: 16,
+      marginBottom: 8,
     },
   });
 
