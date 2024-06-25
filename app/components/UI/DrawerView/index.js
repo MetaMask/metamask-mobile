@@ -87,7 +87,7 @@ import { selectSelectedInternalAccountChecksummedAddress } from '../../../select
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
-import { isDevelopment } from 'app/util/env';
+import { isDevelopment } from '../../../util/env';
 
 const createStyles = (colors) =>
   StyleSheet.create({
