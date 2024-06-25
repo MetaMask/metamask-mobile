@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 // External dependencies.
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { SAMPLE_LISTITEM_PROPS } from '../../../component-library/components/List/ListItem/ListItem.constants';
