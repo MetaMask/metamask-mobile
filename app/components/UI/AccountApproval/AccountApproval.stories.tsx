@@ -13,7 +13,12 @@ const initialBackgroundState = {
 };
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = {
-  // Add properties from MOCK_ACCOUNTS_CONTROLLER_STATE here
+  accounts: {
+    '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+      balance: '0x0',
+      address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+    },
+  },
 };
 
 const mockInitialState = {
@@ -31,31 +36,6 @@ const rootReducer = combineReducers({
 });
 
 const mockStore = createStore(rootReducer);
-
-// Mock Engine
-const mockEngine = {
-  context: {
-    PhishingController: {
-      maybeUpdateState: () => {
-        // No operation
-      },
-      test: (url: string) => {
-        if (url === 'phishing.com') return { result: true };
-        return { result: false };
-      },
-    },
-    KeyringController: {
-      getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
-      state: {
-        keyrings: [
-          {
-            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
-          },
-        ],
-      },
-    },
-  },
-};
 
 const AccountApprovalMeta = {
   title: 'Component Library / AccountApproval',
@@ -155,4 +135,12 @@ PhishingWarning.args = {
     url: 'phishing.com',
     icon: 'https://phishing.com/icon.png',
   },
+};
+
+PhishingWarning.play = async () => {
+  // Simulate user interaction without using @storybook/testing-library
+  const confirmButton = document.querySelector('button[name="confirm"]') as HTMLElement;
+  if (confirmButton) {
+    confirmButton.click();
+  }
 };
