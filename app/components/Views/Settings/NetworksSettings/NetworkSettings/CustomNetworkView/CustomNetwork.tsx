@@ -27,6 +27,7 @@ const CustomNetwork = ({
   onNetworkSwitch,
   showAddedNetworks,
   customNetworksList,
+  showCompletionMessage = true,
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -52,7 +53,7 @@ const CustomNetwork = ({
     ? supportedNetworkList
     : supportedNetworkList.filter((n) => !n.isAdded);
 
-  if (filteredPopularList.length === 0) {
+  if (filteredPopularList.length === 0 && showCompletionMessage) {
     return (
       <EmptyPopularList goToCustomNetwork={() => switchTab?.goToPage?.(1)} />
     );
