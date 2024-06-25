@@ -8,10 +8,12 @@ import {
   JsonRpcParams,
   JsonRpcRequest,
   PendingJsonRpcResponse,
+  JsonRpcResponse,
   assertIsJsonRpcFailure,
   assertIsJsonRpcSuccess,
 } from '@metamask/utils';
 import createLegacyMethodMiddleware from '.';
+import { JsonRpcError } from '@metamask/rpc-errors';
 
 jest.mock('./util', () => {
   const getHandler = () => ({
