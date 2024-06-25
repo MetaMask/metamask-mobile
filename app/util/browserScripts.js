@@ -67,6 +67,14 @@ export const SPA_urlChangeListener = `(function () {
   })();
 `;
 
+
+
+/*
+ *
+ * Code from scripts/inpage-bridge/content-script/index.js
+ * minus documentElementCheck the function
+ *
+ */
 export const getInpageProvider = (entryScriptWeb3) =>
   `if (shouldInject()) {
   injectScript();
