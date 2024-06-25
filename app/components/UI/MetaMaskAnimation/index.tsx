@@ -13,6 +13,8 @@ const LOGO_PADDING = 25;
 const wordmarkLight = require('../../../animations/wordmark-light.json');
 const wordmarkDark = require('../../../animations/wordmark-dark.json');
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     main: {
@@ -61,7 +63,11 @@ const MetaMaskAnimation = ({
   onAnimationFinish,
 }: {
   opacity: number;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   animationRef: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   animationName: any;
   onAnimationFinish: () => void;
 }): JSX.Element => {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Third party dependencies.
 import React, { useRef, useState } from 'react';
 import { Linking, Switch, View } from 'react-native';
@@ -64,11 +65,15 @@ import { TESTNET_TICKER_SYMBOLS } from '@metamask/controller-utils';
 import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
+import { NetworksSelectorSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { PopularList } from '../../../util/networks/customNetworks';
+import NetworkSearchTextInput from './NetworkSearchTextInput';
 
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
   const [popularNetwork, setPopularNetwork] = useState(undefined);
   const [showWarningModal, setShowWarningModal] = useState(false);
+  const [searchString, setSearchString] = useState('');
   const { navigate } = useNavigation();
   const theme = useTheme();
   const { trackEvent } = useMetrics();
@@ -81,6 +86,9 @@ const NetworkSelector = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const avatarSize = isNetworkUiRedesignEnabled ? AvatarSize.Sm : undefined;
+  const buttonLabelAddNetwork = isNetworkUiRedesignEnabled
+    ? 'app_settings.network_add_custom_network'
+    : 'app_settings.network_add_network';
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: string) => {
@@ -142,7 +150,8 @@ const NetworkSelector = () => {
     }
   };
 
-  // TODO: type the any below to import { Network } from './CustomNetwork.types';
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const showNetworkModal = (networkConfiguration: any) => {
     setShowPopularNetworkModal(true);
     setPopularNetwork({
@@ -165,8 +174,34 @@ const NetworkSelector = () => {
     Linking.openURL(strings('networks.learn_more_url'));
   };
 
+  const filterNetworksByName = (networks: any[], networkName: string) => {
+    const searchResult: any = networks.filter(({ name }) =>
+      name.toLowerCase().includes(networkName.toLowerCase()),
+    );
+
+    return searchResult;
+  };
+
+  const isNoSearchResults = (networkIdenfier: string) => {
+    if (!searchString || !networkIdenfier) {
+      return false;
+    }
+
+    if (networkIdenfier === MAINNET || networkIdenfier === LINEA_MAINNET) {
+      return (
+        filterNetworksByName([Networks[networkIdenfier]], searchString)
+          .length === 0
+      );
+    }
+
+    return !networkIdenfier.includes(searchString);
+  };
+
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
+
+    if (isNetworkUiRedesignEnabled && isNoSearchResults(MAINNET)) return null;
+
     return (
       <Cell
         variant={CellVariant.Select}
@@ -188,6 +223,10 @@ const NetworkSelector = () => {
 
   const renderLineaMainnet = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
+
+    if (isNetworkUiRedesignEnabled && isNoSearchResults('linea-mainnet'))
+      return null;
+
     return (
       <Cell
         variant={CellVariant.Select}
@@ -209,6 +248,9 @@ const NetworkSelector = () => {
       ({ nickname, rpcUrl, chainId }) => {
         if (!chainId) return null;
         const { name } = { name: nickname || rpcUrl };
+
+        if (isNetworkUiRedesignEnabled && isNoSearchResults(name)) return null;
+
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
@@ -237,7 +279,11 @@ const NetworkSelector = () => {
     const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((networkType) => {
       // TODO: Provide correct types for network.
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { name, imageSource, chainId } = (Networks as any)[networkType];
+
+      if (isNetworkUiRedesignEnabled && isNoSearchResults(name)) return null;
 
       return (
         <Cell
@@ -262,6 +308,7 @@ const NetworkSelector = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.ADD_NETWORK, {
         shouldNetworkSwitchPopToWallet: false,
+        shouldShowPopularNetworks: false,
       });
     });
   };
@@ -289,18 +336,32 @@ const NetworkSelector = () => {
     </View>
   );
 
-  const renderAdditonalNetworks = () => (
-    <View style={styles.addtionalNetworksContainer}>
-      <CustomNetwork
-        isNetworkModalVisible={showPopularNetworkModal}
-        closeNetworkModal={onCancel}
-        selectedNetwork={popularNetwork}
-        toggleWarningModal={toggleWarningModal}
-        showNetworkModal={showNetworkModal}
-        shouldNetworkSwitchPopToWallet={false}
-      />
-    </View>
-  );
+  const renderAdditonalNetworks = () => {
+    let filteredNetworks;
+
+    if (isNetworkUiRedesignEnabled && searchString.length > 0)
+      filteredNetworks = PopularList.filter(({ nickname }) =>
+        nickname.toLowerCase().includes(searchString.toLowerCase()),
+      );
+
+    return (
+      <View style={styles.addtionalNetworksContainer}>
+        <CustomNetwork
+          isNetworkModalVisible={showPopularNetworkModal}
+          closeNetworkModal={onCancel}
+          selectedNetwork={popularNetwork}
+          toggleWarningModal={toggleWarningModal}
+          showNetworkModal={showNetworkModal}
+          switchTab={undefined}
+          shouldNetworkSwitchPopToWallet={false}
+          customNetworksList={
+            searchString.length > 0 ? filteredNetworks : undefined
+          }
+          showCompletionMessage={false}
+        />
+      </View>
+    );
+  };
 
   const renderTitle = (title: string) => (
     <View style={styles.switchContainer}>
@@ -310,30 +371,67 @@ const NetworkSelector = () => {
     </View>
   );
 
-  return (
-    <BottomSheet ref={sheetRef}>
+  const handleSearchTextChange = (text: any) => {
+    setSearchString(text);
+  };
+
+  const clearSearchInput = () => {
+    setSearchString('');
+  };
+
+  const renderBottomSheetContent = () => (
+    <>
       <SheetHeader title={strings('networks.select_network')} />
       <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
-        {isNetworkUiRedesignEnabled && renderTitle('networks.enabled_networks')}
+        {isNetworkUiRedesignEnabled && (
+          <View style={styles.searchContainer}>
+            <NetworkSearchTextInput
+              searchString={searchString}
+              handleSearchTextChange={handleSearchTextChange}
+              clearSearchInput={clearSearchInput}
+              testIdSearchInput={
+                NetworksSelectorSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID
+              }
+              testIdCloseIcon={NetworksSelectorSelectorsIDs.CLOSE_ICON}
+            />
+          </View>
+        )}
+        {isNetworkUiRedesignEnabled &&
+          searchString.length === 0 &&
+          renderTitle('networks.enabled_networks')}
         {renderMainnet()}
         {renderLineaMainnet()}
         {renderRpcNetworks()}
         {isNetworkUiRedesignEnabled &&
+          searchString.length === 0 &&
           renderTitle('networks.additional_networks')}
         {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
-        {renderTestNetworksSwitch()}
+        {searchString.length === 0 && renderTestNetworksSwitch()}
         {showTestNetworks && renderOtherNetworks()}
       </ScrollView>
 
       <Button
         variant={ButtonVariants.Secondary}
-        label={strings('app_settings.network_add_network')}
+        label={strings(buttonLabelAddNetwork)}
         onPress={goToNetworkSettings}
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
         style={styles.addNetworkButton}
         testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
       />
+    </>
+  );
+
+  return (
+    <BottomSheet ref={sheetRef}>
+      {isNetworkUiRedesignEnabled ? (
+        <View style={styles.networkListContainer}>
+          {renderBottomSheetContent()}
+        </View>
+      ) : (
+        renderBottomSheetContent()
+      )}
+
       {showWarningModal ? (
         <InfoModal
           isVisible={showWarningModal}

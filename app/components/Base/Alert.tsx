@@ -30,6 +30,8 @@ interface Props {
   children?: ReactNode;
 }
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     base: {
@@ -69,6 +71,8 @@ const createStyles = (colors: any) =>
 
 const getAlertStyles: (
   alertType: AlertType,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: StyleSheet.NamedStyles<any>,
 ) => [StyleProp<ViewStyle>, StyleProp<TextStyle>] = (alertType, styles) => {
   switch (alertType) {

@@ -27,12 +27,15 @@ const CustomNetwork = ({
   onNetworkSwitch,
   showAddedNetworks,
   customNetworksList,
+  showCompletionMessage = true,
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const supportedNetworkList = (customNetworksList ?? PopularList).map(
     (networkConfiguration: Network) => {
       const isAdded = Object.values(networkConfigurations).some(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (savedNetwork: any) =>
           savedNetwork.chainId === networkConfiguration.chainId,
       );
@@ -50,7 +53,7 @@ const CustomNetwork = ({
     ? supportedNetworkList
     : supportedNetworkList.filter((n) => !n.isAdded);
 
-  if (filteredPopularList.length === 0) {
+  if (filteredPopularList.length === 0 && showCompletionMessage) {
     return (
       <EmptyPopularList goToCustomNetwork={() => switchTab?.goToPage?.(1)} />
     );

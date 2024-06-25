@@ -35,6 +35,8 @@ const mockNavigation: NavigationMock = {
 };
 const bootstrapAndroidInitialNotification = jest
   .fn()
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   .mockResolvedValue(Promise.resolve((resolve: any) => setTimeout(resolve, 1)));
 
 const mockNotificationEvent = (event: NotifeeEvent) => ({

@@ -32,14 +32,21 @@ export const getSnapsWebViewPromise = new Promise<WebViewInterface>(
 
 // This is a class component because storing the references we are don't work in functional components.
 export class SnapsExecutionWebView extends Component {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   webViewRef: RefObject<WebView> | any = null;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   listener: any = null;
 
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
   constructor(props: any) {
     super(props);
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setWebViewRef(ref: React.RefObject<WebView<{ any: any }>> | null) {
     this.webViewRef = ref;
   }
