@@ -463,6 +463,7 @@ const App = ({ userLoggedIn }) => {
         }
       }
     }
+
     initSDKConnect()
       .then(() => {
         queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
@@ -728,7 +729,7 @@ const App = ({ userLoggedIn }) => {
 
   const LedgerConnectFlow = () => (
     <Stack.Navigator initialRouteName={Routes.HW.LEDGER_CONNECT}>
-      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={LedgerConnect} />
+      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={Index} />
     </Stack.Navigator>
   );
 
@@ -739,7 +740,6 @@ const App = ({ userLoggedIn }) => {
         component={SelectHardwareWallet}
         options={SelectHardwareWallet.navigationOptions}
       />
-      <Stack.Screen name="LedgerAccountInfo" component={LedgerAccountInfo} />
     </Stack.Navigator>
   );
 

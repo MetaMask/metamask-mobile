@@ -11,9 +11,6 @@ import { useNavigation } from '@react-navigation/native';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { useDispatch } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
-import StyledButton from '../../../components/UI/StyledButton';
-import Text from '../../../components/Base/Text';
 import {
   mockTheme,
   useAppThemeFromContext,
@@ -115,9 +112,7 @@ interface LedgerConnectProps {
 }
 
 const LedgerConnect = ({ onConnectLedger }: LedgerConnectProps) => {
-  // const { AccountTrackerController } = Engine.context as any;
   const theme = useAppThemeFromContext() ?? mockTheme;
-  // const { trackEvent } = useMetrics();
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
@@ -143,16 +138,7 @@ const LedgerConnect = ({ onConnectLedger }: LedgerConnectProps) => {
 
   const connectLedger = () => {
     setLoading(true);
-    // trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
-    //   device_type: 'Ledger',
-    // });
     ledgerLogicToRun(async () => {
-      // const account = await unlockLedgerDefaultAccount(true);
-      // await AccountTrackerController.syncBalanceWithAddresses([account]);
-      // trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
-      //   device_type: 'Ledger',
-      // });
-      // navigation.dispatch(StackActions.pop(2));
       onConnectLedger();
     });
   };

@@ -61,7 +61,8 @@ const AccountActions = () => {
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
 
   const Controller = useMemo(() => {
-    const { KeyringController, PreferencesController } = Engine.context as any;
+    const { KeyringController, PreferencesController } =
+      Engine.context as never;
     return { KeyringController, PreferencesController };
   }, []);
 
@@ -183,7 +184,7 @@ const AccountActions = () => {
       const { keyrings } = Controller.KeyringController.state;
 
       const updatedKeyring = keyrings.find(
-        (keyring: { type: any }) => keyring.type === kr.type,
+        (keyring: { type: never }) => keyring.type === kr.type,
       );
 
       // If there are no more accounts in the keyring, forget the device
