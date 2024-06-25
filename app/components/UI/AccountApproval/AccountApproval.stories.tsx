@@ -25,7 +25,7 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       ...initialBackgroundState,
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      accountTrackerControllerState: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
@@ -117,7 +117,7 @@ Default.args = {
   selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
   tokensLength: 5,
   navigation: {},
-  accountsLength: 3,
+  accountsLength: Object.keys(MOCK_ACCOUNTS_CONTROLLER_STATE.accounts).length,
   networkType: 'mainnet',
   walletConnectRequest: false,
   chainId: '1',
