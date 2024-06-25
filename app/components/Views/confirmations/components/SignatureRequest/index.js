@@ -23,7 +23,7 @@ import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwa
 import WebsiteIcon from '../../../../UI/WebsiteIcon';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectSelectedAddress } from '../../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -418,7 +418,7 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   networkType: selectProviderType(state),
   securityAlertResponse: state.signatureRequest.securityAlertResponse,
 });

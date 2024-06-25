@@ -30,6 +30,8 @@ const NotificationsView = ({
   selectedAddress,
   notifications,
 }: {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   selectedAddress: string;
   notifications: Notification[];
@@ -44,6 +46,8 @@ const NotificationsView = ({
     FeatureAnnouncementRawNotification[]
   >([]);
   const isNotificationEnabled = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.notification.notificationsSettings?.isEnabled,
   );
   const [loading, setLoading] = useState<boolean>(false);
@@ -126,6 +130,8 @@ export default NotificationsView;
 NotificationsView.navigationOptions = ({
   navigation,
 }: {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 }) => ({
   headerRight: () => (

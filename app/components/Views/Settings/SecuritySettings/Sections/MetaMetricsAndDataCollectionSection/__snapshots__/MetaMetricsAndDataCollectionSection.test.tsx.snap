@@ -324,7 +324,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#24272A",
+                              "color": "#141618",
                               "flex": 1,
                               "fontFamily": "Euclid Circular B",
                               "fontSize": 16,
@@ -348,7 +348,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             onChange={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            onTintColor="#0376C9"
+                            onTintColor="#0376c9"
                             style={
                               [
                                 {
@@ -360,19 +360,15 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                                     "alignSelf": "flex-start",
                                   },
                                   {
-                                    "backgroundColor": "#D6D9DC",
+                                    "backgroundColor": "#bbc0c566",
                                     "borderRadius": 16,
                                   },
                                 ],
                               ]
                             }
                             testID="metametrics-switch"
-                            thumbTintColor={
-                              {
-                                "000": "#FFFFFF",
-                              }
-                            }
-                            tintColor="#D6D9DC"
+                            thumbTintColor="#ffffff"
+                            tintColor="#bbc0c566"
                             value={false}
                           />
                         </View>
@@ -381,7 +377,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#535A61",
+                            "color": "#6a737d",
                             "fontFamily": "Euclid Circular B",
                             "fontSize": 14,
                             "fontWeight": "400",
@@ -402,7 +398,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                           style={
                             {
                               "backgroundColor": "transparent",
-                              "color": "#24272A",
+                              "color": "#141618",
                             }
                           }
                           suppressHighlighting={true}
@@ -411,7 +407,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#0376C9",
+                                "color": "#0376c9",
                                 "fontFamily": "Euclid Circular B",
                                 "fontSize": 14,
                                 "fontWeight": "400",
@@ -445,7 +441,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#24272A",
+                              "color": "#141618",
                               "flex": 1,
                               "fontFamily": "Euclid Circular B",
                               "fontSize": 16,
@@ -469,7 +465,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             onChange={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            onTintColor="#0376C9"
+                            onTintColor="#0376c9"
                             style={
                               [
                                 {
@@ -481,19 +477,15 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                                     "alignSelf": "flex-start",
                                   },
                                   {
-                                    "backgroundColor": "#D6D9DC",
+                                    "backgroundColor": "#bbc0c566",
                                     "borderRadius": 16,
                                   },
                                 ],
                               ]
                             }
                             testID="data-collection-switch"
-                            thumbTintColor={
-                              {
-                                "000": "#FFFFFF",
-                              }
-                            }
-                            tintColor="#D6D9DC"
+                            thumbTintColor="#ffffff"
+                            tintColor="#bbc0c566"
                             value={false}
                           />
                         </View>
@@ -502,7 +494,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#535A61",
+                            "color": "#6a737d",
                             "fontFamily": "Euclid Circular B",
                             "fontSize": 14,
                             "fontWeight": "400",

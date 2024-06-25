@@ -20,6 +20,7 @@ import Networks, {
   isprivateConnection,
   getAllNetworks,
   getIsNetworkOnboarded,
+  isNetworkUiRedesignEnabled,
 } from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 import Engine from '../../../../../core/Engine';
@@ -34,7 +35,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import PopularList from '../../../../../util/networks/customNetworks';
+import { PopularList } from '../../../../../util/networks/customNetworks';
 import WarningMessage from '../../../confirmations/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import {
@@ -1390,6 +1391,8 @@ class NetworkSettings extends PureComponent {
     const networkTypeOrRpcUrl = route.params?.network;
     const shouldNetworkSwitchPopToWallet =
       route.params?.shouldNetworkSwitchPopToWallet ?? true;
+    const shouldShowPopularNetworks =
+      route.params?.shouldShowPopularNetworks ?? true;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -1399,7 +1402,8 @@ class NetworkSettings extends PureComponent {
         testID={NetworksViewSelectorsIDs.CONTAINER}
       >
         <View style={styles.informationWrapper}>
-          {networkTypeOrRpcUrl ? (
+          {(isNetworkUiRedesignEnabled && !shouldShowPopularNetworks) ||
+          networkTypeOrRpcUrl ? (
             this.customNetwork(networkTypeOrRpcUrl)
           ) : (
             <ScrollableTabView

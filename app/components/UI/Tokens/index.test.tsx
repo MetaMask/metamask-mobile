@@ -68,10 +68,12 @@ const initialState = {
         ],
       },
       TokenRatesController: {
-        contractExchangeRates: {
-          '0x0': 0.005,
-          '0x01': 0.005,
-          '0x02': 0.005,
+        marketData: {
+          '0x1': {
+            '0x0': { price: 0.005 },
+            '0x01': { price: 0.005 },
+            '0x02': { price: 0.005 },
+          },
         },
       },
       CurrencyRateController: {
@@ -112,6 +114,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const Stack = createStackNavigator();
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>
@@ -223,8 +227,10 @@ describe('Tokens', () => {
             ],
           },
           TokenRatesController: {
-            contractExchangeRates: {
-              '0x02': undefined,
+            marketData: {
+              0x1: {
+                '0x02': undefined,
+              },
             },
           },
           CurrencyRateController: {

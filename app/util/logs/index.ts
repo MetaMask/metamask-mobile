@@ -1,6 +1,7 @@
 import Engine from '../../core/Engine';
 
-// eslint-disable-next-line import/prefer-default-export
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, import/prefer-default-export
 export const generateStateLogs = (state: any): string => {
   const fullState = JSON.parse(JSON.stringify(state));
 
@@ -14,6 +15,8 @@ export const generateStateLogs = (state: any): string => {
   // Remove encrypted vault from logs
   delete fullState.engine.backgroundState.KeyringController.vault;
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { KeyringController } = Engine.context as any;
   const newState = {
     ...fullState,

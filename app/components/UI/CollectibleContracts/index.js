@@ -36,14 +36,15 @@ import {
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
-  selectSelectedAddress,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import {
   IMPORT_NFT_BUTTON_ID,
   NFT_TAB_CONTAINER_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import RefreshTestId from './constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -197,7 +198,7 @@ const CollectibleContracts = ({
     const updatableCollectibles = collectibles.filter((single) =>
       shouldUpdateCollectibleMetadata(single),
     );
-    if (updatableCollectibles.length !== 0) {
+    if (updatableCollectibles.length !== 0 && !useNftDetection) {
       updateAllCollectibleMetadata(updatableCollectibles);
     }
   }, [
@@ -205,34 +206,8 @@ const CollectibleContracts = ({
     updateAllCollectibleMetadata,
     isIpfsGatewayEnabled,
     displayNftMedia,
+    useNftDetection,
   ]);
-
-  /*   const updateCollectibleMetadata = useCallback(
-    async (collectible) => {
-      const { NftController } = Engine.context;
-      const { address, tokenId } = collectible;
-
-      const isIgnored = isCollectibleIgnored(collectible);
-
-      if (!isIgnored) {
-        if (String(tokenId).includes('e+')) {
-          removeFavoriteCollectible(selectedAddress, chainId, collectible);
-        } else {
-          await NftController.addNft(address, String(tokenId));
-        }
-      }
-    },
-    [chainId, removeFavoriteCollectible, selectedAddress, isCollectibleIgnored],
-  );
-
-  useEffect(() => {
-    // TO DO: Move this fix to the controllers layer
-    collectibles.forEach((collectible) => {
-      if (shouldUpdateCollectibleMetadata(collectible)) {
-        updateCollectibleMetadata(collectible);
-      }
-    });
-  }, [collectibles, updateCollectibleMetadata]); */
 
   const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);
@@ -356,6 +331,7 @@ const CollectibleContracts = ({
         data={collectibleContracts}
         renderItem={({ item, index }) => renderCollectibleContract(item, index)}
         keyExtractor={(_, index) => index.toString()}
+        testID={RefreshTestId}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
@@ -446,7 +422,7 @@ CollectibleContracts.propTypes = {
 const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   useNftDetection: selectUseNftDetection(state),
   collectibleContracts: collectibleContractsSelector(state),
   collectibles: collectiblesSelector(state),
