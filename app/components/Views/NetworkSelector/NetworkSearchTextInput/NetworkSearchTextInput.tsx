@@ -32,27 +32,40 @@ function NetworkSearchTextInput({
     ? 'search-short'
     : 'search';
 
+  const propsWhichAreFeatureFlagged = isNetworkUiRedesignEnabled
+    ? {
+        onFocus: () => {
+          isNetworkUiRedesignEnabled && setIsSearchFieldFocused(true);
+        },
+        onBlur: () => {
+          isNetworkUiRedesignEnabled && setIsSearchFieldFocused(false);
+        },
+      }
+    : {};
+
+  const inputStylesWhichAreFeatureFlagged = !isNetworkUiRedesignEnabled
+    ? styles.input
+    : isSearchFieldFocused
+    ? styles.input
+    : styles.unfocusedInput;
+
+  const containerInputStylesWhichAreFeatureFlagged = !isNetworkUiRedesignEnabled
+    ? styles.inputWrapper
+    : isSearchFieldFocused
+    ? styles.focusedInputWrapper
+    : styles.inputWrapper;
+
   return (
-    <View
-      style={[
-        styles.inputWrapper,
-        isSearchFieldFocused && styles.focusedInputWrapper,
-      ]}
-    >
+    <View style={containerInputStylesWhichAreFeatureFlagged}>
       <Icon name="ios-search" size={20} color={colors.icon.default} />
       <TextInput
-        style={styles.input}
+        style={inputStylesWhichAreFeatureFlagged}
         placeholder={strings(`networks.${searchPlaceHolder}`)}
         placeholderTextColor={colors.text.default}
         value={searchString}
-        onFocus={() => {
-          isNetworkUiRedesignEnabled && setIsSearchFieldFocused(true);
-        }}
-        onBlur={() => {
-          isNetworkUiRedesignEnabled && setIsSearchFieldFocused(false);
-        }}
         onChangeText={handleSearchTextChange}
         testID={NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID}
+        {...propsWhichAreFeatureFlagged}
       />
       {searchString.length > 0 && (
         <Icon

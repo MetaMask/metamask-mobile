@@ -33,14 +33,7 @@ const createStyles = (colors: Colors) =>
     buttonWrapper: {
       flexDirection: 'row',
       flex: 1,
-      // display: 'flex',
-      // justifyContent: 'space-between',
-      // alignItems: 'center',
       width: '80%',
-      // padding: 16,
-    },
-    buttonContainer: {
-      // margin: 2,
     },
     button: {
       width: '100%',
