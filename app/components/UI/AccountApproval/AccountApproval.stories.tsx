@@ -2,19 +2,71 @@
 // Third party dependencies.
 import React from 'react';
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
+import { createStore, combineReducers } from 'redux';
 
 // Internal dependencies.
 import AccountApproval from './index';
 
+// Mock initial state
+const initialBackgroundState = {
+  // Add properties from initial-background-state.json here
+};
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE = {
+  // Add properties from MOCK_ACCOUNTS_CONTROLLER_STATE here
+};
+
+const mockInitialState = {
+  engine: {
+    backgroundState: {
+      ...initialBackgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    },
+  },
+};
+
 // Mock Redux store
-const mockStore = createStore((state) => state, {
-  // Add initial state here if needed
+const rootReducer = combineReducers({
+  engine: (state = mockInitialState.engine) => state,
 });
+
+const mockStore = createStore(rootReducer);
+
+// Mock Engine
+const mockEngine = {
+  context: {
+    PhishingController: {
+      maybeUpdateState: () => {
+        // No operation
+      },
+      test: (url: string) => {
+        if (url === 'phishing.com') return { result: true };
+        return { result: false };
+      },
+    },
+    KeyringController: {
+      getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
+      state: {
+        keyrings: [
+          {
+            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+          },
+        ],
+      },
+    },
+  },
+};
 
 const AccountApprovalMeta = {
   title: 'Component Library / AccountApproval',
   component: AccountApproval,
+  decorators: [
+    (Story: React.FC) => (
+      <Provider store={mockStore}>
+        <Story />
+      </Provider>
+    ),
+  ],
   argTypes: {
     currentPageInformation: {
       control: 'object',
@@ -51,24 +103,29 @@ const AccountApprovalMeta = {
     },
   },
 };
+
 export default AccountApprovalMeta;
 
-export const Default = (args: {
-  currentPageInformation: object;
-  onConfirm: () => void;
-  onCancel: () => void;
-  selectedAddress: string;
-  tokensLength: number;
-  navigation: object;
-  accountsLength: number;
-  networkType: string;
-  walletConnectRequest: boolean;
-  chainId: string;
-  metrics: object;
-}) => (
-  <Provider store={mockStore}>
-    <AccountApproval {...args} />
-  </Provider>
+interface AccountApprovalProps {
+  currentPageInformation: {
+    title: string;
+    url: string;
+    icon: string;
+  };
+  onConfirm?: () => void;
+  onCancel?: () => void;
+  selectedAddress?: string;
+  tokensLength?: number;
+  navigation?: object;
+  accountsLength?: number;
+  networkType?: string;
+  walletConnectRequest?: boolean;
+  chainId?: string;
+  metrics?: object;
+}
+
+export const Default = (args: AccountApprovalProps) => (
+  <AccountApproval {...args} />
 );
 
 Default.args = {
@@ -77,7 +134,7 @@ Default.args = {
     url: 'https://example.com',
     icon: 'https://example.com/icon.png',
   },
-  selectedAddress: '0x1234567890abcdef1234567890abcdef12345678',
+  selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
   tokensLength: 5,
   navigation: {},
   accountsLength: 3,
@@ -85,4 +142,17 @@ Default.args = {
   walletConnectRequest: false,
   chainId: '1',
   metrics: {},
+};
+
+export const PhishingWarning = (args: AccountApprovalProps) => (
+  <AccountApproval {...args} />
+);
+
+PhishingWarning.args = {
+  ...Default.args,
+  currentPageInformation: {
+    title: 'Phishing Site',
+    url: 'phishing.com',
+    icon: 'https://phishing.com/icon.png',
+  },
 };
