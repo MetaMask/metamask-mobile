@@ -36,6 +36,11 @@ const snapMethodMiddlewareBuilder = (
       engineContext.PermissionController,
       origin,
     ),
+    getSnapFile: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapController:getFile',
+      origin,
+    ),
     installSnaps: controllerMessenger.call.bind(
       controllerMessenger,
       'SnapController:install',
