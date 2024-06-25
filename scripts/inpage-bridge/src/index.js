@@ -1,5 +1,5 @@
 
-import inpageProvider from './provider';
+import initializeInpageProvider from './provider';
 
 if (shouldInject()) {
   injectScript();
