@@ -143,7 +143,7 @@ describe('Ledger core', () => {
       await getLedgerAccountsByPage(1);
       expect(ledgerKeyring.getNextPage).toHaveBeenCalled();
     });
-    it('should call getNextPage on ledgerKeyring', async () => {
+    it('should call getPreviousPage on ledgerKeyring', async () => {
       await getLedgerAccountsByPage(-1);
       expect(ledgerKeyring.getPreviousPage).toHaveBeenCalled();
     });
