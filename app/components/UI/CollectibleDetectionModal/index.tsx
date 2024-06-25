@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
@@ -30,30 +30,30 @@ const styles = StyleSheet.create({
 const CollectibleDetectionModal = () => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const showToastAndEnableNFtDetection = () => {
-    void (async () => {
-      // show toast
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [{ label: strings('toast.nft_detection_enabled') }],
-        iconName: IconName.CheckBold,
-        iconColor: IconColor.Default,
-        backgroundColor: colors.primary.inverse,
-        hasNoTimeout: false,
-      });
-      // set nft autodetection
-      const { PreferencesController, NftDetectionController } = Engine.context;
-      PreferencesController.setDisplayNftMedia(true);
-      PreferencesController.setUseNftDetection(true);
-      // Call detect nfts
-      showNftFetchingLoadingIndicator();
-      try {
-        await NftDetectionController.detectNfts();
-      } finally {
-        hideNftFetchingLoadingIndicator();
-      }
-    })();
-  };
+
+  const showToastAndEnableNFtDetection = useCallback(async () => {
+    // show toast
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [{ label: strings('toast.nft_detection_enabled') }],
+      iconName: IconName.CheckBold,
+      iconColor: IconColor.Default,
+      backgroundColor: colors.primary.inverse,
+      hasNoTimeout: false,
+    });
+    // set nft autodetection
+    const { PreferencesController, NftDetectionController } = Engine.context;
+    PreferencesController.setDisplayNftMedia(true);
+    PreferencesController.setUseNftDetection(true);
+    // Call detect nfts
+    showNftFetchingLoadingIndicator();
+    try {
+      await NftDetectionController.detectNfts();
+    } finally {
+      hideNftFetchingLoadingIndicator();
+    }
+  }, [colors.primary.inverse, toastRef]);
+
   return (
     <View style={styles.alertBar}>
       <Banner
