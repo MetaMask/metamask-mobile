@@ -139,7 +139,9 @@ PhishingWarning.args = {
 
 PhishingWarning.play = async () => {
   // Simulate user interaction without using @storybook/testing-library
-  const confirmButton = document.querySelector('button[name="confirm"]') as HTMLElement;
+  const confirmButton = document.querySelector(
+    'button[name="confirm"]',
+  ) as HTMLElement;
   if (confirmButton) {
     confirmButton.click();
   }
