@@ -2,13 +2,16 @@
 # Each line is a file pattern followed by one or more owners.
 
 *                                    @MetaMask/mobile-devs
+
+# Design System Team
 app/component-library/               @MetaMask/design-system-engineers @MetaMask/mobile-platform
 
-#Platform Team
+# Platform Team
 patches/                             @MetaMask/mobile-platform
 app/core/Engine.ts                   @MetaMask/mobile-platform
 app/core/Engine.test.js              @MetaMask/mobile-platform
 
+# Supply Chain Team
 bitrise.yml                          @MetaMask/supply-chain @MetaMask/mobile-platform
 yarn.lock                            @MetaMask/supply-chain @MetaMask/mobile-platform
 ios/Podfile.lock                     @MetaMask/supply-chain @MetaMask/mobile-platform
