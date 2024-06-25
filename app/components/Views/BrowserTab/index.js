@@ -36,7 +36,6 @@ import onUrlSubmit, {
 import {
   SPA_urlChangeListener,
   JS_DESELECT_TEXT,
-  getInpageProvider,
 } from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
@@ -647,9 +646,7 @@ export const BrowserTab = (props) => {
 
     const getEntryScriptWeb3 = async () => {
       const entryScriptWeb3 = await EntryScriptWeb3.get();
-      setEntryScriptWeb3(
-        `${getInpageProvider(entryScriptWeb3)}${SPA_urlChangeListener}`,
-      );
+      setEntryScriptWeb3(entryScriptWeb3 + SPA_urlChangeListener);
     };
 
     getEntryScriptWeb3();
