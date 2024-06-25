@@ -1247,6 +1247,14 @@
       "comment_id": 2186676301,
       "created_at": "2024-06-24T14:10:04Z",
       "repoId": 141427485
+    },
+    {
+      "id": 158243242,
+      "name": "devin-ai-integration[bot]",
+      "pullRequestNo": 10083,
+      "comment_id": 2189094081,
+      "created_at": "2024-06-25T14:18:38Z",
+      "repoId": 141427485
     }
   ]
 }
