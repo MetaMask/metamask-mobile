@@ -74,6 +74,8 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         );
         if (accountWithMatchingFromAddress) {
           setFromAccountName(accountWithMatchingFromAddress.metadata.name);
+        } else {
+          setFromAccountName(fromAddress);
         }
       }
     })();
@@ -94,6 +96,8 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         );
         if (accountWithMatchingToAddress) {
           setToAccountName(accountWithMatchingToAddress.metadata.name);
+        } else {
+          setToAccountName(toAddress);
         }
       }
     })();
