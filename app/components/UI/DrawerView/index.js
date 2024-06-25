@@ -949,6 +949,11 @@ class DrawerView extends PureComponent {
   };
 
   renderProtectModal = () => {
+    const NODE_ENV = 'NODE_ENV';
+    if (process.env[NODE_ENV] === 'development') {
+      return null;
+    }
+
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
