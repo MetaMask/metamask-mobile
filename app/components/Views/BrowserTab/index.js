@@ -1491,34 +1491,6 @@ export const BrowserTab = (props) => {
     </View>
   );
 
-  /*
-   * handleEarlyWeb3ProviderInit workaround. Android only
-   *
-   * It avoids the error 'Uncaught TypeError: Cannot read properties of null (reading 'nodeName')'
-   * by reloading the page if documentElement is not yet defined.
-   *
-   * This happens because web3 provider checks for valid HTML document prior initialization with
-   * document.documentElement.nodeName === 'html'
-   *
-   * We must inject the web3 provider at the early stages on the page loading so that
-   * dapps recognize metamask mobile provider correctly.
-   *
-   * This is caused by Android webview lifecycle method `onPageStarted`
-   * that might execute too early in the document loading phase.
-   *
-   * iOS devices aren't affected.
-   *
-   */
-  const handleEarlyWeb3ProviderInit = `if (!document.documentElement) {
-    window.location.reload();
-  } else {
-    ${entryScriptWeb3}
-  }`;
-
-  const handleInjectedJavaScript = Device.isAndroid()
-    ? handleEarlyWeb3ProviderInit
-    : entryScriptWeb3;
-
   /**
    * Main render
    */
@@ -1547,7 +1519,7 @@ export const BrowserTab = (props) => {
                   <WebviewError error={error} returnHome={returnHome} />
                 )}
                 source={{ uri: initialUrl }}
-                injectedJavaScriptBeforeContentLoaded={handleInjectedJavaScript}
+                injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                 style={styles.webview}
                 onLoadStart={onLoadStart}
                 onLoad={onLoad}

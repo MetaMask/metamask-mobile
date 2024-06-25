@@ -1,7 +1,8 @@
-/* global inpageBundle */
+
+import initializeInpageProvider from './provider';
 
 if (shouldInject()) {
-  injectScript(inpageBundle);
+  injectScript();
   start();
 }
 
@@ -21,18 +22,9 @@ async function start() {
  *
  * @param {string} content - Code to be executed in the current document
  */
-function injectScript(content) {
+function injectScript() {
   try {
-    const container = document.head || document.documentElement;
-
-    // synchronously execute script in page context
-    const scriptTag = document.createElement('script');
-    scriptTag.setAttribute('async', false);
-    scriptTag.textContent = content;
-    container.insertBefore(scriptTag, container.children[0]);
-
-    // script executed; remove script element from DOM
-    container.removeChild(scriptTag);
+    inpageProvider();
   } catch (err) {
     console.error('MetaMask script injection failed', err);
   }
@@ -47,7 +39,6 @@ function shouldInject() {
   return (
     doctypeCheck() &&
     suffixCheck() &&
-    documentElementCheck() &&
     !blockedDomainCheck()
   );
 }
@@ -82,19 +73,6 @@ function suffixCheck() {
     if (prohibitedTypes[i].test(currentUrl)) {
       return false;
     }
-  }
-  return true;
-}
-
-/**
- * Checks the documentElement of the current document
- *
- * @returns {boolean} {@code true} if the documentElement is an html node or if none exists
- */
-function documentElementCheck() {
-  const documentElement = document.documentElement.nodeName;
-  if (documentElement) {
-    return documentElement.toLowerCase() === 'html';
   }
   return true;
 }
