@@ -67,8 +67,6 @@ export const SPA_urlChangeListener = `(function () {
   })();
 `;
 
-
-
 /*
  *
  * Code from scripts/inpage-bridge/content-script/index.js
