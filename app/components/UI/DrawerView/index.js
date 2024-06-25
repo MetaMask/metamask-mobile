@@ -87,6 +87,7 @@ import { selectSelectedInternalAccountChecksummedAddress } from '../../../select
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { isDevelopment } from 'app/util/env';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -949,8 +950,7 @@ class DrawerView extends PureComponent {
   };
 
   renderProtectModal = () => {
-    const NODE_ENV = 'NODE_ENV';
-    if (process.env[NODE_ENV] === 'development') {
+    if (isDevelopment()) {
       return null;
     }
 
