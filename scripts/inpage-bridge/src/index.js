@@ -1,8 +1,8 @@
 
-import initializeInpageProvider from './provider';
+import injectInpageProvider from './provider';
 
 if (shouldInject()) {
-  injectScript();
+  injectInpageProvider();
   start();
 }
 
@@ -15,19 +15,6 @@ if (shouldInject()) {
 async function start() {
   await domIsReady();
   window._metamaskSetupProvider();
-}
-
-/**
- * Injects a script tag into the current document
- *
- * @param {string} content - Code to be executed in the current document
- */
-function injectScript() {
-  try {
-    inpageProvider();
-  } catch (err) {
-    console.error('MetaMask script injection failed', err);
-  }
 }
 
 /**
