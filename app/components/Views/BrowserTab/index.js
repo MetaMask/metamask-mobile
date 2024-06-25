@@ -647,7 +647,9 @@ export const BrowserTab = (props) => {
 
     const getEntryScriptWeb3 = async () => {
       const entryScriptWeb3 = await EntryScriptWeb3.get();
-      setEntryScriptWeb3(`${getInpageProvider(entryScriptWeb3)}${SPA_urlChangeListener}`);
+      setEntryScriptWeb3(
+        `${getInpageProvider(entryScriptWeb3)}${SPA_urlChangeListener}`,
+      );
     };
 
     getEntryScriptWeb3();

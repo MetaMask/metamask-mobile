@@ -68,7 +68,7 @@ export const SPA_urlChangeListener = `(function () {
 `;
 
 export const getInpageProvider = (entryScriptWeb3) =>
-`if (shouldInject()) {
+  `if (shouldInject()) {
   injectScript();
   start();
 }
