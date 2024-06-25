@@ -29,11 +29,11 @@ const MockEngine = jest.mocked(Engine);
 describe('Ledger core', () => {
   let ledgerKeyring: LedgerKeyring;
 
+  // @ts-ignore
   beforeEach(() => {
     jest.resetAllMocks();
 
     // @ts-expect-error This is a partial mock, not completely identical
-    // TODO: Replace this with a type-safe mock
     ledgerKeyring = {
       addAccounts: jest.fn(),
       setTransport: jest.fn(),
