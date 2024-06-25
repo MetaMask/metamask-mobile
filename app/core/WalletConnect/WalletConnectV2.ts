@@ -390,6 +390,9 @@ class WalletConnect2Session {
     const selectedChainId = parseInt(selectChainId(store.getState()));
 
     if (selectedChainId !== chainId) {
+      DevLogger.log(
+        `rejectRequest due to invalid chainId ${chainId} (selectedChainId=${selectedChainId})`,
+      );
       await this.web3Wallet.rejectRequest({
         id: chainId,
         topic: this.session.topic,
