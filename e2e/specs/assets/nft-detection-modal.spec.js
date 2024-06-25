@@ -21,7 +21,7 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('should show nft detection modal after switching to mainnet and when nftDetection toggle is off and tap cancel', async () => {
+  it('show nft detection modal after user switches to mainnet and taps cancel when nft detection toggle is off', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -55,7 +55,7 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
     );
   });
 
-  it('should show nft detection modal after switching to mainnet and when nftDetection toggle is off and tap allow', async () => {
+  it('show nft detection modal after user switches to mainnet and taps allow when nftDetection toggle is off', async () => {
     const testNftOnMainnet = 'LifesAJokeNFT';
 
     await withFixtures(
