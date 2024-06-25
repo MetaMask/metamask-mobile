@@ -19,7 +19,6 @@ const HST_CONTRACT = SMART_CONTRACTS.HST;
 
 describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
   beforeAll(async () => {
-    jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
       await TestHelpers.reverseServerPort();
     }
