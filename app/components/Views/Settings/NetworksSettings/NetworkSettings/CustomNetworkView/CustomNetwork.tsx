@@ -35,6 +35,8 @@ const CustomNetwork = ({
   const supportedNetworkList = (customNetworksList ?? PopularList).map(
     (networkConfiguration: Network) => {
       const isAdded = Object.values(networkConfigurations).some(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (savedNetwork: any) =>
           savedNetwork.chainId === networkConfiguration.chainId,
       );

@@ -1,7 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
+import { Colors } from '../../../../util/theme/models';
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     inputWrapper: {
       flexDirection: 'row',
@@ -12,8 +13,6 @@ const createStyles = (colors: any) =>
       borderWidth: 1,
       borderColor: colors.border.default,
       color: colors.text.default,
-
-      marginBottom: 8,
     },
     input: {
       flex: 1,

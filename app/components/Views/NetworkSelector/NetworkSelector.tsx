@@ -1,11 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Third party dependencies.
-import {
-  Linking,
-  Switch,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Linking, Switch, TouchableOpacity, View } from 'react-native';
 import React, { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
@@ -56,7 +51,7 @@ import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
-import { useTheme, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import {
   TextColor,
@@ -75,7 +70,6 @@ import { NetworksSelectorSelectorsIDs } from '../../../../e2e/selectors/Settings
 import { PopularList } from '../../../util/networks/customNetworks';
 import NetworkSearchTextInput from './NetworkSearchTextInput';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Icon from 'react-native-vector-icons/Ionicons';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AccountAction from '../AccountAction';
 import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -91,7 +85,7 @@ const NetworkSelector = () => {
   const theme = useTheme();
   const { trackEvent } = useMetrics();
   const { colors } = theme;
-  const styles = createStyles(colors || mockTheme.colors);
+  const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
 
@@ -245,15 +239,25 @@ const NetworkSelector = () => {
 
     return searchResult;
   };
+  const isNoSearchResults = (networkIdenfier: string) => {
+    if (!searchString || !networkIdenfier) {
+      return false;
+    }
+
+    if (networkIdenfier === MAINNET || networkIdenfier === LINEA_MAINNET) {
+      return (
+        filterNetworksByName([Networks[networkIdenfier]], searchString)
+          .length === 0
+      );
+    }
+
+    return !networkIdenfier.includes(searchString);
+  };
 
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
 
-    if (
-      isNetworkUiRedesignEnabled &&
-      filterNetworksByName([Networks.mainnet], searchString).length === 0
-    )
-      return null;
+    if (isNetworkUiRedesignEnabled && isNoSearchResults(MAINNET)) return null;
 
     if (isNetworkUiRedesignEnabled) {
       return (
@@ -279,6 +283,7 @@ const NetworkSelector = () => {
         />
       );
     }
+
     return (
       <Cell
         variant={CellVariant.Select}
@@ -301,11 +306,7 @@ const NetworkSelector = () => {
   const renderLineaMainnet = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
 
-    if (
-      isNetworkUiRedesignEnabled &&
-      filterNetworksByName([Networks['linea-mainnet']], searchString).length ===
-        0
-    )
+    if (isNetworkUiRedesignEnabled && isNoSearchResults('linea-mainnet'))
       return null;
 
     if (isNetworkUiRedesignEnabled) {
@@ -330,6 +331,7 @@ const NetworkSelector = () => {
         />
       );
     }
+
     return (
       <Cell
         variant={CellVariant.Select}
@@ -352,8 +354,7 @@ const NetworkSelector = () => {
         if (!chainId) return null;
         const { name } = { name: nickname || rpcUrl };
 
-        if (isNetworkUiRedesignEnabled && !name.includes(searchString))
-          return null;
+        if (isNetworkUiRedesignEnabled && isNoSearchResults(name)) return null;
 
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         const image = getNetworkImageSource({ chainId: chainId?.toString() });
@@ -382,6 +383,7 @@ const NetworkSelector = () => {
             />
           );
         }
+
         return (
           <Cell
             key={chainId}
@@ -407,10 +409,11 @@ const NetworkSelector = () => {
     const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((networkType) => {
       // TODO: Provide correct types for network.
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { name, imageSource, chainId } = (Networks as any)[networkType];
 
-      if (isNetworkUiRedesignEnabled && !name.includes(searchString))
-        return null;
+      if (isNetworkUiRedesignEnabled && isNoSearchResults(name)) return null;
 
       return (
         <Cell
@@ -436,7 +439,6 @@ const NetworkSelector = () => {
       navigate(Routes.ADD_NETWORK, {
         shouldNetworkSwitchPopToWallet: false,
         shouldShowPopularNetworks: false,
-        network: 'mainnet',
       });
     });
   };
@@ -456,7 +458,7 @@ const NetworkSelector = () => {
           true: colors.primary.default,
           false: colors.border.muted,
         }}
-        thumbColor={theme.brandColors.white000}
+        thumbColor={theme.brandColors.white}
         ios_backgroundColor={colors.border.muted}
         testID={NetworkListModalSelectorsIDs.TEST_NET_TOGGLE}
         disabled={isTestNet(providerConfig.chainId)}
@@ -576,47 +578,169 @@ const NetworkSelector = () => {
     onPress: () => confirmRemoveRpc(),
   };
 
+  const renderBottomSheetContent = () => (
+    <>
+      <SheetHeader title={strings('networks.select_network')} />
+      <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
+        {isNetworkUiRedesignEnabled && (
+          <View style={styles.searchContainer}>
+            <NetworkSearchTextInput
+              searchString={searchString}
+              handleSearchTextChange={handleSearchTextChange}
+              clearSearchInput={clearSearchInput}
+              testIdSearchInput={
+                NetworksSelectorSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID
+              }
+              testIdCloseIcon={NetworksSelectorSelectorsIDs.CLOSE_ICON}
+            />
+          </View>
+        )}
+        {isNetworkUiRedesignEnabled &&
+          searchString.length === 0 &&
+          renderEnabledNetworksTitle()}
+        {renderMainnet()}
+        {renderLineaMainnet()}
+        {renderRpcNetworks()}
+        {isNetworkUiRedesignEnabled &&
+          searchString.length === 0 &&
+          renderPopularNetworksTitle()}
+        {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
+        {searchString.length === 0 && renderTestNetworksSwitch()}
+        {showTestNetworks && renderOtherNetworks()}
+      </ScrollView>
+
+      <Button
+        variant={ButtonVariants.Secondary}
+        label={strings(buttonLabelAddNetwork)}
+        onPress={goToNetworkSettings}
+        width={ButtonWidthTypes.Full}
+        size={ButtonSize.Lg}
+        style={styles.addNetworkButton}
+        testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
+      />
+    </>
+  );
+
+  // return (
+  //   <BottomSheet ref={sheetRef}>
+  //     <View style={styles.networkListContainer}>
+  //       <SheetHeader title={strings('networks.select_network')} />
+  //       <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
+  //         {isNetworkUiRedesignEnabled && (
+  //           <View style={styles.searchContainer}>
+  //             <NetworkSearchTextInput
+  //               searchString={searchString}
+  //               handleSearchTextChange={handleSearchTextChange}
+  //               clearSearchInput={clearSearchInput}
+  //               testIdSearchInput={
+  //                 NetworksSelectorSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID
+  //               }
+  //               testIdCloseIcon={NetworksSelectorSelectorsIDs.CLOSE_ICON}
+  //             />
+  //           </View>
+  //         )}
+  //         {isNetworkUiRedesignEnabled &&
+  //           searchString.length === 0 &&
+  //           renderEnabledNetworksTitle()}
+  //         {renderMainnet()}
+  //         {renderLineaMainnet()}
+  //         {renderRpcNetworks()}
+  //         {isNetworkUiRedesignEnabled &&
+  //           searchString.length === 0 &&
+  //           renderPopularNetworksTitle()}
+  //         {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
+  //         {searchString.length === 0 && renderTestNetworksSwitch()}
+  //         {showTestNetworks && renderOtherNetworks()}
+  //       </ScrollView>
+  //       <Button
+  //         variant={ButtonVariants.Secondary}
+  //         label={strings(buttonLabelAddNetwork)}
+  //         onPress={goToNetworkSettings}
+  //         width={ButtonWidthTypes.Full}
+  //         size={ButtonSize.Lg}
+  //         style={styles.addNetworkButton}
+  //         testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
+  //       />
+  //     </View>
+  //     {showWarningModal ? (
+  //       <InfoModal
+  //         isVisible={showWarningModal}
+  //         title={strings(modalTitle)}
+  //         body={
+  //           <Text>
+  //             <Text style={styles.desc}>{strings(modalDescription)}</Text>{' '}
+  //             <Text style={styles.blueText} onPress={goToLearnMore}>
+  //               {strings('networks.learn_more')}
+  //             </Text>
+  //           </Text>
+  //         }
+  //         toggleModal={toggleWarningModal}
+  //       />
+  //     ) : null}
+
+  //     {showNetworkMenuModal.isVisible ? (
+  //       <BottomSheet
+  //         ref={networkMenuSheetRef}
+  //         onClose={closeModal}
+  //         shouldNavigateBack={false}
+  //       >
+  //         <View style={styles.networkMenu}>
+  //           <AccountAction
+  //             actionTitle={strings('transaction.edit')}
+  //             iconName={IconName.Edit}
+  //             onPress={() => {
+  //               navigate(Routes.ADD_NETWORK, {
+  //                 shouldNetworkSwitchPopToWallet: false,
+  //                 shouldShowPopularNetworks: false,
+  //                 network: showNetworkMenuModal.networkTypeOrRpcUrl,
+  //               });
+  //             }}
+  //           />
+  //           {showNetworkMenuModal.chainId !== providerConfig.chainId &&
+  //           showNetworkMenuModal.displayEdit ? (
+  //             <AccountAction
+  //               actionTitle={strings('app_settings.delete')}
+  //               iconName={IconName.Trash}
+  //               onPress={() => removeRpcUrl(showNetworkMenuModal.chainId)}
+  //             />
+  //           ) : null}
+  //         </View>
+  //       </BottomSheet>
+  //     ) : null}
+  //     {showConfirmDeleteModal.isVisible ? (
+  //       <BottomSheet
+  //         ref={deleteModalSheetRef}
+  //         onClose={closeDeleteModal}
+  //         shouldNavigateBack={false}
+  //       >
+  //         <BottomSheetHeader>
+  //           <Text variant={TextVariant.HeadingMD}>
+  //             {strings('app_settings.delete')}{' '}
+  //             {showConfirmDeleteModal.networkName}{' '}
+  //             {strings('asset_details.network')}
+  //           </Text>
+  //         </BottomSheetHeader>
+  //         <View style={styles.containerDeleteText}>
+  //           <Text style={styles.textCentred}>
+  //             {strings('app_settings.network_delete')}
+  //           </Text>
+  //           <BottomSheetFooter
+  //             buttonsAlignment={ButtonsAlignment.Horizontal}
+  //             buttonPropsArray={[cancelButtonProps, deleteButtonProps]}
+  //           />
+  //         </View>
+  //       </BottomSheet>
+
   return (
     <BottomSheet ref={sheetRef}>
-      <View style={styles.networkListContainer}>
-        <SheetHeader title={strings('networks.select_network')} />
-        <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
-          {isNetworkUiRedesignEnabled && (
-            <View style={styles.searchContainer}>
-              <NetworkSearchTextInput
-                searchString={searchString}
-                handleSearchTextChange={handleSearchTextChange}
-                clearSearchInput={clearSearchInput}
-                testIdSearchInput={
-                  NetworksSelectorSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID
-                }
-                testIdCloseIcon={NetworksSelectorSelectorsIDs.CLOSE_ICON}
-              />
-            </View>
-          )}
-          {isNetworkUiRedesignEnabled &&
-            searchString.length === 0 &&
-            renderEnabledNetworksTitle()}
-          {renderMainnet()}
-          {renderLineaMainnet()}
-          {renderRpcNetworks()}
-          {isNetworkUiRedesignEnabled &&
-            searchString.length === 0 &&
-            renderPopularNetworksTitle()}
-          {isNetworkUiRedesignEnabled && renderAdditonalNetworks()}
-          {searchString.length === 0 && renderTestNetworksSwitch()}
-          {showTestNetworks && renderOtherNetworks()}
-        </ScrollView>
-        <Button
-          variant={ButtonVariants.Secondary}
-          label={strings(buttonLabelAddNetwork)}
-          onPress={goToNetworkSettings}
-          width={ButtonWidthTypes.Full}
-          size={ButtonSize.Lg}
-          style={styles.addNetworkButton}
-          testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
-        />
-      </View>
+      {isNetworkUiRedesignEnabled ? (
+        <View style={styles.networkListContainer}>
+          {renderBottomSheetContent()}
+        </View>
+      ) : (
+        renderBottomSheetContent()
+      )}
+
       {showWarningModal ? (
         <InfoModal
           isVisible={showWarningModal}
@@ -624,7 +748,7 @@ const NetworkSelector = () => {
           body={
             <Text>
               <Text style={styles.desc}>{strings(modalDescription)}</Text>{' '}
-              <Text style={styles.blueText} onPress={goToLearnMore}>
+              <Text style={[styles.blueText]} onPress={goToLearnMore}>
                 {strings('networks.learn_more')}
               </Text>
             </Text>
@@ -662,6 +786,7 @@ const NetworkSelector = () => {
           </View>
         </BottomSheet>
       ) : null}
+
       {showConfirmDeleteModal.isVisible ? (
         <BottomSheet
           ref={deleteModalSheetRef}

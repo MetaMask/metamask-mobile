@@ -27,18 +27,30 @@ const CustomGasModal = ({
 }: CustomGasModalProps) => {
   const { colors } = useAppThemeFromContext();
   const styles = createStyles();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const transaction = useSelector((state: any) => state.transaction);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const gasFeeEstimate = useSelector((state: any) =>
     selectGasFeeEstimates(state),
   );
   const primaryCurrency = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.settings.primaryCurrency,
   );
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chainId = useSelector((state: any) => selectChainId(state));
   const selectedAsset = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.transaction.selectedAsset,
   );
   const gasEstimateType = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) =>
       state.engine.backgroundState.GasFeeController.gasEstimateType,
   );

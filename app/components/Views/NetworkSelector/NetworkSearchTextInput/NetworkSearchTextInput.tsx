@@ -13,7 +13,7 @@ import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/
 
 interface NetworkSearchTextInputProps {
   searchString: string;
-  handleSearchTextChange: (text: any) => void;
+  handleSearchTextChange: (text: string) => void;
   clearSearchInput: () => void;
   testIdSearchInput: string;
   testIdCloseIcon: string;

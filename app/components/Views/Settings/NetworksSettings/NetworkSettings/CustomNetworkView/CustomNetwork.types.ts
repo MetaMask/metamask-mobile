@@ -68,7 +68,7 @@ export interface CustomNetworkProps {
   /**
    * In the redesigned network UI, instead of showing warning icons on each network that needs it,
    * instead an information icon will be displayed next to the addtional networks group title.
-   * This is allows to support both the redesigned UI as well as it's previous version.
+   * This prop allows to support both the redesigned UI as well as it's previous version.
    * Once the previous version is removed, this hideWarningIcons wont have any other use and can be removed.
    */
   hideWarningIcons?: boolean;
