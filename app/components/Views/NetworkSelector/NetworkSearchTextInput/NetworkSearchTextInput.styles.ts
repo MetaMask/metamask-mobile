@@ -20,6 +20,10 @@ const createStyles = (colors: Colors) =>
       color: colors.text.default,
       ...fontStyles.normal,
       paddingLeft: 10,
+      borderColor: colors.border.default,
+    },
+    focusedInputWrapper: {
+      borderColor: colors.primary.default,
     },
   });
 
