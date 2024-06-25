@@ -3,6 +3,7 @@ import SnapBridge from './SnapBridge';
 import {
   ExcludedSnapPermissions,
   ExcludedSnapEndowments,
+  EndowmentPermissions,
 } from './permissions/permissions';
 import {
   detectSnapLocation,
@@ -14,6 +15,7 @@ export {
   SnapBridge,
   ExcludedSnapPermissions,
   ExcludedSnapEndowments,
+  EndowmentPermissions,
   fetchFunction,
   detectSnapLocation,
 };

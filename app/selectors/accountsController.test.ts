@@ -83,6 +83,7 @@ describe('Accounts Controller Selectors', () => {
         options: {},
         metadata: {
           name: 'Account 2',
+          importTime: 1684232000456,
           keyring: {
             type: 'HD Key Tree',
           },

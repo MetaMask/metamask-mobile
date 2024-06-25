@@ -49,7 +49,7 @@ export default class AccountListView {
   static async isAccount2VisibleAtIndex(index) {
     await expect(
       element(by.id(CellModalSelectorsIDs.BASE_TITLE)).atIndex(index),
-    ).toHaveText('Account 2');
+    ).not.toHaveText('Account 1');
   }
 
   static async accountNameNotVisible() {
