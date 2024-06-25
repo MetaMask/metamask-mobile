@@ -28,6 +28,9 @@ function NetworkSearchTextInput({
   const { colors } = theme;
   const styles = createStyles(colors || mockTheme.colors);
   const [isSearchFieldFocused, setIsSearchFieldFocused] = useState(false);
+  const searchPlaceHolder = isNetworkUiRedesignEnabled
+    ? 'search-short'
+    : 'search';
 
   return (
     <View
@@ -39,7 +42,7 @@ function NetworkSearchTextInput({
       <Icon name="ios-search" size={20} color={colors.icon.default} />
       <TextInput
         style={styles.input}
-        placeholder={strings('networks.search')}
+        placeholder={strings(`networks.${searchPlaceHolder}`)}
         placeholderTextColor={colors.text.default}
         value={searchString}
         onFocus={() => {

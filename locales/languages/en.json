@@ -1656,6 +1656,7 @@
     "network_currency_symbol": "Currency Symbol",
     "network_block_explorer_url": "Block Explorer URL",
     "search": "Search for previously added network",
+    "search-short": "Search",
     "add": "Add",
     "cancel": "Cancel",
     "approve": "Approve",
