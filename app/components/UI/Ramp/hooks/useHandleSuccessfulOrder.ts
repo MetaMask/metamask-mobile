@@ -43,6 +43,8 @@ function useHandleSuccessfulOrder() {
       const { TokensController } = Engine.context;
 
       if (
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         !TokensController.state.tokens.includes((t: any) =>
           toLowerCaseEquals(t.address, address),
         )
@@ -64,6 +66,8 @@ function useHandleSuccessfulOrder() {
         isApplePay?: boolean;
       },
     ) => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await addTokenToTokensController((order as any)?.data?.cryptoCurrency);
       handleDispatchUserWalletProtection();
       // @ts-expect-error navigation prop mismatch
@@ -116,6 +120,8 @@ function useHandleSuccessfulOrder() {
                     accountsByChainId[toHexadecimal(chainIdFromProvider)][
                       selectedAddress
                     ].balance,
+                    // TODO: Replace "any" with type
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   ) as any
                 )?.isZero?.()
               : undefined,

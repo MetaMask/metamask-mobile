@@ -25,6 +25,8 @@ import {
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyle = (colors: any) =>
   StyleSheet.create({
     screen: { justifyContent: 'center' },
@@ -111,6 +113,8 @@ const SelectHardwareWallet = () => {
     navigation.navigate(Routes.HW.CONNECT_LEDGER);
   };
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderHardwareButton = (image: any, onPress: any) => (
     <TouchableOpacity onPress={onPress} style={styles.hardwareButton}>
       <Image style={styles.image} source={image} resizeMode={'contain'} />

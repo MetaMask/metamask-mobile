@@ -2,6 +2,25 @@
 
 ## Current Main Branch
 
+## 7.24.3 - Jun 19, 2024
+### Fixed
+- [#10045](https://github.com/MetaMask/metamask-mobile/pull/10045): fix: Update ppom package to 1.4.8 (#10041)
+
+## 7.24.2 - Jun 13, 2024
+### Added
+- [#9687](https://github.com/MetaMask/metamask-mobile/pull/9687): feat: adds "data collection for marketing" toggles
+
+### Fixed 
+- [#9905](https://github.com/MetaMask/metamask-mobile/pull/9905): fix: remove metametrics redundant calls and improve compliance
+
+## 7.24.1 - Jun 13, 2024
+### Fixed
+- [#9943](https://github.com/MetaMask/metamask-mobile/pull/9943): fix: Remove duplicate accounts (#9943)
+- [#10006](https://github.com/MetaMask/metamask-mobile/pull/10006): fix: Fix order of accounts (#10006)
+- [#10004](https://github.com/MetaMask/metamask-mobile/pull/10004): fix: Synchronize account names (#10004)
+- [#9974](https://github.com/MetaMask/metamask-mobile/pull/9974): fix: Fix freeze on buy and sell flow (#9974)
+- [#9980](https://github.com/MetaMask/metamask-mobile/pull/9980): fix: Fix initialization crash / login error "Engine does not exist (#9980) 
+
 ## 7.24.0 - Jun 11, 2024
 ### Added
 - [#9767](https://github.com/MetaMask/metamask-mobile/pull/9767): feat: push Privacy policy date to 2024 Jun 18 12:00 UTC (#9767)
@@ -11,7 +30,7 @@
 - [#9442](https://github.com/MetaMask/metamask-mobile/pull/9442): feat: smart-tx-small-logic (#9442)
 - [#9204](https://github.com/MetaMask/metamask-mobile/pull/9204): feat: Add new privacy policy alert toast (#9204)
 - [#9651](https://github.com/MetaMask/metamask-mobile/pull/9651): feat: Upgrade signature Controller to v14 (#9651)
-- [#9394](https://github.com/MetaMask/metamask-mobile/pull/9394): feat: Network & Gas & Assets & Utils controllers update (#9394)
+- [#9394](https://github.com/MetaMask/metamask-mobile/pull/9394): feat:  Network & Gas & Assets & Utils controllers update (#9394)
 - [#9625](https://github.com/MetaMask/metamask-mobile/pull/9625): feat: Update signature controller v13 (#9625)
 - [#9129](https://github.com/MetaMask/metamask-mobile/pull/9129): feat: setting to show fiat values on testnets (#9129)
 - [#9740](https://github.com/MetaMask/metamask-mobile/pull/9740): feat: Update checkbox to be able to override checkbox style (#9740)

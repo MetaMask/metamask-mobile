@@ -14,6 +14,8 @@ export enum QuizStage {
 export interface IQuizInformationProps {
   title: {
     content: string;
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     style?: any;
   };
   buttons: {
@@ -25,5 +27,7 @@ export interface IQuizInformationProps {
   header?: string;
   image?: ImageSourcePropType;
   content?: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon?: any;
 }

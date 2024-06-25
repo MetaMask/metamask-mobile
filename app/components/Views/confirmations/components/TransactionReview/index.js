@@ -14,9 +14,9 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   getTransactionReviewActionKey,
   getNormalizedTxState,
-  APPROVE_FUNCTION_SIGNATURE,
   decodeTransferData,
   getTicker,
+  isApprovalTransaction,
 } from '../../../../../util/transactions';
 import {
   weiToFiat,
@@ -60,7 +60,7 @@ import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
-import { isTransactionSimulationsFeatureEnabled } from '../../../../../util/transaction-controller';
+import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -264,6 +264,10 @@ class TransactionReview extends PureComponent {
      * Transaction simulation data
      */
     transactionSimulationData: PropTypes.object,
+    /**
+     * Boolean that indicates if transaction simulations should be enabled
+     */
+    useTransactionSimulations: PropTypes.bool,
   };
 
   state = {
@@ -315,9 +319,7 @@ class TransactionReview extends PureComponent {
     let assetAmount, conversionRate, fiatValue;
     showHexData = showHexData || data;
     const approveTransaction =
-      data &&
-      data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-      (!value || isZeroValue(value));
+      isApprovalTransaction(data) && (!value || isZeroValue(value));
     const actionKey = await getTransactionReviewActionKey(transaction, chainId);
     if (approveTransaction) {
       let contract = tokenList[safeToChecksumAddress(to)];
@@ -391,7 +393,9 @@ class TransactionReview extends PureComponent {
           value,
           selectedAsset.decimals,
         )} ${selectedAsset.symbol}`;
-        const conversionRate = contractExchangeRates[selectedAsset.address];
+        const conversionRate = contractExchangeRates
+          ? contractExchangeRates[selectedAsset.address]?.price
+          : undefined;
         const fiatValue = balanceToFiat(
           (value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0,
           this.props.conversionRate,
@@ -513,6 +517,7 @@ class TransactionReview extends PureComponent {
       transaction: { to, origin, from, ensRecipient, id: transactionId },
       error,
       transactionSimulationData,
+      useTransactionSimulations,
     } = this.props;
 
     const {
@@ -583,7 +588,7 @@ class TransactionReview extends PureComponent {
                         />
                       </View>
                     )}
-                    {isTransactionSimulationsFeatureEnabled() && (
+                    {useTransactionSimulations && (
                       <View style={styles.transactionSimulations}>
                         <SimulationDetails
                           simulationData={transactionSimulationData}
@@ -689,6 +694,7 @@ const mapStateToProps = (state) => ({
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
   transactionSimulationData:
     selectCurrentTransactionMetadata(state)?.simulationData,
+  useTransactionSimulations: selectUseTransactionSimulations(state),
 });
 
 TransactionReview.contextType = ThemeContext;

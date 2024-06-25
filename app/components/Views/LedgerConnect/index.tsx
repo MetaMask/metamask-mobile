@@ -1,16 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
+  View,
+  StyleSheet,
   Image,
   SafeAreaView,
-  StyleSheet,
   TextStyle,
-  View,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { useDispatch } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
+import Engine from '../../../core/Engine';
 import StyledButton from '../../../components/UI/StyledButton';
 import Text from '../../../components/Base/Text';
 import {
@@ -36,6 +37,8 @@ import ledgerConnectDarkImage from '../../../images/ledger-connect-dark.png';
 import { getSystemVersion } from 'react-native-device-info';
 import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {

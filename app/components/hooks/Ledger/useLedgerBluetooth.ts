@@ -80,12 +80,15 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
 
     if (!transportRef.current && deviceId) {
       try {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const BluetoothTransport: any = await import(
           '@ledgerhq/react-native-hw-transport-ble'
         );
         transportRef.current = await BluetoothTransport.default.open(deviceId);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        transportRef.current?.on('disconnect', (e: any) => {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        transportRef.current?.on('disconnect', () => {
           transportRef.current = undefined;
           // Restart connection if more code is to be run
           if (
@@ -142,6 +145,8 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
         try {
           setIsAppLaunchConfirmationNeeded(true);
           await openEthereumAppOnLedger();
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
           if (e.name === 'TransportStatusError') {
             switch (e.statusCode) {
@@ -196,6 +201,8 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
         }
         return await finalLogicFunc();
       }
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       if (e.name === 'TransportStatusError') {
         switch (e.statusCode) {

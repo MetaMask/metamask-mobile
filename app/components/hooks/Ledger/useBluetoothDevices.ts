@@ -14,6 +14,8 @@ export interface BluetoothInterface {
       descriptor: { id: string };
     }>,
   ): { unsubscribe: () => void };
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   on(event: string, callback: (event: any) => void): void;
   close(): void;
 }
@@ -31,10 +33,14 @@ const useBluetoothDevices = (
 
     if (hasBluetoothPermissions && bluetoothOn) {
       import('@ledgerhq/react-native-hw-transport-ble').then(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (bluetoothInterface: any) => {
           subscription = new Observable(
             bluetoothInterface.default.listen,
           ).subscribe({
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             next: (e: any) => {
               const deviceFound = devices[e?.descriptor.id];
 
