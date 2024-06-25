@@ -18,7 +18,7 @@ export enum KeyDerivationIteration {
 }
 
 /**
- * Supported SHA algorithms in react-native-aes v3.0.2
+ * Supported SHA algorithms in react-native-aes v3.0.3
  */
 export enum ShaAlgorithm {
   sha256 = 'sha256',
@@ -26,7 +26,7 @@ export enum ShaAlgorithm {
 }
 
 /**
- * Supported cipher algorithms in react-native-aes v3.0.2
+ * Supported cipher algorithms in react-native-aes v3.0.3
  */
 export enum CipherAlgorithm {
   cbc = 'aes-cbc-pkcs7padding',
