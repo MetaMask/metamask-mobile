@@ -15,6 +15,7 @@ import Text, {
 // Internal dependencies.
 import { default as ListItemSelectWithButtonComponent } from './ListItemMultiSelectButton';
 import { SAMPLE_LISTITEMMULTISELECT_PROPS } from './ListItemMultiSelectButton.constants';
+import { ListItemMultiSelectButtonProps } from './ListItemMultiSelectButton.types';
 
 const ListItemSelectWithButtonMeta = {
   title: 'Component Library / List',
@@ -33,7 +34,7 @@ const ListItemSelectWithButtonMeta = {
 export default ListItemSelectWithButtonMeta;
 
 export const ListItemWithButtonSelect = {
-  render: (args: any) => (
+  render: (args: JSX.IntrinsicAttributes & ListItemMultiSelectButtonProps) => (
     <ListItemSelectWithButtonComponent {...args}>
       <ListItemColumn>
         <Icon name={IconName.Clock} />
