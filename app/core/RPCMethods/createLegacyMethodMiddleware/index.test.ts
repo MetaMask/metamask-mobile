@@ -144,7 +144,7 @@ describe('createLegacyMethodMiddleware', () => {
     const engine = new JsonRpcEngine();
     engine.push(middleware);
 
-    const response: JsonRpcResponse<Json> = await engine.handle({
+    const response = await engine.handle({
       jsonrpc: '2.0',
       id: 1,
       method: method1,
