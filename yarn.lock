@@ -4043,6 +4043,7 @@
   integrity sha512-6SJfx949YEWooh/CUPpJ+F491y4BYJmknz4hUN1+RHvKoUEynKbRmhnwbk/VLmh4OthLLDNCyWXfbh4DG1cTXA==
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 "@metamask-previews/notification-services-controller@0.1.0-preview-4ca72848":
   version "0.1.0-preview-4ca72848"
   resolved "https://registry.yarnpkg.com/@metamask-previews/notification-services-controller/-/notification-services-controller-0.1.0-preview-4ca72848.tgz#07bedba0a3b0f594a89b72b293edbbbf4306d990"
@@ -4075,6 +4076,8 @@
     loglevel "^1.8.1"
     siwe "^2.3.2"
 =======
+=======
+>>>>>>> 7e3b1cd6c (fix: fix engine configuration and snapshot test)
 "@mantine/core@^7.8.0":
   version "7.8.0"
   resolved "https://registry.yarnpkg.com/@mantine/core/-/core-7.8.0.tgz#b4bbd82ea2f1a25f5fb3d11ae5583cf80ecd8383"
@@ -4091,7 +4094,43 @@
   version "7.8.0"
   resolved "https://registry.yarnpkg.com/@mantine/hooks/-/hooks-7.8.0.tgz#fc32e07746689459c4b049dc581d1dbda5545686"
   integrity sha512-+70fkgjhVJeJ+nJqnburIM3UAsfvxat1Low9HMPobLbv64FIdB4Nzu5ct3qojNQ58r5sK01tg5UoFIJYslaVrg==
+<<<<<<< HEAD
 >>>>>>> 94d146e94 (feat: add api spec test infrastructure (#9356))
+=======
+=======
+"@metamask-previews/notification-services-controller@0.1.0-preview-caf274f8":
+  version "0.1.0-preview-caf274f8"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/notification-services-controller/-/notification-services-controller-0.1.0-preview-caf274f8.tgz#7489547c3b3e0718c2605d9da3321e0d3397a8e9"
+  integrity sha512-7hn4UOUTOoJJVBAOqlwO55FiGldYYQJTPGK1ssGFXQxca+ynBa9Khq/3Q6kyOU5creQYAAkNWkvQqZpXBOaQRw==
+  dependencies:
+    "@contentful/rich-text-html-renderer" "^16.5.2"
+    "@metamask/base-controller" "^6.0.0"
+    "@metamask/controller-utils" "^11.0.0"
+    "@metamask/keyring-controller" "^17.1.0"
+    "@metamask/profile-sync-controller" "^0.1.0"
+    bignumber.js "^4.1.0"
+    contentful "^10.3.6"
+    firebase "^10.11.0"
+    loglevel "^1.8.1"
+    uuid "^8.3.2"
+
+"@metamask-previews/profile-sync-controller@0.1.0-preview-caf274f8":
+  version "0.1.0-preview-caf274f8"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-0.1.0-preview-caf274f8.tgz#1b9be20d3b62a72d3bef7dd4cae3d5004a173e8b"
+  integrity sha512-wQ9e9B3IehixHLPqZm2XJm4TFmn2fCj3v2C25pCiJ06OQcx/c96zbxruRw1uPQwaHIEUjFli4aF+fXmBgYALyA==
+  dependencies:
+    "@metamask/base-controller" "^6.0.0"
+    "@metamask/snaps-controllers" "^8.1.1"
+    "@metamask/snaps-sdk" "^4.2.0"
+    "@metamask/snaps-utils" "^7.4.0"
+    "@noble/ciphers" "^0.5.2"
+    "@noble/hashes" "^1.4.0"
+    ethers "^6.12.0"
+    immer "^9.0.6"
+    loglevel "^1.8.1"
+    siwe "^2.3.2"
+>>>>>>> 671392a93 (fix: fix engine configuration and snapshot test)
+>>>>>>> 7e3b1cd6c (fix: fix engine configuration and snapshot test)
 
 "@metamask/abi-utils@^1.2.0":
   version "1.2.0"
@@ -4882,10 +4921,27 @@
     "@metamask/safe-event-emitter" "^2.0.0"
     through2 "^2.0.3"
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 7e3b1cd6c (fix: fix engine configuration and snapshot test)
 "@metamask/obs-store@^9.0.0":
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/obs-store/-/obs-store-9.0.0.tgz#fa50c988b4635817ff0454bc9763b1cf6b37d9e9"
   integrity sha512-GDsEh2DTHgmISzJt8erf9T4Ph38iwD2yDJ6J1YFq/IcWRGnT1bkgSEVqZMv9c9JloX02T5bFIUK6+9m9EycI6A==
+<<<<<<< HEAD
+=======
+  dependencies:
+    "@metamask/safe-event-emitter" "^3.0.0"
+    readable-stream "^3.6.2"
+
+>>>>>>> 671392a93 (fix: fix engine configuration and snapshot test)
+"@metamask/permission-controller@^10.0.0":
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/permission-controller/-/permission-controller-10.0.0.tgz#821280763cc37e9597fe7d207b5da00a881ad32a"
+  integrity sha512-gwoDmSsUnAFIzSeJ9FqUmoUYNofdhA0buMkH1AVXC5i/eOsEZGVUU6dYThrmUSzBK/wyNNIUGjaUSj4eMMtR6Q==
+>>>>>>> 7e3b1cd6c (fix: fix engine configuration and snapshot test)
   dependencies:
     "@metamask/safe-event-emitter" "^3.0.0"
     readable-stream "^3.6.2"
@@ -5174,6 +5230,7 @@
     "@metamask/snaps-rpc-methods" "^9.1.2"
     "@metamask/snaps-sdk" "^4.4.1"
     "@metamask/snaps-utils" "^7.4.1"
+<<<<<<< HEAD
     "@metamask/utils" "^8.3.0"
     "@xstate/fsm" "^2.0.0"
     browserify-zlib "^0.2.0"
@@ -5186,6 +5243,41 @@
     readable-web-to-node-stream "^3.0.2"
     tar-stream "^3.1.7"
 
+<<<<<<< HEAD
+=======
+"@metamask/snaps-controllers@^9.2.0":
+  version "9.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-9.2.0.tgz#02c524028afdb943f4054a59b0ffb075585e289c"
+  integrity sha512-4UP1aS4Yes4PfANLwal3fg7Inx/hZO41NJjWwfpfgSfVweuf6zLYQAW2+vsdDoHmWDnWACE7tQdt5FjcP293lw==
+  dependencies:
+    "@metamask/approval-controller" "^7.0.0"
+    "@metamask/base-controller" "^6.0.0"
+    "@metamask/json-rpc-engine" "^9.0.0"
+    "@metamask/json-rpc-middleware-stream" "^8.0.0"
+    "@metamask/object-multiplex" "^2.0.0"
+    "@metamask/permission-controller" "^10.0.0"
+    "@metamask/phishing-controller" "^10.0.0"
+    "@metamask/post-message-stream" "^8.1.0"
+    "@metamask/rpc-errors" "^6.2.1"
+    "@metamask/snaps-registry" "^3.1.0"
+    "@metamask/snaps-rpc-methods" "^9.1.4"
+    "@metamask/snaps-sdk" "^6.0.0"
+    "@metamask/snaps-utils" "^7.7.0"
+=======
+>>>>>>> 671392a93 (fix: fix engine configuration and snapshot test)
+    "@metamask/utils" "^8.3.0"
+    "@xstate/fsm" "^2.0.0"
+    browserify-zlib "^0.2.0"
+    concat-stream "^2.0.0"
+    fast-deep-equal "^3.1.3"
+    get-npm-tarball-url "^2.0.3"
+    immer "^9.0.6"
+    nanoid "^3.1.31"
+    readable-stream "^3.6.2"
+    readable-web-to-node-stream "^3.0.2"
+    tar-stream "^3.1.7"
+
+>>>>>>> 7e3b1cd6c (fix: fix engine configuration and snapshot test)
 "@metamask/snaps-registry@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-registry/-/snaps-registry-3.1.0.tgz#05635a09971f1e106deef73ef3181f17005b1750"
@@ -5234,10 +5326,81 @@
     fast-xml-parser "^4.3.4"
     superstruct "^1.0.3"
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+"@metamask/snaps-sdk@^6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-6.0.0.tgz#35e20f39100d9e662a3757deba08cb61f9cb6a59"
+  integrity sha512-DC7MHkjn/YXBaIX8xCUqkOIxPV9UK7k3oHFLsJI+4KclFYIk0tR4VJ7D1E1SfrNyL0BPftkuiQmlgHmS4wginw==
+=======
+"@metamask/snaps-sdk@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-4.4.2.tgz#6d7654ca3ecbcda5cd8689f49721c084241a4495"
+  integrity sha512-V6d1kQdkCTYQ7Z3+ZVnMWjwsS2TRaKNnSRtSHgjATdSacW5d/1td2KbTs+1x1/cSe58ULKW1SBwRNy0i0c95hA==
+  dependencies:
+    "@metamask/key-tree" "^9.1.1"
+    "@metamask/providers" "^17.0.0"
+    "@metamask/rpc-errors" "^6.2.1"
+    "@metamask/utils" "^8.3.0"
+    fast-xml-parser "^4.3.4"
+    superstruct "^1.0.3"
+
+"@metamask/snaps-sdk@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-5.0.0.tgz#5272d38d00bebbbf59b9141d87b6c5291dd757e3"
+  integrity sha512-9vwNvfo63J6SfBqr1rojIRfBMnJJDRZC1hIMzfkeenfgaBNRYpx5E/zl13LCuquVmdCKgxabjEZvw4qaLVmTmg==
+>>>>>>> 671392a93 (fix: fix engine configuration and snapshot test)
+  dependencies:
+    "@metamask/key-tree" "^9.1.1"
+    "@metamask/providers" "^17.0.0"
+    "@metamask/rpc-errors" "^6.2.1"
+    "@metamask/utils" "^8.3.0"
+    superstruct "^1.0.3"
+
+<<<<<<< HEAD
+"@metamask/snaps-utils@^7.1.0", "@metamask/snaps-utils@^7.4.0", "@metamask/snaps-utils@^7.4.1", "@metamask/snaps-utils@^7.7.0":
+  version "7.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-7.7.0.tgz#06c890026b8b6998f170129447a18e2349f70d0c"
+  integrity sha512-phVFda2Pz6v9TYUGdbgk40/BTX4/hJC+sQNU5jvmb94lcGDgxKln6xwyeH1LG0PzC44STFn9Y3zRT12TANS7Ow==
+=======
+>>>>>>> 7e3b1cd6c (fix: fix engine configuration and snapshot test)
 "@metamask/snaps-utils@^7.1.0", "@metamask/snaps-utils@^7.4.0", "@metamask/snaps-utils@^7.4.1":
   version "7.4.1"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-7.4.1.tgz#54a2b40ba30cc05a0862f4662e5cd6ef5beba42e"
   integrity sha512-IPoZTh90Bg4LJJCmkRig1QIyXOgdziuZqdx3c521gHaKpMlcOFl1fvII17X9yVF9SUtTSDoj1R4//4e5rnLZnw==
+<<<<<<< HEAD
+=======
+>>>>>>> 671392a93 (fix: fix engine configuration and snapshot test)
+  dependencies:
+    "@babel/core" "^7.23.2"
+    "@babel/types" "^7.23.0"
+    "@metamask/base-controller" "^5.0.2"
+    "@metamask/key-tree" "^9.1.1"
+    "@metamask/permission-controller" "^9.0.2"
+    "@metamask/rpc-errors" "^6.2.1"
+    "@metamask/slip44" "^3.1.0"
+    "@metamask/snaps-registry" "^3.1.0"
+    "@metamask/snaps-sdk" "^4.4.1"
+    "@metamask/utils" "^8.3.0"
+    "@noble/hashes" "^1.3.1"
+    "@scure/base" "^1.1.1"
+    chalk "^4.1.2"
+    cron-parser "^4.5.0"
+    fast-deep-equal "^3.1.3"
+    fast-json-stable-stringify "^2.1.0"
+    marked "^12.0.1"
+    rfdc "^1.3.0"
+    semver "^7.5.4"
+    ses "^1.1.0"
+    superstruct "^1.0.3"
+    validate-npm-package-name "^5.0.0"
+
+"@metamask/snaps-utils@^7.5.0":
+  version "7.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-7.6.0.tgz#1efa95dd01e6a3f311a85379e751aab91f998c2e"
+  integrity sha512-cwqUO2iE3t2qMp9pSlTLVns3IS3626bcx1GYMa5llJ5aJiNBsIsAUls5lJ8d1aSNUxf4EFxfVYGX/Cuqe1a4MA==
+>>>>>>> 7e3b1cd6c (fix: fix engine configuration and snapshot test)
   dependencies:
     "@babel/core" "^7.23.2"
     "@babel/types" "^7.23.0"
