@@ -1003,6 +1003,34 @@ class Engine {
       ],
     });
 
+    const snapController = new SnapController({
+      environmentEndowmentPermissions: Object.values(EndowmentPermissions),
+      featureFlags: {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        requireAllowlist,
+      },
+      state: initialState.SnapController || undefined,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      messenger: snapControllerMessenger as any,
+      detectSnapLocation: (
+        location: string | URL,
+        options?: DetectSnapLocationOptions,
+      ) =>
+        detectSnapLocation(location, {
+          ...options,
+          allowLocal: allowLocalSnaps,
+          fetch: fetchFunction,
+        }),
+      //@ts-expect-error types need to be aligned with snaps-controllers
+      preinstalledSnaps: PREINSTALLED_SNAPS,
+      //@ts-expect-error types need to be aligned between new encryptor and snaps-controllers
+      encryptor,
+      getMnemonic: getPrimaryKeyringMnemonic.bind(this),
+    });
+    ///: END:ONLY_INCLUDE_IF
+
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -1056,35 +1084,15 @@ class Engine {
           allowedEvents: ['KeyringController:stateChange'],
         }),
         state: initialState.NotificationServicesController,
+        env: {
+          isPushIntegrated: false, // temporary until we integrate push notifications
+          featureAnnouncements: {
+            platform: 'mobile',
+            accessToken: 'TODO from env',
+            spaceId: 'TODO from env',
+          },
+        },
       });
-
-    const snapController = new SnapController({
-      environmentEndowmentPermissions: Object.values(EndowmentPermissions),
-      featureFlags: {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        requireAllowlist,
-      },
-      state: initialState.SnapController || undefined,
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      messenger: snapControllerMessenger as any,
-      detectSnapLocation: (
-        location: string | URL,
-        options?: DetectSnapLocationOptions,
-      ) =>
-        detectSnapLocation(location, {
-          ...options,
-          allowLocal: allowLocalSnaps,
-          fetch: fetchFunction,
-        }),
-      //@ts-expect-error types need to be aligned with snaps-controllers
-      preinstalledSnaps: PREINSTALLED_SNAPS,
-      //@ts-expect-error types need to be aligned between new encryptor and snaps-controllers
-      encryptor,
-      getMnemonic: getPrimaryKeyringMnemonic.bind(this),
-    });
-    ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
