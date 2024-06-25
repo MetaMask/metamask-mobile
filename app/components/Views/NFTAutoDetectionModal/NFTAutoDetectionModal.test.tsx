@@ -28,6 +28,10 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+type PartialDeepState<T> = {
+  [P in keyof T]?: PartialDeepState<T[P]>;
+};
+
 const initialState = {
   engine: {
     backgroundState: {
@@ -40,7 +44,7 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
-const renderComponent = (state: Partial<RootState> = {}) =>
+const renderComponent = (state: PartialDeepState<RootState> = {}) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}>
@@ -54,7 +58,7 @@ describe('NFT Auto detection modal', () => {
     jest.clearAllMocks();
   });
   it('render matches snapshot', () => {
-    const { toJSON } = renderComponent(initialState as Partial<RootState>);
+    const { toJSON } = renderComponent(initialState);
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -67,7 +71,7 @@ describe('NFT Auto detection modal', () => {
           },
         },
       },
-    } as Partial<RootState>);
+    });
     const allowButton = getByTestId('allow');
 
     fireEvent.press(allowButton);
@@ -76,7 +80,7 @@ describe('NFT Auto detection modal', () => {
   });
 
   it('calls setDisplayNftMedia when clicking on allow button if displayNftMedia if on', () => {
-    const { getByTestId } = renderComponent(initialState as Partial<RootState>);
+    const { getByTestId } = renderComponent(initialState);
     const allowButton = getByTestId('allow');
 
     fireEvent.press(allowButton);
@@ -85,7 +89,7 @@ describe('NFT Auto detection modal', () => {
   });
 
   it('Does not call setUseNftDetection nor setDisplayNftMedia when clicking on not right now button', () => {
-    const { getByTestId } = renderComponent(initialState as Partial<RootState>);
+    const { getByTestId } = renderComponent(initialState);
     const cancelButton = getByTestId('cancel');
 
     fireEvent.press(cancelButton);
