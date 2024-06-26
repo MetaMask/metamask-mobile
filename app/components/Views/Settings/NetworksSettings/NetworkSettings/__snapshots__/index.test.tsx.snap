@@ -27,6 +27,6 @@ exports[`NetworkSettings should render correctly 1`] = `
     }
   }
 >
-  <Component />
+  <NetworkSettings />
 </ContextProvider>
 `;
