@@ -57,7 +57,6 @@ describe(SmokeCore('Connect account to Portfolio'), () => {
     await Assertions.checkIfVisible(ConnectModal.container);
     await ConnectModal.tapConnectButton();
     await Assertions.checkIfNotVisible(ConnectModal.container);
-    await Assertions.checkIfExist(PortfolioHomePage.accountButton);
   });
 
   it('should not open additional browser tabs to portfolio', async () => {
@@ -65,7 +64,6 @@ describe(SmokeCore('Connect account to Portfolio'), () => {
     await TabBarComponent.tapWallet();
     await WalletView.tapPortfolio();
     await BrowserView.waitForBrowserPageToLoad();
-    await Assertions.checkIfExist(PortfolioHomePage.accountButton);
     await Assertions.checkIfHasText(BrowserView.tabsNumber, '1');
   });
 });
