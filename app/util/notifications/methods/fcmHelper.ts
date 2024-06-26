@@ -1,8 +1,6 @@
 /* eslint-disable no-console */
 import { utils } from '@react-native-firebase/app';
-import messaging, {
-  AuthorizationStatus,
-} from '@react-native-firebase/messaging';
+import messaging from '@react-native-firebase/messaging';
 import { PERMISSIONS, request } from 'react-native-permissions';
 
 export async function checkPlayServices() {
