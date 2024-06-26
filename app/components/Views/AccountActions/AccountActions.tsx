@@ -49,6 +49,7 @@ import { forgetLedger } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
+import { Hex } from '@metamask/utils';
 
 const AccountActions = () => {
   const { colors } = useTheme();
@@ -61,8 +62,7 @@ const AccountActions = () => {
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
 
   const Controller = useMemo(() => {
-    const { KeyringController, PreferencesController } =
-      Engine.context as never;
+    const { KeyringController, PreferencesController } = Engine.context;
     return { KeyringController, PreferencesController };
   }, []);
 
@@ -170,7 +170,7 @@ const AccountActions = () => {
       let requestForgetDevice = false;
 
       // Remove account from KeyringController
-      await Controller.KeyringController.removeAccount(selectedAddress);
+      await Controller.KeyringController.removeAccount(selectedAddress as Hex);
       await removeAccountsFromPermissions([selectedAddress]);
       const newAccounts = await Controller.KeyringController.getAccounts();
       trackEvent(MetaMetricsEvents.WALLET_REMOVED, {
@@ -184,7 +184,7 @@ const AccountActions = () => {
       const { keyrings } = Controller.KeyringController.state;
 
       const updatedKeyring = keyrings.find(
-        (keyring: { type: never }) => keyring.type === kr.type,
+        (keyring) => keyring.type === kr.type,
       );
 
       // If there are no more accounts in the keyring, forget the device
