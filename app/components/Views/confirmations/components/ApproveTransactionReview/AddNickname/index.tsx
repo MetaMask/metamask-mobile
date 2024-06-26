@@ -39,6 +39,7 @@ import {
 import { ContractNickNameViewSelectorsIDs } from '../../../../../../../e2e/selectors/ContractNickNameView.selectors';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
+import { RootState } from '../../../../../../reducers';
 
 const getAnalyticsParams = () => ({});
 
@@ -154,11 +155,11 @@ const AddNickname = (props: AddNicknameProps) => {
     return errorMessage;
   };
 
-  const hasBlockExplorer = shouldShowBlockExplorer({
+  const hasBlockExplorer = shouldShowBlockExplorer(
     providerType,
     providerRpcTarget,
     networkConfigurations,
-  });
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -262,9 +263,7 @@ const AddNickname = (props: AddNicknameProps) => {
   );
 };
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapStateToProps = (state: any) => ({
+const mapStateToProps = (state: RootState) => ({
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcUrl(state),
   providerChainId: selectChainId(state),

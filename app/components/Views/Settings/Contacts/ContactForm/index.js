@@ -230,12 +230,12 @@ class ContactForm extends PureComponent {
       addressReady,
       toEnsAddress,
       errorContinue,
-    } = await validateAddressOrENS({
-      toAccount: address,
+    } = await validateAddressOrENS(
+      address,
       addressBook,
       internalAccounts,
       chainId,
-    });
+    );
 
     this.setState({
       addressError,

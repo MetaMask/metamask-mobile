@@ -390,12 +390,12 @@ class SendFlow extends PureComponent {
       errorContinue,
       isOnlyWarning,
       confusableCollection,
-    } = await validateAddressOrENS({
+    } = await validateAddressOrENS(
       toAccount,
       addressBook,
       internalAccounts,
       chainId,
-    });
+    );
 
     this.setState({
       addressError,
