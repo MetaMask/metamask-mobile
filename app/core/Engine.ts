@@ -907,7 +907,11 @@ class Engine {
     };
 
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
+    const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE === 'main';
+
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions.
     const snapsRegistryMessenger: SnapsRegistryMessenger =
       this.controllerMessenger.getRestricted({
         name: 'SnapsRegistry',
@@ -927,6 +931,8 @@ class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
         allowedActions: [],
@@ -981,7 +987,7 @@ class Engine {
       featureFlags: {
         requireAllowlist,
         allowLocalSnaps,
-        disableSnapInstallation: true,
+        disableSnapInstallation,
       },
       state: initialState.SnapController || undefined,
       // TODO: Replace "any" with type
