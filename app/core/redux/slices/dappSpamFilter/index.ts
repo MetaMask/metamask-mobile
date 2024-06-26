@@ -41,14 +41,10 @@ const slice = createSlice({
       let newRejections = currentState.rejections;
       let newSpamPrompt = false;
 
-      if (
-        currentTime - currentState.lastRejection <
-        REJECTION_THRESHOLD_IN_MS
-      ) {
-        newRejections += 1;
-      } else {
-        newRejections = 1;
-      }
+      const isUnderThreshold =
+        currentTime - currentState.lastRejection < REJECTION_THRESHOLD_IN_MS;
+
+      newRejections = isUnderThreshold ? newRejections + 1 : 1;
 
       if (newRejections >= NUMBER_OF_REJECTIONS_THRESHOLD) {
         newSpamPrompt = true;
