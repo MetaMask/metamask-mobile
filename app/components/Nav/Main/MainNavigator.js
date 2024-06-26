@@ -60,7 +60,7 @@ import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
@@ -215,7 +215,7 @@ const BrowserFlow = () => (
 
 export const DrawerContext = React.createContext({ drawerRef: null });
 
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -361,7 +361,7 @@ const SettingsFlow = () => (
       options={NotificationsSettings.navigationOptions}
     />
     {
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
     }
     <Stack.Screen
       name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
