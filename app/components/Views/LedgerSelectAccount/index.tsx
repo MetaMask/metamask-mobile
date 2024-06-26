@@ -24,17 +24,14 @@ import {
 } from '../../../core/Ledger/Ledger';
 import LedgerConnect from '../LedgerConnect';
 import { setReloadAccounts } from '../../../actions/accounts';
-import {
-  NavigationProp,
-  ParamListBase,
-  StackActions,
-} from '@react-navigation/native';
+import { StackActions } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { Colors } from '../../../util/theme/models';
 import { KeyringController } from '@metamask/keyring-controller';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 interface ILedgerSelectAccountProps {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: StackNavigationProp<never>;
 }
 
 const createStyles = (colors: Colors) =>
@@ -69,7 +66,7 @@ const createStyles = (colors: Colors) =>
     error: {
       ...fontStyles.normal,
       fontSize: 14,
-      color: colors.red,
+      color: colors.error,
     },
     text: {
       color: colors.text.default,
