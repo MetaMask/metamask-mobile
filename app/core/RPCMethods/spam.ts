@@ -13,9 +13,7 @@ import {
 
 export const BLOCKABLE_SPAM_RPC_METHODS = new Set([
   RPC_METHODS.ETH_SENDTRANSACTION,
-  RPC_METHODS.ETH_SIGNTRANSACTION,
   RPC_METHODS.ETH_SIGN,
-  RPC_METHODS.ETH_SIGNTRANSACTION,
   RPC_METHODS.ETH_SIGNTYPEDEATAV3,
   RPC_METHODS.ETH_SIGNTYPEDEATAV4,
   RPC_METHODS.METAMASK_CONNECTSIGN,
@@ -24,12 +22,19 @@ export const BLOCKABLE_SPAM_RPC_METHODS = new Set([
   RPC_METHODS.WALLET_WATCHASSET,
   RPC_METHODS.WALLET_ADDETHEREUMCHAIN,
   RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN,
-  RPC_METHODS.WALLET_REQUESTPERMISSIONS,
-  RPC_METHODS.WALLET_GETPERMISSIONS,
 ]);
 
 // Origin added in the createOriginMiddleware
 export type ExtendedJSONRPCRequest = JsonRpcRequest & { origin: string };
+
+export const ACTIVE_SPAM_PROMPT_ERROR = providerErrors.unauthorized(
+  'Request blocked due to active spam modal.',
+);
+
+export const USER_IDENTIFIED_REQUEST_AS_SPAM_ERROR =
+  providerErrors.unauthorized(
+    'Request blocked as the user identified it as spam.',
+  );
 
 export function validateOriginThrottling({
   req,
@@ -47,16 +52,12 @@ export function validateOriginThrottling({
   const hasActiveSpamPrompt = selectOriginAtSpamThreshold(appState, req.origin);
 
   if (hasActiveSpamPrompt) {
-    throw providerErrors.unauthorized(
-      'Request blocked due to active spam modal.',
-    );
+    throw ACTIVE_SPAM_PROMPT_ERROR;
   }
 
   const isDappBlocked = isDappBlockedForRPCRequests(appState, req.origin);
   if (isDappBlocked) {
-    throw providerErrors.unauthorized(
-      'Request blocked as the user identified it as spam.',
-    );
+    throw USER_IDENTIFIED_REQUEST_AS_SPAM_ERROR;
   }
 }
 

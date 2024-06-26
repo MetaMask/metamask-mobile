@@ -31,11 +31,19 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications';
 import { EthAccountType, EthMethod } from '@metamask/keyring-api';
+import {
+  processOriginThrottlingRejection,
+  validateOriginThrottling,
+} from './spam';
+import {
+  NUMBER_OF_REJECTIONS_THRESHOLD,
+  OriginThrottlingState,
+} from '../redux/slices/originThrottling';
+import eth_sendTransaction from './eth_sendTransaction';
 
-jest.mock('./spam', () => ({
-  processOriginThrottlingRejection: jest.fn(),
-  validateOriginThrottling: jest.fn(),
-}));
+jest.mock('./spam');
+
+jest.mock('./eth_sendTransaction');
 
 jest.mock('../Engine', () => ({
   context: {
@@ -82,6 +90,11 @@ jest.mock('../Permissions', () => ({
 }));
 const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;
 const mockAddTransaction = addTransaction as jest.Mock;
+
+const mockProcessOriginThrottlingRejection =
+  processOriginThrottlingRejection as jest.Mock;
+const mockValidateOriginThrottling = validateOriginThrottling as jest.Mock;
+const mockEthSendTransaction = eth_sendTransaction as jest.Mock;
 
 /**
  * This is used to build JSON-RPC requests. It is defined here for convenience, so that we don't
@@ -226,12 +239,14 @@ function setupGlobalState({
   permittedAccounts,
   providerConfig,
   selectedAddress,
+  originThrottling,
 }: {
   activeTab?: number;
   addTransactionResult?: Promise<string>;
   permittedAccounts?: Record<string, string[]>;
   providerConfig?: ProviderConfig;
   selectedAddress?: string;
+  originThrottling?: OriginThrottlingState;
 }) {
   // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
   jest
@@ -255,6 +270,9 @@ function setupGlobalState({
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
+      originThrottling: originThrottling || {
+        origins: {},
+      },
     }));
   mockStore.dispatch.mockImplementation((obj) => obj);
   if (addTransactionResult) {
@@ -305,6 +323,10 @@ function setupSignature() {
 }
 
 describe('getRpcMethodMiddleware', () => {
+  beforeEach(() => {
+    mockEthSendTransaction.mockReset();
+  });
+
   it('allows unrecognized methods to pass through without PermissionController middleware', async () => {
     const engine = new JsonRpcEngine();
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
@@ -1294,6 +1316,83 @@ describe('getRpcMethodMiddleware', () => {
       const spy = jest.spyOn(PPOMUtil, 'validateRequest');
       await sendRequest();
       expect(spy).toBeCalledTimes(1);
+    });
+  });
+
+  describe('originThrottling', () => {
+    const assumedBlockableRPCMethod = 'eth_sendTransaction';
+    const mockBlockedOrigin = 'blocked.origin';
+
+    it('blocks the request when the origin has an active spam prompt', async () => {
+      // Restore mock for this test
+      mockValidateOriginThrottling.mockImplementationOnce(
+        jest.requireActual('./spam').validateOriginThrottling,
+      );
+
+      setupGlobalState({
+        originThrottling: {
+          origins: {
+            [mockBlockedOrigin]: {
+              rejections: NUMBER_OF_REJECTIONS_THRESHOLD,
+              lastRejection: Date.now() - 1,
+            },
+          },
+        },
+      });
+
+      const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: assumedBlockableRPCMethod,
+        params: [],
+        origin: mockBlockedOrigin,
+      };
+
+      const response = await callMiddleware({ middleware, request });
+
+      const expectedError =
+        jest.requireActual('./spam').ACTIVE_SPAM_PROMPT_ERROR;
+      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      expect((response as JsonRpcFailure).error.message).toBe(
+        expectedError.message,
+      );
+    });
+
+    it('calls processOriginThrottlingRejection hook after receiving error', async () => {
+      // Assume the user rejected the request
+      mockEthSendTransaction.mockRejectedValueOnce(
+        providerErrors.userRejectedRequest(),
+      );
+
+      setupGlobalState({
+        originThrottling: {
+          origins: {
+            [mockBlockedOrigin]: {
+              rejections: 1,
+              lastRejection: Date.now() - 1,
+            },
+          },
+        },
+      });
+
+      const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: assumedBlockableRPCMethod,
+        params: [],
+        origin: mockBlockedOrigin,
+      };
+
+      await callMiddleware({ middleware, request });
+
+      expect(mockProcessOriginThrottlingRejection).toHaveBeenCalledTimes(1);
+      expect(mockProcessOriginThrottlingRejection).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: providerErrors.userRejectedRequest(),
+        }),
+      );
     });
   });
 });
