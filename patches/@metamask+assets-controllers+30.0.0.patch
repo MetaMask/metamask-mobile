@@ -23,6 +23,237 @@ index 0dc70ec..461a210 100644
        }
      };
      return acc;
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js b/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
+index ee6155c..3b33a57 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
+@@ -1,12 +1,14 @@
+ "use strict";Object.defineProperty(exports, "__esModule", {value: true});// src/NftDetectionController.ts
+ 
+-
++var utils_1 = require('@metamask/utils');
+ 
+ 
+ 
+ var _controllerutils = require('@metamask/controller-utils');
+ var _pollingcontroller = require('@metamask/polling-controller');
+ var DEFAULT_INTERVAL = 18e4;
++var supportedNftDetectionNetworks = [_controllerutils.ChainId.mainnet];
++var inProcessNftFetchingUpdates;
+ var BlockaidResultType = /* @__PURE__ */ ((BlockaidResultType2) => {
+   BlockaidResultType2["Benign"] = "Benign";
+   BlockaidResultType2["Spam"] = "Spam";
+@@ -50,6 +52,7 @@ var NftDetectionController = class extends _pollingcontroller.StaticIntervalPoll
+      * Name of this controller used during composition
+      */
+     this.name = "NftDetectionController";
++    this.inProcessNftFetchingUpdates= {};
+     /**
+      * Checks whether network is mainnet or not.
+      *
+@@ -72,11 +75,6 @@ var NftDetectionController = class extends _pollingcontroller.StaticIntervalPoll
+       const { selectedAddress: previouslySelectedAddress, disabled } = this.config;
+       if (selectedAddress !== previouslySelectedAddress || !useNftDetection !== disabled) {
+         this.configure({ selectedAddress, disabled: !useNftDetection });
+-        if (useNftDetection) {
+-          this.start();
+-        } else {
+-          this.stop();
+-        }
+       }
+     });
+     onNetworkStateChange(({ selectedNetworkClientId }) => {
+@@ -92,34 +90,21 @@ var NftDetectionController = class extends _pollingcontroller.StaticIntervalPoll
+     this.setIntervalLength(this.config.interval);
+   }
+   getOwnerNftApi({
++    chainId,
+     address,
+     next
+   }) {
+-    return `${_controllerutils.NFT_API_BASE_URL}/users/${address}/tokens?chainIds=1&limit=50&includeTopBid=true&continuation=${next ?? ""}`;
++    return `${_controllerutils.NFT_API_BASE_URL}/users/${address}/tokens?chainIds=${chainId}&limit=50&includeTopBid=true&continuation=${next ?? ""}`;
+   }
+-  async getOwnerNfts(address) {
+-    let nftApiResponse;
+-    let nfts = [];
+-    let next;
+-    do {
+-      nftApiResponse = await _controllerutils.fetchWithErrorHandling.call(void 0, {
+-        url: this.getOwnerNftApi({ address, next }),
+-        options: {
+-          headers: {
+-            Version: "1"
+-          }
+-        },
+-        timeout: 15e3
+-      });
+-      if (!nftApiResponse) {
+-        return nfts;
++  async getOwnerNfts(address, chainId, cursor) {
++    const convertedChainId = _controllerutils.convertHexToDecimal.call(void 0, chainId).toString();
++    const url = this.getOwnerNftApi({ chainId: convertedChainId, address, next: cursor })
++    const nftApiResponse = await _controllerutils.handleFetch.call(void 0, url, {
++      headers: {
++        Version: '1'
+       }
+-      const newNfts = nftApiResponse.tokens.filter(
+-        (elm) => elm.token.isSpam === false && (elm.blockaidResult?.result_type ? elm.blockaidResult?.result_type === "Benign" /* Benign */ : true)
+-      );
+-      nfts = [...nfts, ...newNfts];
+-    } while (next = nftApiResponse.continuation);
+-    return nfts;
++    });
++    return nftApiResponse;
+   }
+   async _executePoll(networkClientId, options) {
+     await this.detectNfts({ networkClientId, userAddress: options.address });
+@@ -169,62 +154,96 @@ var NftDetectionController = class extends _pollingcontroller.StaticIntervalPoll
+     networkClientId,
+     userAddress
+   } = { userAddress: this.config.selectedAddress }) {
+-    if (!this.isMainnet() || this.disabled) {
++    const { chainId } = this.config;
++    if (!supportedNftDetectionNetworks.includes(chainId) || this.disabled) {
+       return;
+     }
+     if (!userAddress) {
+       return;
+     }
+-    const apiNfts = await this.getOwnerNfts(userAddress);
+-    const addNftPromises = apiNfts.map(async (nft) => {
+-      const {
+-        tokenId: token_id,
+-        contract,
+-        kind,
+-        image: image_url,
+-        imageSmall: image_thumbnail_url,
+-        metadata: { imageOriginal: image_original_url } = {},
+-        name,
+-        description,
+-        attributes,
+-        topBid,
+-        lastSale,
+-        rarityRank,
+-        rarityScore,
+-        collection
+-      } = nft.token;
+-      let ignored;
+-      const { ignoredNfts } = this.getNftState();
+-      if (ignoredNfts.length) {
+-        ignored = ignoredNfts.find((c) => {
+-          return c.address === _controllerutils.toChecksumHexAddress.call(void 0, contract) && c.tokenId === token_id;
+-        });
+-      }
+-      if (!ignored) {
+-        const nftMetadata = Object.assign(
+-          {},
+-          { name },
+-          description && { description },
+-          image_url && { image: image_url },
+-          image_thumbnail_url && { imageThumbnail: image_thumbnail_url },
+-          image_original_url && { imageOriginal: image_original_url },
+-          kind && { standard: kind.toUpperCase() },
+-          lastSale && { lastSale },
+-          attributes && { attributes },
+-          topBid && { topBid },
+-          rarityRank && { rarityRank },
+-          rarityScore && { rarityScore },
+-          collection && { collection }
++    const updateKey = `${chainId}:${userAddress}`;
++    if (updateKey in this.inProcessNftFetchingUpdates) {
++        // This prevents redundant updates
++        // This promise is resolved after the in-progress update has finished,
++        // and state has been updated.
++        await this.inProcessNftFetchingUpdates[updateKey];
++        return;
++    }
++    const {
++        promise: inProgressUpdate,
++        resolve: updateSucceeded,
++        reject: updateFailed
++    } = utils_1.createDeferredPromise.call(void 0, { suppressUnhandledRejection: true });
++                  
++    this.inProcessNftFetchingUpdates[updateKey] = inProgressUpdate;
++    let next;
++    let apiNfts= [];
++    let resultNftApi;
++
++    try{
++      do {
++        resultNftApi = await this.getOwnerNfts(userAddress, chainId, next)
++        apiNfts = resultNftApi.tokens.filter((elm) =>
++            elm.token.isSpam === false &&
++            (elm.blockaidResult?.result_type? elm.blockaidResult?.result_type === BlockaidResultType.Benign: true),
+         );
+-        await this.addNft(contract, token_id, {
+-          nftMetadata,
+-          userAddress,
+-          source: "detected" /* Detected */,
+-          networkClientId
++        const addNftPromises = apiNfts.map(async (nft) => {
++          const {
++            tokenId: token_id,
++            contract,
++            kind,
++            image: image_url,
++            imageSmall: image_thumbnail_url,
++            metadata: { imageOriginal: image_original_url } = {},
++            name,
++            description,
++            attributes,
++            topBid,
++            lastSale,
++            rarityRank,
++            rarityScore,
++            collection
++          } = nft.token;
++          let ignored;
++          const { ignoredNfts } = this.getNftState();
++          if (ignoredNfts.length) {
++            ignored = ignoredNfts.find((c) => {
++              return c.address === _controllerutils.toChecksumHexAddress.call(void 0, contract) && c.tokenId === token_id;
++            });
++          }
++          if (!ignored) {
++            const nftMetadata = Object.assign(
++              {},
++              { name },
++              description && { description },
++              image_url && { image: image_url },
++              image_thumbnail_url && { imageThumbnail: image_thumbnail_url },
++              image_original_url && { imageOriginal: image_original_url },
++              kind && { standard: kind.toUpperCase() },
++              lastSale && { lastSale },
++              attributes && { attributes },
++              topBid && { topBid },
++              rarityRank && { rarityRank },
++              rarityScore && { rarityScore },
++              collection && { collection }
++            );
++            await this.addNft(contract, token_id, {
++              nftMetadata,
++              userAddress,
++              source: "detected" /* Detected */,
++              networkClientId
++            });
++          }
+         });
+-      }
+-    });
+-    await Promise.all(addNftPromises);
++        await Promise.all(addNftPromises);
++      } while(next = resultNftApi.continuation)
++      updateSucceeded();
++    }catch (error) {
++      updateFailed(error);
++      throw error;
++    } finally {
++      delete this.inProcessNftFetchingUpdates[updateKey];
++    }
+   }
+ };
+ var NftDetectionController_default = NftDetectionController;
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js b/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
 index 76e3362..5ab79a4 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
