@@ -1,11 +1,13 @@
 process.env.TZ = 'America/Toronto';
 process.env.MM_BLOCKAID_UI_ENABLED = 'true';
-process.env.MM_TRANSACTION_SIMULATIONS_ENABLED = 'true';
 
 process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
 process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
 
 process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
+
+process.env.SECURITY_ALERTS_API_ENABLED = 'true';
+process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 
 const config = {
   preset: 'react-native',

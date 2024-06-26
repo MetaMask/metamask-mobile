@@ -17,6 +17,8 @@ const initialState: InitialState = {
   currentBottomNavRoute: 'Wallet',
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const navigationReducer = (state = initialState, action: any = {}) => {
   switch (action.type) {
     case SET_CURRENT_ROUTE:
@@ -37,7 +39,11 @@ const navigationReducer = (state = initialState, action: any = {}) => {
 /**
  * Selectors
  */
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getCurrentRoute = (state: any) => state.navigation.currentRoute;
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getCurrentBottomNavRoute = (state: any) =>
   state.navigation.currentBottomNavRoute;
 

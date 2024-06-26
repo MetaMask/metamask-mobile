@@ -25,8 +25,12 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const navigation = { state: { params: { address: '0x1' } } } as any;
 // noop
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 navigation.setParams = (params: any) => ({ ...params });
 
 describe('Approval', () => {

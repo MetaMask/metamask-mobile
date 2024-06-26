@@ -32,6 +32,8 @@ type NetworkFees = {
 interface NotificationModalNetworkFeeProps {
   notification: HalRawNotificationsWithNetworkFields;
   sheetRef: React.RefObject<BottomSheetRef>;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: Record<string, any>;
   onClosed: () => void;
 }

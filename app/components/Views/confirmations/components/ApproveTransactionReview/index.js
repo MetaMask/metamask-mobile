@@ -36,7 +36,9 @@ import {
   decodeApproveData,
   generateTxWithNewTokenAllowance,
   minimumTokenAllowance,
-  generateApproveData,
+  generateApprovalData,
+  isNFTTokenStandard,
+  TOKEN_METHOD_SET_APPROVAL_FOR_ALL,
 } from '../../../../../util/transactions';
 import Avatar, {
   AvatarSize,
@@ -105,7 +107,7 @@ const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 let intervalIdForEstimatedL1Fee;
 
 const {
-  ASSET: { ERC721, ERC1155, ERC20 },
+  ASSET: { ERC20 },
 } = TransactionTypes;
 
 /**
@@ -339,7 +341,8 @@ class ApproveTransactionReview extends PureComponent {
   componentDidMount = async () => {
     const { chainId } = this.props;
     const {
-      transaction: { origin, to, data, from, transaction },
+      transaction: { origin, to, data, from },
+      transaction,
       setTransactionObject,
       tokenList,
       tokenAllowanceState,
@@ -367,13 +370,7 @@ class ApproveTransactionReview extends PureComponent {
       decodeApproveData(data);
     const encodedDecimalAmount = hexToBN(encodedHexAmount).toString();
 
-    const erc20TokenBalance = await AssetsContractController.getERC20BalanceOf(
-      to,
-      from,
-    );
-
     const contract = tokenList[safeToChecksumAddress(to)];
-
     if (tokenAllowanceState) {
       const {
         tokenSymbol: symbol,
@@ -395,11 +392,13 @@ class ApproveTransactionReview extends PureComponent {
 
         const { standard, name, decimals, symbol } = result;
 
-        if (standard === ERC721 || standard === ERC1155) {
+        if (isNFTTokenStandard(standard)) {
           tokenName = name;
           tokenSymbol = symbol;
           tokenStandard = standard;
         } else {
+          const erc20TokenBalance =
+            await AssetsContractController.getERC20BalanceOf(to, from);
           tokenDecimals = decimals;
           tokenSymbol = symbol;
           tokenStandard = standard;
@@ -427,12 +426,10 @@ class ApproveTransactionReview extends PureComponent {
     const { name: method } = await getMethodData(data);
     const minTokenAllowance = minimumTokenAllowance(tokenDecimals);
 
-    const approvalData = generateApproveData({
+    const approvalData = generateApprovalData({
       spender: spenderAddress,
-      value:
-        tokenStandard === ERC721 || tokenStandard === ERC1155
-          ? encodedHexAmount
-          : '0',
+      value: isNFTTokenStandard(tokenStandard) ? encodedHexAmount : '0',
+      data,
     });
 
     setTransactionObject({
@@ -513,6 +510,33 @@ class ApproveTransactionReview extends PureComponent {
 
   componentWillUnmount = async () => {
     clearInterval(intervalIdForEstimatedL1Fee);
+  };
+
+  getTrustMessage = (originIsDeeplink, isMethodSetApprovalForAll) => {
+    if (isMethodSetApprovalForAll) {
+      return strings('spend_limit_edition.you_trust_this_third_party');
+    }
+    if (originIsDeeplink) {
+      return strings('spend_limit_edition.you_trust_this_address');
+    }
+    return strings('spend_limit_edition.you_trust_this_site');
+  };
+
+  getTrustTitle = (
+    originIsDeeplink,
+    isNonFungibleToken,
+    isMethodSetApprovalForAll,
+  ) => {
+    if (isMethodSetApprovalForAll) {
+      return strings('spend_limit_edition.allow_to_transfer_all');
+    }
+    if (originIsDeeplink) {
+      return strings('spend_limit_edition.allow_to_address_access');
+    }
+    if (isNonFungibleToken) {
+      return strings('spend_limit_edition.allow_to_access');
+    }
+    return strings('spend_limit_edition.spend_cap');
   };
 
   getAnalyticsParams = () => {
@@ -746,6 +770,7 @@ class ApproveTransactionReview extends PureComponent {
       fetchingUpdateDone,
       isReadyToApprove,
       isCustomSpendInputValid,
+      method,
     } = this.state;
 
     const {
@@ -817,6 +842,10 @@ class ApproveTransactionReview extends PureComponent {
         ? strings('transaction.next')
         : strings('transactions.approve');
 
+    const isNonFungibleToken = isNFTTokenStandard(tokenStandard);
+    const isMethodSetApprovalForAll =
+      method === TOKEN_METHOD_SET_APPROVAL_FOR_ALL;
+
     return (
       <>
         <View style={styles.section}>
@@ -856,15 +885,10 @@ class ApproveTransactionReview extends PureComponent {
                       onContactUsClicked={this.onContactUsClicked}
                     />
                     <Text variant={TextVariant.HeadingMD} style={styles.title}>
-                      {strings(
-                        `spend_limit_edition.${
-                          originIsDeeplink
-                            ? 'allow_to_address_access'
-                            : tokenStandard === ERC721 ||
-                              tokenStandard === ERC1155
-                            ? 'allow_to_access'
-                            : 'spend_cap'
-                        }`,
+                      {this.getTrustTitle(
+                        originIsDeeplink,
+                        isNonFungibleToken,
+                        isMethodSetApprovalForAll,
                       )}
                     </Text>
                     <View style={styles.tokenContainer}>
@@ -895,7 +919,7 @@ class ApproveTransactionReview extends PureComponent {
                           </Text>
                         </>
                       )}
-                      {tokenStandard === ERC721 || tokenStandard === ERC1155 ? (
+                      {isNonFungibleToken ? (
                         hasBlockExplorer ? (
                           <ButtonLink
                             onPress={showBlockExplorer}
@@ -915,15 +939,11 @@ class ApproveTransactionReview extends PureComponent {
                         )
                       ) : null}
                     </View>
-                    {(tokenStandard === ERC721 ||
-                      tokenStandard === ERC1155) && (
+                    {isNonFungibleToken && (
                       <Text reset style={styles.explanation}>
-                        {`${strings(
-                          `spend_limit_edition.${
-                            originIsDeeplink
-                              ? 'you_trust_this_address'
-                              : 'you_trust_this_site'
-                          }`,
+                        {`${this.getTrustMessage(
+                          originIsDeeplink,
+                          isMethodSetApprovalForAll,
                         )}`}
                       </Text>
                     )}
@@ -962,8 +982,7 @@ class ApproveTransactionReview extends PureComponent {
                           )
                         )}
                         {((isERC2OToken && isReadyToApprove) ||
-                          tokenStandard === ERC721 ||
-                          tokenStandard === ERC1155) && (
+                          isNonFungibleToken) && (
                           <View style={styles.transactionWrapper}>
                             <TransactionReview
                               gasSelected={gasSelected}

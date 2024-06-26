@@ -24,6 +24,8 @@ const OptIn = () => {
   const styles = createStyles(theme);
   const navigation = useNavigation();
   const isNotificationEnabled = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.notification?.notificationsSettings?.isEnabled,
   );
   const [promptCount, setPromptCount] = useState(0);

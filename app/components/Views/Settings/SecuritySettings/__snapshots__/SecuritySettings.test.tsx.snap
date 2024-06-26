@@ -577,7 +577,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Show private key for "[missing {{accountName}} value]"
+          Show private key for "Account 2"
         </Text>
         <Text
           accessibilityRole="text"
@@ -593,7 +593,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          This is the private key for the current selected account: [missing {{accountName}} value]. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
+          This is the private key for the current selected account: Account 2. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
         </Text>
         <TouchableOpacity
           accessibilityRole="button"
@@ -2129,7 +2129,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
               thumbTintColor="#ffffff"
               tintColor="#bbc0c566"
-              value={false}
+              value={true}
             />
           </View>
         </View>

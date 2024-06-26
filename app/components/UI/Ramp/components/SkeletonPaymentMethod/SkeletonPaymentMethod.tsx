@@ -6,7 +6,11 @@ import Row from '../Row';
 import SkeletonBox from '../SkeletonBox';
 import SkeletonText from '../SkeletonText';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = BaseListItem as any;
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Text = BaseText as any;
 
 const SkeletonPaymentMethod = () => (
