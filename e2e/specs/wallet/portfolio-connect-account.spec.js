@@ -38,17 +38,14 @@ describe(SmokeCore('Connect account to Portfolio'), () => {
 
   it('should connect wallet account to portfolio', async () => {
     await loginToApp();
-    await WalletView.isVisible();
-    if (device.getPlatform() === 'android') {
-      await TabBarComponent.tapBrowser();
-      await BrowserView.waitForBrowserPageToLoad();
-      await BrowserView.tapUrlInputBox();
-      await BrowserView.navigateToURL('https://portfolio.metamask.io');
-      await BrowserView.waitForBrowserPageToLoad();
-    } else {
-      await WalletView.tapPortfolio();
-      await BrowserView.waitForBrowserPageToLoad();
-    }
+    await Assertions.checkIfVisible(WalletView.container);
+    await TabBarComponent.tapBrowser();
+    await BrowserView.tapOpenAllTabsButton();
+    await BrowserView.tapCloseTabsButton();
+    await Assertions.checkIfVisible(BrowserView.noTabsMessage);
+    await TabBarComponent.tapWallet();
+    await WalletView.tapPortfolio();
+    await BrowserView.waitForBrowserPageToLoad();
 
     try {
       await PortfolioHomePage.closePrivacyModal();
@@ -60,6 +57,7 @@ describe(SmokeCore('Connect account to Portfolio'), () => {
     await Assertions.checkIfVisible(ConnectModal.container);
     await ConnectModal.tapConnectButton();
     await Assertions.checkIfNotVisible(ConnectModal.container);
+    await Assertions.checkIfExist(PortfolioHomePage.accountButton);
   });
 
   it('should not open additional browser tabs to portfolio', async () => {
@@ -67,6 +65,7 @@ describe(SmokeCore('Connect account to Portfolio'), () => {
     await TabBarComponent.tapWallet();
     await WalletView.tapPortfolio();
     await BrowserView.waitForBrowserPageToLoad();
+    await Assertions.checkIfExist(PortfolioHomePage.accountButton);
     await Assertions.checkIfHasText(BrowserView.tabsNumber, '1');
   });
 });

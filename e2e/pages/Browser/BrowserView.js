@@ -104,6 +104,14 @@ class Browser {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.TABS_NUMBER);
   }
 
+  get closeAllTabsButton() {
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.CLOSE_ALL_TABS);
+  }
+
+  get noTabsMessage() {
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.NO_TABS_MESSAGE);
+  }
+
   async getFavoritesURL(url) {
     return Matchers.getElementByHref(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
@@ -125,6 +133,10 @@ class Browser {
 
   async tapOpenAllTabsButton() {
     await Gestures.waitAndTap(this.tabsButton);
+  }
+
+  async tapCloseTabsButton() {
+    await Gestures.waitAndTap(this.closeAllTabsButton);
   }
 
   async tapOpenNewTabButton() {

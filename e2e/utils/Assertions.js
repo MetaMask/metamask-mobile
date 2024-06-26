@@ -35,6 +35,15 @@ class Assertions {
   }
 
   /**
+   * Check if an element with the specified ID exists.
+   * @param {Promise<Detox.WebElement>} elementId - The ID of the element to check.
+   * @param timeout
+   */
+  static async checkIfExist(elementId, timeout = TIMEOUT) {
+    return expect(await elementId).toExist();
+  }
+
+  /**
    * Check if an element with the specified ID does have the specified text.
    * @param {Promise<Detox.IndexableNativeElement>} elementId - The ID of the element to check.
    * @param {string} text - The text content to check.

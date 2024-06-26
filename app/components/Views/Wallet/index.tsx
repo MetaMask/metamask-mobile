@@ -82,6 +82,7 @@ import {
   showNftFetchingLoadingIndicator as showNftFetchingLoadingIndicatorAction,
 } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -502,7 +503,10 @@ const Wallet = ({
       assets = tokens;
     }
     return (
-      <View style={styles.wrapper}>
+      <View
+        style={styles.wrapper}
+        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+      >
         {!basicFunctionalityEnabled ? (
           <View style={styles.banner}>
             <BannerAlert
