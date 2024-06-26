@@ -6,8 +6,8 @@ import Routes from '../../constants/navigation/Routes';
 import {
   BLOCKABLE_SPAM_RPC_METHODS,
   ExtendedJSONRPCRequest,
-  processDappSpamRejection,
-  validateDappRequestAgainstSpam,
+  processOriginThrottlingRejection,
+  validateOriginThrottling,
 } from './utils';
 
 const [BLOCKABLE_RPC_METHOD_MOCK] = BLOCKABLE_SPAM_RPC_METHODS;
@@ -32,12 +32,12 @@ const mockInitialState = {
 const mockStore = configureMockStore();
 
 describe('utils', () => {
-  describe('validateDappRequestAgainstSpam', () => {
+  describe('validateOriginThrottling', () => {
     describe('allows request', () => {
       it('when RPC request method is not blockable', () => {
         const store = mockStore(mockInitialState);
         expect(() =>
-          validateDappRequestAgainstSpam({
+          validateOriginThrottling({
             req: NOT_BLOCKABLE_RPC_REQUEST_MOCK,
             store,
           }),
@@ -47,7 +47,7 @@ describe('utils', () => {
       it('when there is no active spam prompt and no past rejections', () => {
         const store = mockStore(mockInitialState);
         expect(() =>
-          validateDappRequestAgainstSpam({ req: RPC_REQUEST_MOCK, store }),
+          validateOriginThrottling({ req: RPC_REQUEST_MOCK, store }),
         ).not.toThrow();
       });
 
@@ -66,7 +66,7 @@ describe('utils', () => {
           },
         });
         expect(() =>
-          validateDappRequestAgainstSpam({ req: RPC_REQUEST_MOCK, store }),
+          validateOriginThrottling({ req: RPC_REQUEST_MOCK, store }),
         ).not.toThrow();
       });
 
@@ -85,7 +85,7 @@ describe('utils', () => {
           },
         });
         expect(() =>
-          validateDappRequestAgainstSpam({ req: RPC_REQUEST_MOCK, store }),
+          validateOriginThrottling({ req: RPC_REQUEST_MOCK, store }),
         ).not.toThrow();
       });
     });
@@ -104,7 +104,7 @@ describe('utils', () => {
           },
         });
         expect(() =>
-          validateDappRequestAgainstSpam({ req: RPC_REQUEST_MOCK, store }),
+          validateOriginThrottling({ req: RPC_REQUEST_MOCK, store }),
         ).toThrow();
       });
 
@@ -123,18 +123,18 @@ describe('utils', () => {
           },
         });
         expect(() =>
-          validateDappRequestAgainstSpam({ req: RPC_REQUEST_MOCK, store }),
+          validateOriginThrottling({ req: RPC_REQUEST_MOCK, store }),
         ).toThrow();
       });
     });
   });
 
-  describe('processDappSpamRejection', () => {
+  describe('processOriginThrottlingRejection', () => {
     describe('does nothing', () => {
       it('when RPC request method is not blockable', () => {
         const store = mockStore(mockInitialState);
         expect(() =>
-          processDappSpamRejection({
+          processOriginThrottlingRejection({
             req: NOT_BLOCKABLE_RPC_REQUEST_MOCK,
             error: new Error('Some error'),
             store,
@@ -147,7 +147,7 @@ describe('utils', () => {
         const store = mockStore(mockInitialState);
         const error = new Error('Some error');
         expect(() =>
-          processDappSpamRejection({
+          processOriginThrottlingRejection({
             req: RPC_REQUEST_MOCK,
             error,
             store,
@@ -171,7 +171,7 @@ describe('utils', () => {
       });
       const navigation = { navigate: jest.fn() };
       const error = new Error('User rejected request');
-      processDappSpamRejection({
+      processOriginThrottlingRejection({
         req: RPC_REQUEST_MOCK,
         error,
         store,

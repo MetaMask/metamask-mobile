@@ -21,8 +21,8 @@ import Networks, {
 } from '../../util/networks';
 import {
   polyfillGasPrice,
-  processDappSpamRejection,
-  validateDappRequestAgainstSpam,
+  processOriginThrottlingRejection,
+  validateOriginThrottling,
 } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
@@ -924,7 +924,7 @@ export const getRpcMethodMiddleware = ({
       return next();
     }
 
-    validateDappRequestAgainstSpam({ req, store });
+    validateOriginThrottling({ req, store });
 
     const isWhiteListedMethod = isWhitelistedRPC(req.method);
 
@@ -936,7 +936,7 @@ export const getRpcMethodMiddleware = ({
       isWhiteListedMethod &&
         store.dispatch(setEventStage(req.method, RPCStageTypes.COMPLETE));
     } catch (error: unknown) {
-      processDappSpamRejection({
+      processOriginThrottlingRejection({
         req,
         error: error as {
           message: string;

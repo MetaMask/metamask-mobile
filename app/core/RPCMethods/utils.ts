@@ -168,7 +168,7 @@ export const BLOCKABLE_SPAM_RPC_METHODS = new Set([
 // Origin added in the createOriginMiddleware
 export type ExtendedJSONRPCRequest = JsonRpcRequest & { origin: string };
 
-export function validateDappRequestAgainstSpam({
+export function validateOriginThrottling({
   req,
   store,
 }: {
@@ -198,7 +198,7 @@ export function validateDappRequestAgainstSpam({
   }
 }
 
-export function processDappSpamRejection({
+export function processOriginThrottlingRejection({
   req,
   error,
   store,

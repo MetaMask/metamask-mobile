@@ -3,7 +3,6 @@ import reducer, {
   initialState,
   onRPCRequestRejectedByUser,
   resetDappSpamState,
-  resetSpamPrompt,
   REJECTION_THRESHOLD_IN_MS,
 } from './index';
 
