@@ -1,3 +1,5 @@
+// NetworkSettings.test.js or NetworkSettings.test.tsx
+
 import React from 'react';
 import { shallow } from 'enzyme';
 import { NetworkSettings } from './'; // Import the undecorated component
@@ -208,7 +210,11 @@ describe('NetworkSettings', () => {
   it('should initialize state correctly when networkTypeOrRpcUrl is provided', () => {
     const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
       route: {
-        params: { network: 'mainnet' },
+        params: {
+          network: 'mainnet',
+
+          // networkTypeOrRpcUrl: true
+        },
       },
       navigation: {
         setOptions: jest.fn(),
