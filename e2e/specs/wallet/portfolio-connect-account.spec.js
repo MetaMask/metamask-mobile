@@ -14,17 +14,20 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import BrowserView from '../../pages/Browser/BrowserView';
 import PortfolioHomePage from '../../pages/Browser/PortfolioHomePage';
+import Assertions from '../../utils/Assertions';
+import ConnectModal from '../../pages/modals/ConnectModal';
 
 const fixtureServer = new FixtureServer();
 
 describe(SmokeCore('Connect account to Portfolio'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder().build();
+    const fixture = new FixtureBuilder().withKeyringController().build();
     fixture.state.user.seedphraseBackedUp = false;
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
+      permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
   });
@@ -37,11 +40,6 @@ describe(SmokeCore('Connect account to Portfolio'), () => {
     await loginToApp();
     await WalletView.isVisible();
     if (device.getPlatform() === 'android') {
-      /* closing all browser tabs before tapping Portfolio to interact with webview */
-      //   await TabBarComponent.tapBrowser();
-      //   await BrowserView.tapOpenAllTabsButton();
-      //   await BrowserView.tapCloseAll();
-      //   await TabBarComponent.tapWallet();
       await TabBarComponent.tapBrowser();
       await BrowserView.waitForBrowserPageToLoad();
       await BrowserView.tapUrlInputBox();
@@ -51,8 +49,24 @@ describe(SmokeCore('Connect account to Portfolio'), () => {
       await WalletView.tapPortfolio();
       await BrowserView.waitForBrowserPageToLoad();
     }
+
+    try {
+      await PortfolioHomePage.closePrivacyModal();
+    } catch {
+      /* eslint-disable no-console */
+      console.log('The Portfolio privacy modal is not visible');
+    }
     await PortfolioHomePage.tapConnectMetaMask();
+    await Assertions.checkIfVisible(ConnectModal.container);
+    await ConnectModal.tapConnectButton();
+    await Assertions.checkIfNotVisible(ConnectModal.container);
   });
 
-  //   it('should not open additional browser tabs to portfolio', async () => {});
+  it('should not open additional browser tabs to portfolio', async () => {
+    await Assertions.checkIfHasText(BrowserView.tabsNumber, '1');
+    await TabBarComponent.tapWallet();
+    await WalletView.tapPortfolio();
+    await BrowserView.waitForBrowserPageToLoad();
+    await Assertions.checkIfHasText(BrowserView.tabsNumber, '1');
+  });
 });

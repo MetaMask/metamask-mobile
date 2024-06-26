@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { TEST_DAPP_LOCAL_URL } from '../Browser/TestDApp';
+import { TEST_DAPP_LOCAL_URL } from './TestDApp';
 
 import {
   BrowserViewSelectorsIDs,
@@ -82,9 +82,7 @@ class Browser {
   }
 
   get multiTabButton() {
-    return Matchers.getElementByID(
-      BrowserViewSelectorsIDs.MULTI_TAB_ADD_BUTTON,
-    );
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
   }
 
   get networkAvatarButton() {
@@ -102,14 +100,15 @@ class Browser {
       : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
-  get closeAllButton() {
-    return Matchers.getElementByLabel(
-      BrowserViewSelectorsText.CLOSE_ALL_BUTTON,
-    );
+  get tabsNumber() {
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.TABS_NUMBER);
   }
 
   async getFavoritesURL(url) {
-    return Matchers.getElementByHref(url);
+    return Matchers.getElementByHref(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      url,
+    );
   }
 
   async tapUrlInputBox() {
@@ -158,10 +157,10 @@ class Browser {
 
   async tapDappInFavorites() {
     if (device.getPlatform() === 'ios') {
-      await Gestures.tapWebElement(await this.TestDappURLInFavourtiesTab);
+      await Gestures.tapWebElement(this.TestDappURLInFavourtiesTab);
     } else {
-      await Gestures.tapWebElement(await this.HomePageFavourtiesTab);
-      await Gestures.tapWebElement(await this.TestDappURLInFavourtiesTab);
+      await Gestures.tapWebElement(this.HomePageFavourtiesTab);
+      await Gestures.tapWebElement(this.TestDappURLInFavourtiesTab);
     }
   }
 
@@ -180,10 +179,6 @@ class Browser {
   async navigateToTestDApp() {
     await this.tapUrlInputBox();
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
-  }
-
-  async tapCloseAll() {
-    await Gestures.waitAndTap(this.closeAllButton);
   }
 }
 

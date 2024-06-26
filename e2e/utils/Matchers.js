@@ -89,7 +89,7 @@ class Matchers {
    * Get element by CSS selector.
    * @param {string} webviewID - The web ID of the browser webview
    * @param {string} selector - CSS selector to locate the element
-   * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
+   * @return {Promise<Detox.WebElement>} - Resolves to the located element
    */
 
   static async getElementByCSS(webviewID, selector) {
@@ -101,8 +101,8 @@ class Matchers {
    * Get element by XPath.
    * @param {string} webviewID - The web ID of the browser webview
    * @param {string} xpath - XPath expression to locate the element
-   * @param {string} index - index to locate the webview (iOS only)
-   * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
+   * @param {number} index - index to locate the webview (iOS only)
+   * @return {Promise<Detox.WebElement>} - Resolves to the located element
    */
   static async getElementByXPath(webviewID, xpath, index = 0) {
     const myWebView =
@@ -114,8 +114,8 @@ class Matchers {
   /**
    * Get element by href.
    * @param {string} webviewID - The web ID of the browser webview
-   * @param {string} xpath - XPath expression to locate the element
-   * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
+   * @param {string} url - URL string to locate the element
+   * @return {Promise<Detox.WebElement>} - Resolves to the located element
    */
   static async getElementByHref(webviewID, url) {
     const myWebView = web(by.id(webviewID));
