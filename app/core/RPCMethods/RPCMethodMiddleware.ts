@@ -19,11 +19,11 @@ import Networks, {
   blockTagParamIndex,
   getAllNetworks,
 } from '../../util/networks';
+import { polyfillGasPrice } from './utils';
 import {
-  polyfillGasPrice,
   processOriginThrottlingRejection,
   validateOriginThrottling,
-} from './utils';
+} from './spam';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
 import { resemblesAddress, safeToChecksumAddress } from '../../util/address';

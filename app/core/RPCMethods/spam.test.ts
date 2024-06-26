@@ -8,7 +8,7 @@ import {
   ExtendedJSONRPCRequest,
   processOriginThrottlingRejection,
   validateOriginThrottling,
-} from './utils';
+} from './spam';
 
 const [BLOCKABLE_RPC_METHOD_MOCK] = BLOCKABLE_SPAM_RPC_METHODS;
 const SCAM_DOMAIN_MOCK = 'scam.domain';
