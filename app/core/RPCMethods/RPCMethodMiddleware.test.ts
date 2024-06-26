@@ -39,11 +39,8 @@ import {
   NUMBER_OF_REJECTIONS_THRESHOLD,
   OriginThrottlingState,
 } from '../redux/slices/originThrottling';
-import eth_sendTransaction from './eth_sendTransaction';
 
 jest.mock('./spam');
-
-jest.mock('./eth_sendTransaction');
 
 jest.mock('../Engine', () => ({
   context: {
@@ -94,7 +91,6 @@ const mockAddTransaction = addTransaction as jest.Mock;
 const mockProcessOriginThrottlingRejection =
   processOriginThrottlingRejection as jest.Mock;
 const mockValidateOriginThrottling = validateOriginThrottling as jest.Mock;
-const mockEthSendTransaction = eth_sendTransaction as jest.Mock;
 
 /**
  * This is used to build JSON-RPC requests. It is defined here for convenience, so that we don't
@@ -323,10 +319,6 @@ function setupSignature() {
 }
 
 describe('getRpcMethodMiddleware', () => {
-  beforeEach(() => {
-    mockEthSendTransaction.mockReset();
-  });
-
   it('allows unrecognized methods to pass through without PermissionController middleware', async () => {
     const engine = new JsonRpcEngine();
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
@@ -1360,10 +1352,14 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('calls processOriginThrottlingRejection hook after receiving error', async () => {
-      // Assume the user rejected the request
-      mockEthSendTransaction.mockRejectedValueOnce(
-        providerErrors.userRejectedRequest(),
-      );
+      jest.doMock('./eth_sendTransaction', () => ({
+        __esModule: true,
+        default: jest.fn(() =>
+          Promise.reject(providerErrors.userRejectedRequest()),
+        ),
+      }));
+
+      mockProcessOriginThrottlingRejection.mockClear();
 
       setupGlobalState({
         originThrottling: {
