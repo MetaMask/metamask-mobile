@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.24.3",
+  "version": "7.24.4",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -56,6 +56,7 @@
     "test": "yarn test:unit && yarn test:e2e",
     "test:unit": "jest ./app/ ./locales/",
     "test:unit:update": "time jest -u ./app/",
+    "test:api-specs": "detox test -c ios.sim.apiSpecs",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release",
     "test:e2e:ios:debug:build": "IS_TEST='true' detox build -c ios.sim.debug",
@@ -355,6 +356,7 @@
     "@actions/github": "^6.0.0",
     "@babel/core": "^7.24.5",
     "@babel/preset-env": "^7.24.5",
+    "@babel/register": "^7.24.6",
     "@babel/runtime": "^7.24.5",
     "@cucumber/message-streams": "^4.0.1",
     "@cucumber/messages": "^22.0.0",
@@ -370,6 +372,9 @@
     "@metamask/object-multiplex": "^1.1.0",
     "@metamask/providers": "^13.1.0",
     "@metamask/test-dapp": "^8.9.0",
+    "@open-rpc/mock-server": "^1.7.5",
+    "@open-rpc/schema-utils-js": "^1.16.2",
+    "@open-rpc/test-coverage": "^2.2.2",
     "@react-native-community/datetimepicker": "^7.5.0",
     "@react-native-community/eslint-config": "^2.0.0",
     "@react-native-community/slider": "^4.4.3",
