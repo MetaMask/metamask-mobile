@@ -9,6 +9,8 @@ import StyledButton from '../../StyledButton';
 import RemoteImage from '../../../Base/RemoteImage';
 import Text from '../../../Base/Text';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const RemoteImageComponent = RemoteImage as any;
 interface Props {
   customActionButton: PaymentCustomActionButton;

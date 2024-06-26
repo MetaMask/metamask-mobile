@@ -22,6 +22,8 @@ const SnapsSettingsList = () => {
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
   const snaps = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.engine.backgroundState.SnapController.snaps,
   );
 

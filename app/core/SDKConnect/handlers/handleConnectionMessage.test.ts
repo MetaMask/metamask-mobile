@@ -259,6 +259,8 @@ describe('handleConnectionMessage', () => {
       let processedRpc: {
         method: string;
         id: string;
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         params: any[];
         jsonrpc: string;
       } = {
@@ -306,6 +308,8 @@ describe('handleConnectionMessage', () => {
     let processedRpc: {
       method: string;
       id: string;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params: any[];
       jsonrpc: string;
     } = {

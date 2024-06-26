@@ -53,6 +53,8 @@ const useTokenHistoricalPrices = ({
         const data: { prices: TokenPrice[] } = await response.json();
 
         setPrices(data.prices as TokenPrice[]);
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         setError(e);
       } finally {

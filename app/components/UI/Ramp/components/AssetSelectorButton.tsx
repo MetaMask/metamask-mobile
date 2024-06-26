@@ -8,6 +8,8 @@ import Text from '../../../Base/Text';
 import CurrencyChevron from './CurrencyChevron';
 
 // TODO: Convert into typescript and correctly type optionals
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = BaseListItem as any;
 
 const styles = StyleSheet.create({
@@ -26,6 +28,8 @@ interface Props {
   icon?: ReactNode;
   assetName: string;
   highlighted?: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onPress?: () => any;
 }
 

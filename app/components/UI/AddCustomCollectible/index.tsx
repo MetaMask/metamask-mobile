@@ -31,6 +31,8 @@ import { selectSelectedInternalAccountChecksummedAddress } from '../../../select
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
@@ -42,6 +44,8 @@ const createStyles = (colors: any) =>
     },
     rowTitleText: {
       paddingBottom: 3,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       color: colors.text.default,
     },
@@ -50,17 +54,23 @@ const createStyles = (colors: any) =>
       borderRadius: 4,
       borderColor: colors.border.default,
       padding: 16,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       color: colors.text.default,
     },
     warningText: {
       marginTop: 15,
       color: colors.error.default,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
     },
   });
 
 interface AddCustomCollectibleProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation?: any;
   collectibleContract?: {
     address: string;
@@ -80,6 +90,8 @@ const AddCustomCollectible = ({
     Device.isAndroid() ? '99%' : undefined,
   );
   const [loading, setLoading] = useState(false);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const assetTokenIdInput = React.createRef() as any;
   const { colors, themeAppearance } = useTheme();
   const { trackEvent } = useMetrics();
@@ -155,6 +167,8 @@ const AddCustomCollectible = ({
    */
   const validateCollectibleOwnership = async (): Promise<boolean> => {
     try {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { NftController } = Engine.context as any;
       const isOwner = await NftController.isNftOwner(
         selectedAddress,
@@ -190,6 +204,8 @@ const AddCustomCollectible = ({
       return;
     }
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { NftController } = Engine.context as any;
     NftController.addNft(address, tokenId);
 

@@ -23,6 +23,8 @@ const useAddressBalance = (
   const [addressBalance, setAddressBalance] = useState('0');
 
   const { accounts, contractBalances, selectedAddress } = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => ({
       accounts: selectAccounts(state),
       contractBalances: selectContractBalances(state),
@@ -41,6 +43,8 @@ const useAddressBalance = (
         name,
       } = asset;
       const contractAddress = safeToChecksumAddress(rawAddress);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { TokensController } = Engine.context as any;
       if (!contractAddress || !decimals) {
         return;
