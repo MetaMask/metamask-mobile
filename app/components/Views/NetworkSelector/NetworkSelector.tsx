@@ -118,6 +118,7 @@ const NetworkSelector = () => {
     chainId: '',
     displayEdit: false,
     networkTypeOrRpcUrl: '',
+    isReadOnly: false,
   });
 
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
@@ -184,15 +185,19 @@ const NetworkSelector = () => {
     }
   };
 
-  const openModal = useCallback((chainId, displayEdit, networkTypeOrRpcUrl) => {
-    setNetworkMenuModal({
-      isVisible: true,
-      chainId,
-      displayEdit,
-      networkTypeOrRpcUrl,
-    });
-    networkMenuSheetRef.current?.onOpenBottomSheet();
-  }, []);
+  const openModal = useCallback(
+    (chainId, displayEdit, networkTypeOrRpcUrl, isReadOnly) => {
+      setNetworkMenuModal({
+        isVisible: true,
+        chainId,
+        displayEdit,
+        networkTypeOrRpcUrl,
+        isReadOnly,
+      });
+      networkMenuSheetRef.current?.onOpenBottomSheet();
+    },
+    [],
+  );
 
   const closeModal = useCallback(() => {
     setNetworkMenuModal(() => ({
@@ -200,6 +205,7 @@ const NetworkSelector = () => {
       isVisible: false,
       displayEdit: false,
       networkTypeOrRpcUrl: '',
+      isReadOnly: false,
     }));
     networkMenuSheetRef.current?.onCloseBottomSheet();
   }, []);
@@ -246,6 +252,7 @@ const NetworkSelector = () => {
 
     return searchResult;
   };
+
   const isNoSearchResults = (networkIdenfier: string) => {
     if (!searchString || !networkIdenfier) {
       return false;
@@ -285,7 +292,7 @@ const NetworkSelector = () => {
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
           onButtonClick={() => {
-            openModal(chainId, false, MAINNET);
+            openModal(chainId, false, MAINNET, true);
           }}
         />
       );
@@ -333,7 +340,7 @@ const NetworkSelector = () => {
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
           onButtonClick={() => {
-            openModal(chainId, false, LINEA_MAINNET);
+            openModal(chainId, false, LINEA_MAINNET, true);
           }}
         />
       );
@@ -385,7 +392,7 @@ const NetworkSelector = () => {
               style={styles.networkCell}
               buttonIcon={IconName.MoreVertical}
               onButtonClick={() => {
-                openModal(chainId, true, rpcUrl);
+                openModal(chainId, true, rpcUrl, false);
               }}
             />
           );
@@ -421,6 +428,29 @@ const NetworkSelector = () => {
       const { name, imageSource, chainId } = (Networks as any)[networkType];
 
       if (isNetworkUiRedesignEnabled && isNoSearchResults(name)) return null;
+
+      if (isNetworkUiRedesignEnabled) {
+        return (
+          <Cell
+            key={chainId}
+            variant={CellVariant.SelectWithMenu}
+            title={name}
+            avatarProps={{
+              variant: AvatarVariant.Network,
+              name,
+              imageSource: imageSource,
+              size: AvatarSize.Sm,
+            }}
+            isSelected={chainId === providerConfig.chainId}
+            onPress={() => onNetworkChange(networkType)}
+            style={styles.networkCell}
+            buttonIcon={IconName.MoreVertical}
+            onButtonClick={() => {
+              openModal(chainId, false, networkType, true);
+            }}
+          />
+        );
+      }
 
       return (
         <Cell
@@ -662,7 +692,11 @@ const NetworkSelector = () => {
         >
           <View style={styles.networkMenu}>
             <AccountAction
-              actionTitle={strings('transaction.edit')}
+              actionTitle={strings(
+                showNetworkMenuModal.isReadOnly
+                  ? 'networks.view_details'
+                  : 'transaction.edit',
+              )}
               iconName={IconName.Edit}
               onPress={() => {
                 navigate(Routes.ADD_NETWORK, {
