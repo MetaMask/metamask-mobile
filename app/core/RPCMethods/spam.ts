@@ -1,5 +1,6 @@
 import { Store } from 'redux';
 import { JsonRpcRequest } from '@metamask/utils';
+import { providerErrors } from '@metamask/rpc-errors';
 
 import { containsUserRejectedError } from '../../util/middlewares';
 import Routes from '../../constants/navigation/Routes';
@@ -46,16 +47,16 @@ export function validateOriginThrottling({
   const hasActiveSpamPrompt = selectOriginAtSpamThreshold(appState, req.origin);
 
   if (hasActiveSpamPrompt) {
-    const error = new Error('Request blocked due to active spam modal.');
-    throw error;
+    throw providerErrors.unauthorized(
+      'Request blocked due to active spam modal.',
+    );
   }
 
   const isDappBlocked = isDappBlockedForRPCRequests(appState, req.origin);
   if (isDappBlocked) {
-    const error = new Error(
+    throw providerErrors.unauthorized(
       'Request blocked as the user identified it as spam.',
     );
-    throw error;
   }
 }
 
