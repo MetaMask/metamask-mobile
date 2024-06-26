@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/swaps-controller/dist/SwapsController.js b/node_modules/@metamask/swaps-controller/dist/SwapsController.js
-index fee999b..f6e2d75 100644
+index fee999b..11ba3bb 100644
 --- a/node_modules/@metamask/swaps-controller/dist/SwapsController.js
 +++ b/node_modules/@metamask/swaps-controller/dist/SwapsController.js
 @@ -11,7 +11,8 @@ const gas_fee_controller_1 = require("@metamask/gas-fee-controller");
@@ -12,7 +12,26 @@ index fee999b..f6e2d75 100644
  const swapsUtil_1 = require("./swapsUtil");
  // Functions to determine type of the return value from GasFeeController
  /**
-@@ -530,7 +531,7 @@ class SwapsController extends base_controller_1.BaseControllerV1 {
+@@ -273,7 +274,7 @@ class SwapsController extends base_controller_1.BaseControllerV1 {
+             const result = await contract.methods
+                 .allowance(walletAddress, (0, swapsUtil_1.getSwapsContractAddress)(this.config.chainId))
+                 .call();
+-            return Number(result);
++            return result;
+         };
+         return Promise.race([allowanceTimeout, allowancePromise()]);
+     }
+@@ -396,7 +397,8 @@ class SwapsController extends base_controller_1.BaseControllerV1 {
+             if (fetchParams.sourceToken !== swapsUtil_1.NATIVE_SWAPS_TOKEN_ADDRESS &&
+                 !enableDirectWrapping) {
+                 const allowance = await this.getERC20Allowance(fetchParams.sourceToken, fetchParams.walletAddress);
+-                if (Number(allowance) < fetchParams.sourceAmount) {
++                if (typeof allowance === 'bigint' &&
++                    allowance < BigInt(fetchParams.sourceAmount)) {
+                     approvalTransaction =
+                         quotesArray.find((quote) => quote.approvalNeeded)?.approvalNeeded ??
+                             null;
+@@ -530,7 +532,7 @@ class SwapsController extends base_controller_1.BaseControllerV1 {
      set provider(provider) {
          if (provider) {
              this.ethQuery = new eth_query_1.default(provider);
