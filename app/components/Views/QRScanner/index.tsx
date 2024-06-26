@@ -286,7 +286,7 @@ const QRScanner = ({
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* <RNCamera
         onMountError={onError}
         captureAudio={false}
@@ -303,19 +303,19 @@ const QRScanner = ({
         onStatusChange={onStatusChange}
       /> */}
       <SafeAreaView style={styles.overlayContainerColumn}>
-        <View style={styles.overlay}>
+        <View style={styles.overlay} />
+
+        <View style={styles.overlayContainerRow}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.overlayText}>
             {strings('qr_scanner.label')}
           </Text>
-        </View>
-        <View style={styles.overlayContainerRow}>
           <View style={styles.overlay} />
           <Image source={frameImage} style={styles.frame} />
           <View style={styles.overlay} />
         </View>
         <View style={styles.overlay} />
       </SafeAreaView>
-    </View>
+    </SafeAreaView>
   );
 };
 

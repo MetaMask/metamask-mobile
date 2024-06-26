@@ -114,9 +114,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }, []);
 
   const onReceive = () => {
-    navigation.navigate('QRTabSwitcher', {
-      // onScanSuccess,
-    });
+    navigation.navigate('QRTabSwitcher', {});
     trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
   };
 

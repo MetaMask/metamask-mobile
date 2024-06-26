@@ -34,6 +34,7 @@ import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { Screens } from '../QRTabSwitcher';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -52,7 +53,7 @@ const WalletActions = () => {
   const onReceive = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate('QRTabSwitcher', {
-        // onScanSuccess,
+        initialScreen: Screens.Receive,
       });
     });
 

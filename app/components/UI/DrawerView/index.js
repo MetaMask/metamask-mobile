@@ -30,7 +30,6 @@ import Modal from 'react-native-modal';
 import {
   toggleInfoNetworkModal,
   toggleNetworkModal,
-  toggleReceiveModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import {
@@ -620,15 +619,12 @@ class DrawerView extends PureComponent {
   };
 
   onReceive = () => {
-    this.toggleReceiveModal();
     this.hideDrawer();
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE);
   };
 
   onReceive = () => {
-    this.props.navigation.navigate('QRTabSwitcher', {
-      // onScanSuccess,
-    });
+    this.props.navigation.navigate('QRTabSwitcher', {});
     this.trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
   };
 
@@ -884,7 +880,6 @@ class DrawerView extends PureComponent {
   copyAccountToClipboard = async () => {
     const { selectedAddress } = this.props;
     await ClipboardManager.setString(selectedAddress);
-    this.toggleReceiveModal();
     InteractionManager.runAfterInteractions(() => {
       this.props.showAlert({
         isVisible: true,
@@ -1231,7 +1226,6 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
-  toggleReceiveModal: () => dispatch(toggleReceiveModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),

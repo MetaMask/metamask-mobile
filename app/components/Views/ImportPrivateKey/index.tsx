@@ -109,9 +109,7 @@ const ImportPrivateKey = () => {
   };
 
   const scanPkey = () => {
-    navigation.navigate('QRTabSwitcher', {
-      onScanSuccess,
-    });
+    navigation.navigate('QRTabSwitcher', {});
   };
 
   return (

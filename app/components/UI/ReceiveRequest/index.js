@@ -10,7 +10,6 @@ import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import { showAlert } from '../../../actions/alert';
-import { toggleReceiveModal } from '../../../actions/modals';
 import { protectWalletModalVisible } from '../../../actions/user';
 
 import { fontStyles } from '../../../styles/common';
@@ -28,17 +27,26 @@ import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
+import PNG_MM_LOGO_PATH from '../../../images/fox.png';
 
-const createStyles = (theme) =>
-  StyleSheet.create({
+const createStyles = (theme) => {
+  const { height: windowHeight } = Dimensions.get('window');
+
+  return StyleSheet.create({
     wrapper: {
       backgroundColor: theme.colors.background.default,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
+      marginTop: 180,
+      height: windowHeight - 180,
     },
     body: {
       alignItems: 'center',
       paddingHorizontal: 15,
+      height: '100%',
+      width: '100%',
+      display: 'flex',
+      justifyContent: 'space-around',
     },
     qrWrapper: {
       margin: 8,
@@ -72,6 +80,7 @@ const createStyles = (theme) =>
     actionButton: {
       flex: 1,
       marginHorizontal: 8,
+      width: '100%',
     },
     title: {
       ...fontStyles.normal,
@@ -84,6 +93,7 @@ const createStyles = (theme) =>
       marginTop: 10,
     },
   });
+};
 
 /**
  * PureComponent that renders receive options
@@ -102,10 +112,6 @@ class ReceiveRequest extends PureComponent {
      * Asset to receive, could be not defined
      */
     receiveAsset: PropTypes.object,
-    /**
-     * Action that toggles the receive modal
-     */
-    toggleReceiveModal: PropTypes.func,
     /**
      /* Triggers global alert
      */
@@ -192,7 +198,6 @@ class ReceiveRequest extends PureComponent {
   };
 
   onReceive = () => {
-    this.props.toggleReceiveModal();
     this.props.navigation.navigate('PaymentRequestView', {
       screen: 'PaymentRequest',
       params: { receiveAsset: this.props.receiveAsset },
@@ -211,6 +216,9 @@ class ReceiveRequest extends PureComponent {
       <SafeAreaView style={styles.wrapper}>
         <View style={styles.body}>
           <QRCode
+            logo={PNG_MM_LOGO_PATH}
+            logoSize={55}
+            logoMargin={10}
             value={`ethereum:${this.props.selectedAddress}@${this.props.chainId}`}
             size={Dimensions.get('window').width / 2}
           />
@@ -250,7 +258,6 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  toggleReceiveModal: () => dispatch(toggleReceiveModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 });
