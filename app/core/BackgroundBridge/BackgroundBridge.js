@@ -22,7 +22,7 @@ import {
   selectProviderConfig,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
@@ -87,8 +87,8 @@ export class BackgroundBridge extends EventEmitter {
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
       : this.isWalletConnect
-      ? new WalletConnectPort(wcRequestActions)
-      : new Port(this._webviewRef, isMainFrame);
+        ? new WalletConnectPort(wcRequestActions)
+        : new Port(this._webviewRef, isMainFrame);
 
     this.engine = null;
 
@@ -408,7 +408,7 @@ export class BackgroundBridge extends EventEmitter {
       }),
     );
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     // Snaps middleware
     engine.push(
       snapMethodMiddlewareBuilder(

@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
