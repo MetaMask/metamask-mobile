@@ -6,7 +6,7 @@ import type {
 } from '../../../util/notifications/types/notification';
 
 export interface UseCreateSessionReturn {
-  createSession: () => Promise<string | undefined>;
+  createSession: () => Promise<void>;
   loading: boolean;
   error?: string;
 }
@@ -50,7 +50,7 @@ export interface DisableNotificationsReturn {
 
 export interface MarkNotificationAsReadReturn {
   markNotificationAsRead: (
-    notifications: MarkAsReadNotificationsParam[],
+    notifications: MarkAsReadNotificationsParam,
   ) => Promise<string | undefined>;
   loading: boolean;
   error?: string;

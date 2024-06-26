@@ -1,8 +1,6 @@
 import type { FC } from 'react';
-import type { FeatureAnnouncementRawNotification } from '../featureAnnouncement';
-import type { HalRawNotification } from '../halNotification';
-import type { Compute } from '../type-utils';
 import { TRIGGER_TYPES } from '../../constants';
+import { NotificationServicesController } from '@metamask-previews/notification-services-controller/';
 
 /**
  * The shape of a "generic" notification.
@@ -10,13 +8,7 @@ import { TRIGGER_TYPES } from '../../constants';
  * - `type` field (declared in the Raw shapes)
  * - `data` field (declared in the Raw shapes)
  */
-export type Notification = Compute<
-  (FeatureAnnouncementRawNotification | HalRawNotification) & {
-    id: string;
-    createdAt: Date;
-    isRead: boolean;
-  }
->;
+export type Notification = NotificationServicesController.Types.INotification;
 
 // NFT
 export interface NFT {

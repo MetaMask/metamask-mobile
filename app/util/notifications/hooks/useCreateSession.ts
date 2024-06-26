@@ -30,7 +30,7 @@ function useCreateSession(): UseCreateSessionReturn {
   const isSignedIn = useSelector(selectIsSignedIn);
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<string | undefined>(undefined);
 
   const createSession = useCallback(async () => {
     // If the user is already signed in, no need to create a new session
@@ -46,17 +46,15 @@ function useCreateSession(): UseCreateSessionReturn {
     // Perform sign-in process if profile syncing or MetaMetrics participation is enabled
     if (isProfileSyncingEnabled) {
       setLoading(true);
+      setError(undefined);
       try {
         const errorMessage = await dispatch(signIn());
         if (errorMessage) {
-          await dispatch(disableProfileSyncing());
-          setError(getErrorMessage(errorMessage));
-          return errorMessage;
+          throw new Error(errorMessage);
         }
       } catch (e) {
-        const errorMessage = getErrorMessage(e);
-        setError(errorMessage);
-        return errorMessage;
+        await dispatch(disableProfileSyncing());
+        setError(getErrorMessage(e));
       } finally {
         setLoading(false);
       }

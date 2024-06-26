@@ -15,57 +15,19 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { mockTheme } from '../../../util/theme';
 import { ETHEREUM_LOGO } from '../../../constants/urls';
+import {
+  createMockNotificationERC721Received,
+  createMockNotificationEthSent,
+  createMockNotificationLidoStakeCompleted,
+  createMockNotificationMetaMaskSwapsCompleted,
+} from 'app/components/UI/Notification/__mocks__/mock_notifications';
 
-const NOTIFICATIONS = [
-  {
-    id: '1',
-    createdAt: new Date('2023-01-01'),
-    isRead: false,
-    type: TRIGGER_TYPES.ETH_SENT,
-    data: {
-      kind: 'eth_sent',
-      network_fee: {
-        gas_price: '0.003',
-        native_token_price_in_usd: '3.700',
-      },
-      from: '0xABC123',
-      to: '0xDEF456',
-      amount: { usd: '0.000', eth: '1.5' },
-    },
-  } as Notification,
-  {
-    id: '2',
-    createdAt: new Date('2023-01-01'),
-    isRead: false,
-    type: TRIGGER_TYPES.ETH_SENT,
-    data: {
-      kind: 'eth_sent',
-      network_fee: {
-        gas_price: '0.003',
-        native_token_price_in_usd: '3.700',
-      },
-      from: '0xABC123',
-      to: '0xDEF456',
-      amount: { usd: '0.000', eth: '1.5' },
-    },
-  } as Notification,
-  {
-    id: '3',
-    createdAt: new Date('2023-01-01'),
-    isRead: false,
-    type: TRIGGER_TYPES.ETH_SENT,
-    data: {
-      kind: 'eth_sent',
-      network_fee: {
-        gas_price: '0.003',
-        native_token_price_in_usd: '3.700',
-      },
-      from: '0xABC123',
-      to: '0xDEF456',
-      amount: { usd: '0.000', eth: '1.5' },
-    },
-  } as Notification,
-];
+function createMockNotification(override?: { id?: string; createdAt?: Date }) {
+  const n = createMockNotificationEthSent();
+  n.id = override?.id ?? n.id;
+  n.createdAt = override?.createdAt?.toString() ?? n.createdAt;
+  return n;
+}
 
 describe('formatDate', () => {
   const realDateNow = Date.now.bind(global.Date);
@@ -143,15 +105,15 @@ describe('getNotificationBadge', () => {
 describe('sortNotifications', () => {
   it('sorts notifications by createdAt in descending order', () => {
     const notifications: Notification[] = [
-      { id: '1', createdAt: new Date('2023-01-01') },
-      { id: '3', createdAt: new Date('2023-01-03') },
-      { id: '2', createdAt: new Date('2023-01-02') },
+      createMockNotification({ id: '1', createdAt: new Date('2023-01-01') }),
+      createMockNotification({ id: '3', createdAt: new Date('2023-01-03') }),
+      createMockNotification({ id: '2', createdAt: new Date('2023-01-02') }),
     ];
     const sortedNotifications = sortNotifications(notifications);
     expect(sortedNotifications).toEqual([
-      { id: '3', createdAt: new Date('2023-01-03') },
-      { id: '2', createdAt: new Date('2023-01-02') },
-      { id: '1', createdAt: new Date('2023-01-01') },
+      expect.objectContaining({ id: '3', createdAt: new Date('2023-01-03') }),
+      expect.objectContaining({ id: '2', createdAt: new Date('2023-01-02') }),
+      expect.objectContaining({ id: '1', createdAt: new Date('2023-01-01') }),
     ]);
   });
 
@@ -161,13 +123,17 @@ describe('sortNotifications', () => {
 
   it('handles array with single element', () => {
     const singleNotification: Notification[] = [
-      { id: '1', createdAt: new Date('2023-01-01') },
+      createMockNotification({ id: '1', createdAt: new Date('2023-01-01') }),
     ];
     expect(sortNotifications(singleNotification)).toEqual(singleNotification);
   });
 
   it('is stable for notifications with the same createdAt', () => {
-    const notifications: Notification[] = NOTIFICATIONS;
+    const notifications: Notification[] = [
+      createMockNotification({ id: '1', createdAt: new Date('2023-01-01') }),
+      createMockNotification({ id: '3', createdAt: new Date('2023-01-01') }),
+      createMockNotification({ id: '2', createdAt: new Date('2023-01-01') }),
+    ];
     const sortedNotifications = sortNotifications(notifications);
     expect(sortedNotifications).toEqual(notifications);
   });
@@ -175,29 +141,10 @@ describe('sortNotifications', () => {
 
 describe('getRowDetails', () => {
   it('handles LIDO_STAKE_COMPLETED notification', () => {
-    const notification: Notification = {
-      type: TRIGGER_TYPES.LIDO_STAKE_COMPLETED,
-      createdAt: new Date('2023-12-31'),
-      data: {
-        stake_out: {
-          symbol: 'ETH',
-          name: 'Ethereum',
-          image: ETHEREUM_LOGO,
-          amount: '1000000',
-          address: '0x0000000000000000000000000000000000000000',
-          decimals: '8',
-          usd: '0.00001',
-        },
-        network_fee: {
-          gas_price: '1000000000',
-          native_token_price_in_usd: '0.00001',
-        },
-      },
-    } as Notification;
+    const notification: Notification =
+      createMockNotificationLidoStakeCompleted();
 
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expectedRow: any = {
+    const expectedRow = {
       badgeIcon: IconName.Plant,
       title: 'Stake completed',
       description: {
@@ -215,30 +162,10 @@ describe('getRowDetails', () => {
   });
 
   it('handles METAMASK_SWAP_COMPLETED notification', () => {
-    const notification: Notification = {
-      type: TRIGGER_TYPES.METAMASK_SWAP_COMPLETED,
-      createdAt: new Date('2023-01-01'),
-      data: {
-        token_in: {
-          symbol: 'BTC',
-          image: ETHEREUM_LOGO,
-        },
-        token_out: {
-          symbol: 'ETH',
-          name: 'Ethereum',
-          image: ETHEREUM_LOGO,
-          amount: '500000',
-        },
-        network_fee: {
-          gas_price: '1000000000',
-          native_token_price_in_usd: '0.00001',
-        },
-      },
-    } as Notification;
+    const notification: Notification =
+      createMockNotificationMetaMaskSwapsCompleted();
 
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = {
+    const expected = {
       badgeIcon: IconName.SwapHorizontal,
       title: 'Swapped BTC for ETH',
       description: {
@@ -256,24 +183,9 @@ describe('getRowDetails', () => {
   });
 
   it('handles ETH_SENT notification', () => {
-    const notification: Notification = {
-      type: TRIGGER_TYPES.ETH_SENT,
-      createdAt: new Date('2023-01-01'),
-      data: {
-        to: '0xABC123',
-        amount: {
-          eth: '1.5',
-        },
-        network_fee: {
-          gas_price: '1000000000',
-          native_token_price_in_usd: '0.00001',
-        },
-      },
-    } as Notification;
+    const notification: Notification = createMockNotificationEthSent();
 
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = {
+    const expected = {
       badgeIcon: IconName.Arrow2Upright,
       title: 'Sent to 0xABC123',
       description: {
@@ -290,29 +202,9 @@ describe('getRowDetails', () => {
   });
 
   it('handles ERC721_RECEIVED notification', () => {
-    const notification: Notification = {
-      type: TRIGGER_TYPES.ERC721_RECEIVED,
-      createdAt: new Date('2023-01-01'),
-      data: {
-        from: '0xDEF456',
-        nft: {
-          token_id: '1234',
-          collection: {
-            symbol: 'ART',
-            name: 'ArtCollection',
-          },
-          image: ETHEREUM_LOGO,
-        },
-        network_fee: {
-          gas_price: '1000000000',
-          native_token_price_in_usd: '0.00001',
-        },
-      },
-    } as Notification;
+    const notification: Notification = createMockNotificationERC721Received();
 
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = {
+    const expected = {
       badgeIcon: IconName.Received,
       title: 'Received NFT from 0xDEF456',
       description: {

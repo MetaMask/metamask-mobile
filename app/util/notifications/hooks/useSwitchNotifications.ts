@@ -12,31 +12,36 @@ import { useThunkNotificationDispatch } from '../../../actions/notification/help
 export function useSwitchNotifications() {
   const dispatch = useThunkNotificationDispatch();
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<string | null>(null);
+
+  const resetStates = useCallback(() => {
+    setLoading(false);
+    setError(null);
+  }, []);
 
   const switchSnapNotifications = useCallback(
     async (state: boolean) => {
+      resetStates();
       setLoading(true);
 
       try {
         const errorMessage = await dispatch(setSnapNotificationsEnabled(state));
         if (errorMessage) {
           setError(getErrorMessage(errorMessage));
-          return errorMessage;
         }
       } catch (e) {
         const errorMessage = getErrorMessage(e);
         setError(errorMessage);
-        return errorMessage;
       } finally {
         setLoading(false);
       }
     },
-    [dispatch],
+    [dispatch, resetStates],
   );
 
   const switchFeatureAnnouncements = useCallback(
     async (state: boolean) => {
+      resetStates();
       setLoading(true);
 
       try {
@@ -45,52 +50,45 @@ export function useSwitchNotifications() {
         );
         if (errorMessage) {
           setError(getErrorMessage(errorMessage));
-          return errorMessage;
         }
       } catch (e) {
         const errorMessage = getErrorMessage(e);
         setError(errorMessage);
-        return errorMessage;
       } finally {
         setLoading(false);
       }
     },
-    [dispatch],
+    [dispatch, resetStates],
   );
 
   const switchAccountNotifications = useCallback(
     async (accounts: string[], state: boolean) => {
+      resetStates();
       setLoading(true);
 
       try {
+        let errorMessage: string | undefined;
         if (state) {
-          const errorMessage = await dispatch(
+          errorMessage = await dispatch(
             updateOnChainTriggersByAccount(accounts),
           );
-
-          if (errorMessage) {
-            setError(getErrorMessage(errorMessage));
-            return errorMessage;
-          }
         } else {
-          const errorMessage = await dispatch(
+          errorMessage = await dispatch(
             deleteOnChainTriggersByAccount(accounts),
           );
+        }
 
-          if (errorMessage) {
-            setError(getErrorMessage(errorMessage));
-            return errorMessage;
-          }
+        if (errorMessage) {
+          setError(getErrorMessage(errorMessage));
         }
       } catch (e) {
         const errorMessage = getErrorMessage(e);
         setError(errorMessage);
-        return errorMessage;
       } finally {
         setLoading(false);
       }
     },
-    [dispatch],
+    [dispatch, resetStates],
   );
 
   return {

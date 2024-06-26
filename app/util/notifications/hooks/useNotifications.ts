@@ -38,6 +38,7 @@ export function useListNotifications(): ListNotificationsReturn {
 
   const listNotifications = useCallback(async () => {
     setLoading(true);
+    setError(undefined);
     try {
       const errorMessage = await dispatch(
         fetchAndUpdateMetamaskNotifications(),
@@ -76,7 +77,7 @@ export function useCreateNotifications(): CreateNotificationsReturn {
   const createNotifications = useCallback(
     async (accounts: string[]) => {
       setLoading(true);
-
+      setError(undefined);
       try {
         const errorMessage = await dispatch(
           updateOnChainTriggersByAccount(accounts),
@@ -124,7 +125,7 @@ export function useEnableNotifications(): EnableNotificationsReturn {
 
   const enableNotifications = useCallback(async () => {
     setLoading(true);
-
+    setError(undefined);
     try {
       const errorMessage = await dispatch(enableNotificationServices());
 
@@ -166,7 +167,7 @@ export function useDisableNotifications(): DisableNotificationsReturn {
 
   const disableNotifications = useCallback(async () => {
     setLoading(true);
-
+    setError(undefined);
     try {
       const errorMessage = await dispatch(disableNotificationServices());
       if (errorMessage) {
@@ -190,21 +191,21 @@ export function useDisableNotifications(): DisableNotificationsReturn {
   };
 }
 /**
- * Custom hook to mark specific notifications as read.
- * It accepts a parameter of notifications to be marked as read and manages loading and error states internally.
+ * Provides a function to mark notifications as read. This hook does not take parameters itself,
+ * but returns a function that accepts the notification parameters when called.
  *
- * @param notifications - The notifications to mark as read.
- * @returns An object containing the `markNotificationAsRead` function, loading state, and error state.
+ * @returns An object containing the `markNotificationAsRead` function which takes a `notifications`
+ * parameter of type `MarkAsReadNotificationsParam` and marks those notifications as read.
  */
 export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
   const dispatch = useThunkNotificationDispatch();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
-  setLoading(true);
-
   const markNotificationAsRead = useCallback(
-    async (notifications: MarkAsReadNotificationsParam[]) => {
+    async (notifications: MarkAsReadNotificationsParam) => {
+      setLoading(true);
+      setError(undefined);
       try {
         const errorMessage = await dispatch(
           markMetamaskNotificationsAsRead(notifications),

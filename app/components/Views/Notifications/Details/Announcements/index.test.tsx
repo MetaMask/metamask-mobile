@@ -9,7 +9,6 @@ import { createStyles } from '../styles';
 import MOCK_NOTIFICATIONS from '../../../../../components/UI/Notification/__mocks__/mock_notifications';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import { mockTheme } from '../../../../../util/theme';
-import { FeatureAnnouncementRawNotification } from '../../../../../util/notifications/types';
 
 const mockInitialState = {
   settings: {
@@ -48,9 +47,7 @@ describe('AnnouncementsDetails', () => {
         <AnnouncementsDetails
           styles={styles}
           navigation={navigation}
-          notification={
-            MOCK_NOTIFICATIONS[0] as FeatureAnnouncementRawNotification
-          }
+          notification={MOCK_NOTIFICATIONS[0]}
         />
       </Provider>,
     );

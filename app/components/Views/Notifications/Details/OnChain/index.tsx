@@ -7,7 +7,6 @@ import { strings } from '../../../../../../locales/i18n';
 
 import {
   getRowDetails,
-  HalRawNotification,
   HalRawNotificationsWithNetworkFields,
   Notification,
   TRIGGER_TYPES,
@@ -31,7 +30,7 @@ import {
 import useBlockExplorer from '../../../../../components/UI/Swaps/utils/useBlockExplorer.js';
 
 interface OnChainDetailsProps {
-  notification: HalRawNotification;
+  notification: Notification;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: Record<string, any>;
@@ -98,7 +97,7 @@ const OnChainDetails = ({
         return renderSwap(notificationDetails);
       case TRIGGER_TYPES.ERC20_SENT:
       default:
-        return renderTransfer(notificationDetails);
+        return null; // We do not want to render components that do not match
     }
   }, [
     notification.type,
@@ -121,15 +120,17 @@ const OnChainDetails = ({
           onClosed={() => setIsCollapsed(true)}
         />
       )}
-      <Button
-        variant={ButtonVariants.Secondary}
-        label={strings('transactions.view_on_etherscan')}
-        style={styles.ctaBtn}
-        onPress={() =>
-          handleExplorerLinkPress(explorer.tx(notification.tx_hash))
-        }
-        endIconName={IconName.Arrow2Upright}
-      />
+      {'tx_hash' in notification && (
+        <Button
+          variant={ButtonVariants.Secondary}
+          label={strings('transactions.view_on_etherscan')}
+          style={styles.ctaBtn}
+          onPress={() =>
+            handleExplorerLinkPress(explorer.tx(notification.tx_hash))
+          }
+          endIconName={IconName.Arrow2Upright}
+        />
+      )}
     </View>
   );
 };

@@ -68,8 +68,11 @@ export const sortNotifications = (
   if (!notifications) {
     return [];
   }
+
+  // NOTE - sorting may be expensive due to re-creating Date obj.
+  // TODO - see if this can be tidied.
   return notifications.sort(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 };
 
@@ -99,49 +102,76 @@ export const getNotificationBadge = (trigger_type: string) => {
   }
 };
 
-export function formatDate(createdAt: Date) {
-  const now = new Date();
-  const date = createdAt;
+/**
+ * Checks if 2 date objects are on the same day
+ *
+ * @param currentDate
+ * @param dateToCheck
+ * @returns boolean if dates are same day.
+ */
+const isSameDay = (currentDate: Date, dateToCheck: Date) =>
+  currentDate.getFullYear() === dateToCheck.getFullYear() &&
+  currentDate.getMonth() === dateToCheck.getMonth() &&
+  currentDate.getDate() === dateToCheck.getDate();
 
-  const isToday =
-    date.getDate() === now.getDate() &&
-    date.getMonth() === now.getMonth() &&
-    date.getFullYear() === now.getFullYear();
+/**
+ * Checks if a date is "yesterday" from the current date
+ *
+ * @param currentDate
+ * @param dateToCheck
+ * @returns boolean if dates were "yesterday"
+ */
+const isYesterday = (currentDate: Date, dateToCheck: Date) => {
+  const yesterday = new Date(currentDate);
+  yesterday.setDate(currentDate.getDate() - 1);
+  return isSameDay(yesterday, dateToCheck);
+};
 
-  if (isToday) {
-    const diffMinutes = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60),
+/**
+ * Checks if 2 date objects are in the same year.
+ *
+ * @param currentDate
+ * @param dateToCheck
+ * @returns boolean if dates were in same year
+ */
+const isSameYear = (currentDate: Date, dateToCheck: Date) =>
+  currentDate.getFullYear() === dateToCheck.getFullYear();
+
+export function formatDate(createdAt: Date | string) {
+  const date = new Date(createdAt);
+  const currentDate = new Date();
+
+  // E.g. 12:21
+  if (isSameDay(currentDate, date)) {
+    return new Intl.DateTimeFormat('en', {
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+    }).format(date);
+  }
+
+  // E.g. Yesterday
+  if (isYesterday(currentDate, date)) {
+    return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
+      -1,
+      'day',
     );
-    if (diffMinutes < 60) {
-      return `${diffMinutes} min ago`;
-    }
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    return `${hours}:${minutes < 10 ? '0' : ''}${minutes}`;
   }
 
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  const isYesterday =
-    date.getDate() === yesterday.getDate() &&
-    date.getMonth() === yesterday.getMonth() &&
-    date.getFullYear() === yesterday.getFullYear();
-
-  if (isYesterday) {
-    return 'Yesterday';
+  // E.g. 21 Oct
+  if (isSameYear(currentDate, date)) {
+    return new Intl.DateTimeFormat('en', {
+      month: 'short',
+      day: 'numeric',
+    }).format(date);
   }
-  const options: Intl.DateTimeFormatOptions = {
+
+  // E.g. 21 Oct 2022
+  return new Intl.DateTimeFormat('en', {
+    year: 'numeric',
     month: 'short',
     day: 'numeric',
-  };
-
-  const month = strings(`date.months.${date.getMonth()}`);
-  const day = date.getDate();
-  if (date.getFullYear() === now.getFullYear()) {
-    return date.toLocaleDateString('default', options);
-  }
-
-  return `${month} ${day}`;
+  }).format(date);
 }
 
 export function getNetwork(chain_id: HalRawNotification['chain_id']) {
@@ -447,16 +477,11 @@ export function getRowDetails(
         },
       };
 
-    default:
-      return {
-        row: {
-          title: notification.data.title,
-          description: { text: notification.data.shortDescription },
-          createdAt: formatDate(notification.createdAt),
-          value: '',
-        },
-        details: {},
-      };
+    default: {
+      throw new Error(
+        `getRowDetails() - Unsupported notification type - ${notification.type}`,
+      );
+    }
   }
 }
 

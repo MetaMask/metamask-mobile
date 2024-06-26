@@ -9,7 +9,6 @@ import { createStyles } from '../styles';
 import MOCK_NOTIFICATIONS from '../../../../../components/UI/Notification/__mocks__/mock_notifications';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import { mockTheme } from '../../../../../util/theme';
-import { HalRawNotification } from '../../../../../util/notifications/types';
 import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 
 const mockInitialState = {
@@ -62,7 +61,7 @@ describe('OnChainDetails', () => {
     const { toJSON } = render(
       <Provider store={store}>
         <OnChainDetails
-          notification={MOCK_NOTIFICATIONS[1] as HalRawNotification}
+          notification={MOCK_NOTIFICATIONS[1]}
           styles={styles}
           theme={mockTheme}
           accountAvatarType={accountAvatarType}
@@ -78,7 +77,7 @@ describe('OnChainDetails', () => {
     const { getByText } = render(
       <Provider store={store}>
         <OnChainDetails
-          notification={MOCK_NOTIFICATIONS[1] as HalRawNotification}
+          notification={MOCK_NOTIFICATIONS[1]}
           styles={styles}
           theme={mockTheme}
           accountAvatarType={accountAvatarType}

@@ -24,6 +24,7 @@ export function useEnableProfileSyncing(): EnableProfileSyncingReturn {
 
   const enableProfileSyncing = useCallback(async () => {
     setLoading(true);
+    setError(undefined);
     try {
       // set profile syncing to true
       const errorMessage = await dispatch(enableProfileSyncingAction());
@@ -56,7 +57,7 @@ export function useDisableProfileSyncing(): DisableProfileSyncingReturn {
 
   const disableProfileSyncing = useCallback(async () => {
     setLoading(true);
-
+    setError(undefined);
     try {
       const errorMessage = await dispatch(disableProfileSyncingAction());
       if (errorMessage) {
