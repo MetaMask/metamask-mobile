@@ -5,33 +5,33 @@ export const NUMBER_OF_REJECTIONS_THRESHOLD = 3;
 export const REJECTION_THRESHOLD_IN_MS = 30000;
 const ONE_MINUTE_IN_MS = 60000;
 
-export interface DomainState {
+export interface OriginState {
   rejections: number;
   lastRejection: number;
 }
 
-export interface DappSpamFilterState {
-  domains: {
-    [key: string]: DomainState;
+export interface OriginThrottlingState {
+  origins: {
+    [key: string]: OriginState;
   };
 }
 
-export const initialState: DappSpamFilterState = {
-  domains: {},
+export const initialState: OriginThrottlingState = {
+  origins: {},
 };
 
-const name = 'dappSpamFilter';
+const name = 'originThrottling';
 
 const slice = createSlice({
   name,
   initialState,
   reducers: {
     onRPCRequestRejectedByUser(
-      state: DappSpamFilterState,
+      state: OriginThrottlingState,
       action: PayloadAction<string>,
     ) {
-      const domain = action.payload;
-      const currentState = state.domains[domain] || {
+      const origin = action.payload;
+      const currentState = state.origins[origin] || {
         rejections: 0,
         lastRejection: 0,
       };
@@ -43,17 +43,17 @@ const slice = createSlice({
 
       newRejections = isUnderThreshold ? newRejections + 1 : 1;
 
-      state.domains[domain] = {
+      state.origins[origin] = {
         rejections: newRejections,
         lastRejection: currentTime,
       };
     },
-    resetDappSpamState: (
-      state: DappSpamFilterState,
+    resetOriginSpamState: (
+      state: OriginThrottlingState,
       action: PayloadAction<string>,
     ) => {
-      const domain = action.payload;
-      delete state.domains[domain];
+      const origin = action.payload;
+      delete state.origins[origin];
     },
   },
 });
@@ -62,22 +62,22 @@ const slice = createSlice({
 const { actions, reducer } = slice;
 
 export default reducer;
-export const { onRPCRequestRejectedByUser, resetDappSpamState } = actions;
+export const { onRPCRequestRejectedByUser, resetOriginSpamState } = actions;
 
 // Selectors
-const selectDomainState = (state: RootState, domain: string) =>
-  state[name].domains[domain];
+const selectOriginState = (state: RootState, origin: string) =>
+  state[name].origins[origin];
 
 export const isDappBlockedForRPCRequests = (
   state: RootState,
-  domain: string,
+  origin: string,
 ) => {
-  const domainState = selectDomainState(state, domain);
-  if (!domainState) {
+  const originState = selectOriginState(state, origin);
+  if (!originState) {
     return false;
   }
   const currentTime = Date.now();
-  const { rejections, lastRejection } = domainState;
+  const { rejections, lastRejection } = originState;
   const isWithinOneMinute = currentTime - lastRejection <= ONE_MINUTE_IN_MS;
 
   return rejections >= NUMBER_OF_REJECTIONS_THRESHOLD && isWithinOneMinute;
@@ -85,17 +85,17 @@ export const isDappBlockedForRPCRequests = (
 
 export const selectOriginAtSpamThreshold = (
   state: RootState,
-  domain: string,
+  origin: string,
 ) => {
-  const domainState = selectDomainState(state, domain);
-  if (!domainState) {
+  const originState = selectOriginState(state, origin);
+  if (!originState) {
     return false;
   }
   const currentTime = Date.now();
   const isUnderThreshold =
-    currentTime - domainState.lastRejection < REJECTION_THRESHOLD_IN_MS;
+    currentTime - originState.lastRejection < REJECTION_THRESHOLD_IN_MS;
   const hasReachedThreshold =
-    domainState.rejections >= NUMBER_OF_REJECTIONS_THRESHOLD &&
+    originState.rejections >= NUMBER_OF_REJECTIONS_THRESHOLD &&
     isUnderThreshold;
 
   return hasReachedThreshold;

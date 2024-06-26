@@ -18,7 +18,7 @@ import {
 } from '../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text';
-import { resetDappSpamState } from '../../../core/redux/slices/dappSpamFilter';
+import { resetOriginSpamState } from '../../../core/redux/slices/originThrottling';
 
 export const BLOCK_BUTTON_TEST_ID = 'block-dapp-button';
 export const CONTINUE_BUTTON_TEST_ID = 'continue-dapp-button';
@@ -39,11 +39,11 @@ const createStyles = () =>
 
 const MultipleRequestContent = ({
   onCloseModal,
-  onResetDappSpamState,
+  onResetOriginSpamState,
   setBlockDapp,
 }: {
   onCloseModal: () => void;
-  onResetDappSpamState: () => void;
+  onResetOriginSpamState: () => void;
   setBlockDapp: (value: boolean) => void;
 }) => {
   const styles = createStyles();
@@ -60,7 +60,7 @@ const MultipleRequestContent = ({
         <Button
           label={strings('spam_filter.continue')}
           onPress={() => {
-            onResetDappSpamState();
+            onResetOriginSpamState();
             onCloseModal();
           }}
           size={ButtonSize.Lg}
@@ -112,16 +112,16 @@ const SiteBlockedContent = ({ onCloseModal }: { onCloseModal: () => void }) => {
 const DappSpamModal = ({
   route,
 }: {
-  route: { params: { domain: string } };
+  route: { params: { origin: string } };
 }) => {
   const dispatch = useDispatch();
-  const { domain } = route.params;
+  const { origin } = route.params;
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isBlockDappOptedIn, setBlockDapp] = useState(false);
 
-  const onResetDappSpamState = () => {
-    dispatch(resetDappSpamState(domain));
+  const onResetOriginSpamState = () => {
+    dispatch(resetOriginSpamState(origin));
   };
 
   const onCloseModal = () => {
@@ -136,7 +136,7 @@ const DappSpamModal = ({
         ) : (
           <MultipleRequestContent
             onCloseModal={onCloseModal}
-            onResetDappSpamState={onResetDappSpamState}
+            onResetOriginSpamState={onResetOriginSpamState}
             setBlockDapp={setBlockDapp}
           />
         )}

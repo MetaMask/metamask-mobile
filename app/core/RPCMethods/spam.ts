@@ -8,7 +8,7 @@ import {
   isDappBlockedForRPCRequests,
   onRPCRequestRejectedByUser,
   selectOriginAtSpamThreshold,
-} from '../redux/slices/dappSpamFilter';
+} from '../redux/slices/originThrottling';
 
 export const BLOCKABLE_SPAM_RPC_METHODS = new Set([
   RPC_METHODS.ETH_SENDTRANSACTION,
@@ -84,7 +84,7 @@ export function processOriginThrottlingRejection({
     if (selectOriginAtSpamThreshold(store.getState(), req.origin)) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.DAPP_SPAM_MODAL,
-        params: { domain: req.origin },
+        params: { origin: req.origin },
       });
     }
   }

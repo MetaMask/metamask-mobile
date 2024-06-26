@@ -1,6 +1,6 @@
 import configureMockStore from 'redux-mock-store';
 
-import { NUMBER_OF_REJECTIONS_THRESHOLD } from '../../core/redux/slices/dappSpamFilter';
+import { NUMBER_OF_REJECTIONS_THRESHOLD } from '../redux/slices/originThrottling';
 import initialBackgroundState from '../../util/test/initial-background-state.json';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -11,18 +11,18 @@ import {
 } from './spam';
 
 const [BLOCKABLE_RPC_METHOD_MOCK] = BLOCKABLE_SPAM_RPC_METHODS;
-const SCAM_DOMAIN_MOCK = 'scam.domain';
+const SCAM_ORIGIN_MOCK = 'scam.origin';
 const RPC_REQUEST_MOCK = {
   method: BLOCKABLE_RPC_METHOD_MOCK,
-  origin: SCAM_DOMAIN_MOCK,
+  origin: SCAM_ORIGIN_MOCK,
 } as ExtendedJSONRPCRequest;
 const NOT_BLOCKABLE_RPC_REQUEST_MOCK = {
   method: 'NOT_BLOCKABLE_REQUEST_METHOD',
 } as ExtendedJSONRPCRequest;
 
 const mockInitialState = {
-  dappSpamFilter: {
-    domains: {},
+  originThrottling: {
+    origins: {},
   },
   engine: {
     backgroundState: initialBackgroundState,
@@ -56,9 +56,9 @@ describe('utils', () => {
 
         const store = mockStore({
           ...mockInitialState,
-          dappSpamFilter: {
-            domains: {
-              [SCAM_DOMAIN_MOCK]: {
+          originThrottling: {
+            origins: {
+              [SCAM_ORIGIN_MOCK]: {
                 rejections: NUMBER_OF_REJECTIONS_THRESHOLD - 1,
                 lastRejection: date30secAgo,
               },
@@ -75,9 +75,9 @@ describe('utils', () => {
 
         const store = mockStore({
           ...mockInitialState,
-          dappSpamFilter: {
-            domains: {
-              [SCAM_DOMAIN_MOCK]: {
+          originThrottling: {
+            origins: {
+              [SCAM_ORIGIN_MOCK]: {
                 rejections: NUMBER_OF_REJECTIONS_THRESHOLD,
                 lastRejection: date2minAgo,
               },
@@ -94,9 +94,9 @@ describe('utils', () => {
       it('when origin has an active spam prompt', () => {
         const store = mockStore({
           ...mockInitialState,
-          dappSpamFilter: {
-            domains: {
-              [SCAM_DOMAIN_MOCK]: {
+          originThrottling: {
+            origins: {
+              [SCAM_ORIGIN_MOCK]: {
                 rejections: 3,
                 lastRejection: Date.now() - 1,
               },
@@ -113,9 +113,9 @@ describe('utils', () => {
 
         const store = mockStore({
           ...mockInitialState,
-          dappSpamFilter: {
-            domains: {
-              [SCAM_DOMAIN_MOCK]: {
+          originThrottling: {
+            origins: {
+              [SCAM_ORIGIN_MOCK]: {
                 rejections: 3,
                 lastRejection: date30secAgo,
               },
@@ -160,9 +160,9 @@ describe('utils', () => {
     it('navigates to spam modal when spam prompt is active', () => {
       const store = mockStore({
         ...mockInitialState,
-        dappSpamFilter: {
-          domains: {
-            [SCAM_DOMAIN_MOCK]: {
+        originThrottling: {
+          origins: {
+            [SCAM_ORIGIN_MOCK]: {
               rejections: 3,
               lastRejection: Date.now() - 1,
             },
@@ -182,7 +182,7 @@ describe('utils', () => {
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
           screen: Routes.SHEET.DAPP_SPAM_MODAL,
-          params: { domain: SCAM_DOMAIN_MOCK },
+          params: { origin: SCAM_ORIGIN_MOCK },
         },
       );
     });

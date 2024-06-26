@@ -1,14 +1,14 @@
 import reducer, {
-  DappSpamFilterState,
+  OriginThrottlingState,
   initialState,
   onRPCRequestRejectedByUser,
-  resetDappSpamState,
+  resetOriginSpamState,
   REJECTION_THRESHOLD_IN_MS,
 } from './index';
 
-const SCAM_DOMAIN_MOCK = 'scam.domain';
+const SCAM_ORIGIN_MOCK = 'scam.origin';
 
-describe('dappSpamFilter slice', () => {
+describe('originThrottling slice', () => {
   let dateNowSpy: jest.SpyInstance;
 
   beforeAll(() => {
@@ -20,22 +20,22 @@ describe('dappSpamFilter slice', () => {
   });
 
   describe('onRPCRequestRejectedByUser', () => {
-    it('handles first rejection for a domain', () => {
+    it('handles first rejection for a origin', () => {
       dateNowSpy.mockReturnValue(1000);
-      const action = onRPCRequestRejectedByUser(SCAM_DOMAIN_MOCK);
+      const action = onRPCRequestRejectedByUser(SCAM_ORIGIN_MOCK);
       const state = reducer(initialState, action);
 
-      expect(state.domains[SCAM_DOMAIN_MOCK]).toEqual({
+      expect(state.origins[SCAM_ORIGIN_MOCK]).toEqual({
         rejections: 1,
         lastRejection: 1000,
       });
     });
 
     it('increase rejection count within threshold time', () => {
-      const initialStateWithDomain: DappSpamFilterState = {
+      const initialStateWithScamOrigin: OriginThrottlingState = {
         ...initialState,
-        domains: {
-          [SCAM_DOMAIN_MOCK]: {
+        origins: {
+          [SCAM_ORIGIN_MOCK]: {
             rejections: 1,
             lastRejection: 10000,
           },
@@ -43,20 +43,20 @@ describe('dappSpamFilter slice', () => {
       };
 
       dateNowSpy.mockReturnValue(15000);
-      const action = onRPCRequestRejectedByUser(SCAM_DOMAIN_MOCK);
-      const state = reducer(initialStateWithDomain, action);
+      const action = onRPCRequestRejectedByUser(SCAM_ORIGIN_MOCK);
+      const state = reducer(initialStateWithScamOrigin, action);
 
-      expect(state.domains[SCAM_DOMAIN_MOCK]).toEqual({
+      expect(state.origins[SCAM_ORIGIN_MOCK]).toEqual({
         rejections: 2,
         lastRejection: 15000,
       });
     });
 
     it('reset rejection count if outside threshold time', () => {
-      const initialStateWithDomain: DappSpamFilterState = {
+      const initialStateWithScamOrigin: OriginThrottlingState = {
         ...initialState,
-        domains: {
-          [SCAM_DOMAIN_MOCK]: {
+        origins: {
+          [SCAM_ORIGIN_MOCK]: {
             rejections: 2,
             lastRejection: 1000,
           },
@@ -66,32 +66,32 @@ describe('dappSpamFilter slice', () => {
       const nextRejectionTimestamp = REJECTION_THRESHOLD_IN_MS + 1000;
 
       dateNowSpy.mockReturnValue(nextRejectionTimestamp);
-      const action = onRPCRequestRejectedByUser(SCAM_DOMAIN_MOCK);
-      const state = reducer(initialStateWithDomain, action);
+      const action = onRPCRequestRejectedByUser(SCAM_ORIGIN_MOCK);
+      const state = reducer(initialStateWithScamOrigin, action);
 
-      expect(state.domains[SCAM_DOMAIN_MOCK]).toEqual({
+      expect(state.origins[SCAM_ORIGIN_MOCK]).toEqual({
         rejections: 1,
         lastRejection: nextRejectionTimestamp,
       });
     });
   });
 
-  describe('resetDappSpamState', () => {
-    it('reset the state for a specific domain', () => {
-      const initialStateWithDomain: DappSpamFilterState = {
+  describe('resetOriginSpamState', () => {
+    it('reset the state for a specific origin', () => {
+      const initialStateWithScamOrigin: OriginThrottlingState = {
         ...initialState,
-        domains: {
-          [SCAM_DOMAIN_MOCK]: {
+        origins: {
+          [SCAM_ORIGIN_MOCK]: {
             rejections: 3,
             lastRejection: 1000,
           },
         },
       };
 
-      const action = resetDappSpamState(SCAM_DOMAIN_MOCK);
-      const state = reducer(initialStateWithDomain, action);
+      const action = resetOriginSpamState(SCAM_ORIGIN_MOCK);
+      const state = reducer(initialStateWithScamOrigin, action);
 
-      expect(state.domains[SCAM_DOMAIN_MOCK]).toBeUndefined();
+      expect(state.origins[SCAM_ORIGIN_MOCK]).toBeUndefined();
     });
   });
 });

@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import { resetDappSpamState } from '../../../core/redux/slices/dappSpamFilter';
+import { resetOriginSpamState } from '../../../core/redux/slices/originThrottling';
 import DappSpamModal, {
   BLOCK_BUTTON_TEST_ID,
   CONTINUE_BUTTON_TEST_ID,
@@ -15,9 +15,8 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockAction = { type: 'MOCK_ACTION' };
-jest.mock('../../../core/redux/slices/dappSpamFilter', () => ({
-  resetDappSpamState: jest.fn().mockImplementation(() => mockAction),
-  resetSpamPrompt: jest.fn().mockImplementation(() => mockAction),
+jest.mock('../../../core/redux/slices/originThrottling', () => ({
+  resetOriginSpamState: jest.fn().mockImplementation(() => mockAction),
 }));
 
 jest.mock(
@@ -43,7 +42,7 @@ const mockInitialState = {
 };
 
 describe('DappSpamModal', () => {
-  const mockResetDappSpamState = jest.mocked(resetDappSpamState);
+  const mockResetOriginSpamState = jest.mocked(resetOriginSpamState);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -81,6 +80,6 @@ describe('DappSpamModal', () => {
     );
     fireEvent.press(wrapper.getByTestId(CONTINUE_BUTTON_TEST_ID));
 
-    expect(mockResetDappSpamState).toHaveBeenCalledTimes(1);
+    expect(mockResetOriginSpamState).toHaveBeenCalledTimes(1);
   });
 });
