@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Third party dependencies.
 import { Linking, Switch, TouchableOpacity, View } from 'react-native';
 import React, { useCallback, useRef, useState } from 'react';
@@ -62,7 +61,10 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
-import { TESTNET_TICKER_SYMBOLS } from '@metamask/controller-utils';
+import {
+  InfuraNetworkType,
+  TESTNET_TICKER_SYMBOLS,
+} from '@metamask/controller-utils';
 import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
@@ -75,10 +77,13 @@ import AccountAction from '../AccountAction';
 import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
+import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
-  const [popularNetwork, setPopularNetwork] = useState(undefined);
+  const [popularNetwork, setPopularNetwork] = useState<
+    ExtendedNetwork | undefined
+  >(undefined);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [searchString, setSearchString] = useState('');
   const { navigate } = useNavigation();
@@ -136,7 +141,7 @@ const NetworkSelector = () => {
     }
 
     CurrencyRateController.updateExchangeRate(ticker);
-    NetworkController.setProviderType(type);
+    NetworkController.setProviderType(type as InfuraNetworkType);
     AccountTrackerController.refresh();
 
     setTimeout(async () => {
@@ -208,8 +213,7 @@ const NetworkSelector = () => {
     networkMenuSheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  // TODO: type the any below to import { Network } from './CustomNetwork.types';
-  const showNetworkModal = (networkConfiguration: any) => {
+  const showNetworkModal = (networkConfiguration: ExtendedNetwork) => {
     setShowPopularNetworkModal(true);
     setPopularNetwork({
       ...networkConfiguration,
@@ -232,8 +236,11 @@ const NetworkSelector = () => {
     Linking.openURL(strings('networks.learn_more_url'));
   };
 
-  const filterNetworksByName = (networks: any[], networkName: string) => {
-    const searchResult: any = networks.filter(({ name }) =>
+  const filterNetworksByName = (
+    networks: ExtendedNetwork[],
+    networkName: string,
+  ) => {
+    const searchResult: ExtendedNetwork[] = networks.filter(({ name }) =>
       name.toLowerCase().includes(networkName.toLowerCase()),
     );
 
@@ -474,7 +481,7 @@ const NetworkSelector = () => {
     </View>
   );
 
-  const handleSearchTextChange = (text: any) => {
+  const handleSearchTextChange = (text: string) => {
     setSearchString(text);
   };
 

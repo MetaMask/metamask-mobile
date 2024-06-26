@@ -17,6 +17,10 @@ export interface Network {
   warning?: boolean;
 }
 
+export interface ExtendedNetwork extends Network {
+  formattedRpcUrl?: string | null;
+}
+
 export interface CustomNetworkProps {
   /**
    * is network modal open
