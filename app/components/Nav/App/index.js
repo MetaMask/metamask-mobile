@@ -110,6 +110,7 @@ import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
+import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -692,6 +693,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
         component={ShowDisplayNftMediaSheet}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
+        component={NFTAutoDetectionModal}
       />
     </Stack.Navigator>
   );
