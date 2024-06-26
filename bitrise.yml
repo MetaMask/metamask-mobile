@@ -448,11 +448,11 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://ba40e5b7b4210a06c659b5c6818a3efec2624513' # Last production's QA build
-      - PRODUCTION_BUILD_VERSION_NAME: 7.24.3
-      - PRODUCTION_BUILD_VERSION_NUMBER: 1351
+      - PRODUCTION_APP_URL: 'bs://c2c414d2b4935096274bd2fb98232cc7b8408b2a' # Last production's QA build
+      - PRODUCTION_BUILD_NAME: 7.24.4
+      - PRODUCTION_BUILD_NUMBER: 1354
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
-      - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_VERSION_NAME ($PRODUCTION_BUILD_VERSION_NUMBER)'
+      - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
     after_run:
       - run_android_appium_test
@@ -1401,16 +1401,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.24.3
+      VERSION_NAME: 7.24.4
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1351
+      VERSION_NUMBER: 1354
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.24.3
+      FLASK_VERSION_NAME: 7.24.4
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1351
+      FLASK_VERSION_NUMBER: 1354
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
