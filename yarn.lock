@@ -4660,21 +4660,7 @@
     "@noble/hashes" "^1.3.2"
     superstruct "^1.0.3"
 
-"@metamask/snaps-rpc-methods@^9.0.0", "@metamask/snaps-rpc-methods@^9.1.2":
-  version "9.1.2"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-9.1.2.tgz#fda8a6f8fcc4fca50b1ed71fb8c9dc88a9f9c3d8"
-  integrity sha512-mh/cSM4rLebRC0rGprvFBybk2fxSCJxCw0Co4jbE2TH9vdUK6z23HWB+CCeGASA978Nbpi3Gqbiz3jTCNKkU7A==
-  dependencies:
-    "@metamask/key-tree" "^9.1.1"
-    "@metamask/permission-controller" "^9.0.2"
-    "@metamask/rpc-errors" "^6.2.1"
-    "@metamask/snaps-sdk" "^4.4.1"
-    "@metamask/snaps-utils" "^7.4.1"
-    "@metamask/utils" "^8.3.0"
-    "@noble/hashes" "^1.3.1"
-    superstruct "^1.0.3"
-
-"@metamask/snaps-rpc-methods@^9.1.4":
+"@metamask/snaps-rpc-methods@^9.0.0", "@metamask/snaps-rpc-methods@^9.1.2", "@metamask/snaps-rpc-methods@^9.1.4":
   version "9.1.4"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-9.1.4.tgz#d0aa695b89326eece7b23d188d8dce7d35a78d9c"
   integrity sha512-eYcfJDYlXE4RqtRTyp8n7SsJ0aAQlz5H335/5jch3L3CwQwC3z8KlKm258iXPiyT7fa9VVxdZqGs/rBaivx0Iw==
@@ -4723,35 +4709,7 @@
     "@metamask/utils" "^8.3.0"
     superstruct "^1.0.3"
 
-"@metamask/snaps-utils@^7.1.0", "@metamask/snaps-utils@^7.4.0", "@metamask/snaps-utils@^7.4.1":
-  version "7.4.1"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-7.4.1.tgz#54a2b40ba30cc05a0862f4662e5cd6ef5beba42e"
-  integrity sha512-IPoZTh90Bg4LJJCmkRig1QIyXOgdziuZqdx3c521gHaKpMlcOFl1fvII17X9yVF9SUtTSDoj1R4//4e5rnLZnw==
-  dependencies:
-    "@babel/core" "^7.23.2"
-    "@babel/types" "^7.23.0"
-    "@metamask/base-controller" "^5.0.2"
-    "@metamask/key-tree" "^9.1.1"
-    "@metamask/permission-controller" "^9.0.2"
-    "@metamask/rpc-errors" "^6.2.1"
-    "@metamask/slip44" "^3.1.0"
-    "@metamask/snaps-registry" "^3.1.0"
-    "@metamask/snaps-sdk" "^4.4.1"
-    "@metamask/utils" "^8.3.0"
-    "@noble/hashes" "^1.3.1"
-    "@scure/base" "^1.1.1"
-    chalk "^4.1.2"
-    cron-parser "^4.5.0"
-    fast-deep-equal "^3.1.3"
-    fast-json-stable-stringify "^2.1.0"
-    marked "^12.0.1"
-    rfdc "^1.3.0"
-    semver "^7.5.4"
-    ses "^1.1.0"
-    superstruct "^1.0.3"
-    validate-npm-package-name "^5.0.0"
-
-"@metamask/snaps-utils@^7.7.0":
+"@metamask/snaps-utils@^7.1.0", "@metamask/snaps-utils@^7.4.0", "@metamask/snaps-utils@^7.4.1", "@metamask/snaps-utils@^7.7.0":
   version "7.7.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-7.7.0.tgz#06c890026b8b6998f170129447a18e2349f70d0c"
   integrity sha512-phVFda2Pz6v9TYUGdbgk40/BTX4/hJC+sQNU5jvmb94lcGDgxKln6xwyeH1LG0PzC44STFn9Y3zRT12TANS7Ow==
