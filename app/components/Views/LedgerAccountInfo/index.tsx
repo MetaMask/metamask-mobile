@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable import/no-commonjs */
 import { StackActions, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -32,10 +29,10 @@ import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring';
+import { Colors } from '../../../util/theme/models';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -115,7 +112,7 @@ const LedgerAccountInfo = () => {
   useEffect(() => {
     const getAccount = async () => {
       const accounts = await withLedgerKeyring(
-        async (keyring: any) => await keyring.getAccounts(),
+        async (keyring: LedgerKeyring) => await keyring.getAccounts(),
       );
 
       setAccount(accounts[0]);

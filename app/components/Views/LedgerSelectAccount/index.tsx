@@ -24,14 +24,20 @@ import {
 } from '../../../core/Ledger/Ledger';
 import LedgerConnect from '../LedgerConnect';
 import { setReloadAccounts } from '../../../actions/accounts';
-import { StackActions } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+  StackActions,
+} from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
+import { Colors } from '../../../util/theme/models';
+import { KeyringController } from '@metamask/keyring-controller';
 
 interface ILedgerSelectAccountProps {
-  navigation: any;
+  navigation: NavigationProp<ParamListBase>;
 }
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -82,8 +88,10 @@ const LedgerSelectAccount = ({ navigation }: ILedgerSelectAccountProps) => {
     ledgerDeviceDarkImage,
   );
 
-  const KeyringController = useMemo(() => {
-    const { KeyringController: controller } = Engine.context as any;
+  const keyringController = useMemo(() => {
+    const { KeyringController: controller } = Engine.context as {
+      KeyringController: KeyringController;
+    };
     return controller;
   }, []);
 
@@ -102,10 +110,10 @@ const LedgerSelectAccount = ({ navigation }: ILedgerSelectAccountProps) => {
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
 
   useEffect(() => {
-    KeyringController.getAccounts().then((value: string[]) => {
+    keyringController.getAccounts().then((value: string[]) => {
       setExistingAccounts(value);
     });
-  }, [KeyringController]);
+  }, [keyringController]);
 
   const onConnectHardware = useCallback(async () => {
     trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
@@ -134,7 +142,7 @@ const LedgerSelectAccount = ({ navigation }: ILedgerSelectAccountProps) => {
 
       try {
         for (const index of accountIndexes) {
-          await KeyringController.unlockLedgerWalletAccount(index);
+          await keyringController.unlockLedgerWalletAccount(index);
         }
       } catch (err) {
         Logger.log('Error: Connecting QR hardware wallet', err);
@@ -147,7 +155,7 @@ const LedgerSelectAccount = ({ navigation }: ILedgerSelectAccountProps) => {
       });
       navigation.pop(2);
     },
-    [KeyringController, navigation, trackEvent],
+    [keyringController, navigation, trackEvent],
   );
 
   const onForget = useCallback(async () => {

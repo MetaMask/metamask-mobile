@@ -10,10 +10,6 @@ import {
 import Engine from '../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
-import {
-  LedgerKeyring,
-  LedgerMobileBridge,
-} from '@metamask/eth-ledger-bridge-keyring';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -26,65 +22,60 @@ jest.mock('../../core/Engine', () => ({
 const MockEngine = jest.mocked(Engine);
 
 describe('Ledger core', () => {
-  let ledgerKeyring: LedgerKeyring;
-  let ledgerMobileBridge: LedgerMobileBridge;
-
-  beforeEach(() => {
-    jest.resetAllMocks();
-
-    ledgerMobileBridge = {
+  const ledgerKeyring = {
+    addAccounts: jest.fn(),
+    bridge: {
       getAppNameAndVersion: jest.fn().mockResolvedValue({ appName: 'appName' }),
       updateTransportMethod: jest.fn(),
       openEthApp: jest.fn(),
       closeApps: jest.fn(),
-    };
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    ledgerKeyring = {
-      addAccounts: jest.fn(),
-      bridge: ledgerMobileBridge,
-      deserialize: jest.fn(),
-      forgetDevice: jest.fn(),
-      getDeviceId: jest.fn().mockReturnValue('deviceId'),
-      getFirstPage: jest.fn().mockResolvedValue([
-        {
-          balance: '0',
-          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
-          index: 0,
-        },
-        {
-          balance: '1',
-          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
-          index: 1,
-        },
-      ]),
-      getNextPage: jest.fn().mockResolvedValue([
-        {
-          balance: '4',
-          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB4',
-          index: 4,
-        },
-        {
-          balance: '5',
-          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB5',
-          index: 5,
-        },
-      ]),
-      getPreviousPage: jest.fn().mockResolvedValue([
-        {
-          balance: '2',
-          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB6',
-          index: 2,
-        },
-        {
-          balance: '3',
-          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB7',
-          index: 3,
-        },
-      ]),
-      setDeviceId: jest.fn(),
-      setHdPath: jest.fn(),
-    };
+    },
+    deserialize: jest.fn(),
+    forgetDevice: jest.fn(),
+    getDeviceId: jest.fn().mockReturnValue('deviceId'),
+    getFirstPage: jest.fn().mockResolvedValue([
+      {
+        balance: '0',
+        address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+        index: 0,
+      },
+      {
+        balance: '1',
+        address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
+        index: 1,
+      },
+    ]),
+    getNextPage: jest.fn().mockResolvedValue([
+      {
+        balance: '4',
+        address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB4',
+        index: 4,
+      },
+      {
+        balance: '5',
+        address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB5',
+        index: 5,
+      },
+    ]),
+    getPreviousPage: jest.fn().mockResolvedValue([
+      {
+        balance: '2',
+        address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB6',
+        index: 2,
+      },
+      {
+        balance: '3',
+        address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB7',
+        index: 3,
+      },
+    ]),
+    setDeviceId: jest.fn(),
+    setHdPath: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+
     const mockKeyringController = MockEngine.context.KeyringController;
 
     mockKeyringController.withKeyring.mockImplementation(
@@ -145,7 +136,7 @@ describe('Ledger core', () => {
       await getLedgerAccountsByPage(1);
       expect(ledgerKeyring.getNextPage).toHaveBeenCalled();
     });
-    it('should call getNextPage on ledgerKeyring', async () => {
+    it('should call getPreviousPage on ledgerKeyring', async () => {
       await getLedgerAccountsByPage(-1);
       expect(ledgerKeyring.getPreviousPage).toHaveBeenCalled();
     });
