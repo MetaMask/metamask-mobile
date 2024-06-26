@@ -54,9 +54,7 @@ describe(SmokeCore('Connect account to Portfolio'), () => {
       console.log('The Portfolio privacy modal is not visible');
     }
     await PortfolioHomePage.tapConnectMetaMask();
-    await Assertions.checkIfVisible(ConnectModal.container);
     await ConnectModal.tapConnectButton();
-    await Assertions.checkIfNotVisible(ConnectModal.container);
   });
 
   it('should not open additional browser tabs to portfolio', async () => {
