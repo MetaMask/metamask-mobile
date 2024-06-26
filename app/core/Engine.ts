@@ -981,6 +981,7 @@ class Engine {
       featureFlags: {
         requireAllowlist,
         allowLocalSnaps,
+        disableSnapInstallation: true,
       },
       state: initialState.SnapController || undefined,
       // TODO: Replace "any" with type
