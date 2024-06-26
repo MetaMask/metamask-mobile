@@ -108,7 +108,6 @@ exports[`DappSpamModal renders SiteBlockedContent if user opt in to block dapp 1
           "paddingHorizontal": 16,
         }
       }
-      testID="got-it-button"
       variant="Primary"
     >
       <Text
