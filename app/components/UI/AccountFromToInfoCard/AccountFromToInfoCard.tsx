@@ -21,6 +21,7 @@ import createStyles from './AccountFromToInfoCard.styles';
 import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { toLowerCaseEquals } from '../../../util/general';
+import { RootState } from '../../../reducers';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const {
@@ -34,7 +35,6 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const {
     transaction: { from: rawFromAddress, data, to },
     transactionTo,
-    transactionToName,
     transactionFromName,
     selectedAsset,
     ensRecipient,
@@ -57,57 +57,78 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   );
 
   useEffect(() => {
-    if (!fromAddress) {
-      return;
-    }
-    if (transactionFromName) {
-      setFromAccountName(transactionFromName);
-      return;
-    }
-    (async () => {
+    const fetchFromAccountDetails = async () => {
+      if (!fromAddress) {
+        return;
+      }
+
+      if (transactionFromName) {
+        if (fromAccountName !== transactionFromName) {
+          setFromAccountName(transactionFromName);
+        }
+        return;
+      }
+
       const fromEns = await doENSReverseLookup(fromAddress, chainId);
       if (fromEns) {
-        setFromAccountName(fromEns);
+        if (fromAccountName !== fromEns) {
+          setFromAccountName(fromEns);
+        }
       } else {
         const accountWithMatchingFromAddress = internalAccounts.find(
           (account) => toLowerCaseEquals(account.address, fromAddress),
         );
-        if (accountWithMatchingFromAddress) {
-          setFromAccountName(accountWithMatchingFromAddress.metadata.name);
-        } else {
-          setFromAccountName(fromAddress);
+
+        const newName = accountWithMatchingFromAddress
+          ? accountWithMatchingFromAddress.metadata.name
+          : fromAddress;
+
+        if (fromAccountName !== newName) {
+          setFromAccountName(newName);
         }
       }
-    })();
-  }, [fromAddress, transactionFromName, chainId, internalAccounts]);
+    };
+
+    fetchFromAccountDetails();
+  }, [
+    fromAddress,
+    transactionFromName,
+    chainId,
+    internalAccounts,
+    fromAccountName,
+  ]);
 
   useEffect(() => {
-    if (existingToAddress) {
-      setToAccountName(existingToAddress?.name);
-      return;
-    }
-    (async () => {
+    const fetchAccountDetails = async () => {
+      if (existingToAddress) {
+        if (toAccountName !== existingToAddress.name) {
+          setToAccountName(existingToAddress.name);
+        }
+        return;
+      }
+
       const toEns = await doENSReverseLookup(toAddress, chainId);
       if (toEns) {
-        setToAccountName(toEns);
+        if (toAccountName !== toEns) {
+          setToAccountName(toEns);
+        }
       } else {
         const accountWithMatchingToAddress = internalAccounts.find((account) =>
           toLowerCaseEquals(account.address, toAddress),
         );
-        if (accountWithMatchingToAddress) {
-          setToAccountName(accountWithMatchingToAddress.metadata.name);
-        } else {
-          setToAccountName(toAddress);
+
+        const newName = accountWithMatchingToAddress
+          ? accountWithMatchingToAddress.metadata.name
+          : toAddress;
+
+        if (toAccountName !== newName) {
+          setToAccountName(newName);
         }
       }
-    })();
-  }, [
-    existingToAddress,
-    chainId,
-    toAddress,
-    transactionToName,
-    internalAccounts,
-  ]);
+    };
+
+    fetchAccountDetails();
+  }, [existingToAddress, chainId, toAddress, internalAccounts, toAccountName]);
 
   useEffect(() => {
     const accountNames = internalAccounts.map(
@@ -190,9 +211,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   );
 };
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapStateToProps = (state: any) => ({
+const mapStateToProps = (state: RootState) => ({
   internalAccounts: selectInternalAccounts(state),
   chainId: selectChainId(state),
   ticker: selectTicker(state),
