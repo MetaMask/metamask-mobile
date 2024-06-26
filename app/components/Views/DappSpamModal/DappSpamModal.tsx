@@ -43,12 +43,12 @@ const createStyles = () =>
   });
 
 const MultipleRequestContent = ({
-  handleCloseModal,
-  handleResetDappSpamState,
+  onCloseModal,
+  onResetDappSpamState,
   setBlockDapp,
 }: {
-  handleCloseModal: () => void;
-  handleResetDappSpamState: () => void;
+  onCloseModal: () => void;
+  onResetDappSpamState: () => void;
   setBlockDapp: (value: boolean) => void;
 }) => {
   const styles = createStyles();
@@ -65,8 +65,8 @@ const MultipleRequestContent = ({
         <Button
           label={strings('spam_filter.continue')}
           onPress={() => {
-            handleResetDappSpamState();
-            handleCloseModal();
+            onResetDappSpamState();
+            onCloseModal();
           }}
           size={ButtonSize.Lg}
           testID={CONTINUE_BUTTON_TEST_ID}
@@ -88,11 +88,7 @@ const MultipleRequestContent = ({
   );
 };
 
-const SiteBlockedContent = ({
-  handleCloseModal,
-}: {
-  handleCloseModal: () => void;
-}) => {
+const SiteBlockedContent = ({ onCloseModal }: { onCloseModal: () => void }) => {
   const styles = createStyles();
   return (
     <>
@@ -107,7 +103,7 @@ const SiteBlockedContent = ({
         <Button
           label={strings('spam_filter.got_it')}
           onPress={() => {
-            handleCloseModal();
+            onCloseModal();
           }}
           size={ButtonSize.Lg}
           testID={GOT_IT_BUTTON_TEST_ID}
@@ -133,11 +129,11 @@ const DappSpamModal = ({
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isBlockDappOptedIn, setBlockDapp] = useState(false);
 
-  const handleResetDappSpamState = () => {
+  const onResetDappSpamState = () => {
     resetDappSpamState(domain);
   };
 
-  const handleCloseModal = () => {
+  const onCloseModal = () => {
     resetSpamPrompt();
     sheetRef.current?.onCloseBottomSheet();
   };
@@ -146,11 +142,11 @@ const DappSpamModal = ({
     <BottomSheet ref={sheetRef} isInteractable={false}>
       <View style={styles.wrapper}>
         {isBlockDappOptedIn ? (
-          <SiteBlockedContent handleCloseModal={handleCloseModal} />
+          <SiteBlockedContent onCloseModal={onCloseModal} />
         ) : (
           <MultipleRequestContent
-            handleCloseModal={handleCloseModal}
-            handleResetDappSpamState={handleResetDappSpamState}
+            onCloseModal={onCloseModal}
+            onResetDappSpamState={onResetDappSpamState}
             setBlockDapp={setBlockDapp}
           />
         )}
