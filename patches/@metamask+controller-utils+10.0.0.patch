@@ -1,0 +1,14 @@
+diff --git a/node_modules/@metamask/controller-utils/dist/chunk-3Q66OVYT.js b/node_modules/@metamask/controller-utils/dist/chunk-3Q66OVYT.js
+index 6a52ca2..61fc49c 100644
+--- a/node_modules/@metamask/controller-utils/dist/chunk-3Q66OVYT.js
++++ b/node_modules/@metamask/controller-utils/dist/chunk-3Q66OVYT.js
+@@ -231,7 +231,8 @@ function query(ethQuery, method, args = []) {
+       resolve(result);
+     };
+     if (method in ethQuery && typeof ethQuery[method] === "function") {
+-      ethQuery[method](...args, cb);
++      // fails silently on Android if balance is below quoted swap amount unless catch is present.
++      ethQuery[method](...args, cb).catch((_) => {});    
+     } else {
+       ethQuery.sendAsync({ method, params: args }, cb);
+     }
