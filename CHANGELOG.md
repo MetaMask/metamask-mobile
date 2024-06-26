@@ -1,47 +1,12 @@
 # Changelog
 
 ## Current Main Branch
-- [#10047](https://github.com/MetaMask/metamask-mobile/pull/10047): chore: Chore/update 7.24.3 changelog
-- [#10045](https://github.com/MetaMask/metamask-mobile/pull/10045): chore: Chore/cherry pick ppom 1.4.8 (#10041)
-- 7.24.3
-- [#10013](https://github.com/MetaMask/metamask-mobile/pull/10013): chore: merge 7.24.1 into 7.24.2
-- [#10012](https://github.com/MetaMask/metamask-mobile/pull/10012): chore: revert data change PR for marketing toggle #9998
-- [#10010](https://github.com/MetaMask/metamask-mobile/pull/10010): chore: bump 1347 RC 2
-- [#9998](https://github.com/MetaMask/metamask-mobile/pull/9998): test: marketing optin date trigger testing.
-- [#9991](https://github.com/MetaMask/metamask-mobile/pull/9991): fix: fixed snapshots
-- fix upgrade test version
-- update changelog
-- resovled coflicts
-- [#9987](https://github.com/MetaMask/metamask-mobile/pull/9987): chore: cherry-pick #9687
-- 7.24.2
-- [#9982](https://github.com/MetaMask/metamask-mobile/pull/9982): fix: migration 43 stringify to type of
-- [#9981](https://github.com/MetaMask/metamask-mobile/pull/9981): Revert "chore: cherry-pick #9687"
-- bump version 1342 RC 2
-- [#9978](https://github.com/MetaMask/metamask-mobile/pull/9978): fix: Engine does not exist, network controller is missing ids
-- [#9974](https://github.com/MetaMask/metamask-mobile/pull/9974): fix(ramp): memoize asset before passing it to balance hook (#9968)
-- bump version code 1340 RC 1
-- [#9963](https://github.com/MetaMask/metamask-mobile/pull/9963): fix: cherry pick Duplicate accounts fix (#9943)
-- [#9967](https://github.com/MetaMask/metamask-mobile/pull/9967): chore: cherry-pick #9926
-- [#9959](https://github.com/MetaMask/metamask-mobile/pull/9959): chore: cherry-pick #9946
-- [#9948](https://github.com/MetaMask/metamask-mobile/pull/9948): chore: cherry-pick #9687
-- update changelog
-- 7.24.1
-- [#9907](https://github.com/MetaMask/metamask-mobile/pull/9907): feat: release-7.24.0 RC-2 cut build increment
-- [#9903](https://github.com/MetaMask/metamask-mobile/pull/9903): fix: upgrade test failure fix for 7.24.0 release branch
-- [#9892](https://github.com/MetaMask/metamask-mobile/pull/9892): chore: cherry-pick #9867
-- [#9872](https://github.com/MetaMask/metamask-mobile/pull/9872): fix: Release/7.24.0 cherry missing chain
-- [#9870](https://github.com/MetaMask/metamask-mobile/pull/9870): fix: yarn deduplicate release/7.24.0 to fix dupe in #9864
-- [#9869](https://github.com/MetaMask/metamask-mobile/pull/9869): fix: Cherry pick of e2e fixes from main
-- [#9864](https://github.com/MetaMask/metamask-mobile/pull/9864): Cherry-pick: feat: Add the "Manage in settings" link for the STX Opt In modal, update STX controller version
-- [#9865](https://github.com/MetaMask/metamask-mobile/pull/9865): chore: swap view crash fetching quotes
-- [#9846](https://github.com/MetaMask/metamask-mobile/pull/9846): chore: cherry-pick #9755
-- [#9835](https://github.com/MetaMask/metamask-mobile/pull/9835): fix: cherry-pick balance issue
-- [#9837](https://github.com/MetaMask/metamask-mobile/pull/9837): chore: cherry-pick #9831
-- [#9822](https://github.com/MetaMask/metamask-mobile/pull/9822): chore: cherry-pick #9674
-- [#9809](https://github.com/MetaMask/metamask-mobile/pull/9809): chore: merge 7.23.0 tag
-- [#9806](https://github.com/MetaMask/metamask-mobile/pull/9806): chore: cherry-pick #9781
-- updated changelog
-- 7.24.0
+
+## 7.24.4 - Jun 25, 2024
+### Fixed
+- [10064](https://github.com/MetaMask/metamask-mobile/pull/10064) fix: Always mark the STX Opt In modal as seen
+- [10088](https://github.com/MetaMask/metamask-mobile/pull/10088) fix: Swap with unapproved token
+- [10099](https://github.com/MetaMask/metamask-mobile/pull/10099) fix: stx on ramps missing origin
 
 ## 7.24.3 - Jun 19, 2024
 ### Fixed
