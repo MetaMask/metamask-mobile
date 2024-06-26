@@ -24,7 +24,10 @@ import { updateWC2Metadata } from '../../../app/actions/sdk';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
-import { selectChainId } from '../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../selectors/networkController';
 import { store } from '../../store';
 import AsyncStorage from '../../store/async-storage-wrapper';
 import Device from '../../util/device';
@@ -41,6 +44,7 @@ import parseWalletConnectUri, {
   hideWCLoadingState,
   showWCLoadingState,
 } from './wc-utils';
+import { getDefaultNetworkByChainId } from '../../util/networks';
 
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -65,6 +69,9 @@ class WalletConnect2Session {
   private navigation?: NavigationContainerRef;
   private web3Wallet: Client;
   private deeplink: boolean;
+  // timeoutRef is used on android to prevent automatic redirect on switchChain and wait for wallet_addEthereumChain.
+  // If addEthereumChain is not received after 3 seconds, it will redirect.
+  private timeoutRef: NodeJS.Timeout | null = null;
   private session: SessionTypes.Struct;
   private requestsToRedirect: { [request: string]: boolean } = {};
   private topicByRequestId: { [requestId: string]: string } = {};
@@ -368,6 +375,10 @@ class WalletConnect2Session {
     );
     this.topicByRequestId[requestEvent.id] = requestEvent.topic;
     this.requestByRequestId[requestEvent.id] = requestEvent;
+    if (this.timeoutRef) {
+      // Always clear the timeout ref on new message, it is only used for wallet_switchEthereumChain auto reject on android
+      clearTimeout(this.timeoutRef);
+    }
 
     hideWCLoadingState({ navigation: this.navigation });
     const verified = requestEvent.verifyContext?.verified;
@@ -398,6 +409,34 @@ class WalletConnect2Session {
         topic: this.session.topic,
         error: { code: 1, message: ERROR_MESSAGES.INVALID_CHAIN },
       });
+    }
+
+    // Android specific logic to prevent automatic redirect on switchChain and let the dapp call wallet_addEthereumChain on error.
+    if (method === RPC_WALLET_SWITCHETHEREUMCHAIN && Device.isAndroid()) {
+      const _chainId = `0x${chainId.toString(16)}`;
+      DevLogger.log(`SKIP: preventRedirect on android _chainId=${_chainId}`);
+      const networkConfigurations = selectNetworkConfigurations(
+        store.getState(),
+      );
+      const existingNetworkDefault = getDefaultNetworkByChainId(chainId);
+      const existingEntry = Object.entries(networkConfigurations).find(
+        ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
+      );
+      if (existingEntry || existingNetworkDefault) {
+        await this.web3Wallet.rejectRequest({
+          id: requestEvent.id,
+          topic: requestEvent.topic,
+          error: { code: 4001, message: ERROR_MESSAGES.INVALID_CHAIN },
+        });
+
+        showWCLoadingState({ navigation: this.navigation });
+        this.timeoutRef = setTimeout(() => {
+          hideWCLoadingState({ navigation: this.navigation });
+          // Redirect or do nothing if timer gets cleared upon receiving wallet_addEthereumChain after automatic reject
+          this.redirect();
+        }, 3000);
+        return;
+      }
     }
 
     // Manage redirects
