@@ -13,6 +13,11 @@ import DappSpamModal, {
   GOT_IT_BUTTON_TEST_ID,
 } from './DappSpamModal';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => jest.fn(),
+}));
+
 const mockAction = { type: 'MOCK_ACTION' };
 jest.mock('../../../core/redux/slices/dappSpamFilter', () => ({
   resetDappSpamState: jest.fn().mockImplementation(() => mockAction),

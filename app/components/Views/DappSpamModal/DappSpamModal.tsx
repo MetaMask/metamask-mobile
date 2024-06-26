@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { connect } from 'react-redux';
-import type { Dispatch } from 'redux';
+import { useDispatch } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -20,8 +19,8 @@ import {
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text';
 import {
-  resetDappSpamState as resetDappSpamStateAction,
-  resetSpamPrompt as resetSpamPromptAction,
+  resetDappSpamState,
+  resetSpamPrompt,
 } from '../../../core/redux/slices/dappSpamFilter';
 
 export const BLOCK_BUTTON_TEST_ID = 'block-dapp-button';
@@ -116,25 +115,22 @@ const SiteBlockedContent = ({ onCloseModal }: { onCloseModal: () => void }) => {
 };
 
 const DappSpamModal = ({
-  resetDappSpamState,
-  resetSpamPrompt,
   route,
 }: {
-  resetDappSpamState: (domain: string) => void;
-  resetSpamPrompt: () => void;
   route: { params: { domain: string } };
 }) => {
+  const dispatch = useDispatch();
   const { domain } = route.params;
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isBlockDappOptedIn, setBlockDapp] = useState(false);
 
   const onResetDappSpamState = () => {
-    resetDappSpamState(domain);
+    dispatch(resetDappSpamState(domain));
   };
 
   const onCloseModal = () => {
-    resetSpamPrompt();
+    dispatch(resetSpamPrompt());
     sheetRef.current?.onCloseBottomSheet();
   };
 
@@ -154,12 +150,5 @@ const DappSpamModal = ({
     </BottomSheet>
   );
 };
-const mapStateToProps = () => ({});
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  resetDappSpamState: (domain: string) =>
-    dispatch(resetDappSpamStateAction(domain)),
-  resetSpamPrompt: () => dispatch(resetSpamPromptAction()),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(DappSpamModal);
+export default DappSpamModal;

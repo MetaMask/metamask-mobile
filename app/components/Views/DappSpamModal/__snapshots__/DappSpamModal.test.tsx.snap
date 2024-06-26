@@ -77,7 +77,7 @@ exports[`DappSpamModal renders SiteBlockedContent if user opt in to block dapp 1
       }
     }
   >
-    Site is blocked for 1 minute for sending requests.
+    Site is blocked from sending requests for 1 minute.
   </Text>
   <View
     style={
