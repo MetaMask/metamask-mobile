@@ -6,7 +6,7 @@ import { render } from '@testing-library/react-native';
 
 import OnChainDetails from '.';
 import { createStyles } from '../styles';
-import MOCK_NOTIFICATIONS from '../../../../../components/UI/Notification/__mocks__/mock_notifications';
+import { createMockNotificationEthSent } from '../../../../../components/UI/Notification/__mocks__/mock_notifications';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import { mockTheme } from '../../../../../util/theme';
 import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
@@ -61,7 +61,7 @@ describe('OnChainDetails', () => {
     const { toJSON } = render(
       <Provider store={store}>
         <OnChainDetails
-          notification={MOCK_NOTIFICATIONS[1]}
+          notification={createMockNotificationEthSent()}
           styles={styles}
           theme={mockTheme}
           accountAvatarType={accountAvatarType}
@@ -77,7 +77,7 @@ describe('OnChainDetails', () => {
     const { getByText } = render(
       <Provider store={store}>
         <OnChainDetails
-          notification={MOCK_NOTIFICATIONS[1]}
+          notification={createMockNotificationEthSent()}
           styles={styles}
           theme={mockTheme}
           accountAvatarType={accountAvatarType}
@@ -86,6 +86,6 @@ describe('OnChainDetails', () => {
         />
       </Provider>,
     );
-    expect(getByText('Liquid staked Ether 2.0')).toBeTruthy();
+    expect(getByText('Ethereum')).toBeTruthy();
   });
 });

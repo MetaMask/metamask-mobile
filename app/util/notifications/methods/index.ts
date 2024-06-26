@@ -24,6 +24,10 @@ import Device from '../../../util/device';
 import { renderFromWei } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
+import { NotificationRowDetails, TxStatus } from './types';
+import { NotificationServicesController } from '@metamask-previews/notification-services-controller';
+
+const { UI } = NotificationServicesController;
 
 export interface ViewOnEtherscanProps {
   // TODO: Replace "any" with type
@@ -39,27 +43,6 @@ export interface ViewOnEtherscanProps {
     type: string;
   };
   close?: () => void;
-}
-
-export interface NotificationRowProps {
-  row: {
-    title: string;
-    createdAt: string;
-
-    badgeIcon?: IconName;
-    imageUrl?: string;
-    description?: {
-      asset?: {
-        symbol?: string;
-        name?: string;
-      };
-      text?: string;
-    };
-    value: string;
-  };
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  details: Record<string, any>;
 }
 
 export const sortNotifications = (
@@ -174,7 +157,7 @@ export function formatDate(createdAt: Date | string) {
   }).format(date);
 }
 
-export function getNetwork(chain_id: HalRawNotification['chain_id']) {
+export function getNetwork(chain_id: number) {
   return ChainId[chain_id];
 }
 
@@ -187,21 +170,64 @@ export function formatNotificationTitle(rawTitle: string): string {
   return words.join('_').toLowerCase();
 }
 
-export enum TxStatus {
-  UNAPPROVED = 'unapproved',
-  SUBMITTED = 'submitted',
-  SIGNED = 'signed',
-  PENDING = 'pending',
-  CONFIRMED = 'confirmed',
-  CANCELLED = 'cancelled',
-  APPROVED = 'approved',
-  FAILED = 'failed',
-  REJECTED = 'rejected',
+function getNativeTokenDetailsByChainId(chainId: number) {
+  const chainIdString = chainId.toString();
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ETHEREUM) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.ETHEREUM,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.OPTIMISM) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.OPTIMISM,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.BSC) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.BNB,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.POLYGON) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.MATIC,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.AETH,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.AVALANCHE) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.AVAX,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.LINEA) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images['LINEA-MAINNET'],
+    };
+  }
+
+  return undefined;
 }
 
 export function getRowDetails(
   notification: Notification,
-): NotificationRowProps {
+): NotificationRowDetails | null {
   switch (notification.type) {
     case TRIGGER_TYPES.LIDO_STAKE_COMPLETED:
     case TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED:
@@ -246,7 +272,6 @@ export function getRowDetails(
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
               notification.data?.network_fee.native_token_price_in_usd,
-            details: {},
           },
         },
       };
@@ -269,6 +294,7 @@ export function getRowDetails(
         },
         details: {
           type: notification.type,
+          from: notification.address,
           request_id: notification.data.request_id,
           staked_eth: notification.data.staked_eth,
           tx_hash: notification.tx_hash,
@@ -305,6 +331,7 @@ export function getRowDetails(
         },
         details: {
           type: notification.type,
+          from: notification.address,
           rate: notification.data.rate,
           token_in: notification.data.token_in,
           token_out: notification.data.token_out,
@@ -320,12 +347,17 @@ export function getRowDetails(
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
               notification.data?.network_fee.native_token_price_in_usd,
-            details: {},
           },
         },
       };
     case TRIGGER_TYPES.ETH_SENT:
-    case TRIGGER_TYPES.ETH_RECEIVED:
+    case TRIGGER_TYPES.ETH_RECEIVED: {
+      const tokenDetails = getNativeTokenDetailsByChainId(
+        notification.chain_id,
+      );
+      if (!tokenDetails) {
+        return null;
+      }
       return {
         row: {
           badgeIcon: getNotificationBadge(notification.type),
@@ -343,15 +375,14 @@ export function getRowDetails(
           ),
           description: {
             asset: {
-              symbol: 'ETH',
-              name: 'Ethereum',
+              symbol: tokenDetails.symbol,
+              name: tokenDetails.name,
             },
           },
-          value: `${notification.data.amount.eth} ETH`,
+          value: `${notification.data.amount.eth} ${tokenDetails.symbol}`,
         },
         details: {
           type: notification.type,
-          amount: notification.data.amount,
           from: notification.data.from,
           to: notification.data.to,
           tx_hash: notification.tx_hash,
@@ -360,23 +391,24 @@ export function getRowDetails(
             : TxStatus.UNAPPROVED,
           network: {
             name: getNetwork(notification.chain_id),
-            image: images.ETHEREUM,
+            image: tokenDetails.image,
           },
           networkFee: {
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
               notification.data?.network_fee.native_token_price_in_usd,
-            details: {},
           },
+          // TODO - USE DYNAMIC NATIVE TOKEN
           token: {
-            name: 'Ethereum',
-            symbol: 'ETH',
-            image: images.ETHEREUM,
+            name: tokenDetails.name,
+            symbol: tokenDetails.symbol,
+            image: tokenDetails.image,
             amount: notification.data.amount.eth,
-            address: '0xdb24b8170fc863c77f50a2b25297f642c5fe5010',
+            address: '0x0000000000000000000000000000000000000000',
           },
         },
       };
+    }
     case TRIGGER_TYPES.ERC20_SENT:
     case TRIGGER_TYPES.ERC20_RECEIVED:
       return {
@@ -422,7 +454,6 @@ export function getRowDetails(
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
               notification.data?.network_fee.native_token_price_in_usd,
-            details: {},
           },
         },
       };
@@ -472,15 +503,12 @@ export function getRowDetails(
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
               notification.data?.network_fee.native_token_price_in_usd,
-            details: {},
           },
         },
       };
 
     default: {
-      throw new Error(
-        `getRowDetails() - Unsupported notification type - ${notification.type}`,
-      );
+      return null;
     }
   }
 }
@@ -697,3 +725,5 @@ export const getNetworkFees = async (notification: HalRawNotification) => {
     throw error;
   }
 };
+
+export * from './types';
