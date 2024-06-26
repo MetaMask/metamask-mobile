@@ -46,6 +46,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     selectIsMetamaskNotificationsEnabled,
   );
 
+  console.log('isMetamaskNotificationsEnabled', isMetamaskNotificationsEnabled);
+
   // Params
   const isFullScreenModal = route?.params?.isFullScreenModal;
   // Style
@@ -61,11 +63,13 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   );
 
   const toggleNotificationsEnabled = async () => {
+    console.log('toggleNotificationsEnabled', isMetamaskNotificationsEnabled);
     if (!isMetamaskNotificationsEnabled) {
       const notificationSettings = await requestPushNotificationsPermission();
+      console.log('toggleNotificationsEnabled', notificationSettings);
       if (
         notificationSettings &&
-        notificationSettings.authorizationStatus > 1
+        notificationSettings.authorizationStatus >= 1
       ) {
         await enableNotifications();
       }
@@ -94,7 +98,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           {strings('app_settings.allow_notifications')}
         </Text>
         <Switch
-          disabled={!isMetamaskNotificationsEnabled}
+          disabled={isMetamaskNotificationsEnabled}
           value={isMetamaskNotificationsEnabled}
           onChange={toggleNotificationsEnabled}
           trackColor={{
