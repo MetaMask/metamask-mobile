@@ -266,6 +266,31 @@ const NetworkSelector = () => {
 
     if (isNetworkUiRedesignEnabled && isNoSearchResults(MAINNET)) return null;
 
+    if (isNetworkUiRedesignEnabled) {
+      return (
+        <Cell
+          key={chainId}
+          variant={CellVariant.SelectWithMenu}
+          title={mainnetName}
+          avatarProps={{
+            variant: AvatarVariant.Network,
+            name: mainnetName,
+            imageSource: images.ETHEREUM,
+            size: AvatarSize.Sm,
+          }}
+          isSelected={
+            chainId === providerConfig.chainId && !providerConfig.rpcUrl
+          }
+          onPress={() => onNetworkChange(MAINNET)}
+          style={styles.networkCell}
+          buttonIcon={IconName.MoreVertical}
+          onButtonClick={() => {
+            openModal(chainId, false, MAINNET);
+          }}
+        />
+      );
+    }
+
     return (
       <Cell
         variant={CellVariant.Select}
@@ -290,6 +315,29 @@ const NetworkSelector = () => {
 
     if (isNetworkUiRedesignEnabled && isNoSearchResults('linea-mainnet'))
       return null;
+
+    if (isNetworkUiRedesignEnabled) {
+      return (
+        <Cell
+          key={chainId}
+          variant={CellVariant.SelectWithMenu}
+          title={lineaMainnetName}
+          avatarProps={{
+            variant: AvatarVariant.Network,
+            name: lineaMainnetName,
+            imageSource: images['LINEA-MAINNET'],
+            size: AvatarSize.Sm,
+          }}
+          isSelected={chainId === providerConfig.chainId}
+          onPress={() => onNetworkChange(LINEA_MAINNET)}
+          style={styles.networkCell}
+          buttonIcon={IconName.MoreVertical}
+          onButtonClick={() => {
+            openModal(chainId, false, LINEA_MAINNET);
+          }}
+        />
+      );
+    }
 
     return (
       <Cell
