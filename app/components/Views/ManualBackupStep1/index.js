@@ -213,6 +213,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               onSubmitEditing={tryUnlock}
               testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
               keyboardAppearance={themeAppearance}
+              autoCapitalize="none"
             />
             {warningIncorrectPassword && (
               <Text style={styles.warningMessageText}>

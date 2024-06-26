@@ -32,7 +32,7 @@ const ERC721_TOKEN_MOCK = '0x06012c8cf97bead5deae237070f9587f8e7a266d'; // Crypt
 const ERC1155_TOKEN_MOCK = '0x60e4d786628fea6478f785a6d7e704777c86a7c6'; // MAYC
 
 const preloadedEngineState = {
-  settings: { useBlockieIcon: false },
+  settings: { useBlockieIcon: false, showFiatInTestnets: true },
   engine: {
     backgroundState: {
       PreferencesController: {

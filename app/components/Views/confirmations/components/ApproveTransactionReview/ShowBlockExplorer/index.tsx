@@ -34,8 +34,14 @@ interface ShowBlockExplorerProps {
   address: string;
   type: string;
   setIsBlockExplorerVisible: (isBlockExplorerVisible: boolean) => void;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   headerWrapperStyle?: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   headerTextStyle?: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   iconStyle?: any;
   providerRpcTarget?: string;
   networkConfigurations: NetworkState['networkConfigurations'];
