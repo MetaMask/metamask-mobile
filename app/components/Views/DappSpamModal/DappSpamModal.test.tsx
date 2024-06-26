@@ -26,10 +26,10 @@ jest.mock(
       <>{children}</>,
 );
 
-const SCAM_DOMAIN_MOCK = 'scam.domain';
+const SCAM_ORIGIN_MOCK = 'scam.origin';
 const NAVIGATION_PARAMS_MOCK = {
   params: {
-    domain: SCAM_DOMAIN_MOCK,
+    origin: SCAM_ORIGIN_MOCK,
   },
 };
 
