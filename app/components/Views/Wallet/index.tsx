@@ -6,6 +6,7 @@ import {
   TextStyle,
   InteractionManager,
   Linking,
+  Alert,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useSelector } from 'react-redux';
@@ -70,6 +71,10 @@ import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
+import { useJsonVariation } from '@launchdarkly/react-native-client-sdk';
+import FEATURE_FLAGS from '../../../constants/featureFlags';
+import { AppMinimumBuildTypes } from '../../../constants/featureFlags.types';
+import { getBuildNumber } from 'react-native-device-info';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -128,6 +133,10 @@ any) => {
   const { trackEvent } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
+  const flagValue = useJsonVariation(
+    FEATURE_FLAGS.MOBILE_MINIMUM_VERSIONS,
+    {},
+  ) as AppMinimumBuildTypes;
 
   /**
    * Object containing the balance of the current selected account
@@ -183,6 +192,29 @@ any) => {
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
   const currentToast = toastRef?.current;
+
+  useEffect(() => {
+    const currentBuildNumber = getBuildNumber();
+    const appOutdated =
+      flagValue?.appMinimumBuild &&
+      flagValue?.appMinimumBuild > currentBuildNumber;
+    if (appOutdated) {
+      Alert.alert(
+        'Update Required',
+        'Please update your app to the latest version to continue using the app.',
+        [
+          {
+            text: 'Update',
+            onPress: () => {
+              Linking.openURL(
+                'https://play.google.com/store/apps/details?id=io.metamask',
+              );
+            },
+          },
+        ],
+      );
+    }
+  }, [flagValue.appMinimumBuild]);
 
   useEffect(() => {
     if (

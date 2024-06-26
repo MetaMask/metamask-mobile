@@ -13,6 +13,16 @@ import { useAppTheme, ThemeContext } from '../../../util/theme';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { isTest } from '../../../util/test/utils';
+import {
+  LDProvider,
+  ReactNativeLDClient,
+  AutoEnvAttributes,
+} from '@launchdarkly/react-native-client-sdk';
+
+const featureClient =
+  process.env.LD_MOBILE_KEY &&
+  new ReactNativeLDClient(process.env.LD_MOBILE_KEY, AutoEnvAttributes.Enabled);
+// const userContext = { kind: 'user', key: 'test-user-1' };
 
 /**
  * Top level of the component hierarchy
@@ -57,6 +67,8 @@ export default class Root extends PureComponent {
 
   async componentDidMount() {
     const { isTest } = this.state;
+    const userContext = { kind: 'user', key: 'metametrics-id-123' }; // Probably change this to something more useful?
+    featureClient.identify(userContext).catch((e) => console.error(e));
     if (isTest) {
       await this.waitForStore();
       this.setState({ isLoading: false });
@@ -71,11 +83,13 @@ export default class Root extends PureComponent {
     SplashScreen.hide();
 
     return (
-      <Provider store={store}>
-        <PersistGate persistor={persistor}>
-          <ConnectedRoot />
-        </PersistGate>
-      </Provider>
+      <LDProvider client={featureClient}>
+        <Provider store={store}>
+          <PersistGate persistor={persistor}>
+            <ConnectedRoot />
+          </PersistGate>
+        </Provider>
+      </LDProvider>
     );
   }
 }
