@@ -1,7 +1,6 @@
 import { createNavigationDetails } from '../../navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
-
 export interface LedgerSignModelNavParams {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,7 +15,6 @@ export interface LedgerSignModelNavParams {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   type: any;
 }
-
 export interface LedgerMessageSignModalParams extends LedgerSignModelNavParams {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
