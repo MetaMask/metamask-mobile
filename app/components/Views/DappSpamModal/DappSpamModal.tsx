@@ -18,14 +18,10 @@ import {
 } from '../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text';
-import {
-  resetDappSpamState,
-  resetSpamPrompt,
-} from '../../../core/redux/slices/dappSpamFilter';
+import { resetDappSpamState } from '../../../core/redux/slices/dappSpamFilter';
 
 export const BLOCK_BUTTON_TEST_ID = 'block-dapp-button';
 export const CONTINUE_BUTTON_TEST_ID = 'continue-dapp-button';
-export const GOT_IT_BUTTON_TEST_ID = 'got-it-button';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -105,7 +101,6 @@ const SiteBlockedContent = ({ onCloseModal }: { onCloseModal: () => void }) => {
             onCloseModal();
           }}
           size={ButtonSize.Lg}
-          testID={GOT_IT_BUTTON_TEST_ID}
           variant={ButtonVariants.Primary}
           width={ButtonWidthTypes.Full}
         />
@@ -130,7 +125,6 @@ const DappSpamModal = ({
   };
 
   const onCloseModal = () => {
-    dispatch(resetSpamPrompt());
     sheetRef.current?.onCloseBottomSheet();
   };
 

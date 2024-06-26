@@ -30,7 +30,6 @@ describe('dappSpamFilter slice', () => {
         rejections: 1,
         lastRejection: 1000,
       });
-      expect(state.spamPrompt).toBe(false);
     });
 
     it('increase rejection count within threshold time', () => {
@@ -52,7 +51,6 @@ describe('dappSpamFilter slice', () => {
         rejections: 2,
         lastRejection: 15000,
       });
-      expect(state.spamPrompt).toBe(false);
     });
 
     it('reset rejection count if outside threshold time', () => {
@@ -76,29 +74,6 @@ describe('dappSpamFilter slice', () => {
         rejections: 1,
         lastRejection: nextRejectionTimestamp,
       });
-      expect(state.spamPrompt).toBe(false);
-    });
-
-    it('activate spam prompt if rejections exceed threshold', () => {
-      const initialStateWithDomain: DappSpamFilterState = {
-        ...initialState,
-        domains: {
-          [SCAM_DOMAIN_MOCK]: {
-            rejections: 2,
-            lastRejection: 1000,
-          },
-        },
-      };
-
-      dateNowSpy.mockReturnValue(20000);
-      const action = onRPCRequestRejectedByUser(SCAM_DOMAIN_MOCK);
-      const state = reducer(initialStateWithDomain, action);
-
-      expect(state.domains[SCAM_DOMAIN_MOCK]).toEqual({
-        rejections: 3,
-        lastRejection: 20000,
-      });
-      expect(state.spamPrompt).toBe(true);
     });
   });
 
@@ -112,28 +87,12 @@ describe('dappSpamFilter slice', () => {
             lastRejection: 1000,
           },
         },
-        spamPrompt: true,
       };
 
       const action = resetDappSpamState(SCAM_DOMAIN_MOCK);
       const state = reducer(initialStateWithDomain, action);
 
       expect(state.domains[SCAM_DOMAIN_MOCK]).toBeUndefined();
-      expect(state.spamPrompt).toBe(false);
-    });
-  });
-
-  describe('resetSpamPrompt', () => {
-    it('reset the spam prompt', () => {
-      const initialStateWithSpamPrompt: DappSpamFilterState = {
-        ...initialState,
-        spamPrompt: true,
-      };
-
-      const action = resetSpamPrompt();
-      const state = reducer(initialStateWithSpamPrompt, action);
-
-      expect(state.spamPrompt).toBe(false);
     });
   });
 });

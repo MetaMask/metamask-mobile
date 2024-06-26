@@ -17,8 +17,8 @@ import Routes from '../../constants/navigation/Routes';
 import { RPC_METHODS } from '../SDKConnect/SDKConnectConstants';
 import {
   isDappBlockedForRPCRequests,
-  isSpamPromptActive,
   onRPCRequestRejectedByUser,
+  selectOriginAtSpamThreshold,
 } from '../redux/slices/dappSpamFilter';
 
 export const UNSUPPORTED_RPC_METHODS = new Set([
@@ -179,7 +179,10 @@ export function validateDappRequestAgainstSpam({
   const appState = store.getState();
 
   if (isBlockableRPCMethod) {
-    const hasActiveSpamPrompt = isSpamPromptActive(appState);
+    const hasActiveSpamPrompt = selectOriginAtSpamThreshold(
+      appState,
+      req.origin,
+    );
     if (hasActiveSpamPrompt) {
       const error = new Error('Request blocked due to active spam modal.');
       throw error;
@@ -217,7 +220,7 @@ export function processDappSpamRejection({
     containsUserRejectedError(error.message, error?.code)
   ) {
     store.dispatch(onRPCRequestRejectedByUser(req.origin));
-    if (isSpamPromptActive(store.getState())) {
+    if (selectOriginAtSpamThreshold(store.getState(), req.origin)) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.DAPP_SPAM_MODAL,
         params: { domain: req.origin },

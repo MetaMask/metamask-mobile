@@ -23,7 +23,6 @@ const NOT_BLOCKABLE_RPC_REQUEST_MOCK = {
 const mockInitialState = {
   dappSpamFilter: {
     domains: {},
-    spamPrompt: false,
   },
   engine: {
     backgroundState: initialBackgroundState,
@@ -64,7 +63,6 @@ describe('utils', () => {
                 lastRejection: date30secAgo,
               },
             },
-            spamPrompt: false,
           },
         });
         expect(() =>
@@ -84,7 +82,6 @@ describe('utils', () => {
                 lastRejection: date2minAgo,
               },
             },
-            spamPrompt: false,
           },
         });
         expect(() =>
@@ -94,12 +91,16 @@ describe('utils', () => {
     });
 
     describe('blocks request', () => {
-      it('when there is an active spam prompt', () => {
+      it('when origin has an active spam prompt', () => {
         const store = mockStore({
           ...mockInitialState,
           dappSpamFilter: {
-            ...mockInitialState.dappSpamFilter,
-            spamPrompt: true,
+            domains: {
+              [SCAM_DOMAIN_MOCK]: {
+                rejections: 3,
+                lastRejection: Date.now() - 1,
+              },
+            },
           },
         });
         expect(() =>
@@ -119,7 +120,6 @@ describe('utils', () => {
                 lastRejection: date30secAgo,
               },
             },
-            spamPrompt: false,
           },
         });
         expect(() =>
@@ -161,8 +161,12 @@ describe('utils', () => {
       const store = mockStore({
         ...mockInitialState,
         dappSpamFilter: {
-          ...mockInitialState.dappSpamFilter,
-          spamPrompt: true,
+          domains: {
+            [SCAM_DOMAIN_MOCK]: {
+              rejections: 3,
+              lastRejection: Date.now() - 1,
+            },
+          },
         },
       });
       const navigation = { navigate: jest.fn() };

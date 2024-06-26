@@ -14,11 +14,9 @@ export interface DappSpamFilterState {
   domains: {
     [key: string]: DomainState;
   };
-  spamPrompt: boolean;
 }
 
 export const initialState: DappSpamFilterState = {
-  spamPrompt: false,
   domains: {},
 };
 
@@ -46,15 +44,10 @@ const slice = createSlice({
 
       newRejections = isUnderThreshold ? newRejections + 1 : 1;
 
-      if (newRejections >= NUMBER_OF_REJECTIONS_THRESHOLD) {
-        newSpamPrompt = true;
-      }
-
       state.domains[domain] = {
         rejections: newRejections,
         lastRejection: currentTime,
       };
-      state.spamPrompt = newSpamPrompt;
     },
     resetDappSpamState: (
       state: DappSpamFilterState,
@@ -62,10 +55,6 @@ const slice = createSlice({
     ) => {
       const domain = action.payload;
       delete state.domains[domain];
-      state.spamPrompt = false;
-    },
-    resetSpamPrompt: (state: DappSpamFilterState) => {
-      state.spamPrompt = false;
     },
   },
 });
@@ -98,4 +87,16 @@ export const isDappBlockedForRPCRequests = (
   return rejections >= NUMBER_OF_REJECTIONS_THRESHOLD && isWithinOneMinute;
 };
 
-export const isSpamPromptActive = (state: RootState) => state[name].spamPrompt;
+export const selectOriginAtSpamThreshold = (state: RootState, domain: string) => {
+  const domainState = selectDomainState(state, domain);
+  if (!domainState) {
+    return false;
+  }
+  const currentTime = Date.now();
+  const isUnderThreshold =
+    currentTime - domainState.lastRejection < REJECTION_THRESHOLD_IN_MS;
+  const hasReachedThreshold =
+    domainState.rejections >= NUMBER_OF_REJECTIONS_THRESHOLD && isUnderThreshold;
+
+  return hasReachedThreshold;
+};

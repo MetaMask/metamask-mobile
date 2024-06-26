@@ -3,14 +3,10 @@ import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import {
-  resetDappSpamState,
-  resetSpamPrompt,
-} from '../../../core/redux/slices/dappSpamFilter';
+import { resetDappSpamState } from '../../../core/redux/slices/dappSpamFilter';
 import DappSpamModal, {
   BLOCK_BUTTON_TEST_ID,
   CONTINUE_BUTTON_TEST_ID,
-  GOT_IT_BUTTON_TEST_ID,
 } from './DappSpamModal';
 
 jest.mock('react-redux', () => ({
@@ -48,7 +44,6 @@ const mockInitialState = {
 
 describe('DappSpamModal', () => {
   const mockResetDappSpamState = jest.mocked(resetDappSpamState);
-  const mockResetSpamPrompt = jest.mocked(resetSpamPrompt);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -87,20 +82,5 @@ describe('DappSpamModal', () => {
     fireEvent.press(wrapper.getByTestId(CONTINUE_BUTTON_TEST_ID));
 
     expect(mockResetDappSpamState).toHaveBeenCalledTimes(1);
-    expect(mockResetSpamPrompt).toHaveBeenCalledTimes(1);
-  });
-
-  it('closes dapp modal after clicking confirm button', () => {
-    const wrapper = renderWithProvider(
-      <DappSpamModal route={NAVIGATION_PARAMS_MOCK} />,
-      {
-        state: mockInitialState,
-      },
-    );
-
-    fireEvent.press(wrapper.getByTestId(BLOCK_BUTTON_TEST_ID));
-    fireEvent.press(wrapper.getByTestId(GOT_IT_BUTTON_TEST_ID));
-
-    expect(mockResetSpamPrompt).toHaveBeenCalledTimes(1);
   });
 });
