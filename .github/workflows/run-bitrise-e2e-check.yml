@@ -13,7 +13,7 @@ env:
 
 jobs:
   is-fork-pull-request:
-    name: Determine whether this pull request is from a fork
+    name: Determine pull request source
     if: ${{ github.event.issue.pull_request || github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     outputs:
