@@ -414,7 +414,6 @@ class WalletConnect2Session {
     // Android specific logic to prevent automatic redirect on switchChain and let the dapp call wallet_addEthereumChain on error.
     if (method === RPC_WALLET_SWITCHETHEREUMCHAIN && Device.isAndroid()) {
       const _chainId = `0x${chainId.toString(16)}`;
-      DevLogger.log(`SKIP: preventRedirect on android _chainId=${_chainId}`);
       const networkConfigurations = selectNetworkConfigurations(
         store.getState(),
       );
@@ -423,6 +422,9 @@ class WalletConnect2Session {
         ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
       );
       if (existingEntry || existingNetworkDefault) {
+        DevLogger.log(
+          `SKIP rpcMiddleWare -- auto rejection is detected android (_chainId=${_chainId})`,
+        );
         await this.web3Wallet.rejectRequest({
           id: requestEvent.id,
           topic: requestEvent.topic,
