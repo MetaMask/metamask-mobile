@@ -2,6 +2,7 @@ import {
   Reason,
   ResultType,
   SecurityAlertResponse,
+  SecurityAlertSource,
 } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 // eslint-disable-next-line import/no-namespace
 import * as NetworkControllerMock from '../../selectors/networkController';
@@ -99,6 +100,7 @@ describe('Blockaid util', () => {
       const securityAlertResponse: SecurityAlertResponse = {
         result_type: ResultType.Malicious,
         reason: Reason.notApplicable,
+        source: SecurityAlertSource.API,
         providerRequestsCount: {
           eth_call: 5,
           eth_getCode: 3,
@@ -111,6 +113,7 @@ describe('Blockaid util', () => {
         ui_customizations: ['flagged_as_malicious'],
         security_alert_response: ResultType.Malicious,
         security_alert_reason: Reason.notApplicable,
+        security_alert_source: SecurityAlertSource.API,
         ppom_eth_call_count: 5,
         ppom_eth_getCode_count: 3,
       });
