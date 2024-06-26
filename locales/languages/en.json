@@ -3131,7 +3131,7 @@
     "description": "The site has sent you multiple requests. It might be a scam site trying to steal your assets by sending multiple requests. Do you want to disconnect from the site?",
     "got_it": "Got it",
     "proceed": "Proceed",
-    "site_blocked_description": "Site is blocked for 1 minute for sending requests.",
+    "site_blocked_description": "Site is blocked from sending requests for 1 minute.",
     "site_blocked_title": "Site blocked successfully!",
     "title": "Multiple requests detected"
   }
