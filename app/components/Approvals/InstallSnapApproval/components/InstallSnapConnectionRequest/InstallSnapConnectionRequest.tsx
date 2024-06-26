@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useMemo } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
