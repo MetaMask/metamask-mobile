@@ -31,7 +31,7 @@ class AsyncStorageWrapper {
 
   async setItem(key, value) {
     try {
-      const response = await this.storage.setItem(key, value);
+      const response = await this.storage.set(key, value);
       console.log('***kylan*** setItem', key, value);
       return response;
     } catch (error) {
@@ -55,6 +55,10 @@ class AsyncStorageWrapper {
       }
       throw error;
     }
+  }
+
+  async clearAll() {
+    await this.storage.clearAll();
   }
 }
 
