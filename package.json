@@ -131,7 +131,8 @@
     "**/appium-base-driver/webdriverio/puppeteer-core/ws": "^7.5.10",
     "**/puppeteer-core/ws": "^8.17.1",
     "react-native/ws": "^6.2.3",
-    "socket.io-client/engine.io-client/ws": "^8.17.1"
+    "socket.io-client/engine.io-client/ws": "^8.17.1",
+    "@metamask/swaps-controller/@metamask/controller-utils": "^10.0.0"
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
