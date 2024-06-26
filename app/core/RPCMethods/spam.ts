@@ -38,25 +38,24 @@ export function validateOriginThrottling({
   store: Store;
 }) {
   const isBlockableRPCMethod = BLOCKABLE_SPAM_RPC_METHODS.has(req.method);
+  if (!isBlockableRPCMethod) {
+    return;
+  }
+
   const appState = store.getState();
+  const hasActiveSpamPrompt = selectOriginAtSpamThreshold(appState, req.origin);
 
-  if (isBlockableRPCMethod) {
-    const hasActiveSpamPrompt = selectOriginAtSpamThreshold(
-      appState,
-      req.origin,
+  if (hasActiveSpamPrompt) {
+    const error = new Error('Request blocked due to active spam modal.');
+    throw error;
+  }
+
+  const isDappBlocked = isDappBlockedForRPCRequests(appState, req.origin);
+  if (isDappBlocked) {
+    const error = new Error(
+      'Request blocked as the user identified it as spam.',
     );
-    if (hasActiveSpamPrompt) {
-      const error = new Error('Request blocked due to active spam modal.');
-      throw error;
-    }
-
-    const isDappBlocked = isDappBlockedForRPCRequests(appState, req.origin);
-    if (isDappBlocked) {
-      const error = new Error(
-        'Request blocked as the user identified it as spam.',
-      );
-      throw error;
-    }
+    throw error;
   }
 }
 
