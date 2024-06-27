@@ -19,11 +19,15 @@ index 0000000..b867ea9
 +* Run "yarn patch:assets <core-directory>" in the mobile repo
 +* If you have changes also add them to the branch: patch/mobile-assets-controllers-26
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index ee99eb2..c786b6c 100644
+index ee99eb2..dc8a95c 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-@@ -69,17 +69,28 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
-                     : [this.getSelectedAddress()];
+@@ -66,20 +66,31 @@ class AccountTrackerController extends polling_controller_1.StaticIntervalPollin
+                 const isMultiAccountBalancesEnabled = this.getMultiAccountBalancesEnabled();
+                 const accountsToUpdate = isMultiAccountBalancesEnabled
+                     ? Object.keys(accounts)
+-                    : [this.getSelectedAddress()];
++                    : [(0, controller_utils_1.toChecksumHexAddress)(this.getSelectedAddress())];
                  const accountsForChain = Object.assign({}, accountsByChainId[chainId]);
                  for (const address of accountsToUpdate) {
 -                    accountsForChain[address] = {
