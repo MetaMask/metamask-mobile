@@ -1,3 +1,4 @@
+import React from 'react';
 import { type TokenListMap } from '@metamask/assets-controllers';
 import contractMap from '@metamask/contract-metadata';
 
@@ -7,7 +8,7 @@ import { selectUseTokenDetection } from '../../../selectors/preferencesControlle
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { isMainnetByChainId } from '../../../util/networks';
 
-function normalizeTokenAddresses(tokenMap: TokenListMap) {
+export function normalizeTokenAddresses(tokenMap: TokenListMap) {
   return Object.keys(tokenMap).reduce((acc, address) => {
     const tokenMetadata = tokenMap[address];
     return {
@@ -25,11 +26,15 @@ export default function useTokenList(): TokenListMap {
   const chainId = useSelector(selectChainId);
   const isMainnet = isMainnetByChainId(chainId);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
-  const tokenList = useSelector(selectTokenList) || [];
+  const tokenList = useSelector(selectTokenList);
 
-  if (!isTokenDetectionEnabled && isMainnet) {
-    return NORMALIZED_MAINNET_TOKEN_LIST;
-  }
+  const memoizedTokenList = React.useMemo(() => tokenList || [], [tokenList]);
+  const normalizedTokenList = React.useMemo(() => {
+    if (!isTokenDetectionEnabled && isMainnet) {
+      return NORMALIZED_MAINNET_TOKEN_LIST;
+    }
+    return normalizeTokenAddresses(memoizedTokenList);
+  }, [isTokenDetectionEnabled, isMainnet, memoizedTokenList]);
 
-  return normalizeTokenAddresses(tokenList);
+  return normalizedTokenList;
 }
