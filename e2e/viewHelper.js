@@ -218,6 +218,4 @@ export const loginToApp = async () => {
   const PASSWORD = '123123123';
   await LoginView.isVisible();
   await LoginView.enterPassword(PASSWORD);
-
-  await this.closeOnboardingModals();
 };

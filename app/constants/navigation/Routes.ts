@@ -49,6 +49,7 @@ const Routes = {
     DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
+    NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
