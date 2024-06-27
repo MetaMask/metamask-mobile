@@ -133,3 +133,17 @@ If you want to run a specific test, you can include the `--spec` flag in the afo
 ```bash
 yarn test:wdio:android --spec ./wdio/features/Onboarding/CreateNewWallet.feature
 ```
+
+##### API Spec Tests
+
+The API Spec tests use the `@open-rpc/test-coverage` tool to generate tests from our [api-specs](https://github.com/MetaMask/api-specs) OpenRPC Document.
+Currently, the API Spec tests only run on iOS and uses the same build as the Detox tests for iOS.
+
+The test-coverage uses `Rules` and `Reporters` to generate tests and report the results. The `Rules` and `Reporters` are passed in via params to the test coverage tool call in [e2e/api-specs/json-rpc-coverage.js](../../e2e/api-specs/json-rpc-coverage.js). You can read more about the `Rules` and `Reporters` [here](https://github.com/open-rpc/test-coverage?tab=readme-ov-file#extending-with-a-rule).
+
+To run the API Spec tests, run these commands:
+
+```bash
+yarn test:e2e:ios:debug:build
+yarn test:api-specs
+````
