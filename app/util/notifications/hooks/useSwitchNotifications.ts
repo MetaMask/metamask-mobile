@@ -104,7 +104,11 @@ export function useSwitchNotifications() {
   };
 }
 
+<<<<<<< HEAD
 function useRefetchAccountSettings() {
+=======
+export function useRefetchAccountSettings() {
+>>>>>>> 25d1bf2dd (refactor: add types and account switch logic)
   const getAccountSettings = useCallback(
     async (accounts: string[]): Promise<UseSwitchAccountNotificationsData> => {
       try {

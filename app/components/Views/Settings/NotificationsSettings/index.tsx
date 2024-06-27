@@ -29,7 +29,7 @@ import ButtonIcon, {
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import { SessionHeader } from './sectionHeader';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
-import { useAccountSettingsProps } from '../../../..//util/notifications/hooks/useSwitchNotifications';
+import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
