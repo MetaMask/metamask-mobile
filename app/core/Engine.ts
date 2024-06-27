@@ -1439,7 +1439,8 @@ class Engine {
     for (const controller of controllers) {
       if (
         hasProperty(initialState, controller.name) &&
-        hasProperty(controller, 'subscribe') &&
+        // Use `in` operator here because the `subscribe` function is one level up the prototype chain
+        'subscribe' in controller &&
         controller.subscribe !== undefined
       ) {
         // The following type error can be addressed by passing initial state into controller constructors instead
