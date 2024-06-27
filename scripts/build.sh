@@ -53,7 +53,6 @@ printTitle(){
 	echo ''
 }
 
-
 printError(){
 	ERROR_ICON=$'\342\235\214'
 	echo ''
@@ -160,7 +159,6 @@ loadJSEnv(){
 	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 }
 
-
 prebuild(){
 	# Import provider
 	yarn --ignore-engines build:static-logos
@@ -188,6 +186,16 @@ prebuild_android(){
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
+
+  #Create google-services.json file to be used by the Firebase services.
+  # Check if GOOGLE_SERVICES_B64 is set
+  if [ ! -z "$GOOGLE_SERVICES_B64" ]; then
+    echo -n $GOOGLE_SERVICES_B64 | base64 -d > ./android/app/google-services.json
+    echo "google-services.json has been created successfully."
+  else
+    echo "GOOGLE_SERVICES_B64 is not set in the .env file."
+    exit 1
+  fi
 
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $ANDROID_ENV_FILE ]
@@ -370,10 +378,9 @@ buildIosQA(){
 	fi
 }
 
-
 buildAndroidQA(){
   remapEnvVariableQA
-  
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.qa
 	fi
