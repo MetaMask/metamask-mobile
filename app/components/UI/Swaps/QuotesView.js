@@ -889,6 +889,7 @@ function SwapsQuotesView({
         ),
         network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
         chain_id: getDecimalChainId(chainId),
+        is_smart_transaction: shouldUseSmartTransaction,
       };
       trackAnonymousEvent(MetaMetricsEvents.SWAP_STARTED, parameters);
     },

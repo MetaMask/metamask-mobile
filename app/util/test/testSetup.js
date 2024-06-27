@@ -241,7 +241,7 @@ NativeModules.AesForked = {
 
 NativeModules.RNTar = {
   unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
-}
+};
 
 jest.mock(
   'react-native/Libraries/Components/Touchable/TouchableOpacity',
