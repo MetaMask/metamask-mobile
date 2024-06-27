@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/controller-utils/dist/chunk-3Q66OVYT.js b/node_modules/@metamask/controller-utils/dist/chunk-3Q66OVYT.js
-index 6a52ca2..98ef3fc 100644
+index 6a52ca2..3249457 100644
 --- a/node_modules/@metamask/controller-utils/dist/chunk-3Q66OVYT.js
 +++ b/node_modules/@metamask/controller-utils/dist/chunk-3Q66OVYT.js
 @@ -231,7 +231,11 @@ function query(ethQuery, method, args = []) {
@@ -11,7 +11,7 @@ index 6a52ca2..98ef3fc 100644
 +      // the app crashes on Android only. In SwapUtils, gasHex doesn't return in this instance, which causes the crash due to an unhandled promise rejection.
 +      // This is a workaround to catch the error and prevent the crash. The error is not handled because it is not clear what the error is.
 +      // Further investigation is needed as this currently happens in production but the app does not crash until the RN version is bumped to 0.72.15.
-+      ethQuery[method](...args, cb).catch(_ => {});
++      try{ethQuery[method](...args, cb);}catch(_){}
      } else {
        ethQuery.sendAsync({ method, params: args }, cb);
      }
