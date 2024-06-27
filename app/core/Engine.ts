@@ -453,7 +453,7 @@ class Engine {
         ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
         useTokenDetection:
           initialState?.PreferencesController?.useTokenDetection ?? true,
-        useNftDetection: false,
+        useNftDetection: true, // set this to true to enable nft detection by default to new users
         displayNftMedia: true,
         securityAlertsEnabled: true,
         ...initialState.PreferencesController,
@@ -1445,7 +1445,6 @@ class Engine {
 
   startPolling() {
     const {
-      NftDetectionController,
       TokenDetectionController,
       TokenListController,
       TransactionController,
@@ -1453,7 +1452,6 @@ class Engine {
     } = this.context;
 
     TokenListController.start();
-    NftDetectionController.start();
     TokenDetectionController.start();
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
@@ -1465,7 +1463,6 @@ class Engine {
       AccountTrackerController,
       AssetsContractController,
       TokenDetectionController,
-      NftDetectionController,
       NetworkController,
       TransactionController,
       SwapsController,
@@ -1487,7 +1484,6 @@ class Engine {
     });
     TransactionController.hub.emit('networkChange');
     TokenDetectionController.detectTokens();
-    NftDetectionController.detectNfts();
     AccountTrackerController.refresh();
   }
 
