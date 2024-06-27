@@ -412,16 +412,31 @@ class WalletConnect2Session {
     }
 
     // Android specific logic to prevent automatic redirect on switchChain and let the dapp call wallet_addEthereumChain on error.
-    if (method === RPC_WALLET_SWITCHETHEREUMCHAIN && Device.isAndroid()) {
-      const _chainId = `0x${chainId.toString(16)}`;
+    if (
+      method.toLowerCase() === RPC_WALLET_SWITCHETHEREUMCHAIN.toLowerCase() &&
+      Device.isAndroid()
+    ) {
+      // extract first chainId param from request array
+      const params = requestEvent.params.request.params as [
+        { chainId?: string },
+      ];
+      const _chainId = params[0]?.chainId;
+      DevLogger.log(
+        `formatting chainId=>${chainId} ==> 0x${chainId.toString(16)}`,
+      );
       const networkConfigurations = selectNetworkConfigurations(
         store.getState(),
       );
-      const existingNetworkDefault = getDefaultNetworkByChainId(chainId);
+      const existingNetworkDefault = getDefaultNetworkByChainId(_chainId);
       const existingEntry = Object.entries(networkConfigurations).find(
         ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
       );
-      if (existingEntry || existingNetworkDefault) {
+      DevLogger.log(
+        `rpcMiddleWare -- check for auto rejection (_chainId=${_chainId}) networkConfigurations=${JSON.stringify(
+          networkConfigurations,
+        )} existingEntry=${existingEntry} existingNetworkDefault=${existingNetworkDefault}`,
+      );
+      if (!existingEntry && !existingNetworkDefault) {
         DevLogger.log(
           `SKIP rpcMiddleWare -- auto rejection is detected android (_chainId=${_chainId})`,
         );
@@ -433,6 +448,7 @@ class WalletConnect2Session {
 
         showWCLoadingState({ navigation: this.navigation });
         this.timeoutRef = setTimeout(() => {
+          DevLogger.log(`wc2::timeoutRef redirecting...`);
           hideWCLoadingState({ navigation: this.navigation });
           // Redirect or do nothing if timer gets cleared upon receiving wallet_addEthereumChain after automatic reject
           this.redirect();
