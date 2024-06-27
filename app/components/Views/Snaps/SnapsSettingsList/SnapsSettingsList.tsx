@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useEffect } from 'react';
 import { View, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';

@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 /* eslint-disable import/prefer-default-export */
 import SnapSettings from './SnapSettings';
 
