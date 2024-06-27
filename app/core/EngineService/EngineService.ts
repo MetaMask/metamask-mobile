@@ -93,7 +93,7 @@ class EngineService {
         name: 'ApprovalController',
         key: `${engine.context.ApprovalController.name}:stateChange`,
       },
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       {
         name: 'SnapController',
         key: `${engine.context.SnapController.name}:stateChange`,
