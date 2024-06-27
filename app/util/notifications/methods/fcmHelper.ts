@@ -1,8 +1,8 @@
-/* eslint-disable no-console */
 import { utils } from '@react-native-firebase/app';
 import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
+import Logger from '../../../util/Logger';
 import { PERMISSIONS, request } from 'react-native-permissions';
 
 export async function checkPlayServices() {
@@ -27,7 +27,7 @@ export async function checkPlayServices() {
 }
 
 export async function registerAppWithFCM() {
-  console.log(
+  Logger.log(
     'registerAppWithFCM status',
     messaging().isDeviceRegisteredForRemoteMessages,
   );
@@ -35,16 +35,16 @@ export async function registerAppWithFCM() {
     await messaging()
       .registerDeviceForRemoteMessages()
       .then((status: unknown) => {
-        console.log('registerDeviceForRemoteMessages status', status);
+        Logger.log('registerDeviceForRemoteMessages status', status);
       })
       .catch((error: unknown) => {
-        console.log('registerDeviceForRemoteMessages error ', error);
+        Logger.log('registerDeviceForRemoteMessages error ', error);
       });
   }
 }
 
 export async function unRegisterAppWithFCM() {
-  console.log(
+  Logger.log(
     'unRegisterAppWithFCM status',
     messaging().isDeviceRegisteredForRemoteMessages,
   );
@@ -53,14 +53,14 @@ export async function unRegisterAppWithFCM() {
     await messaging()
       .unregisterDeviceForRemoteMessages()
       .then((status: unknown) => {
-        console.log('unregisterDeviceForRemoteMessages status', status);
+        Logger.log('unregisterDeviceForRemoteMessages status', status);
       })
       .catch((error: unknown) => {
-        console.log('unregisterDeviceForRemoteMessages error ', error);
+        Logger.log('unregisterDeviceForRemoteMessages error ', error);
       });
   }
   await messaging().deleteToken();
-  console.log(
+  Logger.log(
     'unRegisterAppWithFCM status',
     messaging().isDeviceRegisteredForRemoteMessages,
   );
@@ -74,14 +74,14 @@ export const checkApplicationNotificationPermission = async () => {
     authStatus === FirebaseMessagingTypes.AuthorizationStatus.PROVISIONAL;
 
   if (enabled) {
-    console.log('Authorization status:', authStatus);
+    Logger.log('Authorization status:', authStatus);
   }
   request(PERMISSIONS.ANDROID.POST_NOTIFICATIONS)
     .then((result) => {
-      console.log('POST_NOTIFICATIONS status:', result);
+      Logger.log('POST_NOTIFICATIONS status:', result);
     })
     .catch((error: unknown) => {
-      console.log('POST_NOTIFICATIONS error ', error);
+      Logger.log('POST_NOTIFICATIONS error ', error);
     });
 };
 
@@ -91,9 +91,9 @@ export const getFcmToken = async () => {
   await registerAppWithFCM();
   try {
     token = await messaging().getToken();
-    console.log('getFcmToken-->', token);
+    Logger.log('getFcmToken-->', token);
   } catch (error) {
-    console.log('getFcmToken Device Token error ', error);
+    Logger.log('getFcmToken Device Token error ', error);
   }
   return token;
 };
