@@ -30,10 +30,6 @@ jest.mock('../../../util/device', () => ({
   getDeviceHeight: jest.fn(),
 }));
 
-jest.mock('../../../core/Ledger/Ledger', () => ({
-  unlockLedgerDefaultAccount: jest.fn(),
-}));
-
 jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {

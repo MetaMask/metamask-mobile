@@ -24,15 +24,11 @@ import {
 } from '../../../core/Ledger/Ledger';
 import LedgerConnect from '../LedgerConnect';
 import { setReloadAccounts } from '../../../actions/accounts';
-import { StackActions } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { Colors } from '../../../util/theme/models';
 import { KeyringController } from '@metamask/keyring-controller';
 import { StackNavigationProp } from '@react-navigation/stack';
-
-interface ILedgerSelectAccountProps {
-  navigation: StackNavigationProp<never>;
-}
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -75,7 +71,8 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-const LedgerSelectAccount = ({ navigation }: ILedgerSelectAccountProps) => {
+const LedgerSelectAccount = () => {
+  const navigation = useNavigation<StackNavigationProp<never>>();
   const dispatch = useDispatch();
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
@@ -148,6 +145,7 @@ const LedgerSelectAccount = ({ navigation }: ILedgerSelectAccountProps) => {
 
       trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
         device_type: 'Ledger',
+        // TODO add added address here.
       });
       navigation.pop(2);
     },
