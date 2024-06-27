@@ -4,7 +4,6 @@
 #import <React/RCTRootView.h>
 #import <React/RCTPushNotificationManager.h>
 #import <RNBranch/RNBranch.h>
-#import <Firebase.h>
 #if DEBUG
 #ifdef FB_SONARKIT_ENABLED
 #import <FlipperKit/FlipperClient.h>
@@ -30,8 +29,6 @@
   } else {
     foxCode = @"debug";
   }
-  // Implements Firebase
-  [FIRApp configure];
 
   // Uncomment this line to use the test key instead of the live one.
   // [RNBranch useTestInstance];
@@ -58,7 +55,7 @@
   UIView* launchScreenView = [[[NSBundle mainBundle] loadNibNamed:@"LaunchScreen" owner:self options:nil] objectAtIndex:0];
   launchScreenView.frame = self.window.bounds;
   rootView.loadingView = launchScreenView;
-  
+
   [self initializeFlipper:application];
 
   //Uncomment the following line to enable the splashscreen on ios
