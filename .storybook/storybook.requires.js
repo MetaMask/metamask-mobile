@@ -117,6 +117,8 @@ const getStories = () => {
     './app/components/UI/Name/Name.stories.tsx': require('../app/components/UI/Name/Name.stories.tsx'),
     "./app/components/UI/SimulationDetails/SimulationDetails.stories.tsx": require("../app/components/UI/SimulationDetails/SimulationDetails.stories.tsx"),
     "./app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx": require("../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx"),
+    './app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories': require('../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories.js'),
+    './app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories': require('../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx'),
   };
 };
 

@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PercentageChange should render correctly 1`] = `
+<View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#1c8234",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "textTransform": "uppercase",
+      }
+    }
+  >
+    +5.50%
+  </Text>
+</View>
+`;

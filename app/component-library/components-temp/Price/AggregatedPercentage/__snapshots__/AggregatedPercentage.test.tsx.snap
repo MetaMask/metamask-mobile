@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AggregatedPercentage should render correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#1c8234",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "textTransform": "uppercase",
+      }
+    }
+  >
+    +20 USD 
+  </Text>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#1c8234",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "textTransform": "uppercase",
+      }
+    }
+  >
+    (+11.11%)
+  </Text>
+</View>
+`;
