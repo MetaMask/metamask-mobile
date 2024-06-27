@@ -1,10 +1,10 @@
 /* eslint-disable import/prefer-default-export */
 import { createSelector } from 'reselect';
-import { NotificationServicesController } from '@metamask-previews/notification-services-controller';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import {
   AuthenticationController,
   UserStorageController,
-} from '@metamask-previews/profile-sync-controller';
+} from '@metamask/profile-sync-controller';
 
 import { RootState } from '../../reducers';
 import { TRIGGER_TYPES } from '../../util/notifications';
