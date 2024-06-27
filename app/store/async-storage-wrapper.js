@@ -17,12 +17,12 @@ class AsyncStorageWrapper {
 
   async getItem(key) {
     try {
-      const value = await this.storage.getString(key);
+      const value = this.storage.getString(key);
       return value;
     } catch (error) {
       if (isE2E) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
-        return AsyncStorage.getItem(key);
+        return await AsyncStorage.getItem(key);
       }
       throw error;
     }
@@ -30,7 +30,7 @@ class AsyncStorageWrapper {
 
   async setItem(key, value) {
     try {
-      const response = await this.storage.set(key, value);
+      const response = this.storage.set(key, value);
       return response;
     } catch (error) {
       if (isE2E) {
@@ -43,7 +43,7 @@ class AsyncStorageWrapper {
 
   async removeItem(key) {
     try {
-      const response = await this.storage.delete(key);
+      const response = this.storage.delete(key);
       return response;
     } catch (error) {
       if (isE2E) {
@@ -55,7 +55,7 @@ class AsyncStorageWrapper {
   }
 
   async clearAll() {
-    await this.storage.clearAll();
+    this.storage.clearAll();
   }
 }
 
