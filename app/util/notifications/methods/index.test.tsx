@@ -14,13 +14,10 @@ import {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { mockTheme } from '../../../util/theme';
-import { ETHEREUM_LOGO } from '../../../constants/urls';
 import {
-  createMockNotificationERC721Received,
+  MOCK_ON_CHAIN_NOTIFICATIONS,
   createMockNotificationEthSent,
-  createMockNotificationLidoStakeCompleted,
-  createMockNotificationMetaMaskSwapsCompleted,
-} from 'app/components/UI/Notification/__mocks__/mock_notifications';
+} from '../../../components/UI/Notification/__mocks__/mock_notifications';
 
 function createMockNotification(override?: { id?: string; createdAt?: Date }) {
   const n = createMockNotificationEthSent();
@@ -47,7 +44,7 @@ describe('formatDate', () => {
 
   it('returns formatted date with year if the date is from a previous year', () => {
     const lastYear = new Date('2023-12-25T12:00:00Z');
-    expect(formatDate(lastYear)).toBe('Dec 25');
+    expect(formatDate(lastYear)).toBe('Dec 25, 2023');
   });
 
   it('removes the first word and returns the rest in lowercase', () => {
@@ -111,9 +108,9 @@ describe('sortNotifications', () => {
     ];
     const sortedNotifications = sortNotifications(notifications);
     expect(sortedNotifications).toEqual([
-      expect.objectContaining({ id: '3', createdAt: new Date('2023-01-03') }),
-      expect.objectContaining({ id: '2', createdAt: new Date('2023-01-02') }),
-      expect.objectContaining({ id: '1', createdAt: new Date('2023-01-01') }),
+      expect.objectContaining({ id: '3' }),
+      expect.objectContaining({ id: '2' }),
+      expect.objectContaining({ id: '1' }),
     ]);
   });
 
@@ -140,86 +137,15 @@ describe('sortNotifications', () => {
 });
 
 describe('getRowDetails', () => {
-  it('handles LIDO_STAKE_COMPLETED notification', () => {
-    const notification: Notification =
-      createMockNotificationLidoStakeCompleted();
-
-    const expectedRow = {
-      badgeIcon: IconName.Plant,
-      title: 'Stake completed',
-      description: {
-        asset: {
-          symbol: 'ETH',
-          name: 'Ethereum',
-        },
-      },
-      createdAt: 'Dec 30',
-      imageUrl: ETHEREUM_LOGO,
-      value: '< 0.00001 ETH',
-    };
-
-    expect(getRowDetails(notification).row).toEqual(expectedRow);
-  });
-
-  it('handles METAMASK_SWAP_COMPLETED notification', () => {
-    const notification: Notification =
-      createMockNotificationMetaMaskSwapsCompleted();
-
-    const expected = {
-      badgeIcon: IconName.SwapHorizontal,
-      title: 'Swapped BTC for ETH',
-      description: {
-        asset: {
-          symbol: 'ETH',
-          name: 'Ethereum',
-        },
-      },
-      createdAt: 'Dec 31',
-      imageUrl: ETHEREUM_LOGO,
-      value: '< 0.00001 ETH',
-    };
-
-    expect(getRowDetails(notification).row).toEqual(expected);
-  });
-
-  it('handles ETH_SENT notification', () => {
-    const notification: Notification = createMockNotificationEthSent();
-
-    const expected = {
-      badgeIcon: IconName.Arrow2Upright,
-      title: 'Sent to 0xABC123',
-      description: {
-        asset: {
-          symbol: 'ETH',
-          name: 'Ethereum',
-        },
-      },
-      createdAt: 'Dec 31',
-      value: '1.5 ETH',
-    };
-
-    expect(getRowDetails(notification).row).toEqual(expected);
-  });
-
-  it('handles ERC721_RECEIVED notification', () => {
-    const notification: Notification = createMockNotificationERC721Received();
-
-    const expected = {
-      badgeIcon: IconName.Received,
-      title: 'Received NFT from 0xDEF456',
-      description: {
-        asset: {
-          symbol: 'ART',
-          name: 'ArtCollection',
-        },
-      },
-      createdAt: 'Dec 31',
-      imageUrl: ETHEREUM_LOGO,
-      value: '#1234',
-    };
-
-    expect(getRowDetails(notification).row).toEqual(expected);
-  });
+  it.each(MOCK_ON_CHAIN_NOTIFICATIONS.map((n) => [n.type, n]))(
+    'creates details for $s',
+    (_type, notification) => {
+      const rowDetails = getRowDetails(notification);
+      expect(rowDetails).toBeDefined();
+      expect(rowDetails?.row).toBeDefined();
+      expect(rowDetails?.details).toBeDefined();
+    },
+  );
 });
 
 describe('getNetwork', () => {

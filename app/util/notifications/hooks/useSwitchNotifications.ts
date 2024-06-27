@@ -9,9 +9,9 @@ import {
 } from '../../../actions/notification/pushNotifications';
 import { useThunkNotificationDispatch } from '../../../actions/notification/helpers/useThunkNotificationDispatch';
 import { UseSwitchAccountNotificationsData } from './types';
-import Engine from 'app/core/Engine';
+import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { selectIsUpdatingMetamaskNotificationsAccount } from 'app/selectors/pushNotifications';
+import { selectIsUpdatingMetamaskNotificationsAccount } from '../../../selectors/pushNotifications';
 
 export function useSwitchNotifications() {
   const dispatch = useThunkNotificationDispatch();
@@ -104,7 +104,7 @@ export function useSwitchNotifications() {
   };
 }
 
-export function useRefetchAccountSettings() {
+function useRefetchAccountSettings() {
   const getAccountSettings = useCallback(
     async (accounts: string[]): Promise<UseSwitchAccountNotificationsData> => {
       try {

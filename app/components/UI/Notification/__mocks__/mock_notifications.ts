@@ -5,7 +5,7 @@ const {
   Mocks,
 } = NotificationServicesController;
 
-const MOCK_NOTIFICATIONS = [
+export const MOCK_ON_CHAIN_NOTIFICATIONS = [
   processNotification(Mocks.createMockNotificationEthSent()),
   processNotification(Mocks.createMockNotificationEthReceived()),
   processNotification(Mocks.createMockNotificationERC20Sent()),
@@ -21,7 +21,15 @@ const MOCK_NOTIFICATIONS = [
   processNotification(Mocks.createMockNotificationLidoWithdrawalRequested()),
   processNotification(Mocks.createMockNotificationLidoReadyToBeWithdrawn()),
   processNotification(Mocks.createMockNotificationLidoWithdrawalCompleted()),
+];
+
+export const MOCK_FEATURE_ANNOUCNEMENT_NOTIFICATIONS = [
   processNotification(Mocks.createMockFeatureAnnouncementRaw()),
+];
+
+const MOCK_NOTIFICATIONS = [
+  ...MOCK_ON_CHAIN_NOTIFICATIONS,
+  ...MOCK_FEATURE_ANNOUCNEMENT_NOTIFICATIONS,
 ];
 
 export const createMockNotificationEthSent = () =>

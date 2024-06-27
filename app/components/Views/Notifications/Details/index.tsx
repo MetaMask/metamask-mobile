@@ -31,7 +31,7 @@ import { createStyles } from './styles';
 import renderAnnouncementsDetails from './Announcements';
 import renderOnChainDetails from './OnChain';
 import Header from './Header';
-import { RootState } from 'app/reducers';
+import type { RootState } from '../../../../reducers';
 
 interface Props {
   // TODO: Replace "any" with type
