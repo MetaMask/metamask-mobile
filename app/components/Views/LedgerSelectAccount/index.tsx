@@ -145,7 +145,6 @@ const LedgerSelectAccount = () => {
 
       trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
         device_type: 'Ledger',
-        // TODO add added address here.
       });
       navigation.pop(2);
     },
