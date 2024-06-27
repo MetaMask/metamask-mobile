@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
-import { createAsyncMiddleware } from 'json-rpc-engine';
+import { createAsyncMiddleware } from '@metamask/json-rpc-engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   EndFlowOptions,
@@ -15,6 +15,7 @@ import {
   PermissionController,
   permissionRpcMethods,
 } from '@metamask/permission-controller';
+import type { Hex } from '@metamask/utils';
 import Networks, {
   blockTagParamIndex,
   getAllNetworks,
@@ -113,7 +114,7 @@ export const checkActiveAccountAndChainId = async ({
   isWalletConnect,
 }: {
   address?: string;
-  chainId?: number;
+  chainId?: Hex;
   channelId?: string;
   hostname: string;
   isWalletConnect: boolean;
@@ -224,7 +225,7 @@ const generateRawSignature = async ({
   title: { current: string };
   icon: { current: string | undefined };
   analytics: { [key: string]: string | boolean };
-  chainId: number;
+  chainId: Hex;
   isMMSDK: boolean;
   channelId?: string;
   getSource: () => string;
@@ -533,7 +534,7 @@ export const getRpcMethodMiddleware = ({
             chainId,
           }: {
             from?: string;
-            chainId?: number;
+            chainId?: Hex;
           }) => {
             await checkActiveAccountAndChainId({
               hostname,

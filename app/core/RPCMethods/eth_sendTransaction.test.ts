@@ -1,6 +1,11 @@
 // eslint-disable-next-line import/no-nodejs-modules
 import { inspect } from 'util';
-import type { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
+import type {
+  Json,
+  JsonRpcParams,
+  JsonRpcRequest,
+  PendingJsonRpcResponse,
+} from '@metamask/utils';
 import type {
   TransactionParams,
   TransactionController,
@@ -40,8 +45,10 @@ jest.mock('../../util/transaction-controller', () => ({
  * @returns The JSON-RPC request.
  */
 function constructSendTransactionRequest(
-  params: unknown,
-): JsonRpcRequest<unknown> & { method: 'eth_sendTransaction' } {
+  params: [TransactionParams & JsonRpcParams],
+): JsonRpcRequest<[TransactionParams & JsonRpcParams]> & {
+  method: 'eth_sendTransaction';
+} {
   return {
     jsonrpc: '2.0',
     id: 1,
@@ -55,7 +62,7 @@ function constructSendTransactionRequest(
  *
  * @returns A pending JSON-RPC response.
  */
-function constructPendingJsonRpcResponse(): PendingJsonRpcResponse<unknown> {
+function constructPendingJsonRpcResponse(): PendingJsonRpcResponse<Json> {
   return {
     jsonrpc: '2.0',
     id: 1,
@@ -136,7 +143,9 @@ function getMockAddTransaction({
 describe('eth_sendTransaction', () => {
   it('sends the transaction and returns the resulting hash', async () => {
     const mockAddress = '0x0000000000000000000000000000000000000001';
-    const mockTransactionParameters = { from: mockAddress };
+    const mockTransactionParameters = {
+      from: mockAddress,
+    };
     const expectedResult = 'fake-hash';
     const pendingResult = constructPendingJsonRpcResponse();
 
@@ -164,6 +173,7 @@ describe('eth_sendTransaction', () => {
         async () =>
           await eth_sendTransaction({
             hostname: 'example.metamask.io',
+            //@ts-expect-error - invalid parameters forced
             req: constructSendTransactionRequest(invalidParameter),
             res: constructPendingJsonRpcResponse(),
             sendTransaction: getMockAddTransaction({
@@ -186,6 +196,7 @@ describe('eth_sendTransaction', () => {
         async () =>
           await eth_sendTransaction({
             hostname: 'example.metamask.io',
+            //@ts-expect-error - invalid parameters forced
             req: constructSendTransactionRequest(invalidParameter),
             res: constructPendingJsonRpcResponse(),
             sendTransaction: getMockAddTransaction({

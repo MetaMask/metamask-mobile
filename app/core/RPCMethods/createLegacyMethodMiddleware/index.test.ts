@@ -2,7 +2,7 @@ import {
   JsonRpcEngine,
   JsonRpcEngineEndCallback,
   JsonRpcEngineNextCallback,
-} from 'json-rpc-engine';
+} from '@metamask/json-rpc-engine';
 import {
   Json,
   JsonRpcParams,
@@ -55,6 +55,8 @@ jest.mock('./util', () => {
 });
 
 describe('createLegacyMethodMiddleware', () => {
+  const INTERNAL_JSON_RPC_ERROR = 'Internal JSON-RPC error.';
+
   const method1 = 'method1';
 
   const getDefaultHooks = () => ({
@@ -150,7 +152,11 @@ describe('createLegacyMethodMiddleware', () => {
     });
     assertIsJsonRpcFailure(response);
 
-    expect(response.error.message).toBe('test error');
+    // Type assertion for the error not having cause object
+    const errorData = response.error.data as { cause?: Error };
+
+    expect(response.error.message).toBe(INTERNAL_JSON_RPC_ERROR);
+    expect(errorData.cause?.message).toBe('test error');
   });
 
   it('should handle errors thrown by the implementation', async () => {
@@ -166,7 +172,11 @@ describe('createLegacyMethodMiddleware', () => {
     });
     assertIsJsonRpcFailure(response);
 
-    expect(response.error.message).toBe('test error');
+    // Type assertion for the error not having cause object
+    const errorData = response.error.data as { cause?: Error };
+
+    expect(response.error.message).toBe(INTERNAL_JSON_RPC_ERROR);
+    expect(errorData.cause?.message).toBe('test error');
   });
 
   it('should handle non-errors thrown by the implementation', async () => {
@@ -183,7 +193,7 @@ describe('createLegacyMethodMiddleware', () => {
     assertIsJsonRpcFailure(response);
 
     expect(response.error).toMatchObject({
-      message: 'Internal JSON-RPC error.',
+      message: INTERNAL_JSON_RPC_ERROR,
       data: 'foo',
     });
   });
