@@ -6,6 +6,9 @@ process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
 
 process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
 
+process.env.SECURITY_ALERTS_API_ENABLED = 'true';
+process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
+
 const config = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],

@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { createSnapsMethodMiddleware } from '@metamask/snaps-rpc-methods';
 import {
   RequestedPermissions,
@@ -34,6 +34,11 @@ const snapMethodMiddlewareBuilder = (
       ),
     getPermissions: engineContext.PermissionController.getPermissions.bind(
       engineContext.PermissionController,
+      origin,
+    ),
+    getSnapFile: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapController:getFile',
       origin,
     ),
     installSnaps: controllerMessenger.call.bind(
