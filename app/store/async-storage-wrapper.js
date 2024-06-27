@@ -1,6 +1,7 @@
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isE2E } from '../util/test/utils';
+import { MMKV } from 'react-native-mmkv';
 
 /**
  * Wrapper class for AsyncStorage.
@@ -11,12 +12,14 @@ class AsyncStorageWrapper {
      * The underlying storage implementation.
      * Use `ReadOnlyNetworkStore` in test mode otherwise use `AsyncStorage`.
      */
-    this.storage = isE2E ? ReadOnlyNetworkStore : AsyncStorage;
+    this.storage = isE2E ? ReadOnlyNetworkStore : new MMKV();
   }
 
   async getItem(key) {
     try {
-      return await this.storage.getItem(key);
+      const value = await this.storage.getString(key);
+      console.log('***kylan*** getItem', key, value);
+      return value;
     } catch (error) {
       if (isE2E) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
@@ -28,7 +31,9 @@ class AsyncStorageWrapper {
 
   async setItem(key, value) {
     try {
-      return await this.storage.setItem(key, value);
+      const response = await this.storage.set(key, value);
+      console.log('***kylan*** setItem', key, value);
+      return response;
     } catch (error) {
       if (isE2E) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
@@ -40,7 +45,9 @@ class AsyncStorageWrapper {
 
   async removeItem(key) {
     try {
-      return await this.storage.removeItem(key);
+      const response = await this.storage.delete(key);
+      console.log('***kylan*** removeItem', key);
+      return response;
     } catch (error) {
       if (isE2E) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
@@ -48,6 +55,10 @@ class AsyncStorageWrapper {
       }
       throw error;
     }
+  }
+
+  async clearAll() {
+    await this.storage.clearAll();
   }
 }
 
