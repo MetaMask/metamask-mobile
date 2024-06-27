@@ -81,9 +81,7 @@ import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/Cu
 
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
-  const [popularNetwork, setPopularNetwork] = useState<
-    ExtendedNetwork | undefined
-  >(undefined);
+  const [popularNetwork, setPopularNetwork] = useState<ExtendedNetwork>();
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [searchString, setSearchString] = useState('');
   const { navigate } = useNavigation();
