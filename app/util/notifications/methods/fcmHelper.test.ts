@@ -23,6 +23,9 @@ jest.mock('@react-native-firebase/app', () => ({
 jest.mock('@react-native-firebase/messaging', () => ({
   __esModule: true,
   default: () => ({
+    hasPermission: jest.fn(() => Promise.resolve(true)),
+    subscribeToTopic: jest.fn(),
+    unsubscribeFromTopic: jest.fn(),
     isDeviceRegisteredForRemoteMessages: false,
     registerDeviceForRemoteMessages: jest.fn(() =>
       Promise.resolve('registered'),
@@ -33,11 +36,13 @@ jest.mock('@react-native-firebase/messaging', () => ({
     deleteToken: jest.fn(() => Promise.resolve()),
     requestPermission: jest.fn(() => Promise.resolve(1)),
     getToken: jest.fn(() => Promise.resolve('fcm-token')),
+  }),
+  FirebaseMessagingTypes: {
     AuthorizationStatus: {
       AUTHORIZED: 1,
       PROVISIONAL: 2,
     },
-  }),
+  },
 }));
 
 jest.mock('react-native-permissions', () => ({
@@ -50,10 +55,26 @@ jest.mock('react-native-permissions', () => ({
 }));
 
 describe('Firebase and Permission Functions', () => {
-  test('should test multiple functions for coverage', async () => {
+  it('should check checkPlayServices function call for coverage', async () => {
     await checkPlayServices();
+    const token = await getFcmToken();
+
+    expect(token).toBe('fcm-token');
+  });
+  it('should check registerAppWithFCM function call for coverage', async () => {
     await registerAppWithFCM();
+
+    const token = await getFcmToken();
+
+    expect(token).toBe('fcm-token');
+  });
+  it('should check unRegisterAppWithFCM function call for coverage', async () => {
     await unRegisterAppWithFCM();
+    const token = await getFcmToken();
+
+    expect(token).toBe('fcm-token');
+  });
+  it('should check checkApplicationNotificationPermission function call for coverage', async () => {
     await checkApplicationNotificationPermission();
     const token = await getFcmToken();
 

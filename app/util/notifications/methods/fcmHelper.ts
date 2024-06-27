@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 import { utils } from '@react-native-firebase/app';
-import messaging from '@react-native-firebase/messaging';
+import messaging, {
+  FirebaseMessagingTypes,
+} from '@react-native-firebase/messaging';
 import { PERMISSIONS, request } from 'react-native-permissions';
 
 export async function checkPlayServices() {
@@ -66,9 +68,10 @@ export async function unRegisterAppWithFCM() {
 
 export const checkApplicationNotificationPermission = async () => {
   const authStatus = await messaging().requestPermission();
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const enabled = authStatus === 'AUTHORIZED' || authStatus === 'PROVISIONAL';
+
+  const enabled =
+    authStatus === FirebaseMessagingTypes.AuthorizationStatus.AUTHORIZED ||
+    authStatus === FirebaseMessagingTypes.AuthorizationStatus.PROVISIONAL;
 
   if (enabled) {
     console.log('Authorization status:', authStatus);
