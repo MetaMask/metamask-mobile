@@ -1,6 +1,6 @@
 import { ensureValidState } from './util';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {MMKV} from 'react-native-mmkv';
+import { MMKV } from 'react-native-mmkv';
 
 export const storage = new MMKV();
 
@@ -17,7 +17,7 @@ export default async function migrate(state: unknown) {
   }
 
   const keys = await AsyncStorage.getAllKeys();
-  console.log('***kylan*** allKeys: ', keys)
+  console.log('***kylan*** allKeys: ', keys);
   for (const key of keys) {
     try {
       const value = await AsyncStorage.getItem(key);
