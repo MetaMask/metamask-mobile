@@ -438,7 +438,7 @@ const NetworkSelector = () => {
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
-              imageSource: imageSource,
+              imageSource,
               size: AvatarSize.Sm,
             }}
             isSelected={chainId === providerConfig.chainId}
