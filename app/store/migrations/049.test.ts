@@ -1,4 +1,5 @@
-import migrate from './049';
+import migrate, { storage as mmkvStorage } from './049';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const asyncStorageItems: { [key: string]: string } = {
   valueA: 'a',
@@ -6,59 +7,25 @@ const asyncStorageItems: { [key: string]: string } = {
   valueC: 'myValue',
 };
 
-const mmkvStorageItems: { [key: string]: string } = {};
-
-// mock AsyncStorageLibrary
-// jest.mock('@react-native-async-storage/async-storage', () => ({
-//   getAllKeys: jest.fn(() => Object.keys(asyncStorageItems)),
-//   getItem: jest.fn((key) => asyncStorageItems[key]),
-//   setItem: jest.fn((key, value) => {
-//     console.log('AsyncStorage setting', key, value)
-//     asyncStorageItems[key] = value;
-//   }),
-//   removeItem: jest.fn((key) => {
-//     console.log('AsyncStorage deleting', key)
-//     delete asyncStorageItems[key];
-//   }),
-// }));
-
-// create mock of AsyncStorage
-jest.mock('@react-native-async-storage/async-storage', () => {
-  return {
-    getAllKeys: jest.fn(() => Object.keys(asyncStorageItems)),
-    getItem: jest.fn((key) => asyncStorageItems[key]),
-    setItem: jest.fn((key, value) => {
-      console.log('AsyncStorage setting', key, value)
-      asyncStorageItems[key] = value;
-    }),
-    removeItem: jest.fn((key) => {
-      console.log('AsyncStorage deleting', key)
-      delete asyncStorageItems[key];
-    }),
-  };
-});
-
-// mock MMKVLibrary
-jest.mock('react-native-mmkv', () => ({
-  MMKV: jest.fn().mockImplementation(() => ({
-    getString: jest.fn((key) => mmkvStorageItems[key]),
-    getBoolean: jest.fn((key) => mmkvStorageItems[key]),
-    set: jest.fn((key, value) => {
-      console.log('mmkv setting', key, value)
-      mmkvStorageItems[key] = value;
-    }),
-  })),
-}));
-
 describe('Migration #49', () => {
   it('migrates asyncStorage values to mmkv ', async () => {
-    const initialAsyncItems = { ...asyncStorageItems };
-    migrate({});
+    // set asyncStorageItems to AsyncStorage
+    for (const key in asyncStorageItems) {
+      await AsyncStorage.setItem(key, asyncStorageItems[key]);
+    }
 
-    console.log('asyncStorageItems: ', asyncStorageItems);
-    expect(asyncStorageItems).toEqual({});
-    for (const key in initialAsyncItems) {
-      expect(mmkvStorageItems[key]).toEqual(initialAsyncItems[key]);
+    await migrate({});
+
+    // make sure all AsyncStorage items are removed
+    const keys = await AsyncStorage.getAllKeys();
+    // loop through all AsyncStorage keys and make sure empty
+    for (const key of keys) {
+      expect(await AsyncStorage.getItem(key)).toBeNull();
+    }
+
+    // now check that all MMKV values match original AsyncStorage values
+    for (const key in asyncStorageItems) {
+      expect(mmkvStorage.getString(key)).toEqual(asyncStorageItems[key]);
     }
   });
 });
