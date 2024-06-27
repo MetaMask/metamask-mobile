@@ -10,7 +10,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 
-import { FeatureAnnouncementRawNotification } from '../../../../../util/notifications';
+import { Notification, TRIGGER_TYPES } from '../../../../../util/notifications';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { TypeLinkFields } from '../../../../../util/notifications/types/featureAnnouncement/TypeLink';
 
@@ -18,8 +18,7 @@ import { TypeLinkFields } from '../../../../../util/notifications/types/featureA
 const PLACEHOLDER_IMG_URI = require('../../../../../images/no-image-placeholder.jpeg');
 
 interface Props {
-  notification: FeatureAnnouncementRawNotification;
-  // TODO: Replace "any" with type
+  notification: Notification;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: Record<string, any>;
   navigation: NavigationProp<ParamListBase>;
@@ -30,11 +29,12 @@ const AnnouncementsDetails: React.FC<Props> = ({
   styles,
   navigation,
 }: Props) => {
+  if (notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
+    return null;
+  }
+
   const handleCTAPress = () => {
-    // TODO: Currently handling CTAs with external links only. For now, we aren't handling deeplinks.
-    const { link } = notification.data as unknown as {
-      link: TypeLinkFields['fields'];
-    };
+    const { link } = notification.data;
     if (!link) return;
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
@@ -44,7 +44,7 @@ const AnnouncementsDetails: React.FC<Props> = ({
     });
   };
 
-  const IMAGE_URI = notification.data.image?.file?.url || PLACEHOLDER_IMG_URI;
+  const IMAGE_URI = notification?.data?.image?.url || PLACEHOLDER_IMG_URI;
   return (
     <View style={styles.renderContainer}>
       <View style={styles.renderFCMCard}>

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Pressable, View } from 'react-native';
+import { ImageSourcePropType, Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import Badge, {
@@ -32,6 +32,11 @@ import {
   TxStatus,
   returnAvatarProps,
   STAKING_PROVIDER_MAP,
+  NFTTransferDetails,
+  NotificationStakeDetails,
+  NotificationStakeWithdrawDetails,
+  TokenTransferDetails,
+  NotificationSwapDetails,
 } from '../../../../../util/notifications';
 
 import Icon, {
@@ -176,12 +181,13 @@ const useDetails = ({
   );
 
   const renderNetwork = useCallback(
-    (network) => (
+    (network: { image?: string | ImageSourcePropType; name: string }) => (
       <View style={styles.row}>
         <Avatar
           variant={AvatarVariant.Network}
           size={AvatarSize.Md}
           style={styles.badgeWrapper}
+          // @ts-expect-error image can be url or import
           imageSource={network.image}
         />
 
@@ -200,7 +206,15 @@ const useDetails = ({
   );
 
   const renderCollection = useCallback(
-    (collection, network) => (
+    (
+      collection: {
+        name: string;
+        image?: string;
+      },
+      network: {
+        image?: string;
+      },
+    ) => (
       <View style={styles.row}>
         <BadgeWrapper
           badgePosition={DEFAULT_BADGEWRAPPER_BADGEPOSITION}
@@ -217,7 +231,7 @@ const useDetails = ({
         >
           <RemoteImage
             source={{
-              uri: collection.image,
+              uri: collection?.image,
             }}
             style={styles.nftLogo}
             placeholderStyle={styles.nftPlaceholder}
@@ -228,7 +242,7 @@ const useDetails = ({
             {strings('collectible.collection')}
           </Text>
           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            {collection.name}
+            {collection?.name}
           </Text>
         </View>
       </View>
@@ -237,9 +251,23 @@ const useDetails = ({
   );
 
   const renderAsset = useCallback(
-    (type, title, token, network) => {
+    (
+      type: TRIGGER_TYPES,
+      title: string,
+      token: {
+        address: string;
+        amount: string;
+        image?: string | ImageSourcePropType;
+        name: string;
+        symbol: string;
+      },
+      network: {
+        image?: string | ImageSourcePropType;
+      },
+    ) => {
       const exchangeRate =
-        token.address && contractExchangeRates?.[token.address]?.price;
+        token.address &&
+        contractExchangeRates?.[token.address as `0x${string}`]?.price;
       const balanceFiat = token
         ? balanceToFiat(
             token.amount || '0',
@@ -253,7 +281,9 @@ const useDetails = ({
           <NotificationBadge
             notificationType={type}
             styles={styles}
+            // @ts-expect-error image can be url or import
             badgeImageSource={network.image}
+            // @ts-expect-error image can be url or import
             imageUrl={token.image}
           />
           <View style={styles.boxLeft}>
@@ -277,15 +307,14 @@ const useDetails = ({
   );
 
   const renderNFT = useCallback(
-    (notificationDetails) => {
+    (notificationDetails: NFTTransferDetails) => {
       const { type, nft, from, to, status, tx_hash, collection, network } =
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        notificationDetails as Record<string, any>;
+        notificationDetails;
       return (
         <>
           <Badge
             variant={BadgeVariant.Network}
+            // @ts-expect-error network.image can also be a string/url
             imageSource={network.image}
             style={styles.nftBadgeWrapper}
           />
@@ -305,7 +334,7 @@ const useDetails = ({
             actionType: type,
           })}
           {renderStatus(status, tx_hash)}
-          {renderCollection(collection, network)}
+          {collection && renderCollection(collection, network)}
           {renderNetwork(network)}
         </>
       );
@@ -322,11 +351,9 @@ const useDetails = ({
   );
 
   const renderTransfer = useCallback(
-    (notificationDetails) => {
+    (notificationDetails: TokenTransferDetails) => {
       const { type, from, to, status, tx_hash, token, network } =
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        notificationDetails as Record<string, any>;
+        notificationDetails;
       return (
         <>
           {renderAddress({
@@ -349,8 +376,12 @@ const useDetails = ({
   );
 
   const renderStakeProvider = useCallback(
-    (type, stake_in) => {
-      //@ts-expect-error most of this types will be refactored to be using sharedlibrary ones.
+    (
+      type:
+        | NotificationStakeDetails['type']
+        | NotificationStakeWithdrawDetails['type'],
+      stake_in: { image: string },
+    ) => {
       const stakingProvider = STAKING_PROVIDER_MAP[type];
       return (
         <View style={styles.row}>
@@ -378,11 +409,9 @@ const useDetails = ({
   );
 
   const renderStake = useCallback(
-    (notificationDetails) => {
+    (notificationDetails: NotificationStakeDetails) => {
       const { type, status, tx_hash, stake_in, stake_out, network } =
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        notificationDetails as Record<string, any>;
+        notificationDetails;
       const unstakingInProgress =
         type?.indexOf(TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED) > -1;
 
@@ -421,22 +450,18 @@ const useDetails = ({
   );
 
   const renderStakeReadyToBeWithdrawn = useCallback(
-    (notificationDetails) => {
-      const { type, staked_eth, tx_hash, status, network } =
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        notificationDetails as Record<string, any>;
+    (notificationDetails: NotificationStakeWithdrawDetails) => {
+      const { type, staked_eth, tx_hash, status, network, from } =
+        notificationDetails;
 
       return (
         <>
-          {/*
-          // TODO: At the moment, we don’t show this data in the UI.
-          The backend team is working to include this information in the notifications API
-          {renderAddress({
-            key: 'from',
-            address: from, // TODO: how to get from in a stake?
-            actionType: type,
-          })} */}
+          {from &&
+            renderAddress({
+              key: 'from',
+              address: from,
+              actionType: type,
+            })}
           {renderStatus(status, tx_hash)}
           {renderAsset(
             type,
@@ -448,11 +473,11 @@ const useDetails = ({
         </>
       );
     },
-    [renderAsset, renderStakeProvider, renderStatus],
+    [renderAddress, renderAsset, renderStakeProvider, renderStatus],
   );
 
   const renderRate = useCallback(
-    (rate) => (
+    (rate: string) => (
       <View style={styles.row}>
         <Avatar
           variant={AvatarVariant.Icon}
@@ -481,14 +506,26 @@ const useDetails = ({
   );
 
   const renderSwap = useCallback(
-    (notificationDetails) => {
-      const { type, status, tx_hash, token_in, token_out, rate, network } =
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        notificationDetails as Record<string, any>;
-      // TODO: on next change from API we need to use render the account involved on the swap.
+    (notificationDetails: NotificationSwapDetails) => {
+      const {
+        type,
+        status,
+        tx_hash,
+        token_in,
+        token_out,
+        rate,
+        network,
+        from,
+      } = notificationDetails;
+
       return (
         <>
+          {from &&
+            renderAddress({
+              key: 'from',
+              address: from,
+              actionType: type,
+            })}
           {renderAsset(type, strings('notifications.swap'), token_in, network)}
           {renderAsset(type, strings('notifications.to'), token_out, network)}
           {renderStatus(status, tx_hash)}
@@ -497,7 +534,7 @@ const useDetails = ({
         </>
       );
     },
-    [renderAsset, renderNetwork, renderRate, renderStatus],
+    [renderAddress, renderAsset, renderNetwork, renderRate, renderStatus],
   );
 
   return {

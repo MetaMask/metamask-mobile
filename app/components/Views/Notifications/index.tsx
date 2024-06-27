@@ -6,8 +6,6 @@ import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/Notific
 import { createStyles } from './styles';
 import Notifications from '../../UI/Notification/List';
 import {
-  FeatureAnnouncementRawNotification,
-  HalRawNotification,
   Notification,
   TRIGGER_TYPES,
   sortNotifications,
@@ -60,10 +58,10 @@ const NotificationsView = ({
     ...notifications,
   ]);
   const [walletNotifications, setWalletNotifications] = useState<
-    HalRawNotification[]
+    Notification[]
   >([]);
-  const [annoucementsNotifications, setAnnoucementsNotifications] = useState<
-    FeatureAnnouncementRawNotification[]
+  const [announcementsNotifications, setAnnouncementsNotifications] = useState<
+    Notification[]
   >([]);
   const [loading, setLoading] = useState<boolean>(isLoading);
 
@@ -74,8 +72,8 @@ const NotificationsView = ({
         return;
       }
 
-      const wallet: HalRawNotification[] = [];
-      const annoucements: FeatureAnnouncementRawNotification[] = [];
+      const wallet: Notification[] = [];
+      const announcements: Notification[] = [];
       const uniqueNotifications: Notification[] = [];
 
       const allNotificationsSorted = sortNotifications(notifications);
@@ -86,7 +84,7 @@ const NotificationsView = ({
           seenIds.add(notification.id);
           uniqueNotifications.push(notification);
           if (notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
-            annoucements.push(notification);
+            announcements.push(notification);
           } else {
             wallet.push(notification);
           }
@@ -95,7 +93,7 @@ const NotificationsView = ({
 
       setAllNotifications(uniqueNotifications);
       setWalletNotifications(wallet);
-      setAnnoucementsNotifications(annoucements);
+      setAnnouncementsNotifications(announcements);
 
       setLoading(false);
     },
@@ -115,7 +113,7 @@ const NotificationsView = ({
   }, [selectedAddress]);
 
   const notificationToShow =
-    allNotifications || walletNotifications || annoucementsNotifications;
+    allNotifications || walletNotifications || announcementsNotifications;
 
   /** Current address is an important piece of notification since it is
    * used by MM auth snap to derivated the token/identifier and to MM storage to store notifications
@@ -132,7 +130,7 @@ const NotificationsView = ({
           navigation={navigation}
           allNotifications={allNotifications}
           walletNotifications={walletNotifications}
-          annoucementsNotifications={annoucementsNotifications}
+          announcementsNotifications={announcementsNotifications}
           loading={loading}
         />
       ) : (

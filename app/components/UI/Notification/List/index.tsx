@@ -13,12 +13,7 @@ import { createStyles } from './styles';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationRow } from '../Row';
-import {
-  FeatureAnnouncementRawNotification,
-  HalRawNotification,
-  Notification,
-  getRowDetails,
-} from '../../../../util/notifications';
+import { Notification, getRowDetails } from '../../../../util/notifications';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -27,8 +22,8 @@ interface NotificationsList {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   allNotifications: Notification[];
-  walletNotifications: HalRawNotification[];
-  annoucementsNotifications: FeatureAnnouncementRawNotification[];
+  walletNotifications: Notification[];
+  announcementsNotifications: Notification[];
   loading: boolean;
 }
 
@@ -36,7 +31,7 @@ const Notifications = ({
   navigation,
   allNotifications,
   walletNotifications,
-  annoucementsNotifications,
+  announcementsNotifications,
   loading,
 }: NotificationsList) => {
   const theme = useTheme();
@@ -89,8 +84,8 @@ const Notifications = ({
   );
 
   const combinedLists = useMemo(
-    () => [allNotifications, walletNotifications, annoucementsNotifications],
-    [allNotifications, walletNotifications, annoucementsNotifications],
+    () => [allNotifications, walletNotifications, announcementsNotifications],
+    [allNotifications, walletNotifications, announcementsNotifications],
   );
 
   const renderNotificationRow = useCallback(

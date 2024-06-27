@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Platform, Switch, View } from 'react-native';
 import { createStyles } from './styles';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
@@ -23,18 +23,46 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useSwitchNotifications } from '../../../../../util/notifications/hooks/useSwitchNotifications';
 import { useListNotifications } from '../../../../../util/notifications/hooks/useNotifications';
-import { TRIGGER_TYPES } from '../../../../../util/notifications';
 
 interface NotificationOptionsToggleProps {
   address: string;
   title: string;
   icon?: AvatarAccountType | IconName;
   type?: string;
-  triggerStatus?:
-    | { triggerTypes: TRIGGER_TYPES; triggerEnabled: boolean }
-    | undefined;
   testId?: string;
-  disabled?: boolean;
+
+  isEnabled: boolean;
+  isLoading?: boolean;
+  disabledSwitch?: boolean;
+  refetchAccountSettings: () => Promise<void>;
+}
+
+function useUpdateAccountSetting(
+  address: string,
+  refetchAccountSettings: () => Promise<void>,
+) {
+  const { switchAccountNotifications } = useSwitchNotifications();
+  const { listNotifications: refetch } = useListNotifications();
+
+  // Local states
+  const [loading, setLoading] = useState(false);
+
+  const toggleAccount = useCallback(
+    async (state: boolean) => {
+      setLoading(true);
+      try {
+        await switchAccountNotifications([address], state);
+        await refetchAccountSettings();
+        refetch();
+      } catch {
+        // Do nothing (we don't need to propagate this)
+      }
+      setLoading(false);
+    },
+    [address, refetch, refetchAccountSettings, switchAccountNotifications],
+  );
+
+  return { toggleAccount, loading };
 }
 
 /**
@@ -46,21 +74,19 @@ const NotificationOptionToggle = ({
   title,
   icon,
   type,
-  triggerStatus,
   testId,
-  disabled,
+  isEnabled,
+  disabledSwitch,
+  refetchAccountSettings,
 }: NotificationOptionsToggleProps) => {
-  const { switchAccountNotifications } = useSwitchNotifications();
-  const { listNotifications } = useListNotifications();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles();
 
-  const handleToggleAccountNotifications = useCallback(() => {
-    const originalValue = triggerStatus?.triggerEnabled;
-    switchAccountNotifications([address], !originalValue);
-    listNotifications();
-  }, [address, triggerStatus, listNotifications, switchAccountNotifications]);
+  const { toggleAccount } = useUpdateAccountSetting(
+    address,
+    refetchAccountSettings,
+  );
 
   return (
     <View style={styles.container}>
@@ -93,9 +119,11 @@ const NotificationOptionToggle = ({
         ) : null}
       </View>
       <View style={styles.switchElement}>
+        {/* TODO - we need a loading state while switch is being toggled */}
+        {/* TODO - handle and show error states */}
         <Switch
-          value={!!triggerStatus?.triggerEnabled}
-          onValueChange={handleToggleAccountNotifications}
+          value={isEnabled}
+          onValueChange={() => toggleAccount(!isEnabled)}
           trackColor={{
             true: colors.primary.default,
             false: colors.border.muted,
@@ -103,7 +131,7 @@ const NotificationOptionToggle = ({
           thumbColor={theme.brandColors.white}
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
-          disabled={disabled}
+          disabled={disabledSwitch}
           {...generateTestId(Platform, testId)}
         />
       </View>

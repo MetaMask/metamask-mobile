@@ -3,7 +3,6 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 import NotificationsView from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import MOCK_NOTIFICATIONS from '../../../components/UI/Notification/__mocks__/mock_notifications';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockInitialState = {
@@ -35,7 +34,6 @@ describe('NotificationsView', () => {
       <NotificationsView
         navigation={navigation}
         selectedAddress={'0x123123123'}
-        notifications={MOCK_NOTIFICATIONS}
       />,
       {
         state: mockInitialState,
@@ -49,7 +47,6 @@ describe('NotificationsView', () => {
       <NotificationsView
         navigation={navigation}
         selectedAddress={'0x123123123'}
-        notifications={[]}
       />,
       {
         state: mockInitialState,

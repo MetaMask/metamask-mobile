@@ -228,7 +228,7 @@ export const fetchAndUpdateMetamaskNotifications =
     }
   };
 export const markMetamaskNotificationsAsRead =
-  (notifications: MarkAsReadNotificationsParam[]): ThunkDispatchReturn =>
+  (notifications: MarkAsReadNotificationsParam): ThunkDispatchReturn =>
   async (dispatch: Dispatch) => {
     try {
       await NotificationServicesController.markMetamaskNotificationsAsRead(

@@ -31,6 +31,7 @@ import { createStyles } from './styles';
 import renderAnnouncementsDetails from './Announcements';
 import renderOnChainDetails from './OnChain';
 import Header from './Header';
+import type { RootState } from '../../../../reducers';
 
 interface Props {
   // TODO: Replace "any" with type
@@ -50,16 +51,22 @@ const NotificationsDetails = ({ navigation, route }: Props) => {
   const theme = useTheme();
   const styles = createStyles(theme);
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
+  const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
 
   useEffect(() => {
-    markNotificationAsRead([notification]);
+    if (!notification.isRead) {
+      markNotificationAsRead([
+        {
+          id: notification.id,
+          type: notification.type,
+          isRead: notification.isRead,
+        },
+      ]);
+    }
   }, [notification, markNotificationAsRead]);
 
   const handleShowAlert = (config: {

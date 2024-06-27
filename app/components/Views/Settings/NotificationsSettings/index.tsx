@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
-import React, { FC, useEffect } from 'react';
+import React, { FC, useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -19,10 +19,7 @@ import createStyles from './NotificationsSettings.styles';
 import NotificationOptionToggle from './NotificationOptionToggle';
 import { NotificationsToggleTypes } from './NotificationsSettings.constants';
 
-import {
-  selectIsMetamaskNotificationsEnabled,
-  selectUserStorage,
-} from '../../../../selectors/pushNotifications';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/pushNotifications';
 
 import { requestPushNotificationsPermission } from '../../../../util/notifications';
 import Routes from '../../../../constants/navigation/Routes';
@@ -32,12 +29,15 @@ import ButtonIcon, {
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import { SessionHeader } from './sectionHeader';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
-import { selectChainId } from '../../../../selectors/networkController';
+import { useAccountSettingsProps } from '../../../..//util/notifications/hooks/useSwitchNotifications';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
-  const userStorage = useSelector(selectUserStorage);
-  const chainId = useSelector(selectChainId);
+  const accountAddresses = useMemo(
+    () => accounts.map((a) => a.address),
+    [accounts],
+  );
+  const accountSettingsProps = useAccountSettingsProps(accountAddresses);
   const { enableNotifications } = useEnableNotifications();
 
   const theme = useTheme();
@@ -65,7 +65,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       const notificationSettings = await requestPushNotificationsPermission();
       if (
         notificationSettings &&
-        notificationSettings.authorizationStatus > 1
+        notificationSettings.authorizationStatus >= 1
       ) {
         await enableNotifications();
       }
@@ -94,7 +94,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           {strings('app_settings.allow_notifications')}
         </Text>
         <Switch
-          disabled={!isMetamaskNotificationsEnabled}
+          disabled={isMetamaskNotificationsEnabled}
           value={isMetamaskNotificationsEnabled}
           onChange={toggleNotificationsEnabled}
           trackColor={{
@@ -114,6 +114,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     </>
   );
 
+  // TODO - we need a loading state for when initially fetching notification settings (e.g. account settings)
   return (
     <ScrollView style={styles.wrapper}>
       <MainNotificationSettings />
@@ -135,9 +136,20 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               key={account.address}
               title={account.name}
               address={account.address}
-              triggerStatus={
-                userStorage?.[account.address]?.[chainId]?.triggerEnabled
+              disabledSwitch={
+                accountSettingsProps.initialLoading ||
+                accountSettingsProps.accountsBeingUpdated.length > 0
               }
+              isLoading={accountSettingsProps.accountsBeingUpdated.includes(
+                account.address,
+              )}
+              isEnabled={
+                accountSettingsProps.data?.[account.address.toLowerCase()] ??
+                false
+              }
+              refetchAccountSettings={async () => {
+                await accountSettingsProps.update(accountAddresses);
+              }}
             />
           ))}
         </>

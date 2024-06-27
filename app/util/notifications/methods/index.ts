@@ -24,6 +24,10 @@ import Device from '../../../util/device';
 import { renderFromWei } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
+import { NotificationRowDetails, TxStatus } from './types';
+import { NotificationServicesController } from '@metamask-previews/notification-services-controller';
+
+const { UI } = NotificationServicesController;
 
 export interface ViewOnEtherscanProps {
   // TODO: Replace "any" with type
@@ -41,35 +45,17 @@ export interface ViewOnEtherscanProps {
   close?: () => void;
 }
 
-export interface NotificationRowProps {
-  row: {
-    title: string;
-    createdAt: string;
-
-    badgeIcon?: IconName;
-    imageUrl?: string;
-    description?: {
-      asset?: {
-        symbol?: string;
-        name?: string;
-      };
-      text?: string;
-    };
-    value: string;
-  };
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  details: Record<string, any>;
-}
-
 export const sortNotifications = (
   notifications: Notification[],
 ): Notification[] => {
   if (!notifications) {
     return [];
   }
+
+  // NOTE - sorting may be expensive due to re-creating Date obj.
+  // TODO - see if this can be tidied.
   return notifications.sort(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 };
 
@@ -99,52 +85,79 @@ export const getNotificationBadge = (trigger_type: string) => {
   }
 };
 
-export function formatDate(createdAt: Date) {
-  const now = new Date();
-  const date = createdAt;
+/**
+ * Checks if 2 date objects are on the same day
+ *
+ * @param currentDate
+ * @param dateToCheck
+ * @returns boolean if dates are same day.
+ */
+const isSameDay = (currentDate: Date, dateToCheck: Date) =>
+  currentDate.getFullYear() === dateToCheck.getFullYear() &&
+  currentDate.getMonth() === dateToCheck.getMonth() &&
+  currentDate.getDate() === dateToCheck.getDate();
 
-  const isToday =
-    date.getDate() === now.getDate() &&
-    date.getMonth() === now.getMonth() &&
-    date.getFullYear() === now.getFullYear();
+/**
+ * Checks if a date is "yesterday" from the current date
+ *
+ * @param currentDate
+ * @param dateToCheck
+ * @returns boolean if dates were "yesterday"
+ */
+const isYesterday = (currentDate: Date, dateToCheck: Date) => {
+  const yesterday = new Date(currentDate);
+  yesterday.setDate(currentDate.getDate() - 1);
+  return isSameDay(yesterday, dateToCheck);
+};
 
-  if (isToday) {
-    const diffMinutes = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60),
+/**
+ * Checks if 2 date objects are in the same year.
+ *
+ * @param currentDate
+ * @param dateToCheck
+ * @returns boolean if dates were in same year
+ */
+const isSameYear = (currentDate: Date, dateToCheck: Date) =>
+  currentDate.getFullYear() === dateToCheck.getFullYear();
+
+export function formatDate(createdAt: Date | string) {
+  const date = new Date(createdAt);
+  const currentDate = new Date();
+
+  // E.g. 12:21
+  if (isSameDay(currentDate, date)) {
+    return new Intl.DateTimeFormat('en', {
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+    }).format(date);
+  }
+
+  // E.g. Yesterday
+  if (isYesterday(currentDate, date)) {
+    return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
+      -1,
+      'day',
     );
-    if (diffMinutes < 60) {
-      return `${diffMinutes} min ago`;
-    }
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    return `${hours}:${minutes < 10 ? '0' : ''}${minutes}`;
   }
 
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  const isYesterday =
-    date.getDate() === yesterday.getDate() &&
-    date.getMonth() === yesterday.getMonth() &&
-    date.getFullYear() === yesterday.getFullYear();
-
-  if (isYesterday) {
-    return 'Yesterday';
+  // E.g. 21 Oct
+  if (isSameYear(currentDate, date)) {
+    return new Intl.DateTimeFormat('en', {
+      month: 'short',
+      day: 'numeric',
+    }).format(date);
   }
-  const options: Intl.DateTimeFormatOptions = {
+
+  // E.g. 21 Oct 2022
+  return new Intl.DateTimeFormat('en', {
+    year: 'numeric',
     month: 'short',
     day: 'numeric',
-  };
-
-  const month = strings(`date.months.${date.getMonth()}`);
-  const day = date.getDate();
-  if (date.getFullYear() === now.getFullYear()) {
-    return date.toLocaleDateString('default', options);
-  }
-
-  return `${month} ${day}`;
+  }).format(date);
 }
 
-export function getNetwork(chain_id: HalRawNotification['chain_id']) {
+export function getNetwork(chain_id: number) {
   return ChainId[chain_id];
 }
 
@@ -157,21 +170,64 @@ export function formatNotificationTitle(rawTitle: string): string {
   return words.join('_').toLowerCase();
 }
 
-export enum TxStatus {
-  UNAPPROVED = 'unapproved',
-  SUBMITTED = 'submitted',
-  SIGNED = 'signed',
-  PENDING = 'pending',
-  CONFIRMED = 'confirmed',
-  CANCELLED = 'cancelled',
-  APPROVED = 'approved',
-  FAILED = 'failed',
-  REJECTED = 'rejected',
+function getNativeTokenDetailsByChainId(chainId: number) {
+  const chainIdString = chainId.toString();
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ETHEREUM) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.ETHEREUM,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.OPTIMISM) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.OPTIMISM,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.BSC) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.BNB,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.POLYGON) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.MATIC,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.AETH,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.AVALANCHE) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.AVAX,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.LINEA) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images['LINEA-MAINNET'],
+    };
+  }
+
+  return undefined;
 }
 
 export function getRowDetails(
   notification: Notification,
-): NotificationRowProps {
+): NotificationRowDetails | null {
   switch (notification.type) {
     case TRIGGER_TYPES.LIDO_STAKE_COMPLETED:
     case TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED:
@@ -216,7 +272,6 @@ export function getRowDetails(
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
               notification.data?.network_fee.native_token_price_in_usd,
-            details: {},
           },
         },
       };
@@ -239,6 +294,7 @@ export function getRowDetails(
         },
         details: {
           type: notification.type,
+          from: notification.address,
           request_id: notification.data.request_id,
           staked_eth: notification.data.staked_eth,
           tx_hash: notification.tx_hash,
@@ -275,6 +331,7 @@ export function getRowDetails(
         },
         details: {
           type: notification.type,
+          from: notification.address,
           rate: notification.data.rate,
           token_in: notification.data.token_in,
           token_out: notification.data.token_out,
@@ -290,12 +347,17 @@ export function getRowDetails(
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
               notification.data?.network_fee.native_token_price_in_usd,
-            details: {},
           },
         },
       };
     case TRIGGER_TYPES.ETH_SENT:
-    case TRIGGER_TYPES.ETH_RECEIVED:
+    case TRIGGER_TYPES.ETH_RECEIVED: {
+      const tokenDetails = getNativeTokenDetailsByChainId(
+        notification.chain_id,
+      );
+      if (!tokenDetails) {
+        return null;
+      }
       return {
         row: {
           badgeIcon: getNotificationBadge(notification.type),
@@ -313,15 +375,14 @@ export function getRowDetails(
           ),
           description: {
             asset: {
-              symbol: 'ETH',
-              name: 'Ethereum',
+              symbol: tokenDetails.symbol,
+              name: tokenDetails.name,
             },
           },
-          value: `${notification.data.amount.eth} ETH`,
+          value: `${notification.data.amount.eth} ${tokenDetails.symbol}`,
         },
         details: {
           type: notification.type,
-          amount: notification.data.amount,
           from: notification.data.from,
           to: notification.data.to,
           tx_hash: notification.tx_hash,
@@ -330,23 +391,24 @@ export function getRowDetails(
             : TxStatus.UNAPPROVED,
           network: {
             name: getNetwork(notification.chain_id),
-            image: images.ETHEREUM,
+            image: tokenDetails.image,
           },
           networkFee: {
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
               notification.data?.network_fee.native_token_price_in_usd,
-            details: {},
           },
+          // TODO - USE DYNAMIC NATIVE TOKEN
           token: {
-            name: 'Ethereum',
-            symbol: 'ETH',
-            image: images.ETHEREUM,
+            name: tokenDetails.name,
+            symbol: tokenDetails.symbol,
+            image: tokenDetails.image,
             amount: notification.data.amount.eth,
-            address: '0xdb24b8170fc863c77f50a2b25297f642c5fe5010',
+            address: '0x0000000000000000000000000000000000000000',
           },
         },
       };
+    }
     case TRIGGER_TYPES.ERC20_SENT:
     case TRIGGER_TYPES.ERC20_RECEIVED:
       return {
@@ -392,7 +454,6 @@ export function getRowDetails(
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
               notification.data?.network_fee.native_token_price_in_usd,
-            details: {},
           },
         },
       };
@@ -442,21 +503,13 @@ export function getRowDetails(
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
               notification.data?.network_fee.native_token_price_in_usd,
-            details: {},
           },
         },
       };
 
-    default:
-      return {
-        row: {
-          title: notification.data.title,
-          description: { text: notification.data.shortDescription },
-          createdAt: formatDate(notification.createdAt),
-          value: '',
-        },
-        details: {},
-      };
+    default: {
+      return null;
+    }
   }
 }
 
@@ -672,3 +725,5 @@ export const getNetworkFees = async (notification: HalRawNotification) => {
     throw error;
   }
 };
+
+export * from './types';

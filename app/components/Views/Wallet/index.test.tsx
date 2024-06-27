@@ -72,6 +72,10 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const mockInitialState = {
+  pushNotifications: {
+    isSignedIn: true,
+    isNotificationServicesEnabled: true,
+  },
   networkOnboarded: {
     networkOnboardedState: {
       '0x1': true,

@@ -2,10 +2,6 @@ import React from 'react';
 import NotificationsList from './';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import MOCK_NOTIFICATIONS from '../__mocks__/mock_notifications';
-import {
-  FeatureAnnouncementRawNotification,
-  HalRawNotification,
-} from '../../../../util/notifications';
 const navigationMock = {
   navigate: jest.fn(),
 };
@@ -15,10 +11,8 @@ describe('NotificationsList', () => {
       <NotificationsList
         navigation={navigationMock}
         allNotifications={MOCK_NOTIFICATIONS}
-        walletNotifications={[MOCK_NOTIFICATIONS[1] as HalRawNotification]}
-        annoucementsNotifications={[
-          MOCK_NOTIFICATIONS[0] as FeatureAnnouncementRawNotification,
-        ]}
+        walletNotifications={[MOCK_NOTIFICATIONS[1]]}
+        announcementsNotifications={[MOCK_NOTIFICATIONS[0]]}
         loading
       />,
     );

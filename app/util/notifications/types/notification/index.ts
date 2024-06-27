@@ -1,8 +1,6 @@
 import type { FC } from 'react';
-import type { FeatureAnnouncementRawNotification } from '../featureAnnouncement';
-import type { HalRawNotification } from '../halNotification';
-import type { Compute } from '../type-utils';
 import { TRIGGER_TYPES } from '../../constants';
+import { NotificationServicesController } from '@metamask-previews/notification-services-controller/';
 
 /**
  * The shape of a "generic" notification.
@@ -10,13 +8,7 @@ import { TRIGGER_TYPES } from '../../constants';
  * - `type` field (declared in the Raw shapes)
  * - `data` field (declared in the Raw shapes)
  */
-export type Notification = Compute<
-  (FeatureAnnouncementRawNotification | HalRawNotification) & {
-    id: string;
-    createdAt: Date;
-    isRead: boolean;
-  }
->;
+export type Notification = NotificationServicesController.Types.INotification;
 
 // NFT
 export interface NFT {
@@ -119,14 +111,18 @@ export interface MarketingNotificationData {
 }
 
 export const STAKING_PROVIDER_MAP: Record<
-  | 'lido_stake_completed'
-  | 'rocketpool_stake_completed'
-  | 'rocketpool_unstake_completed'
-  | 'lido_withdrawal_completed',
+  | TRIGGER_TYPES.LIDO_STAKE_COMPLETED
+  | TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED
+  | TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED
+  | TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN
+  | TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED
+  | TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED,
   string
 > = {
   [TRIGGER_TYPES.LIDO_STAKE_COMPLETED]: 'Lido-staked ETH',
   [TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED]: 'Lido-staked ETH',
+  [TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED]: 'Lido-staked ETH',
+  [TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN]: 'Lido-staked ETH',
   [TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED]: 'Rocket Pool-staked ETH',
   [TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED]: 'Rocket Pool-staked ETH',
 };

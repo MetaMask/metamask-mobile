@@ -162,13 +162,13 @@
     "@metamask/logging-controller": "^3.0.0",
     "@metamask/message-signing-snap": "^0.3.3",
     "@metamask/network-controller": "^18.1.0",
-    "@metamask/notification-services-controller": "^0.1.0",
+    "@metamask-previews/notification-services-controller": "0.1.0-preview-4ca72848",
     "@metamask/permission-controller": "^9.0.0",
     "@metamask/phishing-controller": "^9.0.0",
     "@metamask/post-message-stream": "^8.0.0",
     "@metamask/ppom-validator": "0.31.0",
     "@metamask/preferences-controller": "^11.0.0",
-    "@metamask/profile-sync-controller": "^0.1.0",
+    "@metamask-previews/profile-sync-controller": "0.1.0-preview-4ca72848",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-animated-fox": "^2.1.0",
     "@metamask/react-native-button": "^3.0.0",
@@ -572,7 +572,7 @@
       "ts-node>@swc/core": false,
       "@metamask/sdk-communication-layer>bufferutil": false,
       "@metamask/sdk-communication-layer>utf-8-validate": false,
-      "@metamask/notification-services-controller>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false
+      "@metamask-previews/notification-services-controller>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false
     }
   },
   "packageManager": "yarn@1.22.22"

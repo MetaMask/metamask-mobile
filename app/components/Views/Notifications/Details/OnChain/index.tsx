@@ -7,7 +7,6 @@ import { strings } from '../../../../../../locales/i18n';
 
 import {
   getRowDetails,
-  HalRawNotification,
   HalRawNotificationsWithNetworkFields,
   Notification,
   TRIGGER_TYPES,
@@ -31,7 +30,7 @@ import {
 import useBlockExplorer from '../../../../../components/UI/Swaps/utils/useBlockExplorer.js';
 
 interface OnChainDetailsProps {
-  notification: HalRawNotification;
+  notification: Notification;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: Record<string, any>;
@@ -78,30 +77,45 @@ const OnChainDetails = ({
   });
 
   const renderNotificationDetails = useCallback(() => {
-    switch (notification.type) {
+    switch (notificationDetails?.type) {
+      // NFT Notifications
       case TRIGGER_TYPES.ERC721_SENT:
       case TRIGGER_TYPES.ERC721_RECEIVED:
       case TRIGGER_TYPES.ERC1155_SENT:
       case TRIGGER_TYPES.ERC1155_RECEIVED:
         return renderNFT(notificationDetails);
+
+      // Staking Notifications
       case TRIGGER_TYPES.LIDO_STAKE_COMPLETED:
       case TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED:
       case TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED:
       case TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED:
       case TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED:
         return renderStake(notificationDetails);
-      case TRIGGER_TYPES.ERC20_RECEIVED:
-        return renderTransfer(notificationDetails);
+
+      // Lido Withdraw
       case TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN:
         return renderStakeReadyToBeWithdrawn(notificationDetails);
+
+      // ERC Transfers
+      case TRIGGER_TYPES.ERC20_SENT:
+      case TRIGGER_TYPES.ERC20_RECEIVED:
+        return renderTransfer(notificationDetails);
+
+      // Native Token Transfers
+      case TRIGGER_TYPES.ETH_SENT:
+      case TRIGGER_TYPES.ETH_RECEIVED:
+        return renderTransfer(notificationDetails);
+
+      // MetaMask Swaps
       case TRIGGER_TYPES.METAMASK_SWAP_COMPLETED:
         return renderSwap(notificationDetails);
-      case TRIGGER_TYPES.ERC20_SENT:
+
+      // Don't render components we do not support
       default:
-        return renderTransfer(notificationDetails);
+        return null;
     }
   }, [
-    notification.type,
     notificationDetails,
     renderNFT,
     renderStake,
@@ -109,6 +123,10 @@ const OnChainDetails = ({
     renderSwap,
     renderTransfer,
   ]);
+
+  if (!notificationDetails) {
+    return null;
+  }
 
   return (
     <View style={styles.renderContainer}>
@@ -121,15 +139,17 @@ const OnChainDetails = ({
           onClosed={() => setIsCollapsed(true)}
         />
       )}
-      <Button
-        variant={ButtonVariants.Secondary}
-        label={strings('transactions.view_on_etherscan')}
-        style={styles.ctaBtn}
-        onPress={() =>
-          handleExplorerLinkPress(explorer.tx(notification.tx_hash))
-        }
-        endIconName={IconName.Arrow2Upright}
-      />
+      {'tx_hash' in notification && (
+        <Button
+          variant={ButtonVariants.Secondary}
+          label={strings('transactions.view_on_etherscan')}
+          style={styles.ctaBtn}
+          onPress={() =>
+            handleExplorerLinkPress(explorer.tx(notification.tx_hash))
+          }
+          endIconName={IconName.Arrow2Upright}
+        />
+      )}
     </View>
   );
 };

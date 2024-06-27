@@ -1006,6 +1006,7 @@ class Engine {
         'SnapsRegistry:resolveVersion',
       ],
     });
+    ///: END:ONLY_INCLUDE_IF
 
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
@@ -1060,6 +1061,14 @@ class Engine {
           allowedEvents: ['KeyringController:stateChange'],
         }),
         state: initialState.NotificationServicesController,
+        env: {
+          isPushIntegrated: false, // temporary until we integrate push notifications
+          featureAnnouncements: {
+            platform: 'mobile',
+            accessToken: 'TODO from env',
+            spaceId: 'TODO from env',
+          },
+        },
       });
 
     const snapController = new SnapController({
