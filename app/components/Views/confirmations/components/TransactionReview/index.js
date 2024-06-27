@@ -1,66 +1,67 @@
-import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
-import { StyleSheet, View, Animated, ScrollView } from 'react-native';
+import { withNavigation } from '@react-navigation/compat';
 import Eth from 'ethjs-query';
-import {
-  isMultiLayerFeeNetwork,
-  fetchEstimatedMultiLayerL1Fee,
-} from '../../../../../util/networks';
-import Engine from '../../../../../core/Engine';
-import Logger from '../../../../../util/Logger';
-import { fontStyles } from '../../../../../styles/common';
+import PropTypes from 'prop-types';
+import React, { PureComponent } from 'react';
+import { Animated, ScrollView, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  getTransactionReviewActionKey,
-  getNormalizedTxState,
-  decodeTransferData,
-  getTicker,
-  isApprovalTransaction,
-} from '../../../../../util/transactions';
-import {
-  weiToFiat,
-  balanceToFiat,
-  renderFromTokenMinimalUnit,
-  renderFromWei,
-  fromTokenMinimalUnit,
-  isZeroValue,
-} from '../../../../../util/number';
-import { safeToChecksumAddress } from '../../../../../util/address';
-import Device from '../../../../../util/device';
-import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
-import TransactionReviewInformation from './TransactionReviewInformation';
-import TransactionReviewSummary from './TransactionReviewSummary';
-import TransactionReviewData from './TransactionReviewData';
+import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import TransactionHeader from '../../../../UI/TransactionHeader';
-import AccountFromToInfoCard from '../../../../UI/AccountFromToInfoCard';
-import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
-import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
-import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwareness';
-import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
-import { withNavigation } from '@react-navigation/compat';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../../../selectors/networkController';
+import AppConstants from '../../../../../core/AppConstants';
+import Engine from '../../../../../core/Engine';
+import { SDKConnect } from '../../../../../core/SDKConnect/SDKConnect';
+import { selectCurrentTransactionMetadata } from '../../../../../selectors/confirmTransaction';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
-import { selectTokenList } from '../../../../../selectors/tokenListController';
-import { selectTokens } from '../../../../../selectors/tokensController';
-import { selectCurrentTransactionMetadata } from '../../../../../selectors/confirmTransaction';
-import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
-import ApproveTransactionHeader from '../ApproveTransactionHeader';
-import AppConstants from '../../../../../core/AppConstants';
-import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
-import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
-import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { selectTokenList } from '../../../../../selectors/tokenListController';
+import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
+import { selectTokens } from '../../../../../selectors/tokensController';
+import { fontStyles } from '../../../../../styles/common';
+import Logger from '../../../../../util/Logger';
+import { safeToChecksumAddress } from '../../../../../util/address';
+import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
+import Device from '../../../../../util/device';
+import {
+  fetchEstimatedMultiLayerL1Fee,
+  isMultiLayerFeeNetwork,
+} from '../../../../../util/networks';
+import {
+  balanceToFiat,
+  fromTokenMinimalUnit,
+  isZeroValue,
+  renderFromTokenMinimalUnit,
+  renderFromWei,
+  weiToFiat,
+} from '../../../../../util/number';
+import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import {
+  decodeTransferData,
+  getNormalizedTxState,
+  getTicker,
+  getTransactionReviewActionKey,
+  isApprovalTransaction,
+} from '../../../../../util/transactions';
+import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
+import AccountFromToInfoCard from '../../../../UI/AccountFromToInfoCard';
+import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
+import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
+import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwareness';
+import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
+import TransactionHeader from '../../../../UI/TransactionHeader';
+import ApproveTransactionHeader from '../ApproveTransactionHeader';
+import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
+import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
+import TransactionReviewData from './TransactionReviewData';
+import TransactionReviewInformation from './TransactionReviewInformation';
+import TransactionReviewSummary from './TransactionReviewSummary';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -529,7 +530,18 @@ class TransactionReview extends PureComponent {
       multiLayerL1FeeTotal,
     } = this.state;
     const url = this.getUrlFromBrowser();
+
+    const sdkConnections = SDKConnect.getInstance().getConnections();
+
+    const currentConnection = sdkConnections[origin ?? ''];
+
     const styles = this.getStyles();
+
+    const originatorInfo = currentConnection?.originatorInfo;
+    const sdkDappMetadata = {
+      url: originatorInfo?.url ?? strings('sdk.unknown'),
+      icon: originatorInfo?.icon,
+    };
 
     return (
       <>
@@ -546,6 +558,7 @@ class TransactionReview extends PureComponent {
               url={url}
               from={from}
               asset={transaction?.selectedAsset}
+              sdkDappMetadata={sdkDappMetadata}
             />
           )}
           <View style={styles.actionViewWrapper}>
