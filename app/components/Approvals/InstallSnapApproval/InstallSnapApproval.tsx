@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useEffect, useState } from 'react';
 import ApprovalModal from '../ApprovalModal';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
@@ -39,6 +39,8 @@ const InstallSnapApproval = () => {
     }
   }, [approvalRequest]);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getSnapName = (request: ApprovalRequest<any>): string => {
     // We first look for the name inside the snapId approvalRequest data
     const snapId = request?.requestData?.snapId;
@@ -51,6 +53,8 @@ const InstallSnapApproval = () => {
     // If there is no snapId present in the approvalRequest data, we look for the name inside the snapIds caveat
     const snapIdsCaveat =
       request?.requestData?.permissions?.wallet_snap?.caveats?.find(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (c: any) => c.type === 'snapIds',
       );
     // return an empty string if we can't find the snap name in the approvalRequest data

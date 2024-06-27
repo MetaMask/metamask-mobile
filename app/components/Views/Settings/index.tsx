@@ -11,12 +11,13 @@ import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core/';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import { isTest } from '../../../util/test/utils';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -31,11 +32,17 @@ const Settings = () => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<any>();
 
   const seedphraseBackedUp = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.seedphraseBackedUp,
   );
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
   const updateNavBar = useCallback(() => {
@@ -82,6 +89,10 @@ const Settings = () => {
     navigation.navigate('ExperimentalSettings');
   };
 
+  const onPressAesCryptoTestForm = () => {
+    navigation.navigate('AesCryptoTestForm');
+  };
+
   const onPressInfo = () => {
     trackEvent(MetaMetricsEvents.SETTINGS_ABOUT);
     navigation.navigate('CompanySettings');
@@ -101,7 +112,7 @@ const Settings = () => {
     });
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   const onPressSnaps = () => {
     navigation.navigate(...createSnapsSettingsListNavDetails());
   };
@@ -211,7 +222,7 @@ const Settings = () => {
         testID={SettingsViewSelectorsIDs.NETWORKS}
       />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
       }
       <SettingsDrawer
         title={strings('app_settings.snaps.title')}
@@ -233,6 +244,24 @@ const Settings = () => {
         onPress={onPressExperimental}
         testID={SettingsViewSelectorsIDs.EXPERIMENTAL}
       />
+      {
+        /**
+         * This drawer is only visible in test mode.
+         * It is used to test the AES crypto functions.
+         *
+         * If this is shown in production, it is a bug.
+         */
+        isTest && (
+          <SettingsDrawer
+            title={strings('app_settings.aes_crypto_test_form_title')}
+            description={strings(
+              'app_settings.aes_crypto_test_form_description',
+            )}
+            onPress={onPressAesCryptoTestForm}
+            testID={SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM}
+          />
+        )
+      }
       <SettingsDrawer
         title={aboutMetaMaskTitle}
         onPress={onPressInfo}

@@ -40,6 +40,8 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSystemVersion } from 'react-native-device-info';
 import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
@@ -107,11 +109,13 @@ const createStyles = (theme: any) =>
       marginTop: Device.getDeviceHeight() * 0.025,
     },
     loader: {
-      color: theme.brandColors.white000,
+      color: theme.brandColors.white,
     },
   });
 
 const LedgerConnect = () => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { AccountTrackerController } = Engine.context as any;
   const theme = useAppThemeFromContext() ?? mockTheme;
   const { trackEvent } = useMetrics();

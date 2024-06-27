@@ -536,6 +536,7 @@ export default async function migrate(stateAsync: unknown) {
     ).forEach((chainId) => {
       if (!isHexString(chainId)) {
         const hexChainId = toHex(chainId);
+        //@ts-expect-error At the time of that migrations assets controllers version had those properties, so those users will have that property on their phone storage, the migration was casted and that where it's wrong, we shouldn't cast migrations because the structure and property names change over time.
         newTokenRatesControllerState.contractExchangeRatesByChainId[
           hexChainId
         ] =

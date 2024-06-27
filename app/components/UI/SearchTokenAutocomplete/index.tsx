@@ -34,6 +34,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
@@ -66,6 +68,8 @@ interface Props {
   /**
 	/* navigation object required to push new views
 	*/
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 }
 
@@ -76,6 +80,8 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const { trackEvent } = useMetrics();
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedAsset, setSelectedAsset] = useState<any[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -108,6 +114,8 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   }, [selectedAsset, chainId]);
 
   const handleSearch = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (opts: any) => {
       setSearchResults(opts.results);
       setSearchQuery(opts.searchQuery);
@@ -142,6 +150,8 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const addToken = useCallback(
     async ({ address, symbol, decimals, iconUrl, name }) => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { TokensController } = Engine.context as any;
       await TokensController.addToken({
         address,
