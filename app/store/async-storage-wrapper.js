@@ -18,7 +18,6 @@ class AsyncStorageWrapper {
   async getItem(key) {
     try {
       const value = await this.storage.getString(key);
-      console.log('***kylan*** getItem', key, value);
       return value;
     } catch (error) {
       if (isE2E) {
@@ -32,7 +31,6 @@ class AsyncStorageWrapper {
   async setItem(key, value) {
     try {
       const response = await this.storage.set(key, value);
-      console.log('***kylan*** setItem', key, value);
       return response;
     } catch (error) {
       if (isE2E) {
@@ -46,7 +44,6 @@ class AsyncStorageWrapper {
   async removeItem(key) {
     try {
       const response = await this.storage.delete(key);
-      console.log('***kylan*** removeItem', key);
       return response;
     } catch (error) {
       if (isE2E) {
