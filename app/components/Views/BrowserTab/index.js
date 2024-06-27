@@ -8,6 +8,7 @@ import {
   Linking,
   BackHandler,
   Platform,
+  Animated,
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { withNavigation } from '@react-navigation/compat';
@@ -265,6 +266,7 @@ export const BrowserTab = (props) => {
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
+  const [pageIsLoaded, setPageIsLoaded] = useState(true);
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
@@ -930,6 +932,7 @@ export const BrowserTab = (props) => {
    */
   const onLoadEnd = ({ nativeEvent }) => {
     // Do not update URL unless website has successfully completed loading.
+    setPageIsLoaded(true);
     if (nativeEvent.loading) {
       return;
     }
@@ -1060,6 +1063,7 @@ export const BrowserTab = (props) => {
    */
   const onLoadStart = async ({ nativeEvent }) => {
     // Use URL to produce real url. This should be the actual website that the user is viewing.
+    setPageIsLoaded(false);
     const {
       origin,
       pathname = '',
@@ -1159,6 +1163,36 @@ export const BrowserTab = (props) => {
   const updateAllowList = () => {
     allowList.current = props.whitelist;
   };
+
+  const opacity = useRef(new Animated.Value(0.5)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.4,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, [opacity]);
+
+  const progressBarPulseContainer = () => (
+    <Animated.View
+      style={{
+        zIndex: 2,
+        opacity,
+      }}
+    >
+      {renderProgressBar()}
+    </Animated.View>
+  );
 
   /**
    * Render the progress bar
@@ -1501,6 +1535,19 @@ export const BrowserTab = (props) => {
         {...(Device.isAndroid() ? { collapsable: false } : {})}
       >
         <View style={styles.webview}>
+          {progressBarPulseContainer()}
+          {!pageIsLoaded ? (
+            <View
+              style={{
+                justifyContent: 'center',
+                height: '100%',
+                backgroundColor: '#000000dd',
+                zIndex: 1,
+                position: 'absolute',
+                width: '100%',
+              }}
+            />
+          ) : null}
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <>
               <WebView
@@ -1541,7 +1588,6 @@ export const BrowserTab = (props) => {
           )}
         </View>
         {updateAllowList()}
-        {renderProgressBar()}
         {isTabActive && renderPhishingModal()}
         {isTabActive && renderOptions()}
 
