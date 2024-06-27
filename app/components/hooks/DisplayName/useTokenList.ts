@@ -8,7 +8,7 @@ import { selectUseTokenDetection } from '../../../selectors/preferencesControlle
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { isMainnetByChainId } from '../../../util/networks';
 
-export function normalizeTokenAddresses(tokenMap: TokenListMap) {
+function normalizeTokenAddresses(tokenMap: TokenListMap) {
   return Object.keys(tokenMap).reduce((acc, address) => {
     const tokenMetadata = tokenMap[address];
     return {
