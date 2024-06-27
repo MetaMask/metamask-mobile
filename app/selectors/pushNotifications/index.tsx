@@ -23,6 +23,12 @@ type userStorageControllerState = typeof UserStorageController.defaultState;
 const pushNotificationsState = (state: RootState) =>
   state?.engine?.backgroundState?.NotificationServicesController;
 
+const userStorageState = (state: RootState) =>
+  state?.engine?.backgroundState?.UserStorageController;
+
+const authenticationState = (state: RootState) =>
+  state?.engine?.backgroundState?.AuthenticationController;
+
 export const selectIsMetamaskNotificationsEnabled = createSelector(
   pushNotificationsState,
   (state: notificationServicesControllerState) =>
@@ -89,28 +95,18 @@ export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
       : 0,
 );
 export const selectIsSignedIn = createSelector(
-  pushNotificationsState,
+  authenticationState,
   (state: authenticationControllerState) => state.isSignedIn,
 );
 export const selectSessionData = createSelector(
-  pushNotificationsState,
+  authenticationState,
   (state: authenticationControllerState) => state.sessionData,
 );
 export const selectIsProfileSyncingEnabled = createSelector(
-  pushNotificationsState,
+  userStorageState,
   (state: userStorageControllerState) => state.isProfileSyncingEnabled,
 );
 export const selectIsProfileSyncingUpdateLoading = createSelector(
-  pushNotificationsState,
+  userStorageState,
   (state: userStorageControllerState) => state.isProfileSyncingUpdateLoading,
-);
-
-// TODO: Check the need of these selectors
-export const selectUserStorage = createSelector(
-  pushNotificationsState,
-  (state: notificationServicesControllerState) => state.userStorage,
-);
-export const selectAccountsPresence = createDeepEqualSelector(
-  pushNotificationsState,
-  (state: notificationServicesControllerState) => state.accounts,
 );

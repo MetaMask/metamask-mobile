@@ -19,7 +19,7 @@ import {
   updateOnChainTriggersByAccount,
 } from '../../../actions/notification/pushNotifications';
 import {
-  selectNotificationsList,
+  getNotificationsList,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/pushNotifications';
 import { useThunkNotificationDispatch } from '../../../actions/notification/helpers/useThunkNotificationDispatch';
@@ -32,7 +32,7 @@ import { useThunkNotificationDispatch } from '../../../actions/notification/help
  */
 export function useListNotifications(): ListNotificationsReturn {
   const dispatch = useThunkNotificationDispatch();
-  const notifications = useSelector(selectNotificationsList);
+  const notifications = useSelector(getNotificationsList);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 

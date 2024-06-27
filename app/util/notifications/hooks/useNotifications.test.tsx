@@ -43,11 +43,11 @@ describe('useListNotifications', () => {
   });
 
   function arrangeSelectors() {
-    const selectNotificationsList = jest
-      .spyOn(Selectors, 'selectNotificationsList')
+    const getNotificationsList = jest
+      .spyOn(Selectors, 'getNotificationsList')
       .mockReturnValue([]);
     return {
-      selectNotificationsList,
+      getNotificationsList,
     };
   }
 
@@ -72,7 +72,7 @@ describe('useListNotifications', () => {
 
   it('should fetch and update the list of notifications', async () => {
     const mockSelectors = arrangeSelectors();
-    mockSelectors.selectNotificationsList.mockReturnValue([
+    mockSelectors.getNotificationsList.mockReturnValue([
       createMockNotificationEthSent(),
       createMockNotificationEthReceived(),
     ]);

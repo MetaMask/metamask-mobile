@@ -3970,10 +3970,10 @@
   resolved "https://registry.yarnpkg.com/@log4js-node/log4js-api/-/log4js-api-1.0.2.tgz#7a8143fb33f077df3e579dca7f18fea74a02ec8b"
   integrity sha512-6SJfx949YEWooh/CUPpJ+F491y4BYJmknz4hUN1+RHvKoUEynKbRmhnwbk/VLmh4OthLLDNCyWXfbh4DG1cTXA==
 
-"@metamask-previews/notification-services-controller@0.1.0-preview-ab5de025":
-  version "0.1.0-preview-ab5de025"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/notification-services-controller/-/notification-services-controller-0.1.0-preview-ab5de025.tgz#29c10b7c1de8e8c88199d4c290a1322bf0f90869"
-  integrity sha512-DnJe3TrxhTaBdiTQI15u1OAQfBVTWq4b42FU25FiTFHr0ViyPYpLTbMVxPDZ0U40eDshoAozVK59ldq9eNkVsw==
+"@metamask-previews/notification-services-controller@0.1.0-preview-4ca72848":
+  version "0.1.0-preview-4ca72848"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/notification-services-controller/-/notification-services-controller-0.1.0-preview-4ca72848.tgz#07bedba0a3b0f594a89b72b293edbbbf4306d990"
+  integrity sha512-5PMZ/pWAezuNSDAVOFThMmEhUq6NM8v7qSzLUr3L9aY9nnZBvuefI/K7cS8PHQH+teP1BSv7oQoCKGyWyPOZrg==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
     "@metamask/base-controller" "^6.0.0"
@@ -3986,10 +3986,10 @@
     loglevel "^1.8.1"
     uuid "^8.3.2"
 
-"@metamask-previews/profile-sync-controller@0.1.0-preview-ab5de025":
-  version "0.1.0-preview-ab5de025"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-0.1.0-preview-ab5de025.tgz#29232d1daf2f31ca9c06c1a5ad4f975824d11bd7"
-  integrity sha512-/UR1g859UFSgaB0kniXeo61+F5BtxseHX/co+ZKFK1RjZbeUj4DZOVqUzRUT5uH0vki6plb88zJeKQMVoCPImg==
+"@metamask-previews/profile-sync-controller@0.1.0-preview-4ca72848":
+  version "0.1.0-preview-4ca72848"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-0.1.0-preview-4ca72848.tgz#d713d68d6f5ac26ccc2ca0449d28d5e812334ea3"
+  integrity sha512-JGDVOWRfnhonlPxs6WRlP7eRDgVV+2emN4dBEEC1TaiB2W0UL/Gqmr23QGKZIVsnLK1JodVFQ+W2HQIuiJrR+g==
   dependencies:
     "@metamask/base-controller" "^6.0.0"
     "@metamask/snaps-controllers" "^8.1.1"
