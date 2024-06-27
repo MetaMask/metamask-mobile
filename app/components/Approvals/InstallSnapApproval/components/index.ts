@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { InstallSnapConnectionRequest } from './InstallSnapConnectionRequest';
 import { InstallSnapSuccess } from './InstallSnapSuccess';
 import { InstallSnapError } from './InstallSnapError';

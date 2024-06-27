@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import InstallSnapApproval from '../InstallSnapApproval';

@@ -42,7 +42,11 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       <Image
         onError={[Function]}
         resizeMode="contain"
-        source={{}}
+        source={
+          {
+            "uri": "",
+          }
+        }
         style={
           {
             "flex": 1,

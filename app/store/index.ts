@@ -8,7 +8,7 @@ import EngineService from '../core/EngineService';
 import { Authentication } from '../core';
 import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
-import { isTest } from '../util/test/utils';
+import { isE2E } from '../util/test/utils';
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
@@ -25,7 +25,9 @@ const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
 let store: Store<RootState, any>, persistor;
 const createStoreAndPersistor = async () => {
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
-  const initialState = isTest ? await ReadOnlyNetworkStore.getState() : null;
+  const initialState = isE2E
+    ? await ReadOnlyNetworkStore.getState()
+    : undefined;
 
   const sagaMiddleware = createSagaMiddleware();
 

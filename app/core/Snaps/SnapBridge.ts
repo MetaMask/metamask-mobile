@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 /* eslint-disable import/no-commonjs */
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */
@@ -168,18 +168,18 @@ export default class SnapBridge {
     const { PermissionController } = context;
 
     engine.push(
+      PermissionController.createPermissionMiddleware({
+        origin: this.snapId,
+      }),
+    );
+
+    engine.push(
       snapMethodMiddlewareBuilder(
         context,
         controllerMessenger,
         this.snapId,
         SubjectType.Snap,
       ),
-    );
-
-    engine.push(
-      PermissionController.createPermissionMiddleware({
-        origin: this.snapId,
-      }),
     );
 
     // User-Facing RPC methods
