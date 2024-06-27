@@ -124,7 +124,7 @@ const NetworkSelector = () => {
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
-  const onNetworkChange = (type: string) => {
+  const onNetworkChange = (type: InfuraNetworkType) => {
     const {
       NetworkController,
       CurrencyRateController,
@@ -140,7 +140,7 @@ const NetworkSelector = () => {
     }
 
     CurrencyRateController.updateExchangeRate(ticker);
-    NetworkController.setProviderType(type as InfuraNetworkType);
+    NetworkController.setProviderType(type);
     AccountTrackerController.refresh();
 
     setTimeout(async () => {
