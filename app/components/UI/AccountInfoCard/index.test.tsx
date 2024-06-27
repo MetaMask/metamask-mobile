@@ -69,6 +69,20 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
+jest.mock('is-url', () => jest.fn());
+jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
+  getInstance: () => ({
+    getConnections: jest.fn().mockReturnValue({
+      'https://metamask.io': {
+        originatorInfo: {
+          url: 'https://metamask.io',
+          icon: 'https://metamask.io/icon.png',
+        },
+      },
+    }),
+  }),
+}));
+
 describe('AccountInfoCard', () => {
   it('should match snapshot', async () => {
     const container = renderWithProvider(
@@ -94,6 +108,7 @@ describe('AccountInfoCard', () => {
       <AccountInfoCard
         fromAddress="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         operation="signing"
+        origin="https://metamask.io"
       />,
       { state: mockInitialState },
     );

@@ -48,6 +48,10 @@ class FixtureBuilder {
   withDefaultFixture() {
     this.fixture = {
       state: {
+        legalNotices: {
+          newPrivacyPolicyToastClickedOrClosed: true,
+          newPrivacyPolicyToastShownDate: Date.now(),
+        },
         collectibles: {
           favorites: {},
         },
@@ -619,7 +623,7 @@ class FixtureBuilder {
         '@MetaMask:existingUser': 'true',
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
-        '@MetaMask:WhatsNewAppVersionSeen': '6.5.0',
+        '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       },
     };
     return this;
