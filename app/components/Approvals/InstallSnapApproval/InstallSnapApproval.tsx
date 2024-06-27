@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useEffect, useState } from 'react';
 import ApprovalModal from '../ApprovalModal';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';

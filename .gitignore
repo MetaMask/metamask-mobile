@@ -113,3 +113,6 @@ app/lib/ppom/ppom.html.js
 
 # ccache
 ccache
+
+# open-rpc/test-coverage
+html-report/

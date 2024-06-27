@@ -28,7 +28,7 @@ import {
   TokenListControllerEvents,
   TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
 import PREINSTALLED_SNAPS from '../lib/snaps/preinstalled-snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -43,7 +43,7 @@ import {
   KeyringControllerState,
   KeyringControllerActions,
   KeyringControllerEvents,
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   KeyringTypes,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
@@ -86,7 +86,7 @@ import {
   PermissionControllerActions,
   PermissionControllerEvents,
   PermissionControllerState,
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SubjectMetadataController,
   SubjectMetadataControllerActions,
   SubjectMetadataControllerEvents,
@@ -99,7 +99,7 @@ import {
   PPOMControllerEvents,
   PPOMState,
 } from '@metamask/ppom-validator';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   JsonSnapsRegistry,
   AllowedActions as SnapsAllowedActions,
@@ -156,7 +156,7 @@ import Logger from '../util/Logger';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents, MetaMetrics } from './Analytics';
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   SnapBridge,
   ExcludedSnapEndowments,
@@ -217,7 +217,7 @@ const encryptor = new Encryptor({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentChainId: any;
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 // TODO remove these custom types when the PhishingController is to version >= 7.0.0
 interface MaybeUpdateState {
   type: `${PhishingController['name']}:maybeUpdateState`;
@@ -253,7 +253,7 @@ type GlobalActions =
   | PermissionControllerActions
   | SignatureControllerActions
   | LoggingControllerActions
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
   ///: END:ONLY_INCLUDE_IF
   | KeyringControllerActions
@@ -269,7 +269,7 @@ type GlobalEvents =
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
@@ -303,7 +303,7 @@ export interface EngineState {
   TokensController: TokensState;
   TokenDetectionController: BaseState;
   NftDetectionController: BaseState;
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
   SubjectMetadataController: SubjectMetadataControllerState;
@@ -346,7 +346,7 @@ interface Controllers {
   TransactionController: TransactionController;
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: SnapController;
   SubjectMetadataController: SubjectMetadataController;
   ///: END:ONLY_INCLUDE_IF
@@ -395,7 +395,7 @@ class Engine {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lastIncomingTxBlockInfo: any;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   /**
    * Object that runs and manages the execution of Snaps
    */
@@ -457,7 +457,7 @@ class Engine {
         ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
         useTokenDetection:
           initialState?.PreferencesController?.useTokenDetection ?? true,
-        useNftDetection: false,
+        useNftDetection: true, // set this to true to enable nft detection by default to new users
         displayNftMedia: true,
         securityAlertsEnabled: true,
         ...initialState.PreferencesController,
@@ -689,7 +689,7 @@ class Engine {
       keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     /**
      * Gets the mnemonic of the user's primary keyring.
      */
@@ -807,7 +807,7 @@ class Engine {
           `${approvalController.name}:hasRequest`,
           `${approvalController.name}:acceptRequest`,
           `${approvalController.name}:rejectRequest`,
-          ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+          ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
           `SnapController:getPermitted`,
           `SnapController:install`,
           `SubjectMetadataController:getSubjectMetadata`,
@@ -854,14 +854,14 @@ class Engine {
             );
           },
         }),
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ...getSnapPermissionSpecifications(),
         ///: END:ONLY_INCLUDE_IF
       },
       unrestrictedMethods,
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     const subjectMetadataController = new SubjectMetadataController({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -912,7 +912,11 @@ class Engine {
     };
 
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
+    const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE === 'main';
+
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions.
     const snapsRegistryMessenger: SnapsRegistryMessenger =
       this.controllerMessenger.getRestricted({
         name: 'SnapsRegistry',
@@ -932,6 +936,8 @@ class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
         allowedActions: [],
@@ -986,6 +992,7 @@ class Engine {
       featureFlags: {
         requireAllowlist,
         allowLocalSnaps,
+        disableSnapInstallation,
       },
       state: initialState.SnapController || undefined,
       // TODO: Replace "any" with type
@@ -1291,7 +1298,7 @@ class Engine {
         getCurrentChainId: () => networkController.state.providerConfig.chainId,
       }),
       loggingController,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       snapController,
       subjectMetadataController,
       ///: END:ONLY_INCLUDE_IF
@@ -1345,7 +1352,8 @@ class Engine {
     for (const controller of controllers) {
       if (
         hasProperty(initialState, controller.name) &&
-        hasProperty(controller, 'subscribe') &&
+        // Use `in` operator here because the `subscribe` function is one level up the prototype chain
+        'subscribe' in controller &&
         controller.subscribe !== undefined
       ) {
         // The following type error can be addressed by passing initial state into controller constructors instead
@@ -1450,7 +1458,6 @@ class Engine {
 
   startPolling() {
     const {
-      NftDetectionController,
       TokenDetectionController,
       TokenListController,
       TransactionController,
@@ -1458,7 +1465,6 @@ class Engine {
     } = this.context;
 
     TokenListController.start();
-    NftDetectionController.start();
     TokenDetectionController.start();
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
@@ -1470,7 +1476,6 @@ class Engine {
       AccountTrackerController,
       AssetsContractController,
       TokenDetectionController,
-      NftDetectionController,
       NetworkController,
       TransactionController,
       SwapsController,
@@ -1492,7 +1497,6 @@ class Engine {
     });
     TransactionController.hub.emit('networkChange');
     TokenDetectionController.detectTokens();
-    NftDetectionController.detectNfts();
     AccountTrackerController.refresh();
   }
 
@@ -1790,7 +1794,7 @@ export default {
       TokensController,
       TokenDetectionController,
       NftDetectionController,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
       ///: END:ONLY_INCLUDE_IF
@@ -1831,7 +1835,7 @@ export default {
       GasFeeController,
       TokenDetectionController,
       NftDetectionController,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
       ///: END:ONLY_INCLUDE_IF

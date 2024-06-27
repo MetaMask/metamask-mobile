@@ -1,35 +1,37 @@
-import React, { PureComponent } from 'react';
+import isUrl from 'is-url';
 import PropTypes from 'prop-types';
+import React, { PureComponent } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
-import Identicon from '../Identicon';
-import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
+import { strings } from '../../../../locales/i18n';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectTicker } from '../../../selectors/networkController';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import { fontStyles } from '../../../styles/common';
+import {
+  getLabelTextByAddress,
   renderAccountName,
   renderShortAddress,
   safeToChecksumAddress,
-  getLabelTextByAddress,
 } from '../../../util/address';
+import Device from '../../../util/device';
+import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   getActiveTabUrl,
   getNormalizedTxState,
   getTicker,
 } from '../../../util/transactions';
-import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { selectTicker } from '../../../selectors/networkController';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectIdentities } from '../../../selectors/preferencesController';
 import ApproveTransactionHeader from '../../Views/confirmations/components/ApproveTransactionHeader';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import Identicon from '../Identicon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -165,11 +167,31 @@ class AccountInfoCard extends PureComponent {
     const dollarBalance = showFiatBalance
       ? weiToFiat(weiBalance, conversionRate, currentCurrency, 2)?.toUpperCase()
       : undefined;
+
+    const sdkConnections = SDKConnect.getInstance().getConnections();
+
+    const currentConnection = sdkConnections[origin ?? ''];
+
+    const isOriginUrl = isUrl(origin);
+
+    const originatorInfo = currentConnection?.originatorInfo;
+
+    const sdkDappMetadata = {
+      url: isOriginUrl ? origin : originatorInfo?.url ?? strings('sdk.unknown'),
+      icon: originatorInfo?.icon,
+    };
+
     return operation === 'signing' && transaction !== undefined ? (
       <ApproveTransactionHeader
-        origin={transaction.origin || origin}
+        origin={
+          (isOriginUrl
+            ? origin
+            : originatorInfo?.url ?? strings('sdk.unknown')) ||
+          transaction.origin
+        }
         url={activeTabUrl}
         from={rawFromAddress}
+        sdkDappMetadata={sdkDappMetadata}
       />
     ) : (
       <View style={styles.accountInformation}>
