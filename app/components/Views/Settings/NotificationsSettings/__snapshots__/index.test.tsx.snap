@@ -69,7 +69,7 @@ exports[`NotificationsSettings should render correctly 1`] = `
       </Text>
       <RCTSwitch
         accessibilityRole="switch"
-        disabled={true}
+        disabled={false}
         onChange={[Function]}
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
