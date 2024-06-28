@@ -1721,6 +1721,9 @@ class Engine {
 
     // Remove all permissions.
     PermissionController?.clearState?.();
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    SnapController?.clearState?.();
+    ///: END:ONLY_INCLUDE_IF
 
     //Clear assets info
     TokensController.update({
