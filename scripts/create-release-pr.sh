@@ -44,4 +44,4 @@ node .github/scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BR
 
 git commit -am "updated changelog and generated feature test plan"
 
-git push "${RELEASE_BRANCH_NAME}"
+git push
