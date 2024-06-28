@@ -6,6 +6,7 @@ import FadeIn from 'react-native-fade-in-image';
 import Jazzicon from 'react-native-jazzicon';
 import { connect } from 'react-redux';
 import { useTheme } from '../../../util/theme';
+import useTokenList from '../../../components/hooks/DisplayName/useTokenList';
 
 interface IdenticonProps {
   /**
@@ -43,23 +44,33 @@ const Identicon: React.FC<IdenticonProps> = ({
   useBlockieIcon = true,
 }) => {
   const { colors } = useTheme();
+  const tokenList = useTokenList();
 
   if (!address) return null;
 
   const uri = useBlockieIcon && toDataUrl(address);
+  const tokenListIconUrl = tokenList[address.toLowerCase()]?.iconUrl;
+
+  const styleForBlockieAndTokenIcon = [
+    {
+      height: diameter,
+      width: diameter,
+      borderRadius: diameter / 2,
+    },
+    customStyle,
+  ];
+
+  if (tokenListIconUrl) {
+    return (
+      <Image
+        source={{ uri: tokenListIconUrl }}
+        style={styleForBlockieAndTokenIcon}
+      />
+    );
+  }
 
   const image = useBlockieIcon ? (
-    <Image
-      source={{ uri }}
-      style={[
-        {
-          height: diameter,
-          width: diameter,
-          borderRadius: diameter / 2,
-        },
-        customStyle,
-      ]}
-    />
+    <Image source={{ uri }} style={styleForBlockieAndTokenIcon} />
   ) : (
     <View style={customStyle}>
       <Jazzicon size={diameter} address={address} />
