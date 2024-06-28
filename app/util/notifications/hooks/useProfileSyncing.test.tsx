@@ -9,10 +9,7 @@ import { Provider } from 'react-redux';
 import createMockStore from 'redux-mock-store';
 import * as Actions from '../../../actions/notification/pushNotifications';
 import initialRootState from '../../../util/test/initial-root-state';
-import {
-  useDisableProfileSyncing,
-  useEnableProfileSyncing,
-} from './useProfileSyncing';
+import { useProfileSyncing } from './useProfileSyncing';
 
 function arrangeStore() {
   const store = createMockStore()(initialRootState);
@@ -35,7 +32,7 @@ describe('useEnableProfileSyncing', () => {
 
   function arrangeHook() {
     const store = arrangeStore();
-    const hook = renderHook(() => useEnableProfileSyncing(), {
+    const hook = renderHook(() => useProfileSyncing(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
@@ -102,7 +99,7 @@ describe('useDisableProfileSyncing', () => {
 
   function arrangeHook() {
     const store = arrangeStore();
-    const hook = renderHook(() => useDisableProfileSyncing(), {
+    const hook = renderHook(() => useProfileSyncing(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
