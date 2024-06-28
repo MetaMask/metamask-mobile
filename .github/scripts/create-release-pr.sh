@@ -34,13 +34,13 @@ git push --set-upstream origin "${RELEASE_BRANCH_NAME}"
 
 gh pr create \
   --draft \
-  --title "${NEW_VERSION}" \
+  --title TESTING "${NEW_VERSION}" \
   --body "${RELEASE_BODY}" \
   --head "${RELEASE_BRANCH_NAME}";
 
-node ./generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
+node .github/scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
 
-./changelog-csv.sh  
+.github/scripts/changelog-csv.sh  
 
 git commit -am "updated changelog and generated feature test plan"
 
