@@ -41,15 +41,8 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-
       - name: Install dependencies
         run: yarn --immutable
-      # - name: Get Node.js version
-      #   id: nvm
-      #   run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
-      # - uses: actions/setup-node@v3
-      #   with:
-      #     node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
       - name: Set Versions
         id: set-versions
         shell: bash
@@ -60,4 +53,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          .github/scripts/create-release-pr.sh ${{ github.event.inputs.previous-version-tag }} ${{ github.event.inputs.semver-version }}
+          .scripts/create-release-pr.sh ${{ github.event.inputs.previous-version-tag }} ${{ github.event.inputs.semver-version }}
