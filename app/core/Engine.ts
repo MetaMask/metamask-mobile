@@ -1716,6 +1716,9 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       PermissionController,
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      SnapController,
+      ///: END:ONLY_INCLUDE_IF
       LoggingController,
     } = this.context;
 
