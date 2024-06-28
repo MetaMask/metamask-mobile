@@ -48,6 +48,9 @@ end
 
 def common_target_logic
 	config = use_native_modules!
+  # https://rnfirebase.io/
+  use_frameworks! :linkage => :static
+  $RNFirebaseAsStaticFramework = true
 
   # Flags change depending on the env values.
   flags = get_default_flags()
@@ -95,7 +98,7 @@ def common_target_logic
    # Comment the next line if you don't want to use dynamic frameworks
   # use_frameworks!
 	pod 'Permission-BluetoothPeripheral', :path => '../node_modules/react-native-permissions/ios/BluetoothPeripheral'
-  pod 'GzipSwift'
+  # pod 'GzipSwift'
 
   # Adding OpenSSL-Universal to fix build issues in react-native-quick-crypto
   # Ref: https://github.com/margelo/react-native-quick-crypto/issues/121
@@ -105,9 +108,6 @@ end
 
 target 'MetaMask' do
   common_target_logic
-  # https://rnfirebase.io/
-  use_frameworks! :linkage => :static
-  $RNFirebaseAsStaticFramework = true
 end
 
 target 'MetaMask-QA' do
