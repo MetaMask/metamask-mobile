@@ -13,8 +13,7 @@ const {
   AuthenticationController,
   UserStorageController,
   NotificationServicesController,
-}: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-any = Engine.context;
+} = Engine.context;
 
 type ThunkDispatchReturn = ThunkAction<
   Promise<string | undefined>,
@@ -29,7 +28,7 @@ type MarkAsReadNotificationsParam = Pick<
 
 export const signIn = (): ThunkDispatchReturn => async (dispatch: Dispatch) => {
   try {
-    const { accessToken } = await AuthenticationController.performSignIn();
+    const accessToken = await AuthenticationController.performSignIn();
     if (!accessToken) {
       return getErrorMessage(notificationsErrors.PERFORM_SIGN_IN);
     }
@@ -181,18 +180,9 @@ export const setSnapNotificationsEnabled =
   (snapNotificationsEnabled: boolean): ThunkDispatchReturn =>
   async (dispatch: Dispatch) => {
     try {
-      const { result } =
-        await NotificationServicesController.setSnapNotificationsEnabled(
-          snapNotificationsEnabled,
-        );
-      if (!result.ok) {
-        return getErrorMessage(
-          notificationsErrors.SET_SNAP_NOTIFICATIONS_ENABLED,
-        );
-      }
       dispatch({
         type: notificationsAction.SET_SNAP_NOTIFICATIONS_ENABLED,
-        payload: { result },
+        payload: { result: snapNotificationsEnabled },
       });
     } catch (error) {
       return getErrorMessage(error);
@@ -201,7 +191,6 @@ export const setSnapNotificationsEnabled =
 export const setMetamaskNotificationsFeatureSeen =
   (): ThunkDispatchReturn => async (dispatch: Dispatch) => {
     try {
-      await NotificationServicesController.setMetamaskNotificationsFeatureSeen();
       dispatch({
         type: notificationsAction.SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN,
       });
@@ -212,7 +201,7 @@ export const setMetamaskNotificationsFeatureSeen =
 export const fetchAndUpdateMetamaskNotifications =
   (): ThunkDispatchReturn => async (dispatch: Dispatch) => {
     try {
-      const { metamaskNotifications } =
+      const metamaskNotifications =
         await NotificationServicesController.fetchAndUpdateMetamaskNotifications();
       if (!metamaskNotifications) {
         return getErrorMessage(
