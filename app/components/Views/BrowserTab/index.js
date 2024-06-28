@@ -248,6 +248,15 @@ const createStyles = (colors, shadows) =>
       right: 16,
       borderRadius: 4,
     },
+    blockingView: {
+      backgroundColor: colors.primary.inverse,
+      justifyContent: 'center',
+      position: 'absolute',
+      height: '100%',
+      width: '100%',
+      opacity: 0.85,
+      zIndex: 1,
+    },
   });
 
 const sessionENSNames = {};
@@ -267,6 +276,7 @@ export const BrowserTab = (props) => {
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
   const [pageIsLoaded, setPageIsLoaded] = useState(true);
+  const pulseOpacity = useRef(new Animated.Value(0.5)).current;
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
@@ -1164,30 +1174,28 @@ export const BrowserTab = (props) => {
     allowList.current = props.whitelist;
   };
 
-  const opacity = useRef(new Animated.Value(0.5)).current;
-
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(opacity, {
+        Animated.timing(pulseOpacity, {
           toValue: 1,
           duration: 700,
           useNativeDriver: true,
         }),
-        Animated.timing(opacity, {
+        Animated.timing(pulseOpacity, {
           toValue: 0.4,
           duration: 700,
           useNativeDriver: true,
         }),
       ]),
     ).start();
-  }, [opacity]);
+  }, [pulseOpacity]);
 
   const progressBarPulseContainer = () => (
     <Animated.View
       style={{
         zIndex: 2,
-        opacity,
+        opacity: pulseOpacity,
       }}
     >
       {renderProgressBar()}
@@ -1536,18 +1544,7 @@ export const BrowserTab = (props) => {
       >
         <View style={styles.webview}>
           {progressBarPulseContainer()}
-          {!pageIsLoaded ? (
-            <View
-              style={{
-                justifyContent: 'center',
-                height: '100%',
-                backgroundColor: '#000000dd',
-                zIndex: 1,
-                position: 'absolute',
-                width: '100%',
-              }}
-            />
-          ) : null}
+          {!pageIsLoaded && <View style={styles.blockingView} />}
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <>
               <WebView
