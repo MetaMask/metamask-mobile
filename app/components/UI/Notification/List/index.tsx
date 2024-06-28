@@ -92,8 +92,14 @@ const Notifications = ({
     (notification) => {
       const hasActions =
         !!notification.data?.link || !!notification.data?.action;
+      const rowDetails = getRowDetails(notification);
+
+      if (!rowDetails) {
+        return null;
+      }
+
       const { title, description, badgeIcon, createdAt, imageUrl, value } =
-        getRowDetails(notification)?.row || {};
+        rowDetails.row;
       return (
         <NotificationRow.Root
           handleOnPress={() => onPress(notification)}

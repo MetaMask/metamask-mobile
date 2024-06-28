@@ -23,7 +23,7 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
   selectIsMetamaskNotificationsEnabled,
-  selectNotificationsList,
+  getNotificationsList,
 } from '../../../selectors/pushNotifications';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 
@@ -49,7 +49,7 @@ const NotificationsView = ({
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
-  const notifications = useSelector(selectNotificationsList);
+  const notifications = useSelector(getNotificationsList);
 
   /**
    * Defines local state for notifications
