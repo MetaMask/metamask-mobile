@@ -12,10 +12,19 @@ const svgTransformer = require('react-native-svg-transformer');
 
 // Code fence removal variables
 const fileExtsToScan = ['.js', '.jsx', '.cjs', '.mjs', '.ts', '.tsx'];
-const availableFeatures = new Set(['flask', 'snaps', 'beta']);
+const availableFeatures = new Set([
+  'flask',
+  'preinstalled-snaps',
+  'external-snaps',
+  'beta',
+]);
 
-const mainFeatureSet = new Set([]);
-const flaskFeatureSet = new Set(['flask', 'snaps']);
+const mainFeatureSet = new Set(['preinstalled-snaps']);
+const flaskFeatureSet = new Set([
+  'flask',
+  'preinstalled-snaps',
+  'external-snaps',
+]);
 
 /**
  * Gets the features for the current build type, used to determine which code

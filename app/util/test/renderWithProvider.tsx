@@ -53,6 +53,8 @@ export function renderScreen(
     options?: StackNavigationOptions;
   },
   providerValues?: ProviderValues,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialParams: Record<string, any> = {},
 ) {
   const Stack = createStackNavigator();

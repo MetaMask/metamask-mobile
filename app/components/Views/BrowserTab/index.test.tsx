@@ -4,11 +4,15 @@ import { BrowserTab } from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockInitialState = {
   browser: { activeTab: '' },
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    },
   },
   transaction: {
     selectedAsset: '',

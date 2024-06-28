@@ -308,6 +308,8 @@ describe('SmartTransactionStatus', () => {
               smartTransaction: {
                 ...PENDING_APPROVALS.Send.pending.requestState.smartTransaction,
                 creationTime: Date.now(),
+                // TODO: Replace "any" with type
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
               } as any,
               isDapp: PENDING_APPROVALS.Send.pending.requestState.isDapp,
               isInSwapFlow:
@@ -332,6 +334,8 @@ describe('SmartTransactionStatus', () => {
                 ...PENDING_APPROVALS.Send.pending.requestState.smartTransaction,
                 creationTime:
                   Date.now() - (FALLBACK_STX_ESTIMATED_DEADLINE_SEC + 1) * 1000,
+                // TODO: Replace "any" with type
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
               } as any,
               isDapp: PENDING_APPROVALS.Send.pending.requestState.isDapp,
               isInSwapFlow:
@@ -356,6 +360,8 @@ describe('SmartTransactionStatus', () => {
       it('should render success when STX has success status', () => {
         const { getByText } = renderWithProvider(
           <SmartTransactionStatus
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             requestState={PENDING_APPROVALS.Send.success.requestState as any}
             origin={PENDING_APPROVALS.Send.success.origin}
             onConfirm={jest.fn()}
@@ -373,6 +379,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Activity page on press of primary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
+              // TODO: Replace "any" with type
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               requestState={PENDING_APPROVALS.Dapp.success.requestState as any}
               origin={PENDING_APPROVALS.Dapp.success.origin}
               onConfirm={jest.fn()}
@@ -390,6 +398,8 @@ describe('SmartTransactionStatus', () => {
           const onConfirm = jest.fn();
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
+              // TODO: Replace "any" with type
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               requestState={PENDING_APPROVALS.Dapp.success.requestState as any}
               origin={PENDING_APPROVALS.Dapp.success.origin}
               onConfirm={onConfirm}
@@ -412,6 +422,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Send page on press of primary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
+              // TODO: Replace "any" with type
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               requestState={PENDING_APPROVALS.Send.success.requestState as any}
               origin={PENDING_APPROVALS.Send.success.origin}
               onConfirm={jest.fn()}
@@ -430,6 +442,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
+              // TODO: Replace "any" with type
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               requestState={PENDING_APPROVALS.Send.success.requestState as any}
               origin={PENDING_APPROVALS.Send.success.origin}
               onConfirm={jest.fn()}
@@ -449,6 +463,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Swaps page on press of primary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
+              // TODO: Replace "any" with type
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               requestState={PENDING_APPROVALS.Swap.success.requestState as any}
               origin={PENDING_APPROVALS.Swap.success.origin}
               onConfirm={jest.fn()}
@@ -467,6 +483,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
+              // TODO: Replace "any" with type
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               requestState={PENDING_APPROVALS.Swap.success.requestState as any}
               origin={PENDING_APPROVALS.Swap.success.origin}
               onConfirm={jest.fn()}
@@ -487,6 +505,8 @@ describe('SmartTransactionStatus', () => {
       it('should render cancelled when STX has cancelled status', () => {
         const { getByText } = renderWithProvider(
           <SmartTransactionStatus
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             requestState={PENDING_APPROVALS.Send.cancelled.requestState as any}
             origin={PENDING_APPROVALS.Send.cancelled.origin}
             onConfirm={jest.fn()}
@@ -506,6 +526,8 @@ describe('SmartTransactionStatus', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
               requestState={
+                // TODO: Replace "any" with type
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 PENDING_APPROVALS.Dapp.cancelled.requestState as any
               }
               origin={PENDING_APPROVALS.Dapp.cancelled.origin}
@@ -529,6 +551,8 @@ describe('SmartTransactionStatus', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
               requestState={
+                // TODO: Replace "any" with type
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 PENDING_APPROVALS.Send.cancelled.requestState as any
               }
               origin={PENDING_APPROVALS.Send.cancelled.origin}
@@ -547,6 +571,8 @@ describe('SmartTransactionStatus', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
               requestState={
+                // TODO: Replace "any" with type
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 PENDING_APPROVALS.Send.cancelled.requestState as any
               }
               origin={PENDING_APPROVALS.Send.cancelled.origin}
@@ -567,6 +593,8 @@ describe('SmartTransactionStatus', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
               requestState={
+                // TODO: Replace "any" with type
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 PENDING_APPROVALS.Swap.cancelled.requestState as any
               }
               origin={PENDING_APPROVALS.Swap.cancelled.origin}
@@ -585,6 +613,8 @@ describe('SmartTransactionStatus', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
               requestState={
+                // TODO: Replace "any" with type
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 PENDING_APPROVALS.Swap.cancelled.requestState as any
               }
               origin={PENDING_APPROVALS.Swap.cancelled.origin}
@@ -606,6 +636,8 @@ describe('SmartTransactionStatus', () => {
       it('should render failed when STX has unknown status', () => {
         const { getByText } = renderWithProvider(
           <SmartTransactionStatus
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             requestState={PENDING_APPROVALS.Send.unknown.requestState as any}
             origin={PENDING_APPROVALS.Send.unknown.origin}
             onConfirm={jest.fn()}
@@ -624,6 +656,8 @@ describe('SmartTransactionStatus', () => {
           const onConfirm = jest.fn();
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
+              // TODO: Replace "any" with type
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               requestState={PENDING_APPROVALS.Dapp.unknown.requestState as any}
               origin={PENDING_APPROVALS.Dapp.unknown.origin}
               onConfirm={onConfirm}
@@ -646,6 +680,8 @@ describe('SmartTransactionStatus', () => {
           const onConfirm = jest.fn();
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
+              // TODO: Replace "any" with type
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               requestState={PENDING_APPROVALS.Send.unknown.requestState as any}
               origin={PENDING_APPROVALS.Send.unknown.origin}
               onConfirm={onConfirm}
@@ -663,6 +699,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
+              // TODO: Replace "any" with type
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               requestState={PENDING_APPROVALS.Send.unknown.requestState as any}
               origin={PENDING_APPROVALS.Send.unknown.origin}
               onConfirm={jest.fn()}
@@ -682,6 +720,8 @@ describe('SmartTransactionStatus', () => {
           const onConfirm = jest.fn();
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
+              // TODO: Replace "any" with type
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               requestState={PENDING_APPROVALS.Swap.unknown.requestState as any}
               origin={PENDING_APPROVALS.Swap.unknown.origin}
               onConfirm={onConfirm}
@@ -699,6 +739,8 @@ describe('SmartTransactionStatus', () => {
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
+              // TODO: Replace "any" with type
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               requestState={PENDING_APPROVALS.Swap.unknown.requestState as any}
               origin={PENDING_APPROVALS.Swap.unknown.origin}
               onConfirm={jest.fn()}

@@ -21,6 +21,8 @@ import Icon, {
 interface NotificationRootProps
   extends Pick<PanGestureHandlerProps, 'simultaneousHandlers'> {
   children: React.ReactNode;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: StyleSheet.NamedStyles<any>;
   handleOnPress: () => void;
   onDismiss?: () => void;

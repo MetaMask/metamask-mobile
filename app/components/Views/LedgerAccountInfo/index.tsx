@@ -34,6 +34,8 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import type LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
@@ -89,12 +91,18 @@ const LedgerAccountInfo = () => {
     ledgerDeviceLightImage,
     ledgerDeviceDarkImage,
   );
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { AccountTrackerController } = Engine.context as any;
   const provider = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) =>
       state.engine.backgroundState.NetworkController.providerConfig,
   );
   const frequentRpcList = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );

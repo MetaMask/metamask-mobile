@@ -3,6 +3,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Asset from './';
 import Engine from '../../../core/Engine';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockedEngine = Engine;
 
@@ -10,21 +11,35 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
 
-jest.mock('../../../core/Engine.ts', () => ({
-  init: () => mockedEngine.init({}),
-  context: {
-    KeyringController: {
-      getOrAddQRKeyring: async () => ({ subscribe: () => ({}) }),
+jest.mock('../../../core/Engine.ts', () => {
+  const {
+    MOCK_ADDRESS_1,
+  } = require('../../../util/test/accountsControllerTestUtils');
+
+  return {
+    init: () => mockedEngine.init({}),
+    context: {
+      KeyringController: {
+        getOrAddQRKeyring: async () => ({ subscribe: () => ({}) }),
+        state: {
+          keyrings: [
+            {
+              accounts: [MOCK_ADDRESS_1],
+            },
+          ],
+        },
+      },
     },
-  },
-  controllerMessenger: {
-    subscribe: jest.fn(),
-  },
-}));
+    controllerMessenger: {
+      subscribe: jest.fn(),
+    },
+  };
+});
 
 describe('Asset', () => {
   it('should render correctly', () => {

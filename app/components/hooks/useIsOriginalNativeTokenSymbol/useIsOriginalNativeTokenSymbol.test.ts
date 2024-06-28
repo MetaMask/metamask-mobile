@@ -14,6 +14,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     jest.clearAllMocks();
   });
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockSelectorState = (state: any) => {
     (useSelector as jest.MockedFn<typeof useSelector>).mockImplementation(
       (selector) => selector(state),
@@ -48,6 +50,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       }),
     );
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {
@@ -89,6 +93,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       }),
     );
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {
@@ -119,6 +125,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       throw new Error('error');
     });
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {
@@ -161,6 +169,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       }),
     );
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {
@@ -203,6 +213,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       }),
     );
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {
@@ -246,6 +258,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       }),
     );
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {
@@ -287,6 +301,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       }),
     );
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {

@@ -27,6 +27,8 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 import type LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyle = (colors: any) =>
   StyleSheet.create({
     screen: { justifyContent: 'center' },
@@ -126,6 +128,8 @@ const SelectHardwareWallet = () => {
     }
   };
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderHardwareButton = (image: any, onPress: any) => (
     <TouchableOpacity onPress={onPress} style={styles.hardwareButton}>
       <Image style={styles.image} source={image} resizeMode={'contain'} />

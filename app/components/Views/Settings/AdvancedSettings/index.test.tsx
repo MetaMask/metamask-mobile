@@ -10,9 +10,15 @@ import Device from '../../../../util/device';
 
 const originalFetch = global.fetch;
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let initialState: any;
 const mockNavigate = jest.fn();
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockSetDisabledRpcMethodPreference: jest.Mock<any, any>;
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockSetSmartTransactionsOptInStatus: jest.Mock<any, any>;
 
 beforeEach(() => {

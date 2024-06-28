@@ -47,6 +47,8 @@ export const isBlockaidFeatureEnabled = () =>
 export const getBlockaidMetricsParams = (
   securityAlertResponse?: SecurityAlertResponse,
 ) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const additionalParams: Record<string, any> = {};
 
   if (
@@ -54,11 +56,12 @@ export const getBlockaidMetricsParams = (
     isBlockaidFeatureEnabled() &&
     isBlockaidSupportedOnCurrentChain()
   ) {
-    const { result_type, reason, providerRequestsCount } =
+    const { result_type, reason, providerRequestsCount, source } =
       securityAlertResponse;
 
     additionalParams.security_alert_response = result_type;
     additionalParams.security_alert_reason = reason;
+    additionalParams.security_alert_source = source;
 
     if (result_type === ResultType.Malicious) {
       additionalParams.ui_customizations = ['flagged_as_malicious'];
