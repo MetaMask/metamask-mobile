@@ -2,6 +2,214 @@
 
 ## Current Main Branch
 
+## <Enter Release Number> - <Date>
+
+### Added
+- [#](): feat: add api spec test infrastructure (#9356)
+- [#](): feat: adding search to the network bottomsheet as part of the networks management UI redesign  (#9961)
+- [#](): feat:  Log the validity of the keyringController in the top 3 Migrations that appear in Sentry (#9785)
+- [#](): feat: modification of the network bottom sheet to use the new UI redesign by adding the popular network section as additional network (#9937)
+- [#](): feat: add set approve for all screen (#9888)
+- [#](): feat: add increase allowance screen (#9794)
+- [#](): feat: 7.24.1 (#9945)
+- [#](): feat: remove selectSelectedAddress in favour of selectSelectedInternalAccount (#9070)
+- [#](): feat: enable transaction simulations (#9828)
+- [#](): feat: updated design-tokens to v4 (#9845)
+- [#](): feat: Feat/9492 add unsupported method and legacy method middlewares (#9885)
+- [#](): feat: notifications details screen (#9473)
+- [#](): feat: v7.24.0 (#9788)
+- [#](): feat: release-7.24.0 RC-2 cut build increment (#9907)
+- [#](): feat(pr template + readme): add link to contributor docs (#9884)
+- [#](): feat: add transaction simulations preference (#9648)
+- [#](): feat: add transaction simulation metrics (#9783)
+- [#](): feat: new attribution github workflow (#9856)
+- [#](): feat: added design tokens eslint rules to mobile (#9653)
+- [#](): "feat: adds ""data collection for marketing"" toggles (#9687)"
+- [#](): feat: Metrics/1803 emit error viewed event (#9743)
+- [#](): feat: add fiat support to simulations (#9793)
+- [#](): feat: add MetaMetrics delete on Wallet delete (#9768)
+- [#](): feat: v7.23.0 (#9613)
+- [#](): feat: add SimulationDetails component (#9410)
+- [#10000](https://github.com/MetaMask/metamask-mobile/pull/10000): feat: support security alerts API (#10000)
+- [#10039](https://github.com/MetaMask/metamask-mobile/pull/10039): feat: enable transaction simulations (#10039)
+- [#10143](https://github.com/MetaMask/metamask-mobile/pull/10143): "chore: Revert ""feat: Integrate Firebase libraries and initial config to enable Push Notifications FCM."" (#10143)"
+- [#10040](https://github.com/MetaMask/metamask-mobile/pull/10040): feat: edit networks UI redesign (#10040)
+- [#10120](https://github.com/MetaMask/metamask-mobile/pull/10120): feat: add i18n to for the add/edit network ui re-design (#10120)
+- [#10094](https://github.com/MetaMask/metamask-mobile/pull/10094): feat: 7.24.4 (#10094)
+- [#10014](https://github.com/MetaMask/metamask-mobile/pull/10014): feat: v7.24.2 (#10014)
+- [#10023](https://github.com/MetaMask/metamask-mobile/pull/10023): feat: Feat/1673 bug report (#10023)
+- [#10112](https://github.com/MetaMask/metamask-mobile/pull/10112): "feat: Add the ""is_smart_transaction"" prop for the ""Swap Started"" event (#10112)"
+- [#10086](https://github.com/MetaMask/metamask-mobile/pull/10086): feat: Add team label to pr (#10086)
+
+### Changed
+- [#](): set the base branch to test for RC cut
+- [#](): moved create release scripts to .github and edited for testing
+- [#](): chore: fix the incorrect URL displayed during transaction confirmation (#9914)
+- [#](): chore: Add Notification devs to codeowners file (#9811)
+- [#](): test: add E2E for increase allowance (#9969)
+- [#](): chore: Update accounts controller v14 (#9779)
+- [#](): chore: New Crowdin translations by Github Action (#9777)
+- [#](): chore: add typescript fitness function (#9960)
+- [#](): fix: hide amount in simulations for testnets if its opt out (#9918)
+- [#](): chore: update code owners (#9952)
+- [#](): test: 1454 refactor modal pages batch 4 (#9915)
+- [#](): test: marketing optin date trigger testing. (#9998)
+- [#](): fix upgrade test version
+- [#](): test: fix `TransactionReview` snapshots (#9986)
+- [#](): test: comment out flaky test from `encryption-with-key` (#9965)
+- [#](): test: fix snapshots from `AesCryptoTestForm` (#9964)
+- [#](): test: AES module E2E tests (#9898)
+- [#](): chore: add SmokeAccounts E2E tag (#9949)
+- [#](): refactor: updated cellbase to allow size changes (#9942)
+- [#](): "chore: Revert ""chore: fitness quality gate to only allow TS & TSX files in app directory"" (#9941)"
+- [#](): chore: Update signature controller to v16 (#9913)
+- [#](): refactor: replace secondary colors with warning colors (#9922)
+- [#](): chore: fitness quality gate to only allow TS & TSX files in app directory (#9723)
+- [#](): chore: Resolve braces package to address audit issue (#9926)
+- [#](): chore: remove update-attributions.yml (#9920)
+- [#](): chore: upgrade snaps-controller and adapts its usage (#9718)
+- [#](): chore: align ButtonIcons with design (#9899)
+- [#](): fix: upgrade test failure fix for 7.24.0 release branch (#9903)
+- [#](): chore: Update Preferences Controller v^11 (#9814)
+- [#](): test: import tokens detected (#9714)
+- [#](): chore: update gas fee controller to 15.1.2 (#9693)
+- [#](): chore: add source to setup script (#9868)
+- [#](): fix: contributor docs link is not correct in pr template (#9893)
+- [#](): chore: update the 'CODEOWNERS' file to include directories relevant to the 'sdk-devs' team (#9234)
+- [#](): test: Update Browserstack url as old link deprecated (#9886)
+- [#](): chore: Update ppom package to 1.4.7 (#9883)
+- [#](): refactor: update brandColors to be imported from design system (#9875)
+- [#](): chore: commit changes to project.pgxproj caused by known issue in xcode 15 (#9866)
+- [#](): chore: swap view crash fetching quotes (#9865)
+- [#](): "chore: Revert ""fix: swaps quote nan to bnjs (#9848)"" (#9863)"
+- [#](): test: fix Assertion only working on IOS (#9852)
+- [#](): Fix/release testing issues (#9847)
+- [#](): chore: Update `@metamask/keyring-controller` to v16 (#9570)
+- [#](): test: E2e Regression failure fix (#9838)
+- [#](): fix: confirmations failing ci tests (#9844)
+- [#](): fix: Fix audit ci (#9831)
+- [#](): chore: Upgrade address-book-controller (#9805)
+- [#](): chore(ci): update @rhysd/actionlint to 1.7.1 (#9790)
+- [#](): chore: merge 7.23.0 tag (#9809)
+- [#](): chore: Fix CocoaPods install on Linux (#9545)
+- [#10041](https://github.com/MetaMask/metamask-mobile/pull/10041): chore: Update ppom package to 1.4.8 (#10041)
+- [#10164](https://github.com/MetaMask/metamask-mobile/pull/10164): fix: Stop running fencing logic on `node_modules` (#10164)
+- [#10063](https://github.com/MetaMask/metamask-mobile/pull/10063): chore: Refactor Snaps integration (#10063)
+- [#10067](https://github.com/MetaMask/metamask-mobile/pull/10067): chore: add smokeAssets e2e tag (#10067)
+- [#10146](https://github.com/MetaMask/metamask-mobile/pull/10146): fix: add API Spec Tests section in testing.md (#10146)
+- [#10134](https://github.com/MetaMask/metamask-mobile/pull/10134): test: disable privacy policy toast and whats new modal using fixtures (#10134)
+- [#10128](https://github.com/MetaMask/metamask-mobile/pull/10128): refactor: update bitrise e2e check to not run on forks (#10128)
+- [#10097](https://github.com/MetaMask/metamask-mobile/pull/10097): chore: resolve conflicts for ws audit (#10097)
+- [#10070](https://github.com/MetaMask/metamask-mobile/pull/10070): chore: update attribution (#10070)
+- [#10055](https://github.com/MetaMask/metamask-mobile/pull/10055): test: Fix detox test run inconsistencies (#10055)
+- [#10048](https://github.com/MetaMask/metamask-mobile/pull/10048): chore: Chore/9924 - Enable `@typescript-eslint/no-explicit-any` as error rule (#10048)
+- [#10044](https://github.com/MetaMask/metamask-mobile/pull/10044): chore: Patch GasFeeController to revert API URL (#10044)
+- [#10047](https://github.com/MetaMask/metamask-mobile/pull/10047): chore: Chore/update 7.24.3 changelog (#10047)
+- [#10021](https://github.com/MetaMask/metamask-mobile/pull/10021): test: fix failing e2e tests because of marketing consent sheet  (#10021)
+- [#10013](https://github.com/MetaMask/metamask-mobile/pull/10013): chore: merge 7.24.1 into 7.24.2 (#10013)
+- [#10012](https://github.com/MetaMask/metamask-mobile/pull/10012): chore: revert data change PR for marketing toggle #9998 (#10012)
+
+### Fixed
+- [#](): fix paths and PR text
+- [#](): fix paths
+- [#](): fix deps for action
+- [#](): fix PR create msg
+- [#](): fix path
+- [#](): fix: create nft auto detection modal and remove nft polling logic (#9857)
+- [#10102](https://github.com/MetaMask/metamask-mobile/pull/10102): fix: stx on ramps missing origin (#10099) (#10102)
+- [#10095](https://github.com/MetaMask/metamask-mobile/pull/10095): fix: Swap with unapproved token (#10088) (#10095)
+- [#](): fix: improve message display for typed sign messages (#9795)
+- [#](): fix: deeplink is not opening the site in the inapp-browser when the wallet is locked (#9843)
+- [#](): fix: flakey CI asdf node version (#9934)
+- [#](): fix: Fix/re order internal accounts (#9993)
+- [#](): fix: new locales (#9999)
+- [#](): fix: error 'Invalid character in NaN' while gas editing (#9970)
+- [#](): fix: fixed snapshots (#9991)
+- [#](): "fix: ""data collection for marketing"" from PR #9687 (#9905)"
+- [#](): fix: add migration to fix engine does not exist and (#9980)
+- [#](): fix: migration 43 stringify to type of (#9982)
+- [#](): fix(ramp): memoize asset before passing it to balance hook (#9968) (#9974)
+- [#](): fix(ramp): memoize asset before passing it to balance hook (#9968)
+- [#](): fix: Duplicate accounts  (#9943)
+- [#](): fix: Update help center URLs (#9946)
+- [#](): fix: edit account name screen display incorrect account name (#9882)
+- [#](): fix: Update PPOM controller to fix handling of HTTP status codes (#9902)
+- [#](): fix: add migration for linea goerli (#9826)
+- [#](): fix: @metamask/swaps-controller v6 -> v9 (#9584)
+- [#](): fix: Update bitrise.yml with correct Browserstack url (#9894)
+- [#](): fix: only remove SES from exception if exception exists (#9867)
+- [#](): fix: bug report template - remove reference to recordit (#9891)
+- [#](): fix: Update Browserstack url as old link deprecated (#9887)
+- [#](): fix: update patch for updateNftMetadata fct (#9876)
+- [#](): fix: yarn deduplicate release/7.24.0 to fix dupe in #9864  (#9870)
+- [#](): fix: error validating wallet connect signature with security provider (#9842)
+- [#](): fix: Cherry pick of e2e fixes from main (#9869)
+- [#](): fix: Undefined balance when fetching from chain (#9855)
+- [#](): fix: swaps quote nan to bnjs (#9848)
+- [#](): fix: remove unecessary calls to third party apis (#9759)
+- [#](): fix: display the DApp URL in connect screen for MetaMask IOS-SDK (#9755)
+- [#](): fix: main token balance not updating when switching accounts (#9812)
+- [#](): fix: update Delete MetaMetrics Data copy to 30 days (#9674)
+- [#](): fix: Add .e2e as part of the setup script (#9819)
+- [#](): fix: render images of networks removed from popularNetwork list (#9746)
+- [#](): fix: Update Basic Functionality settings description.json (#9781)
+- [#](): "fix: JS ""pseudo protocol"" works when pasted on mobile browser (#9763)"
+- [#](): fix: Disable segment in E2E mode (#9791)
+- [#10142](https://github.com/MetaMask/metamask-mobile/pull/10142): fix: memoize token list (#10142)
+- [#10049](https://github.com/MetaMask/metamask-mobile/pull/10049): fix: fix stuck after `nonce too low` error (#10049)
+- [#10135](https://github.com/MetaMask/metamask-mobile/pull/10135): fix: fix checksum address for balance check (#10135)
+- [#10122](https://github.com/MetaMask/metamask-mobile/pull/10122): fix: updated changelog for 7.24.4 (#10122)
+- [#10034](https://github.com/MetaMask/metamask-mobile/pull/10034): fix: Auto capitalize letter to none to have the same behaviour as the password field on create new wallet flow (#10034)
+- [#10002](https://github.com/MetaMask/metamask-mobile/pull/10002): fix: synchronize account name (#10002)
+- [#10096](https://github.com/MetaMask/metamask-mobile/pull/10096): Cherry pick: fix: Always mark the STX Opt In modal as seen (#10064) (#10096)
+- [#10064](https://github.com/MetaMask/metamask-mobile/pull/10064): fix: Always mark the STX Opt In modal as seen (#10064)
+- [#10033](https://github.com/MetaMask/metamask-mobile/pull/10033): fix: swap completed event not firing (#10033)
+
+### Other
+- [#](): 7.26.2
+- [#](): moved script files
+- [#](): updated script to take in args
+- [#](): added scripts to auto generate changelogs
+- [#](): bump build version for RC 2
+- [#](): 7.24.4
+- [#](): 7.24.3
+- [#](): update changelog
+- [#](): resovled coflicts
+- [#](): chore: cherry-pick #9687 (#9987)
+- [#](): 7.24.2
+- [#](): "Revert ""chore: cherry-pick #9687"" (#9981)"
+- [#](): bump version 1342 RC 2
+- [#tommasini](tommasini): "fix: Engine does not exist
+- [#](): bump version code 1340 RC 1
+- [#](): fix: cherry pick Duplicate accounts fix (#9943) (#9963)
+- [#](): chore(deps): bump rexml from 3.2.6 to 3.2.8 in the bundler group across 1 directory (#9659)
+- [#](): chore: cherry-pick #9926 (#9967)
+- [#](): chore: cherry-pick #9946 (#9959)
+- [#](): chore: cherry-pick #9687 (#9948)
+- [#](): 7.24.1
+- [#](): chore: cherry-pick #9867 (#9892)
+- [#](): fix: Release/7.24.0 cherry missing chain (#9872)
+- [#Daniel](Daniel): "Cherry-pick: feat: Add the ""Manage in settings"" link for the STX Opt In modal
+- [#Daniel](Daniel): "feat: Add the ""Manage in settings"" link for the STX Opt In modal
+- [#](): chore: cherry-pick #9755 (#9846)
+- [#](): fix: cherry-pick balance issue (#9835)
+- [#](): chore: cherry-pick #9831 (#9837)
+- [#](): chore: cherry-pick #9674 (#9822)
+- [#](): chore: cherry-pick #9781 (#9806)
+- [#](): updated changelog
+- [#](): 7.24.0
+- [#10045](https://github.com/MetaMask/metamask-mobile/pull/10045): chore: Chore/cherry pick ppom 1.4.8 (#10041) (#10045)
+- [#EtherWizard33](EtherWizard33): "feat: adjusting the 'add network screen' in network bottom sheet
+- [#10085](https://github.com/MetaMask/metamask-mobile/pull/10085): feat: Integrate Firebase libraries and initial config to enable Push Notifications FCM. (#10085)
+- [#10133](https://github.com/MetaMask/metamask-mobile/pull/10133): fix: Fix BaseControllerV1 state rehydration (#10133)
+- [#10121](https://github.com/MetaMask/metamask-mobile/pull/10121): feat: enables snaps feature flag on mobile (#10121)
+- [#10125](https://github.com/MetaMask/metamask-mobile/pull/10125): chore: Update create-cherry-pick-pr.sh to auto add label (#10125)
+- [#10043](https://github.com/MetaMask/metamask-mobile/pull/10043): 7.24.3 (#10043)
+- [#10010](https://github.com/MetaMask/metamask-mobile/pull/10010): chore: bump 1347 RC 2 (#10010)
+- [#10099](https://github.com/MetaMask/metamask-mobile/pull/10099): fix: stx on ramps missing origin (#10099)
+- [#10088](https://github.com/MetaMask/metamask-mobile/pull/10088): fix: Swap with unapproved token (#10088)
+
+
 ## 7.24.4 - Jun 25, 2024
 ### Fixed
 - [10064](https://github.com/MetaMask/metamask-mobile/pull/10064) fix: Always mark the STX Opt In modal as seen
