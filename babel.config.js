@@ -12,6 +12,14 @@ module.exports = {
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
     {
+      test: './node_modules/@metamask/profile-sync-controller',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
+    {
+      test: './node_modules/@metamask/notification-services-controller',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
+    {
       test: './node_modules/@metamask-previews/profile-sync-controller',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
