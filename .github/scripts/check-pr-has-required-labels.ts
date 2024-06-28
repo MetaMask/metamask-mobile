@@ -79,7 +79,6 @@ async function main(): Promise<void> {
     errorMessage += 'No team labels found on the PR. ';
   }
   
-  let errorMessage = '';
   if (!hasQALabel) {
     errorMessage += 'No \'Run E2E Smoke\' or \'No QA Needed/E2E Only\' label';
   }
