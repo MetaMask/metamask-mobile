@@ -251,7 +251,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     return (
       <Pressable
         onPress={onStakeButtonPress}
-        {...generateTestId(Platform, STAKE_BUTTON)}
+        testID={WalletViewSelectorsIDs.STAKE_BUTTON}
         style={styles.stakeButton}
       >
         <Text variant={TextVariant.BodyLGMedium}>
