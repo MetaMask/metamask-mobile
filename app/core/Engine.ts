@@ -1020,6 +1020,11 @@ class Engine {
         ],
         allowedEvents: [],
       }),
+      metametrics: {
+        agent: 'mobile',
+        getMetaMetricsId: async () =>
+          MetaMetrics.getInstance().getMetaMetricsId(),
+      },
     });
 
     const userStorageController = new UserStorageController.Controller({
