@@ -1,9 +1,6 @@
 import migrate from './042';
 import { captureException } from '@sentry/react-native';
-import {
-  AccountsControllerState,
-  getUUIDFromAddressOfNormalAccount,
-} from '@metamask/accounts-controller';
+import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { EthMethod } from '@metamask/keyring-api';
 
@@ -24,9 +21,7 @@ const expectedId3 = getUUIDFromAddressOfNormalAccount(MOCK_LOWERCASE_ADDRESS_3);
 const expectedId4 = getUUIDFromAddressOfNormalAccount(MOCK_LOWERCASE_ADDRESS_4);
 const expectedId5 = getUUIDFromAddressOfNormalAccount(MOCK_LOWERCASE_ADDRESS_5);
 
-function createMockAccountsControllerState(
-  selectedAccount = 'id1',
-): AccountsControllerState {
+function createMockAccountsControllerState(selectedAccount = 'id1') {
   return {
     internalAccounts: {
       accounts: {
@@ -427,7 +422,7 @@ describe('Migration #042', () => {
   });
 
   it('should handle cases with no duplicates correctly', () => {
-    const uniqueState: AccountsControllerState = {
+    const uniqueState = {
       internalAccounts: {
         accounts: {
           unique1: {

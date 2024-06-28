@@ -68,10 +68,12 @@ const initialState = {
         ],
       },
       TokenRatesController: {
-        contractExchangeRates: {
-          '0x0': 0.005,
-          '0x01': 0.005,
-          '0x02': 0.005,
+        marketData: {
+          '0x1': {
+            '0x0': { price: 0.005 },
+            '0x01': { price: 0.005 },
+            '0x02': { price: 0.005 },
+          },
         },
       },
       CurrencyRateController: {
@@ -225,8 +227,10 @@ describe('Tokens', () => {
             ],
           },
           TokenRatesController: {
-            contractExchangeRates: {
-              '0x02': undefined,
+            marketData: {
+              0x1: {
+                '0x02': undefined,
+              },
             },
           },
           CurrencyRateController: {

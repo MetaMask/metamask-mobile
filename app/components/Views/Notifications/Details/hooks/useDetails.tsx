@@ -239,7 +239,7 @@ const useDetails = ({
   const renderAsset = useCallback(
     (type, title, token, network) => {
       const exchangeRate =
-        token.address && contractExchangeRates[token.address];
+        token.address && contractExchangeRates?.[token.address]?.price;
       const balanceFiat = token
         ? balanceToFiat(
             token.amount || '0',
