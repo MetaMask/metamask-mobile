@@ -12,7 +12,9 @@ on:
       version-number:
         description: 'A natural version number. eg: 862'
         required: true
-
+      previous-version-tag:
+        description: 'Previous release version tag. eg: v7.7.0'
+        required: true
 jobs:
   create-release-pr:
     runs-on: ubuntu-latest
@@ -51,3 +53,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ./scripts/create-release-pr.sh ${{ github.event.inputs.semver-version }}
+      - name: Create Changelog
+        id: create-changelog
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node ./scripts/generate-rc-commits.js v7.24.0 ${{ github.event.inputs.semver-version }} && ./scripts/changelog-csv.sh  
