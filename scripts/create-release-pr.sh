@@ -14,7 +14,7 @@ if [[ -z $NEW_VERSION ]]; then
 fi
 
 RELEASE_BRANCH_NAME="${RELEASE_BRANCH_PREFIX}${NEW_VERSION}"
-RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}."
+RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}. \n \n The test csv can be found at ./commit.csv"
 
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
@@ -34,13 +34,13 @@ git push --set-upstream origin "${RELEASE_BRANCH_NAME}"
 
 gh pr create \
   --draft \
-  --title "TESTING ${NEW_VERSION}" \
+  --title "feat: TESTING ${NEW_VERSION}" \
   --body "${RELEASE_BODY}" \
   --head "${RELEASE_BRANCH_NAME}";
 
-node .scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
+node ./scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
 
-.scripts/changelog-csv.sh  
+./scripts/changelog-csv.sh  
 
 git commit -am "updated changelog and generated feature test plan"
 
