@@ -16,6 +16,11 @@ interface ExtraInfo {
  * console.log and console.error and in the future
  * we will have flags to do different actions based on
  * the environment, for ex. log to a remote server if prod
+ *
+ * The previously available message function has been removed
+ * favoring the use of the error or log function:
+ * - error: for logging errors that you want to see in Sentry,
+ * - log: for logging general information and sending breadcrumbs only with the next Sentry event.
  */
 export class AsyncLogger {
   /**
