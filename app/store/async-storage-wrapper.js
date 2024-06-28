@@ -17,7 +17,14 @@ class AsyncStorageWrapper {
 
   async getItem(key) {
     try {
-      const value = this.storage.getString(key);
+      let value = this.storage.getString(key);
+      if (!value) {
+        const asyncStorageValue = await AsyncStorage.getItem(key);
+        if (asyncStorageValue) {
+          value = asyncStorageValue;
+          this.storage.set(key, value);
+        }
+      }
       return value;
     } catch (error) {
       if (isE2E) {
