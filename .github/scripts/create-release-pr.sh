@@ -4,8 +4,9 @@ set -e
 set -u
 set -o pipefail
 
-NEW_VERSION="${1}"
-RELEASE_BRANCH_PREFIX="release/"
+PREVIOUS_VERSION="${1}"
+NEW_VERSION="${2}"
+RELEASE_BRANCH_PREFIX="test-release/"
 
 if [[ -z $NEW_VERSION ]]; then
   echo "Error: No new version specified."
@@ -33,3 +34,11 @@ gh pr create \
   --title "${NEW_VERSION}" \
   --body "${RELEASE_BODY}" \
   --head "${RELEASE_BRANCH_NAME}";
+
+node ./generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
+
+./changelog-csv.sh  
+
+git commit -am "updated changelog and generated feature test plan"
+
+git push "${RELEASE_BRANCH_NAME}"

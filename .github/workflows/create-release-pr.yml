@@ -52,11 +52,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ./scripts/create-release-pr.sh ${{ github.event.inputs.semver-version }}
-      - name: Create Changelog
-        id: create-changelog
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          node ./scripts/generate-rc-commits.js v7.24.0 ${{ github.event.inputs.semver-version }} && ./scripts/changelog-csv.sh  
+          ./scripts/create-release-pr.sh ${{ github.event.inputs.previous-version-tag }} ${{ github.event.inputs.semver-version }}
