@@ -2002,6 +2002,8 @@
     "prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
     "prompt_ok": "Yes",
     "prompt_cancel": "No, thanks",
+    "notifications_enabled_error_title": "Something went wrong",
+    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
     "wc_connected_title": "Connected to {{title}}",
     "wc_signed_title": "Signed",
     "wc_sent_tx_title": "Sent transaction",

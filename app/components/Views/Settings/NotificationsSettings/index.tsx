@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
 import React, { FC, useEffect, useMemo } from 'react';
-import { Pressable, ScrollView, Switch, View } from 'react-native';
+import { Pressable, ScrollView, Switch, View, Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../locales/i18n';
@@ -29,7 +29,7 @@ import ButtonIcon, {
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import { SessionHeader } from './sectionHeader';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
-import { useAccountSettingsProps } from '../../../..//util/notifications/hooks/useSwitchNotifications';
+import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
@@ -38,7 +38,9 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     [accounts],
   );
   const accountSettingsProps = useAccountSettingsProps(accountAddresses);
-  const { enableNotifications } = useEnableNotifications();
+  const { enableNotifications, loading, error } = useEnableNotifications();
+
+  const somethingWentWrong = error !== undefined && !loading;
 
   const theme = useTheme();
   // Selectors
@@ -63,10 +65,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const toggleNotificationsEnabled = async () => {
     if (!isMetamaskNotificationsEnabled) {
       const notificationSettings = await requestPushNotificationsPermission();
-      if (
-        notificationSettings &&
-        notificationSettings.authorizationStatus >= 1
-      ) {
+
+      if (notificationSettings?.authorizationStatus >= 1) {
         await enableNotifications();
       }
     }
@@ -113,11 +113,24 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       </View>
     </>
   );
-
   // TODO - we need a loading state for when initially fetching notification settings (e.g. account settings)
   return (
     <ScrollView style={styles.wrapper}>
       <MainNotificationSettings />
+      {somethingWentWrong &&
+        Alert.alert(
+          strings('notifications.notifications_enabled_error_title'),
+          strings('notifications.notifications_enabled_error_desc'),
+          [
+            {
+              text: strings('notifications.prompt_ok'),
+              onPress: () => {
+                // Do nothing
+              },
+            },
+          ],
+          { cancelable: false },
+        )}
       {isMetamaskNotificationsEnabled && (
         <>
           <SessionHeader
