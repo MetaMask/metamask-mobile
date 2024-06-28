@@ -19,6 +19,9 @@ RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}."
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
 
+#TODO remove
+git checkout chore/changelog-release-automation
+
 git checkout -b "${RELEASE_BRANCH_NAME}"
 
 if ! (git add . && git commit -m "${NEW_VERSION}");
