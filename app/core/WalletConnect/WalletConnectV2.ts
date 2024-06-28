@@ -191,11 +191,11 @@ class WalletConnect2Session {
     this.deeplink = deeplink;
   };
 
-  redirect = () => {
+  redirect = (context?: string) => {
     DevLogger.log(
-      `WC2::redirect isDeeplink=${this.deeplink} navigation=${
-        this.navigation !== undefined
-      }`,
+      `WC2::redirect context=${context} isDeeplink=${
+        this.deeplink
+      } navigation=${this.navigation !== undefined}`,
     );
     if (!this.deeplink) return;
 
@@ -215,7 +215,7 @@ class WalletConnect2Session {
   needsRedirect = (id: string) => {
     if (this.requestsToRedirect[id]) {
       delete this.requestsToRedirect[id];
-      this.redirect();
+      this.redirect(`needsRedirect_${id}`);
     }
   };
 
@@ -405,7 +405,7 @@ class WalletConnect2Session {
         `rejectRequest due to invalid chainId ${chainId} (selectedChainId=${selectedChainId})`,
       );
       await this.web3Wallet.rejectRequest({
-        id: chainId,
+        id: requestEvent.id,
         topic: this.session.topic,
         error: { code: 1, message: ERROR_MESSAGES.INVALID_CHAIN },
       });
@@ -443,7 +443,7 @@ class WalletConnect2Session {
         await this.web3Wallet.rejectRequest({
           id: requestEvent.id,
           topic: requestEvent.topic,
-          error: { code: 4001, message: ERROR_MESSAGES.INVALID_CHAIN },
+          error: { code: 32603, message: ERROR_MESSAGES.INVALID_CHAIN },
         });
 
         showWCLoadingState({ navigation: this.navigation });
@@ -451,7 +451,7 @@ class WalletConnect2Session {
           DevLogger.log(`wc2::timeoutRef redirecting...`);
           hideWCLoadingState({ navigation: this.navigation });
           // Redirect or do nothing if timer gets cleared upon receiving wallet_addEthereumChain after automatic reject
-          this.redirect();
+          this.redirect('handleRequestTimeout');
         }, 3000);
         return;
       }
@@ -920,7 +920,7 @@ export class WC2Manager {
 
       this.sessions[activeSession.topic] = session;
       if (deeplink) {
-        session.redirect();
+        session.redirect('onSessionProposal');
       }
     } catch (err) {
       console.error(`invalid wallet status`, err);
