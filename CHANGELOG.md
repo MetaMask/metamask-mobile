@@ -1,6 +1,49 @@
 # Changelog
 
 ## Current Main Branch
+- [#10142](https://github.com/MetaMask/metamask-mobile/pull/10142): fix: memoize token list
+- [#10164](https://github.com/MetaMask/metamask-mobile/pull/10164): fix: Stop running fencing logic on `node_modules`
+- [#10135](https://github.com/MetaMask/metamask-mobile/pull/10135): fix: fix checksum address for balance check
+- [#10040](https://github.com/MetaMask/metamask-mobile/pull/10040): feat: edit networks UI redesign
+- [#10146](https://github.com/MetaMask/metamask-mobile/pull/10146): fix: add API Spec Tests section in testing.md
+- [#10143](https://github.com/MetaMask/metamask-mobile/pull/10143): chore: Revert "feat: Integrate Firebase libraries and initial config to enable Push Notifications FCM."
+- [#10085](https://github.com/MetaMask/metamask-mobile/pull/10085): feat: Integrate Firebase libraries and initial config to enable Push Notifications FCM.
+- [#10133](https://github.com/MetaMask/metamask-mobile/pull/10133): fix: Fix BaseControllerV1 state rehydration
+- [#10121](https://github.com/MetaMask/metamask-mobile/pull/10121): feat: enables snaps feature flag on mobile
+- [#9914](https://github.com/MetaMask/metamask-mobile/pull/9914): chore: fix the incorrect URL displayed during transaction confirmation
+- [#10134](https://github.com/MetaMask/metamask-mobile/pull/10134): test: disable privacy policy toast and whats new modal using fixtures
+- [#10128](https://github.com/MetaMask/metamask-mobile/pull/10128): refactor: update bitrise e2e check to not run on forks
+- [#10125](https://github.com/MetaMask/metamask-mobile/pull/10125): chore: Update create-cherry-pick-pr.sh to auto add label
+- [#10122](https://github.com/MetaMask/metamask-mobile/pull/10122): fix: updated changelog for 7.24.4
+- [#9857](https://github.com/MetaMask/metamask-mobile/pull/9857): fix: create nft auto detection modal and remove nft polling logic
+- [#10112](https://github.com/MetaMask/metamask-mobile/pull/10112): feat: Add the "is_smart_transaction" prop for the "Swap Started" event
+- [#9356](https://github.com/MetaMask/metamask-mobile/pull/9356): feat: add api spec test infrastructure
+- [#10094](https://github.com/MetaMask/metamask-mobile/pull/10094): feat: 7.24.4
+- [#10120](https://github.com/MetaMask/metamask-mobile/pull/10120): feat: add i18n to for the add/edit network ui re-design
+- [#9811](https://github.com/MetaMask/metamask-mobile/pull/9811): chore: Add Notification devs to codeowners file
+- [#10000](https://github.com/MetaMask/metamask-mobile/pull/10000): feat: support security alerts API
+- [#9969](https://github.com/MetaMask/metamask-mobile/pull/9969): test: add E2E for increase allowance
+- [#10005](https://github.com/MetaMask/metamask-mobile/pull/10005): feat: adjusting the 'add network screen' in network bottom sheet, for network UI redesign
+- [#10086](https://github.com/MetaMask/metamask-mobile/pull/10086): feat: Add team label to pr
+- [#10099](https://github.com/MetaMask/metamask-mobile/pull/10099): fix: stx on ramps missing origin
+- [#10088](https://github.com/MetaMask/metamask-mobile/pull/10088): fix: Swap with unapproved token
+- [#10064](https://github.com/MetaMask/metamask-mobile/pull/10064): fix: Always mark the STX Opt In modal as seen
+- [#10049](https://github.com/MetaMask/metamask-mobile/pull/10049): fix: fix stuck after `nonce too low` error
+- [#10070](https://github.com/MetaMask/metamask-mobile/pull/10070): chore: update attribution
+- [#10063](https://github.com/MetaMask/metamask-mobile/pull/10063): chore: Refactor Snaps integration
+- [#9961](https://github.com/MetaMask/metamask-mobile/pull/9961): feat: adding search to the network bottomsheet as part of the networks management UI redesign
+- [#10043](https://github.com/MetaMask/metamask-mobile/pull/10043): 7.24.3
+- [#9779](https://github.com/MetaMask/metamask-mobile/pull/9779): chore: Update accounts controller v14
+- [#10055](https://github.com/MetaMask/metamask-mobile/pull/10055): test: Fix detox test run inconsistencies
+- [#10067](https://github.com/MetaMask/metamask-mobile/pull/10067): chore: add smokeAssets e2e tag
+- [#9795](https://github.com/MetaMask/metamask-mobile/pull/9795): fix: improve message display for typed sign messages
+- [#9777](https://github.com/MetaMask/metamask-mobile/pull/9777): chore: New Crowdin translations by Github Action
+- [#9960](https://github.com/MetaMask/metamask-mobile/pull/9960): chore: add typescript fitness function
+- [#9843](https://github.com/MetaMask/metamask-mobile/pull/9843): fix: deeplink is not opening the site in the inapp-browser when the wallet is locked
+- [#10034](https://github.com/MetaMask/metamask-mobile/pull/10034): fix: Auto capitalize letter to none to have the same behaviour as the password field on create new wallet flow
+- [#9918](https://github.com/MetaMask/metamask-mobile/pull/9918): fix: hide amount in simulations for testnets if its opt out
+- [#10039](https://github.com/MetaMask/metamask-mobile/pull/10039): feat: enable transaction simulations
+- [#10048](https://github.com/MetaMask/metamask-mobile/pull/10048): chore: Chore/9924 - Enable `@typescript-eslint/no-explicit-any` as error rule
 
 ## 7.24.4 - Jun 25, 2024
 ### Fixed
