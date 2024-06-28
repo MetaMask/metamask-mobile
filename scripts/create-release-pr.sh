@@ -38,10 +38,9 @@ gh pr create \
   --body "${RELEASE_BODY}" \
   --head "${RELEASE_BRANCH_NAME}";
 
+#Generate changelog and test plan csv
 node ./scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
-
 ./scripts/changelog-csv.sh  
-
+git add ./scripts/commits.csv
 git commit -am "updated changelog and generated feature test plan"
-
 git push

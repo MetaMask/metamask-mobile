@@ -28,11 +28,14 @@ async function getPRLabels(prNumber) {
     // Check if any label name contains "team"
     const hasTeamLabel = labels.filter(label => label.toLowerCase().includes('team'));
 
+    if(hasTeamLabel.length > 1 && hasTeamLabel.includes('team-mobile-platform'))
+      hasTeamLabel = hasTeamLabel.filter(item => item !== 'team-mobile-platform');
+
     return hasTeamLabel || 'Unknown';
 
   } catch (error) {
     console.error(`Error fetching labels for PR #${prNumber}:`, error);
-    return [];
+    return 'Unknown';
   }
 }
 
@@ -65,28 +68,28 @@ async function filterCommitsByTeam(branchA, branchB) {
       }
 
       // Extract PR number from the commit message using regex
-      const prMatch = message.match(/\(#(\d{5})\)$/u);
-      const prLink = prMatch ? `https://github.com/MetaMask/metamask-mobile/pull/${prMatch[1]}` : '';
+      const prMatch = message.match(/\(#(\d{4,5})\)$/u);
+      if(prMatch){
+        const prLink = prMatch ? `https://github.com/MetaMask/metamask-mobile/pull/${prMatch[1]}` : '';
+        const team = await getPRLabels(prMatch);
 
-      const team = await getPRLabels(prMatch);
-      console.log(team);
+        // Check if the commit message is unique
+        if (!seenMessages.has(message)) {
+          seenMessagesArray.push(message);
+          seenMessages.add(message);
 
-      // Check if the commit message is unique
-      if (!seenMessages.has(message)) {
-        seenMessagesArray.push(message);
-        seenMessages.add(message);
+          // Initialize the team's commits array if it doesn't exist
+          if (!commitsByTeam[team]) {
+            commitsByTeam[team] = [];
+          }
 
-        // Initialize the team's commits array if it doesn't exist
-        if (!commitsByTeam[team]) {
-          commitsByTeam[team] = [];
+          commitsByTeam[team].push({
+            message,
+            author,
+            hash: hash.substring(0, 10),
+            prLink,
+          });
         }
-
-        commitsByTeam[team].push({
-          message,
-          author,
-          hash: hash.substring(0, 10),
-          prLink,
-        });
       }
     }
 
