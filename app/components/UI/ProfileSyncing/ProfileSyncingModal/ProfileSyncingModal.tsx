@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React, { useRef } from 'react';
 import { View } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 // External dependencies.
 import BottomSheet, {
@@ -25,14 +25,13 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/pushNotifications';
 import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
-import { toggleBasicFunctionality } from '../../../../actions/settings';
+import { disableNotificationServices } from '../../../../actions/notification/pushNotifications';
 
 const ProfileSyncingModal = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
-  const dispatch = useDispatch();
   const { enableProfileSyncing, disableProfileSyncing } = useProfileSyncing();
 
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
@@ -42,10 +41,9 @@ const ProfileSyncingModal = () => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
       if (isProfileSyncingEnabled) {
         disableProfileSyncing();
-        dispatch(toggleBasicFunctionality(!isProfileSyncingEnabled));
+        disableNotificationServices();
       } else {
         enableProfileSyncing();
-        dispatch(toggleBasicFunctionality(isProfileSyncingEnabled));
       }
     });
   };

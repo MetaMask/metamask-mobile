@@ -1,4 +1,4 @@
-import { NotificationServicesController } from '@metamask/notification-services-controller';
+import { NotificationServicesController } from '@metamask-previews/notification-services-controller';
 
 const {
   Processors: { processNotification },

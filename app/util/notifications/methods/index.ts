@@ -25,7 +25,7 @@ import { renderFromWei } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
 import { NotificationRowDetails, TxStatus } from './types';
-import { NotificationServicesController } from '@metamask/notification-services-controller';
+import { NotificationServicesController } from '@metamask-previews/notification-services-controller';
 
 const { UI } = NotificationServicesController;
 

@@ -184,8 +184,8 @@ import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import {
   AuthenticationController,
   UserStorageController,
-} from '@metamask/profile-sync-controller';
-import { NotificationServicesController } from '@metamask/notification-services-controller';
+} from '@metamask-previews/profile-sync-controller';
+import { NotificationServicesController } from '@metamask-previews/notification-services-controller';
 // END: Notifications related controllers
 
 import { providerErrors } from '@metamask/rpc-errors';

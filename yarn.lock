@@ -4059,6 +4059,38 @@
   resolved "https://registry.yarnpkg.com/@mantine/hooks/-/hooks-7.8.0.tgz#fc32e07746689459c4b049dc581d1dbda5545686"
   integrity sha512-+70fkgjhVJeJ+nJqnburIM3UAsfvxat1Low9HMPobLbv64FIdB4Nzu5ct3qojNQ58r5sK01tg5UoFIJYslaVrg==
 
+"@metamask-previews/notification-services-controller@0.1.1-preview-2079df5":
+  version "0.1.1-preview-2079df5"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/notification-services-controller/-/notification-services-controller-0.1.1-preview-2079df5.tgz#80d4fe6cc4f33288e2cd6139cc13a721dfcd00de"
+  integrity sha512-dnA8zluI0AdbNm+M2Hy5SOUwMiDwiKkXTQQjbMhIExkJsI9JtVVQsCsZjN4QGr/P5W4V1T+n8fc2UjT+ViaukQ==
+  dependencies:
+    "@contentful/rich-text-html-renderer" "^16.5.2"
+    "@metamask/base-controller" "^6.0.0"
+    "@metamask/controller-utils" "^11.0.0"
+    "@metamask/keyring-controller" "^17.1.0"
+    "@metamask/profile-sync-controller" "^0.1.1"
+    bignumber.js "^4.1.0"
+    contentful "^10.3.6"
+    firebase "^10.11.0"
+    loglevel "^1.8.1"
+    uuid "^8.3.2"
+
+"@metamask-previews/profile-sync-controller@0.1.1-preview-2079df5":
+  version "0.1.1-preview-2079df5"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-0.1.1-preview-2079df5.tgz#6496df7f1e5bee27d6b709ac78c75a97781b4eee"
+  integrity sha512-RMlXmmfN/PM1tGzoWDJs8FZkIFh3t1DxnC9RS4Hvlut6+uK2fbLDkWR/uJRkSx6swpnXbnK3V8R/73YM8jCGqg==
+  dependencies:
+    "@metamask/base-controller" "^6.0.0"
+    "@metamask/snaps-controllers" "^8.1.1"
+    "@metamask/snaps-sdk" "^4.2.0"
+    "@metamask/snaps-utils" "^7.4.0"
+    "@noble/ciphers" "^0.5.2"
+    "@noble/hashes" "^1.4.0"
+    ethers "^6.12.0"
+    immer "^9.0.6"
+    loglevel "^1.8.1"
+    siwe "^2.3.2"
+
 "@metamask/abi-utils@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/abi-utils/-/abi-utils-1.2.0.tgz#068e1b0f5e423dfae96961e0e5276a7c1babc03a"
@@ -4844,22 +4876,6 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-0.1.1.tgz#c709baa32bf40c09b4ff8900bf5e3501f27f0923"
-  integrity sha512-r/6IycpMStITsGNDnQjSRm8DruwvMGuQFc8yIW31/dOkiIG4RlDnC2h/yeemKuNexxgGd2XoVrqaIXb8WMNhGw==
-  dependencies:
-    "@contentful/rich-text-html-renderer" "^16.5.2"
-    "@metamask/base-controller" "^6.0.0"
-    "@metamask/controller-utils" "^11.0.0"
-    "@metamask/keyring-controller" "^17.1.0"
-    "@metamask/profile-sync-controller" "^0.1.1"
-    bignumber.js "^4.1.0"
-    contentful "^10.3.6"
-    firebase "^10.11.0"
-    loglevel "^1.8.1"
-    uuid "^8.3.2"
-
 "@metamask/number-to-bn@^1.7.1":
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/@metamask/number-to-bn/-/number-to-bn-1.7.1.tgz#a449ec8b2edba211e0dc3e1e0428ff2cc2bf7ab4"
@@ -5010,7 +5026,7 @@
     "@metamask/base-controller" "^5.0.2"
     "@metamask/controller-utils" "^9.1.0"
 
-"@metamask/profile-sync-controller@0.1.1", "@metamask/profile-sync-controller@^0.1.1":
+"@metamask/profile-sync-controller@^0.1.1":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.1.1.tgz#1830d5e7b5869b2c84641f7482fa464a6cbb5077"
   integrity sha512-bs35tuTOcLIp3BiU0bGe3dX/If7oFyXiNGsMxU+4GJ94mzaHvP5mxjUyCPsySvlugaUT7TOJyRN9YyFitth3Xg==
