@@ -26,7 +26,7 @@ async function getPRLabels(prNumber) {
     const labels = data.labels.map(label => label.name);
 
     // Check if any label name contains "team"
-    const hasTeamLabel = labels.filter(label => label.toLowerCase().includes('team'));
+    let hasTeamLabel = labels.filter(label => label.toLowerCase().includes('team'));
 
     if(hasTeamLabel.length > 1 && hasTeamLabel.includes('team-mobile-platform'))
       hasTeamLabel = hasTeamLabel.filter(item => item !== 'team-mobile-platform');
