@@ -56,13 +56,8 @@ export interface MarkNotificationAsReadReturn {
   error?: string;
 }
 
-export interface EnableProfileSyncingReturn {
+export interface ProfileSyncingReturn {
   enableProfileSyncing: () => Promise<string | undefined>;
-  loading: boolean;
-  error?: string;
-}
-
-export interface DisableProfileSyncingReturn {
   disableProfileSyncing: () => Promise<string | undefined>;
   loading: boolean;
   error?: string;
