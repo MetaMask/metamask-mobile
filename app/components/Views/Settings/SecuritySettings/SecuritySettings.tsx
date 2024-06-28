@@ -119,6 +119,7 @@ import Button, {
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
+import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
@@ -966,6 +967,12 @@ const Settings: React.FC = () => {
     });
   };
 
+  const toggleProfileSyncing = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.PROFILE_SYNCING,
+    });
+  };
+
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -1011,6 +1018,7 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
+        <ProfileSyncingComponent handleSwitchToggle={toggleProfileSyncing} />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}

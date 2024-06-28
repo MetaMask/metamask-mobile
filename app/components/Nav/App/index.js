@@ -109,6 +109,7 @@ import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSet
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
+import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 
@@ -646,6 +647,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.BASIC_FUNCTIONALITY}
         component={BasicFunctionalityModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.PROFILE_SYNCING}
+        component={ProfileSyncingModal}
       />
       <Stack.Screen
         name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
