@@ -1255,6 +1255,14 @@
       "comment_id": 2189094081,
       "created_at": "2024-06-25T14:18:38Z",
       "repoId": 141427485
+    },
+    {
+      "id": 17534261,
+      "name": "Prithpal-Sooriya",
+      "pullRequestNo": 9673,
+      "comment_id": 2196683709,
+      "created_at": "2024-06-28T11:26:42Z",
+      "repoId": 141427485
     }
   ]
 }
