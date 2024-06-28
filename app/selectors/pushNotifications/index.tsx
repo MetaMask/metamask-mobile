@@ -31,8 +31,7 @@ const authenticationState = (state: RootState) =>
 
 export const selectIsMetamaskNotificationsEnabled = createSelector(
   pushNotificationsState,
-  (state: notificationServicesControllerState) =>
-    state.isNotificationServicesEnabled,
+  (state: notificationServicesControllerState) => state.isNotificationServicesEnabled
 );
 export const selectIsMetamaskNotificationsFeatureSeen = createSelector(
   pushNotificationsState,

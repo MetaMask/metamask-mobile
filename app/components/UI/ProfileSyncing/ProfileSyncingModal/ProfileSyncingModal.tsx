@@ -25,7 +25,7 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/pushNotifications';
 import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
-import { disableNotificationServices } from '../../../../actions/notification/pushNotifications';
+import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 
 const ProfileSyncingModal = () => {
   const { colors } = useTheme();
@@ -33,6 +33,7 @@ const ProfileSyncingModal = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
   const { enableProfileSyncing, disableProfileSyncing } = useProfileSyncing();
+  const { disableNotifications } = useDisableNotifications();
 
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
 
@@ -41,7 +42,7 @@ const ProfileSyncingModal = () => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
       if (isProfileSyncingEnabled) {
         disableProfileSyncing();
-        disableNotificationServices();
+        disableNotifications();
       } else {
         enableProfileSyncing();
       }

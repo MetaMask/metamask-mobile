@@ -84,7 +84,6 @@ export const enableNotificationServices =
   (): ThunkDispatchReturn => async (dispatch: Dispatch) => {
     try {
       await NotificationServicesController.enableMetamaskNotifications();
-
       dispatch({
         type: notificationsAction.ENABLE_NOTIFICATIONS_SERVICES,
       });
