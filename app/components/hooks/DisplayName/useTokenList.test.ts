@@ -1,3 +1,4 @@
+import React from 'react';
 import { type TokenListMap } from '@metamask/assets-controllers';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
@@ -23,6 +24,8 @@ jest.mock('@metamask/contract-metadata', () => ({
 }));
 
 jest.mock('react-redux', () => ({
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSelector: (selector: any) => selector(),
 }));
 
@@ -67,6 +70,17 @@ describe('useTokenList', () => {
     selectUseTokenDetectionMock.mockReturnValue(true);
     selectTokenListMock.mockReturnValue(TOKEN_LIST_MOCK);
     isMainnetByChainIdMock.mockReturnValue(true);
+
+    const memoizedValues = new Map();
+    jest.spyOn(React, 'useMemo').mockImplementation((factory, deps) => {
+      const depsKey = (deps as []).join('|');
+      if (memoizedValues.has(depsKey)) {
+        return memoizedValues.get(depsKey);
+      }
+      const newValue = factory();
+      memoizedValues.set(depsKey, newValue);
+      return newValue;
+    });
   });
 
   it('returns normalized STATIC_MAINNET_TOKEN_LIST if token detection is disabled and chain is mainnet', () => {

@@ -47,6 +47,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { onSelectAccount, checkBalanceError } = route.params || {};
 
   const { reloadAccounts } = useSelector((state: RootState) => state.accounts);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
   const sheetRef = useRef<BottomSheetRef>(null);
   const { accounts, ensByAccountAddress } = useAccounts({

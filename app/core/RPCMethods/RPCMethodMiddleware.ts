@@ -41,6 +41,8 @@ import Logger from '../../../app/util/Logger';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { addTransaction } from '../../util/transaction-controller';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -60,7 +62,7 @@ export enum ApprovalTypes {
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
   SMART_TRANSACTION_STATUS = 'smart_transaction_status',
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
   ///: END:ONLY_INCLUDE_IF
@@ -69,7 +71,11 @@ export enum ApprovalTypes {
 export interface RPCMethodsMiddleParameters {
   hostname: string;
   channelId?: string; // Used for remote connections
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getProviderState: () => any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   url: { current: string };
   title: { current: string };
@@ -87,7 +93,11 @@ export interface RPCMethodsMiddleParameters {
   isWalletConnect: boolean;
   // For MM SDK
   isMMSDK: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getApprovedHosts: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setApprovedHosts: (approvedHosts: any) => void;
   approveHost: (fullHostname: string) => void;
   injectHomePageScripts: (bookmarks?: []) => void;
@@ -120,7 +130,11 @@ export const checkActiveAccountAndChainId = async ({
     });
 
     const permissionsController = (
-      Engine.context as { PermissionController: PermissionController<any, any> }
+      Engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
     ).PermissionController;
     DevLogger.log(
       `checkActiveAccountAndChainId channelId=${channelId} isWalletConnect=${isWalletConnect} hostname=${hostname}`,
@@ -202,6 +216,8 @@ const generateRawSignature = async ({
   checkTabActive,
 }: {
   version: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   req: any;
   hostname: string;
   url: { current: string };
@@ -213,6 +229,8 @@ const generateRawSignature = async ({
   channelId?: string;
   getSource: () => string;
   isWalletConnect: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   checkTabActive: any;
 }) => {
   const { SignatureController } = Engine.context;
@@ -291,6 +309,8 @@ export const getRpcMethodMiddleware = ({
     `getRpcMethodMiddleware hostname=${hostname} channelId=${channelId}`,
   );
   // all user facing RPC calls not implemented by the provider
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return createAsyncMiddleware(async (req: any, res: any, next: any) => {
     // Used by eth_accounts and eth_coinbase RPCs.
     const getEthAccounts = async () => {
@@ -360,8 +380,12 @@ export const getRpcMethodMiddleware = ({
     const [requestPermissionsHandler, getPermissionsHandler] =
       permissionRpcMethods.handlers;
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rpcMethods: any = {
       wallet_getPermissions: async () =>
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         new Promise<any>((resolve) => {
           const handle = getPermissionsHandler.implementation(
             req,
@@ -383,6 +407,8 @@ export const getRpcMethodMiddleware = ({
           });
         }),
       wallet_requestPermissions: async () =>
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         new Promise<any>((resolve, reject) => {
           requestPermissionsHandler
             .implementation(
@@ -456,6 +482,8 @@ export const getRpcMethodMiddleware = ({
         const isInitialNetwork =
           networkType && getAllNetworks().includes(networkType);
         if (isInitialNetwork) {
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           res.result = (Networks as any)[networkType].networkId;
         } else {
           return next();
@@ -490,8 +518,6 @@ export const getRpcMethodMiddleware = ({
           }
         }
       },
-      // TODO: This code is no longer used and should be removed in the future. eth_accounts is implemented by permissions specifications
-      eth_accounts: getEthAccounts,
       eth_coinbase: getEthAccounts,
       parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
@@ -518,11 +544,6 @@ export const getRpcMethodMiddleware = ({
             });
           },
         });
-      },
-      eth_signTransaction: async () => {
-        // This is implemented later in our middleware stack – specifically, in
-        // eth-json-rpc-middleware – but our UI does not support it.
-        throw rpcErrors.methodNotSupported();
       },
       eth_sign: async () => {
         const { SignatureController, PreferencesController } = Engine.context;
@@ -725,6 +746,8 @@ export const getRpcMethodMiddleware = ({
         new Promise<void>((resolve, reject) => {
           checkTabActive();
           navigation.navigate('QRScanner', {
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onScanSuccess: (data: any) => {
               if (!regex.exec(req.params[0], data)) {
                 reject({ message: 'NO_REGEX_MATCH', data });
@@ -743,6 +766,8 @@ export const getRpcMethodMiddleware = ({
               res.result = result;
               resolve();
             },
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onScanError: (e: { toString: () => any }) => {
               throw rpcErrors.internal(e.toString());
             },

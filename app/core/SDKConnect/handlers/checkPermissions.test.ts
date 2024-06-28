@@ -41,6 +41,8 @@ describe('checkPermissions', () => {
     executeRestrictedMethod: jest.fn().mockResolvedValue({}),
     hasPermissions: jest.fn(),
     requestPermissions,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as unknown as PermissionController<any, any>;
   const HOUR_IN_MS = 3600000;
   const currentTime = Date.now();
@@ -87,6 +89,8 @@ describe('checkPermissions', () => {
       getPermissions: jest.fn(),
       getPermission: jest.fn(),
       requestPermissions,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as unknown as PermissionController<any, any>;
 
     engine = {

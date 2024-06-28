@@ -1,7 +1,11 @@
 import { JsonMap } from '@segment/analytics-react-native';
 
 function preProcessAnalyticsEvent(params: JsonMap) {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userParams = {} as any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const anonymousParams = {} as any;
 
   if (params) {

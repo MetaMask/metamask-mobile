@@ -5,9 +5,15 @@ import simpleGit from 'simple-git';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Octokit } from '@octokit/rest';
 
+// "GITHUB_TOKEN" is an automatically generated, repository-specific access token provided by GitHub Actions.
+const githubToken = process.env.GITHUB_TOKEN;
+if (!githubToken) {
+  console.log('GITHUB_TOKEN not found');
+  process.exit(1);
+}
 
 // Initialize Octokit with your GitHub token
-const octokit = new Octokit({ auth: 'add token' });
+const octokit = new Octokit({ auth: githubToken});
 
 async function getPRLabels(prNumber) {
   try {
@@ -59,7 +65,7 @@ async function filterCommitsByTeam(branchA, branchB) {
       }
 
       // Extract PR number from the commit message using regex
-      const prMatch = message.match(/\(#(\d{4})\)$/u);
+      const prMatch = message.match(/\(#(\d{5})\)$/u);
       const prLink = prMatch ? `https://github.com/MetaMask/metamask-mobile/pull/${prMatch[1]}` : '';
 
       const team = await getPRLabels(prMatch);

@@ -110,6 +110,8 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       isTransfer: false,
       transferInformation: undefined,
     };
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tokens: any[] = [];
 
     const result = filterByAddressAndNetwork(

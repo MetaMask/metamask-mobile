@@ -49,7 +49,6 @@
   "NftDetectionController": {},
   "PPOMController": {
     "storageMetadata": [],
-    "versionFileETag": "",
     "versionInfo": []
   },
 
@@ -88,7 +87,7 @@
     "lostIdentities": {},
     "selectedAddress": "",
     "useTokenDetection": true,
-    "useNftDetection": false,
+    "useNftDetection": true,
     "useSafeChainsListValidation": true,
     "displayNftMedia": true,
     "securityAlertsEnabled": true,
@@ -120,14 +119,14 @@
       "0x64": true
     },
     "isIpfsGatewayEnabled": true,
-    "smartTransactionsOptInStatus": false
+    "smartTransactionsOptInStatus": false,
+    "useTransactionSimulations": true
   },
   "TokenBalancesController": {
     "contractBalances": {}
   },
   "TokenRatesController": {
-    "contractExchangeRates": {},
-    "contractExchangeRatesByChainId": {}
+    "marketData": {}
   },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
@@ -204,7 +203,8 @@
     "gasFeeEstimates": {},
     "estimatedGasFeeTimeBounds": {},
     "gasEstimateType": "none",
-    "gasFeeEstimatesByChainId": {}
+    "gasFeeEstimatesByChainId": {},
+    "nonRPCGasFeeApisDisabled": false
   },
   "ApprovalController": {
     "pendingApprovals": {},

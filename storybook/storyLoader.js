@@ -33,6 +33,7 @@ function loadStories() {
   require('../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
+  require('../app/component-library/components/Cells/Cell/variants/CellSelectWithMenu/CellSelectWithMenu.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
   require('../app/component-library/components/Form/HelpText/HelpText.stories');
   require('../app/component-library/components/Form/Label/Label.stories');
@@ -69,6 +70,7 @@ function loadStories() {
   require('../app/components/UI/ButtonReveal/ButtonReveal.stories');
   require('../app/components/UI/Fox/Fox.stories');
   require('../app/components/UI/Name/Name.stories');
+  require('../app/components/UI/SimulationDetails/SimulationDetails.stories');
   require('../app/components/UI/StyledButton/StyledButton.stories');
   require('../app/components/UI/TextEstimated/TextEstimated.stories');
   require('../app/components/UI/WarningAlert/WarningAlert.stories');
@@ -109,6 +111,7 @@ const stories = [
   '../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories',
   '../app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories',
   '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
+  '..app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx',
   '../app/component-library/components/Checkbox/Checkbox.stories',
   '../app/component-library/components/Form/HelpText/HelpText.stories',
   '../app/component-library/components/Form/Label/Label.stories',
@@ -145,6 +148,7 @@ const stories = [
   '../app/components/UI/ButtonReveal/ButtonReveal.stories',
   '../app/components/UI/Fox/Fox.stories',
   '../app/components/UI/Name/Name.stories',
+  '../app/components/UI/SimulationDetails/SimulationDetails.stories',
   '../app/components/UI/StyledButton/StyledButton.stories',
   '../app/components/UI/TextEstimated/TextEstimated.stories',
   '../app/components/UI/WarningAlert/WarningAlert.stories',

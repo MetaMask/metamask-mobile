@@ -365,17 +365,17 @@
     "title": "Recevoir"
   },
   "experience_enhancer_modal": {
-    "title": "Help us enhance your experience",
-    "paragraph1a": "In addition to ",
-    "paragraph1b": ", we'd like to use data (like information from cookies) to learn how you interact with our marketing communications.",
+    "title": "Aidez-nous à améliorer votre expérience",
+    "paragraph1a": "En plus de ",
+    "paragraph1b": ", nous aimerions utiliser des données (comme des informations provenant de cookies) pour savoir comment vous interagissez avec nos communications commerciales.",
     "link": "MetaMetrics",
-    "paragraph2": "This helps us personalize what we share with you, like:",
-    "bullet1": "Latest developments",
-    "bullet2": "Product features",
-    "bullet3": "Other relevant promotional materials",
-    "footer": "Remember, we never sell the data you provide and you can opt out any time.",
-    "accept": "I agree",
-    "cancel": "No thanks"
+    "paragraph2": "Cela nous aide à personnaliser les informations que nous partageons avec vous, comme :",
+    "bullet1": "Dernières avancées",
+    "bullet2": "Caractéristiques du produit",
+    "bullet3": "Autres matériels promotionnels pertinents",
+    "footer": "N’oubliez pas que nous ne vendons jamais les données que vous nous fournissez et que vous pouvez vous désinscrire à tout moment.",
+    "accept": "J’accepte",
+    "cancel": "Non, merci"
   },
   "wallet": {
     "title": "Portefeuille",
@@ -413,7 +413,7 @@
     "no_tokens": "Vous n’avez aucun jeton !",
     "no_nfts_yet": "Aucun NFT pour le moment",
     "nfts_autodetection_title": "Détection de NFT",
-    "nfts_autodetection_desc": "Cela permet à MetaMask de détecter automatiquement les NFT d’OpenSea et de les afficher dans votre portefeuille MetaMask.",
+    "nfts_autodetection_desc": "Laissez MetaMask détecter et afficher automatiquement les NFT dans votre portefeuille.",
     "network_details_check": "Vérification des détails du réseau",
     "network_with_chain_id": "Le réseau qui a un ID de chaîne",
     "chain_list_returned_different_ticker_symbol": "Le symbole de ce jeton ne correspond pas au nom du réseau ou à l’ID de chaîne saisi. De nombreux jetons populaires utilisent des symboles similaires dont les escrocs peuvent se servir pour vous amener à leur envoyer un jeton de plus grande valeur en retour. Vérifiez toutes les informations avant de continuer.",
@@ -454,7 +454,7 @@
     "display_nft_media_cta": "Activez l’option « Afficher les supports NFT »",
     "display_media_nft_warning": "L’affichage des supports et des données NFT peut exposer votre adresse IP à des serveurs centralisés. N’importez un NFT que si vous comprenez les risques encourus.",
     "nfts_autodetect_title": "Détection automatique des NFT",
-    "nfts_autodetect_cta": "Activez la détection automatique des NFT dans les Paramètres",
+    "nfts_autodetect_cta": "Activer la détection automatique des NFT",
     "turn_on_network_check_cta": "Activer la vérification des détails du réseau",
     "display_nft_media_cta_new_1": "Pour voir un NFT, activez l’option « Afficher les supports NFT » dans",
     "display_nft_media_cta_new_2": "Paramètres > Sécurité et confidentialité.",
@@ -520,7 +520,7 @@
     "description_title": "Aidez-nous à améliorer MetaMask",
     "description_content_1": "Nous aimerions recueillir des données d’utilisation de base pour améliorer MetaMask. Sachez que nous ne vendrons jamais les informations que vous nous fournissez ici.",
     "description_content_2": "Lorsque nous recueillons des données, elles sont toujours…",
-    "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relavent news (like product features).",
+    "checkbox": "Nous utiliserons ces données pour savoir comment vous interagissez avec nos communications commerciales et pour partager avec vous des informations pertinentes (comme les caractéristiques des produits).",
     "action_description_1_prefix": "Privé :",
     "action_description_2_prefix": "Général :",
     "action_description_3_prefix": "Facultatif :",
@@ -650,7 +650,8 @@
     "revoked_all": "Tous les comptes ont été révoqués.",
     "accounts_connected": "comptes connectés.",
     "disconnected": "déconnecté.",
-    "disconnected_all": "Tous les comptes ont été déconnectés."
+    "disconnected_all": "Tous les comptes ont été déconnectés.",
+    "nft_detection_enabled": "Détection automatique des NFT activée"
   },
   "connect_qr_hardware": {
     "title": "Connecter un hardware wallet (portefeuille matériel) basé sur code QR",
@@ -671,8 +672,8 @@
     "please_wait": "Veuillez patienter"
   },
   "data_collection_modal": {
-    "accept": "Okay",
-    "content": "You turned off data collection for our marketing purposes. This only applies to this device. If you use MetaMask on other devices, make sure to opt out there as well."
+    "accept": "OK",
+    "content": "Vous avez désactivé la collecte de données à des fins de marketing. Cela ne s’applique qu’à cet appareil. Si vous utilisez MetaMask sur d’autres appareils, n’oubliez pas de désactiver cette fonctionnalité sur ces appareils aussi."
   },
   "account_selector": {
     "prev": "PRÉCÉDENT",
@@ -845,9 +846,9 @@
     "clear_history_desc": "Choisissez cette option pour effacer l’ensemble de votre historique de navigation.",
     "clear_cookies_desc": "Choisissez cette option pour effacer l’ensemble des cookies de votre navigateur.",
     "metametrics_title": "Participer à MetaMetrics",
-    "metametrics_description": "Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.",
-    "data_collection_title": "Data collection for marketing",
-    "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
+    "metametrics_description": "Autorisez MetaMetrics à collecter des données d’utilisation et de diagnostic de base afin d’améliorer notre produit. Vous pouvez désactiver MetaMetrics pour cet appareil.",
+    "data_collection_title": "Collecte de données à des fins de marketing",
+    "data_collection_description": "Nous utiliserons MetaMetrics pour savoir comment vous interagissez avec nos communications commerciales et pour partager avec vous des informations pertinentes (comme les caractéristiques des produits et d’autres contenus).",
     "batch_balance_requests_title": "Demandes d’informations concernant le solde de plusieurs comptes",
     "batch_balance_requests_description": "Nous regroupons vos comptes et demandons à Infura de fournir des informations sur le solde de chacun de vos comptes. Si vous désactivez cette fonction, Infura ne fournira que des informations sur le solde des comptes actifs. Certaines applications décentralisées (dApps) ne fonctionneront pas si vous ne connectez pas votre portefeuille.",
     "third_party_title": "Obtenir les transactions entrantes",
@@ -888,12 +889,13 @@
     "delete": "Supprimer",
     "network_exists": "Ce réseau a déjà été ajouté.",
     "delete_metrics_title": "Supprimer les données MetaMetrics",
-    "delete_metrics_description_part_one": "Cela supprimera toutes les données MetaMetrics associées à votre portefeuille.",
-    "delete_metrics_description_part_two": "Les données MetaMetrics sont des données d’utilisation et de diagnostic anonymisées.",
-    "delete_metrics_description_part_three": "Votre portefeuille et vos comptes resteront exactement tels qu’ils sont maintenant après la suppression de ces données. Ce processus peut prendre jusqu’à 60 jours. Veuillez consulter la",
-    "delete_metrics_description_part_four": "Vous avez entrepris cette action le",
-    "delete_metrics_description_part_five": ". Ce processus peut prendre jusqu’à 60 jours. Veuillez consulter la",
-    "consensys_privacy_policy": "Politique de confidentialité de ConsenSys.",
+    "delete_metrics_description_part_one": "Cela supprimera l’historique des données",
+    "delete_metrics_description_part_two": "MetaMetrics",
+    "delete_metrics_description_part_three": "associées à votre portefeuille.",
+    "delete_metrics_description_before_delete": "Votre portefeuille et vos comptes resteront exactement tels qu’ils sont maintenant après la suppression de ces données. Ce processus peut prendre jusqu’à 30 jours. Veuillez consulter notre",
+    "delete_metrics_description_after_delete_part_one": "Vous avez entrepris cette action le",
+    "delete_metrics_description_after_delete_part_two": ". Ce processus peut prendre jusqu’à 30 jours. Veuillez consulter notre",
+    "delete_metrics_description_privacy_policy": "Politique de confidentialité.",
     "delete_metrics_button": "Supprimer les données MetaMetrics",
     "check_status_button": "Vérifier l’état",
     "delete_metrics_confirm_modal_title": "Voulez-vous supprimer les données MetaMetrics ?",
@@ -996,8 +998,27 @@
     "security_alerts": "Alertes de sécurité",
     "security_alerts_desc": "Cette fonctionnalité vous avertit de toute activité malveillante en examinant localement vos demandes de transaction et de signature. Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande. Rien ne garantit que toutes les activités malveillantes seront détectées par cette fonctionnalité. En l’activant, vous acceptez les conditions d’utilisation du fournisseur.",
     "smart_transactions_opt_in_heading": "Transactions intelligentes",
-    "smart_transactions_opt_in_desc": "Activez les transactions intelligentes pour profiter de transactions plus fiables et plus sûres, et de frais ajustables sur le réseau principal Ethereum.",
-    "smart_transactions_learn_more": "En savoir plus."
+    "smart_transactions_opt_in_desc": "Activez les transactions intelligentes pour profiter de transactions plus fiables et plus sûres sur le réseau principal Ethereum.",
+    "smart_transactions_learn_more": "En savoir plus.",
+    "simulation_details": "Estimer les changements de solde",
+    "simulation_details_description": "Activez cette option pour estimer les changements de solde des transactions avant de les confirmer. Cela ne garantit pas le résultat final de vos transactions. ",
+    "simulation_details_learn_more": "En savoir plus.",
+    "aes_crypto_test_form_title": "AES Crypto - Formulaire de test",
+    "aes_crypto_test_form_description": "Section exclusivement développée pour les tests de bout en bout. Si vous la voyez dans votre application, veuillez le signaler au service d’assistance de MetaMask."
+  },
+  "aes_crypto_test_form": {
+    "generate_random_salt": "Générer du sel aléatoire",
+    "salt_bytes_count": "Nombre d’octets du sel",
+    "generate": "Générer",
+    "generate_encryption_key": "Générer une clé de chiffrement à partir du mot de passe",
+    "password": "Mot de passe",
+    "salt": "Sel",
+    "encrypt_with_key": "Chiffrer à l’aide d’une clé",
+    "encrypt": "Chiffrer",
+    "encryption_key": "Clé de chiffrement",
+    "data": "Données",
+    "decrypt_with_key": "Décrypter en utilisant la clé",
+    "decrypt": "Décrypter"
   },
   "sdk": {
     "disconnect_title": "Déconnecter tous les sites ?",
@@ -1177,6 +1198,15 @@
     "show_private_key": "Afficher la clé privée",
     "account_copied_to_clipboard": "Adresse publique copiée dans le presse-papiers",
     "share_public_key": "Partager ma clé publique :"
+  },
+  "enable_nft-auto-detection": {
+    "title": "Activer la détection automatique des NFT",
+    "description": "Autorisez MetaMask à détecter et à afficher vos NFT grâce à la détection automatique des NFT. Vous pourrez ainsi :",
+    "immediateAccess": "Accéder immédiatement à vos NFT",
+    "navigate": "Gérer facilement vos actifs numériques",
+    "dive": "Commencer à utiliser vos NFT",
+    "allow": "Autoriser",
+    "notRightNow": "Pas maintenant"
   },
   "detected_tokens": {
     "title": "{{tokenCount}} nouveau jeton trouvé",
@@ -1376,10 +1406,12 @@
     "approve": "Approuver",
     "allow_to_access": "Donner l’autorisation d’accéder à votre",
     "allow_to_address_access": "Donner à cette adresse l’autorisation d’accéder à votre",
+    "allow_to_transfer_all": "Autoriser l’accès et le transfert de tous vos",
     "spend_cap": "Demande de fixer un plafond de dépenses pour votre",
     "token": "jeton",
     "nft": "NFT",
     "you_trust_this_site": "En accordant la permission, vous autorisez le contrat suivant à accéder à vos fonds.",
+    "you_trust_this_third_party": "Tant que vous n’aurez pas révoqué cette autorisation, l’autre partie pourra accéder à votre portefeuille et transférer sans préavis vos NFT.",
     "you_trust_this_address": "Faites-vous confiance à cette adresse ? En accordant cette permission, vous autorisez cette adresse à accéder à vos fonds.",
     "edit_permission": "Modifier l’autorisation",
     "edit": "Modifier",
@@ -1483,6 +1515,8 @@
     "tx_review_transfer_from": "Transfert de",
     "tx_review_unknown": "Méthode inconnue",
     "tx_review_approve": "Approuver",
+    "tx_review_increase_allowance": "Augmenter la provision",
+    "tx_review_set_approval_for_all": "Définir l’approbation pour tous",
     "sent_ether": "Ether envoyé(s)",
     "self_sent_ether": "Ether envoyé(s) à vous-même",
     "received_ether": "Ether reçu(s)",
@@ -1504,11 +1538,17 @@
     "smart_contract_interaction": "Interaction de contrats intelligents",
     "swaps_transaction": "Transaction de swap",
     "approve": "Approuver",
+    "increase_allowance": "Augmenter la provision",
+    "set_approval_for_all": "Définir l’approbation pour tous",
     "hash": "Hachage",
     "from": "De",
     "to": "À",
     "details": "Détails",
     "amount": "Montant",
+    "fee": {
+      "transaction_fee_in_ether": "Frais de transaction",
+      "transaction_fee_in_usd": "Frais de transaction (USD)"
+    },
     "gas_used": "Gaz utilisé (unités)",
     "gas_limit": "Limite de gaz (unités)",
     "gas_price": "Prix du gaz (GWEI)",
@@ -1619,11 +1659,11 @@
     "approve": "Approuver",
     "edit_network_details": "Modifier les détails du réseau",
     "malicious_network_warning": "Un fournisseur de réseau malveillant peut mentir quant à l’état de la blockchain et enregistrer votre activité sur le réseau. N’ajoutez que des réseaux personnalisés auxquels vous faites confiance.",
-    "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
+    "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "Informations sur le réseau",
     "network_warning_desc": "Cette connexion réseau est assurée par des tiers. Elle peut être moins fiable ou permettre à des tiers de suivre l’activité des utilisateurs.",
     "learn_more": "En savoir plus",
-    "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
+    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Changer de réseau",
     "switch": "Changer",
     "new_network": "Nouveau réseau ajouté",
@@ -1636,6 +1676,8 @@
     "you_can": "Ou vous pouvez",
     "add_network": "ajouter manuellement d’autres réseaux.",
     "select_network": "Sélectionner un réseau",
+    "enabled_networks": "Réseaux activés",
+    "additional_networks": "Réseaux supplémentaires",
     "show_test_networks": "Afficher les réseaux de test",
     "deprecated_goerli": "En raison des changements apportés au protocole d’Ethereum, le réseau de test Goerli pourra ne pas fonctionner d’une manière aussi fiable qu’auparavant et deviendra bientôt obsolète.",
     "network_deprecated_title": "Ce réseau est obsolète",
@@ -1904,19 +1946,26 @@
     "back_to_safety": "Retour à la sécurité"
   },
   "notifications": {
+    "staked": "Staké",
+    "received": "Reçu",
+    "unstaked": "Déstaké",
+    "to": "À",
+    "rate": "Taux (frais inclus)",
+    "unstaking_requested": "Demande d’annulation du staking",
     "stake_completed": "Stake terminé",
     "withdrawal_completed": "Retrait effectué",
     "unstake_completed": "Annulation du staking terminée",
     "withdrawal_requested": "La demande de retrait a été envoyée",
     "stake_ready_to_be_withdrawn": "Stake prêt à être retiré",
     "swap_completed": "A échangé {{from}} contre {{to}}",
+    "swap": "Échangé",
     "sent": "Envoyée à {{address}}",
-    "received": "Reçue de {{address}}",
-    "nft_sent": "Sent NFT to {{address}}",
-    "erc721_sent": "Sent NFT to {{address}}",
-    "erc1155_sent": "Sent NFT to {{address}}",
-    "erc721_received": "Received NFT from {{address}}",
-    "erc1155_received": "Received NFT from {{address}}",
+    "received_from": "Reçue de {{address}}",
+    "nft_sent": "A envoyé un NFT à {{address}}",
+    "erc721_sent": "A envoyé un NFT à {{address}}",
+    "erc1155_sent": "A envoyé un NFT à {{address}}",
+    "erc721_received": "A reçu un NFT de {{address}}",
+    "erc1155_received": "A reçu un NFT de {{address}}",
     "received_nft": "A reçu un NFT de {{address}}",
     "pending_title": "Transaction soumise",
     "pending_deposit_title": "Dépôt en cours !",
@@ -1958,6 +2007,7 @@
     "wc_description": "Veuillez vérifier l’application",
     "wallet": "Portefeuille",
     "web3": "Web3",
+    "staking_provider": "Fournisseur de services de staking",
     "empty": {
       "title": "Rien à voir ici",
       "message": "C’est ici qu’apparaitront les notifications vous informant qu’une activité a été détectée dans votre portefeuille. "
@@ -2567,11 +2617,18 @@
     "submit_ticket_5": "Envoyez une demande d’assistance",
     "submit_ticket_6": "ici.",
     "submit_ticket_7": "Veuillez inclure le message d’erreur et la capture d’écran.",
+    "submit_ticket_8": "Envoyez-nous un rapport de bogue",
+    "submit_ticket_9": "Veuillez donner des détails sur ce qui s’est passé.",
+    "bug_report_prompt_title": "Dites-nous ce qui s’est passé",
+    "bug_report_prompt_description": "Ajoutez des détails pour que nous puissions identifier le problème.",
+    "bug_report_thanks": "Merci. Nous y jetterons un coup d’œil très prochainement.",
     "save_seedphrase_1": "Si cette erreur persiste,",
     "save_seedphrase_2": "conservez votre phrase secrète de récupération en lieu sûr",
     "save_seedphrase_3": "et réinstallez l’application. Remarque : vous ne pouvez PAS restaurer votre portefeuille sans votre phrase secrète de récupération.",
     "copied_clipboard": "Copié dans le presse-papiers",
-    "ok": "OK"
+    "ok": "OK",
+    "cancel": "Annuler",
+    "send": "Envoyer"
   },
   "whats_new": {
     "title": "Nouveautés",
@@ -2591,7 +2648,7 @@
       "header": "Protection renforcée des transactions",
       "description_1": "Bénéficiez de taux de réussite plus élevés, d’une protection contre le « front running » et d’une meilleure visibilité grâce aux transactions intelligentes.",
       "description_2": "Disponible uniquement sur Ethereum. Vous pouvez activer ou désactiver cette option à tout moment dans les paramètres.",
-      "secondary_button": "Ne pas activer la protection renforcée",
+      "secondary_button": "Gérer dans les paramètres",
       "primary_button": "Activer",
       "learn_more": "En savoir plus.",
       "benefit_1_1": "Taux de réussite de",
@@ -2600,6 +2657,11 @@
       "benefit_2_2": "de l’argent",
       "benefit_3_1": "Mises à jour",
       "benefit_3_2": "en temps réel"
+    },
+    "transaction_simulation": {
+      "title": "Estimation des changements de solde",
+      "description_1": "Vous pouvez désormais connaître le résultat potentiel de vos transactions avant de les effectuer !",
+      "description_2": "Il s’agit d’une simple simulation, nous ne pouvons donc pas garantir le résultat final. Vous pouvez désactiver cette option à tout moment dans Paramètres > Sécurité et confidentialité."
     }
   },
   "invalid_network": {
@@ -2771,7 +2833,7 @@
     "error_title": "Oups ! Une erreur s’est produite.",
     "error_message": "Une erreur de chargement des informations du réseau s’est produite. Veuillez réessayer plus tard.",
     "private_network_third_description": "Veuillez saisir un nom pour ce réseau afin de faciliter son identification.",
-    "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
+    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "enable_token_detection": "Activer la détection automatique des jetons",
     "token_detection_mainnet_title": "La détection des jetons est activée, ce qui signifie que les jetons apparaîtront automatiquement dans votre portefeuille.",
     "token_detection_mainnet_link": "Vous pouvez également ajouter des jetons manuellement.",
@@ -3031,7 +3093,8 @@
     "manage_networks": "Gérer les réseaux",
     "manage_networks_body": "Nous utilisons Infura comme fournisseur d’appel de procédure à distance (APD) pour offrir l’accès le plus fiable et le plus privé possible aux données Ethereum. Vous pouvez choisir votre propre fournisseur d’APD, mais rappelez-vous qu’il aura besoin d’accéder à votre adresse IP et à l’adresse de votre portefeuille Ethereum pour effectuer des transactions. Lisez notre ",
     "manage_networks_body2": " pour en savoir plus sur la façon dont Infura traite les données.",
-    "functionality_body": "Comprend les données et la valeur des jetons, les réglages optimaux du gaz, les mises à jour de sécurité et plus encore. Si vous utilisez ces services, votre adresse IP sera partagée avec MetaMask, tout comme lorsque vous visitez un site web.",
+    "functionality_body": "MetaMask offre des fonctionnalités de base telles que l’affichage des détails des jetons et des paramètres de gaz par le biais de services Internet. Lorsque vous utilisez des services Internet, votre adresse IP est partagée avec le fournisseur de ces services, dans ce cas MetaMask. C’est la même chose que lorsque vous visitez un site web. MetaMask conserve ces données temporairement et ne les vend jamais. Vous pouvez utiliser un VPN ou désactiver ces services, mais cela peut affecter votre expérience avec MetaMask. Lisez notre ",
+    "functionality_body2": " pour en savoir plus.",
     "sheet": {
       "title_off": "Désactiver la fonctionnalité de base",
       "description_off": "Cela signifie que vous n’optimiserez pas complètement votre temps sur MetaMask. Vous n’aurez pas accès aux fonctions de base (comme les détails des jetons, les réglages optimaux du gaz, etc.).",
@@ -3044,5 +3107,16 @@
         "turn_off": "Désactiver"
       }
     }
+  },
+  "simulation_details": {
+    "failed": "Une erreur s’est produite lors du chargement de l’estimation.",
+    "fiat_not_available": "Non disponible",
+    "incoming_heading": "Vous recevez",
+    "no_balance_changes": "Aucun changement prévu pour votre portefeuille",
+    "outgoing_heading": "Vous envoyez",
+    "reverted": "Cette transaction va probablement échouer",
+    "title": "Changements estimés",
+    "tooltip_description": "Les changements estimés représentent ce qui pourrait se produire si vous effectuez cette transaction. Il s’agit juste d’une estimation fournie à des fins d’information.",
+    "total_fiat": "Total = {{currency}}"
   }
 }

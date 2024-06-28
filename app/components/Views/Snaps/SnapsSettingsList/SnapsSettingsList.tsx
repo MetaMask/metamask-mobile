@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useEffect } from 'react';
 import { View, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -22,6 +22,8 @@ const SnapsSettingsList = () => {
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
   const snaps = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.engine.backgroundState.SnapController.snaps,
   );
 

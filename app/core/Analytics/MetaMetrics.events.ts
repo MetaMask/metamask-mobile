@@ -38,6 +38,7 @@ const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
 enum EVENT_NAME {
   // Error
   ERROR = 'Error occurred',
+  ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
 
   // Approval
   APPROVAL_STARTED = 'Approval Started',
@@ -360,6 +361,12 @@ enum EVENT_NAME {
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
+
+  // Simulations
+  INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
+  // Nft auto detection modal
+  NFT_AUTO_DETECTION_ENABLED_MODAL = 'Nft Autodetection Enabled from modal',
+  NFT_AUTO_DETECTION_DISBLED_MODAL = 'Nft Autodetection Disabled from modal',
 }
 
 enum ACTIONS {
@@ -416,6 +423,7 @@ enum ACTIONS {
 
 const events = {
   ERROR: generateOpt(EVENT_NAME.ERROR),
+  ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),
@@ -853,6 +861,17 @@ const events = {
   ANNOUCEMENTS_NOTIFICATIONS: generateOpt(
     EVENT_NAME.ANNOUCEMENTS_NOTIFICATIONS,
     ACTIONS.SELECTS_ANNOUCEMENTS_NOTIFICATIONS,
+  ),
+  // Simulations
+  INCOMPLETE_ASSET_DISPLAYED: generateOpt(
+    EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
+  ),
+  // Nft auto detection modal
+  NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,
+  ),
+  NFT_AUTO_DETECTION_MODAL_DISABLE: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_DISBLED_MODAL,
   ),
 };
 

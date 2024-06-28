@@ -122,7 +122,7 @@ export default class AndroidService extends EventEmitter2 {
   }
 
   private setupOnClientsConnectedListener() {
-    this.eventHandler.onClientsConnected((sClientInfo: string) => {
+    this.eventHandler.onClientsConnected(async (sClientInfo: string) => {
       const clientInfo: DappClient = JSON.parse(sClientInfo);
 
       DevLogger.log(`AndroidService::clients_connected`, clientInfo);
@@ -154,6 +154,15 @@ export default class AndroidService extends EventEmitter2 {
         });
         return;
       }
+
+      await SDKConnect.getInstance().addDappConnection({
+        id: clientInfo.clientId,
+        lastAuthorized: Date.now(),
+        origin: AppConstants.MM_SDK.ANDROID_SDK,
+        originatorInfo: clientInfo.originatorInfo,
+        otherPublicKey: '',
+        validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
+      });
 
       const handleEventAsync = async () => {
         const keyringController = (
@@ -250,7 +259,11 @@ export default class AndroidService extends EventEmitter2 {
     channelId: string;
   }): Promise<unknown> {
     const permissionsController = (
-      Engine.context as { PermissionController: PermissionController<any, any> }
+      Engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
     ).PermissionController;
 
     return permissionsController.requestPermissions(
@@ -285,6 +298,8 @@ export default class AndroidService extends EventEmitter2 {
 
         let sessionId: string,
           message: string,
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           data: { id: string; jsonrpc: string; method: string; params: any };
         try {
           parsedMsg = JSON.parse(jsonMessage); // handle message and redirect to corresponding bridge
@@ -361,6 +376,7 @@ export default class AndroidService extends EventEmitter2 {
         const chainId = networkController.state.providerConfig.chainId;
 
         this.currentClientId = sessionId;
+
         // Handle custom rpc method
         const processedRpc = await handleCustomRpcCalls({
           batchRPCManager: this.batchRPCManager,
@@ -456,6 +472,8 @@ export default class AndroidService extends EventEmitter2 {
     }
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async sendMessage(message: any, forceRedirect?: boolean) {
     const id = message?.data?.id;
     this.communicationClient.sendMessage(JSON.stringify(message));
