@@ -59,7 +59,10 @@ module.exports.transform = async ({ src, filename, options }) => {
    * Params based on builds we're code splitting
    * i.e: flavorDimensions "version" productFlavors from android/app/build.gradle
    */
-  if (fileExtsToScan.includes(path.extname(filename))) {
+  if (
+    !path.normalize(filename).split(path.sep).includes('node_modules') &&
+    fileExtsToScan.includes(path.extname(filename))
+  ) {
     const [processedSource, didModify] = removeFencedCode(filename, src, {
       all: availableFeatures,
       active: getBuildTypeFeatures(),
