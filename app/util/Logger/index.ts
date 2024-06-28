@@ -1,7 +1,6 @@
 import {
   addBreadcrumb,
   captureException,
-  captureMessage,
   withScope,
 } from '@sentry/react-native';
 import DefaultPreference from 'react-native-default-preference';
@@ -95,26 +94,6 @@ export class AsyncLogger {
       }
     }
   }
-
-  /**
-   * captureMessage wrapper
-   *
-   * @param {object} args - data to be logged
-   * @returns - void
-   */
-  static async message(...args: unknown[]): Promise<void> {
-    if (__DEV__) {
-      args.unshift('[MetaMask DEBUG]:');
-      // console.log.apply(null, args); // eslint-disable-line no-console
-      return;
-    }
-
-    // Check if user passed accepted opt-in to metrics
-    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-    if (metricsOptIn === 'agreed') {
-      captureMessage(JSON.stringify(args));
-    }
-  }
 }
 
 export default class Logger {
@@ -143,18 +122,6 @@ export default class Logger {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static error(error: Error, extra?: ExtraInfo | string | any) {
     AsyncLogger.error(error, extra).catch(() => {
-      // ignore error but avoid dangling promises
-    });
-  }
-
-  /**
-   * captureMessage wrapper
-   *
-   * @param {object} args - data to be logged
-   * @returns - void
-   */
-  static message(...args: unknown[]) {
-    AsyncLogger.message(...args).catch(() => {
       // ignore error but avoid dangling promises
     });
   }
