@@ -1,4 +1,4 @@
-import React from 'react';
+import { useMemo } from 'react';
 import { type TokenListMap } from '@metamask/assets-controllers';
 import contractMap from '@metamask/contract-metadata';
 
@@ -27,14 +27,12 @@ export default function useTokenList(): TokenListMap {
   const isMainnet = isMainnetByChainId(chainId);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const tokenList = useSelector(selectTokenList);
+  const shouldUseStaticList = !isTokenDetectionEnabled && isMainnet;
 
-  const memoizedTokenList = React.useMemo(() => tokenList || [], [tokenList]);
-  const normalizedTokenList = React.useMemo(() => {
-    if (!isTokenDetectionEnabled && isMainnet) {
+  return useMemo(() => {
+    if (shouldUseStaticList) {
       return NORMALIZED_MAINNET_TOKEN_LIST;
     }
-    return normalizeTokenAddresses(memoizedTokenList);
-  }, [isTokenDetectionEnabled, isMainnet, memoizedTokenList]);
-
-  return normalizedTokenList;
+    return normalizeTokenAddresses(tokenList);
+  }, [shouldUseStaticList, tokenList]);
 }
