@@ -7,7 +7,8 @@ import { initialState as initialSmartTransactions } from '../../core/redux/slice
 import { initialState as transactionMetrics } from '../../core/redux/slices/transactionMetrics';
 import initialBackgroundState from './initial-background-state.json';
 
-// Cast as unknown since there are still mock variables that do not correspond with the existing types
+// A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
+// the string value of an enum as satisfying an enum type.
 export const backgroundState: EngineState =
   initialBackgroundState as unknown as EngineState;
 

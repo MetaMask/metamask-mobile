@@ -132,70 +132,27 @@
   },
   "SmartTransactionsController": {
     "smartTransactionsState": {
-      "smartTransactions": {
-        "0xExampleAddress1": [
-          {
-            "uuid": "uuid1",
-            "chainId": "0x1",
-            "origin": "exampleOrigin1",
-            "preTxBalance": "100000",
-            "status": "pending",
-            "statusMetadata": {
-              "cancellationFeeWei": 0,
-              "deadlineRatio": 0,
-              "minedHash": "",
-              "minedTx": "not_mined",
-              "isSettled": false
-            },
-            "sourceTokenSymbol": "ETH",
-            "swapTokenValue": "50000",
-            "time": 1625158800,
-            "creationTime": 1625158800,
-            "confirmed": false,
-            "cancellable": true
-          }
-        ]
-      },
+      "smartTransactions": {},
       "userOptIn": false,
       "userOptInV2": false,
+     "fees": {
+        "approvalTxFees": false,
+        "tradeTxFees": false
+      },
       "liveness": true,
-      "fees": {
-        "approvalTxFees": {
-          "fees": [{ "maxFeePerGas":0, "maxPriorityFeePerGas":0}],
-          "cancelFees":  [{ "maxFeePerGas":0, "maxPriorityFeePerGas":0}],
-          "feeEstimate": 0,
-          "gasLimit": 21000,
-          "gasUsed": 21000
-        },
-        "tradeTxFees": {
-          "fees":  [{ "maxFeePerGas":0, "maxPriorityFeePerGas":0}],
-          "cancelFees":  [{ "maxFeePerGas":0, "maxPriorityFeePerGas":0}],
-          "feeEstimate": 0,
-          "gasLimit": 21000,
-          "gasUsed": 21000
-        }
+      "livenessByChainId": {
+        "mainnet": true,
+        "sepolia": true
       },
       "feesByChainId": {
-        "0x1": {
-          "approvalTxFees": {
-              "fees": [{ "maxFeePerGas":0, "maxPriorityFeePerGas":0}],
-              "cancelFees": [{ "maxFeePerGas":0, "maxPriorityFeePerGas":0}],
-              "feeEstimate": 0,
-              "gasLimit": 21000,
-              "gasUsed": 21000
-          },
-          "tradeTxFees": {
-              "fees": [{ "maxFeePerGas":0, "maxPriorityFeePerGas":0}],
-              "cancelFees": [{ "maxFeePerGas":0, "maxPriorityFeePerGas":0}],
-              "feeEstimate": 0,
-              "gasLimit": 21000,
-              "gasUsed": 21000
-          }
+        "mainnet": {
+          "approvalTxFees": false,
+          "tradeTxFees": false
+        },
+        "sepolia": {
+          "approvalTxFees": false,
+          "tradeTxFees": false
         }
-      },
-      "livenessByChainId": {
-        "0x1": true,
-        "0x2": false
       }
     }
   },
