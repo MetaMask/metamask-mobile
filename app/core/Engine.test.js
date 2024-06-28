@@ -43,11 +43,7 @@ describe('Engine', () => {
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
-    let initialBackgroundState = engine.datamodel.state;
-
-    initialBackgroundState = {
-      ...initialBackgroundState,
-    };
+    const initialBackgroundState = engine.datamodel.state;
 
     expect(initialBackgroundState).toStrictEqual({
       ...backgroundState,
