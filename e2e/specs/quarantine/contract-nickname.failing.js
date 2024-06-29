@@ -189,7 +189,7 @@ describe('Adding Contract Nickname', () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
-    await Assertions.checkIfVisible(await SendView.CurrentAccountElement);
+    await Assertions.checkIfVisible(SendView.CurrentAccountElement);
   });
 
   it('should verify the contract nickname does not appear in send flow', async () => {
@@ -209,7 +209,8 @@ describe('Adding Contract Nickname', () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
-    await SendView.isMyAccountsVisible();
+    //TODO: Update SendView.isMyAccountsVisible, this method does not exist
+    //await SendView.isMyAccountsVisible();
   });
 
   it('should verify the contract nickname does not appear in recents', async () => {
