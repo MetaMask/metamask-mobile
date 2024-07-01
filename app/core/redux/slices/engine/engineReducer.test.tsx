@@ -52,4 +52,51 @@ describe('engineReducer', () => {
       AccountTrackerController: Engine.state[key],
     });
   });
+
+  it('should filter out unnecesary Snaps state', () => {
+    const reduxInitialState = {
+      backgroundState: {
+        SnapController: {
+          snaps: {},
+          snapStates: {},
+          unencryptedSnapStates: {},
+        },
+      },
+    };
+
+    const key = 'SnapController';
+    // changing the mock version to suit this test manually due to our current global mock
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (Engine as any).state = {
+      SnapController: {
+      snaps: {
+        'npm:@metamask/bip32-example-snap': {
+          id: 'npm:@metamask/bip32-example-snap',
+          sourceCode: 'foo bar',
+        },
+      },
+      snapStates: {},
+      unencryptedSnapStates: {
+        'npm:@metamask-bip32-example-snap': JSON.stringify({ foo: 'bar' }),
+      },
+    }
+    };
+    const { backgroundState } = engineReducer(
+      reduxInitialState,
+      updateBgState({ key }),
+    );
+    expect(backgroundState).toEqual({
+      ...reduxInitialState.backgroundState,
+      SnapController: {
+        snaps: {
+          'npm:@metamask/bip32-example-snap': {
+            id: 'npm:@metamask/bip32-example-snap',
+          },
+        },
+        snapStates: {},
+        unencryptedSnapStates: {},
+      }
+    });
+  });
 });

@@ -3,7 +3,6 @@ import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
 import { getLocalizedSnapManifest } from '@metamask/snaps-utils';
 
-// TODO: Filter out huge values
 export const selectSnapControllerState = (state: RootState) =>
   state.engine.backgroundState.SnapController;
 
