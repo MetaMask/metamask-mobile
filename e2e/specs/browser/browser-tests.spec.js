@@ -42,7 +42,7 @@ describe(SmokeCore('Browser Tests'), () => {
     await TabBarComponent.tapBrowser();
     // Check that we are on the browser screen
 
-    await Assertions.checkIfVisible(await Browser.browserScreenID);
+    await Assertions.checkIfVisible(Browser.browserScreenID);
   });
 
   it('should connect to the test dapp', async () => {
@@ -91,7 +91,7 @@ describe(SmokeCore('Browser Tests'), () => {
     // Clear text & Navigate to URL
     await Browser.navigateToURL(ExternalSites.PHISHING_SITE);
     await Browser.waitForBrowserPageToLoad();
-    await Assertions.checkIfVisible(await Browser.backToSafetyButton);
+    await Assertions.checkIfVisible(Browser.backToSafetyButton);
 
     await Browser.tapBackToSafetyButton();
     // Check that we are on the browser screen
