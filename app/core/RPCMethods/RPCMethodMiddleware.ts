@@ -399,7 +399,7 @@ export const getRpcMethodMiddleware = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rpcMethods: any = {
       wallet_swapAsset: async () => {
-        const { fromToken, toToken, user_address } = req.params[0];
+        const { fromToken, toToken, userAddress } = req.params[0];
         const identities = selectIdentities(store.getState());
         const selectedAddress = selectSelectedInternalAccountChecksummedAddress(
           store.getState(),
@@ -412,7 +412,7 @@ export const getRpcMethodMiddleware = ({
         };
         try {
           parsedCaip10UserAddress = parseCaipAccountId(
-            user_address as CaipAccountId,
+            userAddress as CaipAccountId,
           );
         } catch (error) {
           throw rpcErrors.invalidParams('Invalid caip-10 user address');
