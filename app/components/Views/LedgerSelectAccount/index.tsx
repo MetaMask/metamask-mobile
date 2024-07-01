@@ -1,18 +1,10 @@
-import React, {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 import Engine from '../../../core/Engine';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Device from '../../../util/device';
-import { fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { useAssetFromTheme, useTheme } from '../../../util/theme';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
@@ -26,50 +18,9 @@ import LedgerConnect from '../LedgerConnect';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
-import { Colors } from '../../../util/theme/models';
 import { KeyringController } from '@metamask/keyring-controller';
 import { StackNavigationProp } from '@react-navigation/stack';
-
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      flexDirection: 'column',
-      alignItems: 'center',
-    },
-    ledgerIcon: {
-      width: 60,
-      height: 60,
-    },
-    header: {
-      marginTop: Device.isIphoneX() ? 50 : 20,
-      flexDirection: 'row',
-      width: '100%',
-      paddingHorizontal: 32,
-      alignItems: 'center',
-    },
-    navbarRightButton: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
-      height: 48,
-      width: 48,
-      flex: 1,
-    },
-    closeIcon: {
-      fontSize: 28,
-      color: colors.text.default,
-    },
-    error: {
-      ...fontStyles.normal,
-      fontSize: 14,
-      color: colors.error,
-    },
-    text: {
-      color: colors.text.default,
-      fontSize: 14,
-      ...fontStyles.normal,
-    },
-  });
+import createStyles from './index.styles';
 
 const LedgerSelectAccount = () => {
   const navigation = useNavigation<StackNavigationProp<never>>();
@@ -186,7 +137,7 @@ const LedgerSelectAccount = () => {
   return accounts.length <= 0 ? (
     <LedgerConnect onConnectLedger={onConnectHardware} />
   ) : (
-    <Fragment>
+    <>
       <View style={styles.container}>
         <View style={styles.header}>
           <Image
@@ -225,7 +176,7 @@ const LedgerSelectAccount = () => {
           {strings('connect_qr_hardware.please_wait')}
         </Text>
       </BlockingActionModal>
-    </Fragment>
+    </>
   );
 };
 
