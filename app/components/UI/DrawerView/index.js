@@ -82,6 +82,7 @@ import { selectContractBalances } from '../../../selectors/tokenBalancesControll
 import { selectIdentities } from '../../../selectors/preferencesController';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 
+import { Screens } from '../../../components/Views/QRTabSwitcher';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
@@ -624,8 +625,11 @@ class DrawerView extends PureComponent {
   };
 
   onReceive = () => {
-    this.props.navigation.navigate('QRTabSwitcher', {});
-    this.trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
+    this.props.navigation.navigate('QRTabSwitcher', {
+      initialScreen: Screens.Receive,
+      disableTabber: true,
+    });
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE);
   };
 
   onSend = async () => {

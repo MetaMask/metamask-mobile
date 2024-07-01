@@ -51,6 +51,7 @@ import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { Screens } from '../../../components/Views/QRTabSwitcher';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -114,8 +115,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }, []);
 
   const onReceive = () => {
-    navigation.navigate('QRTabSwitcher', {});
-    trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
+    navigation.navigate('QRTabSwitcher', {
+      initialScreen: Screens.Receive,
+      disableTabber: true,
+    });
   };
 
   const onSend = async () => {
