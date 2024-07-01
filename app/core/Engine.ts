@@ -795,6 +795,7 @@ class Engine {
         networkController.getNetworkClientById.bind(networkController),
     });
     const permissionController = new PermissionController({
+      // @ts-expect-error TODO: Resolve/patch messenger mismatch. PermissionController constructor is expecting a PermissionControllerMessenger type, but it is being assigned a RestrictedControllerMessenger type.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
