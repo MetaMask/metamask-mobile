@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
 import React, { FC, useEffect, useMemo } from 'react';
-import { Pressable, ScrollView, Switch, View, Alert, ActivityIndicator } from 'react-native';
+import { Pressable, ScrollView, Switch, View, Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../locales/i18n';
@@ -45,6 +45,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 
   const theme = useTheme();
   // Selectors
+
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
