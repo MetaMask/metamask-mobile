@@ -80,7 +80,7 @@ async function filterCommitsByTeam(branchA, branchB) {
         commitsByTeam[team].push({
           message,
           author,
-          hash: hash.substring(0, 10),
+          hash: hash.substring(0, 7),
           prLink,
         });
       }
