@@ -81,7 +81,7 @@
     "changeset-changelog": "wrap () { node ./scripts/generate-rc-commits.js \"$@\" && ./scripts/changelog-csv.sh }; wrap ",
     "prestorybook": "rnstl",
     "deduplicate": "yarn yarn-deduplicate && yarn install",
-    "create-release": "./scripts/set-versions.sh",
+    "set-version": "./scripts/set-versions.sh",
     "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts",
     "add-team-label-to-pr": "ts-node ./.github/scripts/add-team-label-to-pr.ts",
     "run-bitrise-e2e-check": "ts-node ./.github/scripts/bitrise/run-bitrise-e2e-check.ts",

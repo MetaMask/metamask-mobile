@@ -46,7 +46,7 @@ jobs:
       - name: Set Versions
         id: set-versions
         shell: bash
-        run: SEMVER_VERSION=${{ github.event.inputs.semver-version }} VERSION_NUMBER=${{ github.event.inputs.version-number }} yarn create-release
+        run: SEMVER_VERSION=${{ github.event.inputs.semver-version }} VERSION_NUMBER=${{ github.event.inputs.version-number }} yarn set-version
       - name: Create Release PR
         id: create-release-pr
         shell: bash
