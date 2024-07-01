@@ -6,17 +6,18 @@ set -o pipefail
 
 readonly CSV_FILE='commits.csv'
 
-# Add release branch arg name 
+# Add release branch arg name
 RELEASE_BRANCH_NAME="${1}"
 
 # Temporary file for new entries
 NEW_ENTRIES=$(mktemp)
 
 # Backup file for existing CHANGELOG
-CHANGELOG_BACKUP="CHANGELOG.md.bak"
+CHANGELOG="CHANGELOG.md"
+CHANGELOG_BACKUP="$CHANGELOG.bak"
 
 # Backup existing CHANGELOG.md
-cp CHANGELOG.md "$CHANGELOG_BACKUP"
+cp "$CHANGELOG" "$CHANGELOG_BACKUP"
 
 # Function to append entry to the correct category in the temp file
 append_entry() {
@@ -41,7 +42,6 @@ done < <(tail -n +2 "$CSV_FILE") # Skip the header line
 # Function to insert new entries into CHANGELOG.md after a specific line
 insert_new_entries() {
     local marker="## Current Main Branch"
-    local changelog="CHANGELOG.md"
     local temp_changelog=$(mktemp)
 
     # Find the line number of the marker
@@ -68,13 +68,13 @@ insert_new_entries() {
     tail -n +$((line_num + 1)) "$CHANGELOG_BACKUP" >> "$temp_changelog"
 
     # Replace the original CHANGELOG with the updated one
-    mv "$temp_changelog" "$changelog"
+    mv "$temp_changelog" "$CHANGELOG"
 }
+
+# Trap to ensure cleanup happens
+trap 'rm -f "$NEW_ENTRIES-"* "$CHANGELOG_BACKUP"' EXIT
 
 # Insert new entries into CHANGELOG.md
 insert_new_entries
-
-# Cleanup
-rm "$NEW_ENTRIES-"* "$CHANGELOG_BACKUP"
 
 echo 'CHANGELOG updated'
