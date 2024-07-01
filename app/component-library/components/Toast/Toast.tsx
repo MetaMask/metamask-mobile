@@ -187,6 +187,18 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           />
         );
       }
+      case ToastVariants.Icon: {
+        const { iconName, iconColor, backgroundColor } = toastOptions;
+        return (
+          <Avatar
+            variant={AvatarVariant.Icon}
+            name={iconName}
+            iconColor={iconColor}
+            backgroundColor={backgroundColor}
+            style={styles.avatar}
+          />
+        );
+      }
     }
   };
 

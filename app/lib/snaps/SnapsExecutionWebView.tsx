@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable import/no-commonjs */
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { Component, RefObject } from 'react';
 import { View, ScrollView, NativeSyntheticEvent } from 'react-native';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
@@ -21,7 +21,7 @@ interface SnapsExecutionWebViewProps {
 let resolveGetWebView: (arg0: SnapsExecutionWebViewProps) => void;
 let rejectGetWebView: (error: NativeSyntheticEvent<WebViewError>) => void;
 
-const SNAPS_EE_URL = 'https://execution.metamask.io/webview/4.0.0/index.html';
+const SNAPS_EE_URL = 'https://execution.metamask.io/webview/6.5.0/index.html';
 
 export const getSnapsWebViewPromise = new Promise<WebViewInterface>(
   (resolve, reject) => {

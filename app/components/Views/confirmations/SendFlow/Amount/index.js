@@ -599,7 +599,8 @@ class Amount extends PureComponent {
     if (selectedAsset.isETH) {
       return !!conversionRate;
     }
-    const exchangeRate = contractExchangeRates[selectedAsset.address];
+    const exchangeRate =
+      contractExchangeRates?.[selectedAsset.address]?.price ?? null;
     return !!exchangeRate;
   };
 
@@ -900,7 +901,9 @@ class Amount extends PureComponent {
         });
       }
     } else {
-      const exchangeRate = contractExchangeRates[selectedAsset.address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[selectedAsset.address]?.price
+        : undefined;
       if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
         input = fromTokenMinimalUnitString(
           contractBalances[selectedAsset.address]?.toString(10),
@@ -965,7 +968,9 @@ class Amount extends PureComponent {
         renderableInputValueConversion = `${inputValueConversion} ${processedTicker}`;
       }
     } else {
-      const exchangeRate = contractExchangeRates[selectedAsset.address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[selectedAsset.address]?.price
+        : null;
       hasExchangeRate = !!exchangeRate;
       if (internalPrimaryCurrencyIsCrypto) {
         inputValueConversion = `${balanceToFiatNumber(
@@ -1078,7 +1083,9 @@ class Amount extends PureComponent {
       );
     } else {
       balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
-      const exchangeRate = contractExchangeRates[address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[address]?.price
+        : undefined;
       balanceFiat = balanceToFiat(
         balance,
         conversionRate,

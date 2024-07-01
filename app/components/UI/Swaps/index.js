@@ -32,10 +32,8 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import {
   getFeatureFlagChainId,
-  setSwapsHasOnboarded,
   setSwapsLiveness,
   swapsControllerTokens,
-  swapsHasOnboardedSelector,
   swapsTokensSelector,
   swapsTokensWithBalanceSelector,
   swapsTopAssetsSelector,
@@ -198,8 +196,6 @@ function SwapsAmountView({
   conversionRate,
   tokenExchangeRates,
   currentCurrency,
-  userHasOnboarded,
-  setHasOnboarded,
   setLiveness,
 }) {
   const navigation = useNavigation();
@@ -522,8 +518,8 @@ function SwapsAmountView({
     } else {
       const sourceAddress = safeToChecksumAddress(sourceToken.address);
       const exchangeRate =
-        sourceAddress in tokenExchangeRates
-          ? tokenExchangeRates[sourceAddress]
+        tokenExchangeRates && sourceAddress in tokenExchangeRates
+          ? tokenExchangeRates[sourceAddress]?.price
           : undefined;
       balanceFiat = balanceToFiat(
         amount,
@@ -1000,14 +996,6 @@ SwapsAmountView.propTypes = {
    */
   tokenExchangeRates: PropTypes.object,
   /**
-   * Wether the user has been onboarded or not
-   */
-  userHasOnboarded: PropTypes.bool,
-  /**
-   * Function to set hasOnboarded
-   */
-  setHasOnboarded: PropTypes.func,
-  /**
    * Current network provider configuration
    */
   providerConfig: PropTypes.object,
@@ -1039,12 +1027,9 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),
-  userHasOnboarded: swapsHasOnboardedSelector(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  setHasOnboarded: (hasOnboarded) =>
-    dispatch(setSwapsHasOnboarded(hasOnboarded)),
   setLiveness: (chainId, featureFlags) =>
     dispatch(setSwapsLiveness(chainId, featureFlags)),
 });

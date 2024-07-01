@@ -85,7 +85,6 @@ const initialState = {
     backgroundState: {
       ...initialBackgroundState,
       NetworkController: {
-        network: '1',
         providerConfig: {
           ticker: 'ETH',
           type: 'mainnet',
@@ -371,8 +370,10 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
-            contractExchangeRates: {
-              '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
             },
           },
           CurrencyRateController: {
@@ -475,8 +476,10 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
-            contractExchangeRates: {
-              '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
             },
           },
           CurrencyRateController: {
@@ -530,7 +533,7 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
-            contractExchangeRates: {},
+            marketData: {},
           },
           CurrencyRateController: {},
         },
@@ -571,8 +574,10 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
-            contractExchangeRates: {
-              '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
             },
           },
           CurrencyRateController: {},
@@ -617,7 +622,11 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
-            contractExchangeRates: {},
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
+            },
           },
           CurrencyRateController: {},
         },
