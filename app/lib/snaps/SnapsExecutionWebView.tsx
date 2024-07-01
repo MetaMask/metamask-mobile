@@ -21,7 +21,7 @@ interface SnapsExecutionWebViewProps {
 let resolveGetWebView: (arg0: SnapsExecutionWebViewProps) => void;
 let rejectGetWebView: (error: NativeSyntheticEvent<WebViewError>) => void;
 
-const SNAPS_EE_URL = 'https://execution.metamask.io/webview/4.0.0/index.html';
+const SNAPS_EE_URL = 'https://execution.metamask.io/webview/6.5.0/index.html';
 
 export const getSnapsWebViewPromise = new Promise<WebViewInterface>(
   (resolve, reject) => {
