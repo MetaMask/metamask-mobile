@@ -1,6 +1,7 @@
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import configureMockStore from 'redux-mock-store';
+import { Provider } from 'react-redux';
 import InstallSnapConnectionRequest from '../InstallSnapConnectionRequest';
 import {
   SNAP_INSTALL_CANCEL,
@@ -38,6 +39,28 @@ describe('InstallSnapConnectionRequest', () => {
     expectsResult: false,
   };
 
+  const mockStore = configureMockStore();
+  const mockInitialState = {
+    settings: {},
+    engine: {
+      backgroundState: {
+        SubjectMetadataController: {
+          subjectMetadata: {},
+        },
+        SnapController: {
+          snaps: {},
+        },
+      },
+    },
+  };
+  const store = mockStore(mockInitialState);
+
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Wrapper = ({ children }: any) => (
+    <Provider store={store}>{children}</Provider>
+  );
+
   const onConfirm = jest.fn();
   const onCancel = jest.fn();
 
@@ -51,8 +74,10 @@ describe('InstallSnapConnectionRequest', () => {
         approvalRequest={requestPermissionsData}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        snapId="npm:@metamask/bip32-example-snap"
         snapName="@metamask/bip32-example-snap"
       />,
+      { wrapper: Wrapper },
     );
     expect(getByTestId(SNAP_INSTALL_CONNECTION_REQUEST)).toBeDefined();
   });
@@ -63,8 +88,10 @@ describe('InstallSnapConnectionRequest', () => {
         approvalRequest={requestPermissionsData}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        snapId="npm:@metamask/bip32-example-snap"
         snapName="@metamask/bip32-example-snap"
       />,
+      { wrapper: Wrapper },
     );
 
     fireEvent.press(getByTestId(SNAP_INSTALL_CONNECT));
@@ -77,8 +104,10 @@ describe('InstallSnapConnectionRequest', () => {
         approvalRequest={requestPermissionsData}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        snapId="npm:@metamask/bip32-example-snap"
         snapName="@metamask/bip32-example-snap"
       />,
+      { wrapper: Wrapper },
     );
 
     fireEvent.press(getByTestId(SNAP_INSTALL_CANCEL));
@@ -91,12 +120,13 @@ describe('InstallSnapConnectionRequest', () => {
         approvalRequest={requestPermissionsData}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        snapId="npm:@metamask/bip32-example-snap"
         snapName="@metamask/bip32-example-snap"
       />,
+      { wrapper: Wrapper },
     );
 
     const expectedUrl = 'https://metamask.github.io';
     expect(getByText(expectedUrl)).toBeTruthy();
   });
 });
-///: END:ONLY_INCLUDE_IF
