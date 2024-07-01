@@ -20,7 +20,7 @@ import { AvatarSize } from '../../../../component-library/components/Avatars/Ava
 import { ViewStyle } from 'react-native';
 
 const getAvatarFallbackLetter = (subjectName: string) =>
-  subjectName?.match(/[a-z0-9]/iu)?.[0] ?? '?';
+  subjectName?.match(/[a-z0-9]/iu)?.[0];
 
 export interface SnapAvatarProps {
   snapId: string;
@@ -61,9 +61,14 @@ export const SnapAvatar: React.FunctionComponent<SnapAvatarProps> = ({
           style={styles.avatar}
           size={AvatarSize.Xl}
           imageSource={{ uri: iconUrl }}
+          testID="snap-avatar-icon"
         />
       ) : (
-        <AvatarBase style={styles.fallbackAvatar} size={AvatarSize.Xl}>
+        <AvatarBase
+          style={styles.fallbackAvatar}
+          size={AvatarSize.Xl}
+          testID="snap-avatar-fallback"
+        >
           <Text style={styles.fallbackAvatarText}>{fallbackAvatar}</Text>
         </AvatarBase>
       )}
