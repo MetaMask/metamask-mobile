@@ -11,15 +11,11 @@ import {
   IMPORT_TOKEN_BUTTON_ID,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import {
-  PORTFOLIO_BUTTON,
-  STAKE_BUTTON,
-  TOTAL_BALANCE_TEXT,
-} from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../../app/core/AppConstants';
 import Routes from '../../../../app/constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const mockEngine = Engine;
 
@@ -190,17 +186,19 @@ describe('Tokens', () => {
   it('fiat balance must be defined', () => {
     const { getByTestId } = renderComponent(initialState);
 
-    expect(getByTestId(TOTAL_BALANCE_TEXT)).toBeDefined();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toBeDefined();
   });
   it('portfolio button should render correctly', () => {
     const { getByTestId } = renderComponent(initialState);
 
-    expect(getByTestId(PORTFOLIO_BUTTON)).toBeDefined();
+    expect(getByTestId(WalletViewSelectorsIDs.PORTFOLIO_BUTTON)).toBeDefined();
   });
   it('navigates to Portfolio url when portfolio button is pressed', () => {
     const { getByTestId } = renderComponent(initialState);
 
-    fireEvent.press(getByTestId(PORTFOLIO_BUTTON));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.PORTFOLIO_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
       params: {
         newTabUrl: `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile`,
@@ -258,12 +256,12 @@ describe('Tokens', () => {
   it('renders stake button correctly', () => {
     const { getByTestId } = renderComponent(initialState);
 
-    expect(getByTestId(STAKE_BUTTON)).toBeDefined();
+    expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
   it('navigates to Portfolio Stake url when stake button is pressed', () => {
     const { getByTestId } = renderComponent(initialState);
 
-    fireEvent.press(getByTestId(STAKE_BUTTON));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
       params: {
         newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
