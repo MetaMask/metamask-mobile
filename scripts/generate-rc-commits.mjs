@@ -151,7 +151,7 @@ async function main() {
   } else {
     const csvContent = formatAsCSV(commitsByTeam);
     fs.writeFileSync(fileTitle, csvContent.join('\n'));
-    console.log('CSV file "commits.csv" created successfully.');
+    console.log('CSV file ', fileTitle,  ' created successfully.');
   }
 }
 
