@@ -15,6 +15,7 @@ import {
   PermissionController,
   permissionRpcMethods,
 } from '@metamask/permission-controller';
+import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 import Networks, {
   blockTagParamIndex,
   getAllNetworks,
@@ -47,7 +48,6 @@ import Logger from '../../../app/util/Logger';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { addTransaction } from '../../util/transaction-controller';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../selectors/accountsController';
-import { parseCaip10Address } from '../../util/caip10Address';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -399,10 +399,16 @@ export const getRpcMethodMiddleware = ({
         );
         let parsedCaip10UserAddress;
         try {
-          parsedCaip10UserAddress = parseCaip10Address(user_address);
+          parsedCaip10UserAddress = parseCaipAccountId(
+            user_address as CaipAccountId,
+          );
         } catch (error) {
           throw rpcErrors.invalidParams('Invalid caip-10 user address');
         }
+        if (parsedCaip10UserAddress.chain.namespace !== 'eip155') {
+          throw new Error('Only support Ethereum addresses at the moment');
+        }
+
         const dappConnectedAccount = Object.keys(identities).find(
           (address) =>
             safeToChecksumAddress(address) ===
@@ -425,32 +431,40 @@ export const getRpcMethodMiddleware = ({
 
         let parsedCaip10FromTokenAddress;
         try {
-          parsedCaip10FromTokenAddress = parseCaip10Address(
+          parsedCaip10FromTokenAddress = parseCaipAccountId(
             fromToken[0].address,
           );
         } catch (error) {
           throw rpcErrors.invalidParams('Invalid caip-10 fromToken address');
         }
 
+        if (parsedCaip10FromTokenAddress.chain.namespace !== 'eip155') {
+          throw new Error('Only support Ethereum addresses at the moment');
+        }
+
         let parsedCaip10ToTokenAddress;
         try {
-          parsedCaip10ToTokenAddress = parseCaip10Address(toToken.address);
+          parsedCaip10ToTokenAddress = parseCaipAccountId(toToken.address);
         } catch (error) {
           throw rpcErrors.invalidParams('Invalid caip-10 toToken address');
+        }
+
+        if (parsedCaip10ToTokenAddress.chain.namespace !== 'eip155') {
+          throw new Error('Only support Ethereum addresses at the moment');
         }
 
         if (
           parsedCaip10FromTokenAddress.chainId !==
           parsedCaip10ToTokenAddress.chainId
         ) {
-          throw rpcErrors.methoddNotSupported(
+          throw rpcErrors.methodNotSupported(
             'Cross-chain swaps are currently not supported. Both fromToken and toToken must be on the same blockchain.',
           );
         }
 
         const chainId = selectChainId(store.getState());
 
-        if (chainId !== toHex(parsedCaip10FromTokenAddress.chainId)) {
+        if (chainId !== toHex(parsedCaip10FromTokenAddress.chain.reference)) {
           throw rpcErrors.invalidParams(
             `Invalid parameters: active chainId is different than the one provided.`,
           );
@@ -460,7 +474,7 @@ export const getRpcMethodMiddleware = ({
           safeToChecksumAddress(dappConnectedAccount);
 
         if (selectedAddress !== checksummedDappConnectedAccount) {
-          Engine.setSelectedAccount(checksummedDappConnectedAccount);
+          Engine.setSelectedAddress(checksummedDappConnectedAccount);
         }
 
         // switch to the chain id asked from the dapp
