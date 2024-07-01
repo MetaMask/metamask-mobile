@@ -2,7 +2,9 @@ import { RootState } from '..';
 import { Action } from 'redux';
 import ACTIONS from './types';
 
-export const newPrivacyPolicyDate = new Date('2024-06-04T00:00:00Z');
+const currentDate = new Date(Date.now());
+const newPrivacyPolicyDate = new Date('2024-06-18T12:00:00Z');
+export const isPastPrivacyPolicyDate = currentDate >= newPrivacyPolicyDate;
 
 const initialState = {
   newPrivacyPolicyToastClickedOrClosed: false,
@@ -28,7 +30,6 @@ export const shouldShowNewPrivacyToastSelector = (
 
   if (newPrivacyPolicyToastClickedOrClosed) return false;
 
-  const currentDate = new Date();
   const shownDate = new Date(newPrivacyPolicyToastShownDate);
 
   const oneDayInMilliseconds = 24 * 60 * 60 * 1000;

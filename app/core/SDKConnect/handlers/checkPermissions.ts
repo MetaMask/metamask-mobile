@@ -50,7 +50,11 @@ export const checkPermissions = async ({
     }
 
     const permissionsController = (
-      engine.context as { PermissionController: PermissionController<any, any> }
+      engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
     ).PermissionController;
 
     // only ask approval if needed

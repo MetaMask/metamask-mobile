@@ -69,6 +69,8 @@ export interface TransactionEIP1559UpdateProps {
   /**
    * update gas transaction state to parent
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateTransactionState: any;
   onlyGas: boolean;
   multiLayerL1FeeTotal?: string;

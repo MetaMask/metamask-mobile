@@ -14,6 +14,8 @@ import { toChecksumAddress } from 'ethereumjs-util';
 const checkIfAddressIsSaved = (
   addressBook: AddressBookState['addressBook'],
   chainId: string,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transaction: any,
 ) => {
   if (transaction.to === undefined) {
@@ -22,6 +24,8 @@ const checkIfAddressIsSaved = (
   for (const [addressBookChainId, chainAddresses] of Object.entries(
     addressBook,
   )) {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const addressEntries = Object.values(chainAddresses).map((entry: any) => ({
       address: toChecksumAddress(entry.address),
       nickname: entry.name,

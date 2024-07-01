@@ -3,24 +3,23 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
-import AppConstants from '../../../../../core/AppConstants';
 import { strings } from '../../../../../../locales/i18n';
 import AccountBalance from '../../../../../component-library/components-temp/Accounts/AccountBalance';
 import { BadgeVariant } from '../../../../../component-library/components/Badges/Badge';
 import TagUrl from '../../../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectProviderConfig } from '../../../../../selectors/networkController';
-import { selectIdentities } from '../../../../../selectors/preferencesController';
+import AppConstants from '../../../../../core/AppConstants';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
+import {
+  selectNetworkImageSource,
+  selectNetworkName,
+} from '../../../../../selectors/networkInfos';
+import { selectIdentities } from '../../../../../selectors/preferencesController';
 import {
   getLabelTextByAddress,
   renderAccountName,
 } from '../../../../../util/address';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../../../util/browser';
-import {
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
-} from '../../../../../util/networks';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import useAddressBalance from '../../../../hooks/useAddressBalance/useAddressBalance';
 import useFavicon from '../../../../hooks/useFavicon/useFavicon';
@@ -36,6 +35,7 @@ const ApproveTransactionHeader = ({
   from,
   origin,
   url,
+  sdkDappMetadata,
   currentEnsName,
   asset,
   dontWatchAsset,
@@ -54,10 +54,11 @@ const ApproveTransactionHeader = ({
   const identities = useSelector(selectIdentities);
   const activeAddress = toChecksumAddress(from);
 
-  const providerConfig = useSelector(selectProviderConfig);
-  const networkName = getNetworkNameFromProviderConfig(providerConfig);
+  const networkName = useSelector(selectNetworkName);
 
   const useBlockieIcon = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.settings.useBlockieIcon,
   );
 
@@ -85,13 +86,11 @@ const ApproveTransactionHeader = ({
     );
   }, [accountsByChainId, identities, activeAddress, origin]);
 
-  const networkImage = getNetworkImageSource({
-    networkType: providerConfig.type,
-    chainId: providerConfig.chainId,
-  });
+  const networkImage = useSelector(selectNetworkImageSource);
 
   const domainTitle = useMemo(() => {
     let title = '';
+
     if (isOriginWalletConnect) {
       title = getUrlObj(
         (origin as string).split(WALLET_CONNECT_ORIGIN)[1],
@@ -100,8 +99,10 @@ const ApproveTransactionHeader = ({
       title = getUrlObj(
         (origin as string).split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
       ).origin;
+    } else if (url || currentEnsName) {
+      title = prefixUrlWithProtocol(currentEnsName || url || '');
     } else {
-      title = prefixUrlWithProtocol(currentEnsName || origin || url);
+      title = '';
     }
 
     return title;
@@ -127,13 +128,21 @@ const ApproveTransactionHeader = ({
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
+  const imageSource = faviconSource?.uri
+    ? faviconSource
+    : sdkDappMetadata?.icon
+    ? { uri: sdkDappMetadata.icon }
+    : {
+        uri: '',
+      };
+
   return (
     <View style={styles.transactionHeader}>
       {origin && !isOriginDeepLink ? (
         <TagUrl
           testID={APPROVE_TRANSACTION_ORIGIN_PILL}
-          imageSource={faviconSource}
-          label={domainTitle}
+          imageSource={imageSource}
+          label={domainTitle || sdkDappMetadata?.url || strings('sdk.unknown')}
           style={styles.tagUrl}
         />
       ) : null}

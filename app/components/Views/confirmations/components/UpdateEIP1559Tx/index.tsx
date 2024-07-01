@@ -20,7 +20,7 @@ import {
   selectTicker,
 } from '../../../../../selectors/networkController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
@@ -102,7 +102,14 @@ const UpdateEIP1559Tx = ({
     (updateTx) => {
       let error;
 
+      if (isNaN(updateTx.totalMaxHex)) {
+        return strings('invalid_amount');
+      }
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updateTxCost: any = hexToBN(`0x${updateTx.totalMaxHex}`);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const accountBalance: any = hexToBN(accounts[selectedAddress].balance);
       const isMaxFeePerGasMoreThanLegacyResult = isMaxFeePerGasMoreThanLegacy(
         new BigNumber(updateTx.suggestedMaxFeePerGas),
@@ -253,9 +260,11 @@ const UpdateEIP1559Tx = ({
   );
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   accounts: selectAccounts(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   ticker: selectTicker(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),

@@ -50,12 +50,17 @@ class SendView {
     await Gestures.waitAndTap(this.addressInputField);
   }
 
+  async tapAccountName(account) {
+    const accountName = Matchers.getElementByText(account);
+    await Gestures.waitAndTap(accountName);
+  }
+
   async tapNextButton() {
-    await Gestures.waitAndTap(await this.nextButton);
+    await Gestures.waitAndTap(this.nextButton);
   }
 
   async inputAddress(address) {
-    await Gestures.replaceTextInField(await this.addressInputField, address);
+    await Gestures.replaceTextInField(this.addressInputField, address);
   }
 
   async tapAddAddressToAddressBook() {
@@ -65,10 +70,6 @@ class SendView {
   async removeAddress() {
     await Gestures.waitAndTap(this.removeAddressButton);
     await TestHelpers.delay(1000);
-  }
-
-  async tapBackSpaceKey() {
-    await Gestures.tapReturnKeyOnKeyboard(this.addressInputField);
   }
 }
 export default new SendView();

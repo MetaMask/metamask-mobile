@@ -17,17 +17,23 @@ const APPROVAL_FLOW_MOCK: ApprovalFlowState = {
   loadingText: 'testLoadingText',
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
   (
     useApprovalRequest as jest.MockedFn<typeof useApprovalRequest>
   ).mockReturnValue({
     approvalRequest,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 };
 
 const mockApprovalFlow = (approvalFlow?: ApprovalFlowState) => {
   (useApprovalFlow as jest.MockedFn<typeof useApprovalFlow>).mockReturnValue({
     approvalFlow,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 };
 
@@ -55,6 +61,8 @@ describe('FlowLoaderModal', () => {
 
   it('returns null if approval request', () => {
     mockApprovalFlow(APPROVAL_FLOW_MOCK);
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.CONNECT_ACCOUNTS } as any);
 
     const wrapper = shallow(<FlowLoaderModal />);

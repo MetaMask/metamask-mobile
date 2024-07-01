@@ -18,12 +18,12 @@ import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
-  APPROVE_FUNCTION_SIGNATURE,
   getTokenValueParam,
   getTokenAddressParam,
   calcTokenAmount,
   getTokenValueParamAsHex,
   getIsSwapApproveOrSwapTransaction,
+  isApprovalTransaction,
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
@@ -58,8 +58,8 @@ import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import { getDeviceId } from '../../../core/Ledger/Ledger';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -67,11 +67,61 @@ import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransac
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../util/smart-transactions';
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 ///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);
+
+export const useSwapConfirmedEvent = ({
+  TransactionController,
+  swapsTransactions,
+  trackSwaps,
+}) => {
+  const [transactionMetaIdsForListening, setTransactionMetaIdsForListening] =
+    useState([]);
+
+  const addTransactionMetaIdForListening = (txMetaId) => {
+    setTransactionMetaIdsForListening([
+      ...transactionMetaIdsForListening,
+      txMetaId,
+    ]);
+  };
+
+  useEffect(() => {
+    // Cannot directly call trackSwaps from the event listener in autoSign due to stale closure of swapsTransactions
+    const [txMetaId, ...restTxMetaIds] = transactionMetaIdsForListening;
+
+    if (txMetaId && swapsTransactions[txMetaId]) {
+      TransactionController.hub.once(
+        `${txMetaId}:confirmed`,
+        (transactionMeta) => {
+          if (
+            swapsTransactions[transactionMeta.id]?.analytics &&
+            swapsTransactions[transactionMeta.id]?.paramsForAnalytics
+          ) {
+            trackSwaps(
+              MetaMetricsEvents.SWAP_COMPLETED,
+              transactionMeta,
+              swapsTransactions,
+            );
+          }
+        },
+      );
+      setTransactionMetaIdsForListening(restTxMetaIds);
+    }
+  }, [
+    trackSwaps,
+    transactionMetaIdsForListening,
+    swapsTransactions,
+    TransactionController,
+  ]);
+
+  return {
+    addTransactionMetaIdForListening,
+    transactionMetaIdsForListening,
+  };
+};
 
 const RootRPCMethodsUI = (props) => {
   const { trackEvent, trackAnonymousEvent } = useMetrics();
@@ -197,15 +247,22 @@ const RootRPCMethodsUI = (props) => {
     [
       props.selectedAddress,
       props.shouldUseSmartTransaction,
-      trackEvent,
       trackAnonymousEvent,
+      trackEvent,
     ],
   );
+
+  const { addTransactionMetaIdForListening } = useSwapConfirmedEvent({
+    TransactionController: Engine.context.TransactionController,
+    swapsTransactions: props.swapsTransactions,
+    trackSwaps,
+  });
 
   const autoSign = useCallback(
     async (transactionMeta) => {
       const { TransactionController, KeyringController } = Engine.context;
       const swapsTransactions = props.swapsTransactions;
+
       try {
         TransactionController.hub.once(
           `${transactionMeta.id}:finished`,
@@ -227,21 +284,10 @@ const RootRPCMethodsUI = (props) => {
             }
           },
         );
-        TransactionController.hub.once(
-          `${transactionMeta.id}:confirmed`,
-          (transactionMeta) => {
-            if (
-              swapsTransactions[transactionMeta.id]?.analytics &&
-              swapsTransactions[transactionMeta.id]?.paramsForAnalytics
-            ) {
-              trackSwaps(
-                MetaMetricsEvents.SWAP_COMPLETED,
-                transactionMeta,
-                swapsTransactions,
-              );
-            }
-          },
-        );
+
+        // Queue txMetaId to listen for confirmation event
+        addTransactionMetaIdForListening(transactionMeta.id);
+
         await KeyringController.resetQRKeyringState();
 
         const isLedgerAccount = isHardwareAccount(
@@ -251,12 +297,12 @@ const RootRPCMethodsUI = (props) => {
 
         // For Ledger Accounts we handover the signing to the confirmation flow
         if (isLedgerAccount) {
-          const ledgerKeyring = await getLedgerKeyring();
+          const deviceId = await getDeviceId();
 
           props.navigation.navigate(
             ...createLedgerTransactionModalNavDetails({
               transactionId: transactionMeta.id,
-              deviceId: ledgerKeyring.deviceId,
+              deviceId,
               // eslint-disable-next-line no-empty-function
               onConfirmationComplete: () => {},
               type: 'signTransaction',
@@ -281,7 +327,13 @@ const RootRPCMethodsUI = (props) => {
         }
       }
     },
-    [props.navigation, props.swapsTransactions, trackSwaps, trackEvent],
+    [
+      props.navigation,
+      trackSwaps,
+      trackEvent,
+      props.swapsTransactions,
+      addTransactionMetaIdForListening,
+    ],
   );
 
   const onUnapprovedTransaction = useCallback(
@@ -373,11 +425,7 @@ const RootRPCMethodsUI = (props) => {
           });
         }
 
-        if (
-          data &&
-          data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-          (!value || isZeroValue(value))
-        ) {
+        if (isApprovalTransaction(data) && (!value || isZeroValue(value))) {
           setTransactionModalType(TransactionModalType.Transaction);
         } else {
           setTransactionModalType(TransactionModalType.Dapp);
@@ -439,7 +487,7 @@ const RootRPCMethodsUI = (props) => {
       <FlowLoaderModal />
       <TemplateConfirmationModal />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       }
       <InstallSnapApproval />
       {
@@ -482,7 +530,7 @@ RootRPCMethodsUI.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
   swapsTransactions:

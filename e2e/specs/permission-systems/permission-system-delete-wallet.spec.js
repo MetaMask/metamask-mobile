@@ -20,7 +20,7 @@ import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import Assertions from '../../utils/Assertions';
-import CommonView from '../../pages/CommonView';
+import ToastModal from '../../pages/modals/ToastModal';
 
 const PASSWORD = '12345678';
 
@@ -70,11 +70,13 @@ describe(
           await DeleteWalletModal.tapDeleteMyWalletButton();
           await TestHelpers.delay(2000);
           await Assertions.checkIfVisible(OnboardingView.container);
-          await Assertions.checkIfVisible(await CommonView.toast);
-          await Assertions.checkIfNotVisible(await CommonView.toast);
+          if (device.getPlatform() === 'ios') {
+            await Assertions.checkIfVisible(ToastModal.notificationTitle);
+          }
+          await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
           await OnboardingView.tapCreateWallet();
 
-          //Create new wallet
+          // Create new wallet
           await Assertions.checkIfVisible(MetaMetricsOptIn.container);
           await MetaMetricsOptIn.tapAgreeButton();
           await Assertions.checkIfVisible(CreatePasswordView.container);

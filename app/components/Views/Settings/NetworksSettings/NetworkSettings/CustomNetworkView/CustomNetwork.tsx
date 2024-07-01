@@ -8,12 +8,13 @@ import EmptyPopularList from '../emptyList';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import PopularList from '../../../../../../util/networks/customNetworks';
+import { PopularList } from '../../../../../../util/networks/customNetworks';
 import createStyles from '../styles';
 import { CustomNetworkProps, Network } from './CustomNetwork.types';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import { isNetworkUiRedesignEnabled } from '../../../../../../util/networks';
 
 const CustomNetwork = ({
   isNetworkModalVisible,
@@ -26,12 +27,16 @@ const CustomNetwork = ({
   onNetworkSwitch,
   showAddedNetworks,
   customNetworksList,
+  showCompletionMessage = true,
+  hideWarningIcons = false,
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const supportedNetworkList = (customNetworksList ?? PopularList).map(
     (networkConfiguration: Network) => {
       const isAdded = Object.values(networkConfigurations).some(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (savedNetwork: any) =>
           savedNetwork.chainId === networkConfiguration.chainId,
       );
@@ -49,7 +54,7 @@ const CustomNetwork = ({
     ? supportedNetworkList
     : supportedNetworkList.filter((n) => !n.isAdded);
 
-  if (filteredPopularList.length === 0) {
+  if (filteredPopularList.length === 0 && showCompletionMessage) {
     return (
       <EmptyPopularList goToCustomNetwork={() => switchTab?.goToPage?.(1)} />
     );
@@ -88,10 +93,14 @@ const CustomNetwork = ({
                 }
               />
             </View>
-            <CustomText bold>{networkConfiguration.nickname}</CustomText>
+            <CustomText bold={!isNetworkUiRedesignEnabled}>
+              {networkConfiguration.nickname}
+            </CustomText>
           </View>
           <View style={styles.popularWrapper}>
-            {toggleWarningModal && networkConfiguration.warning ? (
+            {!hideWarningIcons &&
+            toggleWarningModal &&
+            networkConfiguration.warning ? (
               <WarningIcon
                 name="warning"
                 size={14}

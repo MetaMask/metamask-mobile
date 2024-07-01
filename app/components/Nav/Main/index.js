@@ -54,10 +54,6 @@ import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import { colors as importedColors } from '../../../styles/common';
 import {
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
-} from '../../../util/networks';
-import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
@@ -69,6 +65,10 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import {
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../selectors/networkInfos';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
 import {
   DEPRECATED_NETWORKS,
@@ -81,7 +81,7 @@ import {
   startIncomingTransactionPolling,
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 
@@ -237,8 +237,10 @@ const Main = (props) => {
    * Current network
    */
   const providerConfig = useSelector(selectProviderConfig);
+  const networkName = useSelector(selectNetworkName);
   const previousProviderConfig = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
+  const networkImage = useSelector(selectNetworkImageSource);
 
   // Show network switch confirmation.
   useEffect(() => {
@@ -247,12 +249,6 @@ const Main = (props) => {
       (providerConfig.chainId !== previousProviderConfig.current.chainId ||
         providerConfig.type !== previousProviderConfig.current.type)
     ) {
-      const { type, chainId } = providerConfig;
-      const networkImage = getNetworkImageSource({
-        networkType: type,
-        chainId,
-      });
-      const networkName = getNetworkNameFromProviderConfig(providerConfig);
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
         labelOptions: [
@@ -262,12 +258,11 @@ const Main = (props) => {
           },
           { label: strings('toast.now_active') },
         ],
-        networkName,
         networkImageSource: networkImage,
       });
     }
     previousProviderConfig.current = providerConfig;
-  }, [providerConfig, toastRef]);
+  }, [providerConfig, networkName, networkImage, toastRef]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
@@ -371,7 +366,7 @@ const Main = (props) => {
           renderLoader()
         )}
         {
-          ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+          ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         }
         <View>
           <SnapsExecutionWebView />

@@ -25,14 +25,20 @@ class EngineService {
    * @param store - Redux store
    */
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initalizeEngine = (store: any) => {
     const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Engine = UntypedEngine as any;
     Engine.init(state);
     this.updateControllers(store, Engine);
   };
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private updateControllers = (store: any, engine: any) => {
     const controllers = [
       { name: 'AddressBookController' },
@@ -87,13 +93,13 @@ class EngineService {
         name: 'ApprovalController',
         key: `${engine.context.ApprovalController.name}:stateChange`,
       },
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       {
         name: 'SnapController',
         key: `${engine.context.SnapController.name}:stateChange`,
       },
       {
-        name: 'subjectMetadataController',
+        name: 'SubjectMetadataController',
         key: `${engine.context.SubjectMetadataController.name}:stateChange`,
       },
       ///: END:ONLY_INCLUDE_IF
@@ -119,8 +125,8 @@ class EngineService {
     }
 
     engine?.datamodel?.subscribe?.(() => {
-      if (!engine.context.KeyringController.vault) {
-        Logger.message('keyringController vault missing for INIT_BG_STATE_KEY');
+      if (!engine.context.KeyringController.metadata.vault) {
+        Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
       }
       if (!this.engineInitialized) {
         store.dispatch({ type: INIT_BG_STATE_KEY });
@@ -131,10 +137,8 @@ class EngineService {
     controllers.forEach((controller) => {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () => {
-        if (!engine.context.KeyringController.vault) {
-          Logger.message(
-            'keyringController vault missing for UPDATE_BG_STATE_KEY',
-          );
+        if (!engine.context.KeyringController.metadata.vault) {
+          Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
         }
         store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
       };
@@ -159,6 +163,8 @@ class EngineService {
     const keyringState = await getVaultFromBackup();
     const reduxState = importedStore.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Engine = UntypedEngine as any;
     // This ensures we create an entirely new engine
     await Engine.destroyEngine();

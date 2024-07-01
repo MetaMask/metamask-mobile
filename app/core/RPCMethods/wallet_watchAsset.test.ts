@@ -92,7 +92,11 @@ describe('wallet_watchAsset', () => {
           method: '',
           id: '',
         },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         res: {} as any,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         checkTabActive: () => null as any,
         hostname: '',
       }),
@@ -118,7 +122,11 @@ describe('wallet_watchAsset', () => {
           method: '',
           id: '',
         },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         res: {} as any,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         checkTabActive: () => null as any,
         hostname: '',
       }),
@@ -149,7 +157,11 @@ describe('wallet_watchAsset', () => {
         method: '',
         id: '',
       },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       res: {} as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       checkTabActive: () => null as any,
       hostname: '',
     });
@@ -190,7 +202,11 @@ describe('wallet_watchAsset', () => {
         method: '',
         id: '',
       },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       res: {} as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       checkTabActive: () => null as any,
       hostname: '',
     });

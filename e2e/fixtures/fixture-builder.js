@@ -48,6 +48,10 @@ class FixtureBuilder {
   withDefaultFixture() {
     this.fixture = {
       state: {
+        legalNotices: {
+          newPrivacyPolicyToastClickedOrClosed: true,
+          newPrivacyPolicyToastShownDate: Date.now(),
+        },
         collectibles: {
           favorites: {},
         },
@@ -173,7 +177,7 @@ class FixtureBuilder {
               networkConfigurations: {
                 networkId1: {
                   rpcUrl: `http://localhost:${getGanachePort()}`,
-                  chainId: '1337',
+                  chainId: '1338',
                   ticker: 'ETH',
                   nickname: 'Localhost',
                 },
@@ -201,6 +205,33 @@ class FixtureBuilder {
               hotlistLastFetched: 1684231917,
               stalelistLastFetched: 1684231917,
             },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  1: {
+                    address: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+                    id: '1',
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    options: {},
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: 1,
+              },
+            },
             PreferencesController: {
               featureFlags: {},
               identities: {
@@ -214,7 +245,7 @@ class FixtureBuilder {
               lostIdentities: {},
               selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
               useTokenDetection: true,
-              useNftDetection: false,
+              useNftDetection: true,
               displayNftMedia: true,
               useSafeChainsListValidation: false,
               isMultiAccountBalancesEnabled: true,
@@ -275,7 +306,7 @@ class FixtureBuilder {
               contractBalances: {},
             },
             TokenRatesController: {
-              contractExchangeRates: {},
+              marketData: {},
             },
             TokensController: {
               tokens: [],
@@ -348,6 +379,7 @@ class FixtureBuilder {
               estimatedGasFeeTimeBounds: {},
               gasEstimateType: 'none',
               gasFeeEstimatesByChainId: {},
+              nonRPCGasFeeApisDisabled: false,
             },
             TokenDetectionController: {},
             NftDetectionController: {},
@@ -536,7 +568,7 @@ class FixtureBuilder {
             },
             {
               active: true,
-              chainId: 1337,
+              chainId: 1338,
               chainName: 'Localhost',
               shortName: 'Localhost',
               nativeTokenSupported: true,
@@ -591,7 +623,7 @@ class FixtureBuilder {
         '@MetaMask:existingUser': 'true',
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
-        '@MetaMask:WhatsNewAppVersionSeen': '6.5.0',
+        '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       },
     };
     return this;
@@ -618,6 +650,17 @@ class FixtureBuilder {
     if (data.providerConfig.ticker !== 'ETH')
       this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
         data.providerConfig.ticker;
+    return this;
+  }
+
+  withAddressBookController(data) {
+    merge(
+      this.fixture.state.engine.backgroundState.AddressBookController
+        ? this.fixture.state.engine.backgroundState.AddressBookController
+        : (this.fixture.state.engine.backgroundState.AddressBookController =
+            {}),
+      data,
+    );
     return this;
   }
 
@@ -667,7 +710,7 @@ class FixtureBuilder {
       isCustomNetwork: true,
       providerConfig: {
         type: 'rpc',
-        chainId: '0x539',
+        chainId: '0x53a',
         rpcUrl: `http://localhost:${getGanachePort()}`,
         nickname: 'Localhost',
         ticker: 'ETH',
@@ -702,6 +745,21 @@ class FixtureBuilder {
       this.fixture.state.engine.backgroundState.PreferencesController,
       data,
     );
+    return this;
+  }
+
+  withKeyringController() {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          type: 'HD Key Tree',
+          accounts: ['0x37cc5ef6bfe753aeaf81f945efe88134b238face'],
+        },
+        { type: 'QR Hardware Wallet Device', accounts: [] },
+      ],
+      vault:
+        '{"cipher":"T+MXWPPwXOh8RLxpryUuoFCObwXqNQdwak7FafAoVeXOehhpuuUDbjWiHkeVs9slsy/uzG8z+4Va+qyz4dlRnd/Gvc/2RbHTAb/LG1ECk1rvLZW23JPGkBBVAu36FNGCTtT+xrF4gRzXPfIBVAAgg40YuLJWkcfVty6vGcHr3R3/9gpsqs3etrF5tF4tHYWPEhzhhx6HN6Tr4ts3G9sqgyEhyxTLCboAYWp4lsq2iTEl1vQ6T/UyBRNhfDj8RyQMF6hwkJ0TIq2V+aAYkr5NJguBBSi0YKPFI/SGLrin9/+d66gcOSFhIH0GhUbez3Yf54852mMtvOH8Vj7JZc664ukOvEdJIpvCw1CbtA9TItyVApkjQypLtE+IdV3sT5sy+v0mK7Xc054p6+YGiV8kTiTG5CdlI4HkKvCOlP9axwXP0aRwc4ffsvp5fKbnAVMf9+otqmOmlA5nCKdx4FOefTkr/jjhMlTGV8qUAJ2c6Soi5X02fMcrhAfdUtFxtUqHovOh3KzOe25XhjxZ6KCuix8OZZiGtbNDu3xJezPc3vzkTFwF75ubYozLDvw8HzwI+D5Ifn0S3q4/hiequ6NGiR3Dd0BIhWODSvFzbaD7BKdbgXhbJ9+3FXFF9Xkp74msFp6o7nLsx02ywv/pmUNqQhwtVBfoYhcFwqZZQlOPKcH8otguhSvZ7dPgt7VtUuf8gR23eAV4ffVsYK0Hll+5n0nZztpLX4jyFZiV/kSaBp+D2NZM2dnQbsWULKOkjo/1EpNBIjlzjXRBg5Ui3GgT3JXUDx/2GmJXceacrbMcos3HC2yfxwUTXC+yda4IrBx/81eYb7sIjEVNxDuoBxNdRLKoxwmAJztxoQLF3gRexS45QKoFZZ0kuQ9MqLyY6HDK","iv":"3271713c2b35a7c246a2a9b263365c3d","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"l4e+sn/jdsaofDWIB/cuGQ=="}',
+    });
     return this;
   }
 

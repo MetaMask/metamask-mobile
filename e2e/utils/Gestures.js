@@ -41,6 +41,15 @@ class Gestures {
   }
 
   /**
+   * Tap an element with text partial text matching before tapping it
+   *
+   * @param {string} textPattern - Regular expression pattern to match the text
+   */
+  static async tapTextBeginingWith(textPattern) {
+    await element(by.text(new RegExp(`^/${textPattern} .*$/`))).tap();
+  }
+
+  /**
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
