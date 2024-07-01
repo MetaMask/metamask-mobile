@@ -21,7 +21,6 @@ import {
 } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import initialBackgroundState from '../../util/test/initial-background-state.json';
-import { Store } from 'redux';
 import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
 import { ControllerMessenger } from '@metamask/base-controller';
@@ -31,6 +30,8 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications';
 import { EthAccountType, EthMethod } from '@metamask/keyring-api';
+import initialRootState from '../../util/test/initial-root-state';
+import { merge } from 'lodash';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -231,29 +232,23 @@ function setupGlobalState({
   providerConfig?: ProviderConfig;
   selectedAddress?: string;
 }) {
-  // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
-  jest
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .spyOn(store as Store<Partial<RootState>, any>, 'getState')
-    .mockImplementation(() => ({
-      browser: activeTab
-        ? {
-            activeTab,
-          }
-        : {},
-      engine: {
-        backgroundState: {
-          ...initialBackgroundState,
-          NetworkController: {
-            providerConfig: providerConfig || {},
-          },
-          PreferencesController: selectedAddress ? { selectedAddress } : {},
+  const mockState: RootState = merge({}, initialRootState, {
+    browser: activeTab
+      ? {
+          activeTab,
+        }
+      : {},
+    engine: {
+      backgroundState: {
+        ...initialBackgroundState,
+        NetworkController: {
+          providerConfig: providerConfig || {},
         },
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any,
-    }));
+        PreferencesController: selectedAddress ? { selectedAddress } : {},
+      },
+    },
+  });
+  jest.spyOn(store, 'getState').mockImplementation(() => mockState);
   mockStore.dispatch.mockImplementation((obj) => obj);
   if (addTransactionResult) {
     mockAddTransaction.mockImplementation(async () => ({
@@ -1296,7 +1291,7 @@ describe('getRpcMethodMiddleware', () => {
   });
   describe('wallet_swapAsset', () => {
     it('should throw error if the account sent by the dapp is not the one connected', async () => {
-      const mockState = {
+      const mockState: RootState = merge({}, initialRootState, {
         swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
         fiatOrders: {
           networks: [
@@ -1329,10 +1324,8 @@ describe('getRpcMethodMiddleware', () => {
             },
           },
         },
-      };
-      jest
-        .spyOn(store as Store<Partial<any>, any>, 'getState')
-        .mockImplementation(() => mockState);
+      });
+      jest.spyOn(store, 'getState').mockImplementation(() => mockState);
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
@@ -1368,7 +1361,7 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('should throw error if it was sent more than one token to swap from', async () => {
-      const mockState = {
+      const mockState: RootState = merge({}, initialRootState, {
         swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
         fiatOrders: {
           networks: [
@@ -1401,10 +1394,8 @@ describe('getRpcMethodMiddleware', () => {
             },
           },
         },
-      };
-      jest
-        .spyOn(store as Store<Partial<any>, any>, 'getState')
-        .mockImplementation(() => mockState);
+      });
+      jest.spyOn(store, 'getState').mockImplementation(() => mockState);
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
@@ -1445,7 +1436,7 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('should throw error if token_address required param is not defined', async () => {
-      const mockState = {
+      const mockState = merge({}, initialRootState, {
         swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
         fiatOrders: {
           networks: [
@@ -1478,10 +1469,8 @@ describe('getRpcMethodMiddleware', () => {
             },
           },
         },
-      };
-      jest
-        .spyOn(store as Store<Partial<any>, any>, 'getState')
-        .mockImplementation(() => mockState);
+      });
+      jest.spyOn(store, 'getState').mockImplementation(() => mockState);
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
@@ -1516,7 +1505,7 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('should throw error if swap is not live', async () => {
-      const mockState = {
+      const mockState = merge({}, initialRootState, {
         swaps: { '0x1': { isLive: false }, hasOnboarded: false, isLive: false },
         fiatOrders: {
           networks: [
@@ -1549,10 +1538,8 @@ describe('getRpcMethodMiddleware', () => {
             },
           },
         },
-      };
-      jest
-        .spyOn(store as Store<Partial<any>, any>, 'getState')
-        .mockImplementation(() => mockState);
+      });
+      jest.spyOn(store, 'getState').mockImplementation(() => mockState);
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
@@ -1588,7 +1575,7 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('should navigate to SwapsAmountView if all conditions are met', async () => {
-      const mockState = {
+      const mockState = merge({}, initialRootState, {
         swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
         fiatOrders: {
           networks: [
@@ -1621,10 +1608,8 @@ describe('getRpcMethodMiddleware', () => {
             },
           },
         },
-      };
-      jest
-        .spyOn(store as Store<Partial<any>, any>, 'getState')
-        .mockImplementation(() => mockState);
+      });
+      jest.spyOn(store, 'getState').mockImplementation(() => mockState);
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
