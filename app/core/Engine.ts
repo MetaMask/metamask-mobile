@@ -1549,7 +1549,7 @@ class Engine {
           tokenExchangeRates?.[toHexadecimal(chainId)]?.[
             zeroAddress() as `0x${string}`
           ]?.pricePercentChange1d) /
-          100 || 0;
+          100 || ethFiat;
 
     if (tokens.length > 0) {
       const { contractBalances: tokenBalances } = TokenBalancesController.state;
@@ -1584,7 +1584,7 @@ class Engine {
               (tokenBalanceFiat *
                 tokenExchangeRates?.[item.address as `0x${string}`]
                   ?.pricePercentChange1d) /
-                100 || 0;
+                100 || tokenBalanceFiat;
 
           tokenFiat += tokenBalanceFiat;
           tokenFiat1dAgo += tokenBalance1dAgo;

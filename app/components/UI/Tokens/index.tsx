@@ -471,7 +471,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             {/** Add button link to Portfolio Stake if token is mainnet ETH */}
             {asset.isETH && isMainnet && renderStakeButton(asset)}
           </View>
-          <PercentageChange value={pricePercentChange1d} />
+          {!isTestNet(chainId) ? (
+            <PercentageChange value={pricePercentChange1d} />
+          ) : null}
         </View>
 
         {renderScamWarningIcon(asset)}
@@ -625,12 +627,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             {fiatBalance}
           </Text>
 
-          <AggregatedPercentage
-            ethFiat={balance?.ethFiat}
-            tokenFiat={balance?.tokenFiat}
-            tokenFiat1dAgo={balance?.tokenFiat1dAgo}
-            ethFiat1dAgo={balance?.ethFiat1dAgo}
-          />
+          {!isTestNet(chainId) ? (
+            <AggregatedPercentage
+              ethFiat={balance?.ethFiat}
+              tokenFiat={balance?.tokenFiat}
+              tokenFiat1dAgo={balance?.tokenFiat1dAgo}
+              ethFiat1dAgo={balance?.ethFiat1dAgo}
+            />
+          ) : null}
         </View>
         <Button
           variant={ButtonVariants.Secondary}
