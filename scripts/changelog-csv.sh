@@ -5,8 +5,13 @@ set -u
 set -o pipefail
 
 readonly CSV_FILE='commits.csv'
+
+# Add release branch arg name 
+RELEASE_BRANCH_NAME="${1}"
+
 # Temporary file for new entries
 NEW_ENTRIES=$(mktemp)
+
 # Backup file for existing CHANGELOG
 CHANGELOG_BACKUP="CHANGELOG.md.bak"
 
@@ -47,7 +52,7 @@ insert_new_entries() {
 
     # Append the release header
     echo "" >> "$temp_changelog"
-    echo "## <Enter Release Number> - <Date>" >> "$temp_changelog"
+    echo "## $RELEASE_BRANCH_NAME - <Date>" >> "$temp_changelog"
     echo "" >> "$temp_changelog"
 
     # Append new entries for each change type if they exist
