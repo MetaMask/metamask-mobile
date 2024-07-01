@@ -51,5 +51,4 @@ describe('LedgerSelectAccount', () => {
 
     expect(wrapper).toMatchSnapshot();
   });
-
 });
