@@ -16,7 +16,6 @@ export enum SnapInstallState {
   AcceptPermissions = 'AcceptPermissions',
   SnapInstalled = 'SnapInstalled',
   SnapInstallError = 'SnapInstallError',
-  SnapInstallFinished = 'SnapInstallFinished',
 }
 
 // eslint-disable-next-line import/prefer-default-export

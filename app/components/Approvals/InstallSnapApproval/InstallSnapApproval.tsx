@@ -83,10 +83,6 @@ const InstallSnapApproval = () => {
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 
-  const onInstallSnapFinished = () => {
-    setInstallState(SnapInstallState.SnapInstallFinished);
-  };
-
   const onPermissionsConfirm = async () => {
     try {
       await onConfirm(undefined, {
@@ -133,17 +129,12 @@ const InstallSnapApproval = () => {
           />
         );
       case SnapInstallState.SnapInstalled:
-        return (
-          <InstallSnapSuccess
-            snapName={snapName}
-            onConfirm={onInstallSnapFinished}
-          />
-        );
+        return <InstallSnapSuccess snapName={snapName} onConfirm={onConfirm} />;
       case SnapInstallState.SnapInstallError:
         return (
           <InstallSnapError
             snapName={snapName}
-            onConfirm={onInstallSnapFinished}
+            onConfirm={onConfirm}
             error={installError}
           />
         );
@@ -157,13 +148,7 @@ const InstallSnapApproval = () => {
   const content = renderModalContent();
 
   return content ? (
-    <ApprovalModal
-      isVisible={
-        installState !== undefined &&
-        installState !== SnapInstallState.SnapInstallFinished
-      }
-      onCancel={onReject}
-    >
+    <ApprovalModal isVisible={installState !== undefined} onCancel={onReject}>
       {content}
     </ApprovalModal>
   ) : null;
