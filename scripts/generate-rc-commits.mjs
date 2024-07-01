@@ -64,6 +64,7 @@ async function filterCommitsByTeam(branchA, branchB) {
     for (const commit of log.all) {
       const { author, message, hash } = commit;
       if (commitsByTeam.length >= MAX_COMMITS) {
+        console.error('Too many commits for script to work')
         break;
       }
 
@@ -71,7 +72,7 @@ async function filterCommitsByTeam(branchA, branchB) {
       const prMatch = message.match(/\(#(\d{4,5})\)$/u);
       if(prMatch){
         const prLink = prMatch ? `https://github.com/MetaMask/metamask-mobile/pull/${prMatch[1]}` : '';
-        const team = await getPRLabels(prMatch);
+        const teams = await getPRLabels(prMatch);
 
         // Check if the commit message is unique
         if (!seenMessages.has(message)) {
@@ -79,8 +80,8 @@ async function filterCommitsByTeam(branchA, branchB) {
           seenMessages.add(message);
 
           // Initialize the team's commits array if it doesn't exist
-          if (!commitsByTeam[team]) {
-            commitsByTeam[team] = [];
+          if (!commitsByTeam[teams]) {
+            commitsByTeam[teams] = [];
           }
 
           commitsByTeam[team].push({
