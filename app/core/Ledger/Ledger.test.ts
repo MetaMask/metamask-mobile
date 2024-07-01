@@ -109,67 +109,73 @@ describe('Ledger core', () => {
 
   describe('connectLedgerHardware', () => {
     const mockTransport = 'foo' as unknown as BleTransport;
-    it('should call keyring.setTransport', async () => {
+    it('calls keyring.setTransport', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
       expect(ledgerKeyring.bridge.updateTransportMethod).toHaveBeenCalled();
     });
 
-    it('should call keyring.getAppAndVersion', async () => {
+    it('calls keyring.getAppAndVersion', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
       expect(ledgerKeyring.bridge.getAppNameAndVersion).toHaveBeenCalled();
     });
 
-    it('should return app name', async () => {
+    it('returns app name correctly', async () => {
       const value = await connectLedgerHardware(mockTransport, 'bar');
       expect(value).toBe('appName');
+    });
+
+    it('calls keyring.setHdPath and keyring.setDeviceId if deviceId is different', async () => {
+      await connectLedgerHardware(mockTransport, 'bar');
+      expect(ledgerKeyring.setHdPath).toHaveBeenCalled();
+      expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
     });
   });
 
   describe('openEthereumAppOnLedger', () => {
-    it('should call keyring.openEthApp', async () => {
+    it('calls keyring.openEthApp', async () => {
       await openEthereumAppOnLedger();
       expect(ledgerKeyring.bridge.openEthApp).toHaveBeenCalled();
     });
   });
 
   describe('closeRunningAppOnLedger', () => {
-    it('should call keyring.quitApp', async () => {
+    it('calls keyring.quitApp', async () => {
       await closeRunningAppOnLedger();
       expect(ledgerKeyring.bridge.closeApps).toHaveBeenCalled();
     });
   });
 
   describe('forgetLedger', () => {
-    it('should call keyring.forgetDevice', async () => {
+    it('calls keyring.forgetDevice', async () => {
       await forgetLedger();
       expect(ledgerKeyring.forgetDevice).toHaveBeenCalled();
     });
   });
 
   describe('getDeviceId', () => {
-    it('should return deviceId', async () => {
+    it('returns deviceId', async () => {
       const value = await getDeviceId();
       expect(value).toBe('deviceId');
     });
   });
 
   describe('getLedgerAccountsByPage', () => {
-    it('should call getNextPage on ledgerKeyring', async () => {
+    it('calls ledgerKeyring.getNextPage on ledgerKeyring', async () => {
       await getLedgerAccountsByPage(1);
       expect(ledgerKeyring.getNextPage).toHaveBeenCalled();
     });
-    it('should call getPreviousPage on ledgerKeyring', async () => {
+    it('calls getPreviousPage on ledgerKeyring', async () => {
       await getLedgerAccountsByPage(-1);
       expect(ledgerKeyring.getPreviousPage).toHaveBeenCalled();
     });
-    it('should call getFirstPage on ledgerKeyring', async () => {
+    it('calls getFirstPage on ledgerKeyring', async () => {
       await getLedgerAccountsByPage(0);
       expect(ledgerKeyring.getFirstPage).toHaveBeenCalled();
     });
   });
 
   describe('ledgerSignTypedMessage', () => {
-    it('should call signTypedMessage from keyring controller and return correct signature', async () => {
+    it('calls signTypedMessage from keyring controller and return correct signature', async () => {
       const expectedArg = {
         from: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
         data: 'data',
