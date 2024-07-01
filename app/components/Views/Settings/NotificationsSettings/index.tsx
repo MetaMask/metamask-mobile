@@ -1,7 +1,14 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
 import React, { FC, useEffect, useMemo } from 'react';
-import { Pressable, ScrollView, Switch, View, Alert } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  Switch,
+  View,
+  Alert,
+  Modal,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../locales/i18n';
@@ -122,7 +129,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <MainNotificationSettings />
-      {loading && <Loader size={'large'} />}
       {somethingWentWrong &&
         Alert.alert(
           strings('notifications.notifications_enabled_error_title'),
@@ -173,6 +179,16 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           ))}
         </>
       )}
+      <Modal animationType="slide" transparent visible={loading}>
+        <View style={styles.loader}>
+          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+            {!isMetamaskNotificationsEnabled
+              ? strings('app_settings.enabling_notifications')
+              : strings('app_settings.disabling_notifications')}
+          </Text>
+          <Loader size={'large'} />
+        </View>
+      </Modal>
     </ScrollView>
   );
 };

@@ -52,6 +52,13 @@ const createStyles = (colors: Colors) =>
       marginBottom: 20,
       color: colors.text.default,
     },
+    loader: {
+      alignItems: 'center',
+      flex: 1,
+      flexDirection: 'column',
+      justifyContent: 'center',
+      padding: 20,
+    },
   });
 
 export default createStyles;

@@ -683,6 +683,8 @@
   },
   "app_settings": {
     "title": "Settings",
+    "enabling_notifications": "Enabling notifications...",
+    "disabling_notifications": "Disabling notifications...",
     "current_conversion": "Base Currency",
     "current_language": "Current Language",
     "ipfs_gateway": "IPFS Gateway",
