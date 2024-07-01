@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useState } from 'react';
-import { SafeAreaView, TouchableOpacity, View, Text } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  TouchableOpacity,
+  View,
+  Text,
+  Animated,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import QRScanner from '../QRScanner';
 import ReceiveRequest from '../../UI/ReceiveRequest';
@@ -45,6 +51,21 @@ const QRTabSwitcher = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
 
+  const animatedValue = useRef(new Animated.Value(selectedIndex)).current;
+
+  useEffect(() => {
+    Animated.timing(animatedValue, {
+      toValue: selectedIndex,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [animatedValue, selectedIndex]);
+
+  const interpolateLeft = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '50%'],
+  });
+
   const goBack = () => {
     navigation.goBack();
     try {
@@ -84,40 +105,26 @@ const QRTabSwitcher = () => {
 
       {disableTabber ? null : (
         <View style={styles.segmentedControlContainer}>
-          <TouchableOpacity
+          <Animated.View
             style={[
-              styles.segmentedControlItem,
-              selectedIndex === 0 && styles.segmentedControlItemSelected,
+              styles.segmentedControlItemSelected,
+              { left: interpolateLeft },
             ]}
-            onPress={() => setSelectedIndex(0)}
+          />
+          <TouchableWithoutFeedback
+            onPress={() => setSelectedIndex(Screens.Scanner)}
           >
-            <Text
-              style={
-                selectedIndex === Screens.Scanner
-                  ? styles.selectedText
-                  : styles.text
-              }
-            >
-              Scan QR code
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.segmentedControlItem,
-              selectedIndex === 1 && styles.segmentedControlItemSelected,
-            ]}
-            onPress={() => setSelectedIndex(1)}
+            <View style={styles.segmentedControlItem}>
+              <Text style={styles.text}>Scan QR code</Text>
+            </View>
+          </TouchableWithoutFeedback>
+          <TouchableWithoutFeedback
+            onPress={() => setSelectedIndex(Screens.Receive)}
           >
-            <Text
-              style={
-                selectedIndex === Screens.Receive
-                  ? styles.selectedText
-                  : styles.text
-              }
-            >
-              My QR
-            </Text>
-          </TouchableOpacity>
+            <View style={styles.segmentedControlItem}>
+              <Text style={styles.text}>My QR</Text>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
       )}
     </View>
