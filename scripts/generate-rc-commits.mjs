@@ -26,12 +26,12 @@ async function getPRLabels(prNumber) {
     const labels = data.labels.map(label => label.name);
 
     // Check if any label name contains "team"
-    let hasTeamLabel = labels.filter(label => label.toLowerCase().includes('team'));
+    let teamArray = labels.filter(label => label.toLowerCase().startsWith('team-'));
 
-    if(hasTeamLabel.length > 1 && hasTeamLabel.includes('team-mobile-platform'))
-      hasTeamLabel = hasTeamLabel.filter(item => item !== 'team-mobile-platform');
+    if(teamArray.length > 1 && teamArray.includes('team-mobile-platform'))
+      teamArray = teamArray.filter(item => item !== 'team-mobile-platform');
 
-    return hasTeamLabel || 'Unknown';
+    return teamArray || 'Unknown';
 
   } catch (error) {
     console.error(`Error fetching labels for PR #${prNumber}:`, error);
