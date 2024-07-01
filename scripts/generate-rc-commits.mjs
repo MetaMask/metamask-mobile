@@ -55,8 +55,6 @@ async function filterCommitsByTeam(branchA, branchB) {
     };
 
     const log = await git.log(logOptions);
-    const seenMessages = new Set();
-    const seenMessagesArray = [];
     const commitsByTeam = {};
 
     const MAX_COMMITS = 500; // Limit the number of commits to process
@@ -74,26 +72,19 @@ async function filterCommitsByTeam(branchA, branchB) {
         const prLink = prMatch ? `https://github.com/MetaMask/metamask-mobile/pull/${prMatch[1]}` : '';
         const teams = await getPRLabels(prMatch);
 
-        // Check if the commit message is unique
-        if (!seenMessages.has(message)) {
-          seenMessagesArray.push(message);
-          seenMessages.add(message);
-
-          // Initialize the team's commits array if it doesn't exist
-          if (!commitsByTeam[teams]) {
-            commitsByTeam[teams] = [];
-          }
-
-          commitsByTeam[team].push({
-            message,
-            author,
-            hash: hash.substring(0, 10),
-            prLink,
-          });
+        // Initialize the team's commits array if it doesn't exist
+        if (!commitsByTeam[teams]) {
+          commitsByTeam[teams] = [];
         }
+
+        commitsByTeam[team].push({
+          message,
+          author,
+          hash: hash.substring(0, 10),
+          prLink,
+        });
       }
     }
-
     return commitsByTeam;
   } catch (error) {
     console.error(error);
