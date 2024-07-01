@@ -15,7 +15,14 @@ import {
   PermissionController,
   permissionRpcMethods,
 } from '@metamask/permission-controller';
-import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
+import {
+  CaipAccountAddress,
+  CaipAccountId,
+  CaipChainId,
+  CaipNamespace,
+  CaipReference,
+  parseCaipAccountId,
+} from '@metamask/utils';
 import Networks, {
   blockTagParamIndex,
   getAllNetworks,
@@ -397,7 +404,12 @@ export const getRpcMethodMiddleware = ({
         const selectedAddress = selectSelectedInternalAccountChecksummedAddress(
           store.getState(),
         );
-        let parsedCaip10UserAddress;
+        // Implement on utils repo a interface for this
+        let parsedCaip10UserAddress: {
+          address: CaipAccountAddress;
+          chainId: CaipChainId;
+          chain: { namespace: CaipNamespace; reference: CaipReference };
+        };
         try {
           parsedCaip10UserAddress = parseCaipAccountId(
             user_address as CaipAccountId,
@@ -429,7 +441,12 @@ export const getRpcMethodMiddleware = ({
         validateParams(fromToken[0], ['address'], 'fromToken');
         validateParams(toToken, ['address'], 'toToken');
 
-        let parsedCaip10FromTokenAddress;
+        // Implement on utils repo a interface for this
+        let parsedCaip10FromTokenAddress: {
+          address: CaipAccountAddress;
+          chainId: CaipChainId;
+          chain: { namespace: CaipNamespace; reference: CaipReference };
+        };
         try {
           parsedCaip10FromTokenAddress = parseCaipAccountId(
             fromToken[0].address,
@@ -442,7 +459,12 @@ export const getRpcMethodMiddleware = ({
           throw new Error('Only support Ethereum addresses at the moment');
         }
 
-        let parsedCaip10ToTokenAddress;
+        // Implement on utils repo a interface for this
+        let parsedCaip10ToTokenAddress: {
+          address: CaipAccountAddress;
+          chainId: CaipChainId;
+          chain: { namespace: CaipNamespace; reference: CaipReference };
+        };
         try {
           parsedCaip10ToTokenAddress = parseCaipAccountId(toToken.address);
         } catch (error) {
