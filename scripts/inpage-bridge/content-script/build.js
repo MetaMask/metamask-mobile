@@ -11,4 +11,4 @@ const inpageContent = fs
 const code = `const inpageBundle = ${JSON.stringify(inpageContent)}`;
 
 fs.writeFileSync(path.join(distPath, 'inpage-bundle.js'), code, 'ascii');
-console.log('content-script.js generated succesfully');
+console.log('content-script.js generated successfully');
