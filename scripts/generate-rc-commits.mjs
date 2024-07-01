@@ -134,9 +134,10 @@ function assignChangeType(field) {
 
 async function main() {
   const args = process.argv.slice(2);
+  const fileTitle = 'commits.csv';
 
   if (args.length !== 2) {
-    console.error('Usage: node script.js branchA branchB');
+    console.error('Usage: node generate-rc-commits.mjs branchA branchB');
     process.exit(1);
   }
 
@@ -146,10 +147,10 @@ async function main() {
   const commitsByTeam = await filterCommitsByTeam(branchA, branchB);
 
   if (Object.keys(commitsByTeam).length === 0) {
-    console.log('No unique commits found.');
+    console.log('No commits found.');
   } else {
     const csvContent = formatAsCSV(commitsByTeam);
-    fs.writeFileSync('commits.csv', csvContent.join('\n'));
+    fs.writeFileSync(fileTitle, csvContent.join('\n'));
     console.log('CSV file "commits.csv" created successfully.');
   }
 }
