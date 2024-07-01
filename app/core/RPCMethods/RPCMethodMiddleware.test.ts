@@ -53,6 +53,7 @@ jest.mock('../Engine', () => ({
       },
     },
   },
+  setSelectedAddress: jest.fn(),
 }));
 const MockEngine = jest.mocked(Engine);
 
@@ -1336,19 +1337,19 @@ describe('getRpcMethodMiddleware', () => {
         method: 'wallet_swapAsset',
         params: [
           {
-            from: [
+            fromToken: [
               {
                 // DAI address
-                token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+                address: '0x6b175474e89094c44da98b954eedeac495271d0f',
                 value: '0xDE0B6B3A7640000',
               },
             ],
-            to: {
+            toToken: {
               chainId: '0x1',
               // ETH address
-              token_address: '0x0000000000000000000000000000000000000000',
+              address: '0x0000000000000000000000000000000000000000',
             },
-            user_address: '0x0',
+            userAddress: 'eip155:1:0x0',
           },
         ],
       };
@@ -1406,24 +1407,24 @@ describe('getRpcMethodMiddleware', () => {
         method: 'wallet_swapAsset',
         params: [
           {
-            from: [
+            fromToken: [
               {
                 // DAI address
-                token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+                address: '0x6b175474e89094c44da98b954eedeac495271d0f',
                 value: '0xDE0B6B3A7640000',
               },
               {
                 // ETH address
-                token_address: '0x0000000000000000000000000000000000000000',
+                address: '0x0000000000000000000000000000000000000000',
                 value: '0xDE0B6B3A7640000',
               },
             ],
-            to: {
+            toToken: {
               chainId: '0x1',
               // ETH address
-              token_address: '0x0000000000000000000000000000000000000000',
+              address: '0x0000000000000000000000000000000000000000',
             },
-            user_address: '0x0',
+            userAddress: 'eip155:1:0x0',
           },
         ],
       };
@@ -1435,7 +1436,7 @@ describe('getRpcMethodMiddleware', () => {
       );
     });
 
-    it('should throw error if token_address required param is not defined', async () => {
+    it('should throw error if address required param is not defined', async () => {
       const mockState = merge({}, initialRootState, {
         swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
         fiatOrders: {
@@ -1481,18 +1482,18 @@ describe('getRpcMethodMiddleware', () => {
         method: 'wallet_swapAsset',
         params: [
           {
-            from: [
+            fromToken: [
               {
                 // DAI address
                 value: '0xDE0B6B3A7640000',
               },
             ],
-            to: {
+            toToken: {
               chainId: '0x1',
               // ETH address
-              token_address: '0x0000000000000000000000000000000000000000',
+              address: 'eip155:1:0x0000000000000000000000000000000000000000',
             },
-            user_address: '0x0',
+            userAddress: 'eip155:1:0x0',
           },
         ],
       };
@@ -1500,7 +1501,7 @@ describe('getRpcMethodMiddleware', () => {
       const response = await callMiddleware({ middleware, request });
       //@ts-expect-error now the response can have an error property
       await expect(response?.error?.message).toStrictEqual(
-        'token_address property of from is not defined',
+        'address property of fromToken is not defined',
       );
     });
 
@@ -1550,19 +1551,18 @@ describe('getRpcMethodMiddleware', () => {
         method: 'wallet_swapAsset',
         params: [
           {
-            from: [
+            fromToken: [
               {
                 // DAI address
-                token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+                address: 'eip155:1:0x6b175474e89094c44da98b954eedeac495271d0f',
                 value: '0xDE0B6B3A7640000',
               },
             ],
-            to: {
-              chainId: '0x1',
+            toToken: {
               // ETH address
-              token_address: '0x0000000000000000000000000000000000000000',
+              address: 'eip155:1:0x0000000000000000000000000000000000000000',
             },
-            user_address: '0x0',
+            userAddress: 'eip155:1:0x0',
           },
         ],
       };
@@ -1620,20 +1620,20 @@ describe('getRpcMethodMiddleware', () => {
         method: 'wallet_swapAsset',
         params: [
           {
-            from: [
+            fromToken: [
               {
                 chainId: '0x1',
                 // DAI address
-                token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+                address: 'eip155:1:0x6b175474e89094c44da98b954eedeac495271d0f',
                 value: '0xDE0B6B3A7640000',
               },
             ],
-            to: {
+            toToken: {
               chainId: '0x1',
               // ETH address
-              token_address: '0x0000000000000000000000000000000000000000',
+              address: 'eip155:1:0x0000000000000000000000000000000000000000',
             },
-            user_address: '0x0',
+            userAddress: 'eip155:1:0x0',
           },
         ],
       };
