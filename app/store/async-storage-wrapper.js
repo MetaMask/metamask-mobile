@@ -22,7 +22,7 @@ class AsyncStorageWrapper {
       // mmkv returns undefined for no value
       // therefore must return null if no value is found
       // to keep app behavior consistent
-      let value = this.storage.getString(key) || null;
+      let value = (await this.storage.getString(key)) || null;
       if (!value) {
         const asyncStorageValue = await AsyncStorage.getItem(key);
         if (asyncStorageValue) {
@@ -42,7 +42,7 @@ class AsyncStorageWrapper {
 
   async setItem(key, value) {
     try {
-      const response = this.storage.set(key, value);
+      const response = await this.storage.set(key, value);
       return response;
     } catch (error) {
       if (isE2E) {
@@ -55,7 +55,7 @@ class AsyncStorageWrapper {
 
   async removeItem(key) {
     try {
-      const response = this.storage.delete(key);
+      const response = await this.storage.delete(key);
       return response;
     } catch (error) {
       if (isE2E) {
@@ -67,7 +67,7 @@ class AsyncStorageWrapper {
   }
 
   async clearAll() {
-    this.storage.clearAll();
+    await this.storage.clearAll();
   }
 }
 
