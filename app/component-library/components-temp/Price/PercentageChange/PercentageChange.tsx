@@ -1,27 +1,12 @@
 import React from 'react';
-import { fontStyles } from '../../../../styles/common';
 import Text from '../../../../component-library/components/Texts/Text';
-import { View, StyleSheet } from 'react-native';
-import { useTheme } from '../../../../util/theme';
-import { Colors } from '../../../../util/theme/models';
-
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    balancePositiveStyle: {
-      color: colors.success.default,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
-    balanceNegativeStyle: {
-      color: colors.error.default,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
-  });
+import { View } from 'react-native';
+import styleSheet from './PercentageChange.styles';
+import { useStyles } from '../../../hooks';
 
 const PercentageChange = ({ value }: { value: number | null | undefined }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
+
   const percentageStyle =
     value && value >= 0
       ? styles.balancePositiveStyle

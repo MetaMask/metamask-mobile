@@ -1,35 +1,11 @@
 import React from 'react';
-import { fontStyles } from '../../../../styles/common';
 import Text from '../../../../component-library/components/Texts/Text';
-import { View, StyleSheet } from 'react-native';
-import { useTheme } from '../../../../util/theme';
-import { Colors } from '../../../../util/theme/models';
+import { View } from 'react-native';
 import { renderFiat } from '../../../../util/number';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    wrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    balanceZeroStyle: {
-      color: colors.text.default,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
-    balancePositiveStyle: {
-      color: colors.success.default,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
-    balanceNegativeStyle: {
-      color: colors.error.default,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
-  });
+import styleSheet from './AggregatedPercentage.styles';
+import { useStyles } from '../../../hooks';
 
 const isValidAmount = (amount: number | null | undefined): boolean =>
   amount !== null && amount !== undefined && !Number.isNaN(amount);
@@ -45,8 +21,8 @@ const AggregatedPercentage = ({
   tokenFiat1dAgo: number;
   ethFiat1dAgo: number;
 }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
+
   const currentCurrency = useSelector(selectCurrentCurrency);
   const DECIMALS_TO_SHOW = 2;
 
