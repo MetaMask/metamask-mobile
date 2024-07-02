@@ -23,6 +23,7 @@ const initialState = {
             name: 'Account 2',
           },
         },
+        useTokenDetection: false,
       },
       AddressBookController: {
         addressBook: {
@@ -61,7 +62,7 @@ describe('AddressInputs', () => {
           fromAccountBalance="0x5"
           fromAccountName="DUMMY_ACCOUNT"
         />,
-        {},
+        { state: initialState },
       );
       expect(container).toMatchSnapshot();
     });
@@ -74,7 +75,7 @@ describe('AddressInputs', () => {
           fromAccountName="DUMMY_ACCOUNT"
           layout="vertical"
         />,
-        {},
+        { state: initialState },
       );
       expect(container).toMatchSnapshot();
     });
