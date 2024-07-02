@@ -15,28 +15,31 @@ const metamaskStream = new ReactNativePostMessageStream({
   target: CONTENT_SCRIPT,
 });
 
-// Initialize provider object (window.ethereum)
-initializeProvider({
-  connectionStream: metamaskStream,
-  shouldSendMetadata: false,
-  providerInfo: {
-    uuid: uuid(),
-    name: process.env.METAMASK_BUILD_NAME,
-    icon: process.env.METAMASK_BUILD_ICON,
-    rdns: process.env.METAMASK_BUILD_APP_ID,
-  },
-});
+const init = () => {
+  // Initialize provider object (window.ethereum)
+  initializeProvider({
+    connectionStream: metamaskStream,
+    shouldSendMetadata: false,
+    providerInfo: {
+      uuid: uuid(),
+      name: process.env.METAMASK_BUILD_NAME,
+      icon: process.env.METAMASK_BUILD_ICON,
+      rdns: process.env.METAMASK_BUILD_APP_ID,
+    },
+  });
 
-// Set content script post-setup function
-Object.defineProperty(window, '_metamaskSetupProvider', {
-  value: () => {
-    setupProviderStreams();
-    delete window._metamaskSetupProvider;
-  },
-  configurable: true,
-  enumerable: false,
-  writable: false,
-});
+  // Set content script post-setup function
+  Object.defineProperty(window, '_metamaskSetupProvider', {
+    value: () => {
+      setupProviderStreams();
+      delete window._metamaskSetupProvider;
+    },
+    configurable: true,
+    enumerable: false,
+    writable: false,
+  });
+
+}
 
 // Functions
 
@@ -130,3 +133,5 @@ function notifyProviderOfStreamFailure() {
     window.location.origin,
   );
 }
+
+export default init;

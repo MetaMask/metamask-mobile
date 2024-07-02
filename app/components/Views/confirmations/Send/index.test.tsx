@@ -50,6 +50,9 @@ const initialState = {
       TokenBalancesController: {
         contractBalances: {},
       },
+      TokenListController: {
+        tokenList: [],
+      },
       PreferencesController: {
         featureFlags: {},
         identities: {
