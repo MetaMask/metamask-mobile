@@ -1,5 +1,8 @@
 import React from 'react';
-import Text from '../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import { View } from 'react-native';
 import { renderFiat } from '../../../../util/number';
 import { useSelector } from 'react-redux';
@@ -34,14 +37,14 @@ const AggregatedPercentage = ({
   const percentageChange =
     ((totalBalance - totalBalance1dAgo) / totalBalance1dAgo) * 100 || 0;
 
-  let percentageStyle = styles.balanceZeroStyle;
+  let percentageTextColor = TextColor.Default;
 
   if (percentageChange === 0) {
-    percentageStyle = styles.balanceZeroStyle;
+    percentageTextColor = TextColor.Default;
   } else if (percentageChange > 0) {
-    percentageStyle = styles.balancePositiveStyle;
+    percentageTextColor = TextColor.Success;
   } else {
-    percentageStyle = styles.balanceNegativeStyle;
+    percentageTextColor = TextColor.Error;
   }
 
   const formattedPercentage = isValidAmount(percentageChange)
@@ -60,8 +63,12 @@ const AggregatedPercentage = ({
 
   return (
     <View style={styles.wrapper}>
-      <Text style={percentageStyle}>{formattedValuePrice}</Text>
-      <Text style={percentageStyle}>{formattedPercentage}</Text>
+      <Text color={percentageTextColor} variant={TextVariant.BodyMDMedium}>
+        {formattedValuePrice}
+      </Text>
+      <Text color={percentageTextColor} variant={TextVariant.BodyMDMedium}>
+        {formattedPercentage}
+      </Text>
     </View>
   );
 };

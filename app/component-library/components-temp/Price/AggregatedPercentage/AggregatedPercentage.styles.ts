@@ -22,21 +22,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
     },
-    balanceZeroStyle: {
-      color: colors.text.default,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
-    balancePositiveStyle: {
-      color: colors.success.default,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
-    balanceNegativeStyle: {
-      color: colors.error.default,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
   });
 };
 

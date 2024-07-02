@@ -1,16 +1,15 @@
 import React from 'react';
-import Text from '../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import { View } from 'react-native';
 import styleSheet from './PercentageChange.styles';
 import { useStyles } from '../../../hooks';
 
 const PercentageChange = ({ value }: { value: number | null | undefined }) => {
-  const { styles } = useStyles(styleSheet, {});
-
-  const percentageStyle =
-    value && value >= 0
-      ? styles.balancePositiveStyle
-      : styles.balanceNegativeStyle;
+  const percentageColorText =
+    value && value >= 0 ? TextColor.Success : TextColor.Error;
 
   const isValidAmount = (amount: number | null | undefined): boolean =>
     amount !== null && amount !== undefined && !Number.isNaN(amount);
@@ -21,7 +20,9 @@ const PercentageChange = ({ value }: { value: number | null | undefined }) => {
 
   return (
     <View>
-      <Text style={percentageStyle}>{formattedValue}</Text>
+      <Text color={percentageColorText} variant={TextVariant.BodyMDMedium}>
+        {formattedValue}
+      </Text>
     </View>
   );
 };
