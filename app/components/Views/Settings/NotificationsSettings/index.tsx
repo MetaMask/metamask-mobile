@@ -49,7 +49,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   // Selectors
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
-    // (state: RootState) => state?.pushNotifications?.isNotificationServicesEnabled
   );
 
   // Params

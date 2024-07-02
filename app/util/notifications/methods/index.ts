@@ -164,6 +164,8 @@ export function getNetwork(chain_id: number) {
 export const isNotificationsFeatureEnabled = () =>
   process.env.MM_NOTIFICATIONS_UI_ENABLED === 'true';
 
+// TODO - I don't this is a good way of formatting title (taking the trigger type as the title)
+// If this is only for translations, sure. Otherwise we should not use this directly as title!
 export function formatNotificationTitle(rawTitle: string): string {
   const words = rawTitle.split('_');
   words.shift();

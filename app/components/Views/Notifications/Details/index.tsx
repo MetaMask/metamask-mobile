@@ -115,7 +115,6 @@ export default NotificationsDetails;
 
 NotificationsDetails.navigationOptions = ({
   route,
-  theme,
   navigation,
 }: {
   // TODO: Replace "any" with type
@@ -143,7 +142,9 @@ NotificationsDetails.navigationOptions = ({
       title={
         route.params.notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
           ? route.params.notification.data.title
-          : formatNotificationTitle(route.params.notification.type)
+          : // TODO - Provide better title for other notifications
+            // E.g. "eth_sent" is not just eth. It is native token sent
+            formatNotificationTitle(route.params.notification.type)
       }
       subtitle={formatDate(route.params.notification.createdAt)}
     />

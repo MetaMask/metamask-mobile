@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable import/prefer-default-export */
 import { createSelector } from 'reselect';
 import Engine from '../../core/Engine';
@@ -98,20 +97,18 @@ export const getNotificationsList = createDeepEqualSelector(
 export const getMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.metamaskNotificationsList
-      ? notificationServicesControllerState.metamaskNotificationsList.filter(
-          (notification: any) => !notification.isRead,
-        ).length
-      : 0,
+    (
+      notificationServicesControllerState.metamaskNotificationsList ?? []
+    ).filter((notification) => !notification.isRead).length,
 );
 export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.metamaskNotificationsList
-      ? notificationServicesControllerState.metamaskNotificationsList.filter(
-          (notification: any) =>
-            !notification.isRead &&
-            notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
-        ).length
-      : 0,
+    (
+      notificationServicesControllerState.metamaskNotificationsList ?? []
+    ).filter(
+      (notification) =>
+        !notification.isRead &&
+        notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
+    ).length,
 );
