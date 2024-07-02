@@ -1357,7 +1357,7 @@ describe('getRpcMethodMiddleware', () => {
       const response = await callMiddleware({ middleware, request });
       //@ts-expect-error now the response can have an error property
       await expect(response?.error?.message).toStrictEqual(
-        'This address does not exist',
+        'The swap could not be completed as requested',
       );
     });
 

@@ -428,7 +428,9 @@ export const getRpcMethodMiddleware = ({
         );
 
         if (!dappConnectedAccount) {
-          throw rpcErrors.invalidParams('This address does not exist');
+          throw rpcErrors.invalidParams(
+            'The swap could not be completed as requested',
+          );
         }
 
         // This condition is only needed until we support multiple source tokens swap
