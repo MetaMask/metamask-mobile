@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { SmokeAssets } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
@@ -18,7 +18,7 @@ import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.select
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
-describe(SmokeCore('Fiat On Testnets Setting'), () => {
+describe(SmokeAssets('Fiat On Testnets Setting'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
