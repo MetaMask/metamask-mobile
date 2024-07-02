@@ -25034,25 +25034,10 @@ react-native-webview-invoke@^0.6.2:
   resolved "https://registry.yarnpkg.com/react-native-webview-invoke/-/react-native-webview-invoke-0.6.2.tgz#75cc27ef98ea1cbc9386269347d3aafe90d33aa3"
   integrity sha512-PCzP7Zl3XwHU10JYS8nR0gwuR8XiOO0MhC8y9ZuPPI+HeISn95GvNYhOXxeLgfbdbUcpNWh1HqxPDySlfCIqxg==
 
-<<<<<<< HEAD
-react-native-webview@11.13.0:
-  version "11.13.0"
-  resolved "https://registry.yarnpkg.com/react-native-webview/-/react-native-webview-11.13.0.tgz#a2eca0f87b2ae9bba0dd8144594aeff9947cc5d6"
-  integrity sha512-jjQAKWv8JzRmcn76fMe4lXD84AAeR7kn43kAmUe1GX312BMLaP+RbKlgpYAlNuOBXL0YirItGKDrpaD0bNROOA==
-  dependencies:
-    escape-string-regexp "2.0.0"
-    invariant "2.2.4"
-
 react-native@0.72.15:
   version "0.72.15"
   resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.72.15.tgz#9b74b0c39ec42befb70d494b535f863c4229ef55"
   integrity sha512-UDxOZwCxhwb0dGuvcB/04uWzhDJ8etqW3fMOq6bv35WwEXMgKXXqZpshhMo64UVWm/m2ZmM32ckn5sf1EIqD9Q==
-=======
-react-native@0.71.15:
-  version "0.71.15"
-  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.71.15.tgz#7d99f478238c559b8b3fdaad2514f11d53ef135a"
-  integrity sha512-CFEoqc0hkINRWvBe86B3EK2fyVjK0//SoqI2jkRAz4NZm9R05+rHIFyT6wGQCLM3ea++KDkC0pqRVasMbqJc0Q==
->>>>>>> main
   dependencies:
     "@jest/create-cache-key-function" "^29.2.1"
     "@react-native-community/cli" "^11.4.1"
