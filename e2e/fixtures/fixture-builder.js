@@ -64,12 +64,12 @@ class FixtureBuilder {
                 },
               },
               accountsByChainId: {
-                64: {
+                0x40: {
                   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
                     balance: '0x0',
                   },
                 },
-                1: {
+                0x1: {
                   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
                     balance: '0x0',
                   },
@@ -213,6 +213,7 @@ class FixtureBuilder {
                     id: '1',
                     metadata: {
                       name: 'Account 1',
+                      importTime: 1684232000456,
                       keyring: {
                         type: 'HD Key Tree',
                       },
