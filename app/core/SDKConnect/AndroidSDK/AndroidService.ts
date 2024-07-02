@@ -476,10 +476,52 @@ export default class AndroidService extends EventEmitter2 {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async sendMessage(message: any, forceRedirect?: boolean) {
     const id = message?.data?.id;
-    this.communicationClient.sendMessage(JSON.stringify(message));
     let rpcMethod = this.rpcQueueManager.getId(id);
+    const isConnectionResponse = rpcMethod === RPC_METHODS.ETH_REQUESTACCOUNTS;
+
+    if (isConnectionResponse) {
+      const preferencesController = (
+        Engine.context as {
+          PreferencesController: PreferencesController;
+        }
+      ).PreferencesController;
+
+      const selectedAddress =
+        preferencesController.state.selectedAddress.toLowerCase();
+
+      const lowercaseAccounts = (message.data.result as string[]).map(
+        (a: string) => a.toLowerCase(),
+      );
+
+      const isPartOfConnectedAddresses =
+        lowercaseAccounts.includes(selectedAddress);
+
+      if (isPartOfConnectedAddresses) {
+        // Remove the selectedAddress from the lowercaseAccounts if it exists
+        const remainingAccounts = lowercaseAccounts.filter(
+          (account) => account !== selectedAddress,
+        );
+
+        // Create the reorderedAccounts array with selectedAddress as the first element
+        const reorderedAccounts: string[] = [
+          selectedAddress,
+          ...remainingAccounts,
+        ];
+
+        message = {
+          ...message,
+          data: {
+            ...message.data,
+            result: reorderedAccounts,
+          },
+        };
+      }
+    }
+
+    this.communicationClient.sendMessage(JSON.stringify(message));
 
     DevLogger.log(`AndroidService::sendMessage method=${rpcMethod}`, message);
+
     // handle multichain rpc call responses separately
     const chainRPCs = this.batchRPCManager.getById(id);
     if (chainRPCs) {
