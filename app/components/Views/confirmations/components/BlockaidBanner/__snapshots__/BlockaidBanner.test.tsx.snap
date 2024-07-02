@@ -28,8 +28,8 @@ exports[`BlockaidBanner should render correctly 1`] = `
   }
   style={
     {
-      "backgroundColor": "#BF520819",
-      "borderColor": "#BF5208",
+      "backgroundColor": "#bf52081a",
+      "borderColor": "#bf5208",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -47,7 +47,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
     }
   >
     <SvgMock
-      color="#BF5208"
+      color="#bf5208"
       height={24}
       name="Danger"
       style={
@@ -70,7 +70,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "500",
@@ -85,7 +85,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -113,7 +113,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376C9",
+            "color": "#0376c9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -143,7 +143,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         testID="accordionheader-arrow-icon-animation"
       >
         <SvgMock
-          color="#0376C9"
+          color="#0376c9"
           height={16}
           name="ArrowDown"
           style={
@@ -181,8 +181,8 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
   }
   style={
     {
-      "backgroundColor": "#D7384719",
-      "borderColor": "#D73847",
+      "backgroundColor": "#d738471a",
+      "borderColor": "#d73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -200,7 +200,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
     }
   >
     <SvgMock
-      color="#D73847"
+      color="#d73847"
       height={24}
       name="Danger"
       style={
@@ -223,7 +223,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "500",
@@ -238,7 +238,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -266,7 +266,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376C9",
+            "color": "#0376c9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -296,7 +296,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         testID="accordionheader-arrow-icon-animation"
       >
         <SvgMock
-          color="#0376C9"
+          color="#0376c9"
           height={16}
           name="ArrowDown"
           style={
@@ -334,8 +334,8 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
   }
   style={
     {
-      "backgroundColor": "#D7384719",
-      "borderColor": "#D73847",
+      "backgroundColor": "#d738471a",
+      "borderColor": "#d73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -353,7 +353,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
     }
   >
     <SvgMock
-      color="#D73847"
+      color="#d73847"
       height={24}
       name="Danger"
       style={
@@ -376,7 +376,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "500",
@@ -391,7 +391,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -419,7 +419,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         accessibilityRole="text"
         style={
           {
-            "color": "#0376C9",
+            "color": "#0376c9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -449,7 +449,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         testID="accordionheader-arrow-icon-animation"
       >
         <SvgMock
-          color="#0376C9"
+          color="#0376c9"
           height={16}
           name="ArrowDown"
           style={
@@ -485,8 +485,8 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
   <View
     style={
       {
-        "backgroundColor": "#BF520819",
-        "borderColor": "#BF5208",
+        "backgroundColor": "#bf52081a",
+        "borderColor": "#bf5208",
         "borderLeftWidth": 4,
         "borderRadius": 4,
         "flexDirection": "row",
@@ -504,7 +504,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
       }
     >
       <SvgMock
-        color="#BF5208"
+        color="#bf5208"
         height={24}
         name="Danger"
         style={
@@ -527,7 +527,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
             "fontWeight": "500",
@@ -542,7 +542,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -578,8 +578,8 @@ exports[`BlockaidBanner should render something does not look right with contact
   }
   style={
     {
-      "backgroundColor": "#D7384719",
-      "borderColor": "#D73847",
+      "backgroundColor": "#d738471a",
+      "borderColor": "#d73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -597,7 +597,7 @@ exports[`BlockaidBanner should render something does not look right with contact
     }
   >
     <SvgMock
-      color="#D73847"
+      color="#d73847"
       height={24}
       name="Danger"
       style={
@@ -620,7 +620,7 @@ exports[`BlockaidBanner should render something does not look right with contact
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "500",
@@ -635,7 +635,7 @@ exports[`BlockaidBanner should render something does not look right with contact
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -663,7 +663,7 @@ exports[`BlockaidBanner should render something does not look right with contact
         accessibilityRole="text"
         style={
           {
-            "color": "#0376C9",
+            "color": "#0376c9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -693,7 +693,7 @@ exports[`BlockaidBanner should render something does not look right with contact
         testID="accordionheader-arrow-icon-animation"
       >
         <SvgMock
-          color="#0376C9"
+          color="#0376c9"
           height={16}
           name="ArrowDown"
           style={

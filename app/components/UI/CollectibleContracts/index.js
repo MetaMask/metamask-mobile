@@ -8,6 +8,7 @@ import {
   Platform,
   FlatList,
   RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
@@ -19,6 +20,7 @@ import {
   collectibleContractsSelector,
   collectiblesSelector,
   favoritesCollectiblesSelector,
+  isNftFetchingProgressSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import Text from '../../Base/Text';
@@ -36,14 +38,15 @@ import {
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
-  selectSelectedAddress,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import {
   IMPORT_NFT_BUTTON_ID,
   NFT_TAB_CONTAINER_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { RefreshTestId, SpinnerTestId } from './constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -86,6 +89,9 @@ const createStyles = (colors) =>
       marginBottom: 8,
       fontSize: 14,
     },
+    spinner: {
+      marginBottom: 8,
+    },
   });
 
 /**
@@ -99,6 +105,7 @@ const CollectibleContracts = ({
   navigation,
   collectibleContracts,
   collectibles: allCollectibles,
+  isNftFetchingProgress,
   favoriteCollectibles,
   removeFavoriteCollectible,
   useNftDetection,
@@ -197,7 +204,7 @@ const CollectibleContracts = ({
     const updatableCollectibles = collectibles.filter((single) =>
       shouldUpdateCollectibleMetadata(single),
     );
-    if (updatableCollectibles.length !== 0) {
+    if (updatableCollectibles.length !== 0 && !useNftDetection) {
       updateAllCollectibleMetadata(updatableCollectibles);
     }
   }, [
@@ -205,34 +212,8 @@ const CollectibleContracts = ({
     updateAllCollectibleMetadata,
     isIpfsGatewayEnabled,
     displayNftMedia,
+    useNftDetection,
   ]);
-
-  /*   const updateCollectibleMetadata = useCallback(
-    async (collectible) => {
-      const { NftController } = Engine.context;
-      const { address, tokenId } = collectible;
-
-      const isIgnored = isCollectibleIgnored(collectible);
-
-      if (!isIgnored) {
-        if (String(tokenId).includes('e+')) {
-          removeFavoriteCollectible(selectedAddress, chainId, collectible);
-        } else {
-          await NftController.addNft(address, String(tokenId));
-        }
-      }
-    },
-    [chainId, removeFavoriteCollectible, selectedAddress, isCollectibleIgnored],
-  );
-
-  useEffect(() => {
-    // TO DO: Move this fix to the controllers layer
-    collectibles.forEach((collectible) => {
-      if (shouldUpdateCollectibleMetadata(collectible)) {
-        updateCollectibleMetadata(collectible);
-      }
-    });
-  }, [collectibles, updateCollectibleMetadata]); */
 
   const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);
@@ -244,6 +225,14 @@ const CollectibleContracts = ({
   const renderFooter = useCallback(
     () => (
       <View style={styles.footer} key={'collectible-contracts-footer'}>
+        {isNftFetchingProgress ? (
+          <ActivityIndicator
+            size="large"
+            style={styles.spinner}
+            testID={SpinnerTestId}
+          />
+        ) : null}
+
         <Text style={styles.emptyText}>
           {strings('wallet.no_collectibles')}
         </Text>
@@ -258,7 +247,7 @@ const CollectibleContracts = ({
         </TouchableOpacity>
       </View>
     ),
-    [goToAddCollectible, isAddNFTEnabled, styles],
+    [goToAddCollectible, isAddNFTEnabled, styles, isNftFetchingProgress],
   );
 
   const renderCollectibleContract = useCallback(
@@ -307,7 +296,7 @@ const CollectibleContracts = ({
         NftDetectionController.detectNfts(),
         NftController.checkAndUpdateAllNftsOwnershipStatus(),
       ];
-      await Promise.all(actions);
+      await Promise.allSettled(actions);
       setRefreshing(false);
     });
   }, [setRefreshing]);
@@ -347,7 +336,7 @@ const CollectibleContracts = ({
           <>
             {isCollectionDetectionBannerVisible && (
               <View style={styles.emptyView}>
-                <CollectibleDetectionModal navigation={navigation} />
+                <CollectibleDetectionModal />
               </View>
             )}
             {renderFavoriteCollectibles()}
@@ -356,6 +345,7 @@ const CollectibleContracts = ({
         data={collectibleContracts}
         renderItem={({ item, index }) => renderCollectibleContract(item, index)}
         keyExtractor={(_, index) => index.toString()}
+        testID={RefreshTestId}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
@@ -379,7 +369,6 @@ const CollectibleContracts = ({
       renderFooter,
       renderEmpty,
       isCollectionDetectionBannerVisible,
-      navigation,
       styles.emptyView,
     ],
   );
@@ -415,7 +404,11 @@ CollectibleContracts.propTypes = {
    * Array of collectibles objects
    */
   collectibles: PropTypes.array,
-
+  /**
+   * boolean indicating if fetching status is
+   * still in progress
+   */
+  isNftFetchingProgress: PropTypes.bool,
   /**
    * Navigation object required to push
    * the Asset detail view
@@ -446,10 +439,11 @@ CollectibleContracts.propTypes = {
 const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   useNftDetection: selectUseNftDetection(state),
   collectibleContracts: collectibleContractsSelector(state),
   collectibles: collectiblesSelector(state),
+  isNftFetchingProgress: isNftFetchingProgressSelector(state),
   favoriteCollectibles: favoritesCollectiblesSelector(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   displayNftMedia: selectDisplayNftMedia(state),

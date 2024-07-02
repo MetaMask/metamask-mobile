@@ -7,6 +7,8 @@ import { useTheme } from '../../../../../util/theme';
 import { CHAINLIST_URL } from '../../../../../constants/urls';
 import Routes from '../../../../../constants/navigation/Routes';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {

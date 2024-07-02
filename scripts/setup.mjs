@@ -204,11 +204,32 @@ const patchModulesTask = {
       exitOnError: true,
     })
 }
+
+const sourceEnvs = {
+  title: 'Source env vars',
+  task: async (_, task) => {
+    const isCI = process.env.CI;
+    if (isCI) {
+      task.skip('CI detected')
+    } else {
+      const envFiles = [
+        '.js.env',
+        '.ios.env',
+        '.android.env',
+        '.e2e.env'];
+      envFiles.forEach((envFileName) => {
+        `source ${envFileName}`;
+      })
+    }
+  }
+};
+
 const tasks = new Listr([
   gemInstallTask,
   patchModulesTask,
   mainSetupTask,
   ppomBuildTask,
+  sourceEnvs
 ],
   {
     exitOnError: true,
