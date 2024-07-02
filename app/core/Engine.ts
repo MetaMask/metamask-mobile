@@ -213,10 +213,6 @@ import { SmartTransactionStatuses } from '@metamask/smart-transactions-controlle
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
 
-const { AuthenticationControllerState } = AuthenticationController;
-const { UserStorageControllerState } = UserStorageController;
-const { NotificationServicesControllerState } = NotificationServicesController;
-
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor({
@@ -331,9 +327,9 @@ export interface EngineState {
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   // Notification Controllers
-  AuthenticationController: typeof AuthenticationControllerState;
-  UserStorageController: typeof UserStorageControllerState;
-  NotificationServicesController: typeof NotificationServicesControllerState;
+  AuthenticationController: AuthenticationController.AuthenticationControllerState;
+  UserStorageController: UserStorageController.UserStorageControllerState;
+  NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
 }
 
 /**
@@ -1027,7 +1023,7 @@ class Engine {
       metametrics: {
         agent: 'mobile',
         getMetaMetricsId: async () =>
-          MetaMetrics.getInstance().getMetaMetricsId(),
+          (await MetaMetrics.getInstance().getMetaMetricsId()) ?? '',
       },
     });
 
