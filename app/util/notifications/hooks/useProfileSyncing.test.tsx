@@ -42,7 +42,7 @@ describe('useEnableProfileSyncing', () => {
   function arrangeActions() {
     const enableProfileSyncing = jest
       .spyOn(Actions, 'enableProfileSyncing')
-      .mockReturnValue(jest.fn());
+      .mockResolvedValue(undefined);
 
     return {
       enableProfileSyncing,
@@ -63,8 +63,8 @@ describe('useEnableProfileSyncing', () => {
 
   it('should set error message when enableProfileSyncingAction returns an error', async () => {
     const mockActions = arrangeActions();
-    mockActions.enableProfileSyncing.mockReturnValue(
-      async () => 'MOCK - failed to enable profile syncing',
+    mockActions.enableProfileSyncing.mockResolvedValueOnce(
+      'MOCK - failed to enable profile syncing',
     );
 
     const { result } = arrangeHook();
@@ -78,9 +78,9 @@ describe('useEnableProfileSyncing', () => {
 
   it('should set error message when an error occurs during enableProfileSyncing', async () => {
     const mockActions = arrangeActions();
-    mockActions.enableProfileSyncing.mockReturnValue(async () => {
-      throw new Error('MOCK - failed to enable profile syncing');
-    });
+    mockActions.enableProfileSyncing.mockRejectedValueOnce(
+      new Error('MOCK - failed to enable profile syncing'),
+    );
 
     const { result } = arrangeHook();
     await act(async () => {
@@ -109,7 +109,7 @@ describe('useDisableProfileSyncing', () => {
   function arrangeActions() {
     const disableProfileSyncing = jest
       .spyOn(Actions, 'disableProfileSyncing')
-      .mockReturnValue(jest.fn());
+      .mockResolvedValue(undefined);
 
     return {
       disableProfileSyncing,
@@ -130,8 +130,8 @@ describe('useDisableProfileSyncing', () => {
 
   it('should set error message when disableProfileSyncingAction returns an error', async () => {
     const mockActions = arrangeActions();
-    mockActions.disableProfileSyncing.mockReturnValue(
-      async () => 'MOCK - failed to disable profile syncing',
+    mockActions.disableProfileSyncing.mockResolvedValueOnce(
+      'MOCK - failed to disable profile syncing',
     );
 
     const { result } = arrangeHook();
@@ -145,9 +145,9 @@ describe('useDisableProfileSyncing', () => {
 
   it('should set error message when an error occurs during disableProfileSyncing', async () => {
     const mockActions = arrangeActions();
-    mockActions.disableProfileSyncing.mockReturnValue(async () => {
-      throw new Error('MOCK - failed to disable profile syncing');
-    });
+    mockActions.disableProfileSyncing.mockRejectedValueOnce(
+      new Error('MOCK - failed to disable profile syncing'),
+    );
 
     const { result } = arrangeHook();
     await act(async () => {

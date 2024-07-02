@@ -1,25 +1,3 @@
-export enum notificationsAction {
-  PERFORM_SIGN_IN = 'notifications/perform_sign_in',
-  PERFORM_SIGN_OUT = 'notifications/perform_sign_out',
-  ENABLE_PROFILE_SYNCING = 'notifications/enable_profile_syncing',
-  DISABLE_PROFILE_SYNCING = 'notifications/disable_profile_syncing',
-  ENABLE_PUSH_NOTIFICATIONS = 'notifications/enable_push_notifications',
-  DISABLE_PUSH_NOTIFICATIONS = 'notifications/disable_push_notifications',
-  CHECK_ACCOUNTS_PRESENCE = 'notifications/check_accounts_presence',
-  DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT = 'notifications/delete_on_chain_triggers_by_account',
-  UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT = 'notifications/update_on_chain_triggers_by_account',
-  SET_FEATURE_ANNOUNCEMENTS_ENABLED = 'notifications/set_feature_announcements_enabled',
-  SET_SNAP_NOTIFICATIONS_ENABLED = 'notifications/set_snap_notifications_enabled',
-  SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN = 'notifications/set_metamask_notifications_feature_seen',
-  FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS = 'notifications/fetch_and_update_metamask_notifications',
-  MARK_METAMASK_NOTIFICATIONS_AS_READ = 'notifications/mark_metamask_notifications_as_read',
-  DELETE_NOTIFICATION_STATUS = 'notifications/delete_notification_status',
-  SET_PARTICIPATE_IN_META_METRICS = 'notifications/set_participate_in_meta_metrics',
-  UPDATE_TRIGGER_PUSH_NOTIFICATIONS = 'notifications/update_trigger_push_notifications',
-  ENABLE_NOTIFICATIONS_SERVICES = 'notifications/enable_notifications_services',
-  DISABLE_NOTIFICATIONS_SERVICES = 'notifications/disable_notifications_services',
-}
-
 export enum notificationsErrors {
   PERFORM_SIGN_IN = 'Error while trying to sign in',
   PERFORM_SIGN_OUT = 'Error while trying to sign out',
@@ -41,3 +19,5 @@ export enum notificationsErrors {
   ENABLE_NOTIFICATIONS_SERVICES = 'Error while trying to enable notifications services',
   DISABLE_NOTIFICATIONS_SERVICES = 'Error while trying to disable notifications services',
 }
+
+export default notificationsErrors;

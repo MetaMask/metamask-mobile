@@ -54,7 +54,7 @@ describe('useListNotifications', () => {
   function arrangeActions() {
     const fetchAndUpdateMetamaskNotifications = jest
       .spyOn(Actions, 'fetchAndUpdateMetamaskNotifications')
-      .mockReturnValue(jest.fn());
+      .mockResolvedValue(undefined);
 
     return {
       fetchAndUpdateMetamaskNotifications,
@@ -101,15 +101,10 @@ describe('useCreateNotifications', () => {
   function arrangeActions() {
     const updateOnChainTriggersByAccount = jest
       .spyOn(Actions, 'updateOnChainTriggersByAccount')
-      .mockReturnValue(jest.fn());
-
-    const setMetamaskNotificationsFeatureSeen = jest
-      .spyOn(Actions, 'setMetamaskNotificationsFeatureSeen')
-      .mockReturnValue(jest.fn());
+      .mockResolvedValue(undefined);
 
     return {
       updateOnChainTriggersByAccount,
-      setMetamaskNotificationsFeatureSeen,
     };
   }
 
@@ -130,7 +125,6 @@ describe('useCreateNotifications', () => {
     });
 
     expect(mockActions.updateOnChainTriggersByAccount).toHaveBeenCalled();
-    expect(mockActions.setMetamaskNotificationsFeatureSeen).toHaveBeenCalled();
   });
 });
 
@@ -151,14 +145,10 @@ describe('useEnableNotifications', () => {
   function arrangeActions() {
     const enableNotificationServices = jest
       .spyOn(Actions, 'enableNotificationServices')
-      .mockReturnValue(jest.fn());
-    const setMetamaskNotificationsFeatureSeen = jest
-      .spyOn(Actions, 'setMetamaskNotificationsFeatureSeen')
-      .mockReturnValue(jest.fn());
+      .mockResolvedValue(undefined);
 
     return {
       enableNotificationServices,
-      setMetamaskNotificationsFeatureSeen,
     };
   }
 
@@ -181,7 +171,6 @@ describe('useEnableNotifications', () => {
     });
 
     expect(mockActions.enableNotificationServices).toHaveBeenCalled();
-    expect(mockActions.setMetamaskNotificationsFeatureSeen).toHaveBeenCalled();
   });
 });
 
@@ -202,7 +191,7 @@ describe('useDisableNotifications', () => {
   function arrangeActions() {
     const disableNotificationServices = jest
       .spyOn(Actions, 'disableNotificationServices')
-      .mockReturnValue(jest.fn());
+      .mockResolvedValue(undefined);
 
     return {
       disableNotificationServices,
@@ -239,7 +228,7 @@ describe('useMarkNotificationAsRead', () => {
   function arrangeActions() {
     const markMetamaskNotificationsAsRead = jest
       .spyOn(Actions, 'markMetamaskNotificationsAsRead')
-      .mockReturnValue(jest.fn());
+      .mockResolvedValue(undefined);
 
     return {
       markMetamaskNotificationsAsRead,

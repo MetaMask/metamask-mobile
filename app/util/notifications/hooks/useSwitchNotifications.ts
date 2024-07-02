@@ -4,17 +4,14 @@ import { getErrorMessage } from '../../../util/errorHandling';
 import {
   deleteOnChainTriggersByAccount,
   setFeatureAnnouncementsEnabled,
-  setSnapNotificationsEnabled,
   updateOnChainTriggersByAccount,
 } from '../../../actions/notification/pushNotifications';
-import { useThunkNotificationDispatch } from '../../../actions/notification/helpers/useThunkNotificationDispatch';
 import { UseSwitchAccountNotificationsData } from './types';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectIsUpdatingMetamaskNotificationsAccount } from '../../../selectors/pushNotifications';
 
 export function useSwitchNotifications() {
-  const dispatch = useThunkNotificationDispatch();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,35 +20,13 @@ export function useSwitchNotifications() {
     setError(null);
   }, []);
 
-  const switchSnapNotifications = useCallback(
-    async (state: boolean) => {
-      resetStates();
-      setLoading(true);
-
-      try {
-        const errorMessage = await dispatch(setSnapNotificationsEnabled(state));
-        if (errorMessage) {
-          setError(getErrorMessage(errorMessage));
-        }
-      } catch (e) {
-        const errorMessage = getErrorMessage(e);
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [dispatch, resetStates],
-  );
-
   const switchFeatureAnnouncements = useCallback(
     async (state: boolean) => {
       resetStates();
       setLoading(true);
 
       try {
-        const errorMessage = await dispatch(
-          setFeatureAnnouncementsEnabled(state),
-        );
+        const errorMessage = await setFeatureAnnouncementsEnabled(state);
         if (errorMessage) {
           setError(getErrorMessage(errorMessage));
         }
@@ -62,7 +37,7 @@ export function useSwitchNotifications() {
         setLoading(false);
       }
     },
-    [dispatch, resetStates],
+    [resetStates],
   );
 
   const switchAccountNotifications = useCallback(
@@ -73,13 +48,9 @@ export function useSwitchNotifications() {
       try {
         let errorMessage: string | undefined;
         if (state) {
-          errorMessage = await dispatch(
-            updateOnChainTriggersByAccount(accounts),
-          );
+          errorMessage = await updateOnChainTriggersByAccount(accounts);
         } else {
-          errorMessage = await dispatch(
-            deleteOnChainTriggersByAccount(accounts),
-          );
+          errorMessage = await deleteOnChainTriggersByAccount(accounts);
         }
 
         if (errorMessage) {
@@ -92,11 +63,10 @@ export function useSwitchNotifications() {
         setLoading(false);
       }
     },
-    [dispatch, resetStates],
+    [resetStates],
   );
 
   return {
-    switchSnapNotifications,
     switchFeatureAnnouncements,
     switchAccountNotifications,
     loading,

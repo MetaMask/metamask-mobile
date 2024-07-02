@@ -26,7 +26,6 @@ import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
-import pushNotificationsReducer from './pushNotifications';
 import smartTransactionsReducer from '../core/redux/slices/smartTransactions';
 import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 
@@ -91,9 +90,6 @@ export interface RootState {
   notification: any;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  pushNotifications: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   swaps: any;
   fiatOrders: StateFromReducer<typeof fiatOrders>;
   // TODO: Replace "any" with type
@@ -148,7 +144,6 @@ const rootReducer = combineReducers<RootState, any>({
   wizard: wizardReducer,
   onboarding: onboardingReducer,
   notification: notificationReducer,
-  pushNotifications: pushNotificationsReducer,
   signatureRequest: signatureRequestReducer,
   swaps: swapsReducer,
   fiatOrders,
