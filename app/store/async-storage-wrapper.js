@@ -22,7 +22,7 @@ class AsyncStorageWrapper {
       // mmkv returns undefined for no value
       // therefore must return null if no value is found
       // to keep app behavior consistent
-      let value = (await this.storage.getString(key)) || null;
+      let value = (await this.storage.getString(key)) ?? null;
       if (!value) {
         const asyncStorageValue = await AsyncStorage.getItem(key);
         if (asyncStorageValue) {
