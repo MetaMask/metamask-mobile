@@ -28,6 +28,11 @@ jest.mock('../../../../../core/Engine', () => ({
         keyrings: [],
       },
     },
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
+      },
+    },
   },
 }));
 
