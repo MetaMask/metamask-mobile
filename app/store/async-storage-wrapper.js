@@ -54,8 +54,7 @@ class AsyncStorageWrapper {
 
   async removeItem(key) {
     try {
-     	return await this.storage.delete(key);
-
+      return await this.storage.delete(key);
     } catch (error) {
       if (isE2E) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
