@@ -1,14 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
 import React, { FC, useEffect, useMemo } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  Switch,
-  View,
-  Alert,
-  Modal,
-} from 'react-native';
+import { Pressable, ScrollView, Switch, View, Modal } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../locales/i18n';
@@ -35,7 +28,10 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import { SessionHeader } from './sectionHeader';
-import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import {
+  useDisableNotifications,
+  useEnableNotifications,
+} from '../../../../util/notifications/hooks/useNotifications';
 import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import Loader from '../../../../component-library/components-temp/Loader';
 
@@ -46,15 +42,15 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     [accounts],
   );
   const accountSettingsProps = useAccountSettingsProps(accountAddresses);
-  const { enableNotifications, loading, error } = useEnableNotifications();
+  const { enableNotifications, loading: eLoading } = useEnableNotifications();
+  const { disableNotifications, loading: dLoading } = useDisableNotifications();
 
-  const somethingWentWrong = error !== undefined && !loading;
-
+  const loading = eLoading || dLoading;
   const theme = useTheme();
   // Selectors
-
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
+    // (state: RootState) => state?.pushNotifications?.isNotificationServicesEnabled
   );
 
   // Params
@@ -81,6 +77,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       ) {
         await enableNotifications();
       }
+    } else {
+      await disableNotifications();
     }
   };
 
@@ -106,7 +104,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           {strings('app_settings.allow_notifications')}
         </Text>
         <Switch
-          disabled={isMetamaskNotificationsEnabled}
           value={isMetamaskNotificationsEnabled}
           onChange={toggleNotificationsEnabled}
           trackColor={{
@@ -129,20 +126,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <MainNotificationSettings />
-      {somethingWentWrong &&
-        Alert.alert(
-          strings('notifications.notifications_enabled_error_title'),
-          strings('notifications.notifications_enabled_error_desc'),
-          [
-            {
-              text: strings('notifications.prompt_ok'),
-              onPress: () => {
-                // Do nothing
-              },
-            },
-          ],
-          { cancelable: false },
-        )}
+
       {isMetamaskNotificationsEnabled && (
         <>
           <SessionHeader
@@ -161,10 +145,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               key={account.address}
               title={account.name}
               address={account.address}
-              disabledSwitch={
-                accountSettingsProps.initialLoading ||
-                accountSettingsProps.accountsBeingUpdated.length > 0
-              }
+              disabledSwitch={accountSettingsProps.initialLoading}
               isLoading={accountSettingsProps.accountsBeingUpdated.includes(
                 account.address,
               )}
@@ -181,7 +162,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       )}
       <Modal animationType="slide" transparent visible={loading}>
         <View style={styles.loader}>
-          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+          <Text variant={TextVariant.BodyMD}>
             {!isMetamaskNotificationsEnabled
               ? strings('app_settings.enabling_notifications')
               : strings('app_settings.disabling_notifications')}

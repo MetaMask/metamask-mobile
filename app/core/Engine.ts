@@ -213,6 +213,10 @@ import { SmartTransactionStatuses } from '@metamask/smart-transactions-controlle
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
 
+const { AuthenticationControllerState } = AuthenticationController;
+const { UserStorageControllerState } = UserStorageController;
+const { NotificationServicesControllerState } = NotificationServicesController;
+
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor({
@@ -327,9 +331,9 @@ export interface EngineState {
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   // Notification Controllers
-  AuthenticationController: AuthenticationController.AuthenticationControllerState;
-  UserStorageController: UserStorageController.UserStorageControllerState;
-  NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
+  AuthenticationController: typeof AuthenticationControllerState;
+  UserStorageController: typeof UserStorageControllerState;
+  NotificationServicesController: typeof NotificationServicesControllerState;
 }
 
 /**
@@ -1067,11 +1071,11 @@ class Engine {
         }),
         state: initialState.NotificationServicesController,
         env: {
-          isPushIntegrated: false, // temporary until we integrate push notifications
+          isPushIntegrated: false,
           featureAnnouncements: {
             platform: 'mobile',
-            accessToken: 'TODO from env',
-            spaceId: 'TODO from env',
+            accessToken: 'mAYNB_k65snv4AXW4o8ksZN8BwWDQF9702HKV7yBDZI',
+            spaceId: 'jdkgyfmyd9sw',
           },
         },
       });

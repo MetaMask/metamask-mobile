@@ -115,6 +115,18 @@ class EngineService {
         name: 'AccountsController',
         key: `${engine.context.AccountsController.name}:stateChange`,
       },
+      {
+        name: 'AuthenticationController',
+        key: `${engine.context.AuthenticationController.name}:stateChange`,
+      },
+      {
+        name: 'UserStorageController',
+        key: `${engine.context.UserStorageController.name}:stateChange`,
+      },
+      {
+        name: 'NotificationServicesController',
+        key: `${engine.context.NotificationServicesController.name}:stateChange`,
+      },
     ];
 
     if (isBlockaidFeatureEnabled()) {

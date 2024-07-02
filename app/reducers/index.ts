@@ -89,7 +89,11 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   notification: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pushNotifications: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   swaps: any;
   fiatOrders: StateFromReducer<typeof fiatOrders>;
   // TODO: Replace "any" with type

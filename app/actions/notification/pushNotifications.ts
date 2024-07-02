@@ -34,7 +34,6 @@ export const signIn = (): ThunkDispatchReturn => async (dispatch: Dispatch) => {
     }
 
     const profile = await AuthenticationController.getSessionProfile();
-
     if (!profile) {
       return getErrorMessage(notificationsErrors.PERFORM_SIGN_IN);
     }

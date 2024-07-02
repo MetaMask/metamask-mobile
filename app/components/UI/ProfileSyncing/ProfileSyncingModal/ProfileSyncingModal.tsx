@@ -57,19 +57,38 @@ const ProfileSyncingModal = () => {
     bottomSheetRef.current?.onCloseBottomSheet();
   };
 
-  const renderTurnOffContent = () => (
+  const turnContent = !isProfileSyncingEnabled
+    ? {
+        icon: {
+          name: IconName.Check,
+          color: IconColor.Success,
+        },
+        bottomSheetTitle: strings('profile_sync.bottomSheetTurnOn'),
+        bottomSheetMessage: strings('profile_sync.enable_description'),
+        bottomSheetCTA: strings('default_settings.sheet.buttons.turn_on'),
+      }
+    : {
+        icon: {
+          name: IconName.Danger,
+          color: IconColor.Error,
+        },
+        bottomSheetTitle: strings('profile_sync.bottomSheetTurnOff'),
+        bottomSheetMessage: strings('profile_sync.disable_warning'),
+        bottomSheetCTA: strings('default_settings.sheet.buttons.turn_off'),
+      };
+  const renderTurnOnOFfContent = () => (
     <View style={styles.container}>
       <Icon
-        name={IconName.Danger}
-        color={IconColor.Error}
+        name={turnContent.icon.name}
+        color={turnContent.icon.color}
         size={IconSize.Xl}
         style={styles.icon}
       />
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
-        {strings('default_settings.sheet.title_off')}
+        {turnContent.bottomSheetTitle}
       </Text>
       <Text variant={TextVariant.BodyMD} style={styles.description}>
-        {strings('profile_sync.disable_warning')}
+        {turnContent.bottomSheetMessage}
       </Text>
       <View style={styles.bottom}>
         <Checkbox
@@ -91,12 +110,12 @@ const ProfileSyncingModal = () => {
           <Button
             variant={ButtonVariants.Primary}
             isDisabled={!isChecked}
-            isDanger
+            isDanger={isProfileSyncingEnabled}
             size={ButtonSize.Lg}
             style={styles.button}
             accessibilityRole={'button'}
             accessible
-            label={strings('default_settings.sheet.buttons.turn_off')}
+            label={turnContent.bottomSheetCTA}
             onPress={handleSwitchToggle}
           />
         </View>
@@ -105,9 +124,7 @@ const ProfileSyncingModal = () => {
   );
 
   return (
-    <BottomSheet ref={bottomSheetRef}>
-      {isProfileSyncingEnabled && renderTurnOffContent()}
-    </BottomSheet>
+    <BottomSheet ref={bottomSheetRef}>{renderTurnOnOFfContent()}</BottomSheet>
   );
 };
 

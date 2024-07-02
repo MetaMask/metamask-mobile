@@ -967,7 +967,7 @@ const Settings: React.FC = () => {
     });
   };
 
-  const toggleProfileSyncing = () => {
+  const toggleProfileSyncing = async () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.PROFILE_SYNCING,
     });
