@@ -7,7 +7,9 @@ import { selectUseTokenDetection } from '../../../selectors/preferencesControlle
 import { selectTokenListArray } from '../../../selectors/tokenListController';
 import { isMainnetByChainId } from '../../../util/networks';
 
-const NORMALIZED_MAINNET_TOKEN_ARRAY = Object.values(contractMap);
+const NORMALIZED_MAINNET_TOKEN_ARRAY = Object.values(
+  contractMap,
+) as TokenListToken[];
 
 export default function useTokenList(): TokenListToken[] {
   const chainId = useSelector(selectChainId);

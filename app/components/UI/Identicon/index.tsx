@@ -1,13 +1,13 @@
 /* eslint-disable react/prop-types */
 import React, { memo } from 'react';
 import { Image, ImageStyle, View } from 'react-native';
-import { TokenListToken } from '@metamask/assets-controllers';
 import { toDataUrl } from '../../../util/blockies';
 import FadeIn from 'react-native-fade-in-image';
 import Jazzicon from 'react-native-jazzicon';
 import { connect } from 'react-redux';
 import { useTheme } from '../../../util/theme';
-import useTokenList from '../../../components/hooks/DisplayName/useTokenList';
+import { useTokenListEntry } from '../../../components/hooks/DisplayName/useTokenListEntry';
+import { NameType } from '../../UI/Name/Name.types';
 
 interface IdenticonProps {
   /**
@@ -45,10 +45,9 @@ const Identicon: React.FC<IdenticonProps> = ({
   useBlockieIcon = true,
 }) => {
   const { colors } = useTheme();
-  const tokenListArray: TokenListToken[] = useTokenList();
-  const normalizedAddress = address?.toLowerCase();
-  const tokenListIcon = tokenListArray.find(
-    (token: TokenListToken) => token.address === normalizedAddress,
+  const tokenListIcon = useTokenListEntry(
+    address as string,
+    NameType.EthereumAddress,
   )?.iconUrl;
 
   if (!address) return null;
