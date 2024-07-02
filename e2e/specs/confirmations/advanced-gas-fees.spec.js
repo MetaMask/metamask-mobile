@@ -18,7 +18,6 @@ import { AmountViewSelectorsText } from '../../selectors/SendFlow/AmountView.sel
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import TokenOverview from '../../pages/TokenOverview';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -46,15 +45,15 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await NetworkListModal.changeNetworkTo(
           CustomNetworks.Sepolia.providerConfig.nickname,
         );
+        await Assertions.checkIfVisible(NetworkEducationModal.container);
         await NetworkEducationModal.tapGotItButton();
         await Assertions.checkIfNotVisible(NetworkEducationModal.container);
 
         //Tap send Icon
-        await WalletView.tapOnToken(
-          CustomNetworks.Sepolia.providerConfig.ticker,
-        );
-        await TokenOverview.isVisible();
-        await TokenOverview.tapSendButton();
+        await TestHelpers.delay(2000);
+        await TabBarComponent.tapActions();
+        await TestHelpers.delay(2000);
+        await WalletActionsModal.tapSendButton();
 
         await SendView.inputAddress(VALID_ADDRESS);
         await SendView.tapNextButton();
