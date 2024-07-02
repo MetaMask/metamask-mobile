@@ -41,10 +41,6 @@ const AccountSelector = () => {
     <SelectorButton onPress={openAccountSelector} style={styles.selector}>
       {selectedInternalAccount ? (
         <>
-          <Identicon
-            diameter={15}
-            address={toChecksumHexAddress(selectedInternalAccount.address)}
-          />
           <Text style={styles.accountText} primary centered numberOfLines={1}>
             {selectedInternalAccount.metadata.name.length > 13
               ? `${selectedInternalAccount.metadata.name.substr(0, 13)}...`
