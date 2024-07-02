@@ -20,7 +20,7 @@ export default async function migrate(state: unknown) {
         error,
       );
       captureException(
-        `Failed to migrate key "${key}" from AsyncStorage to MMKV! Error: ${error}, value: ${value}`,
+        `Failed to migrate key "${key}" from AsyncStorage to MMKV! Error: ${error}`,
       );
     }
   }

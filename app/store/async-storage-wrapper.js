@@ -22,14 +22,7 @@ class AsyncStorageWrapper {
       // mmkv returns undefined for no value
       // therefore must return null if no value is found
       // to keep app behavior consistent
-      let value = (await this.storage.getString(key)) ?? null;
-      if (!value) {
-        const asyncStorageValue = await AsyncStorage.getItem(key);
-        if (asyncStorageValue) {
-          value = asyncStorageValue;
-          this.storage.set(key, value);
-        }
-      }
+      const value = (await this.storage.getString(key)) ?? null;
       return value;
     } catch (error) {
       if (isE2E) {
@@ -42,6 +35,10 @@ class AsyncStorageWrapper {
 
   async setItem(key, value) {
     try {
+      if (typeof value !== 'string')
+        throw new Error(
+          `MMKV value must be a string, received value ${value} for key ${key}`,
+        );
       return await this.storage.set(key, value);
     } catch (error) {
       if (isE2E) {
