@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { memo } from 'react';
 import { Image, ImageStyle, View } from 'react-native';
+import { TokenListToken } from '@metamask/assets-controllers';
 import { toDataUrl } from '../../../util/blockies';
 import FadeIn from 'react-native-fade-in-image';
 import Jazzicon from 'react-native-jazzicon';
@@ -44,12 +45,15 @@ const Identicon: React.FC<IdenticonProps> = ({
   useBlockieIcon = true,
 }) => {
   const { colors } = useTheme();
-  const tokenList = useTokenList();
+  const tokenListArray: TokenListToken[] = useTokenList();
+  const normalizedAddress = address?.toLowerCase();
+  const tokenListIcon = tokenListArray.find(
+    (token: TokenListToken) => token.address === normalizedAddress,
+  )?.iconUrl;
 
   if (!address) return null;
 
   const uri = useBlockieIcon && toDataUrl(address);
-  const tokenListIconUrl = tokenList[address.toLowerCase()]?.iconUrl;
 
   const styleForBlockieAndTokenIcon = [
     {
@@ -60,10 +64,10 @@ const Identicon: React.FC<IdenticonProps> = ({
     customStyle,
   ];
 
-  if (tokenListIconUrl) {
+  if (tokenListIcon) {
     return (
       <Image
-        source={{ uri: tokenListIconUrl }}
+        source={{ uri: tokenListIcon }}
         style={styleForBlockieAndTokenIcon}
       />
     );
