@@ -4739,6 +4739,23 @@
     readable-web-to-node-stream "^3.0.2"
     tar-stream "^3.1.7"
 
+"@metamask/snaps-execution-environments@^6.5.0":
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-execution-environments/-/snaps-execution-environments-6.5.0.tgz#e3e26ed6b94d6261f378612ab181694bb7d1d809"
+  integrity sha512-xYZxi4fMugOvr9lUKO1PH7jQ/Zacq5/xp1EYWRuSUjgOvhBlQJxKYoX9dfjxxWqgq/WINKkAsDV2wlzYpFVqvA==
+  dependencies:
+    "@metamask/json-rpc-engine" "^9.0.0"
+    "@metamask/object-multiplex" "^2.0.0"
+    "@metamask/post-message-stream" "^8.1.0"
+    "@metamask/providers" "^17.0.0"
+    "@metamask/rpc-errors" "^6.2.1"
+    "@metamask/snaps-sdk" "^6.0.0"
+    "@metamask/snaps-utils" "^7.7.0"
+    "@metamask/utils" "^8.3.0"
+    nanoid "^3.1.31"
+    readable-stream "^3.6.2"
+    superstruct "^1.0.3"
+
 "@metamask/snaps-registry@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-registry/-/snaps-registry-3.1.0.tgz#05635a09971f1e106deef73ef3181f17005b1750"
