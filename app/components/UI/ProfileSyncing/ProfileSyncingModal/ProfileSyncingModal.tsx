@@ -91,11 +91,13 @@ const ProfileSyncingModal = () => {
         {turnContent.bottomSheetMessage}
       </Text>
       <View style={styles.bottom}>
-        <Checkbox
-          label={strings('default_settings.sheet.checkbox_label')}
-          isChecked={isChecked}
-          onPress={() => setIsChecked(!isChecked)}
-        />
+        {isProfileSyncingEnabled && (
+          <Checkbox
+            label={strings('default_settings.sheet.checkbox_label')}
+            isChecked={isChecked}
+            onPress={() => setIsChecked(!isChecked)}
+          />
+        )}
         <View style={styles.buttonsContainer}>
           <Button
             variant={ButtonVariants.Secondary}
@@ -109,7 +111,7 @@ const ProfileSyncingModal = () => {
           <View style={styles.spacer} />
           <Button
             variant={ButtonVariants.Primary}
-            isDisabled={!isChecked}
+            isDisabled={isProfileSyncingEnabled ? !isChecked : false}
             isDanger={isProfileSyncingEnabled}
             size={ButtonSize.Lg}
             style={styles.button}

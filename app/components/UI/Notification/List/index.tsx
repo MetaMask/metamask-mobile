@@ -48,7 +48,7 @@ const Notifications = ({
 
   const renderTabBar = useCallback(
     (props: TabBarProps<DefaultTabBarProps>) => (
-      <View style={styles.base}>
+      <View>
         <DefaultTabBar
           underlineStyle={styles.tabUnderlineStyle}
           activeTextColor={colors.primary.default}
@@ -89,21 +89,22 @@ const Notifications = ({
   );
 
   const renderNotificationRow = useCallback(
-    (notification) => {
+    (notification: Notification) => {
       const hasActions =
         !!notification.data?.link || !!notification.data?.action;
-      const rowDetails = getRowDetails(notification);
+      const rowDetails = getRowDetails(notification)?.row;
 
       if (!rowDetails) {
         return null;
       }
 
       const { title, description, badgeIcon, createdAt, imageUrl, value } =
-        rowDetails.row;
+        rowDetails;
       return (
         <NotificationRow.Root
           handleOnPress={() => onPress(notification)}
           styles={styles}
+          simultaneousHandlers={undefined}
         >
           <NotificationRow.Icon
             notificationType={notification.type}

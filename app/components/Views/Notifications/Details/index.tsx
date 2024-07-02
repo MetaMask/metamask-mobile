@@ -1,7 +1,6 @@
 /* eslint-disable react/display-name */
 import React, { useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { capitalize } from 'lodash';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -134,17 +133,18 @@ NotificationsDetails.navigationOptions = ({
       <Icon
         name={IconName.ArrowLeft}
         size={IconSize.Md}
-        style={createStyles(theme).icon}
+        // eslint-disable-next-line react-native/no-inline-styles
+        style={{ marginLeft: 16 }}
       />
     </TouchableOpacity>
   ),
   headerTitle: () => (
     <Header
-      title={capitalize(
+      title={
         route.params.notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
-          ? route.params.notification.title
-          : formatNotificationTitle(route.params.notification.type),
-      )}
+          ? route.params.notification.data.title
+          : formatNotificationTitle(route.params.notification.type)
+      }
       subtitle={formatDate(route.params.notification.createdAt)}
     />
   ),

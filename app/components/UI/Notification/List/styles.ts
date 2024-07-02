@@ -7,10 +7,10 @@ export const createStyles = ({ colors, typography }: Theme) =>
     container: {
       flex: 1,
       backgroundColor: colors.background.default,
+      marginHorizontal: 8,
     },
     wrapper: {
       flex: 1,
-      paddingHorizontal: 16,
       paddingVertical: 10,
       justifyContent: 'center',
       borderRadius: 10,
@@ -21,9 +21,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       width: '100%',
       height: '100%',
     },
-    base: {
-      paddingHorizontal: 16,
-    },
+
     tabUnderlineStyle: {
       height: 2,
       backgroundColor: colors.primary.default,
@@ -31,7 +29,6 @@ export const createStyles = ({ colors, typography }: Theme) =>
     tabStyle: {
       paddingBottom: 0,
       paddingVertical: 8,
-      paddingHorizontal: 12,
     },
     tabBar: {
       borderColor: colors.background.default,

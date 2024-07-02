@@ -10,7 +10,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 
-import { Notification, TRIGGER_TYPES } from '../../../../../util/notifications';
+import { Notification } from '../../../../../util/notifications';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { TypeLinkFields } from '../../../../../util/notifications/types/featureAnnouncement/TypeLink';
 
@@ -29,10 +29,6 @@ const AnnouncementsDetails: React.FC<Props> = ({
   styles,
   navigation,
 }: Props) => {
-  if (notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
-    return null;
-  }
-
   const handleCTAPress = () => {
     const { link } = notification.data;
     if (!link) return;

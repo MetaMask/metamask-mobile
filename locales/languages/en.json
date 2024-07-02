@@ -2862,7 +2862,9 @@
     "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
     "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
     "enable_description2": " to learn more.",
-    "enable_privacy_link": "Learn how we protect your privacy"
+    "enable_privacy_link": "Learn how we protect your privacy",
+    "bottomSheetTurnOn": "Turning on Profile Sync",
+    "bottomSheetTurnOff": "Turning off Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "Enter your password to turn off Remember me",

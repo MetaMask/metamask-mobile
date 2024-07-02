@@ -155,7 +155,7 @@ export interface NotificationRowDetails {
       };
       text?: string;
     };
-    value: string;
+    value?: string;
   };
   details:
     | NotificationStakeDetails

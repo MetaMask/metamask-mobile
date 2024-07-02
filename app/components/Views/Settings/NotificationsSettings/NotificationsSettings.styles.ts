@@ -54,10 +54,9 @@ const createStyles = (colors: Colors) =>
     },
     loader: {
       alignItems: 'center',
-      flex: 1,
-      flexDirection: 'column',
       justifyContent: 'center',
-      padding: 20,
+      backgroundColor: colors.background.default,
+      flex: 1,
     },
   });
 

@@ -33,7 +33,6 @@ import {
   useEnableNotifications,
 } from '../../../../util/notifications/hooks/useNotifications';
 import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
-import Loader from '../../../../component-library/components-temp/Loader';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
@@ -167,7 +166,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               ? strings('app_settings.enabling_notifications')
               : strings('app_settings.disabling_notifications')}
           </Text>
-          <Loader size={'large'} />
         </View>
       </Modal>
     </ScrollView>

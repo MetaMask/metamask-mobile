@@ -506,7 +506,18 @@ export function getRowDetails(
           },
         },
       };
-
+    case TRIGGER_TYPES.FEATURES_ANNOUNCEMENT:
+      return {
+        row: {
+          badgeIcon: undefined,
+          title: notification.data.title,
+          description: notification.data.shortDescription,
+          createdAt: formatDate(notification.createdAt),
+          imageUrl: notification.data?.image.url,
+          value: undefined,
+        },
+        details: {},
+      };
     default: {
       return null;
     }

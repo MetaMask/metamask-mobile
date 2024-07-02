@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
+
 import { View, Switch, Linking } from 'react-native';
 import { RootState } from '../../../reducers';
 
@@ -13,12 +14,14 @@ import styles from './ProfileSyncing.styles';
 import { ProfileSyncingComponentProps } from './ProfileSyncing.types';
 import AppConstants from '../../../core/AppConstants';
 import { selectIsProfileSyncingEnabled } from '../../../selectors/pushNotifications';
+import { useProfileSyncing } from '../../../util/notifications/hooks/useProfileSyncing';
 
 export default function ProfileSyncingComponent({
   handleSwitchToggle,
 }: Readonly<ProfileSyncingComponentProps>) {
   const theme = useTheme();
   const { colors } = theme;
+  const { disableProfileSyncing } = useProfileSyncing();
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
@@ -27,6 +30,15 @@ export default function ProfileSyncingComponent({
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024);
   };
+
+  useEffect(() => {
+    async function disableProfileSyncingOnLogout() {
+      if (!isBasicFunctionalityEnabled) {
+        await disableProfileSyncing();
+      }
+    }
+    disableProfileSyncingOnLogout();
+  }, [disableProfileSyncing, isBasicFunctionalityEnabled]);
 
   return (
     <View style={styles.setting}>

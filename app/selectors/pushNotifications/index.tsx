@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable import/prefer-default-export */
 import { createSelector } from 'reselect';
 import Engine from '../../core/Engine';
@@ -99,7 +100,7 @@ export const getMetamaskNotificationsUnreadCount = createSelector(
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.metamaskNotificationsList
       ? notificationServicesControllerState.metamaskNotificationsList.filter(
-          (notification) => !notification.isRead,
+          (notification: any) => !notification.isRead,
         ).length
       : 0,
 );
@@ -108,7 +109,7 @@ export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.metamaskNotificationsList
       ? notificationServicesControllerState.metamaskNotificationsList.filter(
-          (notification) =>
+          (notification: any) =>
             !notification.isRead &&
             notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
         ).length

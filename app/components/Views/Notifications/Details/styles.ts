@@ -75,6 +75,7 @@ export const createStyles = ({ colors }: Theme) =>
     renderContainer: {
       alignItems: 'flex-start',
       flex: 1,
+      marginHorizontal: 16,
     },
     renderFCMText: {
       textAlign: 'left',
@@ -86,6 +87,7 @@ export const createStyles = ({ colors }: Theme) =>
       borderRadius: 12,
       overflow: 'hidden',
       marginBottom: 16,
+      backgroundColor: colors.background.alternative,
     },
     FCMImage: {
       resizeMode: 'cover',

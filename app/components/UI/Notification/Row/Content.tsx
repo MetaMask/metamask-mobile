@@ -69,7 +69,7 @@ function NotificationContent({
       </View>
       <View style={styles.rowInsider}>
         <Text style={styles.textBox} variant={TextVariant.BodyMD}>
-          {description?.asset?.name || description?.text}
+          {description?.asset?.name || description}
         </Text>
         <Text variant={TextVariant.BodyMD}>{value}</Text>
       </View>
