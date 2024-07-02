@@ -1,7 +1,9 @@
 import React from 'react';
 import Share from 'react-native-share';
 
-import { fireEvent } from '@testing-library/react-native';
+import { Alert } from 'react-native';
+
+import { fireEvent, waitFor } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
@@ -10,6 +12,7 @@ import Routes from '../../../constants/navigation/Routes';
 import AccountActions from './AccountActions';
 import {
   EDIT_ACCOUNT,
+  REMOVE_HARDWARE_ACCOUNT,
   SHARE_ADDRESS,
   SHOW_PRIVATE_KEY,
   VIEW_ETHERSCAN,
@@ -17,8 +20,8 @@ import {
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-
-const mockEngine = Engine;
+import { strings } from '../../../../locales/i18n';
+import { act } from '@testing-library/react-hooks';
 
 const initialState = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -31,7 +34,7 @@ const initialState = {
 };
 
 jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
+  ...jest.requireActual('../../../core/Engine'),
   context: {
     PreferencesController: {
       selectedAddress: `0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756`,
@@ -40,14 +43,23 @@ jest.mock('../../../core/Engine', () => ({
       state: {
         keyrings: [
           {
-            type: 'HD Key Tree',
+            type: 'Ledger Hardware',
             accounts: ['0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756'],
+          },
+          {
+            type: 'HD Key Tree',
+            accounts: ['0xa1e359811322d97991e03f863a0c30c2cf029cd'],
           },
         ],
       },
+      getAccounts: jest.fn(),
+      removeAccount: jest.fn(),
     },
   },
+  setSelectedAddress: jest.fn(),
 }));
+
+const mockEngine = jest.mocked(Engine);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -80,10 +92,19 @@ jest.mock('react-native-share', () => ({
   open: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('../../../core/Permissions', () => ({
+  removeAccountsFromPermissions: jest.fn().mockResolvedValue(true),
+}));
+
 describe('AccountActions', () => {
-  afterEach(() => {
-    mockNavigate.mockClear();
+  const mockKeyringController = mockEngine.context.KeyringController;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    jest.spyOn(Alert, 'alert');
   });
+
   it('renders all actions', () => {
     const { getByTestId } = renderWithProvider(<AccountActions />, {
       state: initialState,
@@ -139,5 +160,81 @@ describe('AccountActions', () => {
         shouldUpdateNav: true,
       },
     );
+  });
+
+  it('clicks edit account', () => {
+    const { getByTestId } = renderWithProvider(<AccountActions />, {
+      state: initialState,
+    });
+
+    fireEvent.press(getByTestId(EDIT_ACCOUNT));
+
+    expect(mockNavigate).toHaveBeenCalledWith('EditAccountName');
+  });
+
+  describe('clicks remove account', () => {
+    it('clicks cancel button after popup shows should do nothing', async () => {
+      const { getByTestId } = renderWithProvider(<AccountActions />, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByTestId(REMOVE_HARDWARE_ACCOUNT));
+
+      expect(Alert.alert).toHaveBeenCalled();
+
+      //Check Alert title and description match.
+      expect(Alert.alert.mock.calls[0][0]).toBe(
+        strings('accounts.remove_account_title'),
+      );
+      expect(Alert.alert.mock.calls[0][1]).toBe(
+        strings('accounts.remove_account_alert_description'),
+      );
+
+      //Click cancel button
+      act(() => {
+        Alert.alert.mock.calls[0][2][0].onPress();
+      });
+
+      //Check if removeAccount is not called
+      await waitFor(() => {
+        expect(mockKeyringController.removeAccount).not.toHaveBeenCalled();
+      });
+    });
+
+    it('clicks remove button after popup shows triggers remove process', async () => {
+      mockKeyringController.getAccounts.mockResolvedValue([
+        '0xa1e359811322d97991e03f863a0c30c2cf029cd',
+      ]);
+
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
+        <AccountActions />,
+        {
+          state: initialState,
+        },
+      );
+
+      fireEvent.press(getByTestId(REMOVE_HARDWARE_ACCOUNT));
+
+      expect(Alert.alert).toHaveBeenCalled();
+
+      //Check Alert title and description match.
+      expect(Alert.alert.mock.calls[0][0]).toBe(
+        strings('accounts.remove_account_title'),
+      );
+      expect(Alert.alert.mock.calls[0][1]).toBe(
+        strings('accounts.remove_account_alert_description'),
+      );
+
+      //Click remove button
+      await act(async () => {
+        Alert.alert.mock.calls[0][2][1].onPress();
+      });
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('connect_qr_hardware.please_wait')),
+        ).toBeDefined();
+      });
+    });
   });
 });
