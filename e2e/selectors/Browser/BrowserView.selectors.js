@@ -17,6 +17,9 @@ export const BrowserViewSelectorsIDs = {
   TABS_BUTTON: 'show-tabs-button',
   CANCEL_BUTTON_ON_BROWSER_ID: 'cancel-url-button',
   URL_CLEAR_ICON: 'url-clear-icon',
+  ADD_NEW_TAB: 'tabs_add',
+  CLOSE_ALL_TABS: 'tabs_close_all',
+  NO_TABS_MESSAGE: 'no-tabs-message',
 };
 
 export const BrowserViewSelectorsText = {
