@@ -4,8 +4,6 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { View } from 'react-native';
-import styleSheet from './PercentageChange.styles';
-import { useStyles } from '../../../hooks';
 
 const PercentageChange = ({ value }: { value: number | null | undefined }) => {
   const percentageColorText =
