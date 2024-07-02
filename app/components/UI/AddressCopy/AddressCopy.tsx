@@ -18,10 +18,10 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
 import { strings } from '../../../../locales/i18n';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useStyles } from '../../../component-library/hooks';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
@@ -83,12 +83,12 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
       <TouchableOpacity
         style={styles.copyButton}
         onPress={copyAccountToClipboard}
-        {...generateTestId(Platform, 'wallet-account-copy-button')}
+        testID={WalletViewSelectorsIDs.ACCOUNT_COPY_BUTTON}
       >
         <Text
           color={TextColor.Primary}
           variant={TextVariant.BodySM}
-          {...generateTestId(Platform, 'wallet-account-address')}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ADDRESS}
         >
           {formatAddress(account.address, formatAddressType)}
         </Text>

@@ -7,7 +7,7 @@ import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
@@ -56,7 +56,7 @@ describe(
       await SkipAccountSecurityModal.tapSkipButton();
       await OnboardingSuccessView.tapDone();
 
-      await WalletView.isVisible();
+      await Assertions.checkIfVisible(WalletView.container);
     });
 
     it('Should dismiss Automatic Security checks screen', async () => {
@@ -118,7 +118,7 @@ describe(
       await ProtectYourWalletModal.tapRemindMeLaterButton();
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
       await SkipAccountSecurityModal.tapSkipButton();
-      await WalletView.isVisible();
+      await Assertions.checkIfVisible(WalletView.container);
     });
 
     it('should check that metametrics is enabled in settings', async () => {
@@ -142,7 +142,7 @@ describe(
       await TestHelpers.delay(4500);
       await LoginView.isVisible();
       await LoginView.enterPassword(PASSWORD);
-      await WalletView.isVisible();
+      await Assertions.checkIfVisible(WalletView.container);
     });
 
     it('should dismiss the onboarding wizard after logging in', async () => {

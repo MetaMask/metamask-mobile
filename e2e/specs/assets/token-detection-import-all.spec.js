@@ -1,7 +1,7 @@
 'use strict';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import { SmokeAssets } from '../../tags';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import DetectedTokensView from '../../pages/wallet/DetectedTokensView';
 import Assertions from '../../utils/Assertions';
 
@@ -20,7 +20,7 @@ describe(SmokeAssets('Import all tokens detected'), () => {
   });
 
   it('should land on wallet view after tokens detected', async () => {
-    await WalletView.isVisible();
+    await Assertions.checkIfVisible(WalletView.container);
   });
 
   it('should show toast alert for tokens imported', async () => {

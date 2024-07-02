@@ -6,11 +6,7 @@ import { BN } from 'ethereumjs-util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import Engine from '../../../core/Engine';
-import {
-  getAssetTestId,
-  IMPORT_TOKEN_BUTTON_ID,
-  MAIN_WALLET_VIEW_VIA_TOKENS_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../../app/core/AppConstants';
@@ -173,14 +169,14 @@ describe('Tokens', () => {
 
   it('navigates to AddAsset screen when Add Tokens button is pressed', () => {
     const { getByTestId } = renderComponent(initialState);
-    fireEvent.press(getByTestId(IMPORT_TOKEN_BUTTON_ID));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON));
     expect(mockPush).toHaveBeenCalledWith('AddAsset', { assetType: 'token' });
   });
 
   it('shows remove menu when remove button is pressed', () => {
     const { getByTestId, queryAllByTestId } = renderComponent(initialState);
     fireEvent.press(queryAllByTestId(getAssetTestId('BAT'))[0], 'longPress');
-    expect(getByTestId(MAIN_WALLET_VIEW_VIA_TOKENS_ID)).toBeDefined();
+    expect(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER)).toBeDefined();
   });
 
   it('fiat balance must be defined', () => {

@@ -34,11 +34,6 @@ import {
   isMainnetByChainId,
   isTestNet,
 } from '../../../util/networks';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  IMPORT_TOKEN_BUTTON_ID,
-  MAIN_WALLET_VIEW_VIA_TOKENS_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   selectChainId,
   selectNetworkClientId,
@@ -286,7 +281,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         style={styles.add}
         onPress={goToAddToken}
         disabled={!isAddTokenEnabled}
-        {...generateTestId(Platform, IMPORT_TOKEN_BUTTON_ID)}
+        testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
       >
         <Text style={styles.centered}>
           <Text style={styles.emptyText}>
@@ -703,7 +698,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   return (
     <View
       style={styles.wrapper}
-      {...generateTestId(Platform, MAIN_WALLET_VIEW_VIA_TOKENS_ID)}
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       {tokens?.length ? renderList() : renderEmpty()}
       <ActionSheet

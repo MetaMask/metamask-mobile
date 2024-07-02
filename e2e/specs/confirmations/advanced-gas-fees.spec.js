@@ -1,6 +1,6 @@
 'use strict';
 import { SmokeConfirmations } from '../../tags';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
@@ -38,7 +38,7 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await loginToApp();
 
         // Check that we are on the wallet screen
-        await WalletView.isVisible();
+        await Assertions.checkIfVisible(WalletView.container);
 
         await WalletView.tapNetworksButtonOnNavBar();
         await TestHelpers.delay(2000);
@@ -68,13 +68,13 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
 
         // Check that we are on the confirm view
         await Assertions.checkIfVisible(
-          await TransactionConfirmationView.transactionViewContainer,
+          TransactionConfirmationView.transactionViewContainer,
         );
 
         // Check different gas options
         await TransactionConfirmationView.tapEstimatedGasLink();
         await Assertions.checkIfVisible(
-          await TransactionConfirmationView.editPriorityFeeSheetContainer,
+          TransactionConfirmationView.editPriorityFeeSheetContainer,
         );
         await TransactionConfirmationView.tapLowPriorityGasOption();
         await TransactionConfirmationView.tapAdvancedOptionsPriorityGasOption();
@@ -86,13 +86,13 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await TransactionConfirmationView.tapAdvancedOptionsPriorityGasOption();
         await TransactionConfirmationView.tapMaxPriorityFeeSaveButton();
         await Assertions.checkIfVisible(
-          await TransactionConfirmationView.transactionViewContainer,
+          TransactionConfirmationView.transactionViewContainer,
         );
         // Tap on the send button
         await TransactionConfirmationView.tapConfirmButton();
 
         // Check that we are on the wallet screen
-        await WalletView.isVisible();
+        await Assertions.checkIfVisible(WalletView.container);
       },
     );
   });
