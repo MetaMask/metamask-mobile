@@ -77,7 +77,7 @@ async function filterCommitsByTeam(branchA, branchB) {
           commitsByTeam[teams] = [];
         }
 
-        commitsByTeam[team].push({
+        commitsByTeam[teams].push({
           message,
           author,
           hash: hash.substring(0, 7),
