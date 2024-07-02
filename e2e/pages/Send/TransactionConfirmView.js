@@ -1,6 +1,5 @@
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
-import TestHelpers from '../../helpers.js';
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
