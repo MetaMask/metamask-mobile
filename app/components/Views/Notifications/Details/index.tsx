@@ -31,11 +31,10 @@ import renderAnnouncementsDetails from './Announcements';
 import renderOnChainDetails from './OnChain';
 import Header from './Header';
 import type { RootState } from '../../../../reducers';
+import { NavigationProp, RouteProp } from '@react-navigation/native';
 
 interface Props {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  navigation: NavigationProp<Record<string, undefined>>;
   route: {
     params: {
       notification: Notification;
@@ -117,15 +116,8 @@ NotificationsDetails.navigationOptions = ({
   route,
   navigation,
 }: {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  route: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  theme: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  route: RouteProp<{ params: { notification: Notification } }, 'params'>;
+  navigation: NavigationProp<Record<string, undefined>>;
 }) => ({
   headerLeft: () => (
     <TouchableOpacity onPress={() => navigation.goBack()}>

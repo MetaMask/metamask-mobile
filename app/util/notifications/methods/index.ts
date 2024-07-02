@@ -26,13 +26,12 @@ import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
 import { NotificationRowDetails, TxStatus } from './types';
 import { NotificationServicesController } from '@metamask-previews/notification-services-controller';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 const { UI } = NotificationServicesController;
 
 export interface ViewOnEtherscanProps {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  navigation: NavigationProp<ParamListBase>;
   transactionObject: {
     networkID: string;
   };
@@ -642,36 +641,33 @@ function hasNetworkFeeFields(
 }
 
 async function fetchTxDetails(tx_hash: string) {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { TransactionController } = Engine.context as any;
-
   try {
-    const receipt = await query(
-      TransactionController.ethQuery,
-      'getTransactionReceipt',
-      [tx_hash],
+    const ethQuery = Engine.controllerMessenger.call(
+      'NetworkController:getEthQuery',
     );
+
+    if (!ethQuery) {
+      throw new Error('Unable to get EthQuery');
+    }
+
+    const receipt = await query(ethQuery, 'getTransactionReceipt', [tx_hash]);
 
     if (!receipt) {
       throw new Error('Transaction receipt not found');
     }
 
-    const block = await query(
-      TransactionController.ethQuery,
-      'getBlockByHash',
-      [receipt.blockHash, false],
-    );
+    const block = await query(ethQuery, 'getBlockByHash', [
+      receipt.blockHash,
+      false,
+    ]);
 
     if (!block) {
       throw new Error('Transaction block not found');
     }
 
-    const transaction = await query(
-      TransactionController.ethQuery,
-      'eth_getTransactionByHash',
-      [receipt.blockHash],
-    );
+    const transaction = await query(ethQuery, 'eth_getTransactionByHash', [
+      receipt.blockHash,
+    ]);
 
     if (!transaction) {
       throw new Error('Transaction not found');

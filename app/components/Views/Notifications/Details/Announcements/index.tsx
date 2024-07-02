@@ -13,14 +13,15 @@ import Text, {
 import { Notification } from '../../../../../util/notifications';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { TypeLinkFields } from '../../../../../util/notifications/types/featureAnnouncement/TypeLink';
+import { NotificationDetailStyles } from '../styles';
+import { TRIGGER_TYPES } from '@metamask-previews/notification-services-controller/dist/types/NotificationServicesController/constants';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const PLACEHOLDER_IMG_URI = require('../../../../../images/no-image-placeholder.jpeg');
 
 interface Props {
   notification: Notification;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: Record<string, any>;
+  styles: NotificationDetailStyles;
   navigation: NavigationProp<ParamListBase>;
 }
 
@@ -29,6 +30,10 @@ const AnnouncementsDetails: React.FC<Props> = ({
   styles,
   navigation,
 }: Props) => {
+  if (notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
+    return null;
+  }
+
   const handleCTAPress = () => {
     const { link } = notification.data;
     if (!link) return;

@@ -5,7 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import { render } from '@testing-library/react-native';
 
 import OnChainDetails from '.';
-import { createStyles } from '../styles';
+import { NotificationDetailStyles, createStyles } from '../styles';
 import { createMockNotificationEthSent } from '../../../../../components/UI/Notification/__mocks__/mock_notifications';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import { mockTheme } from '../../../../../util/theme';
@@ -46,9 +46,7 @@ describe('OnChainDetails', () => {
   const store = mockStore(mockInitialState);
 
   let navigation: NavigationProp<ParamListBase>;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let styles: Record<string, any>;
+  let styles: NotificationDetailStyles;
 
   beforeEach(() => {
     navigation = {

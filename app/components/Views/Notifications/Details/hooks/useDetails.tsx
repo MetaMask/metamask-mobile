@@ -49,13 +49,12 @@ import { Theme } from '../../../../../util/theme/models';
 import NotificationBadge from '../Badge';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 interface UseDetailsProps {
   theme: Theme;
   accountAvatarType?: AvatarAccountType;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  navigation: NavigationProp<ParamListBase>;
   copyToClipboard: (type: string, selectedString?: string) => Promise<void>;
 }
 

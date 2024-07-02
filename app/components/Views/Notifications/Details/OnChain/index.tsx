@@ -28,12 +28,11 @@ import {
 } from '../../../../../selectors/networkController';
 
 import useBlockExplorer from '../../../../../components/UI/Swaps/utils/useBlockExplorer.js';
+import { NotificationDetailStyles } from '../styles';
 
 interface OnChainDetailsProps {
   notification: Notification;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: Record<string, any>;
+  styles: NotificationDetailStyles;
   theme: Theme;
   accountAvatarType?: AvatarAccountType;
   navigation: NavigationProp<ParamListBase>;
