@@ -206,7 +206,7 @@ describe('AccountActions', () => {
         '0xa1e359811322d97991e03f863a0c30c2cf029cd',
       ]);
 
-      const { getByTestId, getByText, queryByText } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <AccountActions />,
         {
           state: initialState,
