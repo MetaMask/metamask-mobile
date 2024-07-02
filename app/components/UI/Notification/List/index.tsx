@@ -16,6 +16,7 @@ import { NotificationRow } from '../Row';
 import { Notification, getRowDetails } from '../../../../util/notifications';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
 import Routes from '../../../../constants/navigation/Routes';
+import { TRIGGER_TYPES } from '@metamask-previews/notification-services-controller/dist/types/NotificationServicesController/constants';
 
 interface NotificationsList {
   // TODO: Replace "any" with type
@@ -90,16 +91,19 @@ const Notifications = ({
 
   const renderNotificationRow = useCallback(
     (notification: Notification) => {
-      const hasActions =
-        !!notification.data?.link || !!notification.data?.action;
-      const rowDetails = getRowDetails(notification)?.row;
+      const rowDetails = getRowDetails(notification);
 
       if (!rowDetails) {
         return null;
       }
 
+      // TODO - handle feature announcement component
+      if (rowDetails.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
+        return null;
+      }
+
       const { title, description, badgeIcon, createdAt, imageUrl, value } =
-        rowDetails;
+        rowDetails.row;
       return (
         <NotificationRow.Root
           handleOnPress={() => onPress(notification)}
@@ -119,13 +123,14 @@ const Notifications = ({
             value={value}
             styles={styles}
           />
-          {hasActions && (
+          {/* TODO - HANDLE FEATURE ANNOUNCEMENT LINKS */}
+          {/* {hasActions && (
             <NotificationRow.Actions
               link={notification.data.link}
               action={notification.data.action}
               styles={styles}
             />
-          )}
+          )} */}
         </NotificationRow.Root>
       );
     },

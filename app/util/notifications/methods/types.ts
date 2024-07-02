@@ -141,26 +141,73 @@ export interface NFTTransferDetails {
   };
 }
 
-export interface NotificationRowDetails {
-  row: {
-    title: string;
-    createdAt: string;
+export interface OnChainRow {
+  title: string;
+  createdAt: string;
 
-    badgeIcon?: IconName;
-    imageUrl?: string;
-    description?: {
-      asset?: {
-        symbol?: string;
-        name?: string;
-      };
-      text?: string;
+  badgeIcon?: IconName;
+  imageUrl?: string;
+  description?: {
+    asset?: {
+      symbol?: string;
+      name?: string;
     };
-    value?: string;
+    text?: string;
   };
-  details:
-    | NotificationStakeDetails
-    | NotificationStakeWithdrawDetails
-    | NotificationSwapDetails
-    | TokenTransferDetails
-    | NFTTransferDetails;
+  value: string;
 }
+
+export interface FeatureAnnouncementRow {
+  title: string;
+  description?: string;
+  createdAt: string;
+  imageUrl?: string;
+}
+
+export interface FeatureAnnouncementDetails {
+  type: TRIGGER_TYPES.FEATURES_ANNOUNCEMENT;
+  todo?: undefined; // TODO fix details type
+}
+
+export interface OnChainNotificationStakeRowDetails {
+  type: NotificationStakeDetails['type'];
+  row: OnChainRow;
+  details: NotificationStakeDetails;
+}
+export interface OnChainNotificationStakeWithdrawRowDetails {
+  type: NotificationStakeWithdrawDetails['type'];
+  row: OnChainRow;
+  details: NotificationStakeWithdrawDetails;
+}
+export interface OnChainNotificationSwapRowDetails {
+  type: NotificationSwapDetails['type'];
+  row: OnChainRow;
+  details: NotificationSwapDetails;
+}
+export interface OnChainTokenTransferRowDetails {
+  type: TokenTransferDetails['type'];
+  row: OnChainRow;
+  details: TokenTransferDetails;
+}
+export interface OnChainNFTTransferRowDetails {
+  type: NFTTransferDetails['type'];
+  row: OnChainRow;
+  details: NFTTransferDetails;
+}
+
+export type OnChainRowDetails =
+  | OnChainNotificationStakeRowDetails
+  | OnChainNotificationStakeWithdrawRowDetails
+  | OnChainNotificationSwapRowDetails
+  | OnChainTokenTransferRowDetails
+  | OnChainNFTTransferRowDetails;
+
+export interface FeatureAnnouncementRowDetails {
+  type: TRIGGER_TYPES.FEATURES_ANNOUNCEMENT;
+  row: FeatureAnnouncementRow;
+  details: FeatureAnnouncementDetails;
+}
+
+export type NotificationRowDetails =
+  | OnChainRowDetails
+  | FeatureAnnouncementRowDetails;

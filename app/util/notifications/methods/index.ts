@@ -235,6 +235,7 @@ export function getRowDetails(
     case TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED:
     case TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED:
       return {
+        type: notification.type,
         row: {
           badgeIcon: getNotificationBadge(notification.type),
           title: strings(
@@ -277,6 +278,7 @@ export function getRowDetails(
       };
     case TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN:
       return {
+        type: notification.type,
         row: {
           badgeIcon: getNotificationBadge(notification.type),
           title: strings(
@@ -309,6 +311,7 @@ export function getRowDetails(
       };
     case TRIGGER_TYPES.METAMASK_SWAP_COMPLETED:
       return {
+        type: notification.type,
         row: {
           badgeIcon: getNotificationBadge(notification.type),
           title: strings('notifications.swap_completed', {
@@ -359,6 +362,7 @@ export function getRowDetails(
         return null;
       }
       return {
+        type: notification.type,
         row: {
           badgeIcon: getNotificationBadge(notification.type),
           createdAt: formatDate(notification.createdAt),
@@ -412,6 +416,7 @@ export function getRowDetails(
     case TRIGGER_TYPES.ERC20_SENT:
     case TRIGGER_TYPES.ERC20_RECEIVED:
       return {
+        type: notification.type,
         row: {
           badgeIcon: getNotificationBadge(notification.type),
           title: strings(
@@ -462,6 +467,7 @@ export function getRowDetails(
     case TRIGGER_TYPES.ERC1155_SENT:
     case TRIGGER_TYPES.ERC1155_RECEIVED:
       return {
+        type: notification.type,
         row: {
           badgeIcon: getNotificationBadge(notification.type),
           title: strings(`notifications.${notification.type}`, {
@@ -508,15 +514,16 @@ export function getRowDetails(
       };
     case TRIGGER_TYPES.FEATURES_ANNOUNCEMENT:
       return {
+        type: notification.type,
         row: {
-          badgeIcon: undefined,
           title: notification.data.title,
           description: notification.data.shortDescription,
           createdAt: formatDate(notification.createdAt),
           imageUrl: notification.data?.image.url,
-          value: undefined,
         },
-        details: {},
+        details: {
+          type: notification.type,
+        },
       };
     default: {
       return null;
