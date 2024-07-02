@@ -42,8 +42,7 @@ class AsyncStorageWrapper {
 
   async setItem(key, value) {
     try {
-      const response = await this.storage.set(key, value);
-      return response;
+      return await this.storage.set(key, value);
     } catch (error) {
       if (isE2E) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
