@@ -90,8 +90,10 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await Assertions.checkIfVisible(
           await TransactionConfirmationView.transactionViewContainer,
         );
+        await device.disableSynchronization();
         // Tap on the send button
         await TransactionConfirmationView.tapConfirmButton();
+        await device.enableSynchronization();
 
         // Check that we are on the wallet screen
         await WalletView.isVisible();

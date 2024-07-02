@@ -21,6 +21,7 @@ const chartTimePeriod = [
 
 export default class TokenOverview {
   static async tapSendButton() {
+    await this.scrollOnScreen();
     await TestHelpers.waitAndTap(TOKEN_OVERVIEW_SEND_BUTTON);
   }
 
