@@ -4,22 +4,21 @@ import WalletView from '../../pages/WalletView';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
-import TokenOverview from '../../pages/TokenOverview';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
-
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
+import TabBarComponent from '../../pages/TabBarComponent';
+import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import TestHelpers from '../../helpers';
-
 import Assertions from '../../utils/Assertions';
-
-import { CustomNetworks } from '../../resources/networks.e2e';
 import { AmountViewSelectorsText } from '../../selectors/SendFlow/AmountView.selectors';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
+import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import { CustomNetworks } from '../../resources/networks.e2e';
+import TokenOverview from '../../pages/TokenOverview';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
