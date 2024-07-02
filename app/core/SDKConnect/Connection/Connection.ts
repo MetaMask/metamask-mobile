@@ -29,6 +29,7 @@ import {
 } from './EventListenersHandlers';
 import handleClientsWaiting from './EventListenersHandlers/handleClientsWaiting';
 import setupBridge from '../handlers/setupBridge';
+import { waitForCondition } from '../utils/wait.util';
 
 export interface ConnectionProps {
   id: string;
@@ -299,6 +300,29 @@ export class Connection extends EventEmitter2 {
 
   resume() {
     return resume({ instance: this });
+  }
+
+  /**
+   * Wait for the background bridge on this connection to be setup. This call
+   * wont setup the background bridge, it assumes something else will set it up. This
+   * call will block until the background bridge is defined.
+   * @param context An optional context string to pass to the waitForCondition call
+   * @returns The @see BackgroundBridge attached to this connection
+   */
+  async waitForBackgroundBridge(context?: string) {
+    if (!this.backgroundBridge) {
+      await waitForCondition({
+        fn: () => this.backgroundBridge !== undefined,
+        waitTime: 1000,
+        context: context ?? "Connection::getBackgroundBridge"
+      })
+
+      if (!this.backgroundBridge) {
+        throw new Error("No backgroundBridge created");
+      }
+    }
+
+    return this.backgroundBridge;
   }
 
   setTrigger(trigger: ConnectionProps['trigger']) {

@@ -12,7 +12,7 @@ export const handleBatchRpcResponse = async ({
 }: {
   chainRpcs: BatchRPCState;
   batchRPCManager: BatchRPCManager;
-  backgroundBridge?: BackgroundBridge;
+  backgroundBridge: BackgroundBridge;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sendMessage: ({ msg }: { msg: any }) => Promise<void>;
@@ -91,7 +91,7 @@ export const handleBatchRpcResponse = async ({
       nextRpc.params,
     );
 
-    backgroundBridge?.onMessage({
+    backgroundBridge.onMessage({
       name: 'metamask-provider',
       data: nextRpc,
       origin: 'sdk',

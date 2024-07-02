@@ -246,6 +246,7 @@ export class SDKConnect {
     }
     DevLogger.log(`SDKConnect::refreshChannel channelId=${channelId}`);
     // Force enitting updated accounts
+    // TODO(Eddie): Do we need to ensure that backgroundBridge is not undefined here?
     session.backgroundBridge?.notifySelectedAddressChanged();
   }
 

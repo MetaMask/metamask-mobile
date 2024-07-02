@@ -167,7 +167,9 @@ export const handleConnectionMessage = async ({
       method: processedRpc?.method ?? message.method,
     });
 
-    connection.backgroundBridge?.onMessage({
+    const backgroundBridge = await connection.waitForBackgroundBridge();
+
+    backgroundBridge.onMessage({
       name: 'metamask-provider',
       data: processedRpc,
       origin: 'sdk',
