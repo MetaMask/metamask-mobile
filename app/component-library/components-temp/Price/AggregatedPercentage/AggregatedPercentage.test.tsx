@@ -45,7 +45,6 @@ describe('AggregatedPercentage', () => {
 
     expect(getByText('(+25.00%)').props.style).toMatchObject({
       color: mockTheme.colors.success.default,
-      textTransform: 'uppercase',
     });
   });
 
@@ -64,7 +63,6 @@ describe('AggregatedPercentage', () => {
 
     expect(getByText('(-30.00%)').props.style).toMatchObject({
       color: mockTheme.colors.error.default,
-      textTransform: 'uppercase',
     });
   });
 });

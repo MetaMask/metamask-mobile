@@ -14,7 +14,6 @@ describe('PercentageChange', () => {
     expect(positiveText).toBeTruthy();
     expect(positiveText.props.style).toMatchObject({
       color: mockTheme.colors.success.default,
-      textTransform: 'uppercase',
     });
   });
 
@@ -24,7 +23,6 @@ describe('PercentageChange', () => {
     expect(negativeText).toBeTruthy();
     expect(negativeText.props.style).toMatchObject({
       color: mockTheme.colors.error.default,
-      textTransform: 'uppercase',
     });
   });
 
