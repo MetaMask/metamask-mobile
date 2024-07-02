@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useMemo, useRef, useState } from 'react';
+import { ImageSourcePropType, StyleSheet, View } from 'react-native';
 import { useDispatch } from 'react-redux';
+import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -18,6 +19,7 @@ import {
 } from '../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text';
+import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { resetOriginSpamState } from '../../../core/redux/slices/originThrottling';
 
 export const BLOCK_BUTTON_TEST_ID = 'block-dapp-button';
@@ -35,18 +37,42 @@ const createStyles = () =>
       alignItems: 'center',
       padding: 16,
     },
+    tagWrapper: {
+      marginBottom: 16,
+    },
+    description: {
+      textAlign: 'center',
+    },
   });
 
 const MultipleRequestContent = ({
   onCloseModal,
   onResetOriginSpamState,
+  origin,
   setBlockDapp,
 }: {
   onCloseModal: () => void;
   onResetOriginSpamState: () => void;
+  origin: string;
   setBlockDapp: (value: boolean) => void;
 }) => {
   const styles = createStyles();
+
+  const favicon: ImageSourcePropType = useMemo(() => {
+    const iconUrl = `https://api.faviconkit.com/${origin}/50`;
+    return { uri: iconUrl };
+  }, [origin]);
+
+  const urlWithProtocol = prefixUrlWithProtocol(origin);
+
+  const secureIcon = useMemo(
+    () =>
+      getUrlObj(origin).protocol === 'https:'
+        ? IconName.Lock
+        : IconName.LockSlash,
+    [origin],
+  );
+
   return (
     <>
       <Icon
@@ -55,10 +81,19 @@ const MultipleRequestContent = ({
         size={IconSize.Xl}
       />
       <SheetHeader title={strings('spam_filter.title')} />
-      <Text>{strings('spam_filter.description')}</Text>
+      <View style={styles.tagWrapper}>
+        <TagUrl
+          imageSource={favicon}
+          label={urlWithProtocol}
+          iconName={secureIcon}
+        />
+      </View>
+      <Text style={styles.description}>
+        {strings('spam_filter.description')}
+      </Text>
       <View style={styles.buttonsWrapper}>
         <Button
-          label={strings('spam_filter.continue')}
+          label={strings('spam_filter.cancel')}
           onPress={() => {
             onResetOriginSpamState();
             onCloseModal();
@@ -92,7 +127,7 @@ const SiteBlockedContent = ({ onCloseModal }: { onCloseModal: () => void }) => {
         name={IconName.Confirmation}
         size={IconSize.Xl}
       />
-      <SheetHeader title={strings('spam_filter.title')} />
+      <SheetHeader title={strings('spam_filter.site_blocked_title')} />
       <Text>{strings('spam_filter.site_blocked_description')}</Text>
       <View style={styles.buttonsWrapper}>
         <Button
@@ -137,6 +172,7 @@ const DappSpamModal = ({
           <MultipleRequestContent
             onCloseModal={onCloseModal}
             onResetOriginSpamState={onResetOriginSpamState}
+            origin={origin}
             setBlockDapp={setBlockDapp}
           />
         )}

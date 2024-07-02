@@ -3126,13 +3126,13 @@
     "total_fiat": "Total = {{currency}}"
   },
   "spam_filter": {
-    "block_dapp_requests_for_1_minute": "Block DApp requests for 1 minute",
-    "continue": "Continue",
-    "description": "The site has sent you multiple requests. It might be a scam site trying to steal your assets by sending multiple requests. Do you want to disconnect from the site?",
+    "block_dapp_requests_for_1_minute": "Temporarily block this site",
+    "cancel": "Cancel",
+    "description": "This site could be trying to steal your assets. To avoid more requests, we recommend you disconnect from this site.",
     "got_it": "Got it",
     "proceed": "Proceed",
-    "site_blocked_description": "Site is blocked from sending requests for 1 minute.",
-    "site_blocked_title": "Site blocked successfully!",
-    "title": "Multiple requests detected"
+    "site_blocked_description": "You'll only be blocked for 1 minute.",
+    "site_blocked_title": "You've temporarily blocked this site",
+    "title": "Potential scam detected"
   }
 }
