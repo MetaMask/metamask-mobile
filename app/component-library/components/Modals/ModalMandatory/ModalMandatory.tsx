@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView } from '@metamask/react-native-webview';
 
 // External dependencies.
 import ButtonPrimary from '../../Buttons/Button/variants/ButtonPrimary';
