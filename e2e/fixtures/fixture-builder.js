@@ -2,7 +2,7 @@
 
 import { getGanachePort } from './utils';
 import { merge } from 'lodash';
-import { PopularNetworksList } from '../resources/networks.e2e';
+import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 const DAPP_URL = 'localhost';
 
 /**
@@ -714,6 +714,22 @@ class FixtureBuilder {
         rpcUrl: `http://localhost:${getGanachePort()}`,
         nickname: 'Localhost',
         ticker: 'ETH',
+      },
+    };
+    return this;
+  }
+
+  withSepoliaNetwork() {
+    const fixtures = this.fixture.state.engine.backgroundState;
+
+    fixtures.NetworkController = {
+      isCustomNetwork: true,
+      providerConfig: {
+        type: 'rpc',
+        chainId: CustomNetworks.Sepolia.providerConfig.chainId,
+        rpcUrl: CustomNetworks.Sepolia.providerConfig.rpcTarget,
+        nickname: CustomNetworks.Sepolia.providerConfig.nickname,
+        ticker: CustomNetworks.Sepolia.providerConfig.ticker,
       },
     };
     return this;
