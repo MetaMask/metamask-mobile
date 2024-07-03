@@ -196,9 +196,23 @@ describe('Blockaid util', () => {
       jest
         .spyOn(NetworkControllerMock, 'selectChainId')
         .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
-      Engine.context.PreferencesController.state.securityAlertsEnabled = true;
       const result = isBlockaidFeatureEnabled();
       expect(result).toEqual(true);
+    });
+
+    it('return false if blockaid is not supported on current network', () => {
+      jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('0x9');
+      const result = isBlockaidFeatureEnabled();
+      expect(result).toEqual(false);
+    });
+
+    it('return false if blockaid is not enabled by the user', () => {
+      jest
+        .spyOn(NetworkControllerMock, 'selectChainId')
+        .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
+      Engine.context.PreferencesController.state.securityAlertsEnabled = false;
+      const result = isBlockaidFeatureEnabled();
+      expect(result).toEqual(false);
     });
   });
 });
