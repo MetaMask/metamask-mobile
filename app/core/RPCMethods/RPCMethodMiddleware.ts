@@ -638,7 +638,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       personal_ecRecover: () => {
-        const data = req.params[0];
+        const data = new Uint8Array(Buffer.from(req.params[0]));
         const signature = req.params[1];
         const address = recoverPersonalSignature({ data, signature });
 
