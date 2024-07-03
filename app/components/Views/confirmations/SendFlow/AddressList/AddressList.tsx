@@ -16,13 +16,13 @@ import { useTheme } from '../../../../../util/theme';
 import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { selectChainId } from '../../../../../selectors/networkController';
-import { selectIdentities } from '../../../../../selectors/preferencesController';
 import { regex } from '../../../../../util/regex';
 import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendView.selectors';
 
 // Internal dependencies
 import { AddressListProps, Contact } from './AddressList.types';
 import styleSheet from './AddressList.styles';
+import { useAccounts } from '../../../../../components/hooks/useAccounts';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -49,7 +49,7 @@ const AddressList: React.FC<AddressListProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [fuse, setFuse] = useState<any>(undefined);
   const chainId = useSelector(selectChainId);
-  const identities = useSelector(selectIdentities);
+  const { accounts } = useAccounts();
   const addressBook = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -183,11 +183,11 @@ const AddressList: React.FC<AddressListProps> = ({
         >
           {strings('onboarding_wizard.step2.title')}
         </Text>
-        {Object.keys(identities).map((address) => (
+        {accounts.map((account) => (
           <AddressElement
-            key={address}
-            address={address}
-            name={identities[address].name}
+            key={account.address}
+            address={account.address}
+            name={account.name}
             onAccountPress={onAccountPress}
             onIconPress={onIconPress}
             onAccountLongPress={onAccountLongPress}
