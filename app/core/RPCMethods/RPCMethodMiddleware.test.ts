@@ -1017,10 +1017,7 @@ describe('getRpcMethodMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'personal_ecRecover',
-        params: [
-          new Uint8Array(Buffer.from('Hello, world!', 'utf-8')),
-          helloWorldSignature,
-        ],
+        params: [helloWorldMessage, helloWorldSignature],
       };
 
       const response = await callMiddleware({ middleware, request });
@@ -1041,7 +1038,7 @@ describe('getRpcMethodMiddleware', () => {
         id: 1,
         method: 'personal_ecRecover',
         params: [
-          new Uint8Array(Buffer.from('another message', 'utf-8')),
+          `0x${Buffer.from('another message').toString('hex')}`,
           helloWorldSignature,
         ],
       };
