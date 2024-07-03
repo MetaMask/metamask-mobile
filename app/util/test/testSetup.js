@@ -16,12 +16,16 @@ global.window = {
   removeEventListener: jest.fn(),
   getComputedStyle: jest.fn(),
   document: {
-    createElement: () => ({
-      style: {},
-      appendChild: jest.fn(),
-      removeChild: jest.fn(),
-      ownerDocument: global.window.document,
-    }),
+    createElement: () => {
+      const element = {
+        style: {},
+        appendChild: jest.fn(),
+        removeChild: jest.fn(),
+        ownerDocument: global.window.document,
+      };
+      element.ownerDocument = global.window.document;
+      return element;
+    },
     body: {
       appendChild: jest.fn(),
       removeChild: jest.fn(),
