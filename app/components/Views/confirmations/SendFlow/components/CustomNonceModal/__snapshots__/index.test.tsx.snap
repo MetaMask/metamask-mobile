@@ -1,43 +1,24 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CustomNonceModal should render correctly 1`] = `
-<ReactNativeModal
-  animationIn="slideInUp"
-  animationInTiming={600}
-  animationOut="slideOutDown"
-  animationOutTiming={600}
-  avoidKeyboard={false}
-  backdropColor="#00000099"
-  backdropOpacity={1}
-  backdropTransitionInTiming={300}
-  backdropTransitionOutTiming={300}
-  coverScreen={true}
-  customBackdrop={null}
+<Modal
+  animationType="none"
   deviceHeight={null}
   deviceWidth={null}
-  hasBackdrop={true}
+  hardwareAccelerated={false}
   hideModalContentWhileAnimating={false}
-  isVisible={true}
-  onBackButtonPress={[Function]}
   onBackdropPress={[Function]}
   onModalHide={[Function]}
-  onModalShow={[Function]}
   onModalWillHide={[Function]}
   onModalWillShow={[Function]}
+  onRequestClose={[Function]}
   onSwipeComplete={[Function]}
   panResponderThreshold={4}
-  propagateSwipe={true}
   scrollHorizontal={false}
   scrollOffset={0}
   scrollOffsetMax={0}
   scrollTo={null}
   statusBarTranslucent={false}
-  style={
-    {
-      "justifyContent": "flex-end",
-      "margin": 0,
-    }
-  }
   supportedOrientations={
     [
       "portrait",
@@ -46,288 +27,729 @@ exports[`CustomNonceModal should render correctly 1`] = `
   }
   swipeDirection="down"
   swipeThreshold={100}
-  useNativeDriver={false}
+  transparent={true}
+  visible={true}
 >
-  <KeyboardAwareScrollView
-    contentContainerStyle={
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    forwardedRef={[Function]}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "backgroundColor": "#00000099",
+        "bottom": 0,
+        "height": 1334,
+        "left": 0,
+        "opacity": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "width": 750,
+      }
+    }
+  />
+  <View
+    collapsable={false}
+    deviceHeight={null}
+    deviceWidth={null}
+    forwardedRef={[Function]}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    onSwipeComplete={[Function]}
+    panResponderThreshold={4}
+    pointerEvents="box-none"
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    style={
       {
         "flex": 1,
         "justifyContent": "flex-end",
+        "left": 0,
+        "margin": 0,
+        "top": 0,
+        "transform": [
+          {
+            "translateY": 1334,
+          },
+        ],
       }
     }
-    enableAutomaticScroll={true}
-    enableOnAndroid={false}
-    enableResetScrollToCoords={true}
-    extraHeight={75}
-    extraScrollHeight={0}
-    keyboardOpeningTime={250}
-    viewIsInsideTabBar={false}
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
   >
-    <RCTSafeAreaView
-      style={
+    <RCTScrollView
+      automaticallyAdjustContentInsets={false}
+      contentContainerStyle={
         {
-          "backgroundColor": "#ffffff",
-          "borderTopLeftRadius": 20,
-          "borderTopRightRadius": 20,
-          "minHeight": 200,
+          "flex": 1,
+          "justifyContent": "flex-end",
         }
       }
-    >
-      <ModalDragger />
-      <View
-        style={
-          {
-            "margin": 24,
-          }
+      contentInset={
+        {
+          "bottom": 0,
         }
-      >
-        <Text
-          bold={true}
-          centered={true}
+      }
+      enableAutomaticScroll={true}
+      enableOnAndroid={false}
+      enableResetScrollToCoords={true}
+      extraHeight={75}
+      extraScrollHeight={0}
+      getScrollResponder={[Function]}
+      handleOnScroll={[Function]}
+      keyboardDismissMode="interactive"
+      keyboardOpeningTime={250}
+      keyboardSpace={0}
+      onScroll={[Function]}
+      resetKeyboardSpace={[Function]}
+      scrollEventThrottle={1}
+      scrollForExtraHeightOnAndroid={[Function]}
+      scrollIntoView={[Function]}
+      scrollToEnd={[Function]}
+      scrollToFocusedInput={[Function]}
+      scrollToPosition={[Function]}
+      showsVerticalScrollIndicator={true}
+      update={[Function]}
+      viewIsInsideTabBar={false}
+    >
+      <View>
+        <RCTSafeAreaView
           style={
             {
-              "color": "#141618",
-              "fontSize": 14,
-            }
-          }
-        >
-          Edit transaction nonce
-        </Text>
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "marginVertical": 10,
-            }
-          }
-        >
-          <TextInput
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={true}
-            keyboardAppearance="light"
-            keyboardType="numeric"
-            numberOfLines={1}
-            onChangeText={[Function]}
-            onSubmitEditing={[Function]}
-            placeholder="26"
-            placeholderTextColor="#9fa6ae"
-            showSoftInputOnFocus={false}
-            spellCheck={false}
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontSize": 36,
-                "fontWeight": "600",
-                "marginHorizontal": 24,
-                "textAlign": "center",
-                "width": 80,
-              }
-            }
-            value="28"
-          />
-        </View>
-        <Text
-          centered={true}
-          style={
-            {
-              "color": "#6a737d",
-              "fontSize": 14,
-              "marginBottom": 10,
-            }
-          }
-        >
-          Current suggested nonce:
-           
-          <Text
-            bold={true}
-          >
-            26
-          </Text>
-        </Text>
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "center",
-              "display": "flex",
-              "flexDirection": "row",
-            }
-          }
-        >
-          <TouchableOpacity
-            onPress={[Function]}
-            style={
-              {
-                "padding": 4,
-              }
-            }
-          >
-            <Icon
-              allowFontScaling={false}
-              name="minus"
-              size={64}
-              style={
-                {
-                  "color": "#0376c9",
-                }
-              }
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={[Function]}
-            style={
-              {
-                "padding": 4,
-              }
-            }
-          >
-            <Icon
-              allowFontScaling={false}
-              name="plus"
-              size={64}
-              style={
-                {
-                  "color": "#0376c9",
-                }
-              }
-            />
-          </TouchableOpacity>
-        </View>
-        <View
-          style={
-            {
-              "height": 240,
+              "backgroundColor": "#ffffff",
+              "borderTopLeftRadius": 20,
+              "borderTopRightRadius": 20,
+              "minHeight": 200,
             }
           }
         >
           <View
             style={
-              {
-                "backgroundColor": "#bf52081a",
-                "borderColor": "#bf5208",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "display": "flex",
-                "flexDirection": "row",
-                "marginBottom": 16,
-                "marginTop": 10,
-                "padding": 16,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "borderBottomWidth": 0.5,
+                  "borderColor": "#bbc0c566",
+                  "height": 33,
+                  "justifyContent": "center",
+                  "width": "100%",
+                },
+                undefined,
+              ]
             }
           >
-            <Icon
-              allowFontScaling={false}
-              color="#bf5208"
-              name="exclamation-circle"
-              size={16}
+            <View
               style={
                 {
-                  "flex": 0,
-                  "marginTop": 6,
-                  "paddingRight": 14,
+                  "backgroundColor": "#bbc0c5",
+                  "borderRadius": 4,
+                  "height": 5,
+                  "width": 48,
                 }
               }
             />
+          </View>
+          <View
+            style={
+              {
+                "margin": 24,
+              }
+            }
+          >
             <Text
               style={
+                [
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  {
+                    "textAlign": "center",
+                  },
+                  undefined,
+                  {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontWeight": "600",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "color": "#141618",
+                    "fontSize": 14,
+                  },
+                ]
+              }
+            >
+              Edit transaction nonce
+            </Text>
+            <View
+              style={
                 {
-                  "color": "#141618",
-                  "flex": 1,
-                  "fontSize": 12,
-                  "lineHeight": 16,
-                  "width": "100%",
+                  "alignItems": "center",
+                  "alignSelf": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "marginVertical": 10,
                 }
               }
             >
-              Warning: You may encounter issues with future transactions if you continue. Use with caution.
+              <TextInput
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={true}
+                keyboardAppearance="light"
+                keyboardType="numeric"
+                numberOfLines={1}
+                onChangeText={[Function]}
+                onSubmitEditing={[Function]}
+                placeholder="26"
+                placeholderTextColor="#9fa6ae"
+                showSoftInputOnFocus={false}
+                spellCheck={false}
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 36,
+                    "fontWeight": "600",
+                    "marginHorizontal": 24,
+                    "textAlign": "center",
+                    "width": 80,
+                  }
+                }
+                value="28"
+              />
+            </View>
+            <Text
+              style={
+                [
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  {
+                    "textAlign": "center",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "color": "#6a737d",
+                    "fontSize": 14,
+                    "marginBottom": 10,
+                  },
+                ]
+              }
+            >
+              Current suggested nonce:
+               
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                      "marginVertical": 2,
+                    },
+                    undefined,
+                    undefined,
+                    {
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontWeight": "600",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                  ]
+                }
+              >
+                26
+              </Text>
             </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "padding": 4,
+                  }
+                }
+              >
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": undefined,
+                        "fontSize": 64,
+                      },
+                      {
+                        "color": "#0376c9",
+                      },
+                      {
+                        "fontFamily": "EvilIcons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "padding": 4,
+                  }
+                }
+              >
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": undefined,
+                        "fontSize": 64,
+                      },
+                      {
+                        "color": "#0376c9",
+                      },
+                      {
+                        "fontFamily": "EvilIcons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                {
+                  "height": 240,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "backgroundColor": "#bf52081a",
+                    "borderColor": "#bf5208",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "marginBottom": 16,
+                    "marginTop": 10,
+                    "padding": 16,
+                  }
+                }
+              >
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": "#bf5208",
+                        "fontSize": 16,
+                      },
+                      {
+                        "flex": 0,
+                        "marginTop": 6,
+                        "paddingRight": 14,
+                      },
+                      {
+                        "fontFamily": "FontAwesome",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#141618",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 30,
+                        "fontWeight": "400",
+                        "marginVertical": 2,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "color": "#141618",
+                        "flex": 1,
+                        "fontSize": 12,
+                        "lineHeight": 16,
+                        "width": "100%",
+                      },
+                    ]
+                  }
+                >
+                  Warning: You may encounter issues with future transactions if you continue. Use with caution.
+                </Text>
+              </View>
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                      "marginVertical": 2,
+                    },
+                    undefined,
+                    undefined,
+                    {
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontWeight": "600",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "color": "#141618",
+                      "fontSize": 12,
+                      "lineHeight": 16,
+                      "marginVertical": 10,
+                    },
+                  ]
+                }
+              >
+                This is an advanced feature used to cancel or speed up any pending transactions.
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                      "marginVertical": 2,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "color": "#141618",
+                      "fontSize": 12,
+                      "lineHeight": 16,
+                      "marginVertical": 10,
+                    },
+                  ]
+                }
+              >
+                Think of the nonce as the transaction number of an account. Every account's nonce begins with 0 for the first transaction and continues in sequential order.
+              </Text>
+            </View>
           </View>
-          <Text
-            bold={true}
+          <View
             style={
               {
-                "color": "#141618",
-                "fontSize": 12,
-                "lineHeight": 16,
-                "marginVertical": 10,
+                "flexDirection": "row",
+                "marginBottom": 15,
               }
             }
           >
-            This is an advanced feature used to cancel or speed up any pending transactions.
-          </Text>
-          <Text
-            style={
-              {
-                "color": "#141618",
-                "fontSize": 12,
-                "lineHeight": 16,
-                "marginVertical": 10,
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={0.2}
+              onPress={[Function]}
+              style={
+                [
+                  [
+                    {
+                      "borderRadius": 100,
+                      "justifyContent": "center",
+                      "padding": 15,
+                    },
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#0376c9",
+                      "borderWidth": 1,
+                    },
+                    {
+                      "flex": 1,
+                      "marginHorizontal": 8,
+                    },
+                  ],
+                  null,
+                ]
               }
-            }
-          >
-            Think of the nonce as the transaction number of an account. Every account's nonce begins with 0 for the first transaction and continues in sequential order.
-          </Text>
-        </View>
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#007aff",
+                      "fontSize": 17,
+                      "fontWeight": "500",
+                      "textAlign": "center",
+                    },
+                    null,
+                    [
+                      {
+                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontSize": 14,
+                        "fontWeight": "600",
+                        "textAlign": "center",
+                      },
+                      {
+                        "color": "#0376c9",
+                      },
+                      undefined,
+                    ],
+                    null,
+                  ]
+                }
+              >
+                Cancel
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={0.2}
+              onPress={[Function]}
+              style={
+                [
+                  [
+                    {
+                      "borderRadius": 100,
+                      "justifyContent": "center",
+                      "padding": 15,
+                    },
+                    {
+                      "backgroundColor": "#0376c9",
+                    },
+                    {
+                      "flex": 1,
+                      "marginHorizontal": 8,
+                    },
+                  ],
+                  null,
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#007aff",
+                      "fontSize": 17,
+                      "fontWeight": "500",
+                      "textAlign": "center",
+                    },
+                    null,
+                    [
+                      {
+                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontSize": 14,
+                        "fontWeight": "600",
+                        "textAlign": "center",
+                      },
+                      {
+                        "color": "#ffffff",
+                      },
+                      undefined,
+                    ],
+                    null,
+                  ]
+                }
+              >
+                Save
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </RCTSafeAreaView>
       </View>
-      <View
-        style={
-          {
-            "flexDirection": "row",
-            "marginBottom": 15,
-          }
-        }
-      >
-        <StyledButton
-          containerStyle={
-            {
-              "flex": 1,
-              "marginHorizontal": 8,
-            }
-          }
-          disabledContainerStyle={
-            {
-              "opacity": 0.6,
-            }
-          }
-          onPress={[Function]}
-          styleDisabled={
-            {
-              "opacity": 0.6,
-            }
-          }
-          type="normal"
-        >
-          Cancel
-        </StyledButton>
-        <StyledButton
-          containerStyle={
-            {
-              "flex": 1,
-              "marginHorizontal": 8,
-            }
-          }
-          disabledContainerStyle={
-            {
-              "opacity": 0.6,
-            }
-          }
-          onPress={[Function]}
-          styleDisabled={
-            {
-              "opacity": 0.6,
-            }
-          }
-          type="blue"
-        >
-          Save
-        </StyledButton>
-      </View>
-    </RCTSafeAreaView>
-  </KeyboardAwareScrollView>
-</ReactNativeModal>
+    </RCTScrollView>
+  </View>
+</Modal>
 `;

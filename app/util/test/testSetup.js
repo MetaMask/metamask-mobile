@@ -83,6 +83,24 @@ jest.mock('react-native', () => {
         }
       }),
     },
+    Linking: {
+      ...originalModule.Linking,
+      addEventListener: jest.fn(() => {
+        console.log('Linking.addEventListener called');
+      }),
+      removeEventListener: jest.fn(() => {
+        console.log('Linking.removeEventListener called');
+      }),
+      openURL: jest.fn(() => {
+        console.log('Linking.openURL called');
+      }),
+      canOpenURL: jest.fn(() => {
+        console.log('Linking.canOpenURL called');
+      }),
+      getInitialURL: jest.fn(() => {
+        console.log('Linking.getInitialURL called');
+      }),
+    },
   };
 });
 

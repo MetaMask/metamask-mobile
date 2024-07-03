@@ -60,28 +60,33 @@ export default class PickComponent extends PureComponent {
   render = () => {
     const { selectedValue, valueFirst, valueSecond, textFirst, textSecond } =
       this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
 
     return (
-      <View style={styles.root}>
-        <View style={styles.option}>
-          <RadioButton
-            onPress={this.pickFirst}
-            isChecked={selectedValue === valueFirst}
-            label={textFirst}
-          />
-        </View>
-        <View style={styles.option}>
-          <RadioButton
-            onPress={this.pickSecond}
-            isChecked={selectedValue === valueSecond}
-            label={textSecond}
-          />
-        </View>
-      </View>
+      <ThemeContext.Consumer>
+        {({ colors }) => {
+          const themeColors = colors || mockTheme.colors;
+          const styles = createStyles(themeColors);
+
+          return (
+            <View style={styles.root}>
+              <View style={styles.option}>
+                <RadioButton
+                  onPress={this.pickFirst}
+                  isChecked={selectedValue === valueFirst}
+                  label={textFirst}
+                />
+              </View>
+              <View style={styles.option}>
+                <RadioButton
+                  onPress={this.pickSecond}
+                  isChecked={selectedValue === valueSecond}
+                  label={textSecond}
+                />
+              </View>
+            </View>
+          );
+        }}
+      </ThemeContext.Consumer>
     );
   };
 }
-
-PickComponent.contextType = ThemeContext;

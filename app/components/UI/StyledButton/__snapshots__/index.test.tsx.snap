@@ -103,147 +103,103 @@ exports[`StyledButton should render correctly on Android the button with type or
 `;
 
 exports[`StyledButton should render correctly on iOS the button with type cancel 1`] = `
-<Button
+<TouchableOpacity
   accessibilityRole="button"
-  containerStyle={
-    [
-      {
-        "borderRadius": 100,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#6a737d",
-        "borderWidth": 1,
-      },
-      undefined,
-    ]
-  }
-  disabledContainerStyle={null}
+  accessible={true}
+  activeOpacity={0.2}
   style={
     [
-      {
-        "fontFamily": "EuclidCircularB-Bold",
-        "fontSize": 14,
-        "fontWeight": "600",
-        "textAlign": "center",
-      },
-      {
-        "color": "#6a737d",
-      },
-      undefined,
+      [
+        {
+          "borderRadius": 100,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "#6a737d",
+          "borderWidth": 1,
+        },
+        undefined,
+      ],
+      null,
     ]
   }
-  styleDisabled={null}
 />
 `;
 
 exports[`StyledButton should render correctly on iOS the button with type confirm 1`] = `
-<Button
+<TouchableOpacity
   accessibilityRole="button"
-  containerStyle={
-    [
-      {
-        "borderRadius": 100,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      {
-        "backgroundColor": "#0376c9",
-        "minHeight": 50,
-      },
-      undefined,
-    ]
-  }
-  disabledContainerStyle={null}
+  accessible={true}
+  activeOpacity={0.2}
   style={
     [
-      {
-        "fontFamily": "EuclidCircularB-Bold",
-        "fontSize": 14,
-        "fontWeight": "600",
-        "textAlign": "center",
-      },
-      {
-        "color": "#ffffff",
-      },
-      undefined,
+      [
+        {
+          "borderRadius": 100,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        {
+          "backgroundColor": "#0376c9",
+          "minHeight": 50,
+        },
+        undefined,
+      ],
+      null,
     ]
   }
-  styleDisabled={null}
 />
 `;
 
 exports[`StyledButton should render correctly on iOS the button with type normal 1`] = `
-<Button
+<TouchableOpacity
   accessibilityRole="button"
-  containerStyle={
-    [
-      {
-        "borderRadius": 100,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#0376c9",
-        "borderWidth": 1,
-      },
-      undefined,
-    ]
-  }
-  disabledContainerStyle={null}
+  accessible={true}
+  activeOpacity={0.2}
   style={
     [
-      {
-        "fontFamily": "EuclidCircularB-Bold",
-        "fontSize": 14,
-        "fontWeight": "600",
-        "textAlign": "center",
-      },
-      {
-        "color": "#0376c9",
-      },
-      undefined,
+      [
+        {
+          "borderRadius": 100,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "#0376c9",
+          "borderWidth": 1,
+        },
+        undefined,
+      ],
+      null,
     ]
   }
-  styleDisabled={null}
 />
 `;
 
 exports[`StyledButton should render correctly on iOS the button with type orange 1`] = `
-<Button
+<TouchableOpacity
   accessibilityRole="button"
-  containerStyle={
-    [
-      {
-        "borderRadius": 100,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      {
-        "borderColor": "#bf5208",
-        "borderWidth": 1,
-      },
-      undefined,
-    ]
-  }
-  disabledContainerStyle={null}
+  accessible={true}
+  activeOpacity={0.2}
   style={
     [
-      {
-        "fontFamily": "EuclidCircularB-Bold",
-        "fontSize": 14,
-        "fontWeight": "600",
-        "textAlign": "center",
-      },
-      {
-        "color": "#bf5208",
-      },
-      undefined,
+      [
+        {
+          "borderRadius": 100,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        {
+          "borderColor": "#bf5208",
+          "borderWidth": 1,
+        },
+        undefined,
+      ],
+      null,
     ]
   }
-  styleDisabled={null}
 />
 `;

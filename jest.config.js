@@ -14,15 +14,13 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-jsdom',
   transformIgnorePatterns: [
-    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|uuid|multiformats|nanoid|@walletconnect/relay-auth|uint8arrays)))',
+    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|uuid|multiformats|nanoid|@walletconnect/relay-auth|uint8arrays|@consensys/on-ramp-sdk|@babel)))',
   ],
   transform: {
     '^.+\\.[jt]sx?$': 'babel-jest',
-    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4)$':
-      '<rootDir>/app/util/test/assetFileTransformer.js',
+    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4)$': '<rootDir>/app/util/test/assetFileTransformer.js',
   },
   snapshotSerializers: ['enzyme-to-json/serializer'],
-  // This is an environment variable that can be used to execute logic only in development
   collectCoverage: process.env.NODE_ENV !== 'production',
   collectCoverageFrom: ['<rootDir>/app/**/*.{js,ts,tsx,jsx}'],
   coveragePathIgnorePatterns: [
@@ -40,7 +38,6 @@ const config = {
     '\\.svg': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.png': '<rootDir>/app/__mocks__/pngMock.js',
   },
-  // Disable jest cache
   cache: false,
 };
 

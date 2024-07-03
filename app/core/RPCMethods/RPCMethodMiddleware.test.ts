@@ -1063,7 +1063,9 @@ describe('getRpcMethodMiddleware', () => {
         method: 'personal_ecRecover',
         params: [helloWorldMessage],
       };
-      const expectedError = rpcErrors.internal('Missing signature parameter');
+      const expectedError = rpcErrors.invalidParams(
+        'Missing signature parameter',
+      );
 
       const response = await callMiddleware({ middleware, request });
 
@@ -1084,7 +1086,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'personal_ecRecover',
         params: [undefined, helloWorldSignature],
       };
-      const expectedError = rpcErrors.internal('Missing data parameter');
+      const expectedError = rpcErrors.invalidParams('Missing data parameter');
 
       const response = await callMiddleware({ middleware, request });
 
