@@ -21,8 +21,9 @@ global.window = {
         style: {},
         appendChild: jest.fn(),
         removeChild: jest.fn(),
-        ownerDocument: global.document,
+        ownerDocument: null, // Set to null initially
       };
+      element.ownerDocument = global.document; // Set ownerDocument after creation
       return element;
     },
     body: {
@@ -33,51 +34,12 @@ global.window = {
     removeEventListener: jest.fn(),
     querySelector: jest.fn(),
     querySelectorAll: jest.fn(),
-    defaultView: global.window,
-  },
-  HTMLElement: class {
-    constructor() {
-      this.style = {};
-      this.appendChild = jest.fn();
-      this.removeChild = jest.fn();
-      this.innerHTML = '';
-      this.outerHTML = '';
-      this.click = jest.fn();
-      this.focus = jest.fn();
-    }
-  },
-  Event: class {
-    constructor(name, params = {}) {
-      this.name = name;
-      this.params = params;
-      this.target = params.target || null;
-      this.currentTarget = params.currentTarget || null;
-    }
-  },
-  CustomEvent: class extends Event {
-    constructor(name, params) {
-      super(name, params);
-    }
-  },
-  getSelection: () => ({
-    removeAllRanges: jest.fn(),
-    addRange: jest.fn(),
-  }),
-  scrollTo: jest.fn(),
-  scrollBy: jest.fn(),
-  scroll: jest.fn(),
-  innerWidth: 1024,
-  innerHeight: 768,
-  requestAnimationFrame: jest.fn().mockImplementation((callback) => setTimeout(callback, 0)),
-  cancelAnimationFrame: jest.fn().mockImplementation((id) => clearTimeout(id)),
-  clipboard: {
-    writeText: jest.fn(),
-    readText: jest.fn(),
+    defaultView: null, // Set to null initially
   },
 };
 
 global.document = global.window.document;
-global.window.document.defaultView = global.window;
+global.document.defaultView = global.window; // Set defaultView after document creation
 
 jest.mock('react-native-quick-crypto', () => ({}));
 jest.mock('react-native-blob-jsi-helper', () => ({}));
