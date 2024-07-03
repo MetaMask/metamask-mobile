@@ -1,0 +1,179 @@
+Commit Message,Author,PR Link,Team,Change Type
+fix: add tokenList iconUrl to `IdentIcon` component (#10163),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/10163,team-confirmations,Fixed
+fix: blockaid validations for deeplink transactions (#10192),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/10192,team-confirmations,Fixed
+fix: memoize token list (#10142),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/10142,team-confirmations,Fixed
+feat: support security alerts API (#10000),Matthew Walsh,https://github.com/MetaMask/metamask-mobile/pull/10000,team-confirmations,Added
+test: add E2E for increase allowance (#9969),Vinicius Stevam,https://github.com/MetaMask/metamask-mobile/pull/9969,team-confirmations,Changed
+fix: fix stuck after `nonce too low` error (#10049),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/10049,team-confirmations,Fixed
+fix: improve message display for typed sign messages (#9795),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/9795,team-confirmations,Fixed
+fix: hide amount in simulations for testnets if its opt out (#9918),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/9918,team-confirmations,Changed
+feat: enable transaction simulations (#10039),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/10039,team-confirmations,Added
+chore: Update ppom package to 1.4.8 (#10041),Vinicius Stevam,https://github.com/MetaMask/metamask-mobile/pull/10041,team-confirmations,Changed
+feat: add set approve for all screen (#9888),Vinicius Stevam,https://github.com/MetaMask/metamask-mobile/pull/9888,team-confirmations,Added
+feat: add increase allowance screen (#9794),Vinicius Stevam,https://github.com/MetaMask/metamask-mobile/pull/9794,team-confirmations,Added
+fix: error 'Invalid character in NaN' while gas editing (#9970),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/9970,team-confirmations,Fixed
+test: fix `TransactionReview` snapshots (#9986),Gustavo Antunes,https://github.com/MetaMask/metamask-mobile/pull/9986,team-confirmations,Changed
+feat: enable transaction simulations (#9828),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/9828,team-confirmations,Added
+fix: Update PPOM controller to fix handling of HTTP status codes (#9902),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/9902,team-confirmations,Fixed
+feat: add transaction simulations preference (#9648),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/9648,team-confirmations,Added
+chore: Update ppom package to 1.4.7 (#9883),Vinicius Stevam,https://github.com/MetaMask/metamask-mobile/pull/9883,team-confirmations,Changed
+feat: add transaction simulation metrics (#9783),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/9783,team-confirmations,Added
+fix: error validating wallet connect signature with security provider (#9842),Matthew Walsh,https://github.com/MetaMask/metamask-mobile/pull/9842,team-confirmations,Fixed
+fix: confirmations failing ci tests (#9844),seaona,https://github.com/MetaMask/metamask-mobile/pull/9844,team-confirmations,Changed
+feat: add fiat support to simulations (#9793),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/9793,team-confirmations,Added
+feat: add SimulationDetails component (#9410),Derek Brans,https://github.com/MetaMask/metamask-mobile/pull/9410,team-confirmations,Added
+chore: reorder accounts in ETH_REQUESTACCOUNTS response to prioritize selectedAddress in the 'AndroidService' (#10213),Omri Dan,https://github.com/MetaMask/metamask-mobile/pull/10213,team-sdk,Changed
+chore: fix the incorrect URL displayed during transaction confirmation (#9914),Omri Dan,https://github.com/MetaMask/metamask-mobile/pull/9914,team-sdk,Changed
+fix: deeplink is not opening the site in the inapp-browser when the wallet is locked (#9843),Omri Dan,https://github.com/MetaMask/metamask-mobile/pull/9843,team-sdk,Fixed
+chore: update the 'CODEOWNERS' file to include directories relevant to the 'sdk-devs' team (#9234),Omri Dan,https://github.com/MetaMask/metamask-mobile/pull/9234,team-sdk,Changed
+fix: display the DApp URL in connect screen for MetaMask IOS-SDK (#9755),Omri Dan,https://github.com/MetaMask/metamask-mobile/pull/9755,team-sdk,Fixed
+feat: upgrade react-native-webview (#7759),João Loureiro,https://github.com/MetaMask/metamask-mobile/pull/7759,team-ramp,Added
+fix(ramp): memoize asset before passing it to balance hook (#9968),Pedro Pablo Aste Kompen,https://github.com/MetaMask/metamask-mobile/pull/9968,team-ramp,Fixed
+chore: added the requirement for PRs to contain a QA label (#10167),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10167,team-mobile-platform,Changed
+test: add connect to Portfolio (#10015),CW,https://github.com/MetaMask/metamask-mobile/pull/10015,team-mobile-platform,Changed
+fix: convert Sentry messages to log (#10168),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/10168,team-mobile-platform,Fixed
+test: disable privacy policy toast and whats new modal using fixtures (#10134),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/10134,team-mobile-platform,Changed
+refactor: update bitrise e2e check to not run on forks (#10128),Nicholas Ellul,https://github.com/MetaMask/metamask-mobile/pull/10128,team-mobile-platform,Changed
+chore: Update create-cherry-pick-pr.sh to auto add label (#10125),CW,https://github.com/MetaMask/metamask-mobile/pull/10125,team-mobile-platform,Ops
+fix: updated changelog for 7.24.4 (#10122),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10122,team-mobile-platform,Fixed
+feat: 7.24.4 (#10094),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/10094,team-mobile-platform,Added
+chore: update attribution (#10070),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/10070,team-mobile-platform,Changed
+7.24.3 (#10043),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/10043,team-mobile-platform,Unknown
+chore: Update accounts controller v14 (#9779),tommasini,https://github.com/MetaMask/metamask-mobile/pull/9779,team-mobile-platform,Changed
+test: Fix detox test run inconsistencies (#10055),SamuelSalas,https://github.com/MetaMask/metamask-mobile/pull/10055,team-mobile-platform,Changed
+chore: New Crowdin translations by Github Action (#9777),MetaMask Bot,https://github.com/MetaMask/metamask-mobile/pull/9777,team-mobile-platform,Changed
+chore: add typescript fitness function (#9960),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/9960,team-mobile-platform,Changed
+fix: Auto capitalize letter to none to have the same behaviour as the password field on create new wallet flow (#10034),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10034,team-mobile-platform,Fixed
+chore: Chore/9924 - Enable `@typescript-eslint/no-explicit-any` as error rule (#10048),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/10048,team-mobile-platform,Changed
+chore: Patch GasFeeController to revert API URL (#10044),Kylan Hurt,https://github.com/MetaMask/metamask-mobile/pull/10044,team-mobile-platform,Changed
+feat:  Log the validity of the keyringController in the top 3 Migrations that appear in Sentry (#9785),Aslau Mario-Daniel,https://github.com/MetaMask/metamask-mobile/pull/9785,team-mobile-platform,Added
+feat: v7.24.2 (#10014),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10014,team-mobile-platform,Added
+feat: Feat/1673 bug report (#10023),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/10023,team-mobile-platform,Added
+test: fix failing e2e tests because of marketing consent sheet  (#10021),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/10021,team-mobile-platform,Changed
+feat: 7.24.1 (#9945),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/9945,team-mobile-platform,Added
+chore: Chore/7.24.1 bump rc3 1346 (#10008),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/10008,team-mobile-platform,Ops
+chore: Chore/7.24.1 bump rc3 1344 (#10007),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/10007,team-mobile-platform,Ops
+chore: cherry-pick #9993 (#10006),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/10006,team-mobile-platform,Ops
+fix: Fix/re order internal accounts (#9993),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/9993,team-mobile-platform,Fixed
+chore: cherry pick account sync (#10004),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10004,team-mobile-platform,Ops
+fix: synchronize account name (#10002),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10002,team-mobile-platform,Fixed
+fix: synchronize accounts name (#9997),tommasini,https://github.com/MetaMask/metamask-mobile/pull/9997,team-mobile-platform,Fixed
+test: 1454 refactor modal pages batch 4 (#9915),SamuelSalas,https://github.com/MetaMask/metamask-mobile/pull/9915,team-mobile-platform,Changed
+"fix: ""data collection for marketing"" from PR #9687 (#9905)",Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/9905,team-mobile-platform,Fixed
+fix: add migration to fix engine does not exist and (#9980),tommasini,https://github.com/MetaMask/metamask-mobile/pull/9980,team-mobile-platform,Fixed
+fix: migration 43 stringify to type of (#9982),tommasini,https://github.com/MetaMask/metamask-mobile/pull/9982,team-mobile-platform,Fixed
+"Revert ""chore: cherry-pick #9687"" (#9981)",Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/9981,team-mobile-platform,Ops
+"fix: Engine does not exist, network controller is missing ids (#9978)",tommasini,https://github.com/MetaMask/metamask-mobile/pull/9978,team-mobile-platform,Fixed
+chore(deps): bump rexml from 3.2.6 to 3.2.8 in the bundler group across 1 directory (#9659),dependabot[bot],https://github.com/MetaMask/metamask-mobile/pull/9659,team-mobile-platform,Ops
+chore: cherry-pick #9926 (#9967),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/9967,team-mobile-platform,Ops
+feat: Feat/9492 add unsupported method and legacy method middlewares (#9885),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/9885,team-mobile-platform,Added
+chore: cherry-pick #9687 (#9948),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/9948,team-mobile-platform,Ops
+feat: v7.24.0 (#9788),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/9788,team-mobile-platform,Added
+"chore: Revert ""chore: fitness quality gate to only allow TS & TSX files in app directory"" (#9941)",sethkfman,https://github.com/MetaMask/metamask-mobile/pull/9941,team-mobile-platform,Changed
+chore: Update signature controller to v16 (#9913),tommasini,https://github.com/MetaMask/metamask-mobile/pull/9913,team-mobile-platform,Changed
+chore: fitness quality gate to only allow TS & TSX files in app directory (#9723),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/9723,team-mobile-platform,Changed
+chore: Resolve braces package to address audit issue (#9926),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/9926,team-mobile-platform,Changed
+chore: remove update-attributions.yml (#9920),Nicholas Ellul,https://github.com/MetaMask/metamask-mobile/pull/9920,team-mobile-platform,Changed
+feat: release-7.24.0 RC-2 cut build increment (#9907),yande,https://github.com/MetaMask/metamask-mobile/pull/9907,team-mobile-platform,Added
+fix: upgrade test failure fix for 7.24.0 release branch (#9903),yande,https://github.com/MetaMask/metamask-mobile/pull/9903,team-mobile-platform,Changed
+chore: Update Preferences Controller v^11 (#9814),tommasini,https://github.com/MetaMask/metamask-mobile/pull/9814,team-mobile-platform,Changed
+test: import tokens detected (#9714),CW,https://github.com/MetaMask/metamask-mobile/pull/9714,team-mobile-platform,Changed
+chore: update gas fee controller to 15.1.2 (#9693),Kylan Hurt,https://github.com/MetaMask/metamask-mobile/pull/9693,team-mobile-platform,Changed
+chore: add source to setup script (#9868),tommasini,https://github.com/MetaMask/metamask-mobile/pull/9868,team-mobile-platform,Changed
+fix: Update bitrise.yml with correct Browserstack url (#9894),yande,https://github.com/MetaMask/metamask-mobile/pull/9894,team-mobile-platform,Fixed
+fix: contributor docs link is not correct in pr template (#9893),Gauthier Petetin,https://github.com/MetaMask/metamask-mobile/pull/9893,team-mobile-platform,Changed
+fix: bug report template - remove reference to recordit (#9891),Gauthier Petetin,https://github.com/MetaMask/metamask-mobile/pull/9891,team-mobile-platform,Fixed
+feat(pr template + readme): add link to contributor docs (#9884),Gauthier Petetin,https://github.com/MetaMask/metamask-mobile/pull/9884,team-mobile-platform,Added
+fix: Update Browserstack url as old link deprecated (#9887),yande,https://github.com/MetaMask/metamask-mobile/pull/9887,team-mobile-platform,Fixed
+test: Update Browserstack url as old link deprecated (#9886),yande,https://github.com/MetaMask/metamask-mobile/pull/9886,team-mobile-platform,Changed
+fix: Release/7.24.0 cherry missing chain (#9872),yande,https://github.com/MetaMask/metamask-mobile/pull/9872,team-mobile-platform,Ops
+chore: swap view crash fetching quotes (#9865),tommasini,https://github.com/MetaMask/metamask-mobile/pull/9865,team-mobile-platform,Changed
+fix: Undefined balance when fetching from chain (#9855),tommasini,https://github.com/MetaMask/metamask-mobile/pull/9855,team-mobile-platform,Fixed
+test: fix Assertion only working on IOS (#9852),yande,https://github.com/MetaMask/metamask-mobile/pull/9852,team-mobile-platform,Changed
+Fix/release testing issues (#9847),Gauthier Petetin,https://github.com/MetaMask/metamask-mobile/pull/9847,team-mobile-platform,Changed
+test: E2e Regression failure fix (#9838),yande,https://github.com/MetaMask/metamask-mobile/pull/9838,team-mobile-platform,Changed
+fix: cherry-pick balance issue (#9835),tommasini,https://github.com/MetaMask/metamask-mobile/pull/9835,team-mobile-platform,Ops
+fix: main token balance not updating when switching accounts (#9812),tommasini,https://github.com/MetaMask/metamask-mobile/pull/9812,team-mobile-platform,Fixed
+fix: Fix audit ci (#9831),tommasini,https://github.com/MetaMask/metamask-mobile/pull/9831,team-mobile-platform,Changed
+chore: Upgrade address-book-controller (#9805),Kylan Hurt,https://github.com/MetaMask/metamask-mobile/pull/9805,team-mobile-platform,Changed
+chore: cherry-pick #9674 (#9822),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/9822,team-mobile-platform,Ops
+fix: update Delete MetaMetrics Data copy to 30 days (#9674),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/9674,team-mobile-platform,Fixed
+fix: Add .e2e as part of the setup script (#9819),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/9819,team-mobile-platform,Fixed
+feat: Metrics/1803 emit error viewed event (#9743),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/9743,team-mobile-platform,Added
+chore: merge 7.23.0 tag (#9809),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/9809,team-mobile-platform,Changed
+feat: add MetaMetrics delete on Wallet delete (#9768),Frank von Hoven,https://github.com/MetaMask/metamask-mobile/pull/9768,team-mobile-platform,Added
+"fix: JS ""pseudo protocol"" works when pasted on mobile browser (#9763)",Daniel Cross,https://github.com/MetaMask/metamask-mobile/pull/9763,team-mobile-platform,Fixed
+fix: Disable segment in E2E mode (#9791),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/9791,team-mobile-platform,Fixed
+feat: v7.23.0 (#9613),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/9613,team-mobile-platform,Added
+feat: Revamp Snap connection screen (#10189),Frederik Bolding,https://github.com/MetaMask/metamask-mobile/pull/10189,team-snaps-platform,Added
+chore: bump snaps exec env version (#10187),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/10187,team-snaps-platform,Ops
+fix: Stop running fencing logic on `node_modules` (#10164),Frederik Bolding,https://github.com/MetaMask/metamask-mobile/pull/10164,team-snaps-platform,Changed
+"chore: Revert ""feat: Integrate Firebase libraries and initial config to enable Push Notifications FCM."" (#10143)",Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/10143,team-snaps-platform,Added
+feat: enables snaps feature flag on mobile (#10121),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/10121,team-snaps-platform,Added
+chore: Refactor Snaps integration (#10063),Frederik Bolding,https://github.com/MetaMask/metamask-mobile/pull/10063,team-snaps-platform,Changed
+fix: fix checksum address for balance check (#10135),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/10135,team-assets,Fixed
+fix: create nft auto detection modal and remove nft polling logic (#9857),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/9857,team-assets,Fixed
+chore: add smokeAssets e2e tag (#10067),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/10067,team-assets,Changed
+fix: new locales (#9999),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/9999,team-assets,Fixed
+fix: add migration for linea goerli (#9826),salimtb,https://github.com/MetaMask/metamask-mobile/pull/9826,team-assets,Fixed
+fix: update patch for updateNftMetadata fct (#9876),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/9876,team-assets,Fixed
+fix: remove unecessary calls to third party apis (#9759),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/9759,team-assets,Fixed
+fix: render images of networks removed from popularNetwork list (#9746),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/9746,team-assets,Fixed
+feat: edit networks UI redesign (#10040),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/10040,team-wallet-ux,Added
+feat: add i18n to for the add/edit network ui re-design (#10120),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/10120,team-wallet-ux,Added
+"feat: adjusting the 'add network screen' in network bottom sheet, for network UI redesign  (#10005)",EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/10005,team-wallet-ux,Added
+feat: adding search to the network bottomsheet as part of the networks management UI redesign  (#9961),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/9961,team-wallet-ux,Added
+feat: modification of the network bottom sheet to use the new UI redesign by adding the popular network section as additional network (#9937),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/9937,team-wallet-ux,Added
+"feat: adds ""data collection for marketing"" toggles (#9687)",Jony Bursztyn,https://github.com/MetaMask/metamask-mobile/pull/9687,team-wallet-ux,Added
+fix: Update Basic Functionality settings description.json (#9781),hesterbruikman,https://github.com/MetaMask/metamask-mobile/pull/9781,team-wallet-ux,Fixed
+fix: add API Spec Tests section in testing.md (#10146),Shane,https://github.com/MetaMask/metamask-mobile/pull/10146,team-wallet-api-platform,Changed
+feat: Integrate Firebase libraries and initial config to enable Push Notifications FCM. (#10085),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/10085,team-notifications,Added
+chore: Add Notification devs to codeowners file (#9811),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/9811,team-notifications,Changed
+feat: notifications details screen (#9473),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/9473,team-notifications,Added
+chore: upgrade snaps-controller and adapts its usage (#9718),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/9718,team-notifications,Changed
+fix: Fix BaseControllerV1 state rehydration (#10133),Mark Stacey,https://github.com/MetaMask/metamask-mobile/pull/10133,team-wallet-framework,Fixed
+feat: new attribution github workflow (#9856),cryptodev-2s,https://github.com/MetaMask/metamask-mobile/pull/9856,team-wallet-framework,Added
+"feat: Add the ""is_smart_transaction"" prop for the ""Swap Started"" event (#10112)",Daniel,https://github.com/MetaMask/metamask-mobile/pull/10112,team-transactions,Added
+fix: Always mark the STX Opt In modal as seen (#10064),Daniel,https://github.com/MetaMask/metamask-mobile/pull/10064,team-transactions,Fixed
+fix: yarn deduplicate release/7.24.0 to fix dupe in #9864  (#9870),Derek Brans,https://github.com/MetaMask/metamask-mobile/pull/9870,team-transactions,Fixed
+chore: commit changes to project.pgxproj caused by known issue in xcode 15 (#9866),Derek Brans,https://github.com/MetaMask/metamask-mobile/pull/9866,team-transactions,Changed
+"Cherry-pick: feat: Add the ""Manage in settings"" link for the STX Opt In modal, update STX controller version (#9864)",Daniel,https://github.com/MetaMask/metamask-mobile/pull/9864,team-transactions,Added
+"feat: Add the ""Manage in settings"" link for the STX Opt In modal, update STX controller version (#9839)",Daniel,https://github.com/MetaMask/metamask-mobile/pull/9839,team-transactions,Added
+feat: add api spec test infrastructure (#9356),Thomas Huang,https://github.com/MetaMask/metamask-mobile/pull/9356,,Added
+"Revert ""fix: synchronize accounts name"" (#10003)",Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/10003,,Fixed
+chore: cherry-pick #9946 (#9959),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/9959,,Ops
+fix: Update help center URLs (#9946),Wietze Bronkema,https://github.com/MetaMask/metamask-mobile/pull/9946,,Fixed
+chore: cherry-pick #9867 (#9892),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/9892,,Ops
+fix: Cherry pick of e2e fixes from main (#9869),yande,https://github.com/MetaMask/metamask-mobile/pull/9869,,Fixed
+chore: cherry-pick #9755 (#9846),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/9846,,Ops
+chore: cherry-pick #9831 (#9837),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/9837,,Ops
+chore: cherry-pick #9781 (#9806),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/9806,,Ops
+feat: Add team label to pr (#10086),Norbert Elter,https://github.com/MetaMask/metamask-mobile/pull/10086,team-extension-platform,Added
+fix: stx on ramps missing origin (#10099),infiniteflower,https://github.com/MetaMask/metamask-mobile/pull/10099,"team-ramp,team-transactions",Fixed
+fix: Swap with unapproved token (#10088),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10088,team-swaps,Fixed
+fix: swap completed event not firing (#10033),infiniteflower,https://github.com/MetaMask/metamask-mobile/pull/10033,team-swaps,Fixed
+"chore: Revert ""fix: swaps quote nan to bnjs (#9848)"" (#9863)",infiniteflower,https://github.com/MetaMask/metamask-mobile/pull/9863,team-swaps,Changed
+fix: swaps quote nan to bnjs (#9848),infiniteflower,https://github.com/MetaMask/metamask-mobile/pull/9848,team-swaps,Fixed
+fix: flakey CI asdf node version (#9934),LeoTM,https://github.com/MetaMask/metamask-mobile/pull/9934,team-security,Fixed
+"fix: bump ws resolutions; dedupe ws@7.x, ws@8.x (#10018)",legobeat,https://github.com/MetaMask/metamask-mobile/pull/10018,team-security,Ops
+fix: @metamask/swaps-controller v6 -> v9 (#9584),legobeat,https://github.com/MetaMask/metamask-mobile/pull/9584,team-security,Fixed
+fix: only remove SES from exception if exception exists (#9867),LeoTM,https://github.com/MetaMask/metamask-mobile/pull/9867,team-security,Fixed
+chore(ci): update @rhysd/actionlint to 1.7.1 (#9790),legobeat,https://github.com/MetaMask/metamask-mobile/pull/9790,team-security,Changed
+chore: Fix CocoaPods install on Linux (#9545),legobeat,https://github.com/MetaMask/metamask-mobile/pull/9545,team-security,Changed
+chore: update code owners (#9952),LeoTM,https://github.com/MetaMask/metamask-mobile/pull/9952,team-lavamoat,Changed
+feat: remove selectSelectedAddress in favour of selectSelectedInternalAccount (#9070),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/9070,team-accounts,Added
+fix(ramp): memoize asset before passing it to balance hook (#9968) (#9974),Pedro Pablo Aste Kompen,https://github.com/MetaMask/metamask-mobile/pull/9974,team-accounts,Fixed
+fix: cherry pick Duplicate accounts fix (#9943) (#9963),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/9963,team-accounts,Ops
+test: comment out flaky test from `encryption-with-key` (#9965),Gustavo Antunes,https://github.com/MetaMask/metamask-mobile/pull/9965,team-accounts,Changed
+test: fix snapshots from `AesCryptoTestForm` (#9964),Gustavo Antunes,https://github.com/MetaMask/metamask-mobile/pull/9964,team-accounts,Changed
+test: AES module E2E tests (#9898),Gustavo Antunes,https://github.com/MetaMask/metamask-mobile/pull/9898,team-accounts,Changed
+fix: Duplicate accounts  (#9943),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/9943,team-accounts,Fixed
+chore: add SmokeAccounts E2E tag (#9949),Gustavo Antunes,https://github.com/MetaMask/metamask-mobile/pull/9949,team-accounts,Changed
+chore: Update `@metamask/keyring-controller` to v16 (#9570),Mark Stacey,https://github.com/MetaMask/metamask-mobile/pull/9570,team-accounts,Changed
+feat: updated design-tokens to v4 (#9845),Brian August Nguyen,https://github.com/MetaMask/metamask-mobile/pull/9845,team-design-system,Added
+refactor: updated cellbase to allow size changes (#9942),Brian August Nguyen,https://github.com/MetaMask/metamask-mobile/pull/9942,team-design-system,Changed
+refactor: replace secondary colors with warning colors (#9922),Brian August Nguyen,https://github.com/MetaMask/metamask-mobile/pull/9922,team-design-system,Changed
+chore: align ButtonIcons with design (#9899),Brian August Nguyen,https://github.com/MetaMask/metamask-mobile/pull/9899,team-design-system,Changed
+refactor: update brandColors to be imported from design system (#9875),Brian August Nguyen,https://github.com/MetaMask/metamask-mobile/pull/9875,team-design-system,Changed
+feat: added design tokens eslint rules to mobile (#9653),Brian August Nguyen,https://github.com/MetaMask/metamask-mobile/pull/9653,team-design-system,Added
+fix: edit account name screen display incorrect account name (#9882),Xiaoming Wang,https://github.com/MetaMask/metamask-mobile/pull/9882,"team-accounts,team-hardware-wallets",Fixed
