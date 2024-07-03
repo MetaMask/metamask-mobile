@@ -61,7 +61,7 @@ async function filterCommitsByTeam(branchA, branchB) {
 
     for (const commit of log.all) {
       const { author, message, hash } = commit;
-      if (commitsByTeam.length >= MAX_COMMITS) {
+      if (Object.keys(commitsByTeam).length >= MAX_COMMITS) {
         console.error('Too many commits for script to work')
         break;
       }
