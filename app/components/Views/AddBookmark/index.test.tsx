@@ -11,6 +11,7 @@ describe('AddBookmark', () => {
         <AddBookmark
           navigation={{ setOptions: () => null }}
           route={{ params: {} }}
+          theme={mockTheme}
         />
       </ThemeProvider>,
     );

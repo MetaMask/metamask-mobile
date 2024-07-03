@@ -57,6 +57,13 @@ export default class StyledButton extends PureComponent {
      * ID of the element to be used on e2e tests
      */
     testID: PropTypes.string,
+    /**
+     * Theme object provided by the ThemeProvider
+     */
+    theme: PropTypes.shape({
+      colors: PropTypes.object,
+      themeAppearance: PropTypes.string,
+    }),
   };
 
   static defaultProps = {
@@ -76,8 +83,9 @@ export default class StyledButton extends PureComponent {
       styleDisabled,
       testID,
       disabledContainerStyle,
+      theme,
     } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+    const colors = theme?.colors || this.context.colors || mockTheme.colors;
     const { fontStyle, containerStyle } = getStyles(type, colors);
 
     return (

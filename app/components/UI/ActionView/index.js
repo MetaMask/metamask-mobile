@@ -101,6 +101,7 @@ export default function ActionView({
               onPress={onCancelPress}
               containerStyle={[styles.button, styles.cancel]}
               disabled={confirmed}
+              theme={{ colors }}
             >
               {cancelText}
             </StyledButton>
@@ -121,6 +122,7 @@ export default function ActionView({
                   : {},
               ]}
               disabled={confirmed || confirmDisabled || loading}
+              theme={{ colors }}
             >
               {confirmed || loading ? (
                 <ActivityIndicator

@@ -54,11 +54,18 @@ export default class AddBookmark extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Theme object provided by the ThemeProvider
+     */
+    theme: PropTypes.shape({
+      colors: PropTypes.object,
+      themeAppearance: PropTypes.string,
+    }),
   };
 
   updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+    const { navigation, theme } = this.props;
+    const colors = theme?.colors || mockTheme.colors;
 
     navigation.setOptions(
       getNavigationOptionsTitle(
@@ -114,8 +121,9 @@ export default class AddBookmark extends PureComponent {
   };
 
   render = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance || 'light';
+    const { theme } = this.props;
+    const colors = theme?.colors || mockTheme.colors;
+    const themeAppearance = theme?.themeAppearance || 'light';
     const styles = createStyles(colors);
 
     return (
@@ -130,6 +138,7 @@ export default class AddBookmark extends PureComponent {
           confirmText={strings('add_favorite.add_button')}
           onCancelPress={this.cancelAddBookmark}
           onConfirmPress={this.addBookmark}
+          theme={theme}
         >
           <View>
             <View style={styles.rowWrapper}>
