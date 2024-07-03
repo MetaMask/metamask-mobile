@@ -159,10 +159,6 @@ class AccountOverview extends PureComponent {
      */
     account: PropTypes.object,
     /**
-    /* Selected currency
-    */
-    currentCurrency: PropTypes.string,
-    /**
     /* Triggers global alert
     */
     showAlert: PropTypes.func,
@@ -179,18 +175,10 @@ class AccountOverview extends PureComponent {
      */
     protectWalletModalVisible: PropTypes.func,
     /**
-     * Start transaction with asset
-     */
-    newAssetTransaction: PropTypes.func,
-    /**
     /* navigation object required to access the props
     /* passed by the parent component
     */
     navigation: PropTypes.object,
-    /**
-     * Action that toggles the receive modal
-     */
-    toggleReceiveModal: PropTypes.func,
     /**
      * The chain ID for the current selected network
      */
