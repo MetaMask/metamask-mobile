@@ -15,9 +15,6 @@ import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import { AmountViewSelectorsText } from '../../selectors/SendFlow/AmountView.selectors';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
-import { CustomNetworks } from '../../resources/networks.e2e';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
