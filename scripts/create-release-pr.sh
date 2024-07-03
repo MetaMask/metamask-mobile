@@ -14,7 +14,7 @@ if [[ -z $NEW_VERSION ]]; then
 fi
 
 RELEASE_BRANCH_NAME="${RELEASE_BRANCH_PREFIX}${NEW_VERSION}"
-RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}. \n\nThe test csv can be found at [./commit.csv](commit.csv)"
+RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}. The test plan can be found at [commit.csv](https://github.com/MetaMask/metamask-mobile/blob/${RELEASE_BRANCH_NAME}/commits.csv)"
 
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
