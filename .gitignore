@@ -116,3 +116,6 @@ ccache
 
 # open-rpc/test-coverage
 html-report/
+
+# PR description file
+PR_DESCRIPTION.md
