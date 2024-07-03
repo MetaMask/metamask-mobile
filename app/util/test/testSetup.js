@@ -77,7 +77,7 @@ global.window = {
 };
 
 global.document = global.window.document;
-global.window.document.defaultView.document = global.window.document;
+global.window.document.defaultView = global.window;
 
 jest.mock('react-native-quick-crypto', () => ({}));
 jest.mock('react-native-blob-jsi-helper', () => ({}));
