@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { UseCreateSessionReturn } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 
-import { useThunkNotificationDispatch } from '../../../actions/notification/helpers/useThunkNotificationDispatch';
 import {
   selectIsProfileSyncingEnabled,
   selectIsSignedIn,
@@ -26,7 +25,6 @@ import {
  * - `error`: The error message, if any.
  */
 function useCreateSession(): UseCreateSessionReturn {
-  const dispatch = useThunkNotificationDispatch();
   const isSignedIn = useSelector(selectIsSignedIn);
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const [loading, setLoading] = useState<boolean>(false);
@@ -48,18 +46,18 @@ function useCreateSession(): UseCreateSessionReturn {
       setLoading(true);
       setError(undefined);
       try {
-        const errorMessage = await dispatch(signIn());
+        const errorMessage = await signIn();
         if (errorMessage) {
           throw new Error(errorMessage);
         }
       } catch (e) {
-        await dispatch(disableProfileSyncing());
+        await disableProfileSyncing();
         setError(getErrorMessage(e));
       } finally {
         setLoading(false);
       }
     }
-  }, [dispatch, isSignedIn, isProfileSyncingEnabled]);
+  }, [isSignedIn, isProfileSyncingEnabled]);
 
   return {
     createSession,

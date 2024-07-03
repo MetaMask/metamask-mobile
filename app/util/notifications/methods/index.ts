@@ -26,13 +26,12 @@ import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
 import { NotificationRowDetails, TxStatus } from './types';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 const { UI } = NotificationServicesController;
 
 export interface ViewOnEtherscanProps {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  navigation: NavigationProp<ParamListBase>;
   transactionObject: {
     networkID: string;
   };
@@ -164,6 +163,8 @@ export function getNetwork(chain_id: number) {
 export const isNotificationsFeatureEnabled = () =>
   process.env.MM_NOTIFICATIONS_UI_ENABLED === 'true';
 
+// TODO - I don't this is a good way of formatting title (taking the trigger type as the title)
+// If this is only for translations, sure. Otherwise we should not use this directly as title!
 export function formatNotificationTitle(rawTitle: string): string {
   const words = rawTitle.split('_');
   words.shift();
@@ -235,6 +236,7 @@ export function getRowDetails(
     case TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED:
     case TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED:
       return {
+        type: notification.type,
         row: {
           badgeIcon: getNotificationBadge(notification.type),
           title: strings(
@@ -277,6 +279,7 @@ export function getRowDetails(
       };
     case TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN:
       return {
+        type: notification.type,
         row: {
           badgeIcon: getNotificationBadge(notification.type),
           title: strings(
@@ -309,6 +312,7 @@ export function getRowDetails(
       };
     case TRIGGER_TYPES.METAMASK_SWAP_COMPLETED:
       return {
+        type: notification.type,
         row: {
           badgeIcon: getNotificationBadge(notification.type),
           title: strings('notifications.swap_completed', {
@@ -359,6 +363,7 @@ export function getRowDetails(
         return null;
       }
       return {
+        type: notification.type,
         row: {
           badgeIcon: getNotificationBadge(notification.type),
           createdAt: formatDate(notification.createdAt),
@@ -412,6 +417,7 @@ export function getRowDetails(
     case TRIGGER_TYPES.ERC20_SENT:
     case TRIGGER_TYPES.ERC20_RECEIVED:
       return {
+        type: notification.type,
         row: {
           badgeIcon: getNotificationBadge(notification.type),
           title: strings(
@@ -462,6 +468,7 @@ export function getRowDetails(
     case TRIGGER_TYPES.ERC1155_SENT:
     case TRIGGER_TYPES.ERC1155_RECEIVED:
       return {
+        type: notification.type,
         row: {
           badgeIcon: getNotificationBadge(notification.type),
           title: strings(`notifications.${notification.type}`, {
@@ -508,15 +515,16 @@ export function getRowDetails(
       };
     case TRIGGER_TYPES.FEATURES_ANNOUNCEMENT:
       return {
+        type: notification.type,
         row: {
-          badgeIcon: undefined,
           title: notification.data.title,
           description: notification.data.shortDescription,
           createdAt: formatDate(notification.createdAt),
           imageUrl: notification.data?.image.url,
-          value: undefined,
         },
-        details: {},
+        details: {
+          type: notification.type,
+        },
       };
     default: {
       return null;
@@ -633,36 +641,33 @@ function hasNetworkFeeFields(
 }
 
 async function fetchTxDetails(tx_hash: string) {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { TransactionController } = Engine.context as any;
-
   try {
-    const receipt = await query(
-      TransactionController.ethQuery,
-      'getTransactionReceipt',
-      [tx_hash],
+    const ethQuery = Engine.controllerMessenger.call(
+      'NetworkController:getEthQuery',
     );
+
+    if (!ethQuery) {
+      throw new Error('Unable to get EthQuery');
+    }
+
+    const receipt = await query(ethQuery, 'getTransactionReceipt', [tx_hash]);
 
     if (!receipt) {
       throw new Error('Transaction receipt not found');
     }
 
-    const block = await query(
-      TransactionController.ethQuery,
-      'getBlockByHash',
-      [receipt.blockHash, false],
-    );
+    const block = await query(ethQuery, 'getBlockByHash', [
+      receipt.blockHash,
+      false,
+    ]);
 
     if (!block) {
       throw new Error('Transaction block not found');
     }
 
-    const transaction = await query(
-      TransactionController.ethQuery,
-      'eth_getTransactionByHash',
-      [receipt.blockHash],
-    );
+    const transaction = await query(ethQuery, 'eth_getTransactionByHash', [
+      receipt.blockHash,
+    ]);
 
     if (!transaction) {
       throw new Error('Transaction not found');

@@ -31,11 +31,10 @@ import renderAnnouncementsDetails from './Announcements';
 import renderOnChainDetails from './OnChain';
 import Header from './Header';
 import type { RootState } from '../../../../reducers';
+import { NavigationProp, RouteProp } from '@react-navigation/native';
 
 interface Props {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  navigation: NavigationProp<Record<string, undefined>>;
   route: {
     params: {
       notification: Notification;
@@ -115,18 +114,10 @@ export default NotificationsDetails;
 
 NotificationsDetails.navigationOptions = ({
   route,
-  theme,
   navigation,
 }: {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  route: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  theme: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  route: RouteProp<{ params: { notification: Notification } }, 'params'>;
+  navigation: NavigationProp<Record<string, undefined>>;
 }) => ({
   headerLeft: () => (
     <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -143,7 +134,9 @@ NotificationsDetails.navigationOptions = ({
       title={
         route.params.notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
           ? route.params.notification.data.title
-          : formatNotificationTitle(route.params.notification.type)
+          : // TODO - Provide better title for other notifications
+            // E.g. "eth_sent" is not just eth. It is native token sent
+            formatNotificationTitle(route.params.notification.type)
       }
       subtitle={formatDate(route.params.notification.createdAt)}
     />

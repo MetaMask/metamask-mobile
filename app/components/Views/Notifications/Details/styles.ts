@@ -9,6 +9,8 @@ const HEIGHT = scaling.scale(240);
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 
+export type NotificationDetailStyles = ReturnType<typeof createStyles>;
+
 export const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
     contentContainerWrapper: {
@@ -56,9 +58,7 @@ export const createStyles = ({ colors }: Theme) =>
       alignItems: 'center',
     },
     addressLinkLabel: {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       color: colors.text.alternative,
     },
     icon: { marginHorizontal: 20 },

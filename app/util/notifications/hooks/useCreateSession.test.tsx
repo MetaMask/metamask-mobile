@@ -70,9 +70,7 @@ describe('useCreateSession', () => {
     mockSelectors.mockSelectIsProfileSyncingEnabled.mockReturnValue(true);
 
     // However we want to simulate signing in failing
-    mockActions.mockSignIn.mockReturnValueOnce(
-      async () => 'MOCK - failed to sign in',
-    );
+    mockActions.mockSignIn.mockResolvedValueOnce('MOCK - failed to sign in');
 
     const { result } = arrangeHook();
     await act(async () => {
@@ -123,10 +121,12 @@ describe('useCreateSession', () => {
   }
 
   function arrangeActions() {
-    const mockSignIn = jest.spyOn(Actions, 'signIn').mockReturnValue(jest.fn());
+    const mockSignIn = jest
+      .spyOn(Actions, 'signIn')
+      .mockResolvedValue(undefined);
     const mockDisableProfileSyncing = jest
       .spyOn(Actions, 'disableProfileSyncing')
-      .mockReturnValue(jest.fn());
+      .mockResolvedValue(undefined);
 
     return {
       mockSignIn,

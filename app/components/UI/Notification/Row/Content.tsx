@@ -31,6 +31,7 @@ function NotificationContent({
   const useRenderTwoPartsTitles = useCallback(() => {
     const lowerTitle = title.toLowerCase();
 
+    // TODO - FIX - we cannot guarantee that the I18N title can be split!
     let parts: string[] = [];
     if (lowerTitle.includes('sent')) {
       parts = title.split(/(\bto\b)/g);

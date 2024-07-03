@@ -33,6 +33,8 @@ import {
   useEnableNotifications,
 } from '../../../../util/notifications/hooks/useNotifications';
 import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import { RootState } from 'app/reducers';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
@@ -49,7 +51,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   // Selectors
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
-    // (state: RootState) => state?.pushNotifications?.isNotificationServicesEnabled
   );
 
   // Params
@@ -58,9 +59,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const { colors } = theme;
   const styles = createStyles(colors);
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
+  const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
@@ -178,9 +177,7 @@ NotificationsSettings.navigationOptions = ({
   navigation,
   isNotificationEnabled,
 }: {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  navigation: NavigationProp<ParamListBase>;
   isNotificationEnabled: boolean;
 }) => ({
   headerLeft: () => (

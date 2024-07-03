@@ -26,14 +26,13 @@ import {
   getNotificationsList,
 } from '../../../selectors/pushNotifications';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+import { NavigationProp } from '@react-navigation/native';
 
 const NotificationsView = ({
   navigation,
   selectedAddress,
 }: {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  navigation: NavigationProp<Record<string, undefined>>;
   selectedAddress: string;
 }) => {
   const styles = createStyles();
@@ -147,9 +146,7 @@ export default NotificationsView;
 NotificationsView.navigationOptions = ({
   navigation,
 }: {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  navigation: NavigationProp<Record<string, undefined>>;
 }) => ({
   headerRight: () => (
     <TouchableOpacity

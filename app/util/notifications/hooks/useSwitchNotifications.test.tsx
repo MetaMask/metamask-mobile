@@ -42,23 +42,6 @@ describe('useSwitchNotifications', () => {
     return hook;
   };
 
-  test('should switch snap notifications', async () => {
-    const mockSetSnapNotificationEnabled = jest
-      .spyOn(Actions, 'setSnapNotificationsEnabled')
-      .mockImplementation(jest.fn());
-
-    const { result } = arrangeHook();
-    const { switchSnapNotifications } = result.current;
-
-    await act(async () => {
-      await switchSnapNotifications(true);
-    });
-
-    expect(mockSetSnapNotificationEnabled).toHaveBeenCalledWith(true);
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBeNull();
-  });
-
   test('should switch feature announcements', async () => {
     const mockSetFeatureAnnouncementEnabled = jest
       .spyOn(Actions, 'setFeatureAnnouncementsEnabled')

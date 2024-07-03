@@ -7,8 +7,6 @@ import {
   enableProfileSyncing as enableProfileSyncingAction,
 } from '../../../actions/notification/pushNotifications';
 
-import { useThunkNotificationDispatch } from '../../../actions/notification/helpers/useThunkNotificationDispatch';
-
 /**
  * Custom hook to enable profile syncing. This hook handles the process of signing in
  * and enabling profile syncing via dispatch actions.
@@ -16,7 +14,6 @@ import { useThunkNotificationDispatch } from '../../../actions/notification/help
  * @returns An object containing the `enableProfileSyncing` function, loading state, and error state.
  */
 export function useProfileSyncing(): ProfileSyncingReturn {
-  const dispatch = useThunkNotificationDispatch();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
@@ -25,7 +22,7 @@ export function useProfileSyncing(): ProfileSyncingReturn {
     setError(undefined);
     try {
       // set profile syncing to true
-      const errorMessage = await dispatch(enableProfileSyncingAction());
+      const errorMessage = await enableProfileSyncingAction();
       if (errorMessage) {
         setError(getErrorMessage(errorMessage));
         return errorMessage;
@@ -37,13 +34,13 @@ export function useProfileSyncing(): ProfileSyncingReturn {
     } finally {
       setLoading(false);
     }
-  }, [dispatch]);
+  }, []);
 
   const disableProfileSyncing = useCallback(async () => {
     setLoading(true);
     setError(undefined);
     try {
-      const errorMessage = await dispatch(disableProfileSyncingAction());
+      const errorMessage = await disableProfileSyncingAction();
       if (errorMessage) {
         setError(getErrorMessage(errorMessage));
         return errorMessage;
@@ -55,7 +52,7 @@ export function useProfileSyncing(): ProfileSyncingReturn {
     } finally {
       setLoading(false);
     }
-  }, [dispatch]);
+  }, []);
 
   return { enableProfileSyncing, disableProfileSyncing, loading, error };
 }
