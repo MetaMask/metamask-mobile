@@ -1,37 +1,164 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`EnterPasswordSimple should render correctly 1`] = `
-<ContextProvider
-  value={
+<RCTSafeAreaView
+  style={
     {
-      "options": undefined,
+      "backgroundColor": "#ffffff",
+      "flex": 1,
     }
   }
 >
-  <ThemeProvider
-    value={
+  <View
+    style={
       {
-        "colors": {
-          "background": "rgb(242, 242, 242)",
-          "border": "rgb(216, 216, 216)",
-          "card": "rgb(255, 255, 255)",
-          "notification": "rgb(255, 59, 48)",
-          "primary": "rgb(0, 122, 255)",
-          "text": "rgb(28, 28, 30)",
-        },
-        "dark": false,
+        "flex": 1,
+        "padding": 16,
       }
     }
   >
-    <ForwardRef(BaseNavigationContainer)>
-      <EnterPasswordSimple
-        route={
-          {
-            "params": {},
-          }
+    <RCTScrollView
+      automaticallyAdjustContentInsets={false}
+      contentInset={
+        {
+          "bottom": 0,
         }
-      />
-    </ForwardRef(BaseNavigationContainer)>
-  </ThemeProvider>
-</ContextProvider>
+      }
+      enableAutomaticScroll={true}
+      enableOnAndroid={false}
+      enableResetScrollToCoords={true}
+      extraHeight={75}
+      extraScrollHeight={0}
+      getScrollResponder={[Function]}
+      handleOnScroll={[Function]}
+      keyboardDismissMode="interactive"
+      keyboardOpeningTime={250}
+      keyboardSpace={0}
+      onScroll={[Function]}
+      resetKeyboardSpace={[Function]}
+      resetScrollToCoords={
+        {
+          "x": 0,
+          "y": 0,
+        }
+      }
+      scrollEventThrottle={1}
+      scrollForExtraHeightOnAndroid={[Function]}
+      scrollIntoView={[Function]}
+      scrollToEnd={[Function]}
+      scrollToFocusedInput={[Function]}
+      scrollToPosition={[Function]}
+      showsVerticalScrollIndicator={true}
+      style={
+        {
+          "flex": 1,
+          "padding": 16,
+        }
+      }
+      update={[Function]}
+      viewIsInsideTabBar={false}
+    >
+      <View>
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <View>
+            <Text
+              style={
+                {
+                  "color": "#141618",
+                  "fontSize": 16,
+                  "marginBottom": 15,
+                }
+              }
+            >
+              Please enter your password in order to continue
+            </Text>
+            <TextInput
+              keyboardAppearance="light"
+              onChangeText={[Function]}
+              onSubmitEditing={[Function]}
+              placeholder="Password"
+              placeholderTextColor="#9fa6ae"
+              secureTextEntry={true}
+              style={
+                {
+                  "borderColor": "#bbc0c5",
+                  "borderRadius": 5,
+                  "borderWidth": 2,
+                  "color": "#141618",
+                  "padding": 10,
+                }
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "marginTop": 10,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={0.2}
+              disabled={false}
+              onPress={[Function]}
+              style={
+                [
+                  [
+                    {
+                      "borderRadius": 100,
+                      "justifyContent": "center",
+                      "padding": 15,
+                    },
+                    {
+                      "backgroundColor": "#0376c9",
+                    },
+                    undefined,
+                  ],
+                  null,
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#007aff",
+                      "fontSize": 17,
+                      "fontWeight": "500",
+                      "textAlign": "center",
+                    },
+                    null,
+                    [
+                      {
+                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontSize": 14,
+                        "fontWeight": "600",
+                        "textAlign": "center",
+                      },
+                      {
+                        "color": "#ffffff",
+                      },
+                      undefined,
+                    ],
+                    null,
+                  ]
+                }
+              >
+                Confirm
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+</RCTSafeAreaView>
 `;

@@ -1,7 +1,6 @@
-import React, { PureComponent } from 'react';
+import React, { useContext, useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
-  ActivityIndicator,
   Alert,
   Text,
   View,
@@ -48,29 +47,11 @@ const createStyles = (colors) =>
 /**
  * View where users can re-enter their password
  */
-export default class EnterPasswordSimple extends PureComponent {
-  static propTypes = {
-    /**
-     * The navigator object
-     */
-    navigation: PropTypes.object,
-    /**
-     * Object that represents the current route info like params passed to it
-     */
-    route: PropTypes.object,
-  };
+const EnterPasswordSimple = ({ navigation, route }) => {
+  const { colors, themeAppearance } = useContext(ThemeContext) || mockTheme;
+  const [password, setPassword] = useState('');
 
-  state = {
-    password: '',
-    loading: false,
-    error: null,
-  };
-
-  mounted = true;
-
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+  const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getNavigationOptionsTitle(
         strings('enter_password.title'),
@@ -79,92 +60,76 @@ export default class EnterPasswordSimple extends PureComponent {
         colors,
       ),
     );
-  };
+  }, [navigation, colors]);
 
-  componentDidMount = () => {
-    this.updateNavBar();
-  };
+  useEffect(() => {
+    updateNavBar();
+  }, [updateNavBar]);
 
-  componentDidUpdate = () => {
-    this.updateNavBar();
-  };
-
-  componentWillUnmount = () => {
-    this.mounted = false;
-  };
-
-  onPressConfirm = async () => {
-    if (this.state.loading) return;
-    if (!passwordRequirementsMet(this.state.password)) {
+  const onPressConfirm = async () => {
+    if (!passwordRequirementsMet(password)) {
       Alert.alert(
         strings('enter_password.error'),
         strings('choose_password.password_length_error'),
       );
     } else {
-      this.props.route.params.onPasswordSet(this.state.password);
-      this.props.navigation.pop();
+      route.params.onPasswordSet(password);
+      navigation.pop();
       return;
     }
   };
 
-  onPasswordChange = (val) => {
-    this.setState({ password: val });
-  };
+  const styles = createStyles(colors);
 
-  render() {
-    const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance || 'light';
-    const styles = createStyles(colors);
-
-    return (
-      <SafeAreaView style={styles.mainWrapper}>
-        <View style={styles.wrapper}>
-          <KeyboardAwareScrollView
-            style={styles.wrapper}
-            resetScrollToCoords={{ x: 0, y: 0 }}
-          >
-            <View style={baseStyles.flexGrow}>
-              <View>
-                <Text style={styles.enterPassword}>
-                  {strings('enter_password.desc')}
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={strings('enter_password.password')}
-                  placeholderTextColor={colors.text.muted}
-                  onChangeText={this.onPasswordChange}
-                  secureTextEntry
-                  onSubmitEditing={this.onPressConfirm}
-                  keyboardAppearance={themeAppearance}
-                />
-              </View>
-              <View style={styles.ctaWrapper}>
-                <StyledButton
-                  type={'blue'}
-                  onPress={this.onPressConfirm}
-                  disabled={
-                    !(
-                      this.state.password !== '' ||
-                      !passwordRequirementsMet(this.state.password)
-                    )
-                  }
-                >
-                  {this.state.loading ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={colors.primary.inverse}
-                    />
-                  ) : (
-                    strings('enter_password.confirm_button')
-                  )}
-                </StyledButton>
-              </View>
+  return (
+    <SafeAreaView style={styles.mainWrapper}>
+      <View style={styles.wrapper}>
+        <KeyboardAwareScrollView
+          style={styles.wrapper}
+          resetScrollToCoords={{ x: 0, y: 0 }}
+        >
+          <View style={baseStyles.flexGrow}>
+            <View>
+              <Text style={styles.enterPassword}>
+                {strings('enter_password.desc')}
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder={strings('enter_password.password')}
+                placeholderTextColor={colors.text.muted}
+                onChangeText={setPassword}
+                secureTextEntry
+                onSubmitEditing={onPressConfirm}
+                keyboardAppearance={themeAppearance}
+              />
             </View>
-          </KeyboardAwareScrollView>
-        </View>
-      </SafeAreaView>
-    );
-  }
-}
+            <View style={styles.ctaWrapper}>
+              <StyledButton
+                type={'blue'}
+                onPress={onPressConfirm}
+                disabled={
+                  !(password !== '' || !passwordRequirementsMet(password))
+                }
+              >
+                {strings('enter_password.confirm_button')}
+              </StyledButton>
+            </View>
+          </View>
+        </KeyboardAwareScrollView>
+      </View>
+    </SafeAreaView>
+  );
+};
 
-EnterPasswordSimple.contextType = ThemeContext;
+EnterPasswordSimple.propTypes = {
+  /**
+   * The navigator object
+   */
+  navigation: PropTypes.object,
+  /**
+   * Object that represents the current route info like params passed to it
+   */
+  route: PropTypes.object,
+};
+
+export default EnterPasswordSimple;
