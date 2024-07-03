@@ -5,6 +5,35 @@ import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock
 /* eslint-disable import/no-namespace */
 import { mockTheme } from '../theme';
 
+global.window = {
+  navigator: {
+    userAgent: 'node.js',
+  },
+  location: {
+    href: '',
+  },
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  getComputedStyle: jest.fn(),
+  document: {
+    createElement: () => ({
+      style: {},
+      appendChild: jest.fn(),
+      removeChild: jest.fn(),
+    }),
+    body: {
+      appendChild: jest.fn(),
+      removeChild: jest.fn(),
+    },
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    querySelector: jest.fn(),
+    querySelectorAll: jest.fn(),
+  },
+};
+
+global.document = global.window.document;
+
 jest.mock('react-native-quick-crypto', () => ({}));
 jest.mock('react-native-blob-jsi-helper', () => ({}));
 
