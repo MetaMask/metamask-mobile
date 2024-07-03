@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
 import React, { FC, useEffect, useMemo } from 'react';
-import { Pressable, ScrollView, Switch, View, Modal } from 'react-native';
+import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../locales/i18n';
@@ -14,6 +14,7 @@ import { useAccounts } from '../../../../components/hooks/useAccounts';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 
+import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
 import { Props } from './NotificationsSettings.types';
 import createStyles from './NotificationsSettings.styles';
 import NotificationOptionToggle from './NotificationOptionToggle';
@@ -43,10 +44,19 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     [accounts],
   );
   const accountSettingsProps = useAccountSettingsProps(accountAddresses);
-  const { enableNotifications, loading: eLoading } = useEnableNotifications();
-  const { disableNotifications, loading: dLoading } = useDisableNotifications();
+  const {
+    enableNotifications,
+    loading: enableLoading,
+    error: enablingError,
+  } = useEnableNotifications();
+  const {
+    disableNotifications,
+    loading: disableLoading,
+    error: disablingError,
+  } = useDisableNotifications();
 
-  const loading = eLoading || dLoading;
+  const loading = enableLoading || disableLoading;
+  const errorText = enablingError || disablingError;
   const theme = useTheme();
   // Selectors
   const isMetamaskNotificationsEnabled = useSelector(
@@ -158,15 +168,15 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           ))}
         </>
       )}
-      <Modal animationType="slide" transparent visible={loading}>
-        <View style={styles.loader}>
-          <Text variant={TextVariant.BodyMD}>
-            {!isMetamaskNotificationsEnabled
-              ? strings('app_settings.enabling_notifications')
-              : strings('app_settings.disabling_notifications')}
-          </Text>
-        </View>
-      </Modal>
+      <SwitchLoadingModal
+        loading={loading}
+        loadingText={
+          !isMetamaskNotificationsEnabled
+            ? strings('app_settings.enabling_notifications')
+            : strings('app_settings.disabling_notifications')
+        }
+        error={errorText}
+      />
     </ScrollView>
   );
 };

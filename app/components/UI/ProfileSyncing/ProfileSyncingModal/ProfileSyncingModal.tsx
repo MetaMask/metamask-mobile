@@ -32,19 +32,17 @@ const ProfileSyncingModal = () => {
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
-  const { enableProfileSyncing, disableProfileSyncing } = useProfileSyncing();
+  const { disableProfileSyncing } = useProfileSyncing();
   const { disableNotifications } = useDisableNotifications();
 
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
 
-  //TODO: Handle errror/loading states from enabling/disabling profile syncing
+  // TODO: Handle errror/loading states from enabling/disabling profile syncing
   const closeBottomSheet = () => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
       if (isProfileSyncingEnabled) {
         disableProfileSyncing();
         disableNotifications();
-      } else {
-        enableProfileSyncing();
       }
     });
   };
@@ -76,6 +74,7 @@ const ProfileSyncingModal = () => {
         bottomSheetMessage: strings('profile_sync.disable_warning'),
         bottomSheetCTA: strings('default_settings.sheet.buttons.turn_off'),
       };
+
   const renderTurnOnOFfContent = () => (
     <View style={styles.container}>
       <Icon
