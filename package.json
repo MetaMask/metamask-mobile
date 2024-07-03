@@ -373,7 +373,6 @@
     "@open-rpc/schema-utils-js": "^1.16.2",
     "@open-rpc/test-coverage": "^2.2.2",
     "@react-native-community/eslint-config": "^2.0.0",
-    "@react-native-community/slider": "^4.4.3",
     "@react-native/metro-config": "^0.72.12",
     "@rpii/wdio-html-reporter": "^7.7.1",
     "@storybook/addon-actions": "^7.5.1",
