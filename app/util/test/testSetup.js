@@ -20,6 +20,7 @@ global.window = {
       style: {},
       appendChild: jest.fn(),
       removeChild: jest.fn(),
+      ownerDocument: global.window.document,
     }),
     body: {
       appendChild: jest.fn(),
@@ -30,6 +31,17 @@ global.window = {
     querySelector: jest.fn(),
     querySelectorAll: jest.fn(),
   },
+  getSelection: () => ({
+    removeAllRanges: jest.fn(),
+    addRange: jest.fn(),
+  }),
+  scrollTo: jest.fn(),
+  scrollBy: jest.fn(),
+  scroll: jest.fn(),
+  innerWidth: 1024,
+  innerHeight: 768,
+  requestAnimationFrame: jest.fn().mockImplementation((callback) => setTimeout(callback, 0)),
+  cancelAnimationFrame: jest.fn().mockImplementation((id) => clearTimeout(id)),
 };
 
 global.document = global.window.document;
