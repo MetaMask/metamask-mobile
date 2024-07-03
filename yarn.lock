@@ -4581,13 +4581,6 @@
   resolved "https://registry.yarnpkg.com/@metamask/react-native-actionsheet/-/react-native-actionsheet-2.4.2.tgz#9f956fe9e784d92c8e33656877fcfaabe4a482f1"
   integrity sha512-oibRXUzF+7DB0Nyzp2cMGN7ztB9Sl21W1NFq1IMa00mB4/X43JY+u+LCkx625WvQUeq0GO2ZQ6hG1L5XjMumSA==
 
-"@metamask/react-native-animated-fox@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/react-native-animated-fox/-/react-native-animated-fox-2.1.0.tgz#504e1f68e13ad273fb193c6f6a3832f3a5242518"
-  integrity sha512-Hc+DyaEIXYa7NjzqXfgh01bsoP9WbE/ENNKZ4A65YwSBmJk5ZDvhMgTMFz+qybkUllx4kn4ENkmr0SXERZ2wmg==
-  dependencies:
-    prop-types "^15.5.10"
-
 "@metamask/react-native-button@^3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/react-native-button/-/react-native-button-3.0.0.tgz#4af8affd11e2b285cfc1b1752280797e1b33e62b"
@@ -4613,6 +4606,14 @@
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/react-native-splash-screen/-/react-native-splash-screen-3.2.0.tgz#06a6547c143b088e47af40eacea9ac6657ac937f"
   integrity sha512-V8Cn0MXe9jdaUli/DK3PoJ71tx7k3IW2v2slqflvNstvHiO3MpCtdylsYIyu+tiPwI2JiyLRzLK8s02/3jxk6g==
+
+"@metamask/react-native-webview@^14.0.1":
+  version "14.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-webview/-/react-native-webview-14.0.1.tgz#db1a1f4abea077b17fcc163538db4fcd7b2890bd"
+  integrity sha512-euctbS170XwxCCOIP36pr3N2bW8hQdZIKzpoEpWFK+5aumQ7UrTmwswcD3OCqnlk5JvpsRvlixIje8AA+6Gmtg==
+  dependencies:
+    escape-string-regexp "2.0.0"
+    invariant "2.2.4"
 
 "@metamask/rpc-errors@^6.0.0", "@metamask/rpc-errors@^6.2.1":
   version "6.2.1"
@@ -24947,14 +24948,6 @@ react-native-webview-invoke@^0.6.2:
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/react-native-webview-invoke/-/react-native-webview-invoke-0.6.2.tgz#75cc27ef98ea1cbc9386269347d3aafe90d33aa3"
   integrity sha512-PCzP7Zl3XwHU10JYS8nR0gwuR8XiOO0MhC8y9ZuPPI+HeISn95GvNYhOXxeLgfbdbUcpNWh1HqxPDySlfCIqxg==
-
-react-native-webview@11.13.0:
-  version "11.13.0"
-  resolved "https://registry.yarnpkg.com/react-native-webview/-/react-native-webview-11.13.0.tgz#a2eca0f87b2ae9bba0dd8144594aeff9947cc5d6"
-  integrity sha512-jjQAKWv8JzRmcn76fMe4lXD84AAeR7kn43kAmUe1GX312BMLaP+RbKlgpYAlNuOBXL0YirItGKDrpaD0bNROOA==
-  dependencies:
-    escape-string-regexp "2.0.0"
-    invariant "2.2.4"
 
 react-native@0.71.15:
   version "0.71.15"

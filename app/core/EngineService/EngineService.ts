@@ -99,7 +99,7 @@ class EngineService {
         key: `${engine.context.SnapController.name}:stateChange`,
       },
       {
-        name: 'subjectMetadataController',
+        name: 'SubjectMetadataController',
         key: `${engine.context.SubjectMetadataController.name}:stateChange`,
       },
       ///: END:ONLY_INCLUDE_IF
@@ -126,7 +126,7 @@ class EngineService {
 
     engine?.datamodel?.subscribe?.(() => {
       if (!engine.context.KeyringController.metadata.vault) {
-        Logger.message('keyringController vault missing for INIT_BG_STATE_KEY');
+        Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
       }
       if (!this.engineInitialized) {
         store.dispatch({ type: INIT_BG_STATE_KEY });
@@ -138,9 +138,7 @@ class EngineService {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () => {
         if (!engine.context.KeyringController.metadata.vault) {
-          Logger.message(
-            'keyringController vault missing for UPDATE_BG_STATE_KEY',
-          );
+          Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
         }
         store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
       };

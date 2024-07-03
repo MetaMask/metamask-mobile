@@ -78,12 +78,6 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 
-import {
-  PORTFOLIO_BUTTON,
-  STAKE_BUTTON,
-  TOTAL_BALANCE_TEXT,
-} from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
-
 import { BrowserTab, TokenI, TokensI } from './types';
 import useRampNetwork from '../Ramp/hooks/useRampNetwork';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
@@ -257,7 +251,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     return (
       <Pressable
         onPress={onStakeButtonPress}
-        {...generateTestId(Platform, STAKE_BUTTON)}
+        testID={WalletViewSelectorsIDs.STAKE_BUTTON}
         style={styles.stakeButton}
       >
         <Text variant={TextVariant.BodyLGMedium}>
@@ -624,7 +618,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       <View style={styles.networth}>
         <Text
           style={styles.fiatBalance}
-          {...generateTestId(Platform, TOTAL_BALANCE_TEXT)}
+          testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
         >
           {fiatBalance}
         </Text>
@@ -635,7 +629,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           style={styles.buyButton}
           onPress={onOpenPortfolio}
           label={strings('asset_overview.portfolio_button')}
-          {...generateTestId(Platform, PORTFOLIO_BUTTON)}
+          testID={WalletViewSelectorsIDs.PORTFOLIO_BUTTON}
           endIconName={IconName.Export}
         />
       </View>
