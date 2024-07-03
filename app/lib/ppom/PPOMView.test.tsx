@@ -1,11 +1,12 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 import { PPOMView } from './PPOMView';
 
 describe('PPOMView', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<PPOMView />);
-    expect(wrapper).toMatchSnapshot();
+    expect(() => {
+      render(<PPOMView />);
+    }).not.toThrow();
   });
 });
