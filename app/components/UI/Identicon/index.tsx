@@ -46,7 +46,7 @@ const Identicon: React.FC<IdenticonProps> = ({
 }) => {
   const { colors } = useTheme();
   const tokenListIcon = useTokenListEntry(
-    address as string,
+    address || '',
     NameType.EthereumAddress,
   )?.iconUrl;
 
