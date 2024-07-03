@@ -21,9 +21,7 @@ global.window = {
         style: {},
         appendChild: jest.fn(),
         removeChild: jest.fn(),
-        ownerDocument: {
-          defaultView: global.window,
-        },
+        ownerDocument: global.document,
       };
       return element;
     },
@@ -35,7 +33,10 @@ global.window = {
     removeEventListener: jest.fn(),
     querySelector: jest.fn(),
     querySelectorAll: jest.fn(),
-    defaultView: global.window,
+    defaultView: {
+      getComputedStyle: jest.fn(),
+      document: null,
+    },
   },
   HTMLElement: class {
     constructor() {
@@ -79,6 +80,7 @@ global.window = {
 };
 
 global.document = global.window.document;
+global.window.document.defaultView.document = global.window.document;
 
 jest.mock('react-native-quick-crypto', () => ({}));
 jest.mock('react-native-blob-jsi-helper', () => ({}));
