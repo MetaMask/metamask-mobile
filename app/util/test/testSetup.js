@@ -22,7 +22,10 @@ global.window = {
         appendChild: jest.fn(),
         removeChild: jest.fn(),
         ownerDocument: {
-          defaultView: global.window,
+          defaultView: {
+            ...global.window,
+            document: null, // Avoid circular reference
+          },
         },
       };
       return element;
@@ -35,7 +38,10 @@ global.window = {
     removeEventListener: jest.fn(),
     querySelector: jest.fn(),
     querySelectorAll: jest.fn(),
-    defaultView: global.window,
+    defaultView: {
+      ...global.window,
+      document: null, // Avoid circular reference
+    },
   },
   HTMLElement: class {
     constructor() {
