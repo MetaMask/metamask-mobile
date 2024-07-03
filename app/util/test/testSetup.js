@@ -441,3 +441,5 @@ global.TextDecoder = require('util').TextDecoder;
 
 console.log('window:', global.window);
 console.log('document:', global.document);
+console.log('window.defaultView:', global.window.defaultView);
+console.log('document.defaultView:', global.document.defaultView);
