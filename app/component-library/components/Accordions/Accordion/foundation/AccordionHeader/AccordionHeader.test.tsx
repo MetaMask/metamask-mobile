@@ -50,7 +50,6 @@ describe('AccordionHeader', () => {
     const user = userEvent.setup();
     render(<AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />);
     const accordionHeaderComponent = screen.getByTestId(TESTID_ACCORDIONHEADER);
-    console.log('AccordionHeader component:', accordionHeaderComponent);
     await user.click(accordionHeaderComponent);
     // Add assertions to verify the expansion state change
     const expandedIconElement = screen.getByTestId(
