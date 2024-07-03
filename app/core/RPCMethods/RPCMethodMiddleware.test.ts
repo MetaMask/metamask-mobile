@@ -1018,7 +1018,7 @@ describe('getRpcMethodMiddleware', () => {
         id: 1,
         method: 'personal_ecRecover',
         params: [
-          new Uint8Array(Buffer.from('Hello, world!')),
+          new Uint8Array(Buffer.from('Hello, world!', 'utf-8')),
           helloWorldSignature,
         ],
       };
@@ -1041,7 +1041,7 @@ describe('getRpcMethodMiddleware', () => {
         id: 1,
         method: 'personal_ecRecover',
         params: [
-          new Uint8Array(Buffer.from('another message')),
+          new Uint8Array(Buffer.from('another message', 'utf-8')),
           helloWorldSignature,
         ],
       };
