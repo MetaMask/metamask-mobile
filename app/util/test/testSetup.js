@@ -21,7 +21,9 @@ global.window = {
         style: {},
         appendChild: jest.fn(),
         removeChild: jest.fn(),
-        ownerDocument: global.document, // Set ownerDocument during creation
+        ownerDocument: {
+          defaultView: global.window, // Ensure ownerDocument's defaultView is set to window
+        },
       };
       return element;
     },
