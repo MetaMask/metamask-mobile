@@ -6,6 +6,239 @@ import DefaultPreference from 'react-native-default-preference';
 import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
 import { isTest } from '../test/utils';
+import { store } from '../../store';
+
+/**
+ * This symbol matches all object properties when used in a mask
+ */
+const AllProperties = Symbol('*');
+
+// This describes the subset of background controller state attached to errors
+// sent to Sentry These properties have some potential to be useful for
+// debugging, and they do not contain any identifiable information.
+export const SENTRY_STATE = {
+  accounts: true,
+  alert: true,
+  bookmarks: true,
+  browser: true,
+  collectibles: true,
+  engine: {
+    backgroundState: {
+      AccountTrackerController: {
+        accounts: false,
+        accountsByChainId: false,
+      },
+      AccountsController: {
+        internalAccounts: {
+          accounts: false,
+          selectedAccount: false,
+        },
+      },
+      AddressBookController: {
+        addressBook: false,
+      },
+      ApprovalController: {
+        approvalFlows: false,
+        pendingApprovals: false,
+        pendingApprovalCount: false,
+      },
+      AssetsContractController: {},
+      CurrencyRateController: {
+        currencyRates: true,
+        currentCurrency: true,
+      },
+      GasFeeController: {
+        estimatedGasFeeTimeBounds: true,
+        gasEstimateType: true,
+        gasFeeEstimates: true,
+        gasFeeEstimatesByChainId: true,
+        nonRPCGasFeeApisDisabled: false,
+      },
+      KeyringController: {
+        isUnlocked: true,
+        keyrings: false,
+      },
+      LoggingController: {
+        logs: false,
+      },
+      NetworkController: {
+        networkConfigurations: false,
+        networksMetadata: true,
+        providerConfig: {
+          chainId: true,
+          id: true,
+          nickname: true,
+          rpcPrefs: false,
+          rpcUrl: false,
+          ticker: true,
+          type: true,
+        },
+        selectedNetworkClientId: false,
+      },
+      NftController: {
+        allNftContracts: false,
+        allNfts: false,
+        ignoredNfts: false,
+      },
+      NftDetectionController: false,
+      PPOMController: {
+        storageMetadata: [],
+        versionInfo: [],
+      },
+      PermissionController: {
+        subjects: false,
+      },
+      PhishingController: {},
+      PreferencesController: {
+        disabledRpcMethodPreferences: true,
+        featureFlags: true,
+        identities: false,
+        isIpfsGatewayEnabled: true,
+        ipfsGateway: false,
+        lostIdentities: false,
+        securityAlertsEnabled: false,
+        displayNftMedia: true,
+        selectedAddress: false,
+        useNftDetection: true,
+        useTokenDetection: true,
+        useTransactionSimulations: true,
+      },
+      SignatureController: {
+        unapprovedMsgCount: true,
+        unapprovedMsgs: false,
+        unapprovedPersonalMsgCount: true,
+        unapprovedPersonalMsgs: false,
+        unapprovedTypedMessages: false,
+        unapprovedTypedMessagesCount: true,
+      },
+      SmartTransactionsController: {
+        smartTransactionsState: {
+          fees: {
+            approvalTxFees: true,
+            tradeTxFees: true,
+          },
+          liveness: true,
+          smartTransactions: false,
+          userOptIn: true,
+          userOptInV2: true,
+        },
+      },
+      SnapController: {
+        unencryptedSnapStates: false,
+        snapStates: false,
+        snaps: false,
+      },
+      SnapInterface: {
+        interfaces: false,
+      },
+      SnapsRegistry: {
+        database: false,
+        lastUpdated: false,
+        databaseUnavailable: false,
+      },
+      SubjectMetadataController: {
+        subjectMetadata: false,
+      },
+      SwapsController: {
+        swapsState: {
+          approveTxId: false,
+          customApproveTxData: false,
+          customGasPrice: true,
+          customMaxFeePerGas: true,
+          customMaxGas: true,
+          customMaxPriorityFeePerGas: true,
+          errorKey: true,
+          fetchParams: true,
+          quotes: false,
+          quotesLastFetched: true,
+          quotesPollingLimitEnabled: true,
+          routeState: true,
+          saveFetchedQuotes: true,
+          selectedAggId: true,
+          swapsFeatureFlags: true,
+          swapsFeatureIsLive: true,
+          swapsQuotePrefetchingRefreshTime: true,
+          swapsQuoteRefreshTime: true,
+          swapsStxBatchStatusRefreshTime: true,
+          swapsStxGetTransactionsRefreshTime: true,
+          swapsStxMaxFeeMultiplier: true,
+          swapsUserFeeLevel: true,
+          tokens: false,
+          topAggId: false,
+          tradeTxId: false,
+        },
+      },
+      TokenDetectionController: {
+        [AllProperties]: false,
+      },
+      TokenListController: {
+        preventPollingOnNetworkRestart: true,
+        tokenList: false,
+        tokensChainsCache: {
+          [AllProperties]: false,
+        },
+      },
+      TokenRatesController: {
+        marketData: false,
+      },
+      TokensController: {
+        allDetectedTokens: {
+          [AllProperties]: false,
+        },
+        allIgnoredTokens: {
+          [AllProperties]: false,
+        },
+        allTokens: {
+          [AllProperties]: false,
+        },
+        detectedTokens: false,
+        ignoredTokens: false,
+        tokens: false,
+      },
+      TransactionController: {
+        transactions: false,
+        lastFetchedBlockNumbers: false,
+        methodData: false,
+        submitHistory: false,
+      },
+    },
+  },
+  experimentalSettings: true,
+  fiatOrders: false,
+  infuraAvailability: true,
+  inpageProvider: true,
+  legalNotices: true,
+  modals: true,
+  navigation: true,
+  networkOnboarded: true,
+  notification: true,
+  onboarding: true,
+  privacy: true,
+  rpcEvents: true,
+  sdk: true,
+  security: true,
+  settings: true,
+  signatureRequest: false,
+  smartTransactions: true,
+  swaps: false,
+  transaction: false,
+  transactionMetrics: false,
+  user: {
+    ambiguousAddressEntries: false,
+    appTheme: true,
+    backUpSeedphraseVisible: true,
+    gasEducationCarouselSeen: true,
+    initialScreen: true,
+    isAuthChecked: true,
+    loadingMsg: true,
+    loadingSet: true,
+    passwordSet: true,
+    protectWalletModalVisible: true,
+    seedphraseBackedUp: true,
+    userLoggedIn: true,
+  },
+  wizard: true,
+};
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
 const METAMASK_BUILD_TYPE = process.env['METAMASK_BUILD_TYPE'] || 'main'; // eslint-disable-line dot-notation
@@ -117,6 +350,47 @@ function removeSES(report) {
   }
 }
 
+/**
+ * Return a "masked" copy of the given object. The returned object includes
+ * only the properties present in the mask.
+ *
+ * The mask is an object that mirrors the structure of the given object, except
+ * the only values are `true`, `false, a sub-mask, or the 'AllProperties"
+ * symbol. `true` implies the property should be included, and `false` will
+ * exclude it. A sub-mask implies the property should be further masked
+ * according to that sub-mask. The "AllProperties" symbol is used for objects
+ * with dynamic keys, and applies a rule (either `true`, `false`, or a
+ * sub-mask`) to every property in that object.
+ *
+ * If a property is excluded, its type is included instead.
+ *
+ * @param {object} object - The object to mask
+ * @param {{[key: string]: object | boolean}} mask - The mask to apply to the object
+ */
+export function maskObject(object, mask) {
+  if (!object) return {};
+  let maskAllProperties = false;
+  if (Object.keys(mask).includes(AllProperties)) {
+    if (Object.keys(mask).length > 1) {
+      throw new Error('AllProperties mask key does not support sibling keys');
+    }
+    maskAllProperties = true;
+  }
+  return Object.keys(object).reduce((state, key) => {
+    const maskKey = maskAllProperties ? mask[AllProperties] : mask[key];
+    if (maskKey === true) {
+      state[key] = object[key];
+    } else if (maskKey && typeof maskKey === 'object') {
+      state[key] = maskObject(object[key], maskKey);
+    } else if (maskKey === undefined || maskKey === false) {
+      state[key] = typeof object[key];
+    } else {
+      throw new Error(`Unsupported mask entry: ${maskKey}`);
+    }
+    return state;
+  }, {});
+}
+
 function rewriteReport(report) {
   try {
     // filter out SES from error stack trace
@@ -134,6 +408,16 @@ function rewriteReport(report) {
     removeDeviceTimezone(report);
     // remove device name
     removeDeviceName(report);
+
+    const appState = store?.getState();
+    if (appState) {
+      const maskedState = maskObject(appState, SENTRY_STATE);
+      report.contexts.appState = maskedState;
+    }
+
+    if (!report.contexts.appState) {
+      report.contexts.appState = {};
+    }
   } catch (err) {
     console.error('ENTER ERROR OF REPORT ', err);
     throw err;
