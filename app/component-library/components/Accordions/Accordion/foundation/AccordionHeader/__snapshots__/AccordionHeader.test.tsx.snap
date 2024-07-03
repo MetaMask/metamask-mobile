@@ -50,7 +50,7 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
     <SvgMock
       color="#0376c9"
       height={16}
-      name="ArrowDown"
+      name="ArrowUp"
       style={
         {
           "height": 16,
