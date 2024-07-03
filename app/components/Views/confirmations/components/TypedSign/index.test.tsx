@@ -41,6 +41,11 @@ jest.mock('../../../../../core/Engine', () => ({
         removeListener: jest.fn(),
       },
     },
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
+      },
+    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),
