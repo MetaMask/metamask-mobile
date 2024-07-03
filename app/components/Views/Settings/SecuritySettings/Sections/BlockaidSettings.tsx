@@ -5,7 +5,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import { Switch, View } from 'react-native';
+import { Linking, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectIsSecurityAlertsEnabled } from '../../../../../selectors/preferencesController';
 import Engine from '../../../../../core/Engine';
@@ -59,7 +59,16 @@ const BlockaidSettings = () => {
         variant={TextVariant.BodyMD}
         style={styles.desc}
       >
-        {strings('app_settings.blockaid_desc')}
+        {strings('app_settings.blockaid_desc')}{' '}
+        <Text
+          onPress={() =>
+            Linking.openURL(
+              'https://support.metamask.io/privacy-and-security/how-to-turn-on-security-alerts/',
+            )
+          }
+        >
+          {strings('app_settings.learn_more')}
+        </Text>
       </Text>
     </>
   );

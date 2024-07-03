@@ -994,7 +994,6 @@
     "token_nft_ens_subheading": "トークン、NFT、ENSの自動検出",
     "security_check_subheading": "セキュリティチェック",
     "symbol_required": "シンボルが必要です",
-    "blockaid_desc": "プライバシーを保護 - サードパーティとデータが一切共有されません。Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Optimism、Polygon、Sepolia、Baseで利用可能。",
     "security_alerts": "セキュリティアラート",
     "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
     "smart_transactions_opt_in_heading": "スマートトランザクション",
