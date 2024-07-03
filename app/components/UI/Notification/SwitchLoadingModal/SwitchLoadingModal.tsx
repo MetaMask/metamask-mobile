@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import LoaderModal from './LoaderModal';
 import Loader from './Loader';
 
@@ -11,18 +11,22 @@ const SwitchLoadingModal = ({
   loadingText: string;
   error?: string;
 }) => {
-  const onCancel = useCallback(() => {
-    // Do nothing
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(loading || !!error);
+  }, [loading, error]);
+
+  const handleVisibility = useCallback(() => {
+    setIsVisible(false);
   }, []);
 
-  const isVisible = loading || !!error;
-
   return (
-    <LoaderModal isVisible={isVisible} onCancel={onCancel}>
+    <LoaderModal isVisible={isVisible} onCancel={handleVisibility}>
       <Loader
         loadingText={loadingText}
         errorText={error}
-        onDismiss={onCancel}
+        onDismiss={handleVisibility}
       />
     </LoaderModal>
   );

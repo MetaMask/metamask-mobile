@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable import/prefer-default-export */
 import { useState, useCallback, useEffect } from 'react';
 import { getErrorMessage } from '../../../util/errorHandling';
@@ -118,10 +119,9 @@ export function useAccountSettingsProps(accounts: string[]) {
       setLoading(true);
       setError(null);
       fetchAccountSettings(accounts)
-        .then((res) => setData(res))
-        .catch((e) => {
-          const errorMessage =
-            e instanceof Error ? e.message : JSON.stringify(e ?? '');
+        .then((res: any) => setData(res))
+        .catch((e: any) => {
+          const errorMessage = getErrorMessage(e);
           setError(errorMessage);
         })
         .finally(() => setLoading(false));

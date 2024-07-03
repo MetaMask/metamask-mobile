@@ -36,8 +36,11 @@ const createStyles = (colors) =>
     text: {
       lineHeight: 20,
       paddingHorizontal: 24,
-      fontSize: 13,
+      marginVertical: 12,
       width: '100%',
+    },
+    button: {
+      alignSelf: 'center',
     },
   });
 
@@ -61,21 +64,22 @@ const Loader = ({
         ) : (
           <Icon
             name={IconName.Danger}
-            size={IconSize.Lg}
+            size={IconSize.Xl}
             color={IconColor.Error}
           />
         )}
       </View>
-      <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
+      <Text variant={TextVariant.HeadingSMRegular} style={styles.text}>
         {errorText || loadingText}
       </Text>
       {!!errorText && (
         <Button
           variant={ButtonVariants.Primary}
           label={strings('app_settings.notifications_dismiss_modal')}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
+          size={ButtonSize.Md}
+          width={'90%' as ButtonWidthTypes}
           onPress={onDismiss}
+          style={styles.button}
         />
       )}
     </View>

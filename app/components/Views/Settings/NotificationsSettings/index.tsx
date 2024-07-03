@@ -3,6 +3,9 @@
 import React, { FC, useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
+
+import { RootState } from '../../../../reducers';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -34,8 +37,7 @@ import {
   useEnableNotifications,
 } from '../../../../util/notifications/hooks/useNotifications';
 import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
-import { RootState } from 'app/reducers';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
@@ -49,6 +51,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     loading: enableLoading,
     error: enablingError,
   } = useEnableNotifications();
+
   const {
     disableNotifications,
     loading: disableLoading,
@@ -131,6 +134,30 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     </>
   );
 
+  const renderAccounts = useCallback(
+    () =>
+      accounts.map((account) => (
+        <NotificationOptionToggle
+          type={NotificationsToggleTypes.ACCOUNT}
+          icon={accountAvatarType}
+          key={account.address}
+          title={account.name}
+          address={account.address}
+          disabledSwitch={accountSettingsProps.initialLoading}
+          isLoading={accountSettingsProps.accountsBeingUpdated.includes(
+            account.address,
+          )}
+          isEnabled={
+            accountSettingsProps.data?.[account.address.toLowerCase()] ?? false
+          }
+          refetchAccountSettings={async () => {
+            await accountSettingsProps.update(accountAddresses);
+          }}
+        />
+      )),
+    [accountAddresses, accountAvatarType, accountSettingsProps, accounts],
+  );
+
   return (
     <ScrollView style={styles.wrapper}>
       <MainNotificationSettings />
@@ -146,26 +173,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             )}
             styles={styles}
           />
-          {accounts.map((account) => (
-            <NotificationOptionToggle
-              type={NotificationsToggleTypes.ACCOUNT}
-              icon={accountAvatarType}
-              key={account.address}
-              title={account.name}
-              address={account.address}
-              disabledSwitch={accountSettingsProps.initialLoading}
-              isLoading={accountSettingsProps.accountsBeingUpdated.includes(
-                account.address,
-              )}
-              isEnabled={
-                accountSettingsProps.data?.[account.address.toLowerCase()] ??
-                false
-              }
-              refetchAccountSettings={async () => {
-                await accountSettingsProps.update(accountAddresses);
-              }}
-            />
-          ))}
+          {renderAccounts()}
         </>
       )}
       <SwitchLoadingModal
