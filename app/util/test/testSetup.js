@@ -21,10 +21,10 @@ global.window = {
         style: {},
         appendChild: jest.fn(),
         removeChild: jest.fn(),
-        ownerDocument: global.window.document,
+        ownerDocument: {
+          defaultView: global.window,
+        },
       };
-      element.ownerDocument = global.window.document;
-      element.ownerDocument.defaultView = global.window;
       return element;
     },
     body: {
