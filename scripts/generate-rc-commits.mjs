@@ -31,11 +31,11 @@ async function getPRLabels(prNumber) {
     if(teamArray.length > 1 && teamArray.includes('team-mobile-platform'))
       teamArray = teamArray.filter(item => item !== 'team-mobile-platform');
 
-    return teamArray || 'Unknown';
+    return teamArray || ['Unknown'];
 
   } catch (error) {
     console.error(`Error fetching labels for PR #${prNumber}:`, error);
-    return 'Unknown';
+    return ['Unknown'];
   }
 }
 
