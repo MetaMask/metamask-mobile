@@ -8,7 +8,6 @@ import { ResultType, Reason } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from './TransactionBlockaidBanner';
 
 jest.mock('../../../../../core/Engine', () => ({
-  resetState: jest.fn(),
   context: {
     PreferencesController: {
       state: {
