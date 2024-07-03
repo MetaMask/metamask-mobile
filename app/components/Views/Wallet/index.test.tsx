@@ -11,7 +11,7 @@ import Routes from '../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import {CommonSelectorsIDs} from "../../../../e2e/selectors/Common.selectors";
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 const mockEngine = Engine;
 

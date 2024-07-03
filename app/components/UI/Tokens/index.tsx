@@ -3,7 +3,6 @@ import React, { useRef, useState, LegacyRef } from 'react';
 import {
   TouchableOpacity,
   View,
-  Platform,
   FlatList,
   RefreshControl,
   Pressable,
