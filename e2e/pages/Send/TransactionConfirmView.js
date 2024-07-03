@@ -1,6 +1,5 @@
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
-
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
@@ -40,7 +39,7 @@ class TransactionConfirmationView {
   }
 
   get transactionAmount() {
-    return Matchers.getElementByText(
+    return Matchers.getElementByID(
       TransactionConfirmViewSelectorsIDs.COMFIRM_TXN_AMOUNT,
     );
   }
@@ -81,6 +80,8 @@ class TransactionConfirmationView {
   }
 
   async tapEstimatedGasLink() {
+    await Gestures.swipe(this.transactionAmount, 'up', 'fast');
+
     await Gestures.waitAndTap(this.estimatedGasLink);
   }
 
