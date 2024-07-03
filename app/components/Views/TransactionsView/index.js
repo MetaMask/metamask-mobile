@@ -28,12 +28,12 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectIdentities } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
 import { selectPendingSmartTransactionsBySender } from '../../../selectors/smartTransactionsController';
 import { selectNonReplacedTransactions } from '../../../selectors/transactionController';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -44,8 +44,7 @@ const styles = StyleSheet.create({
 const TransactionsView = ({
   navigation,
   conversionRate,
-  selectedAddress,
-  identities,
+  selectedInternalAccount,
   networkType,
   currentCurrency,
   transactions,
@@ -57,12 +56,16 @@ const TransactionsView = ({
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
 
+  const selectedAddress = toChecksumHexAddress(
+    selectedInternalAccount?.address,
+  );
+
   const filterTransactions = useCallback(
     (networkId) => {
       if (networkId === NETWORK_ID_LOADING) return;
 
       let accountAddedTimeInsertPointFound = false;
-      const addedAccountTime = identities[selectedAddress]?.importTime;
+      const addedAccountTime = selectedInternalAccount?.metadata.importTime;
 
       const submittedTxs = [];
       const confirmedTxs = [];
@@ -140,7 +143,7 @@ const TransactionsView = ({
       setConfirmedTxs(confirmedTxs);
       setLoading(false);
     },
-    [transactions, identities, selectedAddress, tokens, chainId],
+    [transactions, selectedInternalAccount, selectedAddress, tokens, chainId],
   );
 
   useEffect(() => {
@@ -184,17 +187,13 @@ TransactionsView.propTypes = {
    */
   currentCurrency: PropTypes.string,
   /**
-  /* Identities object required to get account name
+  /* InternalAccount object required to get account name, address and import time
   */
-  identities: PropTypes.object,
+  selectedInternalAccount: PropTypes.object,
   /**
   /* navigation object required to push new views
   */
   navigation: PropTypes.object,
-  /**
-   * A string that represents the selected address
-   */
-  selectedAddress: PropTypes.string,
   /**
    * An array that represents the user transactions
    */
@@ -214,8 +213,6 @@ TransactionsView.propTypes = {
 };
 
 const mapStateToProps = (state) => {
-  const selectedAddress =
-    selectSelectedInternalAccountChecksummedAddress(state);
   const chainId = selectChainId(state);
 
   // Remove duplicate confirmed STX
@@ -229,8 +226,7 @@ const mapStateToProps = (state) => {
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
     tokens: selectTokens(state),
-    selectedAddress,
-    identities: selectIdentities(state),
+    selectedInternalAccount: selectSelectedInternalAccount(state),
     transactions: [
       ...nonReplacedTransactions,
       ...pendingSmartTransactions,
