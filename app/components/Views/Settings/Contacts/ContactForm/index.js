@@ -190,8 +190,8 @@ class ContactForm extends PureComponent {
           ));
       this.setState({
         address,
-        name: contact?.name || '',
-        memo: contact?.memo || '',
+        name: contact?.name ?? '',
+        memo: contact?.memo ?? '',
         addressReady: true,
         editable: false,
       });
