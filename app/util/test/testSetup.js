@@ -33,10 +33,7 @@ global.window = {
     removeEventListener: jest.fn(),
     querySelector: jest.fn(),
     querySelectorAll: jest.fn(),
-    defaultView: {
-      getComputedStyle: jest.fn(),
-      document: null,
-    },
+    defaultView: global.window,
   },
   HTMLElement: class {
     constructor() {
