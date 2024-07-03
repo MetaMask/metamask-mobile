@@ -19,14 +19,6 @@ module.exports = {
       test: './node_modules/@metamask/notification-services-controller',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
-    {
-      test: './node_modules/@metamask-previews/profile-sync-controller',
-      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
-    },
-    {
-      test: './node_modules/@metamask-previews/notification-services-controller',
-      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
-    },
   ],
   env: {
     production: {

@@ -10,11 +10,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 
-import { Notification } from '../../../../../util/notifications';
+import { Notification, TRIGGER_TYPES } from '../../../../../util/notifications';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { TypeLinkFields } from '../../../../../util/notifications/types/featureAnnouncement/TypeLink';
 import { NotificationDetailStyles } from '../styles';
-import { TRIGGER_TYPES } from '@metamask-previews/notification-services-controller/dist/types/NotificationServicesController/constants';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const PLACEHOLDER_IMG_URI = require('../../../../../images/no-image-placeholder.jpeg');

@@ -13,10 +13,13 @@ import { createStyles } from './styles';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationRow } from '../Row';
-import { Notification, getRowDetails } from '../../../../util/notifications';
+import {
+  Notification,
+  getRowDetails,
+  TRIGGER_TYPES,
+} from '../../../../util/notifications';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
 import Routes from '../../../../constants/navigation/Routes';
-import { TRIGGER_TYPES } from '@metamask-previews/notification-services-controller/dist/types/NotificationServicesController/constants';
 
 interface NotificationsList {
   // TODO: Replace "any" with type
@@ -98,9 +101,9 @@ const Notifications = ({
       }
 
       // TODO - handle feature announcement component
-      if (rowDetails.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
-        return null;
-      }
+      // if (rowDetails.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
+      //   return null;
+      // }
 
       const { title, description, badgeIcon, createdAt, imageUrl, value } =
         rowDetails.row;
