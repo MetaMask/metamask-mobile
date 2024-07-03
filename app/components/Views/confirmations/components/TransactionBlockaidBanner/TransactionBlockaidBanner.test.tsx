@@ -7,6 +7,17 @@ import { TESTID_ACCORDIONHEADER } from '../../../../../component-library/compone
 import { ResultType, Reason } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from './TransactionBlockaidBanner';
 
+jest.mock('../../../../../core/Engine', () => ({
+  resetState: jest.fn(),
+  context: {
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
+      },
+    },
+  },
+}));
+
 jest.mock('react-native-gzip', () => ({
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
