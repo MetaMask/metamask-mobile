@@ -74,6 +74,7 @@ LogBox.ignoreLogs([
   "ViewPropTypes will be removed from React Native, along with all other PropTypes. We recommend that you migrate away from PropTypes and switch to a type system like TypeScript. If you need to continue using ViewPropTypes, migrate to the 'deprecated-react-native-prop-types' package.",
   'ReactImageView: Image source "null"',
   'Warning: componentWillReceiveProps has been renamed',
+  'Warning: Failed prop type: Invalid prop `content` of type `object` supplied to `Coachmark`, expected `string`.',
 ]);
 
 const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;
