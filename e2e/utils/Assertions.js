@@ -99,7 +99,7 @@ class Assertions {
   /**
    * Check if an element with the specified ID does not have the specified label.
    * @param {Promise<Detox.IndexableNativeElement>} elementId - The ID of the element to check.
-   * @param {string} text - The label content to check.
+   * @param {string} label - The label content to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
   static async checkIfElementDoesNotHaveLabel(

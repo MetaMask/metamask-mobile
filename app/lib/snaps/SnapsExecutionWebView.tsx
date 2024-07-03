@@ -4,10 +4,10 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { Component, RefObject } from 'react';
 import { View, ScrollView, NativeSyntheticEvent } from 'react-native';
-import WebView, { WebViewMessageEvent } from 'react-native-webview';
+import WebView, { WebViewMessageEvent } from '@metamask/react-native-webview';
 import { createStyles } from './styles';
 import { WebViewInterface } from '@metamask/snaps-controllers/dist/types/services/webview/WebViewMessageStream';
-import { WebViewError } from 'react-native-webview/lib/WebViewTypes';
+import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { PostMessageEvent } from '@metamask/post-message-stream';
 
 const styles = createStyles();
@@ -21,7 +21,7 @@ interface SnapsExecutionWebViewProps {
 let resolveGetWebView: (arg0: SnapsExecutionWebViewProps) => void;
 let rejectGetWebView: (error: NativeSyntheticEvent<WebViewError>) => void;
 
-const SNAPS_EE_URL = 'https://execution.metamask.io/webview/4.0.0/index.html';
+const SNAPS_EE_URL = 'https://execution.metamask.io/webview/6.5.0/index.html';
 
 export const getSnapsWebViewPromise = new Promise<WebViewInterface>(
   (resolve, reject) => {
