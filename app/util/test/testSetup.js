@@ -21,9 +21,8 @@ global.window = {
         style: {},
         appendChild: jest.fn(),
         removeChild: jest.fn(),
-        ownerDocument: null, // Set to null initially
+        ownerDocument: global.document, // Set ownerDocument during creation
       };
-      element.ownerDocument = global.document; // Set ownerDocument after creation
       return element;
     },
     body: {
@@ -34,7 +33,7 @@ global.window = {
     removeEventListener: jest.fn(),
     querySelector: jest.fn(),
     querySelectorAll: jest.fn(),
-    defaultView: null, // Set to null initially
+    defaultView: global.window, // Set defaultView during creation
   },
 };
 
