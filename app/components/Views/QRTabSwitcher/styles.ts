@@ -55,8 +55,12 @@ const createStyles = (theme: Theme) =>
       marginRight: 2,
     },
     text: {
+      ...theme.typography.sBodyMD,
       color: 'black',
-      fontWeight: '500',
+    },
+    selectedText: {
+      ...theme.typography.sBodyMDMedium,
+      color: theme.colors.primary.default,
     },
   });
 

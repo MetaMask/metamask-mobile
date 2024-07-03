@@ -2,7 +2,7 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
-import React from 'react';
+import React, { useContext } from 'react';
 import Text, {
   TextColor,
   TextVariant,
@@ -17,6 +17,10 @@ import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import ClipboardManager from '../../../core/ClipboardManager';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
 import { showAlert } from '../../../actions/alert';
 import { selectIdentities } from '../../../selectors/preferencesController';
 import { useSelector } from 'react-redux';
@@ -61,12 +65,31 @@ const QRAccountDisplay = (props: { accountAddress: string }) => {
   const addr = props.accountAddress;
   const identities = useSelector(selectIdentities);
   const accountLabel = renderAccountName(addr, identities);
+  const { toastRef } = useContext(ToastContext);
   const addressStart = addr.substring(0, PREFIX_LEN);
   const addressMiddle: string = addr.substring(
     PREFIX_LEN,
     addr.length - SUFFIX_LEN,
   );
   const addressEnd: string = addr.substring(addr.length - SUFFIX_LEN);
+
+  const showCopyNotificationToast = () => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: strings(`notifications.address_copied_to_clipboard`),
+          isBold: false,
+        },
+      ],
+      hasNoTimeout: false,
+    });
+  };
+
+  const handleCopyButton = () => {
+    showCopyNotificationToast();
+    copyAddressToClipboard(props.accountAddress);
+  };
 
   return (
     <SafeAreaView style={styles.wrapper}>
@@ -93,7 +116,7 @@ const QRAccountDisplay = (props: { accountAddress: string }) => {
           startIconName={IconName.Copy}
           size={ButtonSize.Lg}
           label={strings('receive_request.copy_address')}
-          onPress={() => copyAddressToClipboard(props.accountAddress)}
+          onPress={handleCopyButton}
           style={styles.copyButton}
         >
           {strings('receive_request.copy_address')}

@@ -20,18 +20,6 @@ const createStyles = (theme: Theme) =>
       position: 'absolute',
       zIndex: 0,
     },
-    innerView: {
-      flex: 1,
-    },
-    closeIcon: {
-      marginTop: 20,
-      marginRight: 20,
-      width: 40,
-      backgroundColor: 'red',
-      alignSelf: 'flex-end',
-      position: 'absolute',
-      color: theme.brandColors.white['000'],
-    },
     overlayContainerColumn: {
       display: 'flex',
       width: '100%',
@@ -59,14 +47,14 @@ const createStyles = (theme: Theme) =>
       margin: -4,
     },
     overlayText: {
-      color: colors.overlayText,
+      ...theme.typography.sBodyMDMedium,
+      color: theme.brandColors.white,
       position: 'absolute',
-      fontFamily: 'EuclidCircularB-Regular',
       textAlign: 'center',
       textAlignVertical: 'bottom',
       paddingBottom: 28,
       width: '100%',
-      top: -45,
+      top: -40,
     },
   });
 

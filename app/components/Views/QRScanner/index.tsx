@@ -11,7 +11,6 @@ import {
   Image,
   InteractionManager,
   SafeAreaView,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import Text, {

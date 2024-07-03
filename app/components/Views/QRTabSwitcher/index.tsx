@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import QRScanner from '../QRScanner';
+import { strings } from '../../../../locales/i18n';
 import ReceiveRequest from '../../UI/ReceiveRequest';
 import { useTheme } from '../../../util/theme';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
@@ -99,7 +100,11 @@ const QRTabSwitcher = () => {
           <NavbarTitle title={'Receive'} translate={false} disableNetwork />
         ) : null}
         <TouchableOpacity style={styles.closeIcon} onPress={goBack}>
-          <Icon name={'ios-close'} size={30} color={'black'} />
+          <Icon
+            name={'ios-close'}
+            size={30}
+            color={selectedIndex === Screens.Receive ? 'black' : 'white'}
+          />
         </TouchableOpacity>
       </View>
 
@@ -115,14 +120,30 @@ const QRTabSwitcher = () => {
             onPress={() => setSelectedIndex(Screens.Scanner)}
           >
             <View style={styles.segmentedControlItem}>
-              <Text style={styles.text}>Scan QR code</Text>
+              <Text
+                style={
+                  selectedIndex === Screens.Scanner
+                    ? styles.selectedText
+                    : styles.text
+                }
+              >
+                {strings(`qr_tab_switcher.scanner_tab`)}
+              </Text>
             </View>
           </TouchableWithoutFeedback>
           <TouchableWithoutFeedback
             onPress={() => setSelectedIndex(Screens.Receive)}
           >
             <View style={styles.segmentedControlItem}>
-              <Text style={styles.text}>My QR</Text>
+              <Text
+                style={
+                  selectedIndex === Screens.Receive
+                    ? styles.selectedText
+                    : styles.text
+                }
+              >
+                {strings(`qr_tab_switcher.receive_tab`)}
+              </Text>
             </View>
           </TouchableWithoutFeedback>
         </View>
