@@ -1,6 +1,5 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { AccountBalanceProps } from './AccountBalance.types';
 import AccountBalance from './AccountBalance';
 import {
   ACCOUNT_BALANCE_TEST_ID,
