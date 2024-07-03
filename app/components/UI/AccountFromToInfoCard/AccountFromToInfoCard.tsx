@@ -9,7 +9,6 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import { selectIdentities } from '../../../selectors/preferencesController';
 import { collectConfusables } from '../../../util/confusables';
 import { decodeTransferData } from '../../../util/transactions';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
@@ -20,10 +19,10 @@ import useExistingAddress from '../../hooks/useExistingAddress';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import createStyles from './AccountFromToInfoCard.styles';
 import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
+import { useAccounts } from '../../../components/hooks/useAccounts';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const {
-    identities,
     chainId,
     onPressFromAddressIcon,
     ticker,
@@ -40,6 +39,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   } = transactionState;
 
   const fromAddress = safeToChecksumAddress(rawFromAddress);
+  const { accounts } = useAccounts();
 
   const [toAddress, setToAddress] = useState(transactionTo || to);
   const [fromAccountName, setFromAccountName] = useState<string>();
@@ -68,11 +68,17 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       if (fromEns) {
         setFromAccountName(fromEns);
       } else {
-        const { name: fromName } = identities[fromAddress];
-        setFromAccountName(fromName);
+        const found = accounts.find(
+          (account) =>
+            account.address.toLowerCase() === fromAddress.toLowerCase(),
+        );
+        if (found) {
+          const { name: fromName } = found;
+          setFromAccountName(fromName);
+        }
       }
     })();
-  }, [fromAddress, identities, transactionFromName, chainId]);
+  }, [fromAddress, accounts, transactionFromName, chainId]);
 
   useEffect(() => {
     if (existingToAddress) {
@@ -81,25 +87,25 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     }
     (async () => {
       const toEns = await doENSReverseLookup(toAddress, chainId);
+      const found = accounts.find(
+        (account) => account.address.toLowerCase() === toAddress.toLowerCase(),
+      );
       if (toEns) {
         setToAccountName(toEns);
-      } else if (identities[toAddress]) {
-        const { name: toName } = identities[toAddress];
+      } else if (found) {
+        const { name: toName } = found;
         setToAccountName(toName);
       }
     })();
-  }, [existingToAddress, identities, chainId, toAddress, transactionToName]);
+  }, [existingToAddress, accounts, chainId, toAddress, transactionToName]);
 
   useEffect(() => {
-    const accountNames =
-      (identities &&
-        Object.keys(identities).map((hash) => identities[hash].name)) ||
-      [];
+    const accountNames = accounts?.map((account) => account.name) || [];
     const isOwnAccount = ensRecipient && accountNames.includes(ensRecipient);
     if (ensRecipient && !isOwnAccount) {
       setConfusableCollection(collectConfusables(ensRecipient));
     }
-  }, [identities, ensRecipient]);
+  }, [accounts, ensRecipient]);
 
   useEffect(() => {
     let toAddr;
@@ -175,7 +181,6 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
-  identities: selectIdentities(state),
   chainId: selectChainId(state),
   ticker: selectTicker(state),
 });
