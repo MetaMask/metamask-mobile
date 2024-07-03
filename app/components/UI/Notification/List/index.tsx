@@ -20,6 +20,8 @@ import {
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
 
 interface NotificationsList {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   allNotifications: Notification[];
   walletNotifications: HalRawNotification[];

@@ -1,16 +1,5 @@
 /** @type {Detox.DetoxConfig} */
 module.exports = {
-  testRunner: {
-    args: {
-      $0: 'jest',
-      config: 'e2e/jest.e2e.config.js',
-    },
-    jest: {
-      setupTimeout: 220000,
-    },
-    retries: 1,
-  },
-  
   artifacts: {
     rootDir: "./artifacts/screenshots",
     plugins: {
@@ -23,8 +12,27 @@ module.exports = {
         }
       },
     },
-  }, 
+  },
+  testRunner: {
+    args: {
+      $0: 'jest',
+      config: 'e2e/jest.e2e.config.js',
+    },
+    jest: {
+      setupTimeout: 220000,
+    },
+    retries: 1,
+  },
   configurations: {
+    'ios.sim.apiSpecs': {
+      device: 'ios.simulator',
+      app: 'ios.debug',
+      testRunner: {
+        args: {
+          "$0": "node e2e/api-specs/run-api-spec-tests.js",
+        },
+      },
+    },
     'ios.sim.debug': {
       device: 'ios.simulator',
       app: 'ios.debug',

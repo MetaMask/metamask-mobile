@@ -28,6 +28,8 @@ const styles = StyleSheet.create({
 });
 
 interface Step3Props {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   coachmarkRef: any;
   onClose: () => Promise<void>;
 }

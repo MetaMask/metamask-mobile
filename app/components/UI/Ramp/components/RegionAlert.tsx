@@ -37,6 +37,8 @@ interface Props {
   footer?: string;
   dismissButtonText?: string;
   link?: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dismiss?: () => any;
 }
 

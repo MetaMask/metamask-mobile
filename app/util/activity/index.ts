@@ -25,6 +25,8 @@ export const isFromOrToSelectedAddress = (
  * @returns Boolean indicating if the transaction was executed in current chain
  */
 export const isFromCurrentChain = (
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tx: any,
   networkId: string,
   chainId: string,
@@ -36,6 +38,8 @@ export const isFromCurrentChain = (
  * @param transactions Array of transactions
  * @returns Sorted array
  */
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const sortTransactions = (transactions: any[]): any[] =>
   transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
@@ -53,7 +57,11 @@ export const sortTransactions = (transactions: any[]): any[] =>
  * @returns A boolean indicating if the transaction meets the conditions
  */
 export const filterByAddressAndNetwork = (
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tx: any,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tokens: any[],
   selectedAddress: string,
   networkId: string,

@@ -50,6 +50,9 @@ const initialState = {
       TokenBalancesController: {
         contractBalances: {},
       },
+      TokenListController: {
+        tokenList: [],
+      },
       PreferencesController: {
         featureFlags: {},
         identities: {
@@ -132,7 +135,7 @@ const initialState = {
         allNftContracts: {},
       },
       TokenRatesController: {
-        contractExchangeRates: {},
+        marketData: {},
       },
       TransactionController: {
         methodData: {},

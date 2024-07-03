@@ -52,20 +52,20 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
-    await Assertions.checkIfVisible(await SendView.CurrentAccountElement);
+    await Assertions.checkIfVisible(SendView.CurrentAccountElement);
   });
 
   it('should show invalid address error message', async () => {
     await SendView.inputAddress(TETHER_ADDRESS); //Input token address to test for error
 
-    await Assertions.checkIfVisible(await SendView.contractWarning);
+    await Assertions.checkIfVisible(SendView.contractWarning);
 
     await SendView.removeAddress();
   });
 
   it('should input a valid address to send to', async () => {
     await SendView.inputAddress(MYTH_ADDRESS);
-    await Assertions.checkIfVisible(await SendView.zeroBalanceWarning);
+    await Assertions.checkIfVisible(SendView.zeroBalanceWarning);
   });
 
   it('should add a new address to address book via send flow', async () => {

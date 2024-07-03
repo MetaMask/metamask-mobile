@@ -4,7 +4,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { rpcErrors } from '@metamask/rpc-errors';
-import ppomUtil from '../../lib/ppom/ppom-util';
+import ppomUtil, { PPOMRequest } from '../../lib/ppom/ppom-util';
 
 /**
  * A JavaScript object that is not `null`, a function, or an array.
@@ -98,7 +98,7 @@ async function eth_sendTransaction({
     origin: hostname,
   });
 
-  ppomUtil.validateRequest(req, transactionMeta?.id);
+  ppomUtil.validateRequest(req as PPOMRequest, transactionMeta?.id);
 
   res.result = await result;
 }
