@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useCallback, useEffect } from 'react';
 import { View, ScrollView, SafeAreaView } from 'react-native';
 

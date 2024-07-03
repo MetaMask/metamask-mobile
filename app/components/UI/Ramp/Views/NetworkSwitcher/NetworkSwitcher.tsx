@@ -365,6 +365,7 @@ function NetworkSwitcher() {
                   onNetworkSwitch={() => undefined}
                   shouldNetworkSwitchPopToWallet={false}
                   customNetworksList={rampNetworksDetails}
+                  showCompletionMessage={false}
                   displayContinue
                 />
               </>

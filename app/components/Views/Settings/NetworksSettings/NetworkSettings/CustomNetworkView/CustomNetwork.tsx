@@ -31,6 +31,8 @@ const CustomNetwork = ({
   showAddedNetworks,
   customNetworksList,
   displayContinue,
+  showCompletionMessage = true,
+  hideWarningIcons = false,
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedChainId = useSelector(selectChainId);
@@ -57,7 +59,7 @@ const CustomNetwork = ({
     ? supportedNetworkList
     : supportedNetworkList.filter((n) => !n.isAdded);
 
-  if (filteredPopularList.length === 0) {
+  if (filteredPopularList.length === 0 && showCompletionMessage) {
     return (
       <EmptyPopularList goToCustomNetwork={() => switchTab?.goToPage?.(1)} />
     );
@@ -101,7 +103,9 @@ const CustomNetwork = ({
             </CustomText>
           </View>
           <View style={styles.popularWrapper}>
-            {toggleWarningModal && networkConfiguration.warning ? (
+            {!hideWarningIcons &&
+            toggleWarningModal &&
+            networkConfiguration.warning ? (
               <WarningIcon
                 name="warning"
                 size={14}

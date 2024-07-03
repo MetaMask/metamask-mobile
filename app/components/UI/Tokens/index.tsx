@@ -68,7 +68,6 @@ import Button, {
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
-import SkeletonText from '../Ramp/components/SkeletonText';
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
@@ -77,12 +76,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-
-import {
-  PORTFOLIO_BUTTON,
-  STAKE_BUTTON,
-  TOTAL_BALANCE_TEXT,
-} from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 
 import { BrowserTab, TokenI, TokensI } from './types';
 import useRampNetwork from '../Ramp/hooks/useRampNetwork';
@@ -105,6 +98,9 @@ import Box from '../../UI/Ramp/components/Box';
 import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
 import { isPortfolioUrl } from '../../../../app/util/url';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { zeroAddress } from 'ethereumjs-util';
+import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
+import AggregatedPercentage from '../../../component-library/components-temp/Price/AggregatedPercentage';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -136,6 +132,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   );
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
+
   const hideZeroBalanceTokens = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -258,7 +255,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     return (
       <Pressable
         onPress={onStakeButtonPress}
-        {...generateTestId(Platform, STAKE_BUTTON)}
+        testID={WalletViewSelectorsIDs.STAKE_BUTTON}
         style={styles.stakeButton}
       >
         <Text variant={TextVariant.BodyLGMedium}>
@@ -317,10 +314,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     // When the exchange rate of a token is not found, the return is undefined
     // We fallback to the TOKEN_RATE_UNDEFINED to handle it properly
-    const exchangeRate =
-      itemAddress in tokenExchangeRates
+    const tokenMarketData = tokenExchangeRates
+      ? itemAddress in tokenExchangeRates
         ? tokenExchangeRates[itemAddress] || TOKEN_RATE_UNDEFINED
-        : undefined;
+        : undefined
+      : undefined;
 
     const balance =
       asset.balance ||
@@ -337,13 +335,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const balanceValueFormatted = `${balance} ${asset.symbol}`;
 
-    if (!conversionRate || !exchangeRate)
+    if (!conversionRate)
       return {
         balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_BALANCE_LOADING,
         balanceValueFormatted,
       };
 
-    if (exchangeRate === TOKEN_RATE_UNDEFINED)
+    if (!tokenMarketData || tokenMarketData === TOKEN_RATE_UNDEFINED)
       return {
         balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_RATE_UNDEFINED,
         balanceValueFormatted,
@@ -351,7 +349,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const balanceFiatCalculation = Number(
       asset.balanceFiat ||
-        balanceToFiatNumber(balance, conversionRate, exchangeRate),
+        balanceToFiatNumber(balance, conversionRate, tokenMarketData.price),
     );
 
     const balanceFiat =
@@ -366,6 +364,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     const itemAddress = safeToChecksumAddress(asset.address);
 
     const { balanceFiat, balanceValueFormatted } = handleBalance(asset);
+
+    const pricePercentChange1d = itemAddress
+      ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
+      : tokenExchangeRates?.[zeroAddress()]?.pricePercentChange1d;
 
     // render balances according to primary currency
     let mainBalance, secondaryBalance;
@@ -434,6 +436,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         onLongPress={asset.isETH ? null : showRemoveMenu}
         asset={asset}
         balance={secondaryBalance}
+        mainBalance={mainBalance}
       >
         <BadgeWrapper
           badgeElement={
@@ -469,14 +472,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             {/** Add button link to Portfolio Stake if token is mainnet ETH */}
             {asset.isETH && isMainnet && renderStakeButton(asset)}
           </View>
-
-          <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
-            {mainBalance === TOKEN_BALANCE_LOADING ? (
-              <SkeletonText thin style={styles.skeleton} />
-            ) : (
-              mainBalance
-            )}
-          </Text>
+          {!isTestNet(chainId) ? (
+            <PercentageChange value={pricePercentChange1d} />
+          ) : null}
         </View>
 
         {renderScamWarningIcon(asset)}
@@ -622,12 +620,23 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     return (
       <View style={styles.networth}>
-        <Text
-          style={styles.fiatBalance}
-          {...generateTestId(Platform, TOTAL_BALANCE_TEXT)}
-        >
-          {fiatBalance}
-        </Text>
+        <View>
+          <Text
+            style={styles.fiatBalance}
+            testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+          >
+            {fiatBalance}
+          </Text>
+
+          {!isTestNet(chainId) ? (
+            <AggregatedPercentage
+              ethFiat={balance?.ethFiat}
+              tokenFiat={balance?.tokenFiat}
+              tokenFiat1dAgo={balance?.tokenFiat1dAgo}
+              ethFiat1dAgo={balance?.ethFiat1dAgo}
+            />
+          ) : null}
+        </View>
         <Button
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Md}
@@ -635,7 +644,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           style={styles.buyButton}
           onPress={onOpenPortfolio}
           label={strings('asset_overview.portfolio_button')}
-          {...generateTestId(Platform, PORTFOLIO_BUTTON)}
+          testID={WalletViewSelectorsIDs.PORTFOLIO_BUTTON}
           endIconName={IconName.Export}
         />
       </View>
