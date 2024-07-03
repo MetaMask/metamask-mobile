@@ -61,6 +61,7 @@ const BlockaidSettings = () => {
       >
         {strings('app_settings.blockaid_desc')}{' '}
         <Text
+          color={TextColor.Alternative}
           onPress={() =>
             Linking.openURL(
               'https://support.metamask.io/privacy-and-security/how-to-turn-on-security-alerts/',
