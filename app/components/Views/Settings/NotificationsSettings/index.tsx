@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
-import React, { FC, useEffect, useMemo } from 'react';
+import React, { FC, useEffect, useMemo, useCallback } from 'react';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -37,10 +37,10 @@ import {
   useEnableNotifications,
 } from '../../../../util/notifications/hooks/useNotifications';
 import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
-import { useCallback } from 'react';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
+
   const accountAddresses = useMemo(
     () => accounts.map((a) => a.address),
     [accounts],
@@ -134,29 +134,30 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     </>
   );
 
-  const renderAccounts = useCallback(
-    () =>
-      accounts.map((account) => (
-        <NotificationOptionToggle
-          type={NotificationsToggleTypes.ACCOUNT}
-          icon={accountAvatarType}
-          key={account.address}
-          title={account.name}
-          address={account.address}
-          disabledSwitch={accountSettingsProps.initialLoading}
-          isLoading={accountSettingsProps.accountsBeingUpdated.includes(
-            account.address,
-          )}
-          isEnabled={
-            accountSettingsProps.data?.[account.address.toLowerCase()] ?? false
-          }
-          refetchAccountSettings={async () => {
-            await accountSettingsProps.update(accountAddresses);
-          }}
-        />
-      )),
-    [accountAddresses, accountAvatarType, accountSettingsProps, accounts],
-  );
+  const renderAccounts = useCallback(() => {
+    const refetchAccountSettings = async () => {
+      await accountSettingsProps.update(accountAddresses);
+    };
+
+    return accounts.map((account) => (
+      <NotificationOptionToggle
+        type={NotificationsToggleTypes.ACCOUNT}
+        icon={accountAvatarType}
+        key={account.address}
+        title={account.name}
+        address={account.address}
+        disabledSwitch={accountSettingsProps.initialLoading}
+        isLoading={accountSettingsProps.accountsBeingUpdated.includes(
+          account.address,
+        )}
+        isEnabled={
+          accountSettingsProps.data?.[account.address.toLowerCase()] ?? false
+        }
+        refetchAccountSettings={refetchAccountSettings}
+      />
+    ));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountSettingsProps]);
 
   return (
     <ScrollView style={styles.wrapper}>
