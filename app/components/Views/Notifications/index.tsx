@@ -1,15 +1,11 @@
 /* eslint-disable react/display-name */
-import React, { useCallback, useEffect, useState } from 'react';
-import { InteractionManager, View, TouchableOpacity } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
 import { createStyles } from './styles';
 import Notifications from '../../UI/Notification/List';
-import {
-  Notification,
-  TRIGGER_TYPES,
-  sortNotifications,
-} from '../../../util/notifications';
+import { TRIGGER_TYPES, sortNotifications } from '../../../util/notifications';
 import Icon, {
   IconName,
   IconSize,
@@ -26,111 +22,67 @@ import {
   getNotificationsList,
 } from '../../../selectors/pushNotifications';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
-import { NavigationProp } from '@react-navigation/native';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
+
+const TRIGGER_TYPES_VALS: ReadonlySet<string> = new Set<string>(
+  Object.values(TRIGGER_TYPES),
+);
 
 const NotificationsView = ({
   navigation,
-  selectedAddress,
 }: {
-  navigation: NavigationProp<Record<string, undefined>>;
-  selectedAddress: string;
+  navigation: NavigationProp<ParamListBase>;
 }) => {
   const styles = createStyles();
-  /**
-   * Destruct methods, state, and data from the custom hook
-   * this call will be used to update the store `pushNotifications` state
-   */
   const { listNotifications, isLoading } = useListNotifications();
-
-  /**
-   * Selectors
-   */
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
   const notifications = useSelector(getNotificationsList);
 
-  /**
-   * Defines local state for notifications
-   */
-  const [allNotifications, setAllNotifications] = useState<Notification[]>([
-    ...notifications,
-  ]);
-  const [walletNotifications, setWalletNotifications] = useState<
-    Notification[]
-  >([]);
-  const [announcementsNotifications, setAnnouncementsNotifications] = useState<
-    Notification[]
-  >([]);
-  const [loading, setLoading] = useState<boolean>(isLoading);
-
-  const filterNotifications = useCallback(
-    (address) => {
-      if (address === null) {
-        setLoading(false);
-        return;
+  const allNotifications = useMemo(() => {
+    // All unique notifications
+    const uniqueIDs = new Set<string>();
+    const uniqueNotifications = notifications.filter((n) => {
+      if (!uniqueIDs.has(n.id)) {
+        uniqueIDs.add(n.id);
+        return true;
       }
+      return false;
+    });
+    const sortedNotifications = sortNotifications(uniqueNotifications);
+    return sortedNotifications;
+  }, [notifications]);
 
-      const wallet: Notification[] = [];
-      const announcements: Notification[] = [];
-      const uniqueNotifications: Notification[] = [];
-
-      const allNotificationsSorted = sortNotifications(notifications);
-      const seenIds = new Set();
-
-      for (const notification of allNotificationsSorted) {
-        if (!seenIds.has(notification.id)) {
-          seenIds.add(notification.id);
-          uniqueNotifications.push(notification);
-          if (notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
-            announcements.push(notification);
-          } else {
-            wallet.push(notification);
-          }
-        }
-      }
-
-      setAllNotifications(uniqueNotifications);
-      setWalletNotifications(wallet);
-      setAnnouncementsNotifications(announcements);
-
-      setLoading(false);
-    },
-    [notifications],
+  // Wallet notifications = On-Chain + Feature Announcements
+  const walletNotifications = useMemo(
+    () => allNotifications.filter((n) => TRIGGER_TYPES_VALS.has(n.type)),
+    [allNotifications],
   );
 
+  // NOTE - We currently do not support web3 notifications
+  const announcementNotifications = useMemo(() => [], []);
+
+  // Effect - fetch notifications when component/view is visible.
   useEffect(() => {
-    setLoading(true);
     async function updateNotifications() {
       await listNotifications();
     }
     updateNotifications();
-    InteractionManager.runAfterInteractions(() => {
-      filterNotifications(selectedAddress);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedAddress]);
-
-  const notificationToShow =
-    allNotifications || walletNotifications || announcementsNotifications;
-
-  /** Current address is an important piece of notification since it is
-   * used by MM auth snap to derivated the token/identifier and to MM storage to store notifications
-   * TODO: Need to figure out the best place to fetch notifications from MM auth when user switches accounts, Maybe on the Engine and store it on the redux store
-   */
+  }, [listNotifications]);
 
   return (
     <View
       style={styles.wrapper}
       testID={NotificationsViewSelectorsIDs.NOTIFICATIONS_CONTAINER}
     >
-      {isNotificationEnabled && notificationToShow.length > 0 ? (
+      {isNotificationEnabled && allNotifications.length > 0 ? (
         <Notifications
           navigation={navigation}
           allNotifications={allNotifications}
           walletNotifications={walletNotifications}
-          announcementsNotifications={announcementsNotifications}
-          loading={loading}
+          web3Notifications={announcementNotifications}
+          loading={isLoading}
         />
       ) : (
         <Empty

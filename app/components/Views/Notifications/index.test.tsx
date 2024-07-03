@@ -31,10 +31,7 @@ describe('NotificationsView', () => {
 
   it('matches snapshot', () => {
     const { toJSON } = renderWithProvider(
-      <NotificationsView
-        navigation={navigation}
-        selectedAddress={'0x123123123'}
-      />,
+      <NotificationsView navigation={navigation} />,
       {
         state: mockInitialState,
       },
@@ -44,10 +41,7 @@ describe('NotificationsView', () => {
 
   it('matches snapshot without notifications', () => {
     const { toJSON } = renderWithProvider(
-      <NotificationsView
-        navigation={navigation}
-        selectedAddress={'0x123123123'}
-      />,
+      <NotificationsView navigation={navigation} />,
       {
         state: mockInitialState,
       },

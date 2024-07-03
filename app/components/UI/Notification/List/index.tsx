@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import ScrollableTabView, {
   DefaultTabBar,
   DefaultTabBarProps,
@@ -20,65 +20,153 @@ import {
 } from '../../../../util/notifications';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
 import Routes from '../../../../constants/navigation/Routes';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
-interface NotificationsList {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+interface NotificationsListProps {
+  navigation: NavigationProp<ParamListBase>;
   allNotifications: Notification[];
   walletNotifications: Notification[];
-  announcementsNotifications: Notification[];
+  web3Notifications: Notification[];
   loading: boolean;
 }
 
-const Notifications = ({
-  navigation,
-  allNotifications,
-  walletNotifications,
-  announcementsNotifications,
-  loading,
-}: NotificationsList) => {
+interface NotificationsListItemProps {
+  navigation: NavigationProp<ParamListBase>;
+  notification: Notification;
+}
+
+function useStyles() {
   const theme = useTheme();
   const { colors } = theme;
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  return { colors, styles };
+}
+
+function Loading() {
+  const { colors, styles } = useStyles();
+
+  return (
+    <View style={styles.loaderContainer}>
+      <ActivityIndicator color={colors.primary.default} size="large" />
+    </View>
+  );
+}
+
+function NotificationsListItem(props: NotificationsListItemProps) {
+  const { styles } = useStyles();
+
+  const onNotificationClick = useCallback(
+    (item: Notification) =>
+      props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
+        notification: item,
+      }),
+    [props.navigation],
+  );
+
+  const rowDetails = getRowDetails(props.notification);
+
+  if (!rowDetails) {
+    return null;
+  }
+
+  // TODO - handle feature announcement component
+  if (rowDetails.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
+    return null;
+  }
+
+  const { title, description, badgeIcon, createdAt, imageUrl, value } =
+    rowDetails.row;
+  return (
+    <NotificationRow.Root
+      handleOnPress={() => onNotificationClick(props.notification)}
+      styles={styles}
+      simultaneousHandlers={undefined}
+    >
+      <NotificationRow.Icon
+        notificationType={props.notification.type}
+        badgeIcon={badgeIcon}
+        imageUrl={imageUrl}
+        styles={styles}
+      />
+      <NotificationRow.Content
+        title={title}
+        description={description}
+        createdAt={createdAt}
+        value={value}
+        styles={styles}
+      />
+      {/* TODO - HANDLE FEATURE ANNOUNCEMENT LINKS */}
+      {/* {hasActions && (
+            <NotificationRow.Actions
+              link={notification.data.link}
+              action={notification.data.action}
+              styles={styles}
+            />
+          )} */}
+    </NotificationRow.Root>
+  );
+}
+
+function useNotificationListProps(props: {
+  navigation: NavigationProp<ParamListBase>;
+}) {
+  const { styles } = useStyles();
+
+  const getListProps = useCallback(
+    (data: Notification[], tabLabel?: string) => {
+      const listProps: FlatListProps<Notification> = {
+        keyExtractor: (item) => item.id,
+        data,
+        ListEmptyComponent: (
+          <Empty
+            testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
+          />
+        ),
+        contentContainerStyle: styles.list,
+        // eslint-disable-next-line react/display-name, react/prop-types
+        renderItem: ({ item }) => (
+          <NotificationsListItem
+            notification={item}
+            // eslint-disable-next-line react/prop-types
+            navigation={props.navigation}
+          />
+        ),
+        initialNumToRender: 10,
+        maxToRenderPerBatch: 2,
+        onEndReachedThreshold: 0.5,
+      };
+
+      return { ...listProps, tabLabel: tabLabel ?? '' };
+    },
+    [props.navigation, styles.list],
+  );
+
+  return getListProps;
+}
+
+function SingleNotificationList(props: NotificationsListProps) {
+  const getListProps = useNotificationListProps(props);
+
+  return <FlatList {...getListProps(props.allNotifications)} />;
+}
+
+function TabbedNotificationList(props: NotificationsListProps) {
+  const { colors, styles } = useStyles();
   const { trackEvent } = useMetrics();
 
-  const onPress = useCallback(
-    (item: Notification) => {
-      navigation.navigate(Routes.NOTIFICATIONS.DETAILS, { notification: item });
-    },
-    [navigation],
-  );
+  const getListProps = useNotificationListProps(props);
 
-  const renderTabBar = useCallback(
-    (props: TabBarProps<DefaultTabBarProps>) => (
-      <View>
-        <DefaultTabBar
-          underlineStyle={styles.tabUnderlineStyle}
-          activeTextColor={colors.primary.default}
-          inactiveTextColor={colors.text.default}
-          backgroundColor={colors.background.default}
-          tabStyle={styles.tabStyle}
-          textStyle={styles.textStyle}
-          style={styles.tabBar}
-          {...props}
-        />
-      </View>
-    ),
-    [styles, colors],
-  );
-
-  const onChangeTab = useCallback(
-    (obj) => {
-      switch (obj.ref.props.tabLabel) {
-        case strings('notifications.all'):
+  const onTabClick = useCallback(
+    (tabLabel: string) => {
+      switch (tabLabel) {
+        case strings('notifications.list.0'):
           trackEvent(MetaMetricsEvents.ALL_NOTIFICATIONS);
           break;
-        case strings('notifications.wallet'):
+        case strings('notifications.list.1'):
           trackEvent(MetaMetricsEvents.WALLET_NOTIFICATIONS);
           break;
-        case strings('notifications.web3'):
-          trackEvent(MetaMetricsEvents.ANNOUCEMENTS_NOTIFICATIONS);
+        case strings('notifications.list.2'):
+          trackEvent(MetaMetricsEvents.WEB3_NOTIFICATIONS);
           break;
         default:
           break;
@@ -87,98 +175,72 @@ const Notifications = ({
     [trackEvent],
   );
 
-  const combinedLists = useMemo(
-    () => [allNotifications, walletNotifications, announcementsNotifications],
-    [allNotifications, walletNotifications, announcementsNotifications],
-  );
-
-  const renderNotificationRow = useCallback(
-    (notification: Notification) => {
-      const rowDetails = getRowDetails(notification);
-
-      if (!rowDetails) {
-        return null;
-      }
-
-      // TODO - handle feature announcement component
-      // if (rowDetails.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
-      //   return null;
-      // }
-
-      const { title, description, badgeIcon, createdAt, imageUrl, value } =
-        rowDetails.row;
-      return (
-        <NotificationRow.Root
-          handleOnPress={() => onPress(notification)}
-          styles={styles}
-          simultaneousHandlers={undefined}
-        >
-          <NotificationRow.Icon
-            notificationType={notification.type}
-            badgeIcon={badgeIcon}
-            imageUrl={imageUrl}
-            styles={styles}
+  return (
+    <ScrollableTabView
+      renderTabBar={(tabProps: TabBarProps<DefaultTabBarProps>) => (
+        <View>
+          <DefaultTabBar
+            underlineStyle={styles.tabUnderlineStyle}
+            activeTextColor={colors.primary.default}
+            inactiveTextColor={colors.text.default}
+            backgroundColor={colors.background.default}
+            tabStyle={styles.tabStyle}
+            textStyle={styles.textStyle}
+            style={styles.tabBar}
+            {...tabProps}
           />
-          <NotificationRow.Content
-            title={title}
-            description={description}
-            createdAt={createdAt}
-            value={value}
-            styles={styles}
-          />
-          {/* TODO - HANDLE FEATURE ANNOUNCEMENT LINKS */}
-          {/* {hasActions && (
-            <NotificationRow.Actions
-              link={notification.data.link}
-              action={notification.data.action}
-              styles={styles}
-            />
-          )} */}
-        </NotificationRow.Root>
-      );
-    },
-    [onPress, styles],
-  );
-
-  const renderList = useCallback(
-    (list, idx) => (
+        </View>
+      )}
+      onChangeTab={(val) => onTabClick(val.ref.props.tabLabel)}
+    >
+      {/* Tab 1 - All Notifications */}
       <FlatList
-        // This has been ts ignored due the need of extend this component to support injected tabLabel prop.
-        // eslint-disable-next-line
-        // @ts-ignore
-        tabLabel={strings(`notifications.list.${idx.toString()}`)}
-        keyExtractor={(_, index) => index.toString()}
-        key={combinedLists.indexOf(list)}
-        data={list}
-        ListEmptyComponent={
-          <Empty
-            testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
-          />
-        }
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => renderNotificationRow(item)}
-        initialNumToRender={10}
-        maxToRenderPerBatch={2}
-        onEndReachedThreshold={0.5}
+        {...getListProps(
+          props.allNotifications,
+          strings(`notifications.list.0`),
+        )}
       />
-    ),
-    [combinedLists, renderNotificationRow, styles.list],
+
+      {/* Tab 2 - Wallet Notifications */}
+      <FlatList
+        {...getListProps(
+          props.allNotifications,
+          strings(`notifications.list.1`),
+        )}
+      />
+
+      {/* Tab 3 - Web 3 Notifications */}
+      <FlatList
+        {...getListProps(
+          props.web3Notifications,
+          strings(`notifications.list.2`),
+        )}
+      />
+    </ScrollableTabView>
   );
+}
+
+const Notifications = (props: NotificationsListProps) => {
+  const { styles } = useStyles();
+  if (props.loading) {
+    return (
+      <View style={styles.container}>
+        <Loading />
+      </View>
+    );
+  }
+
+  if (props.web3Notifications.length > 0) {
+    return (
+      <View style={styles.container}>
+        <TabbedNotificationList {...props} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {loading ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator color={colors.primary.default} size="large" />
-        </View>
-      ) : (
-        <ScrollableTabView
-          renderTabBar={renderTabBar}
-          onChangeTab={onChangeTab}
-        >
-          {combinedLists.map((list, idx) => renderList(list, idx))}
-        </ScrollableTabView>
-      )}
+      <SingleNotificationList {...props} />
     </View>
   );
 };
