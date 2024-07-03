@@ -1,27 +1,39 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Link should render correctly 1`] = `
-<Fragment>
+<Text
+  accessibilityRole="link"
+  accessible={true}
+  onPress={[Function]}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
+  style={
+    {
+      "backgroundColor": "transparent",
+      "color": "#141618",
+      "fontFamily": "Euclid Circular B",
+      "fontSize": 14,
+      "fontWeight": "400",
+      "letterSpacing": 0,
+      "lineHeight": 22,
+    }
+  }
+  suppressHighlighting={true}
+>
   <Text
-    accessibilityRole="link"
-    accessible={true}
-    onPress={[Function]}
-    onPressIn={[Function]}
-    onPressOut={[Function]}
+    accessibilityRole="text"
     style={
       {
-        "backgroundColor": "transparent",
+        "color": "#0376c9",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
       }
     }
-    suppressHighlighting={true}
   >
-    <Text
-      color="Primary"
-      style={false}
-      variant="sBodyMD"
-    >
-      I'm a Link!
-    </Text>
+    I'm a Link!
   </Text>
-</Fragment>
+</Text>
 `;

@@ -3,10 +3,7 @@ import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/a
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
 /* eslint-disable import/no-namespace */
 import { mockTheme } from '../theme';
-import Adapter from 'enzyme-adapter-react-16';
-import Enzyme from 'enzyme';
-
-Enzyme.configure({ adapter: new Adapter() });
+import { render, screen } from '@testing-library/react-native';
 
 jest.mock('react-native-quick-crypto', () => ({}));
 jest.mock('react-native-blob-jsi-helper', () => ({}));
