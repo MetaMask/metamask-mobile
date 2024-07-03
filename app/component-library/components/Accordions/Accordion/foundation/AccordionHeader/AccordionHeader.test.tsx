@@ -72,7 +72,7 @@ describe('AccordionHeader', () => {
       );
       console.log('Expanded Icon Element:', expandedIconElement.props.name);
       expect(expandedIconElement.props.name).toBe(IconName.ArrowUp);
-    });
+    }, { timeout: 2000 });
   });
   //TODO: Add Test for Pressed state and animation
 });
