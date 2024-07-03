@@ -36,8 +36,7 @@ export const isSupportedChainId = (chainId: string) => {
 };
 
 export const isBlockaidSupportedOnCurrentChain = () => {
-  const { NetworkController } = Engine.context;
-  const chainId = NetworkController.state.providerConfig.chainId;
+  const chainId = selectChainId(store.getState());
   return isSupportedChainId(chainId);
 };
 
