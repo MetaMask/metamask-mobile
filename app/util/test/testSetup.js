@@ -41,11 +41,10 @@ global.document = {
   removeEventListener: jest.fn(),
   querySelector: jest.fn(),
   querySelectorAll: jest.fn(),
-  defaultView: global.window,
+  defaultView: global.window, // Set defaultView to global.window
 };
 
-global.window.document = global.document;
-global.document.defaultView = global.window; // Set defaultView after document creation
+global.window.document = global.document; // Set window.document to global.document
 
 jest.mock('react-native-quick-crypto', () => ({}));
 jest.mock('react-native-blob-jsi-helper', () => ({}));
