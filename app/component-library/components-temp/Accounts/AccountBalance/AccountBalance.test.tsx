@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { AccountBalanceProps } from './AccountBalance.types';
 import AccountBalance from './AccountBalance';
 import {
@@ -9,7 +9,7 @@ import {
 
 describe('AccountBalance', () => {
   it('should render AccountBalance', () => {
-    const wrapper = shallow<AccountBalanceProps>(
+    const { getByTestId } = render(
       <AccountBalance
         accountBalance={0}
         accountNativeCurrency={''}
@@ -21,9 +21,7 @@ describe('AccountBalance', () => {
         useBlockieIcon={false}
       />,
     );
-    const singleSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === 'account-balance',
-    );
-    expect(singleSelectComponent.exists()).toBe(true);
+    const singleSelectComponent = getByTestId('account-balance');
+    expect(singleSelectComponent).toBeTruthy();
   });
 });
