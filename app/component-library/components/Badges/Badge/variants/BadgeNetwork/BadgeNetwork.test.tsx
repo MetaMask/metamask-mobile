@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // External dependencies.
 import {
@@ -14,19 +14,19 @@ import { BADGE_NETWORK_TEST_ID } from './BadgeNetwork.constants';
 
 describe('BadgeNetwork - snapshots', () => {
   it('should render badge network correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <BadgeNetwork
         name={SAMPLE_AVATARNETWORK_NAME}
         imageSource={SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
 
 describe('BadgeNetwork', () => {
   it('should render badge network with the given content', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <BadgeNetwork
         name={SAMPLE_AVATARNETWORK_NAME}
         imageSource={SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL}

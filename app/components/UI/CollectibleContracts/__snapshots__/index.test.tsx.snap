@@ -1,32 +1,372 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleContracts should render correctly 1`] = `
-<ContextProvider
-  value={
+<View
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "marginTop": 16,
     }
   }
+  testID="collectible-contracts"
 >
-  <Component />
-</ContextProvider>
+  <RCTScrollView
+    ListEmptyComponent={
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+          }
+        }
+      >
+        <Image
+          resizeMode="contain"
+          source={
+            {
+              "default": {
+                "uri": "MockImage",
+              },
+            }
+          }
+          style={
+            {
+              "height": 76,
+              "marginBottom": 12,
+              "marginTop": 30,
+              "tintColor": "#9fa6ae",
+              "width": 76,
+            }
+          }
+        />
+        <Text
+          bold={true}
+          center={true}
+          style={
+            {
+              "color": "#6a737d",
+              "fontSize": 24,
+            }
+          }
+        >
+          No NFTs yet
+        </Text>
+        <Text
+          big={true}
+          center={true}
+          link={true}
+          onPress={[Function]}
+        >
+          Learn more
+        </Text>
+      </View>
+    }
+    ListFooterComponent={
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "marginTop": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#6a737d",
+              "fontSize": 14,
+              "marginBottom": 8,
+            }
+          }
+        >
+          Don’t see your NFT?
+        </Text>
+        <TouchableOpacity
+          disabled={false}
+          onPress={[Function]}
+          testID="import-collectible-button"
+        >
+          <Text
+            style={
+              {
+                "color": "#0376c9",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+              }
+            }
+          >
+            Import NFTs
+          </Text>
+        </TouchableOpacity>
+      </View>
+    }
+    ListHeaderComponent={<React.Fragment />}
+    data={[]}
+    getItem={[Function]}
+    getItemCount={[Function]}
+    keyExtractor={[Function]}
+    onContentSizeChange={[Function]}
+    onLayout={[Function]}
+    onMomentumScrollBegin={[Function]}
+    onMomentumScrollEnd={[Function]}
+    onScroll={[Function]}
+    onScrollBeginDrag={[Function]}
+    onScrollEndDrag={[Function]}
+    refreshControl={
+      <RefreshControlMock
+        colors={
+          [
+            "#0376c9",
+          ]
+        }
+        onRefresh={[Function]}
+        refreshing={false}
+        tintColor="#141618"
+      />
+    }
+    removeClippedSubviews={false}
+    renderItem={[Function]}
+    scrollEventThrottle={50}
+    stickyHeaderIndices={[]}
+    testID="refreshControl"
+    viewabilityConfigCallbackPairs={[]}
+  >
+    <RCTRefreshControl />
+    <View>
+      <View
+        onLayout={[Function]}
+      />
+      <View
+        onLayout={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+          }
+        }
+      >
+        <Image
+          resizeMode="contain"
+          source={
+            {
+              "default": {
+                "uri": "MockImage",
+              },
+            }
+          }
+          style={
+            {
+              "height": 76,
+              "marginBottom": 12,
+              "marginTop": 30,
+              "tintColor": "#9fa6ae",
+              "width": 76,
+            }
+          }
+        />
+        <Text
+          center={true}
+          style={
+            [
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontWeight": "600",
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              {
+                "color": "#6a737d",
+                "fontSize": 24,
+              },
+            ]
+          }
+        >
+          No NFTs yet
+        </Text>
+        <Text
+          center={true}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              {
+                "fontSize": 16,
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              {
+                "color": "#0376c9",
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+            ]
+          }
+        >
+          Learn more
+        </Text>
+      </View>
+      <View
+        onLayout={[Function]}
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "marginTop": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 30,
+                  "fontWeight": "400",
+                  "marginVertical": 2,
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                  "color": "#6a737d",
+                  "fontSize": 14,
+                  "marginBottom": 8,
+                },
+              ]
+            }
+          >
+            Don’t see your NFT?
+          </Text>
+          <TouchableOpacity
+            disabled={false}
+            onPress={[Function]}
+            testID="import-collectible-button"
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                  },
+                ]
+              }
+            >
+              Import NFTs
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+</View>
 `;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { AccountBaseProps } from './AccountBase.types';
 import AccountBase from './AccountBase';
 import {

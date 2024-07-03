@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // External dependencies.
 import { IconName, IconProps, IconSize } from '../../Icons/Icon';
@@ -21,7 +21,7 @@ const sampleIconProps: IconProps = {
 
 describe('TextWithPrefixIcon - Snapshot', () => {
   it('should render default settings correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <TextWithPrefixIcon
         variant={TextVariant.HeadingSMRegular}
         iconProps={sampleIconProps}
@@ -29,13 +29,13 @@ describe('TextWithPrefixIcon - Snapshot', () => {
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
 
 describe('TextWithPrefixIcon', () => {
   it('should render TextWithPrefixIcon', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <TextWithPrefixIcon
         variant={TextVariant.HeadingSMRegular}
         iconProps={sampleIconProps}
@@ -53,7 +53,7 @@ describe('TextWithPrefixIcon', () => {
     const testIconSize = IconSize.Xss;
     sampleIconProps.name = testIconName;
     sampleIconProps.size = testIconSize;
-    const wrapper = shallow(
+    const { toJSON } = render(
       <TextWithPrefixIcon
         variant={TextVariant.HeadingSMRegular}
         iconProps={sampleIconProps}
@@ -69,7 +69,7 @@ describe('TextWithPrefixIcon', () => {
   });
   it('should render the given text with the appropriate variant', () => {
     const testTextVariant = TextVariant.BodySM;
-    const wrapper = shallow(
+    const { toJSON } = render(
       <TextWithPrefixIcon variant={testTextVariant} iconProps={sampleIconProps}>
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,

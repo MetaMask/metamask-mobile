@@ -1,7 +1,7 @@
 import React from 'react';
 import TransactionReview from '.';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../../util/transactions';
@@ -177,7 +177,7 @@ describe('TransactionReview', () => {
   it('should render correctly', () => {
     const mockStore = configureMockStore();
     const store = mockStore(mockState);
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <TransactionReview
           generateTransform={
@@ -188,7 +188,7 @@ describe('TransactionReview', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should match snapshot', () => {

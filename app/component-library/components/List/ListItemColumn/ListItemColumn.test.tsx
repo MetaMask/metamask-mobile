@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { View } from 'react-native';
 
 // External dependencies.
@@ -15,15 +15,15 @@ import { WidthType } from './ListItemColumn.types';
 
 describe('ListItemColumn', () => {
   it('should render snapshot correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ListItemColumn>
         <View />
       </ListItemColumn>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render component correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ListItemColumn>
         <View />
       </ListItemColumn>,
@@ -35,7 +35,7 @@ describe('ListItemColumn', () => {
   });
 
   it('should render the correct default widthType', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ListItemColumn widthType={DEFAULT_LISTITEMCOLUMN_WIDTHTYPE}>
         <View />
       </ListItemColumn>,
@@ -47,7 +47,7 @@ describe('ListItemColumn', () => {
   });
 
   it('should render the given widthType', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ListItemColumn widthType={WidthType.Fill}>
         <View />
       </ListItemColumn>,

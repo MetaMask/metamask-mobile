@@ -23,26 +23,11 @@ exports[`RemoteImage should render static sources 1`] = `
 `;
 
 exports[`RemoteImage should render svg correctly 1`] = `
-<ComponentErrorBoundary
-  componentLabel="RemoteImage-SVG"
->
-  <View
-    style={
-      {
-        "overflow": "hidden",
-      }
+<View
+  style={
+    {
+      "overflow": "hidden",
     }
-  >
-    <SvgUri
-      height="100%"
-      source={
-        {
-          "uri": "https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg",
-        }
-      }
-      uri="https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg"
-      width="100%"
-    />
-  </View>
-</ComponentErrorBoundary>
+  }
+/>
 `;

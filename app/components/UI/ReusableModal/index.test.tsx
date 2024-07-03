@@ -1,15 +1,15 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import ReusableModal from './';
 
 describe('ReusableModal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <SafeAreaView>
         <ReusableModal>{null}</ReusableModal>
       </SafeAreaView>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

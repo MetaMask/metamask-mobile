@@ -10,16 +10,37 @@ exports[`WatchAssetApproval renders 1`] = `
 </ApprovalModal>
 `;
 
-exports[`WatchAssetApproval returns null if no approval request 1`] = `""`;
+exports[`WatchAssetApproval returns null if no approval request 1`] = `null`;
 
-exports[`WatchAssetApproval returns null if no request data 1`] = `""`;
+exports[`WatchAssetApproval returns null if no request data 1`] = `null`;
 
 exports[`WatchAssetApproval sets isVisible to false if incorrect approval request type 1`] = `
-<ApprovalModal
-  isVisible={false}
->
-  <WatchAssetRequest
-    suggestedAssetMeta={{}}
-  />
-</ApprovalModal>
+<Modal
+  animationType="none"
+  deviceHeight={null}
+  deviceWidth={null}
+  hardwareAccelerated={false}
+  hideModalContentWhileAnimating={false}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
+  onRequestClose={[Function]}
+  panResponderThreshold={4}
+  scrollHorizontal={false}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  statusBarTranslucent={false}
+  supportedOrientations={
+    [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeDirection="down"
+  swipeThreshold={100}
+  transparent={true}
+  visible={false}
+/>
 `;

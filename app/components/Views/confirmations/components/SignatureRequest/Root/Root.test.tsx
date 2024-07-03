@@ -8,7 +8,7 @@ import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
 import Root from '.';
 import { ApprovalTypes } from '../../../../../../core/RPCMethods/RPCMethodMiddleware';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
   const KeyboardAwareScrollView = jest.requireActual('react-native').ScrollView;
@@ -104,7 +104,7 @@ const store = mockStore(initialState);
 
 describe('Root', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
           <Root
@@ -116,7 +116,7 @@ describe('Root', () => {
         </ThemeContext.Provider>
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should match snapshot', async () => {

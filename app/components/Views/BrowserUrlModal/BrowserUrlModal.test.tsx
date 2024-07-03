@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import BrowserUrlModal from './';
 import { createNavigationProps } from '../../../util/testUtils';
 import { BrowserUrlParams } from './BrowserUrlModal';
@@ -29,7 +29,7 @@ jest.mock('@react-navigation/native', () => {
 });
 describe('BrowserUrlModal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<BrowserUrlModal {...mockNavigation} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<BrowserUrlModal {...mockNavigation} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -2,22 +2,245 @@
 
 exports[`Mandatory Modal should render correctly 1`] = `
 <RCTSafeAreaView>
-  <ModalMandatory
-    route={
+  <View
+    style={
       {
-        "params": {
-          "body": {
-            "source": "WebView",
-            "uri": "http://google.com",
-          },
-          "buttonText": "test",
-          "checkboxText": "test",
-          "footerHelpText": "test",
-          "headerTitle": "test",
-          "onAccept": [Function],
-        },
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
       }
     }
-  />
+  >
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#00000099",
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          },
+          {
+            "opacity": undefined,
+          },
+        ]
+      }
+    />
+    <View
+      collapsable={false}
+      onGestureHandlerEvent={[Function]}
+      onGestureHandlerStateChange={[Function]}
+      style={
+        [
+          [
+            {
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            },
+            {
+              "transform": [
+                {
+                  "translateY": 1334,
+                },
+              ],
+            },
+          ],
+          {
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        disabled={true}
+        onPress={[Function]}
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      />
+      <View
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderRadius": 10,
+            "marginHorizontal": 16,
+            "padding": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 18,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginBottom": 16,
+              "textAlign": "center",
+            }
+          }
+        >
+          test
+        </Text>
+        <View
+          style={
+            {
+              "height": 667,
+            }
+          }
+          testID="terms-of-use-webview-id"
+        >
+          <View
+            injectedJavaScript="(function(){ window.onscroll = function() {
+    if (window.scrollY + window.innerHeight + 1 >= document.documentElement.scrollHeight) {
+      window.ReactNativeWebView.postMessage('end');
+    }else{
+      window.ReactNativeWebView.postMessage('!end');
+    }
+  }})();"
+            nestedScrollEnabled={true}
+            onLoad={[Function]}
+            onMessage={[Function]}
+            onShouldStartLoadWithRequest={[Function]}
+            source={
+              {
+                "uri": "http://google.com",
+              }
+            }
+          />
+        </View>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={[Function]}
+          style={
+            {
+              "flexDirection": "row",
+              "marginTop": 16,
+            }
+          }
+          testID="terms-of-use-checkbox"
+        >
+          <TouchableOpacity
+            disabled={false}
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "height": 24,
+                "opacity": 1,
+              }
+            }
+          >
+            <View
+              accessibilityRole="checkbox"
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#141618",
+                  "borderRadius": 4,
+                  "borderWidth": 2,
+                  "height": 20,
+                  "justifyContent": "center",
+                  "width": 20,
+                }
+              }
+            />
+          </TouchableOpacity>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "flex": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginLeft": 8,
+              }
+            }
+          >
+            test
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          disabled={true}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#0376c91a",
+              "borderRadius": 20,
+              "flexDirection": "row",
+              "height": 40,
+              "justifyContent": "center",
+              "marginTop": 16,
+              "paddingHorizontal": 16,
+              "width": "100%",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            test
+          </Text>
+        </TouchableOpacity>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#6a737d",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 20,
+              "marginBottom": 4,
+              "marginTop": 16,
+              "textAlign": "center",
+            }
+          }
+        >
+          test
+        </Text>
+      </View>
+    </View>
+  </View>
 </RCTSafeAreaView>
 `;

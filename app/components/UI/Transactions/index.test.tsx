@@ -1,7 +1,7 @@
 import React from 'react';
 import Transactions from '.';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -22,7 +22,7 @@ const store = mockStore(initialState);
 
 describe('Transactions', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <Transactions
           transactions={[
@@ -48,6 +48,6 @@ describe('Transactions', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

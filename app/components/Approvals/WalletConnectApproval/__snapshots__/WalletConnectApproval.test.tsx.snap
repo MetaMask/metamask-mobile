@@ -35,35 +35,63 @@ exports[`WalletConnectApproval renders 1`] = `
 `;
 
 exports[`WalletConnectApproval sets isVisible to false if incorrect approval request type 1`] = `
-<ApprovalModal
-  isVisible={false}
->
-  <Component
-    currentPageInformation={
-      {
-        "icon": undefined,
-        "title": undefined,
-        "url": undefined,
-      }
-    }
-    walletConnectRequest={true}
-  />
-</ApprovalModal>
+<Modal
+  animationType="none"
+  deviceHeight={null}
+  deviceWidth={null}
+  hardwareAccelerated={false}
+  hideModalContentWhileAnimating={false}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
+  onRequestClose={[Function]}
+  panResponderThreshold={4}
+  scrollHorizontal={false}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  statusBarTranslucent={false}
+  supportedOrientations={
+    [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeDirection="down"
+  swipeThreshold={100}
+  transparent={true}
+  visible={false}
+/>
 `;
 
 exports[`WalletConnectApproval sets isVisible to false if no approval request 1`] = `
-<ApprovalModal
-  isVisible={false}
->
-  <Component
-    currentPageInformation={
-      {
-        "icon": undefined,
-        "title": undefined,
-        "url": undefined,
-      }
-    }
-    walletConnectRequest={true}
-  />
-</ApprovalModal>
+<Modal
+  animationType="none"
+  deviceHeight={null}
+  deviceWidth={null}
+  hardwareAccelerated={false}
+  hideModalContentWhileAnimating={false}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
+  onRequestClose={[Function]}
+  panResponderThreshold={4}
+  scrollHorizontal={false}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  statusBarTranslucent={false}
+  supportedOrientations={
+    [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeDirection="down"
+  swipeThreshold={100}
+  transparent={true}
+  visible={false}
+/>
 `;

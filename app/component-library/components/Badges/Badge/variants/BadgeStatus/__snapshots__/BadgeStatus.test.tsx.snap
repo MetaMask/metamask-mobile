@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`BadgeStatus should render badge status correctly 1`] = `
-<BadgeBase
+<View
   style={
     {
       "backgroundColor": "#6a737d",
@@ -15,5 +15,5 @@ exports[`BadgeStatus should render badge status correctly 1`] = `
   testID="badge-status"
 >
   <View />
-</BadgeBase>
+</View>
 `;

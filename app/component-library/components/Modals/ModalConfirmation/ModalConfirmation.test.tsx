@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import ModalConfirmation from './ModalConfirmation';
@@ -11,7 +11,7 @@ import {
 
 describe('ModalConfirmation', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ModalConfirmation
         route={{
           params: {
@@ -22,10 +22,10 @@ describe('ModalConfirmation', () => {
         }}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should show normal variant button', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ModalConfirmation
         route={{
           params: {
@@ -42,7 +42,7 @@ describe('ModalConfirmation', () => {
     expect(buttonComponent.exists()).toBe(true);
   });
   it('should show danger variant button', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ModalConfirmation
         route={{
           params: {

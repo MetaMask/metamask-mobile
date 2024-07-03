@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import PersonalSign from '.';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
@@ -108,7 +108,7 @@ function createWrapper({
 describe('PersonalSign', () => {
   it('should render correctly', () => {
     const wrapper = createWrapper();
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('onConfirm', () => {

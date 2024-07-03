@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // External dependencies.
 import Tag from '../../../../Tags/Tag';
@@ -11,18 +11,18 @@ import { BADGE_BASE_TEST_ID } from './BadgeBase.constants';
 
 describe('BadgeBase - snapshots', () => {
   it('should render badge correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <BadgeBase>
         <Tag label={'Children'} />
       </BadgeBase>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
 
 describe('BadgeBase', () => {
   it('should render badge with the given content', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <BadgeBase>
         <Tag label={'Children'} />
       </BadgeBase>,

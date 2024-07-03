@@ -1,7 +1,7 @@
 import React from 'react';
 import AssetOverview from './AssetOverview';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { zeroAddress } from 'ethereumjs-util';
 
@@ -27,11 +27,11 @@ const store = mockStore(initialState);
 describe('AssetOverview', () => {
   it('should render correctly', () => {
     const navigateMock = jest.fn();
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <AssetOverview asset={asset} navigation={{ navigate: navigateMock }} />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

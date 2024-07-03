@@ -11,71 +11,769 @@ exports[`Keypad component components should render correctly 1`] = `
     ]
   }
 >
-  <KeypadRow>
-    <KeypadButton
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <TouchableOpacity
       onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "paddingHorizontal": 20,
+            "paddingVertical": 12,
+          },
+          undefined,
+        ]
+      }
     >
-      1
-    </KeypadButton>
-    <KeypadButton
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+              {
+                "color": "#141618",
+                "fontSize": 30,
+                "textAlign": "center",
+              },
+              undefined,
+            ],
+          ]
+        }
+      >
+        1
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
       onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "paddingHorizontal": 20,
+            "paddingVertical": 12,
+          },
+          undefined,
+        ]
+      }
     >
-      2
-    </KeypadButton>
-    <KeypadButton
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+              {
+                "color": "#141618",
+                "fontSize": 30,
+                "textAlign": "center",
+              },
+              undefined,
+            ],
+          ]
+        }
+      >
+        2
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
       onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "paddingHorizontal": 20,
+            "paddingVertical": 12,
+          },
+          undefined,
+        ]
+      }
     >
-      3
-    </KeypadButton>
-  </KeypadRow>
-  <KeypadRow>
-    <KeypadButton
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+              {
+                "color": "#141618",
+                "fontSize": 30,
+                "textAlign": "center",
+              },
+              undefined,
+            ],
+          ]
+        }
+      >
+        3
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <TouchableOpacity
       onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "paddingHorizontal": 20,
+            "paddingVertical": 12,
+          },
+          undefined,
+        ]
+      }
     >
-      4
-    </KeypadButton>
-    <KeypadButton
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+              {
+                "color": "#141618",
+                "fontSize": 30,
+                "textAlign": "center",
+              },
+              undefined,
+            ],
+          ]
+        }
+      >
+        4
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
       onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "paddingHorizontal": 20,
+            "paddingVertical": 12,
+          },
+          undefined,
+        ]
+      }
     >
-      5
-    </KeypadButton>
-    <KeypadButton
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+              {
+                "color": "#141618",
+                "fontSize": 30,
+                "textAlign": "center",
+              },
+              undefined,
+            ],
+          ]
+        }
+      >
+        5
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
       onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "paddingHorizontal": 20,
+            "paddingVertical": 12,
+          },
+          undefined,
+        ]
+      }
     >
-      6
-    </KeypadButton>
-  </KeypadRow>
-  <KeypadRow>
-    <KeypadButton
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+              {
+                "color": "#141618",
+                "fontSize": 30,
+                "textAlign": "center",
+              },
+              undefined,
+            ],
+          ]
+        }
+      >
+        6
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <TouchableOpacity
       onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "paddingHorizontal": 20,
+            "paddingVertical": 12,
+          },
+          undefined,
+        ]
+      }
     >
-      7
-    </KeypadButton>
-    <KeypadButton
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+              {
+                "color": "#141618",
+                "fontSize": 30,
+                "textAlign": "center",
+              },
+              undefined,
+            ],
+          ]
+        }
+      >
+        7
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
       onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "paddingHorizontal": 20,
+            "paddingVertical": 12,
+          },
+          undefined,
+        ]
+      }
     >
-      8
-    </KeypadButton>
-    <KeypadButton
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+              {
+                "color": "#141618",
+                "fontSize": 30,
+                "textAlign": "center",
+              },
+              undefined,
+            ],
+          ]
+        }
+      >
+        8
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
       onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "paddingHorizontal": 20,
+            "paddingVertical": 12,
+          },
+          undefined,
+        ]
+      }
     >
-      9
-    </KeypadButton>
-  </KeypadRow>
-  <KeypadRow>
-    <KeypadButton
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+              {
+                "color": "#141618",
+                "fontSize": 30,
+                "textAlign": "center",
+              },
+              undefined,
+            ],
+          ]
+        }
+      >
+        9
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <TouchableOpacity
       onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "paddingHorizontal": 20,
+            "paddingVertical": 12,
+          },
+          undefined,
+        ]
+      }
     >
-      .
-    </KeypadButton>
-    <KeypadButton
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+              {
+                "color": "#141618",
+                "fontSize": 30,
+                "textAlign": "center",
+              },
+              undefined,
+            ],
+          ]
+        }
+      >
+        .
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
       onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "paddingHorizontal": 20,
+            "paddingVertical": 12,
+          },
+          undefined,
+        ]
+      }
     >
-      0
-    </KeypadButton>
-    <KeypadDeleteButton
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+              {
+                "color": "#141618",
+                "fontSize": 30,
+                "textAlign": "center",
+              },
+              undefined,
+            ],
+          ]
+        }
+      >
+        0
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
       onPress={[MockFunction]}
-    />
-  </KeypadRow>
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "paddingHorizontal": 20,
+            "paddingVertical": 12,
+          },
+          undefined,
+        ]
+      }
+    >
+      <Text
+        allowFontScaling={false}
+        style={
+          [
+            {
+              "color": undefined,
+              "fontSize": 12,
+            },
+            [
+              {
+                "color": "#141618",
+                "fontSize": 30,
+                "textAlign": "center",
+              },
+              {
+                "fontSize": 25,
+                "marginTop": 5,
+              },
+            ],
+            {
+              "fontFamily": "Ionicons",
+              "fontStyle": "normal",
+              "fontWeight": "normal",
+            },
+            {},
+          ]
+        }
+      >
+        
+      </Text>
+    </TouchableOpacity>
+  </View>
 </View>
 `;

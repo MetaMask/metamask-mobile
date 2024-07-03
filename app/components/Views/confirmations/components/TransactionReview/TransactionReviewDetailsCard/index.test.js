@@ -1,6 +1,6 @@
 import React from 'react';
 import TransactionReviewDetailsCard from '.';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
@@ -15,11 +15,11 @@ const store = mockStore(initialState);
 
 describe('TransactionReviewDetailsCard', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <TransactionReviewDetailsCard />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import BadgeWrapper from './BadgeWrapper';
@@ -11,8 +11,8 @@ import {
 
 describe('BadgeWrapper', () => {
   it('should render BadgeWrapper correctly', () => {
-    const wrapper = shallow(<BadgeWrapper {...SAMPLE_BADGEWRAPPER_PROPS} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<BadgeWrapper {...SAMPLE_BADGEWRAPPER_PROPS} />);
+    expect(toJSON()).toMatchSnapshot();
     const contentElement = wrapper.findWhere(
       (node) => node.prop('testID') === BADGE_WRAPPER_BADGE_TEST_ID,
     );

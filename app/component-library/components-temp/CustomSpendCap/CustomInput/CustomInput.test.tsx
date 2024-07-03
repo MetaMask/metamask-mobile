@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 // Third party dependencies.
 import React from 'react';
 

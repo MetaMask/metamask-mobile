@@ -1,14 +1,72 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TextFieldSearch should render default settings correctly 1`] = `
-<TextField
-  endAccessory={false}
-  startAccessory={
-    <Icon
-      name="Search"
-      size="16"
-    />
+<View
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#bbc0c5",
+      "borderRadius": 8,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "height": 40,
+      "opacity": 1,
+      "paddingHorizontal": 16,
+    }
   }
-  testID="textfieldsearch"
-/>
+  testID="textfield"
+>
+  <View
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+    testID="textfield-startacccessory"
+  >
+    <SvgMock
+      color="#141618"
+      height={16}
+      name="Search"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <TextInput
+      autoFocus={true}
+      editable={true}
+      onBlur={[Function]}
+      onFocus={[Function]}
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "transparent",
+          "borderWidth": 1,
+          "color": "#141618",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "height": 24,
+          "letterSpacing": 0,
+          "opacity": 1,
+          "paddingVertical": 0,
+        }
+      }
+      testID="textfieldsearch"
+    />
+  </View>
+</View>
 `;

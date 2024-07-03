@@ -10,6 +10,6 @@ exports[`SwitchChainApproval renders 1`] = `
 </ApprovalModal>
 `;
 
-exports[`SwitchChainApproval returns null if incorrect approval request type 1`] = `""`;
+exports[`SwitchChainApproval returns null if incorrect approval request type 1`] = `null`;
 
-exports[`SwitchChainApproval returns null if no approval request 1`] = `""`;
+exports[`SwitchChainApproval returns null if no approval request 1`] = `null`;

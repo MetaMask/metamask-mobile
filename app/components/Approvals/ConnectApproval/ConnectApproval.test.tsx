@@ -1,6 +1,6 @@
 import React from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import ConnectApproval from './ConnectApproval';
@@ -31,16 +31,16 @@ describe('ConnectApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(<ConnectApproval navigation={{}} />);
+    const { toJSON } = render(<ConnectApproval navigation={{}} />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('sets isVisible to false if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<ConnectApproval navigation={{}} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<ConnectApproval navigation={{}} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('sets isVisible to false if incorrect approval request type', () => {
@@ -48,7 +48,7 @@ describe('ConnectApproval', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const wrapper = shallow(<ConnectApproval navigation={{}} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<ConnectApproval navigation={{}} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

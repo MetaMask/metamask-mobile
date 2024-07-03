@@ -15,7 +15,28 @@ exports[`SettingsNotification should render correctly as notification 1`] = `
     ]
   }
 >
-  <WarningIcon />
+  <Text
+    allowFontScaling={false}
+    style={
+      [
+        {
+          "color": "#d73847",
+          "fontSize": 16,
+        },
+        {
+          "marginRight": 4,
+        },
+        {
+          "fontFamily": "FontAwesome",
+          "fontStyle": "normal",
+          "fontWeight": "normal",
+        },
+        {},
+      ]
+    }
+  >
+    
+  </Text>
   this is a notification
 </View>
 `;
@@ -40,7 +61,28 @@ exports[`SettingsNotification should render correctly as warning 1`] = `
     ]
   }
 >
-  <WarningIcon />
+  <Text
+    allowFontScaling={false}
+    style={
+      [
+        {
+          "color": "#d73847",
+          "fontSize": 16,
+        },
+        {
+          "marginRight": 4,
+        },
+        {
+          "fontFamily": "FontAwesome",
+          "fontStyle": "normal",
+          "fontWeight": "normal",
+        },
+        {},
+      ]
+    }
+  >
+    
+  </Text>
   this is a warning
 </View>
 `;

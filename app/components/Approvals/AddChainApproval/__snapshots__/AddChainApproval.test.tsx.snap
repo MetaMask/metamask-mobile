@@ -17,6 +17,6 @@ exports[`AddChainApproval renders 1`] = `
 </ForwardRef>
 `;
 
-exports[`AddChainApproval returns null if incorrect approval request type 1`] = `""`;
+exports[`AddChainApproval returns null if incorrect approval request type 1`] = `null`;
 
-exports[`AddChainApproval returns null if no approval request 1`] = `""`;
+exports[`AddChainApproval returns null if no approval request 1`] = `null`;

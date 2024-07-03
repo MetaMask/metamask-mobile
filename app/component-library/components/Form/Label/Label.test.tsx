@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import Label from './Label';
@@ -12,18 +12,18 @@ import {
 
 describe('Label', () => {
   it('should render default settings correctly', () => {
-    const wrapper = shallow(<Label>{SAMPLE_LABEL_TEXT}</Label>);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<Label>{SAMPLE_LABEL_TEXT}</Label>);
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render Label', () => {
-    const wrapper = shallow(<Label>{SAMPLE_LABEL_TEXT}</Label>);
+    const { toJSON } = render(<Label>{SAMPLE_LABEL_TEXT}</Label>);
     const labelComponent = wrapper.findWhere(
       (node) => node.prop('testID') === LABEL_TEST_ID,
     );
     expect(labelComponent.exists()).toBe(true);
   });
   it('should render the given text with the appropriate variant', () => {
-    const wrapper = shallow(<Label>{SAMPLE_LABEL_TEXT}</Label>);
+    const { toJSON } = render(<Label>{SAMPLE_LABEL_TEXT}</Label>);
     const titleElement = wrapper.findWhere(
       (node) => node.prop('testID') === LABEL_TEST_ID,
     );

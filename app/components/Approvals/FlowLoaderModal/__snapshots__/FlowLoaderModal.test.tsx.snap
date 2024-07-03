@@ -11,6 +11,6 @@ exports[`FlowLoaderModal renders 1`] = `
 </ApprovalModal>
 `;
 
-exports[`FlowLoaderModal returns null if approval request 1`] = `""`;
+exports[`FlowLoaderModal returns null if approval request 1`] = `null`;
 
-exports[`FlowLoaderModal returns null if no approval flow 1`] = `""`;
+exports[`FlowLoaderModal returns null if no approval flow 1`] = `null`;

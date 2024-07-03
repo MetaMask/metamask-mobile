@@ -2,9 +2,18 @@
 
 exports[`HelpText should render default settings correctly 1`] = `
 <Text
-  color="Default"
+  accessibilityRole="text"
+  style={
+    {
+      "color": "#141618",
+      "fontFamily": "Euclid Circular B",
+      "fontSize": 12,
+      "fontWeight": "400",
+      "letterSpacing": 0,
+      "lineHeight": 20,
+    }
+  }
   testID="helptext"
-  variant="sBodySM"
 >
   Sample HelpText text
 </Text>

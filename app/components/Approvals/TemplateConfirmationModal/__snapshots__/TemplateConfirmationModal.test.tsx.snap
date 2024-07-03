@@ -1,39 +1,661 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TemplateConfirmationModal renders if approval type is error result 1`] = `
-<ApprovalModal
-  isVisible={true}
+<Modal
+  animationType="none"
+  deviceHeight={null}
+  deviceWidth={null}
+  hardwareAccelerated={false}
+  hideModalContentWhileAnimating={false}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
+  onRequestClose={[Function]}
+  panResponderThreshold={4}
+  scrollHorizontal={false}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  statusBarTranslucent={false}
+  supportedOrientations={
+    [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeDirection="down"
+  swipeThreshold={100}
+  transparent={true}
+  visible={true}
 >
-  <TemplateConfirmation
-    approvalRequest={
+  <View
+    accessibilityState={
       {
-        "requestData": {
-          "test": "value",
-        },
-        "type": "result_error",
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    forwardedRef={[Function]}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "backgroundColor": "#00000099",
+        "bottom": 0,
+        "height": 1334,
+        "left": 0,
+        "opacity": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "width": 750,
       }
     }
   />
-</ApprovalModal>
+  <View
+    collapsable={false}
+    deviceHeight={null}
+    deviceWidth={null}
+    forwardedRef={[Function]}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    panResponderThreshold={4}
+    pointerEvents="box-none"
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    style={
+      {
+        "flex": 1,
+        "justifyContent": "flex-end",
+        "left": 0,
+        "margin": 0,
+        "top": 0,
+        "transform": [
+          {
+            "translateY": 1334,
+          },
+        ],
+      }
+    }
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+  >
+    <View
+      collapsable={false}
+      forwardedRef={[Function]}
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "borderTopLeftRadius": 20,
+          "borderTopRightRadius": 20,
+          "minHeight": 200,
+          "paddingBottom": 20,
+          "paddingTop": 24,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "paddingHorizontal": 24,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        />
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "justifyContent": "center",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#d738471a",
+                "borderRadius": 24,
+                "height": 48,
+                "justifyContent": "center",
+                "width": 48,
+              }
+            }
+          >
+            <SvgMock
+              color="#d73847"
+              height={24}
+              name="Warning"
+              style={
+                {
+                  "height": 24,
+                  "width": 24,
+                }
+              }
+              width={24}
+            >
+              Icon
+            </SvgMock>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "flexDirection": "row",
+              "height": 32,
+              "justifyContent": "space-between",
+              "margin": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          />
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 18,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Error
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "flex-end",
+                "flex": 1,
+              }
+            }
+          />
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "paddingBottom": 16,
+              "textAlign": "center",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            The operation failed.
+          </Text>
+        </Text>
+      </View>
+      <View
+        collapsable={false}
+        forwardedRef={[Function]}
+        style={
+          {
+            "flex": 0,
+            "justifyContent": "center",
+            "paddingVertical": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "flexDirection": "row",
+              "paddingHorizontal": 8,
+              "paddingVertical": 4,
+            }
+          }
+          testID="bottomsheetfooter"
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "#0376c9",
+                "borderRadius": 24,
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="bottomsheetfooter-button"
+            variant="Primary"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              OK
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </View>
+</Modal>
 `;
 
 exports[`TemplateConfirmationModal renders if approval type is success result 1`] = `
-<ApprovalModal
-  isVisible={true}
+<Modal
+  animationType="none"
+  deviceHeight={null}
+  deviceWidth={null}
+  hardwareAccelerated={false}
+  hideModalContentWhileAnimating={false}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
+  onRequestClose={[Function]}
+  panResponderThreshold={4}
+  scrollHorizontal={false}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  statusBarTranslucent={false}
+  supportedOrientations={
+    [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeDirection="down"
+  swipeThreshold={100}
+  transparent={true}
+  visible={true}
 >
-  <TemplateConfirmation
-    approvalRequest={
+  <View
+    accessibilityState={
       {
-        "requestData": {
-          "test": "value",
-        },
-        "type": "result_success",
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    forwardedRef={[Function]}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "backgroundColor": "#00000099",
+        "bottom": 0,
+        "height": 1334,
+        "left": 0,
+        "opacity": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "width": 750,
       }
     }
   />
-</ApprovalModal>
+  <View
+    collapsable={false}
+    deviceHeight={null}
+    deviceWidth={null}
+    forwardedRef={[Function]}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    panResponderThreshold={4}
+    pointerEvents="box-none"
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    style={
+      {
+        "flex": 1,
+        "justifyContent": "flex-end",
+        "left": 0,
+        "margin": 0,
+        "top": 0,
+        "transform": [
+          {
+            "translateY": 1334,
+          },
+        ],
+      }
+    }
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+  >
+    <View
+      collapsable={false}
+      forwardedRef={[Function]}
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "borderTopLeftRadius": 20,
+          "borderTopRightRadius": 20,
+          "minHeight": 200,
+          "paddingBottom": 20,
+          "paddingTop": 24,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "paddingHorizontal": 24,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        />
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "justifyContent": "center",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#1c82341a",
+                "borderRadius": 24,
+                "height": 48,
+                "justifyContent": "center",
+                "width": 48,
+              }
+            }
+          >
+            <SvgMock
+              color="#1c8234"
+              height={24}
+              name="Confirmation"
+              style={
+                {
+                  "height": 24,
+                  "width": 24,
+                }
+              }
+              width={24}
+            >
+              Icon
+            </SvgMock>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "flexDirection": "row",
+              "height": 32,
+              "justifyContent": "space-between",
+              "margin": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          />
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 18,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Success
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "flex-end",
+                "flex": 1,
+              }
+            }
+          />
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "paddingBottom": 16,
+              "textAlign": "center",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            The operation completed successfully.
+          </Text>
+        </Text>
+      </View>
+      <View
+        collapsable={false}
+        forwardedRef={[Function]}
+        style={
+          {
+            "flex": 0,
+            "justifyContent": "center",
+            "paddingVertical": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "flexDirection": "row",
+              "paddingHorizontal": 8,
+              "paddingVertical": 4,
+            }
+          }
+          testID="bottomsheetfooter"
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "#0376c9",
+                "borderRadius": 24,
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="bottomsheetfooter-button"
+            variant="Primary"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              OK
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </View>
+</Modal>
 `;
 
-exports[`TemplateConfirmationModal renders nothing if incorrect approval request type 1`] = `""`;
+exports[`TemplateConfirmationModal renders nothing if incorrect approval request type 1`] = `null`;
 
-exports[`TemplateConfirmationModal renders nothing if no approval request 1`] = `""`;
+exports[`TemplateConfirmationModal renders nothing if no approval request 1`] = `null`;

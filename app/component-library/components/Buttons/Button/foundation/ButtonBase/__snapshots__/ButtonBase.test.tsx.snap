@@ -19,24 +19,31 @@ exports[`ButtonBase should render correctly 1`] = `
     }
   }
 >
-  <Icon
-    color="Default"
+  <SvgMock
+    color="#141618"
+    height={16}
     name="Bank"
-    size="16"
     style={
       {
+        "height": 16,
         "marginRight": 8,
+        "width": 16,
       }
     }
+    width={16}
   />
   <Text
     accessibilityRole="none"
     style={
       {
         "color": "#141618",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
       }
     }
-    variant="sBodyMD"
   >
     Click me!
   </Text>
@@ -64,24 +71,31 @@ exports[`ButtonBase should render correctly when disabled 1`] = `
     }
   }
 >
-  <Icon
-    color="Default"
+  <SvgMock
+    color="#141618"
+    height={16}
     name="Bank"
-    size="16"
     style={
       {
+        "height": 16,
         "marginRight": 8,
+        "width": 16,
       }
     }
+    width={16}
   />
   <Text
     accessibilityRole="none"
     style={
       {
         "color": "#141618",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
       }
     }
-    variant="sBodyMD"
   >
     Click me!
   </Text>

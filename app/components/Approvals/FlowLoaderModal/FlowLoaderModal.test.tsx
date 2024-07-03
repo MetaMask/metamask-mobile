@@ -1,6 +1,6 @@
 import React from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import {
   ApprovalFlowState,
@@ -46,17 +46,17 @@ describe('FlowLoaderModal', () => {
     mockApprovalFlow(APPROVAL_FLOW_MOCK);
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<FlowLoaderModal />);
+    const { toJSON } = render(<FlowLoaderModal />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if no approval flow', () => {
     mockApprovalFlow(undefined);
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<FlowLoaderModal />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<FlowLoaderModal />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if approval request', () => {
@@ -65,7 +65,7 @@ describe('FlowLoaderModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.CONNECT_ACCOUNTS } as any);
 
-    const wrapper = shallow(<FlowLoaderModal />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<FlowLoaderModal />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

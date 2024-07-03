@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { Platform, View } from 'react-native';
 
 // Internal dependencies.
@@ -38,7 +38,7 @@ describe('SheetBottom', () => {
   const platforms = [PlatformEnum.iOS, PlatformEnum.Android];
   test.each(platforms)('should render correctly on %s', (platform) => {
     Platform.OS = platform;
-    const wrapper = shallow(
+    const { toJSON } = render(
       <SheetBottom>
         <View />
       </SheetBottom>,

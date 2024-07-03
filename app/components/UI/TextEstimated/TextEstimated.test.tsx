@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // External dependencies.
 import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
@@ -14,18 +14,18 @@ import {
 
 describe('TextEstimated - Snapshot', () => {
   it('should render default settings correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <TextEstimated variant={TextVariant.HeadingSMRegular}>
         {TEST_SAMPLE_TEXT}
       </TextEstimated>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
 
 describe('TextEstimated', () => {
   it('should render TextEstimated', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <TextEstimated variant={TextVariant.HeadingSMRegular}>
         {TEST_SAMPLE_TEXT}
       </TextEstimated>,

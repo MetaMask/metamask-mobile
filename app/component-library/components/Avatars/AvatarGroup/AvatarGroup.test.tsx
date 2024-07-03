@@ -17,18 +17,18 @@ describe('AvatarGroup', () => {
   ) => node.prop('testID') === STACKED_AVATARS_OVERFLOW_COUNTER_ID;
 
   it('should render correctly', () => {
-    const wrapper = shallow(<AvatarGroup tokenList={AVAILABLE_TOKEN_LIST} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<AvatarGroup tokenList={AVAILABLE_TOKEN_LIST} />);
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render overflow counter', () => {
-    const wrapper = shallow(<AvatarGroup tokenList={AVAILABLE_TOKEN_LIST} />);
+    const { toJSON } = render(<AvatarGroup tokenList={AVAILABLE_TOKEN_LIST} />);
 
     const overflowCounter = wrapper.findWhere(findOverflowCounter);
 
     expect(overflowCounter.exists()).toBeTruthy();
   });
   it('should not render overflow counter', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <AvatarGroup tokenList={AVAILABLE_TOKEN_LIST.slice(0, 4)} />,
     );
 

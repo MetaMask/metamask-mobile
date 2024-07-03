@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import HelpText from './HelpText';
@@ -14,11 +14,11 @@ import { HelpTextSeverity } from './HelpText.types';
 
 describe('HelpText', () => {
   it('should render default settings correctly', () => {
-    const wrapper = shallow(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render HelpText', () => {
-    const wrapper = shallow(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
+    const { toJSON } = render(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
     const helpTextComponent = wrapper.findWhere(
       (node) => node.prop('testID') === HELPTEXT_TEST_ID,
     );
@@ -26,7 +26,7 @@ describe('HelpText', () => {
   });
   it('should render the given severity color', () => {
     const testSeverity = HelpTextSeverity.Error;
-    const wrapper = shallow(
+    const { toJSON } = render(
       <HelpText severity={testSeverity}>{SAMPLE_HELPTEXT_TEXT}</HelpText>,
     );
     const helpTextComponent = wrapper.findWhere(
@@ -37,7 +37,7 @@ describe('HelpText', () => {
     );
   });
   it('should render the given text with the appropriate variant', () => {
-    const wrapper = shallow(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
+    const { toJSON } = render(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
     const helpTextComponent = wrapper.findWhere(
       (node) => node.prop('testID') === HELPTEXT_TEST_ID,
     );

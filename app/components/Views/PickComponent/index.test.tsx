@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import PickComponent from './';
 
 describe('PickComponent', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <PickComponent
         textFirst={'Text First'}
         valueFirst={'valueFirst'}
@@ -13,6 +13,6 @@ describe('PickComponent', () => {
         selectedValue={'valueSecond'}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

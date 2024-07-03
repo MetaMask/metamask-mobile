@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import React from 'react';
 import EthSignFriction from './EthSignFriction';
 import Engine from '../../../../../core/Engine';
@@ -41,8 +41,8 @@ jest.mock('@react-navigation/native', () => {
 
 describe('Eth_sign friction bottom sheet', () => {
   it('should render initial friction step correctly', () => {
-    const wrapper = shallow(<EthSignFriction />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<EthSignFriction />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should have checkbox and textfield unlocking steps', async () => {
