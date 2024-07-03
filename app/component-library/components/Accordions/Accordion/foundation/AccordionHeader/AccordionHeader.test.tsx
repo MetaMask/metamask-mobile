@@ -17,11 +17,15 @@ import {
 
 describe('AccordionHeader - Snapshot', () => {
   it('should render default settings correctly', () => {
-    const { toJSON } = render(<AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />);
+    const { toJSON } = render(
+      <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />,
+    );
     expect(toJSON()).toMatchSnapshot();
   });
   it('should render a rotated down Arrow if isExpanded is true', () => {
-    const { toJSON } = render(<AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} isExpanded />);
+    const { toJSON } = render(
+      <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} isExpanded />,
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 });
@@ -48,7 +52,9 @@ describe('AccordionHeader', () => {
     const accordionHeaderComponent = screen.getByTestId(TESTID_ACCORDIONHEADER);
     await user.click(accordionHeaderComponent);
     // Add assertions to verify the expansion state change
-    const expandedIconElement = screen.getByTestId(TESTID_ACCORDIONHEADER_ARROWICON);
+    const expandedIconElement = screen.getByTestId(
+      TESTID_ACCORDIONHEADER_ARROWICON,
+    );
     expect(expandedIconElement.props.name).toBe(IconName.ArrowUp);
   });
   //TODO: Add Test for Pressed state and animation
