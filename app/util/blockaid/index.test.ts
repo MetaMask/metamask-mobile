@@ -7,12 +7,25 @@ import {
 // eslint-disable-next-line import/no-namespace
 import * as NetworkControllerMock from '../../selectors/networkController';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
+import Engine from '../../core/Engine';
 
 import {
   getBlockaidMetricsParams,
   isBlockaidSupportedOnCurrentChain,
   getBlockaidTransactionMetricsParams,
+  isBlockaidFeatureEnabled,
 } from '.';
+
+jest.mock('../../core/Engine', () => ({
+  resetState: jest.fn(),
+  context: {
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
+      },
+    },
+  },
+}));
 
 describe('Blockaid util', () => {
   describe('getBlockaidTransactionMetricsParams', () => {
@@ -171,6 +184,21 @@ describe('Blockaid util', () => {
         .mockReturnValue(NETWORKS_CHAIN_ID.GOERLI);
       const result = isBlockaidSupportedOnCurrentChain();
       expect(result).toEqual(false);
+    });
+  });
+
+  describe('isBlockaidFeatureEnabled', () => {
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('return true if blockaid is supported on current network and its enabled by the user', () => {
+      jest
+        .spyOn(NetworkControllerMock, 'selectChainId')
+        .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
+      Engine.context.PreferencesController.state.securityAlertsEnabled = true;
+      const result = isBlockaidFeatureEnabled();
+      expect(result).toEqual(true);
     });
   });
 });
