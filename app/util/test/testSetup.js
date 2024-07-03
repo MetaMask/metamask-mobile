@@ -36,11 +36,23 @@ global.window = {
     querySelectorAll: jest.fn(),
     defaultView: global.window,
   },
-  HTMLElement: class {},
+  HTMLElement: class {
+    constructor() {
+      this.style = {};
+      this.appendChild = jest.fn();
+      this.removeChild = jest.fn();
+      this.innerHTML = '';
+      this.outerHTML = '';
+      this.click = jest.fn();
+      this.focus = jest.fn();
+    }
+  },
   Event: class {
-    constructor(name, params) {
+    constructor(name, params = {}) {
       this.name = name;
       this.params = params;
+      this.target = params.target || null;
+      this.currentTarget = params.currentTarget || null;
     }
   },
   CustomEvent: class extends Event {
