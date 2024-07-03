@@ -25,60 +25,27 @@ global.window = {
     removeEventListener: jest.fn(),
     dispatchEvent: jest.fn(),
   })),
-  document: {
-    createElement: () => {
-      const element = {
-        style: {},
-        appendChild: jest.fn(),
-        removeChild: jest.fn(),
-        ownerDocument: {
-          defaultView: {
-            addEventListener: jest.fn(),
-            removeEventListener: jest.fn(),
-            getComputedStyle: jest.fn(),
-            matchMedia: jest.fn().mockImplementation((query) => ({
-              matches: query === '(pointer: fine)',
-              media: query,
-              onchange: null,
-              addListener: jest.fn(),
-              removeListener: jest.fn(),
-              addEventListener: jest.fn(),
-              removeEventListener: jest.fn(),
-              dispatchEvent: jest.fn(),
-            })),
-          },
-        },
-      };
-      return element;
-    },
-    body: {
-      appendChild: jest.fn(),
-      removeChild: jest.fn(),
-    },
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    querySelector: jest.fn(),
-    querySelectorAll: jest.fn(),
-    defaultView: {
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-      getComputedStyle: jest.fn(),
-      matchMedia: jest.fn().mockImplementation((query) => ({
-        matches: query === '(pointer: fine)',
-        media: query,
-        onchange: null,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn(),
-      })),
-    },
-  },
 };
 
-global.document = global.window.document;
-global.document.defaultView = global.window.document.defaultView; // Set defaultView after document creation
+global.document = {
+  createElement: () => ({
+    style: {},
+    appendChild: jest.fn(),
+    removeChild: jest.fn(),
+  }),
+  body: {
+    appendChild: jest.fn(),
+    removeChild: jest.fn(),
+  },
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  querySelector: jest.fn(),
+  querySelectorAll: jest.fn(),
+  defaultView: global.window,
+};
+
+global.window.document = global.document;
+global.document.defaultView = global.window; // Set defaultView after document creation
 
 jest.mock('react-native-quick-crypto', () => ({}));
 jest.mock('react-native-blob-jsi-helper', () => ({}));
