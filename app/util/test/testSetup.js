@@ -1,4 +1,4 @@
-import 'app/__mocks__/react-native';
+import '../../__mocks__/react-native';
 import { NativeModules } from 'react-native';
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
@@ -14,8 +14,28 @@ jest.mock('react-native', () => {
   // Set the Platform.OS property to the desired value
   originalModule.Platform.OS = 'ios'; // or 'android', depending on what you want to test
 
-  return originalModule;
+  return {
+    ...originalModule,
+    DeviceEventEmitter: {
+      ...originalModule.DeviceEventEmitter,
+      addListener: jest.fn(),
+      removeListener: jest.fn((event, callback) => {
+        // Simulate the behavior of removeListener
+        if (typeof callback === 'function') {
+          callback();
+        }
+      }),
+    },
+  };
 });
+
+jest.mock('react-native/Libraries/Settings/NativeSettingsManager', () => ({
+  getConstants: () => ({
+    settings: {},
+  }),
+  setValues: jest.fn(),
+  deleteValues: jest.fn(),
+}));
 
 /*
  * NOTE: react-native-webview requires a jest mock starting on v12.
@@ -339,3 +359,6 @@ global.crypto = {
     return arr;
   },
 };
+
+global.TextEncoder = require('util').TextEncoder;
+global.TextDecoder = require('util').TextDecoder;
