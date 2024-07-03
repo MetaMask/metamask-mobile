@@ -11,7 +11,7 @@ export function useTokenListEntries(requests: UseTokenListEntriesRequest[]) {
   const tokenListArray = useTokenList();
 
   return requests.map(({ value, type }) => {
-    if (type !== NameType.EthereumAddress) {
+    if (type !== NameType.EthereumAddress || !value) {
       return null;
     }
 
