@@ -25,11 +25,11 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectIdentities } from '../../../selectors/preferencesController';
 import ApproveTransactionHeader from '../../Views/confirmations/components/ApproveTransactionHeader';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -109,9 +109,9 @@ class AccountInfoCard extends PureComponent {
      */
     accounts: PropTypes.object,
     /**
-     * List of accounts from the PreferencesController
+     * List of accounts from the AccountsController
      */
-    identities: PropTypes.object,
+    internalAccounts: PropTypes.array,
     /**
      * A number that specifies the ETH/USD conversion rate
      */
@@ -140,7 +140,7 @@ class AccountInfoCard extends PureComponent {
   render() {
     const {
       accounts,
-      identities,
+      internalAccounts,
       conversionRate,
       currentCurrency,
       operation,
@@ -160,7 +160,7 @@ class AccountInfoCard extends PureComponent {
       ? hexToBN(accounts[fromAddress].balance)
       : 0;
     const balance = `${renderFromWei(weiBalance)} ${getTicker(ticker)}`;
-    const accountLabel = renderAccountName(fromAddress, identities);
+    const accountLabel = renderAccountName(fromAddress, internalAccounts);
     const address = renderShortAddress(fromAddress);
     const dollarBalance = showFiatBalance
       ? weiToFiat(weiBalance, conversionRate, currentCurrency, 2)?.toUpperCase()
@@ -226,7 +226,7 @@ class AccountInfoCard extends PureComponent {
 
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
-  identities: selectIdentities(state),
+  internalAccounts: selectInternalAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   ticker: selectTicker(state),

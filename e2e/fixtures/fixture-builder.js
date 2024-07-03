@@ -204,11 +204,12 @@ class FixtureBuilder {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  1: {
+                  '4d7a5e0b-b261-4aed-8126-43972b0fa0a1': {
                     address: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
-                    id: '1',
+                    id: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
                     metadata: {
                       name: 'Account 1',
+                      importTime: 1684232000456,
                       keyring: {
                         type: 'HD Key Tree',
                       },
@@ -225,7 +226,7 @@ class FixtureBuilder {
                     type: 'eip155:eoa',
                   },
                 },
-                selectedAccount: 1,
+                selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
               },
             },
             PreferencesController: {

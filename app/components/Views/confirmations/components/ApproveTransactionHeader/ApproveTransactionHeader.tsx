@@ -13,7 +13,6 @@ import {
   selectNetworkName,
   selectNetworkImageSource,
 } from '../../../../../selectors/networkInfos';
-import { selectIdentities } from '../../../../../selectors/preferencesController';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import {
   getLabelTextByAddress,
@@ -30,6 +29,7 @@ import {
 } from './ApproveTransactionHeader.constants';
 import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
+import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 
 const ApproveTransactionHeader = ({
   from,
@@ -50,7 +50,7 @@ const ApproveTransactionHeader = ({
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
-  const identities = useSelector(selectIdentities);
+  const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress = toChecksumAddress(from);
 
   const networkName = useSelector(selectNetworkName);
@@ -61,7 +61,7 @@ const ApproveTransactionHeader = ({
 
   useEffect(() => {
     const accountNameVal = activeAddress
-      ? renderAccountName(activeAddress, identities)
+      ? renderAccountName(activeAddress, internalAccounts)
       : '';
 
     const isOriginDeepLinkVal =
@@ -81,7 +81,7 @@ const ApproveTransactionHeader = ({
     setIsOriginMMSDKRemoteConn(
       origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN),
     );
-  }, [accountsByChainId, identities, activeAddress, origin]);
+  }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
   const networkImage = useSelector(selectNetworkImageSource);
 

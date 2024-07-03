@@ -89,12 +89,6 @@ const mockState = {
         },
       },
       PreferencesController: {
-        selectedAddress: MOCK_ADDRESS_3,
-        identities: {
-          [MOCK_ADDRESS_1]: { name: 'Account 1' },
-          [MOCK_ADDRESS_2]: { name: 'Account 2' },
-          [MOCK_ADDRESS_3]: { name: 'Account 3' },
-        },
         securityAlertsEnabled: true,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
