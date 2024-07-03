@@ -6,7 +6,7 @@ set -o pipefail
 
 PREVIOUS_VERSION="${1}"
 NEW_VERSION="${2}"
-RELEASE_BRANCH_PREFIX="test-release/"
+RELEASE_BRANCH_PREFIX="release/"
 
 if [[ -z $NEW_VERSION ]]; then
   echo "Error: No new version specified."
@@ -18,9 +18,6 @@ RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}. The test
 
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
-
-#TODO remove
-git checkout chore/changelog-release-automation
 
 git checkout -b "${RELEASE_BRANCH_NAME}"
 
@@ -34,7 +31,7 @@ git push --set-upstream origin "${RELEASE_BRANCH_NAME}"
 
 gh pr create \
   --draft \
-  --title "feat: TESTING ${NEW_VERSION}" \
+  --title "feat: ${NEW_VERSION}" \
   --body "${RELEASE_BODY}" \
   --head "${RELEASE_BRANCH_NAME}";
 
