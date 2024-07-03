@@ -64,9 +64,7 @@ describe('AccordionHeader', () => {
 
     render(<AccordionHeaderTestWrapper />);
     const accordionHeaderComponent = screen.getByTestId(TESTID_ACCORDIONHEADER);
-    console.log('Before press:', screen.getByTestId(TESTID_ACCORDIONHEADER_ARROWICON).props.name);
     fireEvent.press(accordionHeaderComponent);
-    console.log('After press:', screen.getByTestId(TESTID_ACCORDIONHEADER_ARROWICON).props.name);
     // Add assertions to verify the expansion state change
     await waitFor(() => {
       const expandedIconElement = screen.getByTestId(
