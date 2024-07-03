@@ -87,6 +87,7 @@ import { selectSelectedInternalAccountChecksummedAddress } from '../../../select
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { isDevelopment } from '../../../util/env';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -949,6 +950,10 @@ class DrawerView extends PureComponent {
   };
 
   renderProtectModal = () => {
+    if (isDevelopment()) {
+      return null;
+    }
+
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
