@@ -34,6 +34,19 @@ global.window = {
     removeEventListener: jest.fn(),
     querySelector: jest.fn(),
     querySelectorAll: jest.fn(),
+    defaultView: global.window,
+  },
+  HTMLElement: class {},
+  Event: class {
+    constructor(name, params) {
+      this.name = name;
+      this.params = params;
+    }
+  },
+  CustomEvent: class extends Event {
+    constructor(name, params) {
+      super(name, params);
+    }
   },
   getSelection: () => ({
     removeAllRanges: jest.fn(),
@@ -46,6 +59,11 @@ global.window = {
   innerHeight: 768,
   requestAnimationFrame: jest.fn().mockImplementation((callback) => setTimeout(callback, 0)),
   cancelAnimationFrame: jest.fn().mockImplementation((id) => clearTimeout(id)),
+  defaultView: global.window,
+  clipboard: {
+    writeText: jest.fn(),
+    readText: jest.fn(),
+  },
 };
 
 global.document = global.window.document;

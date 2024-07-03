@@ -117,7 +117,9 @@ exports[`PhishingModal should render correctly 1`] = `
                 "fontWeight": "600",
               }
             }
-          />
+          >
+            localhost
+          </Text>
            is currently on the MetaMask domain warning list. This means that based on information available to us, MetaMask believes this domain could currently compromise your security and, as an added safety feature, MetaMask has restricted access to the site. To override this, please read the rest of this warning for instructions on how to continue at your own risk.
         </Text>
         <Text
