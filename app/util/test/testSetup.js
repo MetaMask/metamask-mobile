@@ -15,6 +15,16 @@ global.window = {
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
   getComputedStyle: jest.fn(),
+  matchMedia: jest.fn().mockImplementation((query) => ({
+    matches: query === '(pointer: fine)',
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
   document: {
     createElement: () => {
       const element = {
