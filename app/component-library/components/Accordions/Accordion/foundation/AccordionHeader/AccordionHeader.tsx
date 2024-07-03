@@ -40,7 +40,7 @@ const AccordionHeader = ({
     () => ({
       transform: [
         {
-          rotate: `${rotation.value}deg`,
+          rotate: `${rotation.value}deg` as unknown as string,
         },
       ],
     }),
@@ -74,7 +74,7 @@ const AccordionHeader = ({
         testID={TESTID_ACCORDIONHEADER_ARROWICON_ANIMATION}
       >
         <Icon
-          name={IconName.ArrowDown}
+          name={isExpanded ? IconName.ArrowUp : IconName.ArrowDown}
           size={IconSize.Sm}
           color={styles.title.color}
           testID={TESTID_ACCORDIONHEADER_ARROWICON}
