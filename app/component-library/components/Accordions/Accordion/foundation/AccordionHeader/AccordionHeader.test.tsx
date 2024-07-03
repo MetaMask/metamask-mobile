@@ -1,7 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 
 // External dependencies.
 import { IconName } from '../../../../Icons/Icon';
@@ -47,10 +46,9 @@ describe('AccordionHeader', () => {
     expect(iconElement.props.name).toBe(IconName.ArrowDown);
   });
   it('should handle press event and toggle expansion state', async () => {
-    const user = userEvent.setup();
     render(<AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />);
     const accordionHeaderComponent = screen.getByTestId(TESTID_ACCORDIONHEADER);
-    await user.click(accordionHeaderComponent);
+    fireEvent.press(accordionHeaderComponent);
     // Add assertions to verify the expansion state change
     const expandedIconElement = screen.getByTestId(
       TESTID_ACCORDIONHEADER_ARROWICON,
