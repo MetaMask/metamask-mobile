@@ -32,7 +32,21 @@ global.window = {
         appendChild: jest.fn(),
         removeChild: jest.fn(),
         ownerDocument: {
-          defaultView: global.window, // Ensure ownerDocument's defaultView is set to window
+          defaultView: {
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+            getComputedStyle: jest.fn(),
+            matchMedia: jest.fn().mockImplementation((query) => ({
+              matches: query === '(pointer: fine)',
+              media: query,
+              onchange: null,
+              addListener: jest.fn(),
+              removeListener: jest.fn(),
+              addEventListener: jest.fn(),
+              removeEventListener: jest.fn(),
+              dispatchEvent: jest.fn(),
+            })),
+          },
         },
       };
       return element;
@@ -45,12 +59,26 @@ global.window = {
     removeEventListener: jest.fn(),
     querySelector: jest.fn(),
     querySelectorAll: jest.fn(),
-    defaultView: global.window, // Set defaultView during creation
+    defaultView: {
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      getComputedStyle: jest.fn(),
+      matchMedia: jest.fn().mockImplementation((query) => ({
+        matches: query === '(pointer: fine)',
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+      })),
+    },
   },
 };
 
 global.document = global.window.document;
-global.document.defaultView = global.window; // Set defaultView after document creation
+global.document.defaultView = global.window.document.defaultView; // Set defaultView after document creation
 
 jest.mock('react-native-quick-crypto', () => ({}));
 jest.mock('react-native-blob-jsi-helper', () => ({}));
