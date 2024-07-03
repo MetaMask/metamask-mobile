@@ -24,6 +24,7 @@ global.window = {
         ownerDocument: global.window.document,
       };
       element.ownerDocument = global.window.document;
+      element.ownerDocument.defaultView = global.window;
       return element;
     },
     body: {
@@ -437,3 +438,6 @@ global.crypto = {
 
 global.TextEncoder = require('util').TextEncoder;
 global.TextDecoder = require('util').TextDecoder;
+
+console.log('window:', global.window);
+console.log('document:', global.document);
