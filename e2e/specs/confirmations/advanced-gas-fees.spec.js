@@ -15,9 +15,6 @@ import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import { AmountViewSelectorsText } from '../../selectors/SendFlow/AmountView.selectors';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
-import { CustomNetworks } from '../../resources/networks.e2e';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -30,7 +27,7 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
   it('should edit priority gas settings and send ETH', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: new FixtureBuilder().withSepoliaNetwork().build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
@@ -39,15 +36,6 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
 
         // Check that we are on the wallet screen
         await WalletView.isVisible();
-
-        await WalletView.tapNetworksButtonOnNavBar();
-        await TestHelpers.delay(2000);
-        await NetworkListModal.changeNetworkTo(
-          CustomNetworks.Sepolia.providerConfig.nickname,
-        );
-        await Assertions.checkIfVisible(NetworkEducationModal.container);
-        await NetworkEducationModal.tapGotItButton();
-        await Assertions.checkIfNotVisible(NetworkEducationModal.container);
 
         //Tap send Icon
         await TestHelpers.delay(2000);
