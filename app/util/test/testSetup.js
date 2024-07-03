@@ -22,7 +22,7 @@ global.window = {
         appendChild: jest.fn(),
         removeChild: jest.fn(),
         ownerDocument: {
-          defaultView: null,
+          defaultView: global.window,
         },
       };
       return element;
@@ -35,7 +35,7 @@ global.window = {
     removeEventListener: jest.fn(),
     querySelector: jest.fn(),
     querySelectorAll: jest.fn(),
-    defaultView: null,
+    defaultView: global.window,
   },
   HTMLElement: class {
     constructor() {
@@ -72,7 +72,6 @@ global.window = {
   innerHeight: 768,
   requestAnimationFrame: jest.fn().mockImplementation((callback) => setTimeout(callback, 0)),
   cancelAnimationFrame: jest.fn().mockImplementation((id) => clearTimeout(id)),
-  defaultView: undefined,
   clipboard: {
     writeText: jest.fn(),
     readText: jest.fn(),
