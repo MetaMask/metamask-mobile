@@ -1,6 +1,11 @@
 // Third party dependencies.
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import React, { useState } from 'react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react-native';
 
 // External dependencies.
 import { IconName } from '../../../../Icons/Icon';
@@ -46,14 +51,28 @@ describe('AccordionHeader', () => {
     expect(iconElement.props.name).toBe(IconName.ArrowDown);
   });
   it('should handle press event and toggle expansion state', async () => {
-    render(<AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />);
+    const AccordionHeaderTestWrapper = () => {
+      const [isExpanded, setIsExpanded] = useState(false);
+      return (
+        <AccordionHeader
+          title={SAMPLE_ACCORDIONHEADER_TITLE}
+          isExpanded={isExpanded}
+          onPress={() => setIsExpanded(!isExpanded)}
+        />
+      );
+    };
+
+    render(<AccordionHeaderTestWrapper />);
     const accordionHeaderComponent = screen.getByTestId(TESTID_ACCORDIONHEADER);
     fireEvent.press(accordionHeaderComponent);
     // Add assertions to verify the expansion state change
-    const expandedIconElement = screen.getByTestId(
-      TESTID_ACCORDIONHEADER_ARROWICON,
-    );
-    expect(expandedIconElement.props.name).toBe(IconName.ArrowUp);
+    await waitFor(() => {
+      const expandedIconElement = screen.getByTestId(
+        TESTID_ACCORDIONHEADER_ARROWICON,
+      );
+      console.log('Expanded Icon Element:', expandedIconElement.props.name);
+      expect(expandedIconElement.props.name).toBe(IconName.ArrowUp);
+    });
   });
   //TODO: Add Test for Pressed state and animation
 });
