@@ -7,6 +7,7 @@ import { mockTheme } from '../../../util/theme';
 
 describe('AnimatedTransactionModal', () => {
   it('should render correctly', () => {
+    console.log('mockTheme:', mockTheme);
     const { toJSON } = render(
       <ThemeProvider theme={mockTheme}>
         <AnimatedTransactionModal>

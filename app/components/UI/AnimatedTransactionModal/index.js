@@ -221,7 +221,7 @@ class AnimatedTransactionModal extends PureComponent {
       toAdvancedFrom,
     } = this.state;
     const { ready, children } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+    const colors = this.context?.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const components = React.Children.toArray(children);
     let gasTransformStyle;

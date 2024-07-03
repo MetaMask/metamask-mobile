@@ -1,28 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AnimatedTransactionModal should render correctly 1`] = `
-<ForwardRef(AnimatedComponentWrapper)
+<View
+  collapsable={false}
   onLayout={[Function]}
   style={
-    [
-      {
-        "backgroundColor": "#ffffff",
-        "borderTopLeftRadius": 20,
-        "borderTopRightRadius": 20,
-        "minHeight": 200,
-        "paddingBottom": 24,
-      },
-      {
-        "transform": [
-          {
-            "translateY": 70,
-          },
-        ],
-      },
-      {
-        "height": 470,
-      },
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "height": 470,
+      "minHeight": 200,
+      "paddingBottom": 24,
+      "transform": [
+        {
+          "translateY": 70,
+        },
+      ],
+    }
   }
 />
 `;
