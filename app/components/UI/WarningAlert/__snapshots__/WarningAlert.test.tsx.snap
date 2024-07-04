@@ -18,31 +18,199 @@ exports[`ButtonBase should render correctly 1`] = `
     ]
   }
 >
-  <Alert
-    onDismiss={[MockFunction]}
-    renderIcon={[Function]}
-    small={true}
+  <View
     style={
-      {
-        "flex": 1,
-        "padding": 14,
-      }
+      [
+        {
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "paddingHorizontal": 12,
+          "paddingVertical": 8,
+        },
+        {
+          "paddingVertical": 8,
+        },
+        {
+          "backgroundColor": "#bf52081a",
+          "borderColor": "#bf5208",
+        },
+        {
+          "flex": 1,
+          "padding": 14,
+        },
+      ]
     }
-    type="Warning"
   >
-    <Text
-      noMargin={true}
-      primary={true}
+    <View
       style={
         {
-          "color": "#141618",
-          "lineHeight": 18,
-          "paddingLeft": 4,
+          "alignItems": "center",
         }
       }
     >
-      test
+      <Text
+        allowFontScaling={false}
+        style={
+          [
+            {
+              "color": "#bf5208",
+              "fontSize": 20,
+            },
+            {
+              "paddingRight": 4,
+            },
+            {
+              "fontFamily": "Material Design Icons",
+              "fontStyle": "normal",
+              "fontWeight": "normal",
+            },
+            {},
+          ]
+        }
+      >
+        
+      </Text>
+    </View>
+    <Text
+      style={
+        [
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 30,
+            "fontWeight": "400",
+            "marginVertical": 2,
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          {
+            "fontSize": 12,
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          [
+            {
+              "color": "#141618",
+              "flex": 1,
+              "fontSize": 14,
+              "lineHeight": 17,
+            },
+            {
+              "marginRight": 12,
+            },
+          ],
+        ]
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "color": "#141618",
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "marginVertical": 0,
+            },
+            {
+              "color": "#141618",
+              "lineHeight": 18,
+              "paddingLeft": 4,
+            },
+          ]
+        }
+      >
+        test
+      </Text>
     </Text>
-  </Alert>
+    <View
+      style={
+        {
+          "alignItems": "center",
+        }
+      }
+    >
+      <TouchableOpacity
+        hitSlop={
+          {
+            "bottom": 20,
+            "left": 20,
+            "right": 20,
+            "top": 20,
+          }
+        }
+        onPress={[MockFunction]}
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 30,
+              },
+              {
+                "color": "#141618",
+              },
+              {
+                "fontFamily": "Ionicons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
 </View>
 `;
