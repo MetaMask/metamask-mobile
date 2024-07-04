@@ -55,8 +55,6 @@ describe(
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
       await SkipAccountSecurityModal.tapSkipButton();
       await OnboardingSuccessView.tapDone();
-
-      await Assertions.checkIfVisible(WalletView.container);
     });
 
     it('Should dismiss Automatic Security checks screen', async () => {

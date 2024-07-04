@@ -1,5 +1,3 @@
-import TestHelpers from '../../helpers';
-
 import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
@@ -53,8 +51,10 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_NFT_BUTTON);
   }
 
-  get importNFTText() {
-    return Matchers.getElementByText(WalletViewSelectorsText.IMPORT_TOKENS);
+  get importTokensButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByText(WalletViewSelectorsText.IMPORT_TOKENS)
+      : Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
   }
 
   get networkName() {
@@ -67,7 +67,7 @@ class WalletView {
 
   get accountName() {
     return Matchers.getElementByID(
-      WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_INPUT,
+      WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
     );
   }
 
@@ -111,12 +111,7 @@ class WalletView {
   }
 
   async tapImportTokensButton() {
-    await TestHelpers.delay(2000);
-    if (device.getPlatform() === 'android') {
-      await Gestures.waitAndTap(this.importNFTText);
-    } else {
-      await Gestures.waitAndTap(this.importNFTButton);
-    }
+    await Gestures.waitAndTap(this.importTokensButton);
   }
 
   async tapOnNFTInWallet(nftName) {
