@@ -15,11 +15,11 @@ const store = mockStore(initialState);
 
 describe('TransactionReviewDetailsCard', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <TransactionReviewDetailsCard />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

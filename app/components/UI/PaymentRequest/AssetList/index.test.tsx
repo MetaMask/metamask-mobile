@@ -15,7 +15,7 @@ const store = mockStore(initialState);
 
 describe('AssetList', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <AssetList
           handleSelectAsset={() => null}
@@ -24,6 +24,6 @@ describe('AssetList', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -23,8 +23,8 @@ describe('AssetElement', () => {
   };
 
   it('should render correctly', () => {
-    const wrapper = shallow(<AssetElement asset={erc20Token} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<AssetElement asset={erc20Token} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders the asset balance if provided', () => {

@@ -18,7 +18,7 @@ const store = mockStore(initialState);
 
 describe('TokenImage', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <TokenImage
           asset={{
@@ -30,6 +30,6 @@ describe('TokenImage', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -24,11 +24,11 @@ const store = mockStore(initialState);
 
 describe('ChoosePassword', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <ChoosePassword route={{ params: [ONBOARDING, PROTECT] }} />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

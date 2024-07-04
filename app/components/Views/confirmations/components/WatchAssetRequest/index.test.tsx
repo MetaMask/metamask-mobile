@@ -15,7 +15,7 @@ const store = mockStore(initialState);
 
 describe('WatchAssetRequest', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <WatchAssetRequest
           suggestedAssetMeta={{
@@ -24,6 +24,6 @@ describe('WatchAssetRequest', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

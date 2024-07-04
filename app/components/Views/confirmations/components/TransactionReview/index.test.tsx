@@ -177,7 +177,7 @@ describe('TransactionReview', () => {
   it('should render correctly', () => {
     const mockStore = configureMockStore();
     const store = mockStore(mockState);
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <TransactionReview
           generateTransform={
@@ -188,7 +188,7 @@ describe('TransactionReview', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should match snapshot', () => {

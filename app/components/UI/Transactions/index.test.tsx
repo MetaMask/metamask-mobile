@@ -22,7 +22,7 @@ const store = mockStore(initialState);
 
 describe('Transactions', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <Transactions
           transactions={[
@@ -48,6 +48,6 @@ describe('Transactions', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -15,13 +15,13 @@ const store = mockStore(initialState);
 
 describe('SignatureRequest', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <SignatureRequest
           currentPageInformation={{ title: 'title', url: 'url' }}
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

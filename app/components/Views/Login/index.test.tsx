@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import Login from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
@@ -18,11 +18,11 @@ const store = mockStore(initialState);
 
 describe('Login', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <Login />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

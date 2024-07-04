@@ -38,11 +38,11 @@ const store = mockStore(initialState);
 
 describe('TransactionReviewInformation', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <TransactionReviewInformation EIP1559GasData={{}} />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

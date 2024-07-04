@@ -29,11 +29,11 @@ const store = mockStore(mockInitialState);
 
 describe('Browser', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <BrowserTab initialUrl="https://metamask.io" />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

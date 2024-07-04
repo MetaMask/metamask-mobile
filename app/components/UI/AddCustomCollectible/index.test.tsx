@@ -20,11 +20,11 @@ jest.mock('react-redux', () => ({
 
 describe('AddCustomCollectible', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <AddCustomCollectible />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

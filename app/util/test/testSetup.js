@@ -14,6 +14,13 @@ jest.mock('react-native', () => {
   // Set the Platform.OS property to the desired value
   originalModule.Platform.OS = 'ios'; // or 'android', depending on what you want to test
 
+  // Mock the Linking API to include addEventListener and removeEventListener
+  originalModule.Linking = {
+    ...originalModule.Linking,
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  };
+
   return originalModule;
 });
 

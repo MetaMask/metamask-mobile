@@ -11,7 +11,7 @@ import { ButtonSize } from '../../Button.types';
 
 describe('ButtonBase', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ButtonBase
         startIconName={IconName.Bank}
         size={ButtonSize.Md}
@@ -19,11 +19,11 @@ describe('ButtonBase', () => {
         onPress={() => null}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render correctly when disabled', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ButtonBase
         isDisabled
         startIconName={IconName.Bank}
@@ -32,6 +32,6 @@ describe('ButtonBase', () => {
         onPress={() => null}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

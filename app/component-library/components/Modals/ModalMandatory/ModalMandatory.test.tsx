@@ -15,7 +15,7 @@ jest.mock('@react-navigation/native', () => {
 });
 describe('Mandatory Modal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <SafeAreaView>
         <ModalMandatory
           route={{
@@ -31,6 +31,6 @@ describe('Mandatory Modal', () => {
         />
       </SafeAreaView>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

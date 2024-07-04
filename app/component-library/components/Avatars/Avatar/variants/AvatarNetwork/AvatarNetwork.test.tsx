@@ -12,12 +12,12 @@ import {
 
 describe('AvatarNetwork', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render remote network image', () => {
-    const wrapper = shallow(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
+    const { toJSON } = render(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
 
     const imageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === AVATARNETWORK_IMAGE_TESTID,
@@ -26,7 +26,7 @@ describe('AvatarNetwork', () => {
   });
 
   it('should render local network image', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <AvatarNetwork
         {...SAMPLE_AVATARNETWORK_PROPS}
         imageSource={SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL}
@@ -40,7 +40,7 @@ describe('AvatarNetwork', () => {
   });
 
   it('should render fallback when image fails to load', () => {
-    const wrapper = shallow(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
+    const { toJSON } = render(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
     const prevImageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === AVATARNETWORK_IMAGE_TESTID,
     );
@@ -53,7 +53,7 @@ describe('AvatarNetwork', () => {
   });
 
   it('should render fallback when image is not provided', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <AvatarNetwork name={SAMPLE_AVATARNETWORK_PROPS.name} />,
     );
     const imageComponent = wrapper.findWhere(

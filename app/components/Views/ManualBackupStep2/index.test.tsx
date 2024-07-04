@@ -15,7 +15,7 @@ const store = mockStore(initialState);
 
 describe('ManualBackupStep2', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <ManualBackupStep2
           route={{
@@ -40,6 +40,6 @@ describe('ManualBackupStep2', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

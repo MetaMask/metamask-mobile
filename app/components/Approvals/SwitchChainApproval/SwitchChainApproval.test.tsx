@@ -41,16 +41,16 @@ describe('SwitchChainApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(<SwitchChainApproval />);
+    const { toJSON } = render(<SwitchChainApproval />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<SwitchChainApproval />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<SwitchChainApproval />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if incorrect approval request type', () => {
@@ -58,8 +58,8 @@ describe('SwitchChainApproval', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const wrapper = shallow(<SwitchChainApproval />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<SwitchChainApproval />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('invokes network switched on confirm', () => {
@@ -72,7 +72,7 @@ describe('SwitchChainApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(<SwitchChainApproval />);
+    const { toJSON } = render(<SwitchChainApproval />);
     wrapper.find('SwitchCustomNetwork').simulate('confirm');
 
     expect(networkSwitched).toHaveBeenCalledTimes(1);

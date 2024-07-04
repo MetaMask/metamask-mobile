@@ -15,7 +15,7 @@ const store = mockStore(initialState);
 
 describe('CollectibleContractInformation', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <CollectibleContractInformation
           collectibleContract={{
@@ -28,6 +28,6 @@ describe('CollectibleContractInformation', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

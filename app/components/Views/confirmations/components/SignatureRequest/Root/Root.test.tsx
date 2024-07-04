@@ -104,7 +104,7 @@ const store = mockStore(initialState);
 
 describe('Root', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
           <Root
@@ -116,7 +116,7 @@ describe('Root', () => {
         </ThemeContext.Provider>
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should match snapshot', async () => {

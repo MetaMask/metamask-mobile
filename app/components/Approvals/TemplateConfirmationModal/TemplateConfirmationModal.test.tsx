@@ -34,9 +34,9 @@ describe('TemplateConfirmationModal', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(<TemplateConfirmationModal />);
+    const { toJSON } = render(<TemplateConfirmationModal />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders if approval type is error result', () => {
@@ -49,16 +49,16 @@ describe('TemplateConfirmationModal', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(<TemplateConfirmationModal />);
+    const { toJSON } = render(<TemplateConfirmationModal />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders nothing if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<TemplateConfirmationModal />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<TemplateConfirmationModal />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders nothing if incorrect approval request type', () => {
@@ -66,7 +66,7 @@ describe('TemplateConfirmationModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const wrapper = shallow(<TemplateConfirmationModal />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<TemplateConfirmationModal />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

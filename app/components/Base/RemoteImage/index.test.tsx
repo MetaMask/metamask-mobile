@@ -13,35 +13,35 @@ jest.mock('../../../components/hooks/useIpfsGateway', () => jest.fn());
 
 describe('RemoteImage', () => {
   it('should render svg correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <RemoteImage
         source={{
           uri: 'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg',
         }}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render static sources', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <RemoteImage
         source={{
           uri: 'https://s3.amazonaws.com/airswap-token-images/OXT.png',
         }}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render ipfs sources', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <RemoteImage
         source={{
           uri: 'ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23',
         }}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

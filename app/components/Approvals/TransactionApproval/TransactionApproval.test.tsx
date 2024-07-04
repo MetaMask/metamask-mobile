@@ -39,11 +39,11 @@ describe('TransactionApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(
+    const { toJSON } = render(
       <TransactionApproval transactionType={TransactionModalType.Dapp} />,
     );
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders approve component if transaction type is transaction', () => {
@@ -53,13 +53,13 @@ describe('TransactionApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(
+    const { toJSON } = render(
       <TransactionApproval
         transactionType={TransactionModalType.Transaction}
       />,
     );
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders QR signing modal if signing QR object', () => {
@@ -69,19 +69,19 @@ describe('TransactionApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(
+    const { toJSON } = render(
       <TransactionApproval isSigningQRObject QRState={{ test: 'value' }} />,
     );
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<TransactionApproval />);
+    const { toJSON } = render(<TransactionApproval />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if incorrect approval request type', () => {
@@ -91,9 +91,9 @@ describe('TransactionApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(<TransactionApproval />);
+    const { toJSON } = render(<TransactionApproval />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if incorrect transaction type', () => {
@@ -103,8 +103,8 @@ describe('TransactionApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(<TransactionApproval transactionType="invalid" />);
+    const { toJSON } = render(<TransactionApproval transactionType="invalid" />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

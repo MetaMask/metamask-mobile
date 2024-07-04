@@ -22,7 +22,7 @@ const store = mockStore(initialState);
 
 describe('TransactionElement', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <TransactionElement
           tx={{
@@ -33,6 +33,6 @@ describe('TransactionElement', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

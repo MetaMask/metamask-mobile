@@ -5,7 +5,7 @@ import Keypad from './components';
 describe('Keypad component', () => {
   test('components should render correctly', () => {
     const dummyHandler = jest.fn();
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Keypad>
         <Keypad.Row>
           <Keypad.Button onPress={dummyHandler}>1</Keypad.Button>
@@ -29,6 +29,6 @@ describe('Keypad component', () => {
         </Keypad.Row>
       </Keypad>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -24,7 +24,7 @@ const store = mockStore(initialState);
 
 describe('RevealPrivateCredential', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <RevealPrivateCredential
           route={{
@@ -38,6 +38,6 @@ describe('RevealPrivateCredential', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -29,7 +29,7 @@ jest.mock('@react-navigation/native', () => {
 });
 describe('BrowserUrlModal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<BrowserUrlModal {...mockNavigation} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<BrowserUrlModal {...mockNavigation} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });
