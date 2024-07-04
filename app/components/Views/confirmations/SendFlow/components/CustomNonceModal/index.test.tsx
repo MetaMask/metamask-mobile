@@ -7,7 +7,7 @@ describe('CustomNonceModal', () => {
   const customNonce = 28;
   it('should render correctly', () => {
     const noop = () => ({});
-    const wrapper = shallow(
+    const { toJSON } = render(
       <CustomNonceModal
         save={noop}
         close={noop}
@@ -15,13 +15,13 @@ describe('CustomNonceModal', () => {
         nonceValue={customNonce}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should handle only numeric inputs', () => {
     const saveMock = jest.fn();
     const closeMock = jest.fn();
-    const wrapper = shallow(
+    const { toJSON } = render(
       <CustomNonceModal
         save={saveMock}
         close={closeMock}
