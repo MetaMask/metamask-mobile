@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Logger from '../../../../util/Logger';
+import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import Engine from '../../../Engine';
 import { Minimizer } from '../../../NativeModules';
 import { RPC_METHODS } from '../../SDKConnectConstants';
@@ -22,6 +23,12 @@ jest.mock('@metamask/preferences-controller');
 jest.mock('../AndroidService');
 jest.mock('../../handlers/handleBatchRpcResponse', () => jest.fn());
 jest.mock('../../utils/DevLogger');
+
+const MOCK_ADDRESS = '0x1';
+const mockInternalAccount = createMockInternalAccount(
+  MOCK_ADDRESS,
+  'Account 1',
+);
 
 describe('sendMessage', () => {
   let instance: jest.Mocked<AndroidService>;
@@ -62,10 +69,8 @@ describe('sendMessage', () => {
     };
 
     (Engine.context as any) = {
-      PreferencesController: {
-        state: {
-          selectedAddress: '0x1',
-        },
+      AccountsController: {
+        getSelectedAccount: jest.fn().mockReturnValue(mockInternalAccount),
       },
     };
   });
@@ -87,7 +92,15 @@ describe('sendMessage', () => {
   });
 
   it('should send message without reordering if selectedAddress is not in result', async () => {
-    (Engine.context as any).PreferencesController.state.selectedAddress = '0x3';
+    const MOCK_ADDRESS_2 = '0x3';
+    const mockInternalAccount2 = createMockInternalAccount(
+      MOCK_ADDRESS_2.toLowerCase(),
+      'Account 2',
+    );
+
+    (Engine.context as any).AccountsController.getSelectedAccount = jest
+      .fn()
+      .mockReturnValue(mockInternalAccount2);
 
     mockGetId.mockReturnValue(RPC_METHODS.ETH_REQUESTACCOUNTS);
 
