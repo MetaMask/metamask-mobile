@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import ContractBoxBase from './ContractBoxBase';
 import TEST_ADDRESS from '../../../../constants/address';
 import {
@@ -24,19 +24,17 @@ describe('Component ContractBoxBase', () => {
     };
   });
 
-  const renderComponent = () => shallow(<ContractBoxBase {...props} />);
+  const renderComponent = () => render(<ContractBoxBase {...props} />);
 
   it('should render correctly', () => {
-    const component = renderComponent();
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderComponent();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render correctly when contract petname is not provided', () => {
     props.contractPetName = undefined;
-    const component = renderComponent();
-    const contractPetName = component.findWhere(
-      (node) => node.prop('testID') === CONTRACT_BOX_NO_PET_NAME_TEST_ID,
-    );
-    expect(contractPetName.exists()).toBe(true);
+    const { getByTestId } = renderComponent();
+    const contractPetName = getByTestId(CONTRACT_BOX_NO_PET_NAME_TEST_ID);
+    expect(contractPetName).toBeTruthy();
   });
 });
