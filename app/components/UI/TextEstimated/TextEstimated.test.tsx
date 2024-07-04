@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 
 // External dependencies.
 import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
@@ -14,25 +14,23 @@ import {
 
 describe('TextEstimated - Snapshot', () => {
   it('should render default settings correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <TextEstimated variant={TextVariant.HeadingSMRegular}>
         {TEST_SAMPLE_TEXT}
       </TextEstimated>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
 
 describe('TextEstimated', () => {
   it('should render TextEstimated', () => {
-    const wrapper = shallow(
+    render(
       <TextEstimated variant={TextVariant.HeadingSMRegular}>
         {TEST_SAMPLE_TEXT}
       </TextEstimated>,
     );
-    const TextEstimatedComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TEXT_ESTIMATED_TEST_ID,
-    );
-    expect(TextEstimatedComponent.exists()).toBe(true);
+    const TextEstimatedComponent = screen.getByTestId(TEXT_ESTIMATED_TEST_ID);
+    expect(TextEstimatedComponent).toBeTruthy();
   });
 });
