@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, cleanup, waitFor } from '@testing-library/react-native';
 import CollectibleContracts from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
@@ -9,7 +9,6 @@ import { act } from '@testing-library/react-hooks';
 
 // eslint-disable-next-line import/no-namespace
 import * as allSelectors from '../../../../app/reducers/collectibles/index.js';
-import { cleanup, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 
 import TestHelpers from '../../../../e2e/helpers';
@@ -64,12 +63,12 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
 describe('CollectibleContracts', () => {
   afterEach(cleanup);
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <CollectibleContracts />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should only get owned collectibles', () => {
