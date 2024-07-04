@@ -107,6 +107,9 @@ const mockTheme = {
     warning: {
       default: '#FFA500',
     },
+    overlay: {
+      inverse: '#FFFFFF',
+    },
   },
 };
 
