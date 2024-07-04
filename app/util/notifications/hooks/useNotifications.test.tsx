@@ -82,7 +82,7 @@ describe('useListNotifications', () => {
     const { result } = arrangeHook();
 
     // Assert - initial state
-    expect(result.current.notificationsData?.length).toBe(2);
+    expect(result.current.notificationsData.length).toBe(2);
 
     // Act - test re-fetching list
     await act(async () => {

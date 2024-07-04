@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 import NotificationsSettings from '.';
+import { Props } from './NotificationsSettings.types';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 
 const mockInitialState = {
@@ -27,10 +28,12 @@ describe('NotificationsSettings', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
       <NotificationsSettings
-        navigation={{
-          setOptions,
-        }}
-        route={{}}
+        navigation={
+          {
+            setOptions,
+          } as unknown as Props['navigation']
+        }
+        route={{} as unknown as Props['route']}
       />,
       {
         state: mockInitialState,

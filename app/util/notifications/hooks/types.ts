@@ -22,7 +22,7 @@ export interface DisableMetametricsReturn {
 }
 export interface ListNotificationsReturn {
   listNotifications: () => Promise<string | undefined>;
-  notificationsData?: Notification[];
+  notificationsData: readonly Notification[];
   isLoading: boolean;
   error?: string;
 }

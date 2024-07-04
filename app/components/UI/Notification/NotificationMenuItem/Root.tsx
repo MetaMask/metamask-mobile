@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
+import { Dimensions, TouchableOpacity } from 'react-native';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
@@ -17,13 +17,12 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
+import { NotificationListStyles } from '../List/styles';
 
 interface NotificationRootProps
   extends Pick<PanGestureHandlerProps, 'simultaneousHandlers'> {
   children: React.ReactNode;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: StyleSheet.NamedStyles<any>;
+  styles: NotificationListStyles;
   handleOnPress: () => void;
   onDismiss?: () => void;
 }

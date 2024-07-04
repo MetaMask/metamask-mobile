@@ -4,7 +4,7 @@ import React from 'react';
 // External dependencies.
 import BadgeBase from '../../foundation/BadgeBase';
 import { useComponentSize, useStyles } from '../../../../../hooks';
-import Icon, { IconSize, IconColor } from '../../../../Icons/Icon';
+import Icon, { IconSize, IconColor, IconName } from '../../../../Icons/Icon';
 
 // Internal dependencies
 import { BadgeNotificationsProps } from './BadgeNotifications.types';
@@ -24,7 +24,11 @@ const BadgeNotifications = ({
       testID={testID}
       onLayout={onLayoutContainerSize}
     >
-      <Icon name={iconName} size={IconSize.Xss} color={IconColor.Inverse} />
+      <Icon
+        name={iconName ?? IconName.Sparkle}
+        size={IconSize.Xss}
+        color={IconColor.Inverse}
+      />
     </BadgeBase>
   );
 };

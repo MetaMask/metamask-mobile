@@ -358,7 +358,7 @@ enum EVENT_NAME {
   //Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
-  ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
+  WEB3_NOTIFICATIONS = 'Web 3 Notifications',
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
@@ -418,7 +418,7 @@ enum ACTIONS {
   // Notifications
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
   SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
-  SELECTS_ANNOUCEMENTS_NOTIFICATIONS = 'Selects Annoucements Notifications',
+  SELECTS_WEB3_NOTIFICATIONS = 'Selects WEB 3 Notifications',
 }
 
 const events = {
@@ -858,9 +858,9 @@ const events = {
     EVENT_NAME.WALLET_NOTIFICATIONS,
     ACTIONS.SELECTS_WALLET_NOTIFICATIONS,
   ),
-  ANNOUCEMENTS_NOTIFICATIONS: generateOpt(
-    EVENT_NAME.ANNOUCEMENTS_NOTIFICATIONS,
-    ACTIONS.SELECTS_ANNOUCEMENTS_NOTIFICATIONS,
+  WEB3_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.WEB3_NOTIFICATIONS,
+    ACTIONS.SELECTS_WEB3_NOTIFICATIONS,
   ),
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
