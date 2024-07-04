@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import SimpleWebview from './';
 
 describe('SimpleWebview', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <SimpleWebview
         navigation={{
           setParams: () => {
@@ -15,6 +15,6 @@ describe('SimpleWebview', () => {
         route={{ params: { url: 'https://etherscan.io', title: 'etherscan' } }}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
