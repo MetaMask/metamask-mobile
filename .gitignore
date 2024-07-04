@@ -45,6 +45,8 @@ android/app/google-services.json
 node_modules/
 npm-debug.log
 yarn-error.log
+.yalc
+yalc.lock
 
 # buck
 buck-out/

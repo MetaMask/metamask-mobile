@@ -118,15 +118,6 @@ function render(Component: React.ReactElement, orders = testOrders) {
       engine: {
         backgroundState: {
           ...backgroundState,
-          PreferencesController: {
-            selectedAddress: MOCK_ADDRESS,
-            identities: {
-              [MOCK_ADDRESS]: {
-                address: MOCK_ADDRESS,
-                name: 'Account 1',
-              },
-            },
-          },
           NetworkController: {
             network: '1',
             providerConfig: {

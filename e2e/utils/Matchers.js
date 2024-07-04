@@ -74,14 +74,28 @@ class Matchers {
   }
 
   /**
+   * Get Native WebView instance by elementId
+   *
+   * Because Android Webview might have more that one WebView instance present on the main activity, the correct element
+   * is select based on its parent element id.
+   * @param {string} elementId The web ID of the browser webview
+   * @returns {Detox.WebViewElement} WebView element
+   */
+  static getWebViewByID(elementId) {
+    return device.getPlatform() === 'ios'
+      ? web(by.id(elementId))
+      : web(by.type('android.webkit.WebView').withAncestor(by.id(elementId)));
+  }
+
+  /**
    * Get element by web ID.
    *
-   * * @param {string} webviewID - The web ID of the inner element to locate within the webview
-   *  @param {string} innerID - The web ID of the browser webview
+   * @param {string} webviewID - The web ID of the inner element to locate within the webview
+   * @param {string} innerID - The web ID of the browser webview
    * @return {Promise<Detox.IndexableWebElement>} Resolves to the located element
    */
   static async getElementByWebID(webviewID, innerID) {
-    const myWebView = web(by.id(webviewID));
+    const myWebView = this.getWebViewByID(webviewID);
     return myWebView.element(by.web.id(innerID));
   }
 
@@ -101,15 +115,11 @@ class Matchers {
    * Get element by XPath.
    * @param {string} webviewID - The web ID of the browser webview
    * @param {string} xpath - XPath expression to locate the element
-   * @param {number} index - index to locate the webview (iOS only)
    * @return {Promise<Detox.WebElement>} - Resolves to the located element
    */
-  static async getElementByXPath(webviewID, xpath, index = 0) {
-    const myWebView =
-      device.getPlatform() === 'ios'
-        ? web(by.id(webviewID)).atIndex(index)
-        : web(by.id(webviewID));
-    return myWebView.element(by.web.xpath(xpath)).atIndex(0);
+  static async getElementByXPath(webviewID, xpath) {
+    const myWebView = this.getWebViewByID(webviewID);
+    return myWebView.element(by.web.xpath(xpath));
   }
   /**
    * Get element by href.

@@ -8,15 +8,7 @@ const mockedEngine = Engine;
 
 const mockInitialState = {
   engine: {
-    backgroundState: {
-      ...backgroundState,
-      PreferencesController: {
-        selectedAddress: '0x',
-        identities: {
-          '0x': { name: 'Account 1', address: '0x' },
-        },
-      },
-    },
+    backgroundState,
   },
 };
 
