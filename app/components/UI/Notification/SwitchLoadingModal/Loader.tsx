@@ -24,10 +24,12 @@ const createStyles = (colors) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
+      borderColor: colors.border.default,
+      borderWidth: 2,
+      borderRadius: 16,
       paddingBottom: Device.isIphoneX() ? 24 : 18,
       minHeight: 120,
+      margin: 16,
     },
     spinnerWrapper: {
       alignItems: 'center',
