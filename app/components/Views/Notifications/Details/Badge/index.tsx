@@ -16,6 +16,8 @@ import AvatarToken from '../../../../../component-library/components/Avatars/Ava
 
 interface NotificationBadgeProps {
   notificationType: TRIGGER_TYPES;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: Record<string, any>;
   badgeImageSource?: ImageSourcePropType;
   imageUrl?: string;

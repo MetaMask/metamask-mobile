@@ -11,6 +11,7 @@ import {
   DELETE_METRICS_BUTTON,
   IPFS_GATEWAY_SECTION,
   LOGIN_OPTIONS,
+  META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
   NFT_AUTO_DETECT_MODE_SECTION,
   NFT_DISPLAY_MEDIA_MODE_SECTION,
@@ -105,6 +106,7 @@ describe('SecuritySettings', () => {
     expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();
     expect(getByTestId(META_METRICS_SECTION)).toBeTruthy();
     expect(getByTestId(DELETE_METRICS_BUTTON)).toBeTruthy();
+    expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeTruthy();
     expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
     expect(getByTestId(BATCH_BALANCE_REQUESTS_SECTION)).toBeTruthy();
     expect(SecurityPrivacyViewSelectorsIDs.INCOMING_TRANSACTIONS).toBeTruthy();

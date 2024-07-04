@@ -167,7 +167,11 @@ exports[`TypedSign onConfirm signs message 1`] = `
                     <Image
                       onError={[Function]}
                       resizeMode="contain"
-                      source={{}}
+                      source={
+                        {
+                          "uri": "",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -192,7 +196,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                       }
                     }
                   >
-                    https://localhost
+                    http://localhost:8545
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -389,7 +393,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                               }
                             }
                           >
-                            0xC495...D272
+                            Account 1
                           </Text>
                         </View>
                       </View>
@@ -482,7 +486,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                       ]
                     }
                   >
-                    l
+                    h
                   </Text>
                 </View>
               </View>
@@ -834,7 +838,11 @@ exports[`TypedSign onReject rejects message 1`] = `
                     <Image
                       onError={[Function]}
                       resizeMode="contain"
-                      source={{}}
+                      source={
+                        {
+                          "uri": "",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -859,7 +867,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                       }
                     }
                   >
-                    https://localhost
+                    http://localhost:8545
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -1056,7 +1064,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                               }
                             }
                           >
-                            0xC495...D272
+                            Account 1
                           </Text>
                         </View>
                       </View>
@@ -1149,7 +1157,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                       ]
                     }
                   >
-                    l
+                    h
                   </Text>
                 </View>
               </View>

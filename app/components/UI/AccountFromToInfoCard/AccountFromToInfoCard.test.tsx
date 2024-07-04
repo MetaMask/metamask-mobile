@@ -39,19 +39,6 @@ const mockInitialState = {
           '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x5',
         },
       },
-      PreferencesController: {
-        selectedAddress: MOCK_ADDRESS_1,
-        identities: {
-          [MOCK_ADDRESS_1]: {
-            address: MOCK_ADDRESS_1,
-            name: 'Account 1',
-          },
-          [MOCK_ADDRESS_2]: {
-            address: MOCK_ADDRESS_2,
-            name: 'Account 2',
-          },
-        },
-      },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
@@ -91,6 +78,8 @@ jest.mock('../../../util/ENSUtils', () => ({
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSelector: (fn: any) => fn(mockInitialState),
 }));
 
@@ -190,6 +179,8 @@ describe('AccountFromToInfoCard', () => {
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
     const { findByText } = renderWithProvider(
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       <AccountFromToInfoCard transactionState={NFTTransaction as any} />,
       { state: mockInitialState },
     );
@@ -205,6 +196,8 @@ describe('AccountFromToInfoCard', () => {
       },
       transactionTo: '0x9004C7f302475BF5501fbc6254f69C64212A0d12',
     };
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (ENSCache.cache as any) = {
       '10x1': {
         name: 'test1.eth',
@@ -243,6 +236,8 @@ describe('AccountFromToInfoCard', () => {
         value: '3a98',
       },
     };
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mockGetERC20BalanceOf: any;
     beforeEach(() => {
       jest.useFakeTimers();
@@ -254,6 +249,8 @@ describe('AccountFromToInfoCard', () => {
 
     it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', async () => {
       const { findByText } = renderWithProvider(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         <AccountFromToInfoCard transactionState={ERC20Transaction as any} />,
         { state: mockInitialState },
       );
@@ -271,6 +268,8 @@ describe('AccountFromToInfoCard', () => {
         },
       };
       const { findByText } = renderWithProvider(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         <AccountFromToInfoCard transactionState={transaction as any} />,
         { state: mockInitialState },
       );

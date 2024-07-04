@@ -41,9 +41,6 @@ const mockInitialState = {
         },
       },
       PreferencesController: {
-        identities: {
-          [MOCK_ADDRESS]: { name: 'Account1' },
-        },
         securityAlertsEnabled: true,
       },
       KeyringController: {
@@ -142,6 +139,8 @@ jest.mock('../../../../../util/transactions', () => ({
   decodeTransferData: jest.fn().mockImplementation(() => ['0x2']),
 }));
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function render(Component: React.ComponentType | ConnectedComponent<any, any>) {
   return renderScreen(
     Component,

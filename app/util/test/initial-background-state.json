@@ -87,7 +87,7 @@
     "lostIdentities": {},
     "selectedAddress": "",
     "useTokenDetection": true,
-    "useNftDetection": false,
+    "useNftDetection": true,
     "useSafeChainsListValidation": true,
     "displayNftMedia": true,
     "securityAlertsEnabled": true,
@@ -126,8 +126,7 @@
     "contractBalances": {}
   },
   "TokenRatesController": {
-    "contractExchangeRates": {},
-    "contractExchangeRatesByChainId": {}
+    "marketData": {}
   },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},

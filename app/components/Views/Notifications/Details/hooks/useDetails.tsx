@@ -48,6 +48,8 @@ import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from '../../../../../component-lib
 interface UseDetailsProps {
   theme: Theme;
   accountAvatarType?: AvatarAccountType;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   copyToClipboard: (type: string, selectedString?: string) => Promise<void>;
 }
@@ -237,7 +239,7 @@ const useDetails = ({
   const renderAsset = useCallback(
     (type, title, token, network) => {
       const exchangeRate =
-        token.address && contractExchangeRates[token.address];
+        token.address && contractExchangeRates?.[token.address]?.price;
       const balanceFiat = token
         ? balanceToFiat(
             token.amount || '0',
@@ -277,6 +279,8 @@ const useDetails = ({
   const renderNFT = useCallback(
     (notificationDetails) => {
       const { type, nft, from, to, status, tx_hash, collection, network } =
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         notificationDetails as Record<string, any>;
       return (
         <>
@@ -320,6 +324,8 @@ const useDetails = ({
   const renderTransfer = useCallback(
     (notificationDetails) => {
       const { type, from, to, status, tx_hash, token, network } =
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         notificationDetails as Record<string, any>;
       return (
         <>
@@ -374,6 +380,8 @@ const useDetails = ({
   const renderStake = useCallback(
     (notificationDetails) => {
       const { type, status, tx_hash, stake_in, stake_out, network } =
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         notificationDetails as Record<string, any>;
       const unstakingInProgress =
         type?.indexOf(TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED) > -1;
@@ -415,6 +423,8 @@ const useDetails = ({
   const renderStakeReadyToBeWithdrawn = useCallback(
     (notificationDetails) => {
       const { type, staked_eth, tx_hash, status, network } =
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         notificationDetails as Record<string, any>;
 
       return (
@@ -473,6 +483,8 @@ const useDetails = ({
   const renderSwap = useCallback(
     (notificationDetails) => {
       const { type, status, tx_hash, token_in, token_out, rate, network } =
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         notificationDetails as Record<string, any>;
       // TODO: on next change from API we need to use render the account involved on the swap.
       return (

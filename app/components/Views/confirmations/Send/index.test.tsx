@@ -4,6 +4,7 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1,
 } from '../../../../util/test/accountsControllerTestUtils';
+import { MOCK_KEYRING_CONTROLLER } from '../../../../selectors/keyringController/testUtils';
 
 const initialState = {
   transaction: {
@@ -50,15 +51,11 @@ const initialState = {
       TokenBalancesController: {
         contractBalances: {},
       },
+      TokenListController: {
+        tokenList: [],
+      },
       PreferencesController: {
         featureFlags: {},
-        identities: {
-          [MOCK_ADDRESS_1]: {
-            address: MOCK_ADDRESS_1,
-            name: 'Account 1',
-            importTime: 1684232000456,
-          },
-        },
         ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
         lostIdentities: {},
         selectedAddress: MOCK_ADDRESS_1,
@@ -76,13 +73,6 @@ const initialState = {
         _W: {
           featureFlags: {},
           frequentRpcList: [],
-          identities: {
-            [MOCK_ADDRESS_1]: {
-              address: MOCK_ADDRESS_1,
-              name: 'Account 1',
-              importTime: 1684232000456,
-            },
-          },
           ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
           lostIdentities: {},
           selectedAddress: MOCK_ADDRESS_1,
@@ -120,6 +110,7 @@ const initialState = {
         _X: null,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      KeyringController: MOCK_KEYRING_CONTROLLER,
       NetworkController: {
         network: '1',
         providerConfig: {
@@ -132,7 +123,7 @@ const initialState = {
         allNftContracts: {},
       },
       TokenRatesController: {
-        contractExchangeRates: {},
+        marketData: {},
       },
       TransactionController: {
         methodData: {},

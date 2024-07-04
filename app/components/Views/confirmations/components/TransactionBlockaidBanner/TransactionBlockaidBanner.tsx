@@ -9,6 +9,8 @@ const TransactionBlockaidBanner = (
   const { transactionId, ...rest } = bannerProps;
 
   const securityAlertResponse = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.transaction.currentTransactionSecurityAlertResponse,
   );
 
