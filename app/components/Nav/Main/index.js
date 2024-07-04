@@ -83,7 +83,6 @@ import {
 } from '../../../util/transaction-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
-import EthQuery from '@metamask/eth-query';
 ///: END:ONLY_INCLUDE_IF
 
 const Stack = createStackNavigator();
@@ -155,9 +154,7 @@ const Main = (props) => {
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
       try {
-        const { NetworkController } = Engine.context;
-        const { provider } = NetworkController.getProviderAndBlockTracker();
-        const ethQuery = new EthQuery(provider);
+        const ethQuery = Engine.getGlobalEthQuery();
         await query(ethQuery, 'blockNumber', []);
         props.setInfuraAvailabilityNotBlocked();
       } catch (e) {

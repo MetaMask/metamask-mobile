@@ -207,6 +207,7 @@ import { SmartTransactionsControllerState } from '@metamask/smart-transactions-c
 import { zeroAddress } from 'ethereumjs-util';
 import { getPermittedAccounts } from './Permissions';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
+import EthQuery from '@metamask/eth-query';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1781,6 +1782,17 @@ class Engine {
     AccountsController.setAccountName(accountToBeNamed.id, label);
     PreferencesController.setAccountLabel(address, label);
   }
+
+  getGlobalEthQuery(): EthQuery {
+    const { NetworkController } = this.context;
+    const { provider } = NetworkController.getSelectedNetworkClient() ?? {};
+
+    if (!provider) {
+      throw new Error('No selected network client');
+    }
+
+    return new EthQuery(provider);
+  }
 }
 
 /**
@@ -1803,10 +1815,12 @@ export default {
     assertEngineExists(instance);
     return instance.context;
   },
+
   get controllerMessenger() {
     assertEngineExists(instance);
     return instance.controllerMessenger;
   },
+
   get state() {
     assertEngineExists(instance);
     const {
@@ -1881,36 +1895,44 @@ export default {
       AccountsController,
     };
   },
+
   get datamodel() {
     assertEngineExists(instance);
     return instance.datamodel;
   },
+
   getTotalFiatAccountBalance() {
     assertEngineExists(instance);
     return instance.getTotalFiatAccountBalance();
   },
+
   hasFunds() {
     assertEngineExists(instance);
     return instance.hasFunds();
   },
+
   resetState() {
     assertEngineExists(instance);
     return instance.resetState();
   },
+
   destroyEngine() {
     instance?.destroyEngineInstance();
     instance = null;
   },
+
   init(state: Record<string, never> | undefined, keyringState = null) {
     instance = Engine.instance || new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
   },
+
   acceptPendingApproval: async (
     id: string,
     requestData?: Record<string, Json>,
     opts?: AcceptOptions & { handleErrors?: boolean },
   ) => instance?.acceptPendingApproval(id, requestData, opts),
+
   rejectPendingApproval: (
     id: string,
     reason: Error,
@@ -1919,12 +1941,19 @@ export default {
       logErrors?: boolean;
     } = {},
   ) => instance?.rejectPendingApproval(id, reason, opts),
+
   setSelectedAddress: (address: string) => {
     assertEngineExists(instance);
     instance.setSelectedAccount(address);
   },
+
   setAccountLabel: (address: string, label: string) => {
     assertEngineExists(instance);
     instance.setAccountLabel(address, label);
+  },
+
+  getGlobalEthQuery: (): EthQuery => {
+    assertEngineExists(instance);
+    return instance.getGlobalEthQuery();
   },
 };

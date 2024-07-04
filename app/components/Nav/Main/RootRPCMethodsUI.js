@@ -66,7 +66,6 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../util/smart-transactions';
-import EthQuery from '@metamask/eth-query';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
@@ -159,9 +158,7 @@ const RootRPCMethodsUI = (props) => {
             ({ id }) => id === approvalTransactionMetaId,
           );
 
-        const { NetworkController } = Engine.context;
-        const { provider } = NetworkController.getProviderAndBlockTracker();
-        const ethQuery = new EthQuery(provider);
+        const ethQuery = Engine.getGlobalEthQuery();
 
         const ethBalance = await query(ethQuery, 'getBalance', [
           props.selectedAddress,

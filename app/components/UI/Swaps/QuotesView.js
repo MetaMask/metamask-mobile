@@ -101,7 +101,6 @@ import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
-import EthQuery from '@metamask/eth-query';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -784,9 +783,8 @@ function SwapsQuotesView({
       approvalTransactionMetaId,
       newSwapsTransactions,
     ) => {
-      const { TransactionController, NetworkController } = Engine.context;
-      const { provider } = NetworkController.getProviderAndBlockTracker();
-      const ethQuery = new EthQuery(provider);
+      const { TransactionController } = Engine.context;
+      const ethQuery = Engine.getGlobalEthQuery();
       const blockNumber = await query(ethQuery, 'blockNumber', []);
       const currentBlock = await query(ethQuery, 'getBlockByNumber', [
         blockNumber,

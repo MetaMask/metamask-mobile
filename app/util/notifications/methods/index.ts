@@ -26,7 +26,6 @@ import { renderFromWei } from '../../../util/number';
 import { updateNotificationStatus } from '../../../actions/notification';
 import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
-import EthQuery from '@metamask/eth-query';
 
 export interface ViewOnEtherscanProps {
   // TODO: Replace "any" with type
@@ -627,10 +626,7 @@ function hasNetworkFeeFields(
 }
 
 async function fetchTxDetails(tx_hash: string) {
-  const { NetworkController } = Engine.context;
-  const { provider } = NetworkController.getProviderAndBlockTracker();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const ethQuery = new EthQuery(provider as any);
+  const ethQuery = Engine.getGlobalEthQuery();
 
   try {
     const receipt = await query(ethQuery, 'getTransactionReceipt', [tx_hash]);
