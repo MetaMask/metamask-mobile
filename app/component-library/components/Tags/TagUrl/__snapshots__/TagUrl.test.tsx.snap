@@ -17,30 +17,49 @@ exports[`TagUrl should render correctly 1`] = `
     }
   }
 >
-  <Avatar
-    imageSource={
-      {
-        "uri": "https://uniswap.org/favicon.ico",
-      }
-    }
-    size="32"
+  <View
     style={
       {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 16,
         "height": 24,
         "marginRight": 8,
+        "overflow": "hidden",
         "width": 24,
       }
     }
-    variant="Favicon"
-  />
+  >
+    <Image
+      onError={[Function]}
+      resizeMode="contain"
+      source={
+        {
+          "uri": "https://uniswap.org/favicon.ico",
+        }
+      }
+      style={
+        {
+          "flex": 1,
+          "height": undefined,
+          "width": undefined,
+        }
+      }
+      testID="favicon-avatar-image"
+    />
+  </View>
   <Text
+    accessibilityRole="text"
     style={
       {
         "color": "#6a737d",
         "flexShrink": 1,
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
       }
     }
-    variant="sBodyMD"
   >
     https://uniswap.org
   </Text>
