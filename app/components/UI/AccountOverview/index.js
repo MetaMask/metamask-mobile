@@ -41,14 +41,17 @@ import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { selectIdentities } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import {
+  selectInternalAccounts,
+  selectSelectedInternalAccountChecksummedAddress,
+} from '../../../selectors/accountsController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { isPortfolioUrl } from '../../../util/url';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -157,9 +160,9 @@ class AccountOverview extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     /**
-    /* Identities object required to get account name
+    /* InternalAccounts object required to get account name
     */
-    identities: PropTypes.object,
+    internalAccounts: PropTypes.object,
     /**
      * Object that represents the selected account
      */
@@ -234,8 +237,8 @@ class AccountOverview extends PureComponent {
   input = React.createRef();
 
   componentDidMount = () => {
-    const { identities, selectedAddress, onRef } = this.props;
-    const accountLabel = renderAccountName(selectedAddress, identities);
+    const { internalAccounts, selectedAddress, onRef } = this.props;
+    const accountLabel = renderAccountName(selectedAddress, internalAccounts);
     this.setState({ accountLabel });
     onRef && onRef(this);
     InteractionManager.runAfterInteractions(() => {
@@ -259,16 +262,18 @@ class AccountOverview extends PureComponent {
   }
 
   setAccountLabel = () => {
-    const { selectedAddress, identities } = this.props;
+    const { selectedAddress, internalAccounts } = this.props;
     const { accountLabel } = this.state;
 
-    const lastAccountLabel = identities[selectedAddress].name;
+    const accountWithMatchingToAddress = internalAccounts.find((account) =>
+      toLowerCaseEquals(account.address, selectedAddress),
+    );
 
     Engine.setAccountLabel(
       selectedAddress,
       this.isAccountLabelDefined(accountLabel)
         ? accountLabel
-        : lastAccountLabel,
+        : accountWithMatchingToAddress.metadata.name,
     );
     this.setState({ accountLabelEditable: false });
   };
@@ -278,8 +283,8 @@ class AccountOverview extends PureComponent {
   };
 
   setAccountLabelEditable = () => {
-    const { identities, selectedAddress } = this.props;
-    const accountLabel = renderAccountName(selectedAddress, identities);
+    const { internalAccounts, selectedAddress } = this.props;
+    const accountLabel = renderAccountName(selectedAddress, internalAccounts);
     this.setState({ accountLabelEditable: true, accountLabel });
     setTimeout(() => {
       this.input && this.input.current && this.input.current.focus();
@@ -287,8 +292,8 @@ class AccountOverview extends PureComponent {
   };
 
   cancelAccountLabelEdition = () => {
-    const { identities, selectedAddress } = this.props;
-    const accountLabel = renderAccountName(selectedAddress, identities);
+    const { internalAccounts, selectedAddress } = this.props;
+    const accountLabel = renderAccountName(selectedAddress, internalAccounts);
     this.setState({ accountLabelEditable: false, accountLabel });
   };
 
@@ -461,7 +466,7 @@ class AccountOverview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
-  identities: selectIdentities(state),
+  internalAccounts: selectInternalAccounts(state),
   currentCurrency: selectCurrentCurrency(state),
   chainId: selectChainId(state),
   browserTabs: state.browser.tabs,
