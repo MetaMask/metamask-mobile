@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import WhatsNewModal from './';
 import { NavigationContainer } from '@react-navigation/native';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 // Mock the useNavigation hook
 jest.mock('@react-navigation/native', () => ({
@@ -15,9 +16,11 @@ jest.mock('@react-navigation/native', () => ({
 describe('WhatsNewModal', () => {
   it('should render correctly', () => {
     const { toJSON } = render(
-      <NavigationContainer>
-        <WhatsNewModal />
-      </NavigationContainer>,
+      <ThemeContext.Provider value={mockTheme}>
+        <NavigationContainer>
+          <WhatsNewModal />
+        </NavigationContainer>
+      </ThemeContext.Provider>,
     );
     expect(toJSON()).toMatchSnapshot();
   });
