@@ -2,6 +2,8 @@
 import { StyleSheet, TextStyle } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 
+export type NotificationListStyles = ReturnType<typeof createStyles>;
+
 export const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     container: {
@@ -59,7 +61,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       position: 'absolute',
       top: '10%',
     },
-    assetLogo: {
+    circleLogo: {
       width: 32,
       height: 32,
       borderRadius: 16,
@@ -67,7 +69,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    assetPlaceholder: {
+    circleLogoPlaceholder: {
       backgroundColor: colors.background.alternative,
       width: 32,
       height: 32,
@@ -75,7 +77,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    nftLogo: {
+    squareLogo: {
       width: 32,
       height: 32,
       borderRadius: 8,
@@ -83,7 +85,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    nftPlaceholder: {
+    squareLogoPlaceholder: {
       backgroundColor: colors.background.alternative,
       width: 32,
       height: 32,

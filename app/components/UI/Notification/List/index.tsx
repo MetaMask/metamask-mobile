@@ -1,3 +1,4 @@
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import ScrollableTabView, {
@@ -5,22 +6,20 @@ import ScrollableTabView, {
   DefaultTabBarProps,
   TabBarProps,
 } from 'react-native-scrollable-tab-view';
+import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
 import { strings } from '../../../../../locales/i18n';
+import {
+  hasNotificationComponents,
+  hasNotificationModal,
+  NotificationComponentState,
+} from '../../../..//util/notifications/notification-states';
+import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-
-import { useTheme } from '../../../../util/theme';
-import { createStyles } from './styles';
+import { Notification } from '../../../../util/notifications';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
-import { NotificationRow } from '../Row';
-import {
-  Notification,
-  getRowDetails,
-  TRIGGER_TYPES,
-} from '../../../../util/notifications';
-import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
-import Routes from '../../../../constants/navigation/Routes';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NotificationMenuItem } from '../NotificationMenuItem';
+import useStyles from './useStyles';
 
 interface NotificationsListProps {
   navigation: NavigationProp<ParamListBase>;
@@ -34,16 +33,16 @@ interface NotificationsListItemProps {
   navigation: NavigationProp<ParamListBase>;
   notification: Notification;
 }
-
-function useStyles() {
-  const theme = useTheme();
-  const { colors } = theme;
-  const styles = useMemo(() => createStyles(theme), [theme]);
-  return { colors, styles };
+interface NotificationsListItemProps {
+  navigation: NavigationProp<ParamListBase>;
+  notification: Notification;
 }
 
 function Loading() {
-  const { colors, styles } = useStyles();
+  const {
+    theme: { colors },
+    styles,
+  } = useStyles();
 
   return (
     <View style={styles.loaderContainer}>
@@ -56,54 +55,35 @@ function NotificationsListItem(props: NotificationsListItemProps) {
   const { styles } = useStyles();
 
   const onNotificationClick = useCallback(
-    (item: Notification) =>
-      props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
-        notification: item,
-      }),
+    (item: Notification) => {
+      if (hasNotificationModal(item.type)) {
+        props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
+          notification: item,
+        });
+      }
+    },
     [props.navigation],
   );
 
-  const rowDetails = getRowDetails(props.notification);
+  const menuItemState = useMemo(() => {
+    const notificationState =
+      NotificationComponentState[props.notification.type];
+    return notificationState.createMenuItem(props.notification);
+  }, [props.notification]);
 
-  if (!rowDetails) {
+  if (!hasNotificationComponents(props.notification.type)) {
     return null;
   }
 
-  // TODO - handle feature announcement component
-  if (rowDetails.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
-    return null;
-  }
-
-  const { title, description, badgeIcon, createdAt, imageUrl, value } =
-    rowDetails.row;
   return (
-    <NotificationRow.Root
+    <NotificationMenuItem.Root
       handleOnPress={() => onNotificationClick(props.notification)}
       styles={styles}
       simultaneousHandlers={undefined}
     >
-      <NotificationRow.Icon
-        notificationType={props.notification.type}
-        badgeIcon={badgeIcon}
-        imageUrl={imageUrl}
-        styles={styles}
-      />
-      <NotificationRow.Content
-        title={title}
-        description={description}
-        createdAt={createdAt}
-        value={value}
-        styles={styles}
-      />
-      {/* TODO - HANDLE FEATURE ANNOUNCEMENT LINKS */}
-      {/* {hasActions && (
-            <NotificationRow.Actions
-              link={notification.data.link}
-              action={notification.data.action}
-              styles={styles}
-            />
-          )} */}
-    </NotificationRow.Root>
+      <NotificationMenuItem.Icon {...menuItemState} />
+      <NotificationMenuItem.Content {...menuItemState} />
+    </NotificationMenuItem.Root>
   );
 }
 
@@ -151,7 +131,10 @@ function SingleNotificationList(props: NotificationsListProps) {
 }
 
 function TabbedNotificationList(props: NotificationsListProps) {
-  const { colors, styles } = useStyles();
+  const {
+    theme: { colors },
+    styles,
+  } = useStyles();
   const { trackEvent } = useMetrics();
 
   const getListProps = useNotificationListProps(props);
