@@ -98,6 +98,9 @@ const mockTheme = {
     error: {
       default: '#FF0000',
     },
+    warning: {
+      default: '#FFA500',
+    },
   },
 };
 
