@@ -1054,6 +1054,7 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
+          `${accountsController.name}:getSelectedAccount`,
           `${approvalController.name}:addRequest`,
           `${networkController.name}:getNetworkClientById`,
         ],
