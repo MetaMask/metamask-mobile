@@ -28,27 +28,23 @@ import { PermissionController } from '@metamask/permission-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import BatchRPCManager from '../BatchRPCManager';
-import {
-  DEFAULT_SESSION_TIMEOUT_MS,
-  METHODS_TO_DELAY,
-  RPC_METHODS,
-} from '../SDKConnectConstants';
-import getDefaultBridgeParams from './getDefaultBridgeParams';
-import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
+import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
+import sendMessage from './AndroidService/sendMessage';
 import { DappClient, DappConnections } from './dapp-sdk-types';
+import getDefaultBridgeParams from './getDefaultBridgeParams';
 
 export default class AndroidService extends EventEmitter2 {
-  private communicationClient = NativeModules.CommunicationClient;
-  private connections: DappConnections = {};
-  private rpcQueueManager = new RPCQueueManager();
-  private bridgeByClientId: { [clientId: string]: BackgroundBridge } = {};
-  private eventHandler: AndroidSDKEventHandler;
-  private batchRPCManager: BatchRPCManager = new BatchRPCManager('android');
+  public communicationClient = NativeModules.CommunicationClient;
+  public connections: DappConnections = {};
+  public rpcQueueManager = new RPCQueueManager();
+  public bridgeByClientId: { [clientId: string]: BackgroundBridge } = {};
+  public eventHandler: AndroidSDKEventHandler;
+  public batchRPCManager: BatchRPCManager = new BatchRPCManager('android');
   // To keep track in order to get the associated bridge to handle batch rpc calls
-  private currentClientId?: string;
+  public currentClientId?: string;
 
   constructor() {
     super();
@@ -475,70 +471,6 @@ export default class AndroidService extends EventEmitter2 {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async sendMessage(message: any, forceRedirect?: boolean) {
-    const id = message?.data?.id;
-    this.communicationClient.sendMessage(JSON.stringify(message));
-    let rpcMethod = this.rpcQueueManager.getId(id);
-
-    DevLogger.log(`AndroidService::sendMessage method=${rpcMethod}`, message);
-    // handle multichain rpc call responses separately
-    const chainRPCs = this.batchRPCManager.getById(id);
-    if (chainRPCs) {
-      const isLastRpcOrError = await handleBatchRpcResponse({
-        chainRpcs: chainRPCs,
-        msg: message,
-        backgroundBridge: this.bridgeByClientId[this.currentClientId ?? ''],
-        batchRPCManager: this.batchRPCManager,
-        sendMessage: ({ msg }) => this.sendMessage(msg),
-      });
-      DevLogger.log(
-        `AndroidService::sendMessage isLastRpc=${isLastRpcOrError}`,
-        chainRPCs,
-      );
-
-      if (!isLastRpcOrError) {
-        DevLogger.log(
-          `AndroidService::sendMessage NOT last rpc --- skip goBack()`,
-          chainRPCs,
-        );
-        this.rpcQueueManager.remove(id);
-        // Only continue processing the message and goback if all rpcs in the batch have been handled
-        return;
-      }
-
-      // Always set the method to metamask_batch otherwise it may not have been set correctly because of the batch rpc flow.
-      rpcMethod = RPC_METHODS.METAMASK_BATCH;
-      DevLogger.log(
-        `AndroidService::sendMessage chainRPCs=${chainRPCs} COMPLETED!`,
-      );
-    }
-
-    this.rpcQueueManager.remove(id);
-
-    if (!rpcMethod && forceRedirect !== true) {
-      DevLogger.log(
-        `AndroidService::sendMessage no rpc method --- rpcMethod=${rpcMethod} forceRedirect=${forceRedirect} --- skip goBack()`,
-      );
-      return;
-    }
-
-    try {
-      if (METHODS_TO_DELAY[rpcMethod]) {
-        // Add delay to see the feedback modal
-        await wait(1000);
-      }
-
-      if (!this.rpcQueueManager.isEmpty()) {
-        DevLogger.log(
-          `AndroidService::sendMessage NOT empty --- skip goBack()`,
-          this.rpcQueueManager.get(),
-        );
-        return;
-      }
-
-      DevLogger.log(`AndroidService::sendMessage empty --- goBack()`);
-      Minimizer.goBack();
-    } catch (error) {
-      Logger.log(error, `AndroidService:: error waiting for empty rpc queue`);
-    }
+    return sendMessage(this, message, forceRedirect);
   }
 }

@@ -10,12 +10,6 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: '0x',
-        identities: {
-          '0x': { name: 'Account 1', address: '0x' },
-        },
-      },
     },
   },
 };
