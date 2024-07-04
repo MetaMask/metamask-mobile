@@ -5,7 +5,21 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
 const mockStore = configureMockStore();
-const store = mockStore({});
+const initialState = {
+  engine: {
+    backgroundState: {
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            '0x1': { address: '0x1', balance: '100' },
+          },
+          selectedAccount: '0x1',
+        },
+      },
+    },
+  },
+};
+const store = mockStore(initialState);
 
 describe('TransactionsView', () => {
   it('should render correctly', () => {
