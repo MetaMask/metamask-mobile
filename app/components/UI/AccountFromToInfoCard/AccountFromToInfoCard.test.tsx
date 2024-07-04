@@ -39,19 +39,6 @@ const mockInitialState = {
           '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x5',
         },
       },
-      PreferencesController: {
-        selectedAddress: MOCK_ADDRESS_1,
-        identities: {
-          [MOCK_ADDRESS_1]: {
-            address: MOCK_ADDRESS_1,
-            name: 'Account 1',
-          },
-          [MOCK_ADDRESS_2]: {
-            address: MOCK_ADDRESS_2,
-            name: 'Account 2',
-          },
-        },
-      },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },

@@ -184,7 +184,7 @@
     "@metamask/snaps-sdk": "^6.0.0",
     "@metamask/snaps-utils": "^7.7.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/swaps-controller": "^9.0.0",
+    "@metamask/swaps-controller": "^9.0.1",
     "@metamask/transaction-controller": "^13.0.0",
     "@metamask/utils": "^8.1.0",
     "@ngraveio/bc-ur": "^1.1.6",
