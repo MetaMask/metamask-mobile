@@ -1,15 +1,15 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { screen } from '@testing-library/react-native';
 import Wallet from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import { screen } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 const mockEngine = Engine;
 
@@ -134,37 +134,51 @@ jest.mock('react-native-scrollable-tab-view', () => {
   return ScrollableTabViewMock;
 });
 
-const render = (Component: React.ComponentType) =>
+const mockNavigation: NavigationProp<ParamListBase> = {
+  navigate: jest.fn(),
+  goBack: jest.fn(),
+  setParams: jest.fn(),
+  dispatch: jest.fn(),
+  addListener: jest.fn(),
+  removeListener: jest.fn(),
+  isFocused: jest.fn(),
+  canGoBack: jest.fn(),
+};
+
+const renderWithProviders = (component: React.ReactElement) =>
   renderScreen(
-    Component,
+    () => component,
     {
       name: Routes.WALLET_VIEW,
     },
     {
       state: mockInitialState,
     },
+    {
+      navigation: mockNavigation,
+    },
   );
 
 describe('Wallet', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = renderWithProviders(
       <Provider store={store}>
-        <Wallet />
+        <Wallet navigation={mockNavigation} />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render scan qr icon', () => {
-    render(Wallet);
+    renderWithProviders(<Wallet navigation={mockNavigation} />);
     const scanButton = screen.getByTestId('wallet-scan-button');
     expect(scanButton).toBeDefined();
   });
   it('should render ScrollableTabView', () => {
-    render(Wallet);
+    renderWithProviders(<Wallet navigation={mockNavigation} />);
     expect(ScrollableTabView).toHaveBeenCalled();
   });
   it('should render fox icon', () => {
-    render(Wallet);
+    renderWithProviders(<Wallet navigation={mockNavigation} />);
     const foxIcon = screen.getByTestId('fox-icon');
     expect(foxIcon).toBeDefined();
   });
