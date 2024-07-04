@@ -73,6 +73,9 @@ const initialState = {
       },
     },
   },
+  settings: {
+    showFiatOnTestnets: false,
+  },
   signatureRequest: {
     securityAlertResponse: {
       description: '',
