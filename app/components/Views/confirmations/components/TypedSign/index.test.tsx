@@ -92,6 +92,12 @@ const mockTheme = {
     border: {
       default: '#CCCCCC',
     },
+    icon: {
+      muted: '#999999',
+    },
+    error: {
+      default: '#FF0000',
+    },
   },
 };
 
