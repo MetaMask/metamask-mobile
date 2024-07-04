@@ -71,6 +71,8 @@ const styles = StyleSheet.create({
 class Approval extends PureComponent {
   appStateListener;
 
+  #transactionFinishedListener;
+
   static propTypes = {
     /**
      * A string that represents the selected address
@@ -174,9 +176,12 @@ class Approval extends PureComponent {
             },
           );
         }
-        Engine.context.TransactionController.hub.removeAllListeners(
-          `${transaction.id}:finished`,
-        );
+        if (this.#transactionFinishedListener) {
+          Engine.controllerMessenger.unsubscribe(
+            'TransactionController:transactionFinished',
+            this.#transactionFinishedListener,
+          );
+        }
         this.appStateListener?.remove();
         this.clear();
       }
@@ -326,9 +331,9 @@ class Approval extends PureComponent {
       const { TransactionController, SmartTransactionsController } =
         Engine.context;
 
-      const transactionMeta = TransactionController.getTransaction(
-        transaction.id,
-      );
+      const transactionMeta = TransactionController.getTransactions({
+        searchCriteria: { id: transaction.id },
+      })?.[0];
 
       const smartTransactionMetricsProperties =
         getSmartTransactionMetricsProperties(
@@ -402,9 +407,12 @@ class Approval extends PureComponent {
       if (!approve) {
         //cancelTransaction will change transaction status to reject and throw error from event listener
         //component is being unmounted, error will be unhandled, hence remove listener before cancel
-        TransactionController.hub.removeAllListeners(
-          `${transactionId}:finished`,
-        );
+        if (this.#transactionFinishedListener) {
+          Engine.controllerMessenger.unsubscribe(
+            'TransactionController:transactionFinished',
+            this.#transactionFinishedListener,
+          );
+        }
 
         TransactionController.cancelTransaction(transactionId);
 
@@ -429,8 +437,7 @@ class Approval extends PureComponent {
    * Callback on confirm transaction
    */
   onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
-    const { TransactionController, KeyringController, ApprovalController } =
-      Engine.context;
+    const { KeyringController, ApprovalController } = Engine.context;
     const {
       transactions,
       transaction: { assetType, selectedAsset },
@@ -478,23 +485,25 @@ class Approval extends PureComponent {
         this.props.hideModal();
       }
 
-      TransactionController.hub.once(
-        `${transaction.id}:finished`,
-        (transactionMeta) => {
-          if (transactionMeta.status === 'submitted') {
-            if (!isLedgerAccount) {
-              this.setState({ transactionHandled: true });
-              this.props.hideModal();
+      this.#transactionFinishedListener =
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionFinished',
+          (transactionMeta) => {
+            if (transactionMeta.status === 'submitted') {
+              if (!isLedgerAccount) {
+                this.setState({ transactionHandled: true });
+                this.props.hideModal();
+              }
+              NotificationManager.watchSubmittedTransaction({
+                ...transactionMeta,
+                assetType: transaction.assetType,
+              });
+            } else {
+              throw transactionMeta.error;
             }
-            NotificationManager.watchSubmittedTransaction({
-              ...transactionMeta,
-              assetType: transaction.assetType,
-            });
-          } else {
-            throw transactionMeta.error;
-          }
-        },
-      );
+          },
+          (transactionMeta) => transactionMeta.id === transaction.id,
+        );
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
 

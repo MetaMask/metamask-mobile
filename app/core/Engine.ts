@@ -36,7 +36,7 @@ import {
   AddressBookController,
   AddressBookState,
 } from '@metamask/address-book-controller';
-import { BaseState, ControllerMessenger } from '@metamask/base-controller';
+import { BaseState } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
@@ -66,7 +66,8 @@ import {
 } from '@metamask/preferences-controller';
 import {
   TransactionController,
-  TransactionState,
+  TransactionControllerEvents,
+  TransactionControllerState,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -204,6 +205,8 @@ import { SmartTransactionStatuses } from '@metamask/smart-transactions-controlle
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
 import { zeroAddress } from 'ethereumjs-util';
+import { getPermittedAccounts } from './Permissions';
+import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -258,6 +261,7 @@ type GlobalActions =
   | PreferencesControllerActions
   | TokensControllerActions
   | TokenListControllerActions;
+
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -275,7 +279,8 @@ type GlobalEvents =
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokensControllerEvents
-  | TokenListControllerEvents;
+  | TokenListControllerEvents
+  | TransactionControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -293,7 +298,7 @@ export interface EngineState {
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesState;
-  TransactionController: TransactionState;
+  TransactionController: TransactionControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsState;
   GasFeeController: GasFeeState;
@@ -376,7 +381,7 @@ class Engine {
   /**
    * The global controller messenger.
    */
-  controllerMessenger: ControllerMessenger<GlobalActions, GlobalEvents>;
+  controllerMessenger: ExtendedControllerMessenger<GlobalActions, GlobalEvents>;
   /**
    * ComposableController reference containing all child controllers
    */
@@ -411,7 +416,7 @@ class Engine {
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState | null,
   ) {
-    this.controllerMessenger = new ControllerMessenger();
+    this.controllerMessenger = new ExtendedControllerMessenger();
 
     /**
      * Subscribes a listener to the state change events of Preferences Controller.
@@ -1015,16 +1020,19 @@ class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
-      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       blockTracker: networkController.getProviderAndBlockTracker().blockTracker,
       disableSendFlowHistory: true,
       disableHistory: true,
+      disableSwaps: true,
       getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-      getCurrentNetworkEIP1559Compatibility:
-        networkController.getEIP1559Compatibility.bind(networkController),
-      //@ts-expect-error Expected due to Transaction Controller do not have controller utils containing linea-sepolia data
-      // This can be removed when controller-utils be updated to v^9
+      getCurrentNetworkEIP1559Compatibility: (networkClientId) =>
+        networkController.getEIP1559Compatibility(
+          networkClientId,
+        ) as Promise<boolean>,
+      getNetworkClientRegistry:
+        networkController.getNetworkClientRegistry.bind(networkController),
       getNetworkState: () => networkController.state,
+      getPermittedAccounts: (origin) => getPermittedAccounts(origin as string),
       getSelectedAddress: () => accountsController.getSelectedAccount().address,
       incomingTransactions: {
         isEnabled: () => {
@@ -1041,21 +1049,25 @@ class Engine {
         },
         updateTransactions: true,
       },
-      isSimulationEnabled: () =>
-        preferencesController.state.useTransactionSimulations,
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
+      isSimulationEnabled: () => false,
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
-        allowedActions: [`${approvalController.name}:addRequest`],
+        allowedActions: [
+          `${approvalController.name}:addRequest`,
+          `${networkController.name}:getNetworkClientById`,
+        ],
+        allowedEvents: [`NetworkController:stateChange`],
       }),
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
+      pendingTransactions: {
+        isResubmitEnabled: () => false,
+      },
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       provider: networkController.getProviderAndBlockTracker().provider,
-
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       getExternalPendingTransactions: (address: string) =>
@@ -1063,7 +1075,14 @@ class Engine {
           addressFrom: address,
           status: SmartTransactionStatuses.PENDING,
         }),
-
+      sign: (transaction, from, transactionMeta) =>
+        keyringController.signTransaction(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          transaction as any,
+          from,
+          transactionMeta,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ) as Promise<any>,
       hooks: {
         publish: (transactionMeta) => {
           const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
@@ -1077,7 +1096,7 @@ class Engine {
             shouldUseSmartTransaction,
             approvalController,
             featureFlags: selectSwapsChainFeatureFlags(store.getState()),
-          });
+          }) as Promise<{ transactionHash: string }>;
         },
       },
     });
@@ -1114,7 +1133,6 @@ class Engine {
         getNonceLock: this.transactionController.getNonceLock.bind(
           this.transactionController,
         ),
-        // @ts-expect-error txController.getTransactions only uses txMeta.status and txMeta.hash, which v13 TxController has
         getTransactions: this.transactionController.getTransactions.bind(
           this.transactionController,
         ),
@@ -1371,22 +1389,18 @@ class Engine {
       {},
     ) as typeof this.context;
 
-    const {
-      NftController: nfts,
-      KeyringController: keyring,
-      TransactionController: transaction,
-    } = this.context;
+    const { NftController: nfts } = this.context;
 
     if (process.env.MM_OPENSEA_KEY) {
       nfts.setApiKey(process.env.MM_OPENSEA_KEY);
     }
 
-    // @ts-expect-error TODO: Align transaction types between keyring and TransactionController
-    transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
-
-    transaction.hub.on('incomingTransactionBlock', (blockNumber: number) => {
-      NotificationManager.gotIncomingTransaction(blockNumber);
-    });
+    this.controllerMessenger.subscribe(
+      'TransactionController:incomingTransactionBlockReceived',
+      (blockNumber: number) => {
+        NotificationManager.gotIncomingTransaction(blockNumber);
+      },
+    );
 
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -1473,7 +1487,6 @@ class Engine {
       AssetsContractController,
       TokenDetectionController,
       NetworkController,
-      TransactionController,
       SwapsController,
     } = this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
@@ -1491,7 +1504,6 @@ class Engine {
       chainId: NetworkController.state?.providerConfig?.chainId,
       pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
     });
-    TransactionController.hub.emit('networkChange');
     TokenDetectionController.detectTokens();
     AccountTrackerController.refresh();
   }
@@ -1667,11 +1679,13 @@ class Engine {
     TokenBalancesController.reset();
     TokenRatesController.update({ marketData: {} });
 
-    TransactionController.update({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (TransactionController as any).update(() => ({
       methodData: {},
       transactions: [],
       lastFetchedBlockNumbers: {},
-    });
+      submitHistory: [],
+    }));
 
     LoggingController.clear();
   };

@@ -26,6 +26,7 @@ import { renderFromWei } from '../../../util/number';
 import { updateNotificationStatus } from '../../../actions/notification';
 import Engine from '../../../core/Engine';
 import { query } from '@metamask/controller-utils';
+import EthQuery from '@metamask/eth-query';
 
 export interface ViewOnEtherscanProps {
   // TODO: Replace "any" with type
@@ -626,36 +627,30 @@ function hasNetworkFeeFields(
 }
 
 async function fetchTxDetails(tx_hash: string) {
-  // TODO: Replace "any" with type
+  const { NetworkController } = Engine.context;
+  const { provider } = NetworkController.getProviderAndBlockTracker();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { TransactionController } = Engine.context as any;
+  const ethQuery = new EthQuery(provider as any);
 
   try {
-    const receipt = await query(
-      TransactionController.ethQuery,
-      'getTransactionReceipt',
-      [tx_hash],
-    );
+    const receipt = await query(ethQuery, 'getTransactionReceipt', [tx_hash]);
 
     if (!receipt) {
       throw new Error('Transaction receipt not found');
     }
 
-    const block = await query(
-      TransactionController.ethQuery,
-      'getBlockByHash',
-      [receipt.blockHash, false],
-    );
+    const block = await query(ethQuery, 'getBlockByHash', [
+      receipt.blockHash,
+      false,
+    ]);
 
     if (!block) {
       throw new Error('Transaction block not found');
     }
 
-    const transaction = await query(
-      TransactionController.ethQuery,
-      'eth_getTransactionByHash',
-      [receipt.blockHash],
-    );
+    const transaction = await query(ethQuery, 'eth_getTransactionByHash', [
+      receipt.blockHash,
+    ]);
 
     if (!transaction) {
       throw new Error('Transaction not found');

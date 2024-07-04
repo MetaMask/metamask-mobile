@@ -47,6 +47,7 @@ import {
   getTransactionFee,
   roundExponential,
 } from '../confirm-tx';
+import EthQuery from '@metamask/eth-query';
 
 import Logger from '../../util/Logger';
 import { handleMethodData } from '../../util/transaction-controller';
@@ -353,9 +354,13 @@ export async function isSmartContractAddress(address, chainId) {
   ) {
     return Promise.resolve(true);
   }
-  const { TransactionController } = Engine.context;
+
+  const { NetworkController } = Engine.context;
+  const { provider } = NetworkController.getProviderAndBlockTracker();
+  const ethQuery = new EthQuery(provider);
+
   const code = address
-    ? await query(TransactionController.ethQuery, 'getCode', [address])
+    ? await query(ethQuery, 'getCode', [address])
     : undefined;
   const isSmartContract = isSmartContractCode(code);
   return isSmartContract;

@@ -41,6 +41,7 @@ import { selectContractExchangeRates } from '../../../../selectors/tokenRatesCon
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import { regex } from '../../../../../app/util/regex';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import EthQuery from '@metamask/eth-query';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -138,12 +139,10 @@ class TransactionDetails extends PureComponent {
   };
 
   fetchTxReceipt = async (transactionHash) => {
-    const { TransactionController } = Engine.context;
-    return await query(
-      TransactionController.ethQuery,
-      'getTransactionReceipt',
-      [transactionHash],
-    );
+    const { NetworkController } = Engine.context;
+    const { provider } = NetworkController.getProviderAndBlockTracker();
+    const ethQuery = new EthQuery(provider);
+    return await query(ethQuery, 'getTransactionReceipt', [transactionHash]);
   };
 
   /**

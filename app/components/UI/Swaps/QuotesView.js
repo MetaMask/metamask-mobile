@@ -101,6 +101,7 @@ import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+import EthQuery from '@metamask/eth-query';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -783,17 +784,14 @@ function SwapsQuotesView({
       approvalTransactionMetaId,
       newSwapsTransactions,
     ) => {
-      const { TransactionController } = Engine.context;
-      const blockNumber = await query(
-        TransactionController.ethQuery,
-        'blockNumber',
-        [],
-      );
-      const currentBlock = await query(
-        TransactionController.ethQuery,
-        'getBlockByNumber',
-        [blockNumber, false],
-      );
+      const { TransactionController, NetworkController } = Engine.context;
+      const { provider } = NetworkController.getProviderAndBlockTracker();
+      const ethQuery = new EthQuery(provider);
+      const blockNumber = await query(ethQuery, 'blockNumber', []);
+      const currentBlock = await query(ethQuery, 'getBlockByNumber', [
+        blockNumber,
+        false,
+      ]);
       newSwapsTransactions[transactionMeta.id] = {
         action: 'swap',
         sourceToken: {
@@ -842,7 +840,9 @@ function SwapsQuotesView({
           approvalTransactionMetaId,
         },
       };
-      TransactionController.update({ swapsTransactions: newSwapsTransactions });
+      TransactionController.update((state) => {
+        state.swapsTransactions = newSwapsTransactions;
+      });
     },
     [
       chainId,
@@ -999,8 +999,10 @@ function SwapsQuotesView({
           ).toString(10),
         };
         if (isHardwareAddress || shouldUseSmartTransaction) {
-          TransactionController.hub.once(
-            `${transactionMeta.id}:confirmed`,
+          const { id: transactionId } = transactionMeta;
+
+          Engine.controllerMessenger.subscribeOnceIf(
+            'TransactionController:transactionConfirmed',
             (transactionMeta) => {
               if (transactionMeta.status === TransactionStatus.confirmed) {
                 handleSwapTransaction(
@@ -1011,6 +1013,7 @@ function SwapsQuotesView({
                 );
               }
             },
+            (transactionMeta) => transactionMeta.id === transactionId,
           );
         }
       } catch (e) {
@@ -2066,14 +2069,14 @@ function SwapsQuotesView({
                         {primaryCurrency === 'ETH'
                           ? ` ${renderFromWei(
                               toWei(selectedQuoteValue?.maxEthFee || '0x0'),
-                            )} ${getTicker(ticker)}` // eslint-disable-line
+                          )} ${getTicker(ticker)}` // eslint-disable-line
                           : ` ${
                               weiToFiat(
                                 toWei(selectedQuoteValue?.maxEthFee),
                                 conversionRate,
                                 currentCurrency,
                               ) || '' // eslint-disable-next-line
-                            }`}
+                          }`}
                       </Text>
                     </FadeAnimationView>
                   </>

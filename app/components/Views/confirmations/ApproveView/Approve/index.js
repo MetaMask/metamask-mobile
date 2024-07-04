@@ -87,6 +87,8 @@ const REVIEW = 'review';
 class Approve extends PureComponent {
   appStateListener;
 
+  #transactionFinishedSubscription;
+
   static navigationOptions = ({ navigation }) =>
     getApproveNavbar('approve.title', navigation);
 
@@ -324,7 +326,6 @@ class Approve extends PureComponent {
   };
 
   componentWillUnmount = async () => {
-    const { TransactionController } = Engine.context;
     const { approved } = this.state;
     const { transaction } = this.props;
 
@@ -336,9 +337,12 @@ class Approve extends PureComponent {
 
     this.appStateListener?.remove();
     if (!isLedgerAccount) {
-      TransactionController.hub.removeAllListeners(
-        `${transaction.id}:finished`,
-      );
+      if (this.#transactionFinishedSubscription) {
+        Engine.controllerMessenger.unsubscribe(
+          'TransactionController:transactionFinished',
+          this.#transactionFinishedSubscription,
+        );
+      }
       if (!approved)
         Engine.rejectPendingApproval(
           transaction.id,
@@ -483,9 +487,12 @@ class Approve extends PureComponent {
       if (!approve) {
         //cancelTransaction will change transaction status to reject and throw error from event listener
         //component is being unmounted, error will be unhandled, hence remove listener before cancel
-        TransactionController.hub.removeAllListeners(
-          `${transactionId}:finished`,
-        );
+        if (this.#transactionFinishedSubscription) {
+          Engine.controllerMessenger.unsubscribe(
+            'TransactionController:transactionFinished',
+            this.#transactionFinishedSubscription,
+          );
+        }
 
         TransactionController.cancelTransaction(transactionId);
 
@@ -504,8 +511,7 @@ class Approve extends PureComponent {
   };
 
   onConfirm = async () => {
-    const { TransactionController, KeyringController, ApprovalController } =
-      Engine.context;
+    const { KeyringController, ApprovalController } = Engine.context;
     const {
       transactions,
       gasEstimateType,
@@ -532,23 +538,25 @@ class Approve extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
-      TransactionController.hub.once(
-        `${transaction.id}:finished`,
-        (transactionMeta) => {
-          if (transactionMeta.status === 'submitted') {
-            if (!isLedgerAccount) {
-              this.setState({ approved: true });
-              this.props.hideModal();
+      this.#transactionFinishedSubscription =
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionFinished',
+          (transactionMeta) => {
+            if (transactionMeta.status === 'submitted') {
+              if (!isLedgerAccount) {
+                this.setState({ approved: true });
+                this.props.hideModal();
+              }
+              NotificationManager.watchSubmittedTransaction({
+                ...transactionMeta,
+                assetType: 'ETH',
+              });
+            } else {
+              throw transactionMeta.error;
             }
-            NotificationManager.watchSubmittedTransaction({
-              ...transactionMeta,
-              assetType: 'ETH',
-            });
-          } else {
-            throw transactionMeta.error;
-          }
-        },
-      );
+          },
+          (transactionMeta) => transactionMeta.id === transaction.id,
+        );
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
 

@@ -66,6 +66,7 @@ import {
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import {
+  ChainId,
   NetworksTicker,
   isSafeChainId,
   toHex,
@@ -73,7 +74,6 @@ import {
 import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectUseSafeChainsListValidation } from '../../../../../../app/selectors/preferencesController';
 import withIsOriginalNativeToken from './withIsOriginalNativeToken';
@@ -1352,7 +1352,7 @@ class NetworkSettings extends PureComponent {
     }
 
     // if chainId is goerli, show deprecation modal
-    if (chainId === CHAIN_IDS.GOERLI) {
+    if (chainId === ChainId.goerli) {
       navigation.navigate(Routes.DEPRECATED_NETWORK_DETAILS);
       return;
     }
