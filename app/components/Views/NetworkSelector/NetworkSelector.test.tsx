@@ -25,10 +25,6 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     NetworkController: { setActiveNetwork: jest.fn() },
     PreferencesController: {
-      selectedAddress: '0x',
-      identities: {
-        '0x': { name: 'Account 1', address: '0x' },
-      },
       setShowTestNetworks: jest.fn(),
     },
     CurrencyRateController: { updateExchangeRate: jest.fn() },
@@ -105,10 +101,6 @@ const initialState = {
       },
       PreferencesController: {
         showTestNetworks: false,
-        selectedAddress: '0x',
-        identities: {
-          '0x': { name: 'Account 1', address: '0x' },
-        },
       },
       NftController: {
         allNfts: { '0x': { '0x1': [] } },

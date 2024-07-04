@@ -816,11 +816,11 @@ class ApproveTransactionReview extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
 
-    const hasBlockExplorer = shouldShowBlockExplorer({
+    const hasBlockExplorer = shouldShowBlockExplorer(
       providerType,
       providerRpcTarget,
       networkConfigurations,
-    });
+    );
 
     const tokenLabel = `${
       tokenName || tokenSymbol || strings(`spend_limit_edition.nft`)

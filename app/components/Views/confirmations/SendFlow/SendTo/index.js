@@ -48,8 +48,10 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../../selectors/networkController';
-import { selectIdentities } from '../../../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
+import {
+  selectInternalAccounts,
+  selectSelectedInternalAccountChecksummedAddress,
+} from '../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../UI/AddToAddressBookWrapper';
 import { isNetworkRampNativeTokenSupported } from '../../../../UI/Ramp/utils';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
@@ -59,6 +61,7 @@ import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
 import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { toLowerCaseEquals } from '../../../../../util/general';
 
 const dummy = () => true;
 
@@ -88,9 +91,9 @@ class SendFlow extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     /**
-     * List of accounts from the PreferencesController
+     * List of accounts from the AccountsController
      */
-    identities: PropTypes.object,
+    internalAccounts: PropTypes.array,
     /**
      * Current provider ticker
      */
@@ -218,11 +221,14 @@ class SendFlow extends PureComponent {
 
   isAddressSaved = () => {
     const { toAccount } = this.state;
-    const { addressBook, chainId, identities } = this.props;
+    const { addressBook, chainId, internalAccounts } = this.props;
     const networkAddressBook = addressBook[chainId] || {};
     const checksummedAddress = toChecksumAddress(toAccount);
     return !!(
-      networkAddressBook[checksummedAddress] || identities[checksummedAddress]
+      networkAddressBook[checksummedAddress] ||
+      internalAccounts.find((account) =>
+        toLowerCaseEquals(account.address, checksummedAddress),
+      )
     );
   };
 
@@ -355,23 +361,26 @@ class SendFlow extends PureComponent {
     this.setState({ fromSelectedAddress: address });
   };
 
-  getAddressNameFromBookOrIdentities = (toAccount) => {
-    const { addressBook, identities, chainId } = this.props;
+  getAddressNameFromBookOrInternalAccounts = (toAccount) => {
+    const { addressBook, internalAccounts, chainId } = this.props;
     if (!toAccount) return;
 
     const networkAddressBook = addressBook[chainId] || {};
 
     const checksummedAddress = toChecksumAddress(toAccount);
+    const matchingAccount = internalAccounts.find((account) =>
+      toLowerCaseEquals(account.address, checksummedAddress),
+    );
 
     return networkAddressBook[checksummedAddress]
       ? networkAddressBook[checksummedAddress].name
-      : identities[checksummedAddress]
-      ? identities[checksummedAddress].name
+      : matchingAccount
+      ? matchingAccount.metadata.name
       : null;
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
-    const { addressBook, identities, chainId } = this.props;
+    const { addressBook, internalAccounts, chainId } = this.props;
     const {
       addressError,
       toEnsName,
@@ -382,12 +391,12 @@ class SendFlow extends PureComponent {
       errorContinue,
       isOnlyWarning,
       confusableCollection,
-    } = await validateAddressOrENS({
+    } = await validateAddressOrENS(
       toAccount,
       addressBook,
-      identities,
+      internalAccounts,
       chainId,
-    });
+    );
 
     this.setState({
       addressError,
@@ -416,7 +425,8 @@ class SendFlow extends PureComponent {
         },
       );
     }
-    const addressName = this.getAddressNameFromBookOrIdentities(toAccount);
+    const addressName =
+      this.getAddressNameFromBookOrInternalAccounts(toAccount);
 
     /**
      * If the address is from addressBook or identities
@@ -472,7 +482,7 @@ class SendFlow extends PureComponent {
     const styles = createStyles(colors);
 
     const checksummedAddress = toAccount && toChecksumAddress(toAccount);
-    const existingAddressName = this.getAddressNameFromBookOrIdentities(
+    const existingAddressName = this.getAddressNameFromBookOrInternalAccounts(
       toEnsAddressResolved || toAccount,
     );
     const existingContact =
@@ -662,7 +672,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   selectedAsset: state.transaction.selectedAsset,
-  identities: selectIdentities(state),
+  internalAccounts: selectInternalAccounts(state),
   ticker: selectTicker(state),
   providerType: selectProviderType(state),
   isPaymentRequest: state.transaction.paymentRequest,

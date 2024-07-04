@@ -54,8 +54,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectIdentities } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import {
   TOKEN_OVERVIEW_BUY_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
@@ -64,6 +63,7 @@ import { updateIncomingTransactions } from '../../../util/transaction-controller
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
 import { createBuyNavigationDetails } from '../../UI/Ramp/routes/utils';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -139,13 +139,9 @@ class Asset extends PureComponent {
     */
     currentCurrency: PropTypes.string,
     /**
-    /* Identities object required to get account name
+    /* InternalAccount object required to get account name
     */
-    identities: PropTypes.object,
-    /**
-     * A string that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
+    selectedInternalAccount: PropTypes.object,
     /**
      * The chain ID for the current selected network
      */
@@ -193,6 +189,9 @@ class Asset extends PureComponent {
   filter = undefined;
   navSymbol = undefined;
   navAddress = undefined;
+  selectedAddress = toChecksumHexAddress(
+    this.props.selectedInternalAccount?.address,
+  );
 
   updateNavBar = (contentOffset = 0) => {
     const { navigation, route, chainId, rpcUrl, networkConfigurations } =
@@ -252,7 +251,8 @@ class Asset extends PureComponent {
   componentDidUpdate(prevProps) {
     if (
       prevProps.chainId !== this.props.chainId ||
-      prevProps.selectedAddress !== this.props.selectedAddress
+      prevProps.selectedInternalAccount.address !==
+        this.props.selectedInternalAccount?.address
     ) {
       this.showLoaderAndNormalize();
     } else {
@@ -275,7 +275,7 @@ class Asset extends PureComponent {
 
   ethFilter = (tx) => {
     const { networkId } = store.getState().inpageProvider;
-    const { selectedAddress, chainId } = this.props;
+    const { chainId } = this.props;
     const {
       txParams: { from, to },
       isTransfer,
@@ -283,8 +283,8 @@ class Asset extends PureComponent {
     } = tx;
 
     if (
-      (safeToChecksumAddress(from) === selectedAddress ||
-        safeToChecksumAddress(to) === selectedAddress) &&
+      (safeToChecksumAddress(from) === this.selectedAddress ||
+        safeToChecksumAddress(to) === this.selectedAddress) &&
       (chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID)) &&
       tx.status !== 'unapproved'
     ) {
@@ -300,15 +300,15 @@ class Asset extends PureComponent {
   noEthFilter = (tx) => {
     const { networkId } = store.getState().inpageProvider;
 
-    const { chainId, swapsTransactions, selectedAddress } = this.props;
+    const { chainId, swapsTransactions } = this.props;
     const {
       txParams: { to, from },
       isTransfer,
       transferInformation,
     } = tx;
     if (
-      (safeToChecksumAddress(from) === selectedAddress ||
-        safeToChecksumAddress(to) === selectedAddress) &&
+      (safeToChecksumAddress(from) === this.selectedAddress ||
+        safeToChecksumAddress(to) === this.selectedAddress) &&
       (chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID)) &&
       tx.status !== 'unapproved'
     ) {
@@ -335,8 +335,8 @@ class Asset extends PureComponent {
   normalizeTransactions() {
     if (this.isNormalizing) return;
     let accountAddedTimeInsertPointFound = false;
-    const { selectedAddress } = this.props;
-    const addedAccountTime = this.props.identities[selectedAddress]?.importTime;
+    const { selectedInternalAccount } = this.props;
+    const addedAccountTime = selectedInternalAccount?.metadata.importTime;
     this.isNormalizing = true;
 
     let submittedTxs = [];
@@ -377,7 +377,7 @@ class Asset extends PureComponent {
       });
 
       submittedTxs = submittedTxs.filter(({ txParams: { from, nonce } }) => {
-        if (!toLowerCaseEquals(from, selectedAddress)) {
+        if (!toLowerCaseEquals(from, this.selectedAddress)) {
           return false;
         }
         const alreadySubmitted = submittedNonces.includes(nonce);
@@ -385,7 +385,7 @@ class Asset extends PureComponent {
           (confirmedTransaction) =>
             toLowerCaseEquals(
               safeToChecksumAddress(confirmedTransaction.txParams.from),
-              selectedAddress,
+              this.selectedAddress,
             ) && confirmedTransaction.txParams.nonce === nonce,
         );
         if (alreadyConfirmed) {
@@ -462,7 +462,6 @@ class Asset extends PureComponent {
       navigation,
       conversionRate,
       currentCurrency,
-      selectedAddress,
       chainId,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -523,7 +522,7 @@ class Asset extends PureComponent {
             transactions={transactions}
             submittedTransactions={submittedTxs}
             confirmedTransactions={confirmedTxs}
-            selectedAddress={selectedAddress}
+            selectedAddress={this.selectedAddress}
             conversionRate={conversionRate}
             currentCurrency={currentCurrency}
             networkType={chainId}
@@ -581,8 +580,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
-  identities: selectIdentities(state),
+  selectedInternalAccount: selectSelectedInternalAccount(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
