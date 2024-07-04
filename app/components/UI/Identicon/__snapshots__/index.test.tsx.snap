@@ -20,64 +20,6 @@ exports[`Identicon should render correctly when provided address found in tokenL
 />
 `;
 
-exports[`Identicon should render correctly when useBlockieIcon is false 1`] = `
-<ContextProvider
-  value={
-    {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <Component />
-</ContextProvider>
-`;
+exports[`Identicon should render correctly when useBlockieIcon is false 1`] = `null`;
 
-exports[`Identicon should render correctly when useBlockieIcon is true 1`] = `
-<ContextProvider
-  value={
-    {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <Component />
-</ContextProvider>
-`;
+exports[`Identicon should render correctly when useBlockieIcon is true 1`] = `null`;

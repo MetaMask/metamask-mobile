@@ -24,13 +24,27 @@ exports[`TextField should render default settings correctly 1`] = `
       }
     }
   >
-    <Input
-      autoFocus={false}
-      isDisabled={false}
-      isStateStylesDisabled={true}
+    <TextInput
+      autoFocus={true}
+      editable={true}
       onBlur={[Function]}
       onFocus={[Function]}
-      textVariant="sBodyMD"
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "transparent",
+          "borderWidth": 1,
+          "color": "#141618",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "height": 24,
+          "letterSpacing": 0,
+          "opacity": 1,
+          "paddingVertical": 0,
+        }
+      }
+      testID="input"
     />
   </View>
 </View>

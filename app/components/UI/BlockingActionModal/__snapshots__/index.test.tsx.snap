@@ -1,42 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`BlockingActionModal should render correctly 1`] = `
-<ReactNativeModal
-  animationIn="slideInUp"
-  animationInTiming={300}
-  animationOut="slideOutDown"
-  animationOutTiming={300}
-  avoidKeyboard={false}
-  backdropColor="#00000099"
-  backdropOpacity={1}
-  backdropTransitionInTiming={300}
-  backdropTransitionOutTiming={300}
-  coverScreen={true}
-  customBackdrop={null}
+<Modal
+  animationType="none"
   deviceHeight={null}
   deviceWidth={null}
-  hasBackdrop={true}
+  hardwareAccelerated={false}
   hideModalContentWhileAnimating={false}
-  isVisible={true}
-  onBackButtonPress={[Function]}
   onBackdropPress={[Function]}
   onModalHide={[Function]}
-  onModalShow={[Function]}
   onModalWillHide={[Function]}
   onModalWillShow={[Function]}
+  onRequestClose={[Function]}
   panResponderThreshold={4}
-  propagateSwipe={false}
   scrollHorizontal={false}
   scrollOffset={0}
   scrollOffsetMax={0}
   scrollTo={null}
   statusBarTranslucent={false}
-  style={
-    {
-      "margin": 0,
-      "width": "100%",
-    }
-  }
   supportedOrientations={
     [
       "portrait",
@@ -44,41 +25,116 @@ exports[`BlockingActionModal should render correctly 1`] = `
     ]
   }
   swipeThreshold={100}
-  useNativeDriver={false}
+  transparent={true}
+  visible={true}
 >
   <View
-    style={
+    accessibilityState={
       {
-        "alignItems": "center",
-        "alignSelf": "center",
-        "backgroundColor": "#ffffff",
-        "borderRadius": 6,
-        "justifyContent": "center",
-        "minHeight": 200,
-        "padding": 15,
-        "width": "90%",
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
       }
     }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    forwardedRef={[Function]}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "backgroundColor": "#00000099",
+        "bottom": 0,
+        "height": 1334,
+        "left": 0,
+        "opacity": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "width": 750,
+      }
+    }
+  />
+  <View
+    collapsable={false}
+    deviceHeight={null}
+    deviceWidth={null}
+    forwardedRef={[Function]}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    panResponderThreshold={4}
+    pointerEvents="box-none"
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    style={
+      {
+        "flex": 1,
+        "justifyContent": "center",
+        "margin": 0,
+        "transform": [
+          {
+            "translateY": 1334,
+          },
+        ],
+        "width": "100%",
+      }
+    }
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeThreshold={100}
   >
     <View
       style={
         {
-          "flex": 1,
+          "alignItems": "center",
+          "alignSelf": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 6,
+          "justifyContent": "center",
+          "minHeight": 200,
+          "padding": 15,
+          "width": "90%",
         }
       }
     >
-      <Text>
-        Please wait
-      </Text>
-      <ActivityIndicator
-        size="small"
+      <View
         style={
           {
-            "marginTop": 30,
+            "flex": 1,
           }
         }
-      />
+      >
+        <Text>
+          Please wait
+        </Text>
+        <ActivityIndicator
+          size="small"
+          style={
+            {
+              "marginTop": 30,
+            }
+          }
+        />
+      </View>
     </View>
   </View>
-</ReactNativeModal>
+</Modal>
 `;
