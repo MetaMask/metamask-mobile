@@ -1,0 +1,2 @@
+{"metadata":{"creationDate":"2024-07-04T00:10:12.126Z","branch":"main","commitHash":"8db254ad21c577e266eeebeb10bb3f64dae02947"}}
+{"name":"RN CLI - WalletActions 10 runs","type":"render","runs":10,"meanDuration":3.5,"stdevDuration":0.5270462766947299,"durations":[3,4,4,3,3,4,3,4,4,3],"warmupDurations":[102],"meanCount":1,"stdevCount":0,"counts":[1,1,1,1,1,1,1,1,1,1],"issues":{"initialUpdateCount":0,"redundantUpdates":[]}}
