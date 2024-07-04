@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 
 // External dependencies.
 import { BadgeVariant } from './Badge.types';
@@ -17,38 +17,32 @@ import {
 
 describe('Badge', () => {
   it('should render badge network given the badge network variant', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Badge {...SAMPLE_BADGENETWORK_PROPS} variant={BadgeVariant.Network} />,
     );
-    expect(wrapper).toMatchSnapshot();
-    const contentElement = wrapper.findWhere(
-      (node) => node.prop('testID') === BADGE_BADGENETWORK_TEST_ID,
-    );
-    expect(contentElement.exists()).toBe(true);
+    expect(toJSON()).toMatchSnapshot();
+    const contentElement = screen.getByTestId(BADGE_BADGENETWORK_TEST_ID);
+    expect(contentElement).toBeTruthy();
   });
 
   it('should render badge status given the badge status variant', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Badge {...SAMPLE_BADGESTATUS_PROPS} variant={BadgeVariant.Status} />,
     );
-    expect(wrapper).toMatchSnapshot();
-    const contentElement = wrapper.findWhere(
-      (node) => node.prop('testID') === BADGE_BADGESTATUS_TEST_ID,
-    );
-    expect(contentElement.exists()).toBe(true);
+    expect(toJSON()).toMatchSnapshot();
+    const contentElement = screen.getByTestId(BADGE_BADGESTATUS_TEST_ID);
+    expect(contentElement).toBeTruthy();
   });
 
   it('should render badge notifications given the badge notification variant', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Badge
         {...SAMPLE_BADGESTATUS_PROPS}
         variant={BadgeVariant.NotificationsKinds}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
-    const contentElement = wrapper.findWhere(
-      (node) => node.prop('testID') === BADGE_BADGENOTIFICATIONS_TEST_ID,
-    );
-    expect(contentElement.exists()).toBe(true);
+    expect(toJSON()).toMatchSnapshot();
+    const contentElement = screen.getByTestId(BADGE_BADGENOTIFICATIONS_TEST_ID);
+    expect(contentElement).toBeTruthy();
   });
 });
