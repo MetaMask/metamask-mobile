@@ -10,9 +10,15 @@ const store = mockStore(initialState);
 
 describe('ManualBackupStep3', () => {
   it('should render correctly', () => {
+    const mockRoute = {
+      params: {
+        steps: ['step1', 'step2', 'step3'],
+      },
+    };
+
     const { toJSON } = render(
       <Provider store={store}>
-        <ManualBackupStep3 />
+        <ManualBackupStep3 route={mockRoute} />
       </Provider>,
     );
     expect(toJSON()).toMatchSnapshot();
