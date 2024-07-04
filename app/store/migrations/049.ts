@@ -15,10 +15,6 @@ export default async function migrate(state: unknown) {
       }
       await AsyncStorage.removeItem(key);
     } catch (error) {
-      console.error(
-        `Failed to migrate key "${key}" from AsyncStorage to MMKV!`,
-        error,
-      );
       captureException(
         `Failed to migrate key "${key}" from AsyncStorage to MMKV! Error: ${error}`,
       );
