@@ -3,14 +3,9 @@
 import React, { FC, useEffect, useMemo, useCallback } from 'react';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import {
-  NavigationProp,
-  ParamListBase,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
-import { RootState, RootState } from '../../../../reducers';
+import { RootState } from '../../../../reducers';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
