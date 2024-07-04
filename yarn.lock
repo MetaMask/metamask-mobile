@@ -4833,10 +4833,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.2.0.tgz#31b8e0ce57e28bf9847b3b24b214996f7748cc99"
   integrity sha512-0OjVwQtrrPFRGipw64yDUQA0CUXCK161LWCv2KlTTDZD8BKeWSNb0gbnpDI7HvhsJ0gki5gScZj1hF3ShDnBzA==
 
-"@metamask/swaps-controller@^9.0.0":
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-9.0.0.tgz#0177a59bc3db60296304351f5241ebbb9fa2d399"
-  integrity sha512-1YhMBBUvR/TZDqn1zjGmjhfvZD/NqSYOrLmnPvbw2rogtVdf20XbBcHbkM8kN+8wZp3ikePoLAQO9mf9XdmsMw==
+"@metamask/swaps-controller@^9.0.1":
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-9.0.1.tgz#41842ac6150a4deb948aa7264d866134e0cbfb34"
+  integrity sha512-HabEz3a2w4Zb4xmpBZ63CVn7tgBOmZOxnVAG7f3R1BH36tP/WfUBVVTnkXS8B3YMTqCt/3EzC//VsD8/tcWFOg==
   dependencies:
     "@metamask/base-controller" "^4.1.1"
     "@metamask/controller-utils" "^8.0.2"
@@ -9057,9 +9057,9 @@
   integrity sha512-rZ5drC/jWjrArrS8BR6SIr4cWpW09RNTYt9AMZo3Jwwif+iacXAqgVjm0B0Bv/S1jhDXKHqRVNCbACkJ89RAnQ==
 
 "@types/punycode@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@types/punycode/-/punycode-2.1.0.tgz#89e4f3d09b3f92e87a80505af19be7e0c31d4e83"
-  integrity sha512-PG5aLpW6PJOeV2fHRslP4IOMWn+G+Uq8CfnyJ+PDS8ndCbU+soO+fB3NKCKo0p/Jh2Y4aPaiQZsrOXFdzpcA6g==
+  version "2.1.4"
+  resolved "https://registry.yarnpkg.com/@types/punycode/-/punycode-2.1.4.tgz#96f8a47f1ee9fb0d0def5557fe80fac532f966fa"
+  integrity sha512-trzh6NzBnq8yw5e35f8xe8VTYjqM3NE7bohBtvDVf/dtUer3zYTLK1Ka3DG3p7bdtoaOHZucma6FfVKlQ134pQ==
 
 "@types/puppeteer-core@^5.4.0":
   version "5.4.0"
@@ -23907,9 +23907,9 @@ punycode@^1.3.2, punycode@^1.4.1:
   integrity sha512-jmYNElW7yvO7TV33CjSmvSiE2yco3bV2czu/OzDKdMNVZQWfxCblURLhf+47syQRBntjfLdd/H0egrzIG+oaFQ==
 
 punycode@^2.1.0, punycode@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
-  integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
+  integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
 puppeteer-core@13.1.3:
   version "13.1.3"
