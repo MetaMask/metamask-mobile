@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 
 // Internal dependencies.
 import Label from './Label';
@@ -12,22 +12,20 @@ import {
 
 describe('Label', () => {
   it('should render default settings correctly', () => {
-    const wrapper = shallow(<Label>{SAMPLE_LABEL_TEXT}</Label>);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<Label>{SAMPLE_LABEL_TEXT}</Label>);
+    expect(toJSON()).toMatchSnapshot();
   });
+
   it('should render Label', () => {
-    const wrapper = shallow(<Label>{SAMPLE_LABEL_TEXT}</Label>);
-    const labelComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === LABEL_TEST_ID,
-    );
-    expect(labelComponent.exists()).toBe(true);
+    render(<Label>{SAMPLE_LABEL_TEXT}</Label>);
+    const labelComponent = screen.getByTestId(LABEL_TEST_ID);
+    expect(labelComponent).toBeTruthy();
   });
+
   it('should render the given text with the appropriate variant', () => {
-    const wrapper = shallow(<Label>{SAMPLE_LABEL_TEXT}</Label>);
-    const titleElement = wrapper.findWhere(
-      (node) => node.prop('testID') === LABEL_TEST_ID,
-    );
-    expect(titleElement.props().children).toBe(SAMPLE_LABEL_TEXT);
-    expect(titleElement.props().variant).toBe(DEFAULT_LABEL_TEXT_VARIANT);
+    render(<Label>{SAMPLE_LABEL_TEXT}</Label>);
+    const titleElement = screen.getByTestId(LABEL_TEST_ID);
+    expect(titleElement.props.children).toBe(SAMPLE_LABEL_TEXT);
+    expect(titleElement.props.variant).toBe(DEFAULT_LABEL_TEXT_VARIANT);
   });
 });
