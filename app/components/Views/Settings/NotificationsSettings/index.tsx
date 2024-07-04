@@ -33,7 +33,7 @@ import {
   useEnableNotifications,
 } from '../../../../util/notifications/hooks/useNotifications';
 import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
-import { RootState } from 'app/reducers';
+import { RootState } from '../../../../reducers';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
