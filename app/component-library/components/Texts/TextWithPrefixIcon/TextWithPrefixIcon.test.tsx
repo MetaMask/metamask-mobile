@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 
 // External dependencies.
 import { IconName, IconProps, IconSize } from '../../Icons/Icon';
@@ -21,7 +21,7 @@ const sampleIconProps: IconProps = {
 
 describe('TextWithPrefixIcon - Snapshot', () => {
   it('should render default settings correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <TextWithPrefixIcon
         variant={TextVariant.HeadingSMRegular}
         iconProps={sampleIconProps}
@@ -29,13 +29,13 @@ describe('TextWithPrefixIcon - Snapshot', () => {
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
 
 describe('TextWithPrefixIcon', () => {
   it('should render TextWithPrefixIcon', () => {
-    const wrapper = shallow(
+    render(
       <TextWithPrefixIcon
         variant={TextVariant.HeadingSMRegular}
         iconProps={sampleIconProps}
@@ -43,17 +43,17 @@ describe('TextWithPrefixIcon', () => {
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
-    const TextWithPrefixIconComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TEXT_WITH_PREFIX_ICON_TEST_ID,
+    const TextWithPrefixIconComponent = screen.getByTestId(
+      TEXT_WITH_PREFIX_ICON_TEST_ID,
     );
-    expect(TextWithPrefixIconComponent.exists()).toBe(true);
+    expect(TextWithPrefixIconComponent).toBeTruthy();
   });
   it('should render the given icon name and size', () => {
     const testIconName = IconName.Bank;
     const testIconSize = IconSize.Xss;
     sampleIconProps.name = testIconName;
     sampleIconProps.size = testIconSize;
-    const wrapper = shallow(
+    render(
       <TextWithPrefixIcon
         variant={TextVariant.HeadingSMRegular}
         iconProps={sampleIconProps}
@@ -61,23 +61,19 @@ describe('TextWithPrefixIcon', () => {
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
-    const iconElement = wrapper.findWhere(
-      (node) => node.prop('testID') === TEXT_WITH_PREFIX_ICON_ICON_TEST_ID,
-    );
-    expect(iconElement.props().name).toBe(testIconName);
-    expect(iconElement.props().size).toBe(testIconSize);
+    const iconElement = screen.getByTestId(TEXT_WITH_PREFIX_ICON_ICON_TEST_ID);
+    expect(iconElement.props.name).toBe(testIconName);
+    expect(iconElement.props.size).toBe(testIconSize);
   });
   it('should render the given text with the appropriate variant', () => {
     const testTextVariant = TextVariant.BodySM;
-    const wrapper = shallow(
+    render(
       <TextWithPrefixIcon variant={testTextVariant} iconProps={sampleIconProps}>
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
-    const titleElement = wrapper.findWhere(
-      (node) => node.prop('testID') === TEXT_WITH_PREFIX_ICON_TEXT_TEST_ID,
-    );
-    expect(titleElement.props().children).toBe(TEST_SAMPLE_TEXT);
-    expect(titleElement.props().variant).toBe(testTextVariant);
+    const titleElement = screen.getByTestId(TEXT_WITH_PREFIX_ICON_TEXT_TEST_ID);
+    expect(titleElement.props.children).toBe(TEST_SAMPLE_TEXT);
+    expect(titleElement.props.variant).toBe(testTextVariant);
   });
 });

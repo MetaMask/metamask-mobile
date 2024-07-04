@@ -1,18 +1,41 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`GenericButton should render correctly on android 1`] = `
-<TouchableNativeFeedback
-  background={
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  focusable={false}
+  nativeBackgroundAndroid={
     {
       "attribute": "selectableItemBackground",
       "rippleRadius": undefined,
       "type": "ThemeAttrAndroid",
     }
   }
-  delayPressIn={0}
->
-  <View />
-</TouchableNativeFeedback>
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+/>
 `;
 
 exports[`GenericButton should render correctly on iOS 1`] = `

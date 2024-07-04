@@ -10,15 +10,32 @@ exports[`TextWithPrefixIcon - Snapshot should render default settings correctly 
   }
   testID="text-with-prefix-icon"
 >
-  <Icon
+  <SvgMock
     color="#141618"
+    height={20}
     name="Add"
+    style={
+      {
+        "height": 20,
+        "width": 20,
+      }
+    }
     testID="text-with-prefix-icon-icon"
+    width={20}
   />
   <Text
-    color="Default"
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#141618",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 16,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
     testID="text-with-prefix-icon-text"
-    variant="sHeadingSMRegular"
   >
     Sample Text
   </Text>
