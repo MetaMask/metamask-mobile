@@ -71,7 +71,16 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const mockInitialState = {
+// eslint-disable-next-line import/prefer-default-export
+export const mockInitialState = {
+  navigation: {
+    currentRoute: 'WalletView',
+    currentBottomNavRoute: 'Wallet',
+  },
+  legalNotices: {
+    newPrivacyPolicyToastShownDate: null,
+    newPrivacyPolicyToastClickedOrClosed: false,
+  },
   networkOnboarded: {
     networkOnboardedState: {
       '0x1': true,
