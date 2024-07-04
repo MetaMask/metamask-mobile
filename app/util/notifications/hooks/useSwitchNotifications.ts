@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable import/prefer-default-export */
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
   deleteOnChainTriggersByAccount,
@@ -112,13 +112,15 @@ export function useAccountSettingsProps(accounts: string[]) {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Memoize the accounts array to avoid unnecessary re-fetching
+  const memoizedAccounts = useMemo(() => accounts, [accounts]);
+
   // Effect - async get if accounts are enabled/disabled
-  // NOTE - be careful, as `accounts` is an array and could change
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      fetchAccountSettings(accounts)
+      fetchAccountSettings(memoizedAccounts)
         .then((res: any) => setData(res))
         .catch((e: any) => {
           const errorMessage = getErrorMessage(e);
@@ -127,7 +129,7 @@ export function useAccountSettingsProps(accounts: string[]) {
         .finally(() => setLoading(false));
     };
     fetchData();
-  }, [accounts, fetchAccountSettings]);
+  }, [memoizedAccounts, fetchAccountSettings]);
 
   return {
     data,
