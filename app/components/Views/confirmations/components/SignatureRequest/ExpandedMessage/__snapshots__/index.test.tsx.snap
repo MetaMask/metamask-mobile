@@ -24,17 +24,29 @@ exports[`ExpandedMessage should render correctly 1`] = `
       }
     }
   >
-    <Icon
+    <Text
       allowFontScaling={false}
-      name="ios-arrow-back"
-      size={30}
       style={
-        {
-          "color": "#9fa6ae",
-          "flex": 1,
-        }
+        [
+          {
+            "color": undefined,
+            "fontSize": 30,
+          },
+          {
+            "color": "#9fa6ae",
+            "flex": 1,
+          },
+          {
+            "fontFamily": "Ionicons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          {},
+        ]
       }
-    />
+    >
+      
+    </Text>
     <Text
       style={
         {
@@ -65,18 +77,46 @@ exports[`ExpandedMessage should render correctly 1`] = `
       }
     }
   >
-    <Component
-      style={
-        {
-          "borderRadius": 20,
-          "height": 40,
-          "marginBottom": 20,
-          "width": 40,
+    <View>
+      <View
+        style={
+          [
+            {
+              "alignContent": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 27,
+              "height": 54,
+              "justifyContent": "center",
+              "width": 54,
+            },
+            {
+              "borderRadius": 20,
+              "height": 40,
+              "marginBottom": 20,
+              "width": 40,
+            },
+          ]
         }
-      }
-      title="url"
-      url="url"
-    />
+      >
+        <Text
+          style={
+            [
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 24,
+                "fontWeight": "400",
+                "textAlign": "center",
+                "textTransform": "uppercase",
+              },
+              undefined,
+            ]
+          }
+        >
+          u
+        </Text>
+      </View>
+    </View>
     <Text
       style={
         {
@@ -93,16 +133,35 @@ exports[`ExpandedMessage should render correctly 1`] = `
       url
     </Text>
   </View>
-  <ScrollView
+  <RCTScrollView
     style={
       {
         "flex": 1,
       }
     }
   >
-    <TouchableWithoutFeedback>
-      <View />
-    </TouchableWithoutFeedback>
-  </ScrollView>
+    <View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessible={true}
+        focusable={false}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      />
+    </View>
+  </RCTScrollView>
 </View>
 `;
