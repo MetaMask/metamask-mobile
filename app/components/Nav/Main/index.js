@@ -113,6 +113,10 @@ const Main = (props) => {
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
 
+  const isBasicFunctionalityEnabled = useSelector(
+    (state) => state?.settings?.basicFunctionalityEnabled,
+  );
+
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
   useEnableAutomaticSecurityChecks();
@@ -368,9 +372,11 @@ const Main = (props) => {
         {
           ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         }
-        <View>
-          <SnapsExecutionWebView />
-        </View>
+        {isBasicFunctionalityEnabled && (
+          <View>
+            <SnapsExecutionWebView />
+          </View>
+        )}
         {
           ///: END:ONLY_INCLUDE_IF
         }
