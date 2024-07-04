@@ -68,6 +68,9 @@ const initialState = {
     backgroundState: {
       ...initialBackgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      PreferencesController: {
+        showFiatOnTestnets: false,
+      },
     },
   },
   signatureRequest: {
