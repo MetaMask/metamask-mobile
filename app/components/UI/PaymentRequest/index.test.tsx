@@ -5,7 +5,21 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
 const mockStore = configureMockStore();
-const store = mockStore({});
+const initialState = {
+  settings: {
+    showFiatOnTestnets: true,
+  },
+  engine: {
+    backgroundState: {
+      CurrencyRateController: {
+        currencyRates: {},
+        currentCurrency: 'USD',
+      },
+    },
+  },
+};
+const store = mockStore(initialState);
+
 describe('PaymentRequest', () => {
   it('should render correctly', () => {
     const { toJSON } = render(
