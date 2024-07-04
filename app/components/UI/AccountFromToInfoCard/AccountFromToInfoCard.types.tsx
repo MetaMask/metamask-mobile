@@ -1,9 +1,4 @@
-interface Identity {
-  address: string;
-  name: string;
-}
-
-type Identities = Record<string, Identity>;
+import { InternalAccount } from '@metamask/keyring-api';
 
 interface SelectedAsset {
   isETH: boolean;
@@ -26,7 +21,7 @@ export interface Transaction {
 }
 
 export interface AccountFromToInfoCardProps {
-  identities: Identities;
+  internalAccounts: InternalAccount[];
   chainId: string;
   onPressFromAddressIcon?: () => void;
   ticker?: string;
