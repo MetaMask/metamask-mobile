@@ -14,7 +14,9 @@ describe('SimpleWebview', () => {
             },
             setOptions: () => null,
           }}
-          route={{ params: { url: 'https://etherscan.io', title: 'etherscan' } }}
+          route={{
+            params: { url: 'https://etherscan.io', title: 'etherscan' },
+          }}
         />
       </ThemeContext.Provider>,
     );

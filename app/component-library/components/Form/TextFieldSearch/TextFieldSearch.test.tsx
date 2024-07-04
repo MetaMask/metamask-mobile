@@ -14,7 +14,9 @@ describe('TextFieldSearch', () => {
 
   it('should render TextFieldSearch', () => {
     render(<TextFieldSearch />);
-    const textFieldSearchComponent = screen.getByTestId(TEXTFIELDSEARCH_TEST_ID);
+    const textFieldSearchComponent = screen.getByTestId(
+      TEXTFIELDSEARCH_TEST_ID,
+    );
     expect(textFieldSearchComponent).toBeTruthy();
   });
 });
