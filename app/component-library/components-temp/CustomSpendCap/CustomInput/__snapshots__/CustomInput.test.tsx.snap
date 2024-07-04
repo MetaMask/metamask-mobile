@@ -52,14 +52,19 @@ exports[`CustomInput should render correctly 1`] = `
     />
   </View>
   <Text
+    accessibilityRole="text"
     onPress={[Function]}
     style={
       {
         "color": "#6a737d",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 12,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 20,
       }
     }
     testID="custom-spend-cap-max-test-id"
-    variant="sBodySM"
   >
     Max
   </Text>

@@ -16,11 +16,57 @@ exports[`PickComponent should render correctly 1`] = `
       }
     }
   >
-    <RadioButton
-      isChecked={false}
-      label="Text First"
+    <TouchableOpacity
+      disabled={false}
       onPress={[Function]}
-    />
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 24,
+          "opacity": 1,
+        }
+      }
+    >
+      <View
+        accessibilityRole="radio"
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bbc0c5",
+            "borderRadius": 99,
+            "borderWidth": 2,
+            "height": 20,
+            "justifyContent": "center",
+            "width": 20,
+          }
+        }
+      />
+      <View
+        style={
+          {
+            "marginLeft": 12,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Text First
+        </Text>
+      </View>
+    </TouchableOpacity>
   </View>
   <View
     style={
@@ -29,11 +75,69 @@ exports[`PickComponent should render correctly 1`] = `
       }
     }
   >
-    <RadioButton
-      isChecked={true}
-      label="Text Second"
+    <TouchableOpacity
+      disabled={false}
       onPress={[Function]}
-    />
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 24,
+          "opacity": 1,
+        }
+      }
+    >
+      <View
+        accessibilityRole="radio"
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#0376c9",
+            "borderRadius": 99,
+            "borderWidth": 2,
+            "height": 20,
+            "justifyContent": "center",
+            "width": 20,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#0376c9",
+              "borderRadius": 99,
+              "height": 12,
+              "width": 12,
+            }
+          }
+          testID="RadioButton-icon-component"
+        />
+      </View>
+      <View
+        style={
+          {
+            "marginLeft": 12,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Text Second
+        </Text>
+      </View>
+    </TouchableOpacity>
   </View>
 </View>
 `;
