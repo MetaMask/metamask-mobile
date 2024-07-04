@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from "@testing-library/react-native";
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import TypedSign from '.';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -11,10 +11,10 @@ import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetrics } from '../../../../../core/Analytics';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { ThemeContext } from '../../../../../util/theme';
 
 jest.mock('../../../../../core/Analytics/MetaMetrics');
 
@@ -83,22 +83,36 @@ const initialState = {
 
 const store = mockStore(initialState);
 
+const mockTheme = {
+  colors: {
+    primary: '#000000',
+    secondary: '#FFFFFF',
+    background: '#F0F0F0',
+    text: '#333333',
+    border: {
+      default: '#CCCCCC',
+    },
+  },
+};
+
 function createWrapper({
   origin = messageParamsMock.origin,
   mockConfirm = jest.fn(),
   mockReject = jest.fn(),
 } = {}) {
-  return shallow(
+  return render(
     <Provider store={store}>
-      <TypedSign
-        currentPageInformation={{
-          title: 'title',
-          url: 'http://localhost:8545',
-        }}
-        messageParams={{ ...messageParamsMock, origin }}
-        onConfirm={mockConfirm}
-        onReject={mockReject}
-      />
+      <ThemeContext.Provider value={mockTheme}>
+        <TypedSign
+          currentPageInformation={{
+            title: 'title',
+            url: 'http://localhost:8545',
+          }}
+          messageParams={{ ...messageParamsMock, origin }}
+          onConfirm={mockConfirm}
+          onReject={mockReject}
+        />
+      </ThemeContext.Provider>
     </Provider>,
   );
 }
@@ -108,7 +122,7 @@ describe('TypedSign', () => {
   const mockReject = jest.fn();
 
   it('should render correctly', () => {
-    const wrapper = createWrapper();
+    const { toJSON } = createWrapper();
     expect(toJSON()).toMatchSnapshot();
   });
 
