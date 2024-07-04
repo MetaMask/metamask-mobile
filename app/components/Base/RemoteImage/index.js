@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Image, ViewPropTypes, View, StyleSheet } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
@@ -17,6 +17,49 @@ const createStyles = () =>
       overflow: 'hidden',
     },
   });
+
+/**
+ * Support svg images urls that do not have a view box
+ * See: https://github.com/software-mansion/react-native-svg/issues/1202#issuecomment-1891110599
+ * @param {string} uri - uri to fetch
+ * @param {boolean} isSVG - check to see if the uri is an svg
+ * @returns {string | undefined} viewbox
+ */
+export function useSVGViewBox(uri, isSVG) {
+  const [viewBox, setViewBox] = useState(undefined);
+
+  useEffect(() => {
+    if (!isSVG) {
+      return;
+    }
+
+    fetch(uri)
+      .then((response) => response.text())
+      .then((svgContent) => {
+        const widthMatch = svgContent.match(/width="([^"]+)"/);
+        const heightMatch = svgContent.match(/height="([^"]+)"/);
+        const viewBoxMatch = svgContent.match(/viewBox="([^"]+)"/);
+
+        // Image already has a view box, no additional work required
+        if (viewBoxMatch) {
+          return;
+        }
+
+        if (widthMatch && heightMatch) {
+          const width = widthMatch[1];
+          const height = heightMatch[1];
+          setViewBox(`0 0 ${width} ${height}`);
+        }
+      })
+      .catch((error) => console.error('Error fetching SVG:', error));
+  }, [isSVG, uri]);
+
+  if (!viewBox) {
+    return undefined;
+  }
+
+  return viewBox;
+}
 
 const RemoteImage = (props) => {
   const [error, setError] = useState(undefined);
@@ -40,16 +83,19 @@ const RemoteImage = (props) => {
 
   const onError = ({ nativeEvent: { error } }) => setError(error);
 
+  const isSVG =
+    source &&
+    source.uri &&
+    source.uri.match('.svg') &&
+    (isImageUrl || resolvedIpfsUrl);
+
+  const viewbox = useSVGViewBox(uri, isSVG);
+
   if (error && props.address) {
     return <Identicon address={props.address} customStyle={props.style} />;
   }
 
-  if (
-    source &&
-    source.uri &&
-    source.uri.match('.svg') &&
-    (isImageUrl || resolvedIpfsUrl)
-  ) {
+  if (isSVG) {
     const style = props.style || {};
     if (source.__packager_asset && typeof style !== 'number') {
       if (!style.width) {
@@ -66,7 +112,13 @@ const RemoteImage = (props) => {
         componentLabel="RemoteImage-SVG"
       >
         <View style={{ ...style, ...styles.svgContainer }}>
-          <SvgUri {...props} uri={uri} width={'100%'} height={'100%'} />
+          <SvgUri
+            {...props}
+            uri={uri}
+            width={'100%'}
+            height={'100%'}
+            viewBox={viewbox}
+          />
         </View>
       </ComponentErrorBoundary>
     );
