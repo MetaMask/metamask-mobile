@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 
 // Internal dependencies.
 import HelpText from './HelpText';
@@ -14,36 +14,29 @@ import { HelpTextSeverity } from './HelpText.types';
 
 describe('HelpText', () => {
   it('should render default settings correctly', () => {
-    const wrapper = shallow(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
+    expect(toJSON()).toMatchSnapshot();
   });
+
   it('should render HelpText', () => {
-    const wrapper = shallow(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
-    const helpTextComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === HELPTEXT_TEST_ID,
-    );
-    expect(helpTextComponent.exists()).toBe(true);
+    render(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
+    const helpTextComponent = screen.getByTestId(HELPTEXT_TEST_ID);
+    expect(helpTextComponent).toBeTruthy();
   });
+
   it('should render the given severity color', () => {
     const testSeverity = HelpTextSeverity.Error;
-    const wrapper = shallow(
-      <HelpText severity={testSeverity}>{SAMPLE_HELPTEXT_TEXT}</HelpText>,
-    );
-    const helpTextComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === HELPTEXT_TEST_ID,
-    );
-    expect(helpTextComponent.props().color).toBe(
+    render(<HelpText severity={testSeverity}>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
+    const helpTextComponent = screen.getByTestId(HELPTEXT_TEST_ID);
+    expect(helpTextComponent.props.color).toBe(
       TEXT_COLOR_BY_HELPTEXT_SEVERITY[testSeverity],
     );
   });
+
   it('should render the given text with the appropriate variant', () => {
-    const wrapper = shallow(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
-    const helpTextComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === HELPTEXT_TEST_ID,
-    );
-    expect(helpTextComponent.props().children).toBe(SAMPLE_HELPTEXT_TEXT);
-    expect(helpTextComponent.props().variant).toBe(
-      DEFAULT_HELPTEXT_TEXT_VARIANT,
-    );
+    render(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
+    const helpTextComponent = screen.getByTestId(HELPTEXT_TEST_ID);
+    expect(helpTextComponent.props.children).toBe(SAMPLE_HELPTEXT_TEXT);
+    expect(helpTextComponent.props.variant).toBe(DEFAULT_HELPTEXT_TEXT_VARIANT);
   });
 });
