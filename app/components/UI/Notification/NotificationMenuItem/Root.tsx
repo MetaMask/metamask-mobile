@@ -97,7 +97,10 @@ function NotificationRoot({
         onGestureEvent={panGesture}
       >
         <Animated.View onPress={handleOnPress} style={rChildrenStyle}>
-          <TouchableOpacity onPress={handleOnPress}>
+          <TouchableOpacity
+            onPress={handleOnPress}
+            style={styles.menuItemContainer}
+          >
             {children}
           </TouchableOpacity>
         </Animated.View>
