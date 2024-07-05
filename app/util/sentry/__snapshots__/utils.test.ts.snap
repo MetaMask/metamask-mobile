@@ -1,0 +1,234 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] = `
+{
+  "accounts": {
+    "reloadAccounts": false,
+  },
+  "alert": {
+    "autodismiss": null,
+    "content": null,
+    "data": null,
+    "isVisible": false,
+  },
+  "bookmarks": {},
+  "browser": {
+    "activeTab": null,
+    "favicons": [],
+    "history": [],
+    "tabs": [],
+    "visitedDappsByHostname": {},
+    "whitelist": [],
+  },
+  "collectibles": {
+    "favorites": {},
+    "isNftFetchingProgress": false,
+  },
+  "engine": {
+    "backgroundState": {
+      "AccountTrackerController": {
+        "accounts": "object",
+        "accountsByChainId": "object",
+      },
+      "AccountsController": {
+        "internalAccounts": {
+          "accounts": "object",
+          "selectedAccount": "string",
+        },
+      },
+      "AddressBookController": {
+        "addressBook": "object",
+      },
+      "ApprovalController": {
+        "approvalFlows": "object",
+        "pendingApprovalCount": "number",
+        "pendingApprovals": "object",
+      },
+      "AssetsContractController": {},
+      "CurrencyRateController": {
+        "currencyRates": {
+          "ETH": {
+            "conversionDate": "1720196397.083",
+            "conversionRate": "2985.14",
+            "usdConversionRate": "2985.14",
+          },
+        },
+        "currentCurrency": "usd",
+      },
+      "GasFeeController": {
+        "estimatedGasFeeTimeBounds": {},
+        "gasEstimateType": "none",
+        "gasFeeEstimates": {},
+        "gasFeeEstimatesByChainId": {},
+        "nonRPCGasFeeApisDisabled": "number",
+      },
+      "KeyringController": {
+        "isUnlocked": 1,
+        "keyrings": "object",
+        "vault": "string",
+      },
+      "LoggingController": {
+        "logs": "object",
+      },
+      "NetworkController": {
+        "networkConfigurations": "object",
+        "networksMetadata": {
+          "mainnet": {
+            "EIPS": {
+              "1559": 1,
+            },
+            "status": "available",
+          },
+        },
+        "providerConfig": {
+          "chainId": "0x1",
+          "ticker": "ETH",
+          "type": "mainnet",
+        },
+        "selectedNetworkClientId": "string",
+      },
+      "NftController": {
+        "allNftContracts": "object",
+        "allNfts": "object",
+        "ignoredNfts": "object",
+      },
+      "NftDetectionController": "object",
+      "PermissionController": {
+        "subjects": "object",
+      },
+      "PreferencesController": {
+        "disabledRpcMethodPreferences": {
+          "eth_sign": 0,
+        },
+        "displayNftMedia": 1,
+        "featureFlags": {},
+        "identities": "object",
+        "ipfsGateway": "string",
+        "isIpfsGatewayEnabled": 1,
+        "isMultiAccountBalancesEnabled": "number",
+        "lostIdentities": "object",
+        "securityAlertsEnabled": "number",
+        "selectedAddress": "string",
+        "showIncomingTransactions": "object",
+        "showTestNetworks": "boolean",
+        "smartTransactionsOptInStatus": "boolean",
+        "useNftDetection": true,
+        "useSafeChainsListValidation": "boolean",
+        "useTokenDetection": true,
+        "useTransactionSimulations": true,
+      },
+      "SmartTransactionsController": {
+        "smartTransactionsState": {
+          "fees": {},
+          "feesByChainId": "object",
+          "liveness": true,
+          "livenessByChainId": "object",
+          "smartTransactions": "object",
+        },
+      },
+    },
+  },
+  "experimentalSettings": {
+    "securityAlertsEnabled": true,
+  },
+  "fiatOrders": "object",
+  "infuraAvailability": {
+    "isBlocked": false,
+  },
+  "inpageProvider": {
+    "networkId": "1",
+  },
+  "legalNotices": {
+    "newPrivacyPolicyToastClickedOrClosed": true,
+    "newPrivacyPolicyToastShownDate": null,
+  },
+  "modals": {
+    "collectibleContractModalVisible": false,
+    "dappTransactionModalVisible": false,
+    "networkModalVisible": false,
+    "receiveAsset": undefined,
+    "receiveModalVisible": false,
+    "shouldNetworkSwitchPopToWallet": true,
+    "signMessageModalVisible": true,
+  },
+  "navigation": {
+    "currentBottomNavRoute": "Wallet",
+    "currentRoute": "Login",
+  },
+  "networkOnboarded": {
+    "networkOnboardedState": {},
+    "networkState": {
+      "nativeToken": "",
+      "networkType": "",
+      "networkUrl": "",
+      "showNetworkOnboarding": false,
+    },
+    "switchedNetwork": {
+      "networkStatus": false,
+      "networkUrl": "",
+    },
+  },
+  "notification": {
+    "notification": {
+      "notificationsSettings": {},
+    },
+    "notifications": [],
+  },
+  "onboarding": {
+    "events": [],
+  },
+  "privacy": {},
+  "rpcEvents": {
+    "signingEvent": {
+      "eventStage": "idle",
+      "rpcName": "",
+    },
+  },
+  "sdk": {
+    "approvedHosts": {},
+    "connections": {},
+    "dappConnections": {},
+    "wc2Metadata": undefined,
+  },
+  "security": {
+    "allowLoginWithRememberMe": false,
+    "automaticSecurityChecksEnabled": false,
+    "dataCollectionForMarketing": null,
+    "hasUserSelectedAutomaticSecurityCheckOption": false,
+    "isAutomaticSecurityChecksModalOpen": false,
+    "isNFTAutoDetectionModalViewed": false,
+  },
+  "settings": {
+    "basicFunctionalityEnabled": true,
+    "hideZeroBalanceTokens": false,
+    "lockTime": 30000,
+    "primaryCurrency": "ETH",
+    "searchEngine": "DuckDuckGo",
+    "useBlockieIcon": true,
+  },
+  "signatureRequest": "object",
+  "smartTransactions": {
+    "optInModalAppVersionSeen": null,
+  },
+  "swaps": "object",
+  "transaction": "object",
+  "transactionMetrics": "object",
+  "user": {
+    "ambiguousAddressEntries": "object",
+    "appTheme": "os",
+    "backUpSeedphraseVisible": false,
+    "gasEducationCarouselSeen": false,
+    "initialScreen": "",
+    "isAuthChecked": false,
+    "loadingMsg": "",
+    "loadingSet": false,
+    "passwordSet": true,
+    "protectWalletModalVisible": false,
+    "seedphraseBackedUp": true,
+    "userLoggedIn": true,
+  },
+  "wizard": {
+    "step": 1,
+  },
+}
+`;
