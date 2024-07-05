@@ -1,17 +1,14 @@
 import React from 'react';
 import { View } from 'react-native';
-
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
-import { createStyles } from '../styles';
 import NotificationsDetailViewSelectorsIDs from '../../constants';
+import useStyles from '../useStyles';
 
 const Header = ({ title, subtitle }: { title: string; subtitle: string }) => {
-  const theme = useTheme();
-  const styles = createStyles(theme);
+  const { styles } = useStyles();
 
   return (
     <View

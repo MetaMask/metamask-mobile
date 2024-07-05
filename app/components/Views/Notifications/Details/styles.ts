@@ -20,6 +20,18 @@ export const createStyles = ({ colors }: Theme) =>
       paddingTop: 16,
     },
     headerTitle: { alignItems: 'center', top: 4 },
+    headerImageContainer: {
+      alignItems: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+    },
+    headerImageFull: {
+      width: '100%',
+    },
+    headerImageFullPlaceholder: {
+      width: '100%',
+      backgroundColor: colors.background.alternative,
+    },
     row: {
       flexDirection: 'row',
       justifyContent: 'flex-start',
@@ -133,7 +145,23 @@ export const createStyles = ({ colors }: Theme) =>
     gasDetails: {
       marginBottom: 80,
     },
-    nftLogo: {
+    squareLogoLarge: {
+      width: 96,
+      height: 96,
+      borderRadius: 8,
+      overflow: 'hidden',
+      borderWidth: 0.5,
+      borderColor: colors.background.alternative,
+    },
+    squareLogoLargePlaceholder: {
+      backgroundColor: colors.background.alternative,
+      width: 96,
+      height: 96,
+      borderRadius: 8,
+      borderWidth: 0.5,
+      borderColor: colors.background.alternative,
+    },
+    squareLogo: {
       width: 32,
       height: 32,
       borderRadius: 8,
@@ -141,7 +169,7 @@ export const createStyles = ({ colors }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    nftPlaceholder: {
+    squareLogoPlaceholder: {
       backgroundColor: colors.background.alternative,
       width: 32,
       height: 32,
@@ -149,7 +177,7 @@ export const createStyles = ({ colors }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    assetLogo: {
+    circleLogo: {
       width: 32,
       height: 32,
       borderRadius: 16,
@@ -157,7 +185,7 @@ export const createStyles = ({ colors }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    assetPlaceholder: {
+    circleLogoPlaceholder: {
       backgroundColor: colors.background.alternative,
       width: 32,
       height: 32,

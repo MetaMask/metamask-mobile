@@ -1,40 +1,31 @@
-/* eslint-disable react/display-name */
 import React, { useEffect } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { useDispatch, useSelector } from 'react-redux';
-
 import {
+  formatIsoDateString,
   Notification,
-  TRIGGER_TYPES,
-  formatDate,
-  formatNotificationTitle,
 } from '../../../../util/notifications';
-
 import { useTheme } from '../../../../util/theme';
 
-import ClipboardManager from '../../../../core/ClipboardManager';
-import { strings } from '../../../../../locales/i18n';
-
+import {
+  NavigationProp,
+  ParamListBase,
+  RouteProp,
+} from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
-
-import { showAlert } from '../../../../actions/alert';
-import { protectWalletModalVisible } from '../../../../actions/user';
 import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
+import { NotificationComponentState } from '../../../../util/notifications/notification-states';
+import Header from './Title';
 import { createStyles } from './styles';
-
-import renderAnnouncementsDetails from './Announcements';
-import renderOnChainDetails from './OnChain';
-import Header from './Header';
-import type { RootState } from '../../../../reducers';
-import { NavigationProp, RouteProp } from '@react-navigation/native';
+import ModalField from './Fields';
+import ModalHeader from './Headers';
+import ModalFooter from './Footers';
 
 interface Props {
-  navigation: NavigationProp<Record<string, undefined>>;
+  navigation: NavigationProp<ParamListBase>;
   route: {
     params: {
       notification: Notification;
@@ -42,19 +33,13 @@ interface Props {
   };
 }
 
-const NotificationsDetails = ({ navigation, route }: Props) => {
+const NotificationsDetails = ({ route }: Props) => {
   const { notification } = route.params;
   const { markNotificationAsRead } = useMarkNotificationAsRead();
-  const dispatch = useDispatch();
   const theme = useTheme();
   const styles = createStyles(theme);
 
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
-
+  // Effect - Mark As Read, on open
   useEffect(() => {
     if (!notification.isRead) {
       markNotificationAsRead([
@@ -67,45 +52,29 @@ const NotificationsDetails = ({ navigation, route }: Props) => {
     }
   }, [notification, markNotificationAsRead]);
 
-  const handleShowAlert = (config: {
-    isVisible: boolean;
-    autodismiss: number;
-    content: string;
-    data: { msg: string };
-  }) => dispatch(showAlert(config));
+  const state =
+    NotificationComponentState[notification?.type]?.createModalDetails?.(
+      notification,
+    );
 
-  const handleProtectWalletModalVisible = () =>
-    dispatch(protectWalletModalVisible());
-
-  const copyToClipboard = async (type: string, selectedString?: string) => {
-    if (!selectedString) return;
-    await ClipboardManager.setString(selectedString);
-    handleShowAlert({
-      isVisible: true,
-      autodismiss: 1500,
-      content: 'clipboard-alert',
-      data: {
-        msg:
-          type === 'address'
-            ? strings('notifications.address_copied_to_clipboard')
-            : strings('notifications.transaction_id_copied_to_clipboard'),
-      },
-    });
-    setTimeout(() => handleProtectWalletModalVisible(), 2000);
-  };
+  if (!state) {
+    return null;
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.contentContainerWrapper}>
-      {notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
-        ? renderAnnouncementsDetails({ notification, styles, navigation })
-        : renderOnChainDetails({
-            notification,
-            styles,
-            theme,
-            accountAvatarType,
-            navigation,
-            copyToClipboard,
-          })}
+      <View style={styles.renderContainer}>
+        {/* Modal Headers */}
+        {state.header && <ModalHeader modalHeader={state.header} />}
+
+        {/* Modal Fields */}
+        {state.fields.map((field, idx) => (
+          <ModalField key={idx} modalField={field} />
+        ))}
+
+        {/* Modal Footers */}
+        {state.footer && <ModalFooter modalFooter={state.footer} />}
+      </View>
     </ScrollView>
   );
 };
@@ -118,27 +87,40 @@ NotificationsDetails.navigationOptions = ({
 }: {
   route: RouteProp<{ params: { notification: Notification } }, 'params'>;
   navigation: NavigationProp<Record<string, undefined>>;
-}) => ({
-  headerLeft: () => (
-    <TouchableOpacity onPress={() => navigation.goBack()}>
-      <Icon
-        name={IconName.ArrowLeft}
-        size={IconSize.Md}
-        // eslint-disable-next-line react-native/no-inline-styles
-        style={{ marginLeft: 16 }}
+}) => {
+  const notification = route?.params?.notification;
+  if (!notification) {
+    navigation.goBack();
+    return {};
+  }
+
+  const state =
+    NotificationComponentState[notification?.type]?.createModalDetails?.(
+      notification,
+    );
+  if (!state) {
+    navigation.goBack();
+    return {};
+  }
+
+  return {
+    // eslint-disable-next-line react/display-name
+    headerLeft: () => (
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Md}
+          // eslint-disable-next-line react-native/no-inline-styles
+          style={{ marginLeft: 16 }}
+        />
+      </TouchableOpacity>
+    ),
+    // eslint-disable-next-line react/display-name
+    headerTitle: () => (
+      <Header
+        title={state.title}
+        subtitle={formatIsoDateString(state.createdAt)}
       />
-    </TouchableOpacity>
-  ),
-  headerTitle: () => (
-    <Header
-      title={
-        route.params.notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
-          ? route.params.notification.data.title
-          : // TODO - Provide better title for other notifications
-            // E.g. "eth_sent" is not just eth. It is native token sent
-            formatNotificationTitle(route.params.notification.type)
-      }
-      subtitle={formatDate(route.params.notification.createdAt)}
-    />
-  ),
-});
+    ),
+  };
+};

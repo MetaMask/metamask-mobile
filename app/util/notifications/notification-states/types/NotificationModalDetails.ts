@@ -1,4 +1,5 @@
 import { getNetworkFees } from '../../notification.util';
+import { FeatureAnnouncementRawNotification } from '../../types/featureAnnouncement';
 
 // The Notification Modal is highly customizable.
 // It contains any number of "Fields", as well as a footer for an action/link
@@ -61,12 +62,13 @@ export interface ModalFieldAsset {
   label: string;
 
   /**
-   * Token Symbol. E.g. Eth, DAI, USDC
+   * This is below the label.
+   * It can be token name (e.g. Compound), asset (COMP, DAI), or anything else
    */
-  symbol: string;
+  description: string;
 
   /**
-   * Token Amount. E.g. 100 USDC
+   * Token Amount. E.g. "100 USDC" (includes asset)
    */
   amount: string;
 
@@ -74,20 +76,6 @@ export interface ModalFieldAsset {
    * USD Amount. E.g. $100.54
    */
   usdAmount: string;
-}
-
-export interface ModalFieldNFTHeadingImage {
-  type: 'ModalField-NFTHeadingImage';
-
-  /**
-   * NFT Image
-   */
-  nftImageUrl: string;
-
-  /**
-   * Network Badge. E.g. url for Ethereum.
-   */
-  networkBadgeUrl: string;
 }
 
 export interface ModalFieldNFTCollectionImage {
@@ -102,6 +90,11 @@ export interface ModalFieldNFTCollectionImage {
    * Network Badge. E.g. url for Ethereum.
    */
   networkBadgeUrl: string;
+
+  /**
+   * Collection Name. E.g. "Pixel Birds (#211)"
+   */
+  collectionName: string;
 }
 
 export interface ModalFieldStakingProvider {
@@ -114,9 +107,14 @@ export interface ModalFieldStakingProvider {
   tokenIconUrl: string;
 
   /**
+   * Staking Provider. E.g. Lido-staked ETH, or RocketPool
+   */
+  stakingProvider: string;
+
+  /**
    * Request ID copy.
    */
-  requestId: string;
+  requestId?: string;
 }
 
 export interface ModalFieldSwapsRate {
@@ -134,16 +132,50 @@ export interface ModalFieldNetworkFee {
   getNetworkFees: () => ReturnType<typeof getNetworkFees>;
 }
 
+export interface ModalFieldAnnouncementDescription {
+  type: 'ModalField-AnnouncementDescription';
+
+  /**
+   * This is a stringified HTML document, to be used or translated into React/React Native
+   */
+  description: FeatureAnnouncementRawNotification['data']['longDescription'];
+}
+
 export type ModalField =
   | ModalFieldAddress
   | ModalFieldTransaction
   | ModalFieldNetwork
   | ModalFieldAsset
-  | ModalFieldNFTHeadingImage
   | ModalFieldNFTCollectionImage
   | ModalFieldStakingProvider
   | ModalFieldSwapsRate
-  | ModalFieldNetworkFee;
+  | ModalFieldNetworkFee
+  | ModalFieldAnnouncementDescription;
+
+export interface ModalHeaderNFTImage {
+  type: 'ModalHeader-NFTImage';
+
+  /**
+   * NFT Image
+   */
+  nftImageUrl: string;
+
+  /**
+   * Network Badge. E.g. url for Ethereum.
+   */
+  networkBadgeUrl: string;
+}
+
+export interface ModalHeaderAnnouncementImage {
+  type: 'ModalHeader-AnnouncementImage';
+
+  /**
+   * Announcement Image Url
+   */
+  imageUrl: string;
+}
+
+export type ModalHeader = ModalHeaderNFTImage | ModalHeaderAnnouncementImage;
 
 export interface ModalFooterBlockExplorer {
   type: 'ModalFooter-BlockExplorer';
@@ -151,7 +183,14 @@ export interface ModalFooterBlockExplorer {
   chainId: number;
 }
 
-export type ModalFooter = ModalFooterBlockExplorer;
+export interface ModalFooterAnnouncementCta {
+  type: 'ModalFooter-AnnouncementCta';
+
+  // We currently to not support a mobile link
+  mobileLink?: FeatureAnnouncementRawNotification['data']['extensionLink'];
+}
+
+export type ModalFooter = ModalFooterBlockExplorer | ModalFooterAnnouncementCta;
 
 export interface NotificationModalDetails {
   /**
@@ -166,9 +205,17 @@ export interface NotificationModalDetails {
   createdAt: string;
 
   /**
+   * Optional Headers for some notifications
+   */
+  header?: ModalHeader;
+
+  /**
    * Composable list of fields.
    */
   fields: ModalField[];
 
-  footer: ModalFooter;
+  /**
+   * Optional Footer (e.g. block explorer link)
+   */
+  footer?: ModalFooter;
 }
