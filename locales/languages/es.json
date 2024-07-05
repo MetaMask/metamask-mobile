@@ -994,7 +994,6 @@
     "token_nft_ens_subheading": "Detección automática de tokens, NFT y ENS",
     "security_check_subheading": "Verificaciones de seguridad",
     "symbol_required": "Se requiere símbolo.",
-    "blockaid_desc": "Preservación de la privacidad: no se comparten datos con terceros. Disponible en Arbitrum, Avalanche, BNB Chain, la red principal de Ethereum, Optimism, Polygon, Sepolia y Base.",
     "security_alerts": "Alertas de seguridad",
     "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al habilitar esta función, acepta los términos de uso del proveedor.",
     "smart_transactions_opt_in_heading": "Transacciones inteligentes",
