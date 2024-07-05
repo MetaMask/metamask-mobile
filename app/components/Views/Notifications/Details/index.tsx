@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   formatIsoDateString,
@@ -103,6 +103,12 @@ NotificationsDetails.navigationOptions = ({
     return {};
   }
 
+  const styles = StyleSheet.create({
+    backIcon: {
+      marginLeft: 16,
+    },
+  });
+
   return {
     // eslint-disable-next-line react/display-name
     headerLeft: () => (
@@ -111,7 +117,7 @@ NotificationsDetails.navigationOptions = ({
           name={IconName.ArrowLeft}
           size={IconSize.Md}
           // eslint-disable-next-line react-native/no-inline-styles
-          style={{ marginLeft: 16 }}
+          style={styles.backIcon}
         />
       </TouchableOpacity>
     ),

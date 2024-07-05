@@ -11,7 +11,7 @@ const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 
 export type NotificationDetailStyles = ReturnType<typeof createStyles>;
 
-export const createStyles = ({ colors }: Theme) =>
+export const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     contentContainerWrapper: {
       flex: 1,
@@ -19,14 +19,15 @@ export const createStyles = ({ colors }: Theme) =>
       backgroundColor: colors.background.default,
       paddingTop: 16,
     },
-    headerTitle: { alignItems: 'center', top: 4 },
     headerImageContainer: {
       alignItems: 'center',
-      paddingVertical: 8,
+      paddingTop: 8,
       paddingHorizontal: 16,
     },
     headerImageFull: {
       width: '100%',
+      aspectRatio: '4/3', // Landscape aspect ratio
+      borderRadius: 8,
     },
     headerImageFullPlaceholder: {
       width: '100%',
@@ -36,7 +37,7 @@ export const createStyles = ({ colors }: Theme) =>
       flexDirection: 'row',
       justifyContent: 'flex-start',
       minWidth: '100%',
-      paddingVertical: 8,
+      paddingVertical: 5,
       paddingHorizontal: 16,
     },
     badgeWrapper: {
@@ -88,6 +89,7 @@ export const createStyles = ({ colors }: Theme) =>
       alignItems: 'flex-start',
       flex: 1,
       marginHorizontal: 16,
+      paddingTop: 16,
     },
     renderFCMText: {
       textAlign: 'left',
@@ -204,5 +206,18 @@ export const createStyles = ({ colors }: Theme) =>
       position: 'absolute',
       top: '25%',
     },
-    header: { alignItems: 'center', marginTop: 4 },
+    header: {
+      flexDirection: 'row',
+      marginTop: 4,
+      flexWrap: 'wrap',
+    },
+    headerText: {
+      width: '100%',
+      textAlign: 'center',
+    },
+    announcementDescriptionText: {
+      ...typography.lBodyMD,
+      color: colors.text.default,
+      marginHorizontal: 1,
+    },
   });

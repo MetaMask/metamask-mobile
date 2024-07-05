@@ -33,7 +33,7 @@ const state: NotificationState<FeatureAnnouncementNotification> = {
     createdAt: notification.createdAt,
     header: {
       type: 'ModalHeader-AnnouncementImage',
-      imageUrl: notification.data.image.url,
+      imageUrl: `https:${notification.data.image.url}?fm=jpg&fl=progressive&w=1000&q=80`,
     },
     fields: [
       {

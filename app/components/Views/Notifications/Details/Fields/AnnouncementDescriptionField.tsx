@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import Html from 'react-native-render-html';
+import Html, { MixedStyleDeclaration } from 'react-native-render-html';
 import { ModalFieldAnnouncementDescription } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
 
@@ -18,7 +18,11 @@ function AnnouncementDescriptionField(
       style={styles.row}
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
     >
-      <Html source={{ html: props.description }} contentWidth={width} />
+      <Html
+        source={{ html: props.description }}
+        contentWidth={width}
+        baseStyle={styles.announcementDescriptionText as MixedStyleDeclaration}
+      />
     </View>
   );
 }

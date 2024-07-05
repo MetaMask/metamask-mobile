@@ -23,6 +23,7 @@ const Header = ({ title, subtitle }: { title: string; subtitle: string }) => {
         }
         variant={TextVariant.BodyLGMedium}
         color={TextColor.Default}
+        style={styles.headerText}
       >
         {title}
       </Text>
@@ -32,6 +33,7 @@ const Header = ({ title, subtitle }: { title: string; subtitle: string }) => {
         }
         variant={TextVariant.BodyMD}
         color={TextColor.Alternative}
+        style={styles.headerText}
       >
         {subtitle}
       </Text>
