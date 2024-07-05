@@ -7,7 +7,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { Account } from '../../hooks/useAccounts';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -37,7 +37,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
         providerConfig: {

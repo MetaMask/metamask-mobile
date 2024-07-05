@@ -7,7 +7,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import Engine from '../../../core/Engine';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../../app/core/AppConstants';
 import Routes from '../../../../app/constants/navigation/Routes';
@@ -28,7 +28,7 @@ jest.mock('../../../core/Engine', () => ({
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       TokensController: {
         tokens: [
           {
@@ -207,7 +207,7 @@ describe('Tokens', () => {
     const state = {
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           TokensController: {
             tokens: [
               {
