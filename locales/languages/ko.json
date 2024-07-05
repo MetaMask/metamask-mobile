@@ -994,7 +994,6 @@
     "token_nft_ens_subheading": "토큰, NFT 및 ENS 자동 감지",
     "security_check_subheading": "보안 점검",
     "symbol_required": "심볼은 필수입니다.",
-    "blockaid_desc": "개인정보 보호 - 제3자와 데이터를 공유하지 않습니다. Arbitrum, Avalanche, BNB chain, 이더리움 메인넷, Optimism, Polygon, Sepolia, Base에서 사용할 수 있습니다.",
     "security_alerts": "보안 경고",
     "security_alerts_desc": "이 기능은 트랜잭션 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동을 탐지하는 것은 아닙니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다.",
     "smart_transactions_opt_in_heading": "스마트 트랜잭션",
