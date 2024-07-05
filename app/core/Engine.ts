@@ -1034,7 +1034,6 @@ class Engine {
         networkController.getNetworkClientRegistry.bind(networkController),
       getNetworkState: () => networkController.state,
       getPermittedAccounts: (origin) => getPermittedAccounts(origin as string),
-      getSelectedAddress: () => accountsController.getSelectedAccount().address,
       incomingTransactions: {
         isEnabled: () => {
           const currentHexChainId =

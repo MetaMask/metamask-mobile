@@ -102,7 +102,7 @@ class NotificationManager {
    */
   _transactionsWatchTable = {};
 
-  _transactionFinishedListener;
+  _transactionFailedListener;
 
   _transactionConfirmedListener;
 
@@ -118,26 +118,20 @@ class NotificationManager {
   };
 
   _removeListeners = () => {
-    if (this._transactionConfirmedListener) {
-      Engine.controllerMessenger.unsubscribe(
-        'TransactionController:transactionConfirmed',
-        this._transactionConfirmedListener,
-      );
-    }
+    Engine.controllerMessenger.tryUnsubscribe(
+      'TransactionController:transactionConfirmed',
+      this._transactionConfirmedListener,
+    );
 
-    if (this._transactionFinishedListener) {
-      Engine.controllerMessenger.unsubscribe(
-        'TransactionController:transactionFinished',
-        this._transactionFinishedListener,
-      );
-    }
+    Engine.controllerMessenger.tryUnsubscribe(
+      'TransactionController:transactionFailed',
+      this._transactionFailedListener,
+    );
 
-    if (this._transactionSpeedupListener) {
-      Engine.controllerMessenger.unsubscribe(
-        'TransactionController:speedupTransactionAdded',
-        this._transactionSpeedupListener,
-      );
-    }
+    Engine.controllerMessenger.tryUnsubscribe(
+      'TransactionController:speedupTransactionAdded',
+      this._transactionSpeedupListener,
+    );
   };
 
   // TODO: Refactor this method to use notifee's channels in combination with MM auth
@@ -191,7 +185,7 @@ class NotificationManager {
     }
   }
 
-  _finishedCallback = (transactionMeta) => {
+  _failedCallback = (transactionMeta) => {
     // If it fails we hide the pending tx notification
     this._removeNotificationById(transactionMeta.id);
     const transaction =
@@ -385,11 +379,11 @@ class NotificationManager {
         (transactionMeta) => transactionMeta.id === transaction.id,
       );
 
-    this._transactionFinishedListener =
+    this._transactionFailedListener =
       Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionFinished',
+        'TransactionController:transactionFailed',
         (transactionMeta) => {
-          this._finishedCallback(transactionMeta);
+          this._failedCallback(transactionMeta);
         },
         (transactionMeta) => transactionMeta.id === transaction.id,
       );

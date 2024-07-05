@@ -176,12 +176,12 @@ class Approval extends PureComponent {
             },
           );
         }
-        if (this.#transactionFinishedListener) {
-          Engine.controllerMessenger.unsubscribe(
-            'TransactionController:transactionFinished',
-            this.#transactionFinishedListener,
-          );
-        }
+
+        Engine.controllerMessenger.tryUnsubscribe(
+          'TransactionController:transactionFinished',
+          this.#transactionFinishedListener,
+        );
+
         this.appStateListener?.remove();
         this.clear();
       }
@@ -407,12 +407,10 @@ class Approval extends PureComponent {
       if (!approve) {
         //cancelTransaction will change transaction status to reject and throw error from event listener
         //component is being unmounted, error will be unhandled, hence remove listener before cancel
-        if (this.#transactionFinishedListener) {
-          Engine.controllerMessenger.unsubscribe(
-            'TransactionController:transactionFinished',
-            this.#transactionFinishedListener,
-          );
-        }
+        Engine.controllerMessenger.tryUnsubscribe(
+          'TransactionController:transactionFinished',
+          this.#transactionFinishedListener,
+        );
 
         TransactionController.cancelTransaction(transactionId);
 

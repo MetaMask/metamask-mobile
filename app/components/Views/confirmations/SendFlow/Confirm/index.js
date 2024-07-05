@@ -28,7 +28,7 @@ import {
 } from '../../../../../util/transactions';
 import StyledButton from '../../../../UI/StyledButton';
 import { WalletDevice } from '@metamask/transaction-controller';
-import { ChainId, ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { ChainId } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import {
   prepareTransaction,
@@ -460,7 +460,7 @@ class Confirm extends PureComponent {
     const { result, transactionMeta } =
       await TransactionController.addTransaction(this.props.transaction, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
-        origin: ORIGIN_METAMASK,
+        origin: TransactionTypes.MMM,
       });
 
     setTransactionId(transactionMeta.id);

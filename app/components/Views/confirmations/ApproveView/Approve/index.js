@@ -337,12 +337,11 @@ class Approve extends PureComponent {
 
     this.appStateListener?.remove();
     if (!isLedgerAccount) {
-      if (this.#transactionFinishedSubscription) {
-        Engine.controllerMessenger.unsubscribe(
-          'TransactionController:transactionFinished',
-          this.#transactionFinishedSubscription,
-        );
-      }
+      Engine.controllerMessenger.tryUnsubscribe(
+        'TransactionController:transactionFinished',
+        this.#transactionFinishedSubscription,
+      );
+
       if (!approved)
         Engine.rejectPendingApproval(
           transaction.id,
@@ -487,12 +486,10 @@ class Approve extends PureComponent {
       if (!approve) {
         //cancelTransaction will change transaction status to reject and throw error from event listener
         //component is being unmounted, error will be unhandled, hence remove listener before cancel
-        if (this.#transactionFinishedSubscription) {
-          Engine.controllerMessenger.unsubscribe(
-            'TransactionController:transactionFinished',
-            this.#transactionFinishedSubscription,
-          );
-        }
+        Engine.controllerMessenger.tryUnsubscribe(
+          'TransactionController:transactionFinished',
+          this.#transactionFinishedSubscription,
+        );
 
         TransactionController.cancelTransaction(transactionId);
 

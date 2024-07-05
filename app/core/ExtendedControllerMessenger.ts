@@ -19,7 +19,7 @@ export class ExtendedControllerMessenger<
   ): typeof handler {
     const internalHandler = ((...data: Parameters<typeof handler>) => {
       if (!criteria || criteria(...data)) {
-        this.unsubscribe(eventType, internalHandler);
+        this.tryUnsubscribe(eventType, internalHandler);
         handler(...data);
       }
     }) as typeof handler;
@@ -27,5 +27,20 @@ export class ExtendedControllerMessenger<
     this.subscribe(eventType, internalHandler);
 
     return internalHandler;
+  }
+
+  tryUnsubscribe<EventType extends Event['type']>(
+    eventType: EventType,
+    handler?: ExtractEventHandler<Event, EventType>,
+  ) {
+    if (!handler) {
+      return;
+    }
+
+    try {
+      this.unsubscribe(eventType, handler);
+    } catch (e) {
+      // Ignore
+    }
   }
 }

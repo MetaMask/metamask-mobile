@@ -18,7 +18,7 @@ import {
   WalletDevice,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import { query } from '@metamask/controller-utils';
+import { query, toHex } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
 import {
@@ -920,7 +920,7 @@ function SwapsQuotesView({
               gasEstimateType,
               gasEstimates,
             ),
-            gas: new BigNumber(gasLimit).toString(16),
+            gas: toHex(gasLimit),
           },
           {
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
@@ -940,7 +940,7 @@ function SwapsQuotesView({
         await addTokenToAssetsController(destinationToken);
         await addTokenToAssetsController(sourceToken);
       } catch (e) {
-        // send analytics
+        console.error('Error adding swaps trade transaction', e);
       }
     },
     [
@@ -1015,7 +1015,7 @@ function SwapsQuotesView({
           );
         }
       } catch (e) {
-        // send analytics
+        console.error('Error adding swaps approval transaction', e);
       }
     },
     [

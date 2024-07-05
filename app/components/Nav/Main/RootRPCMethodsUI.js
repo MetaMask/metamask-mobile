@@ -113,7 +113,11 @@ export const useSwapConfirmedEvent = ({ trackSwaps }) => {
             swapsTransactions[transactionMeta.id]?.analytics &&
             swapsTransactions[transactionMeta.id]?.paramsForAnalytics
           ) {
-            trackSwaps(MetaMetricsEvents.SWAP_COMPLETED, transactionMeta);
+            trackSwaps(
+              MetaMetricsEvents.SWAP_COMPLETED,
+              transactionMeta,
+              swapsTransactions,
+            );
           }
         },
         (transactionMeta) => transactionMeta.id === txMetaId,
