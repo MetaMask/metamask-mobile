@@ -367,8 +367,8 @@ function removeSES(report) {
  * @param {object} object - The object to mask
  * @param {{[key: string]: object | boolean}} mask - The mask to apply to the object
  */
-export function maskObject(object, mask) {
-  if (!object) return {};
+export function maskObject(object, mask = true) {
+  if (!object) return null;
   let maskAllProperties = false;
   if (Object.keys(mask).includes(AllProperties)) {
     if (Object.keys(mask).length > 1) {
@@ -410,14 +410,8 @@ function rewriteReport(report) {
     removeDeviceName(report);
 
     const appState = store?.getState();
-    if (appState) {
-      const maskedState = maskObject(appState, SENTRY_STATE);
-      report.contexts.appState = maskedState;
-    }
-
-    if (!report.contexts.appState) {
-      report.contexts.appState = {};
-    }
+    const maskedState = maskObject(appState, SENTRY_STATE);
+    report.contexts.appState = maskedState || {};
   } catch (err) {
     console.error('ENTER ERROR OF REPORT ', err);
     throw err;

@@ -7,7 +7,354 @@ import {
   maskObject,
   SENTRY_STATE,
 } from './utils';
-import initialRootState from '../test/initial-root-state';
+
+const rootState = {
+  legalNotices: {
+    newPrivacyPolicyToastClickedOrClosed: true,
+    newPrivacyPolicyToastShownDate: null,
+  },
+  collectibles: { favorites: {}, isNftFetchingProgress: false },
+  engine: {
+    backgroundState: {
+      AccountTrackerController: {
+        accounts: {
+          '0x6312c98831D74754F86dd4936668A13B7e9bA411': {
+            balance: '0x0',
+          },
+        },
+        accountsByChainId: {
+          '0x1': {
+            '0x6312c98831D74754F86dd4936668A13B7e9bA411': {
+              balance: '0x0',
+            },
+          },
+        },
+      },
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            '1be55f5b-eba9-41a7-a9ed-a6a8274aca27': {
+              address: '0x6312c98831d74754f86dd4936668a13b7e9ba411',
+              id: '1be55f5b-eba9-41a7-a9ed-a6a8274aca27',
+              metadata: {
+                importTime: 1720023898234,
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+                lastSelected: 1720023898236,
+                name: 'Account 1',
+              },
+              methods: [
+                'personal_sign',
+                'eth_sign',
+                'eth_signTransaction',
+                'eth_signTypedData_v1',
+                'eth_signTypedData_v3',
+                'eth_signTypedData_v4',
+              ],
+              options: {},
+              type: 'eip155:eoa',
+            },
+          },
+          selectedAccount: '1be55f5b-eba9-41a7-a9ed-a6a8274aca27',
+        },
+      },
+      AddressBookController: {
+        addressBook: {},
+      },
+      ApprovalController: {
+        approvalFlows: [],
+        pendingApprovalCount: 0,
+        pendingApprovals: {},
+      },
+      AssetsContractController: {},
+      CurrencyRateController: {
+        currencyRates: {
+          ETH: {
+            conversionDate: '1720196397.083',
+            conversionRate: '2985.14',
+            usdConversionRate: '2985.14',
+          },
+        },
+        currentCurrency: 'usd',
+      },
+      GasFeeController: {
+        estimatedGasFeeTimeBounds: {},
+        gasEstimateType: 'none',
+        gasFeeEstimates: {},
+        gasFeeEstimatesByChainId: {},
+        nonRPCGasFeeApisDisabled: 0,
+      },
+      KeyringController: {
+        isUnlocked: 1,
+        keyrings: [
+          {
+            accounts: ['0x6312c98831d74754f86dd4936668a13b7e9ba411'],
+            type: 'HD Key Tree',
+          },
+        ],
+        vault: '{"cipher":""}',
+      },
+      LoggingController: {
+        logs: {},
+      },
+      NetworkController: {
+        networkConfigurations: {},
+        networksMetadata: {
+          mainnet: {
+            EIPS: {
+              1559: 1,
+            },
+            status: 'available',
+          },
+        },
+        providerConfig: {
+          chainId: '0x1',
+          ticker: 'ETH',
+          type: 'mainnet',
+        },
+        selectedNetworkClientId: 'mainnet',
+      },
+      NftController: {
+        allNftContracts: {},
+        allNfts: {},
+        ignoredNfts: [],
+      },
+      NftDetectionController: {},
+      PermissionController: {
+        subjects: {},
+      },
+      PreferencesController: {
+        disabledRpcMethodPreferences: {
+          eth_sign: 0,
+        },
+        displayNftMedia: 1,
+        featureFlags: {},
+        identities: {
+          '0x6312c98831D74754F86dd4936668A13B7e9bA411': {
+            address: '0x6312c98831D74754F86dd4936668A13B7e9bA411',
+            importTime: 1720023898223,
+            name: 'Account 1',
+          },
+        },
+        ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+        isIpfsGatewayEnabled: 1,
+        isMultiAccountBalancesEnabled: 1,
+        lostIdentities: {},
+        securityAlertsEnabled: 1,
+        selectedAddress: '0x6312c98831D74754F86dd4936668A13B7e9bA411',
+        showIncomingTransactions: {
+          '0x1': true,
+          '0x13881': true,
+          '0x38': true,
+          '0x5': true,
+          '0x504': true,
+          '0x505': true,
+          '0x507': true,
+          '0x61': true,
+          '0x64': true,
+          '0x89': true,
+          '0xa': true,
+          '0xa869': true,
+          '0xa86a': true,
+          '0xaa36a7': true,
+          '0xaa37dc': true,
+          '0xe704': true,
+          '0xe705': true,
+          '0xe708': true,
+          '0xfa': true,
+          '0xfa2': true,
+        },
+        showTestNetworks: false,
+        smartTransactionsOptInStatus: false,
+        useNftDetection: true,
+        useSafeChainsListValidation: true,
+        useTokenDetection: true,
+        useTransactionSimulations: true,
+      },
+      SmartTransactionsController: {
+        smartTransactionsState: {
+          fees: {},
+          feesByChainId: {
+            '0x1': {},
+            '0xaa36a7': {},
+          },
+          liveness: true,
+          livenessByChainId: {
+            '0x1': true,
+            '0xaa36a7': true,
+          },
+          smartTransactions: {
+            '0x1': [],
+          },
+        },
+      },
+    },
+  },
+  privacy: {},
+  bookmarks: {},
+  browser: {
+    activeTab: null,
+    favicons: [],
+    history: [],
+    tabs: [],
+    visitedDappsByHostname: {},
+    whitelist: [],
+  },
+  modals: {
+    collectibleContractModalVisible: false,
+    dappTransactionModalVisible: false,
+    networkModalVisible: false,
+    receiveAsset: undefined,
+    receiveModalVisible: false,
+    shouldNetworkSwitchPopToWallet: true,
+    signMessageModalVisible: true,
+  },
+  settings: {
+    basicFunctionalityEnabled: true,
+    hideZeroBalanceTokens: false,
+    lockTime: 30000,
+    primaryCurrency: 'ETH',
+    searchEngine: 'DuckDuckGo',
+    useBlockieIcon: true,
+  },
+  alert: {
+    autodismiss: null,
+    content: null,
+    data: null,
+    isVisible: false,
+  },
+  transaction: {
+    assetType: undefined,
+    ensRecipient: undefined,
+    id: undefined,
+    nonce: undefined,
+    paymentRequest: undefined,
+    proposedNonce: undefined,
+    readableValue: undefined,
+    selectedAsset: {},
+    symbol: undefined,
+    transaction: {
+      data: undefined,
+      from: undefined,
+      gas: undefined,
+      gasPrice: undefined,
+      maxFeePerGas: undefined,
+      maxPriorityFeePerGas: undefined,
+      to: undefined,
+      value: undefined,
+    },
+    transactionFromName: undefined,
+    transactionTo: undefined,
+    transactionToName: undefined,
+    transactionValue: undefined,
+    type: undefined,
+    warningGasPriceHigh: undefined,
+  },
+  smartTransactions: {
+    optInModalAppVersionSeen: null,
+  },
+  user: {
+    ambiguousAddressEntries: {},
+    appTheme: 'os',
+    backUpSeedphraseVisible: false,
+    gasEducationCarouselSeen: false,
+    initialScreen: '',
+    isAuthChecked: false,
+    loadingMsg: '',
+    loadingSet: false,
+    passwordSet: true,
+    protectWalletModalVisible: false,
+    seedphraseBackedUp: true,
+    userLoggedIn: true,
+  },
+  wizard: {
+    step: 1,
+  },
+  onboarding: {
+    events: [],
+  },
+  notification: {
+    notification: {
+      notificationsSettings: {},
+    },
+    notifications: [],
+  },
+  swaps: {
+    '0x1': {
+      isLive: true,
+    },
+    featureFlags: undefined,
+    hasOnboarded: true,
+    isLive: true,
+  },
+  fiatOrders: {
+    activationKeys: [],
+    authenticationUrls: [],
+    customOrderIds: [],
+    getStartedAgg: false,
+    getStartedSell: false,
+    networks: [],
+    orders: [],
+    selectedPaymentMethodAgg: null,
+    selectedRegionAgg: null,
+  },
+  infuraAvailability: {
+    isBlocked: false,
+  },
+  navigation: {
+    currentBottomNavRoute: 'Wallet',
+    currentRoute: 'Login',
+  },
+  networkOnboarded: {
+    networkOnboardedState: {},
+    networkState: {
+      nativeToken: '',
+      networkType: '',
+      networkUrl: '',
+      showNetworkOnboarding: false,
+    },
+    switchedNetwork: {
+      networkStatus: false,
+      networkUrl: '',
+    },
+  },
+  security: {
+    allowLoginWithRememberMe: false,
+    automaticSecurityChecksEnabled: false,
+    dataCollectionForMarketing: null,
+    hasUserSelectedAutomaticSecurityCheckOption: false,
+    isAutomaticSecurityChecksModalOpen: false,
+    isNFTAutoDetectionModalViewed: false,
+  },
+  signatureRequest: {
+    securityAlertResponse: undefined,
+  },
+  sdk: {
+    connections: {},
+    approvedHosts: {},
+    dappConnections: {},
+    wc2Metadata: undefined,
+  },
+  experimentalSettings: {
+    securityAlertsEnabled: true,
+  },
+  rpcEvents: {
+    signingEvent: {
+      eventStage: 'idle',
+      rpcName: '',
+    },
+  },
+  accounts: {
+    reloadAccounts: false,
+  },
+  inpageProvider: {
+    networkId: '1',
+  },
+  transactionMetrics: {
+    metricsByTransactionId: {},
+  },
+};
 
 jest.mock('@sentry/react-native', () => ({
   ...jest.requireActual('@sentry/react-native'),
@@ -130,15 +477,32 @@ describe('captureSentryFeedback', () => {
     );
   });
   describe('maskObject', () => {
-    it('mask our fixture of intial root state', () => {
-      const maskedState = maskObject(initialRootState, SENTRY_STATE);
+    it('masks initial root state fixture', () => {
+      const maskedState = maskObject(rootState, SENTRY_STATE);
 
       expect(maskedState).toStrictEqual({
-        accounts: undefined,
-        alert: undefined,
-        bookmarks: undefined,
-        browser: undefined,
-        collectibles: undefined,
+        accounts: {
+          reloadAccounts: false,
+        },
+        alert: {
+          autodismiss: null,
+          content: null,
+          data: null,
+          isVisible: false,
+        },
+        bookmarks: {},
+        browser: {
+          activeTab: null,
+          favicons: [],
+          history: [],
+          tabs: [],
+          visitedDappsByHostname: {},
+          whitelist: [],
+        },
+        collectibles: {
+          favorites: {},
+          isNftFetchingProgress: false,
+        },
         engine: {
           backgroundState: {
             AccountTrackerController: {
@@ -163,9 +527,9 @@ describe('captureSentryFeedback', () => {
             CurrencyRateController: {
               currencyRates: {
                 ETH: {
-                  conversionDate: 0,
-                  conversionRate: 0,
-                  usdConversionRate: null,
+                  conversionDate: '1720196397.083',
+                  conversionRate: '2985.14',
+                  usdConversionRate: '2985.14',
                 },
               },
               currentCurrency: 'usd',
@@ -175,12 +539,12 @@ describe('captureSentryFeedback', () => {
               gasEstimateType: 'none',
               gasFeeEstimates: {},
               gasFeeEstimatesByChainId: {},
-              nonRPCGasFeeApisDisabled: 'boolean',
+              nonRPCGasFeeApisDisabled: 'number',
             },
             KeyringController: {
-              isUnlocked: false,
+              isUnlocked: 1,
               keyrings: 'object',
-              vault: 'object',
+              vault: 'string',
             },
             LoggingController: {
               logs: 'object',
@@ -189,8 +553,10 @@ describe('captureSentryFeedback', () => {
               networkConfigurations: 'object',
               networksMetadata: {
                 mainnet: {
-                  EIPS: {},
-                  status: 'unknown',
+                  EIPS: {
+                    '1559': 1,
+                  },
+                  status: 'available',
                 },
               },
               providerConfig: {
@@ -206,31 +572,21 @@ describe('captureSentryFeedback', () => {
               ignoredNfts: 'object',
             },
             NftDetectionController: 'object',
-            PPOMController: {
-              storageMetadata: {},
-              versionInfo: {},
-            },
             PermissionController: {
               subjects: 'object',
             },
-            PhishingController: {
-              hotlistLastFetched: 'number',
-              phishingLists: 'object',
-              stalelistLastFetched: 'number',
-              whitelist: 'object',
-            },
             PreferencesController: {
               disabledRpcMethodPreferences: {
-                eth_sign: false,
+                eth_sign: 0,
               },
-              displayNftMedia: true,
+              displayNftMedia: 1,
               featureFlags: {},
               identities: 'object',
               ipfsGateway: 'string',
-              isIpfsGatewayEnabled: true,
-              isMultiAccountBalancesEnabled: 'boolean',
+              isIpfsGatewayEnabled: 1,
+              isMultiAccountBalancesEnabled: 'number',
               lostIdentities: 'object',
-              securityAlertsEnabled: 'boolean',
+              securityAlertsEnabled: 'number',
               selectedAddress: 'string',
               showIncomingTransactions: 'object',
               showTestNetworks: 'boolean',
@@ -240,94 +596,78 @@ describe('captureSentryFeedback', () => {
               useTokenDetection: true,
               useTransactionSimulations: true,
             },
-            SignatureController: {
-              unapprovedMsgCount: 0,
-              unapprovedMsgs: 'object',
-              unapprovedPersonalMsgCount: 0,
-              unapprovedPersonalMsgs: 'object',
-              unapprovedTypedMessages: 'object',
-              unapprovedTypedMessagesCount: 0,
-            },
             SmartTransactionsController: {
               smartTransactionsState: {
+                fees: {},
+                feesByChainId: 'object',
                 liveness: true,
+                livenessByChainId: 'object',
+                smartTransactions: 'object',
               },
-            },
-            SnapController: {
-              snapStates: 'object',
-              snaps: 'object',
-              unencryptedSnapStates: 'object',
-            },
-            SubjectMetadataController: {
-              subjectMetadata: 'object',
-            },
-            SwapsController: {
-              aggregatorMetadata: 'object',
-              aggregatorMetadataLastFetched: 'number',
-              approvalTransaction: 'object',
-              chainCache: 'object',
-              error: 'object',
-              fetchParams: 'object',
-              fetchParamsMetaData: 'object',
-              isInPolling: 'boolean',
-              pollingCyclesLeft: 'number',
-              quoteRefreshSeconds: 'object',
-              quoteValues: 'object',
-              quotes: 'object',
-              quotesLastFetched: 'number',
-              tokens: 'object',
-              tokensLastFetched: 'number',
-              topAggId: 'object',
-              topAggSavings: 'object',
-              topAssets: 'object',
-              topAssetsLastFetched: 'number',
-              usedCustomGas: 'object',
-              usedGasEstimate: 'object',
-            },
-            TokenBalancesController: 'object',
-            TokenDetectionController: {},
-            TokenListController: {
-              preventPollingOnNetworkRestart: false,
-              tokenList: 'object',
-              tokensChainsCache: {},
-            },
-            TokenRatesController: {
-              marketData: 'object',
-            },
-            TokensController: {
-              allDetectedTokens: {},
-              allIgnoredTokens: {},
-              allTokens: {},
-              detectedTokens: 'object',
-              ignoredTokens: 'object',
-              tokens: 'object',
-            },
-            TransactionController: {
-              lastFetchedBlockNumbers: 'object',
-              methodData: 'object',
-              submitHistory: 'object',
-              transactions: 'object',
             },
           },
         },
-        experimentalSettings: undefined,
-        fiatOrders: 'object',
-        infuraAvailability: undefined,
-        inpageProvider: {
-          networkId: 'loading',
+        experimentalSettings: {
+          securityAlertsEnabled: true,
         },
-        legalNotices: undefined,
-        modals: undefined,
-        navigation: undefined,
-        networkOnboarded: undefined,
-        notification: undefined,
-        onboarding: undefined,
-        privacy: undefined,
-        rpcEvents: undefined,
+        fiatOrders: 'object',
+        infuraAvailability: {
+          isBlocked: false,
+        },
+        inpageProvider: {
+          networkId: '1',
+        },
+        legalNotices: {
+          newPrivacyPolicyToastClickedOrClosed: true,
+          newPrivacyPolicyToastShownDate: null,
+        },
+        modals: {
+          collectibleContractModalVisible: false,
+          dappTransactionModalVisible: false,
+          networkModalVisible: false,
+          receiveAsset: undefined,
+          receiveModalVisible: false,
+          shouldNetworkSwitchPopToWallet: true,
+          signMessageModalVisible: true,
+        },
+        navigation: {
+          currentBottomNavRoute: 'Wallet',
+          currentRoute: 'Login',
+        },
+        networkOnboarded: {
+          networkOnboardedState: {},
+          networkState: {
+            nativeToken: '',
+            networkType: '',
+            networkUrl: '',
+            showNetworkOnboarding: false,
+          },
+          switchedNetwork: {
+            networkStatus: false,
+            networkUrl: '',
+          },
+        },
+        notification: {
+          notification: {
+            notificationsSettings: {},
+          },
+          notifications: [],
+        },
+        onboarding: {
+          events: [],
+        },
+        privacy: {},
+        rpcEvents: {
+          signingEvent: {
+            eventStage: 'idle',
+            rpcName: '',
+          },
+        },
         sdk: {
           approvedHosts: {},
           connections: {},
           dappConnections: {},
+          wc2Metadata: undefined,
         },
         security: {
           allowLoginWithRememberMe: false,
@@ -337,16 +677,38 @@ describe('captureSentryFeedback', () => {
           isAutomaticSecurityChecksModalOpen: false,
           isNFTAutoDetectionModalViewed: false,
         },
-        settings: undefined,
-        signatureRequest: 'undefined',
+        settings: {
+          basicFunctionalityEnabled: true,
+          hideZeroBalanceTokens: false,
+          lockTime: 30000,
+          primaryCurrency: 'ETH',
+          searchEngine: 'DuckDuckGo',
+          useBlockieIcon: true,
+        },
+        signatureRequest: 'object',
         smartTransactions: {
           optInModalAppVersionSeen: null,
         },
-        swaps: 'undefined',
-        transaction: 'undefined',
+        swaps: 'object',
+        transaction: 'object',
         transactionMetrics: 'object',
-        user: {},
-        wizard: undefined,
+        user: {
+          ambiguousAddressEntries: 'object',
+          appTheme: 'os',
+          backUpSeedphraseVisible: false,
+          gasEducationCarouselSeen: false,
+          initialScreen: '',
+          isAuthChecked: false,
+          loadingMsg: '',
+          loadingSet: false,
+          passwordSet: true,
+          protectWalletModalVisible: false,
+          seedphraseBackedUp: true,
+          userLoggedIn: true,
+        },
+        wizard: {
+          step: 1,
+        },
       });
     });
   });
