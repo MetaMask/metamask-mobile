@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import Badge, {
   BadgeVariant,
@@ -18,6 +18,22 @@ type AssetFieldProps = ModalFieldAsset;
 function AssetField(props: AssetFieldProps) {
   const { styles } = useStyles();
 
+  const badgeSource = useMemo(() => {
+    const networkUrl = props.tokenNetworkUrl;
+    if (typeof networkUrl === 'string') {
+      return { uri: networkUrl };
+    }
+    return networkUrl;
+  }, [props.tokenNetworkUrl]);
+
+  const iconSource = useMemo(() => {
+    const tokenUrl = props.tokenIconUrl;
+    if (typeof tokenUrl === 'string') {
+      return { uri: tokenUrl };
+    }
+    return tokenUrl;
+  }, [props.tokenIconUrl]);
+
   return (
     <View style={styles.row}>
       {/* Token Logo + Network Badge */}
@@ -28,13 +44,13 @@ function AssetField(props: AssetFieldProps) {
           <Badge
             testID={'badge-element'}
             variant={BadgeVariant.Network}
-            imageSource={{ uri: props.tokenNetworkUrl }}
+            imageSource={badgeSource}
           />
         }
         style={styles.badgeWrapper}
       >
         <RemoteImage
-          source={{ uri: props.tokenIconUrl }}
+          source={iconSource}
           style={styles.circleLogo}
           placeholderStyle={styles.circleLogoPlaceholder}
         />

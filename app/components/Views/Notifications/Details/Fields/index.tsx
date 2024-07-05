@@ -1,5 +1,5 @@
 import React from 'react';
-import { ModalField } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
+import type { ModalField } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import AddressField from './AddressField';
 import AnnouncementDescriptionField from './AnnouncementDescriptionField';
 import AssetField from './AssetField';

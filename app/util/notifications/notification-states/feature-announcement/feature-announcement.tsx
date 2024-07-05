@@ -28,6 +28,21 @@ const state: NotificationState<FeatureAnnouncementNotification> = {
 
     createdAt: notification.createdAt,
   }),
+  createModalDetails: (notification) => ({
+    title: notification.data.title,
+    createdAt: notification.createdAt,
+    header: {
+      type: 'ModalHeader-AnnouncementImage',
+      imageUrl: notification.data.image.url,
+    },
+    fields: [
+      {
+        type: 'ModalField-AnnouncementDescription',
+        description: notification.data.longDescription,
+      },
+    ],
+    // TODO support mobile links
+  }),
 };
 
 export default state;

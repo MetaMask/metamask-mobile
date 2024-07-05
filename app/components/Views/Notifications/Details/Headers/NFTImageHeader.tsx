@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import Badge, {
   BadgeVariant,
@@ -13,6 +13,15 @@ type NFTImageHeaderProps = ModalHeaderNFTImage;
 
 export default function NFTImageHeader(props: NFTImageHeaderProps) {
   const { styles } = useStyles();
+
+  const badgeSource = useMemo(() => {
+    const networkUrl = props.networkBadgeUrl;
+    if (typeof networkUrl === 'string') {
+      return { uri: networkUrl };
+    }
+    return networkUrl;
+  }, [props.networkBadgeUrl]);
+
   return (
     <View style={styles.headerImageContainer}>
       {/* Collection Icon + Network Badge */}
@@ -22,7 +31,7 @@ export default function NFTImageHeader(props: NFTImageHeaderProps) {
           <Badge
             testID={'badge-element'}
             variant={BadgeVariant.Network}
-            imageSource={{ uri: props.networkBadgeUrl }}
+            imageSource={badgeSource}
           />
         }
         style={styles.badgeWrapper}

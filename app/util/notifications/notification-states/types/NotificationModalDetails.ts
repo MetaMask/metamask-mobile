@@ -1,3 +1,4 @@
+import { ImageSourcePropType } from 'react-native';
 import { getNetworkFees } from '../../notification.util';
 import { FeatureAnnouncementRawNotification } from '../../types/featureAnnouncement';
 
@@ -35,12 +36,12 @@ export interface ModalFieldNetwork {
   /**
    * Network icon
    */
-  iconUrl: string;
+  iconUrl?: string | ImageSourcePropType;
 
   /**
    * Name of the network. E.g. Ethereum
    */
-  name: string;
+  name?: string;
 }
 
 export interface ModalFieldAsset {
@@ -49,12 +50,12 @@ export interface ModalFieldAsset {
   /**
    * Url for the token icon
    */
-  tokenIconUrl: string;
+  tokenIconUrl?: string | ImageSourcePropType;
 
   /**
    * Token network badge url.
    */
-  tokenNetworkUrl: string;
+  tokenNetworkUrl?: string | ImageSourcePropType;
 
   /**
    * Label for this field. E.g.: "Asset", "Swapped", "To", "Staked", "Received"
@@ -89,7 +90,7 @@ export interface ModalFieldNFTCollectionImage {
   /**
    * Network Badge. E.g. url for Ethereum.
    */
-  networkBadgeUrl: string;
+  networkBadgeUrl?: string | ImageSourcePropType;
 
   /**
    * Collection Name. E.g. "Pixel Birds (#211)"
@@ -110,11 +111,6 @@ export interface ModalFieldStakingProvider {
    * Staking Provider. E.g. Lido-staked ETH, or RocketPool
    */
   stakingProvider: string;
-
-  /**
-   * Request ID copy.
-   */
-  requestId?: string;
 }
 
 export interface ModalFieldSwapsRate {
@@ -163,7 +159,7 @@ export interface ModalHeaderNFTImage {
   /**
    * Network Badge. E.g. url for Ethereum.
    */
-  networkBadgeUrl: string;
+  networkBadgeUrl?: string | ImageSourcePropType;
 }
 
 export interface ModalHeaderAnnouncementImage {
@@ -180,7 +176,15 @@ export type ModalHeader = ModalHeaderNFTImage | ModalHeaderAnnouncementImage;
 export interface ModalFooterBlockExplorer {
   type: 'ModalFooter-BlockExplorer';
 
+  /**
+   * ChainId so we can fetch the correct network
+   */
   chainId: number;
+
+  /**
+   * Transaction Hash to forward the correct block explorer page
+   */
+  txHash: string;
 }
 
 export interface ModalFooterAnnouncementCta {

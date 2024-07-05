@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Avatar, {
@@ -18,13 +18,25 @@ function NetworkField(props: NetworkFieldProps) {
   const { iconUrl, name } = props;
   const { styles } = useStyles();
 
+  const iconSource = useMemo(() => {
+    const networkUrl = iconUrl;
+    if (typeof networkUrl === 'string') {
+      return { uri: networkUrl };
+    }
+    return networkUrl;
+  }, [iconUrl]);
+
+  if (!iconUrl || !iconUrl) {
+    return null;
+  }
+
   return (
     <View style={styles.row}>
       <Avatar
         variant={AvatarVariant.Network}
         size={AvatarSize.Md}
         style={styles.badgeWrapper}
-        imageSource={{ uri: iconUrl }}
+        imageSource={iconSource}
       />
 
       <View style={styles.boxLeft}>

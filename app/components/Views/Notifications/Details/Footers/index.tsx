@@ -1,5 +1,5 @@
 import React from 'react';
-import { ModalFooter } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
+import type { ModalFooter } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import AnnouncementCtaFooter from './AnnouncementCtaFooter';
 import BlockExplorerFooter from './BlockExplorerFooter';
 

@@ -30,12 +30,14 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
     return null;
   }
 
+  const txHashUrl = `${url}/tx/${props.txHash}`;
+
   return (
     <Button
       variant={ButtonVariants.Secondary}
       label={strings('asset_details.options.view_on_block')}
       style={styles.ctaBtn}
-      onPress={() => Linking.openURL(url)}
+      onPress={() => Linking.openURL(txHashUrl)}
     />
   );
 }

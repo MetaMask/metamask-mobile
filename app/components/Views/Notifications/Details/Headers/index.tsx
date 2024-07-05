@@ -1,5 +1,5 @@
 import React from 'react';
-import { ModalHeader } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
+import type { ModalHeader } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import AnnouncementImageHeader from './AnnouncementImageHeader';
 import NFTImageHeader from './NFTImageHeader';
 
