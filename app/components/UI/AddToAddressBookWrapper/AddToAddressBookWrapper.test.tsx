@@ -5,7 +5,7 @@ import { Text } from 'react-native';
 import AddToAddressBookWrapper from './AddToAddressBookWrapper';
 import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAddressModal.selectors';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
 const MOCK_ADDRESS_1 = '0x0';
@@ -20,7 +20,7 @@ const initialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AddressBookController: {
         addressBook: {
           [MOCK_ADDRESS_2]: {
