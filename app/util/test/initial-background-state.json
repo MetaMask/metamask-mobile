@@ -134,7 +134,7 @@
       "smartTransactions": {},
       "userOptIn": false,
       "userOptInV2": false,
-     "fees": {
+      "fees": {
         "approvalTxFees": false,
         "tradeTxFees": false
       },
