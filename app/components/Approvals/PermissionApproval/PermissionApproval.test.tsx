@@ -6,7 +6,7 @@ import PermissionApproval from './PermissionApproval';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { render } from '@testing-library/react-native';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
@@ -129,7 +129,7 @@ describe('PermissionApproval', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           AccountTrackerController: {
             accounts: {
               1: 'testAccount',
