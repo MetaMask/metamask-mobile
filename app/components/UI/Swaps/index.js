@@ -209,6 +209,7 @@ function SwapsAmountView({
   const explorer = useBlockExplorer(providerConfig, networkConfigurations);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
   const initialDestination = route.params?.destinationToken;
+  const initialAmount = route.params?.amount;
 
   const [amount, setAmount] = useState('0');
   const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
@@ -233,6 +234,7 @@ function SwapsAmountView({
       toLowerCaseEquals(token.address, initialDestination),
     ),
   );
+  const [initialDestinationSearch, setInitialDestinationSearch] = useState('');
   const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
   const [contractBalance, setContractBalance] = useState(null);
   const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(
@@ -366,13 +368,31 @@ function SwapsAmountView({
   useEffect(() => {
     if (canSetAnInitialTokenDestination) {
       setIsDestinationSet(true);
-      setDestinationToken(
-        swapsTokens.find((token) =>
-          toLowerCaseEquals(token.address, initialDestination),
-        ),
+      const destinationTokenOnList = swapsTokens.find((token) =>
+        toLowerCaseEquals(token.address, initialDestination),
       );
+      if (destinationTokenOnList) {
+        setDestinationToken(destinationTokenOnList);
+      } else {
+        toggleDestinationModal();
+        setInitialDestinationSearch(initialDestination);
+      }
     }
-  }, [canSetAnInitialTokenDestination, initialDestination, swapsTokens]);
+  }, [
+    canSetAnInitialTokenDestination,
+    initialDestination,
+    swapsTokens,
+    toggleDestinationModal,
+  ]);
+
+  const canSetInitialAmount =
+    destinationToken && sourceToken && initialAmount && swapsControllerTokens;
+
+  useEffect(() => {
+    if (canSetInitialAmount) {
+      setAmount(parseInt(initialAmount, 16).toString());
+    }
+  }, [initialAmount, canSetInitialAmount]);
 
   useEffect(() => {
     setHasDismissedTokenAlert(false);
@@ -777,6 +797,7 @@ function SwapsAmountView({
             ]}
             onItemPress={handleDestinationTokenPress}
             excludeAddresses={[sourceToken?.address]}
+            initialSearchString={initialDestinationSearch}
           />
         </View>
         <View>

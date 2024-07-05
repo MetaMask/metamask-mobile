@@ -133,6 +133,23 @@ export const polyfillGasPrice = async (method: string, params: any[] = []) => {
   return data;
 };
 
+export const validateParams = (
+  obj: Record<string, unknown>,
+  properties: string[],
+  name: string,
+): void => {
+  if (!obj) {
+    throw rpcErrors.invalidParams(`"${name}" is not defined`);
+  }
+  properties.forEach((property) => {
+    if (!obj[property]) {
+      throw rpcErrors.invalidParams(
+        `${property} property of ${name} is not defined`,
+      );
+    }
+  });
+};
+
 export default {
   polyfillGasPrice,
 };
