@@ -16,13 +16,14 @@ import { useTheme } from '../../../../../util/theme';
 import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { selectChainId } from '../../../../../selectors/networkController';
-import { selectIdentities } from '../../../../../selectors/preferencesController';
 import { regex } from '../../../../../util/regex';
 import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendView.selectors';
+import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 
 // Internal dependencies
 import { AddressListProps, Contact } from './AddressList.types';
 import styleSheet from './AddressList.styles';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const LabelElement = (styles: any, label: string) => (
   <View key={label} style={styles.labelElementWrapper}>
@@ -45,7 +46,7 @@ const AddressList: React.FC<AddressListProps> = ({
   const [contactElements, setContactElements] = useState<Contact[]>([]);
   const [fuse, setFuse] = useState<any>(undefined);
   const chainId = useSelector(selectChainId);
-  const identities = useSelector(selectIdentities);
+  const internalAccounts = useSelector(selectInternalAccounts);
   const addressBook = useSelector(
     (state: any) =>
       state.engine.backgroundState.AddressBookController.addressBook,
@@ -171,11 +172,11 @@ const AddressList: React.FC<AddressListProps> = ({
         >
           {strings('onboarding_wizard.step2.title')}
         </Text>
-        {Object.keys(identities).map((address) => (
+        {internalAccounts.map((account) => (
           <AddressElement
-            key={address}
-            address={address}
-            name={identities[address].name}
+            key={account.id}
+            address={toChecksumHexAddress(account.address)}
+            name={account.metadata.name}
             onAccountPress={onAccountPress}
             onIconPress={onIconPress}
             onAccountLongPress={onAccountLongPress}

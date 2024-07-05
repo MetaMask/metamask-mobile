@@ -863,6 +863,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                 ]
                                               }
                                             >
+                                              Account 1
                                                (
                                               <Text
                                                 numberOfLines={1}
@@ -2819,6 +2820,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                 ]
                                               }
                                             >
+                                              Account 1
                                                (
                                               <Text
                                                 numberOfLines={1}
@@ -4760,6 +4762,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                 ]
                                               }
                                             >
+                                              Account 1
                                                (
                                               <Text
                                                 numberOfLines={1}
@@ -6652,6 +6655,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                 ]
                                               }
                                             >
+                                              Account 1
                                                (
                                               <Text
                                                 numberOfLines={1}
@@ -8593,6 +8597,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                 ]
                                               }
                                             >
+                                              Account 1
                                                (
                                               <Text
                                                 numberOfLines={1}
@@ -11657,6 +11662,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                 ]
                                               }
                                             >
+                                              Account 1
                                                (
                                               <Text
                                                 numberOfLines={1}
@@ -13683,6 +13689,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                 ]
                                               }
                                             >
+                                              Account 1
                                                (
                                               <Text
                                                 numberOfLines={1}
@@ -15675,6 +15682,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                 ]
                                               }
                                             >
+                                              Account 1
                                                (
                                               <Text
                                                 numberOfLines={1}
@@ -17608,6 +17616,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                 ]
                                               }
                                             >
+                                              Account 1
                                                (
                                               <Text
                                                 numberOfLines={1}

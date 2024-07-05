@@ -41,9 +41,6 @@ const mockInitialState = {
         },
       },
       PreferencesController: {
-        identities: {
-          [MOCK_ADDRESS]: { name: 'Account1' },
-        },
         securityAlertsEnabled: true,
       },
       KeyringController: {
