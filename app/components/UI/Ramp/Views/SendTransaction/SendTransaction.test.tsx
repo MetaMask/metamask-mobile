@@ -4,7 +4,8 @@ import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import Routes from '../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+
 import { addTransaction } from '../../../../../util/transaction-controller';
 import SendTransaction from './SendTransaction';
 import APP_CONSTANTS from '../../../../../core/AppConstants';
@@ -263,7 +264,7 @@ function render(Component: React.ComponentType, orders = mockedOrders) {
     {
       state: {
         engine: {
-          backgroundState: initialBackgroundState,
+          backgroundState,
         },
         fiatOrders: {
           orders,

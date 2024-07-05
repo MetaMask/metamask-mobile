@@ -1,6 +1,6 @@
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
-import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import MetaMetricsAndDataCollectionSection from './MetaMetricsAndDataCollectionSection';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
@@ -61,7 +61,7 @@ jest.mock(
 
 const initialStateMarketingTrue = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
   security: {
     dataCollectionForMarketing: true,
@@ -70,7 +70,7 @@ const initialStateMarketingTrue = {
 
 const initialStateMarketingFalse = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
   security: {
     dataCollectionForMarketing: false,

@@ -11,7 +11,7 @@ import {
   IMPORT_TOKEN_BUTTON_ID,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../../app/core/AppConstants';
 import Routes from '../../../../app/constants/navigation/Routes';
@@ -32,7 +32,7 @@ jest.mock('../../../core/Engine', () => ({
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       TokensController: {
         tokens: [
           {
@@ -211,7 +211,7 @@ describe('Tokens', () => {
     const state = {
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           TokensController: {
             tokens: [
               {
