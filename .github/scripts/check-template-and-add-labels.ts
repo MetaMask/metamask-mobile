@@ -231,7 +231,7 @@ function extractReleaseVersionFromBugReportIssueBody(
   return version;
 }
 
-// This function adds the correct "regression-prod-x.y.z" label to the issue, and removes other ones
+// This function adds the correct regression label to the issue, and removes other ones
 async function addRegressionLabelToIssue(
   octokit: InstanceType<typeof GitHub>,
   issue: Labelable,
