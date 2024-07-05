@@ -138,7 +138,7 @@
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
-    "@consensys/on-ramp-sdk": "1.27.1",
+    "@consensys/on-ramp-sdk": "1.28.1",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/tx": "^3.2.1",
     "@ethersproject/abi": "^5.7.0",
