@@ -994,7 +994,6 @@
     "token_nft_ens_subheading": "代币、NFT 和 ENS（Ethereum 域名服务）自动检测",
     "security_check_subheading": "安全检查",
     "symbol_required": "需要符号。",
-    "blockaid_desc": "隐私保护 - 不会与第三方共享任何数据。适用于 Arbitrum、Avalanche、BNB Chain、以太坊主网、Optimism、Polygon、Sepolia 和 Base。",
     "security_alerts": "安全提醒",
     "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。",
     "smart_transactions_opt_in_heading": "智能交易",
