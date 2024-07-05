@@ -103,20 +103,7 @@ describe('formatId', () => {
 });
 
 describe('isNetworkBuySupported', () => {
-  // TODO(ramp, chainId-string): remove tests with chainId as number once it's a string
   it('should return true if network is supported', () => {
-    expect(
-      isNetworkRampSupported('1', [
-        {
-          active: true,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: true,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(true);
-
     expect(
       isNetworkRampSupported('1', [
         {
@@ -135,17 +122,6 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('1', [
         {
           active: false,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: true,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(false);
-    expect(
-      isNetworkRampSupported('1', [
-        {
-          active: false,
           chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
@@ -156,17 +132,6 @@ describe('isNetworkBuySupported', () => {
   });
 
   it('should return false if network is not found', () => {
-    expect(
-      isNetworkRampSupported('22', [
-        {
-          active: true,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: true,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(false);
     expect(
       isNetworkRampSupported('22', [
         {
@@ -185,17 +150,6 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('0x1', [
         {
           active: true,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: true,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(true);
-    expect(
-      isNetworkRampSupported('0x1', [
-        {
-          active: true,
           chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
@@ -206,17 +160,6 @@ describe('isNetworkBuySupported', () => {
   });
 
   it('should return false if network is not supported when chainId is on hexadecimal format', () => {
-    expect(
-      isNetworkRampSupported('0x1', [
-        {
-          active: false,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: true,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(false);
     expect(
       isNetworkRampSupported('0x1', [
         {
@@ -235,17 +178,6 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('0x22', [
         {
           active: true,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: true,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(false);
-    expect(
-      isNetworkRampSupported('0x22', [
-        {
-          active: true,
           chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
@@ -257,19 +189,7 @@ describe('isNetworkBuySupported', () => {
 });
 
 describe('isNetworkBuyNativeTokenSupported', () => {
-  // TODO(ramp, chainId-string): remove tests with chainId as number once it's a string
   it('should return true if network is supported and native token is supported', () => {
-    expect(
-      isNetworkRampNativeTokenSupported('1', [
-        {
-          active: true,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: true,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(true);
     expect(
       isNetworkRampNativeTokenSupported('1', [
         {
@@ -288,17 +208,6 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('1', [
         {
           active: false,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: true,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(false);
-    expect(
-      isNetworkRampNativeTokenSupported('1', [
-        {
-          active: false,
           chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
@@ -309,17 +218,6 @@ describe('isNetworkBuyNativeTokenSupported', () => {
   });
 
   it('should return false if network is not found', () => {
-    expect(
-      isNetworkRampNativeTokenSupported('22', [
-        {
-          active: true,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: true,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(false);
     expect(
       isNetworkRampNativeTokenSupported('22', [
         {
@@ -338,17 +236,6 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('1', [
         {
           active: true,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: false,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(false);
-    expect(
-      isNetworkRampNativeTokenSupported('1', [
-        {
-          active: true,
           chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: false,
@@ -359,17 +246,6 @@ describe('isNetworkBuyNativeTokenSupported', () => {
   });
 
   it('should return true if network is supported and native token is supported  when chainId is on hexadecimal format', () => {
-    expect(
-      isNetworkRampNativeTokenSupported('0x1', [
-        {
-          active: true,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: true,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(true);
     expect(
       isNetworkRampNativeTokenSupported('0x1', [
         {
@@ -388,17 +264,6 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('0x1', [
         {
           active: false,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: true,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(false);
-    expect(
-      isNetworkRampNativeTokenSupported('0x1', [
-        {
-          active: false,
           chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
@@ -413,17 +278,6 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('0x22', [
         {
           active: true,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: true,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(false);
-    expect(
-      isNetworkRampNativeTokenSupported('0x22', [
-        {
-          active: true,
           chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
@@ -434,17 +288,6 @@ describe('isNetworkBuyNativeTokenSupported', () => {
   });
 
   it('should return false if network is supported but native token is not supported when chainId is on hexadecimal format', () => {
-    expect(
-      isNetworkRampNativeTokenSupported('0x1', [
-        {
-          active: true,
-          chainId: 1,
-          chainName: 'Ethereum Mainnet',
-          nativeTokenSupported: false,
-          shortName: 'Ethereum',
-        },
-      ]),
-    ).toBe(false);
     expect(
       isNetworkRampNativeTokenSupported('0x1', [
         {
