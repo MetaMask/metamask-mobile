@@ -92,19 +92,19 @@ describe('deriveSentryEnvironment', () => {
     expect(env).toBe('development');
   });
 
-  it('return performance event Route Change', async () => {
+  it('returns performance event Route Change', async () => {
     const event = { transaction: 'Route Change' };
     const eventExcluded = excludeEvents(event);
     expect(eventExcluded).toBe(null);
   });
 
-  it('return performance event anything', async () => {
+  it('returns performance event anything', async () => {
     const event = { transaction: 'Login' };
     const eventExcluded = excludeEvents(event);
     expect(eventExcluded).toBe(event);
   });
 
-  it('return performance event null if empty', async () => {
+  it('returns performance event null if empty', async () => {
     const eventExcluded = excludeEvents(null);
     expect(eventExcluded).toBe(null);
   });
