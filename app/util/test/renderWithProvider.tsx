@@ -6,18 +6,15 @@ import {
   createStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
-import {
-  render,
-  renderHook,
-  RenderHookResult,
-} from '@testing-library/react-native';
+import { render, renderHook } from '@testing-library/react-native';
 
 import { mockTheme, ThemeContext } from '../theme';
 import { Theme } from '../theme/models';
 import configureStore from './configureStore';
+import { RootState } from '../../reducers';
 
 interface ProviderValues {
-  state?: Record<any, any>;
+  state?: RootState;
   theme?: Theme;
 }
 
@@ -56,6 +53,8 @@ export function renderScreen(
     options?: StackNavigationOptions;
   },
   providerValues?: ProviderValues,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialParams: Record<string, any> = {},
 ) {
   const Stack = createStackNavigator();
@@ -75,7 +74,7 @@ export function renderScreen(
 export function renderHookWithProvider(
   hook: () => void,
   providerValues?: ProviderValues,
-): RenderHookResult<any, any> {
+) {
   const { state = {} } = providerValues ?? {};
   const store = configureStore(state);
 

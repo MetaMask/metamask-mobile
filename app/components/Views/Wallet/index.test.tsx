@@ -8,7 +8,7 @@ import { screen } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
 const mockEngine = Engine;
@@ -23,15 +23,6 @@ jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
-    PreferencesController: {
-      selectedAddress: MOCK_ADDRESS,
-      identities: {
-        [MOCK_ADDRESS]: {
-          name: 'Account 1',
-          address: MOCK_ADDRESS,
-        },
-      },
-    },
     NftController: {
       allNfts: {
         [MOCK_ADDRESS]: {
@@ -93,16 +84,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: MOCK_ADDRESS,
-        identities: {
-          [MOCK_ADDRESS]: {
-            name: 'Account 1',
-            address: MOCK_ADDRESS,
-          },
-        },
-      },
+      ...backgroundState,
       AccountsController: {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE,
       },

@@ -7,6 +7,7 @@ import {
 } from '@metamask/accounts-controller';
 import { InternalAccount } from '@metamask/keyring-api';
 import { isDefaultAccountName } from '../../util/ENSUtils';
+import { ETH_EOA_METHODS } from '../../constants/eth-methods';
 
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 42)) {
@@ -75,9 +76,7 @@ function mergeInternalAccounts(state: ValidState) {
           account.metadata.name,
         ),
       };
-      existingAccount.methods = Array.from(
-        new Set([...existingAccount.methods, ...account.methods]),
-      );
+      existingAccount.methods = ETH_EOA_METHODS;
     } else {
       const newId = getUUIDFromAddressOfNormalAccount(lowerCaseAddress);
       addressMap[lowerCaseAddress] = newId;

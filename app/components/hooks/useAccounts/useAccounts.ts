@@ -142,6 +142,8 @@ const useAccounts = ({
         const balanceETH = renderFromWei(balanceWeiHex); // Gives ETH
         const balanceFiat =
           weiToFiat(
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             hexToBN(balanceWeiHex) as any,
             conversionRate,
             currentCurrency,

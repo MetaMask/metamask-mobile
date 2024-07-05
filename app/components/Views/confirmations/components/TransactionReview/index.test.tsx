@@ -8,7 +8,7 @@ import * as TransactionUtils from '../../../../../util/transactions';
 // eslint-disable-next-line import/no-namespace
 import * as BlockaidUtils from '../../../../../util/blockaid';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
@@ -38,6 +38,8 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
 
 jest.mock(
   '../../../../../components/UI/QRHardware/withQRHardwareAwareness',
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   () => (obj: any) => obj,
 );
 
@@ -69,18 +71,22 @@ jest.mock('@react-navigation/compat', () => {
   const actualNav = jest.requireActual('@react-navigation/compat');
   return {
     actualNav,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     withNavigation: (obj: any) => obj,
   };
 });
 
 jest.mock('react-native-gzip', () => ({
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   deflate: (val: any) => val,
 }));
 
 const mockState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {
@@ -89,12 +95,6 @@ const mockState = {
         },
       },
       PreferencesController: {
-        selectedAddress: MOCK_ADDRESS_3,
-        identities: {
-          [MOCK_ADDRESS_1]: { name: 'Account 1' },
-          [MOCK_ADDRESS_2]: { name: 'Account 2' },
-          [MOCK_ADDRESS_3]: { name: 'Account 3' },
-        },
         securityAlertsEnabled: true,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -149,6 +149,8 @@ jest.mock('react-redux', () => {
   };
   return {
     ...jest.requireActual('react-redux'),
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     useSelector: (fn: any) =>
       fn({
         ...mockState,
@@ -171,7 +173,13 @@ describe('TransactionReview', () => {
     const store = mockStore(mockState);
     const wrapper = shallow(
       <Provider store={store}>
-        <TransactionReview generateTransform={generateTransform as any} />
+        <TransactionReview
+          generateTransform={
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            generateTransform as any
+          }
+        />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
@@ -201,6 +209,8 @@ describe('TransactionReview', () => {
     const blockaidMetricsParamsSpy = jest
       .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
       .mockImplementation(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ({ result_type, reason, providerRequestsCount }: any) => ({
           security_alert_response: result_type,
           security_alert_reason: reason,
@@ -294,6 +304,8 @@ describe('TransactionReview', () => {
     };
     jest.mock('react-redux', () => ({
       ...jest.requireActual('react-redux'),
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       useSelector: (fn: any) => fn(mockNewState),
     }));
     const { getByRole } = renderWithProvider(
@@ -310,6 +322,8 @@ describe('TransactionReview', () => {
   it('should have confirm button disabled if error is defined', async () => {
     jest.mock('react-redux', () => ({
       ...jest.requireActual('react-redux'),
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       useSelector: (fn: any) => fn(mockState),
     }));
     const { getByRole } = renderWithProvider(

@@ -10,7 +10,7 @@ import NotificationManager from '../../../../../core/NotificationManager';
 import { InteractionManager } from 'react-native';
 import AppConstants from '../../../../../core/AppConstants';
 import { strings } from '../../../../../../locales/i18n';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
 jest.mock('../../../../../components/hooks/useMetrics');
@@ -48,7 +48,7 @@ const mockStore = configureMockStore();
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 
@@ -56,6 +56,8 @@ const store = mockStore(initialState);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSelector: (callback: any) =>
     callback({
       signatureRequest: {
@@ -113,6 +115,8 @@ describe('PersonalSign', () => {
     it('signs message', async () => {
       const onConfirmMock = jest.fn();
       const wrapper = createWrapper({ mockConfirm: onConfirmMock }).dive();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (wrapper.find(SignatureRequest).props() as any).onConfirm();
 
       expect(onConfirmMock).toHaveBeenCalledTimes(1);
@@ -124,11 +128,17 @@ describe('PersonalSign', () => {
     ])('shows notification if origin is %s', async (_title, origin) => {
       jest
         .spyOn(InteractionManager, 'runAfterInteractions')
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .mockImplementation((callback: any) => callback());
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (NotificationManager.showSimpleNotification as any).mockReset();
 
       const wrapper = createWrapper({ origin }).dive();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (wrapper.find(SignatureRequest).props() as any).onConfirm();
 
       expect(NotificationManager.showSimpleNotification).toHaveBeenCalledTimes(
@@ -147,6 +157,8 @@ describe('PersonalSign', () => {
     it('rejects message', async () => {
       const onRejectMock = jest.fn();
       const wrapper = createWrapper({ mockReject: onRejectMock }).dive();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (wrapper.find(SignatureRequest).props() as any).onReject();
 
       expect(onRejectMock).toHaveBeenCalledTimes(1);
@@ -158,12 +170,20 @@ describe('PersonalSign', () => {
     ])('shows notification if origin is %s', async (_title, origin) => {
       jest
         .spyOn(InteractionManager, 'runAfterInteractions')
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .mockImplementation((callback: any) => callback());
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (NotificationManager.showSimpleNotification as any).mockReset();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (Engine.context.SignatureController.hub.on as any).mockReset();
 
       const wrapper = createWrapper({ origin }).dive();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (wrapper.find(SignatureRequest).props() as any).onReject();
 
       expect(NotificationManager.showSimpleNotification).toHaveBeenCalledTimes(
@@ -180,6 +200,8 @@ describe('PersonalSign', () => {
   describe('trackEvent', () => {
     it('tracks event for rejected requests', async () => {
       const wrapper = createWrapper().dive();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (wrapper.find(SignatureRequest).props() as any).onReject();
 
       const rejectedMocks = (mockTrackEvent as jest.Mock).mock.calls.filter(
@@ -204,6 +226,8 @@ describe('PersonalSign', () => {
 
     it('tracks event for approved requests', async () => {
       const wrapper = createWrapper().dive();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (wrapper.find(SignatureRequest).props() as any).onConfirm();
 
       const signedMocks = (mockTrackEvent as jest.Mock).mock.calls.filter(

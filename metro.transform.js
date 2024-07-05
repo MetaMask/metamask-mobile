@@ -12,10 +12,19 @@ const svgTransformer = require('react-native-svg-transformer');
 
 // Code fence removal variables
 const fileExtsToScan = ['.js', '.jsx', '.cjs', '.mjs', '.ts', '.tsx'];
-const availableFeatures = new Set(['flask', 'snaps', 'beta']);
+const availableFeatures = new Set([
+  'flask',
+  'preinstalled-snaps',
+  'external-snaps',
+  'beta',
+]);
 
-const mainFeatureSet = new Set([]);
-const flaskFeatureSet = new Set(['flask', 'snaps']);
+const mainFeatureSet = new Set(['preinstalled-snaps']);
+const flaskFeatureSet = new Set([
+  'flask',
+  'preinstalled-snaps',
+  'external-snaps',
+]);
 
 /**
  * Gets the features for the current build type, used to determine which code
@@ -50,7 +59,10 @@ module.exports.transform = async ({ src, filename, options }) => {
    * Params based on builds we're code splitting
    * i.e: flavorDimensions "version" productFlavors from android/app/build.gradle
    */
-  if (fileExtsToScan.includes(path.extname(filename))) {
+  if (
+    !path.normalize(filename).split(path.sep).includes('node_modules') &&
+    fileExtsToScan.includes(path.extname(filename))
+  ) {
     const [processedSource, didModify] = removeFencedCode(filename, src, {
       all: availableFeatures,
       active: getBuildTypeFeatures(),

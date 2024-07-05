@@ -10,11 +10,11 @@ import NetworkListModal from '../../pages/modals/NetworkListModal';
 import WalletView from '../../pages/WalletView';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
-import { TOTAL_BALANCE_TEXT } from '../../../wdio/screen-objects/testIDs/Components/Tokens.testIds.js';
 import FiatOnTestnetsModal from '../../pages/modals/FiatOnTestnetsModal.js';
 import Assertions from '../../utils/Assertions.js';
 import Matchers from '../../utils/Matchers.js';
 import TestHelpers from '../../helpers.js';
+import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
@@ -40,7 +40,7 @@ describe(SmokeAssets('Fiat On Testnets Setting'), () => {
 
         // Verify no fiat values displayed
         await Assertions.checkIfHasText(
-          Matchers.getElementByID(TOTAL_BALANCE_TEXT),
+          Matchers.getElementByID(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
           '$0',
         );
 
@@ -57,7 +57,7 @@ describe(SmokeAssets('Fiat On Testnets Setting'), () => {
         // Verify fiat values are displayed
         await TabBarComponent.tapWallet();
         await Assertions.checkIfElementNotToHaveText(
-          Matchers.getElementByID(TOTAL_BALANCE_TEXT),
+          Matchers.getElementByID(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
           '$0',
         );
       },

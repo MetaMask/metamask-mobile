@@ -51,10 +51,7 @@ export default function useBalance(asset?: Asset) {
     );
     balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
   } else {
-    const exchangeRate =
-      assetAddress && assetAddress in tokenExchangeRates
-        ? tokenExchangeRates[assetAddress]
-        : undefined;
+    const exchangeRate = tokenExchangeRates?.[assetAddress]?.price;
     balance =
       assetAddress && assetAddress in balances
         ? renderFromTokenMinimalUnit(

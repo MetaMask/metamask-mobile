@@ -4,7 +4,7 @@ import { waitFor } from '@testing-library/react-native';
 import Confirm from '.';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../components/BlockaidBanner/BlockaidBanner.constants';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
@@ -18,7 +18,7 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
 const mockInitialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
         network: '1',
         providerConfig: {
@@ -41,9 +41,6 @@ const mockInitialState = {
         },
       },
       PreferencesController: {
-        identities: {
-          [MOCK_ADDRESS]: { name: 'Account1' },
-        },
         securityAlertsEnabled: true,
       },
       KeyringController: {
@@ -142,6 +139,8 @@ jest.mock('../../../../../util/transactions', () => ({
   decodeTransferData: jest.fn().mockImplementation(() => ['0x2']),
 }));
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function render(Component: React.ComponentType | ConnectedComponent<any, any>) {
   return renderScreen(
     Component,

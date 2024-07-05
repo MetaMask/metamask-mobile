@@ -115,6 +115,7 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
+      - run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_assets_ios: {}
@@ -448,9 +449,9 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://ba40e5b7b4210a06c659b5c6818a3efec2624513' # Last production's QA build
-      - PRODUCTION_BUILD_NAME: 7.22.0
-      - PRODUCTION_BUILD_NUMBER: 1325
+      - PRODUCTION_APP_URL: 'bs://c2c414d2b4935096274bd2fb98232cc7b8408b2a' # Last production's QA build
+      - PRODUCTION_BUILD_NAME: 7.24.4
+      - PRODUCTION_BUILD_NUMBER: 1354
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
@@ -522,6 +523,9 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeSwaps.*'
     after_run:
       - android_e2e_test
+  run_ios_api_specs:
+    after_run:
+      - ios_api_specs
   run_tag_smoke_core_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
@@ -716,6 +720,72 @@ workflows:
       bitrise.io:
         machine_type_id: elite-xl
         stack: linux-docker-android-20.04
+  ios_api_specs:
+    before_run:
+      - setup
+      - prep_environment
+    after_run:
+      - notify_failure
+    steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull iOS build
+      - script@1:
+          title: Copy iOS build for Detox
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build"
+                mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
+                cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
+      - restore-cocoapods-cache@2: {}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $VERSION_NAME
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
+      - script@1:
+          title: Run detox test
+          timeout: 1200
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                yarn test:api-specs
+      - script@1:
+          is_always_run: true
+          is_skippable: false
+          title: Add tests reports to Bitrise
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                cp -r $BITRISE_SOURCE_DIR/html-report/index.html $BITRISE_HTML_REPORT_DIR/
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: false
+          inputs:
+            - deploy_path: $BITRISE_HTML_REPORT_DIR
+          title: Deploy test report files
   ios_e2e_build:
     before_run:
       - code_setup

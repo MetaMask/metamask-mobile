@@ -5,36 +5,33 @@ import { Text } from 'react-native';
 import AddToAddressBookWrapper from './AddToAddressBookWrapper';
 import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAddressModal.selectors';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+
+const MOCK_ADDRESS_1 = '0x0';
+const MOCK_ADDRESS_2 = '0x1';
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  MOCK_ADDRESS_1,
+  MOCK_ADDRESS_2,
+]);
 
 const initialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: '0x0',
-        identities: {
-          '0x0': {
-            address: '0x0',
-            name: 'Account 1',
-          },
-          '0x1': {
-            address: '0x1',
-            name: 'Account 2',
-          },
-        },
-      },
+      ...backgroundState,
       AddressBookController: {
         addressBook: {
-          '0x1': {
-            '0x1': {
-              address: '0x1',
+          [MOCK_ADDRESS_2]: {
+            [MOCK_ADDRESS_2]: {
+              address: MOCK_ADDRESS_2,
               name: 'Account 2',
             },
           },
         },
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
@@ -66,7 +63,7 @@ describe('AddToAddressBookWrapper', () => {
   });
   it('should not render touchable wrapper if address is already saved', async () => {
     const { queryByText } = renderWithProvider(
-      <AddToAddressBookWrapper address="0x0">
+      <AddToAddressBookWrapper address={MOCK_ADDRESS_1}>
         <Text>DUMMY</Text>
       </AddToAddressBookWrapper>,
       { state: initialState },
@@ -78,7 +75,7 @@ describe('AddToAddressBookWrapper', () => {
   });
   it('should return null if address is already saved and defaultNull is true', async () => {
     const { queryByText } = renderWithProvider(
-      <AddToAddressBookWrapper address="0x0" defaultNull>
+      <AddToAddressBookWrapper address={MOCK_ADDRESS_1} defaultNull>
         <Text>DUMMY</Text>
       </AddToAddressBookWrapper>,
       { state: initialState },
