@@ -9,7 +9,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import TestHelpers from '../../helpers';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import BrowserView from '../../pages/Browser/BrowserView';
@@ -57,10 +57,10 @@ describe(SmokeCore('Connect account to Portfolio'), () => {
   });
 
   it('should not open additional browser tabs to portfolio', async () => {
-    await Assertions.checkIfHasText(BrowserView.tabsNumber, '1');
+    await Assertions.checkIfElementToHaveText(BrowserView.tabsNumber, '1');
     await TabBarComponent.tapWallet();
     await WalletView.tapPortfolio();
     await BrowserView.waitForBrowserPageToLoad();
-    await Assertions.checkIfHasText(BrowserView.tabsNumber, '1');
+    await Assertions.checkIfElementToHaveText(BrowserView.tabsNumber, '1');
   });
 });
