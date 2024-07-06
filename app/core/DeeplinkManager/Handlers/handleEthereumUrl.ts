@@ -5,8 +5,8 @@ import { strings } from '../../../../locales/i18n';
 import DeeplinkManager from '../DeeplinkManager';
 import formattedDeeplinkParsedValue from '../../../util/formattedDeeplinkParsedValue';
 import { NetworkSwitchErrorType } from '../../../constants/error';
-import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
 import { getDecimalChainId } from '../../../util/networks';
+import { ChainId } from '@metamask/controller-utils';
 
 async function handleEthereumUrl({
   deeplinkManager,
@@ -30,8 +30,8 @@ async function handleEthereumUrl({
   try {
     // If the deeplink has a goerli chainId, show deprecation modal and return
     if (
-      ethUrl.chain_id === getDecimalChainId(CHAIN_IDS.GOERLI) ||
-      ethUrl.chain_id === CHAIN_IDS.GOERLI
+      ethUrl.chain_id === getDecimalChainId(ChainId.goerli) ||
+      ethUrl.chain_id === ChainId.goerli
     ) {
       deeplinkManager.navigation.navigate('DeprecatedNetworkDetails', {});
       return;
