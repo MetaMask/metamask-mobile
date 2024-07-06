@@ -8,6 +8,7 @@ import {
   getNotificationBadge,
   shortenAddress,
 } from '../../notification.util';
+import { ModalField } from '../types/NotificationModalDetails';
 
 type ERC1155Notification = ExtractedNotification<
   TRIGGER_TYPES.ERC1155_RECEIVED | TRIGGER_TYPES.ERC1155_SENT
@@ -58,6 +59,17 @@ const state: NotificationState<ERC1155Notification> = {
     const nativeTokenDetails = getNativeTokenDetailsByChainId(
       notification.chain_id,
     );
+
+    const collectionField: ModalField[] = notification.data.nft?.collection
+      ? [
+          {
+            type: 'ModalField-NFTCollectionImage',
+            collectionName: notification.data.nft.collection.name,
+            collectionImageUrl: notification.data.nft.collection.image,
+            networkBadgeUrl: nativeTokenDetails?.image,
+          },
+        ]
+      : [];
     return {
       title: modalTitle(notification),
       createdAt: notification.createdAt,
@@ -85,16 +97,7 @@ const state: NotificationState<ERC1155Notification> = {
           type: 'ModalField-Transaction',
           txHash: notification.tx_hash,
         },
-        ...(notification.data.nft?.collection
-          ? ([
-              {
-                type: 'ModalField-NFTCollectionImage',
-                collectionName: notification.data.nft.collection.name,
-                collectionImageUrl: notification.data.nft.collection.image,
-                networkBadgeUrl: nativeTokenDetails?.image,
-              },
-            ] as const)
-          : []),
+        ...collectionField,
         {
           type: 'ModalField-Network',
           iconUrl: nativeTokenDetails?.image,

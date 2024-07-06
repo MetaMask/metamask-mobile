@@ -46,23 +46,24 @@ function TransactionField(props: TransactionFieldProps) {
           {strings(`transaction.confirmed`)}
         </Text>
       </View>
-      <Pressable
-        style={styles.rightSection}
-        onPress={() =>
-          copyToClipboard(txHash, CopyClipboardAlertMessage.transaction())
-        }
-        hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
-      >
-        <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
-          {strings('transaction.transaction_id')}
-        </Text>
-        <Icon
-          color={IconColor.Primary}
-          style={styles.copyIconRight}
-          name={IconName.Copy}
-          size={IconSize.Md}
-        />
-      </Pressable>
+      <View style={styles.rightSection}>
+        <Pressable
+          onPress={() =>
+            copyToClipboard(txHash, CopyClipboardAlertMessage.transaction())
+          }
+          hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
+          style={styles.copyContainer}
+        >
+          <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
+            {strings('transaction.transaction_id')}
+          </Text>
+          <Icon
+            color={IconColor.Primary}
+            name={IconName.Copy}
+            size={IconSize.Md}
+          />
+        </Pressable>
+      </View>
     </View>
   );
 }

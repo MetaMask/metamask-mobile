@@ -59,13 +59,11 @@ const imageUrl = (n: StakeNotification) => {
 };
 
 const modalTitle = (n: StakeNotification) => {
-  const direction = DIRECTION_MAP[n.type];
-  const title =
-    direction === 'staked'
-      ? strings('notifications.modal.title_unstake_completed', {
-          symbol: n.data.stake_in.symbol,
-        })
-      : strings('notifications.modal.title_unstake_completed');
+  const title = isStaked(n)
+    ? strings('notifications.modal.title_stake', {
+        symbol: n.data.stake_in.symbol,
+      })
+    : strings('notifications.modal.title_unstake_completed');
 
   return title;
 };

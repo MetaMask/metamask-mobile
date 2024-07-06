@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, View, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import Avatar, {
   AvatarAccountType,
@@ -46,11 +46,11 @@ function AddressField(props: AddressFieldProps) {
       <View style={styles.boxLeft}>
         <Text variant={TextVariant.BodyLGMedium}>{label}</Text>
         <Pressable
-          style={styles.descriptionContainer}
           onPress={() =>
             copyToClipboard(address, CopyClipboardAlertMessage.address())
           }
           hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
+          style={styles.copyContainer}
         >
           <EthereumAddress
             style={styles.addressLinkLabel}
@@ -58,7 +58,7 @@ function AddressField(props: AddressFieldProps) {
             type={'short'}
           />
           <Icon
-            style={styles.copyIconDefault}
+            style={styles.copyIconDefault as ViewStyle}
             name={IconName.Copy}
             size={IconSize.Md}
           />

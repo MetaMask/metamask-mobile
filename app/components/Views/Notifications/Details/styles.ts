@@ -20,9 +20,8 @@ export const createStyles = ({ colors, typography }: Theme) =>
       paddingTop: 16,
     },
     headerImageContainer: {
-      alignItems: 'center',
-      paddingTop: 8,
-      paddingHorizontal: 16,
+      padding: 16,
+      alignSelf: 'center',
     },
     headerImageFull: {
       width: '100%',
@@ -33,33 +32,34 @@ export const createStyles = ({ colors, typography }: Theme) =>
       width: '100%',
       backgroundColor: colors.background.alternative,
     },
+    fieldsContainer: {
+      gap: 4,
+    },
     row: {
       flexDirection: 'row',
-      justifyContent: 'flex-start',
       minWidth: '100%',
       paddingVertical: 5,
-      paddingHorizontal: 16,
+      gap: 16,
     },
     badgeWrapper: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      alignSelf: 'flex-start',
-      position: 'absolute',
-    },
-    nftBadgeWrapper: {
-      position: 'absolute',
-      top: 0,
-      right: 0,
-      width: 12,
-      height: 12,
-      borderRadius: 6,
       alignSelf: 'center',
     },
-    copyIconDefault: {
-      color: colors.text.alternative,
-      marginHorizontal: 8,
+    customBadgePosition: {
+      top: '-25%',
+      right: '-25%',
     },
-    boxLeft: { alignSelf: 'flex-start' },
+    copyContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 2,
+    },
+    copyIconDefault: {
+      color: colors.icon.alternative,
+    },
+    boxLeft: {
+      flex: 1,
+      flexDirection: 'column',
+    },
     boxRight: { marginLeft: 'auto' },
     text: {
       marginBottom: 8,
@@ -88,8 +88,9 @@ export const createStyles = ({ colors, typography }: Theme) =>
     renderContainer: {
       alignItems: 'flex-start',
       flex: 1,
-      marginHorizontal: 16,
+      paddingHorizontal: 16,
       paddingTop: 16,
+      width: '100%',
     },
     renderFCMText: {
       textAlign: 'left',
@@ -128,16 +129,13 @@ export const createStyles = ({ colors, typography }: Theme) =>
       backgroundColor: colors.background.default,
     },
     rightSection: {
+      flex: 1,
       alignSelf: 'flex-start',
-      flexDirection: 'row',
-      marginLeft: 'auto',
+      alignItems: 'flex-end',
+      flexDirection: 'column',
     },
     copyTextBtn: {
       color: colors.primary.default,
-      alignSelf: 'flex-start',
-    },
-    copyIconRight: {
-      marginLeft: 8,
     },
     ethLogo: {
       width: 32,
@@ -219,5 +217,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       ...typography.lBodyMD,
       color: colors.text.default,
       marginHorizontal: 1,
+      // Announcement Description has some underlying padding that we want to remove.
+      marginTop: -16,
     },
   });

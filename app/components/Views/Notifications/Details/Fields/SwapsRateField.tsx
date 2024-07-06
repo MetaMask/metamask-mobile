@@ -28,8 +28,8 @@ function SwapsRateField(props: SwapsRateFieldProps) {
         size={AvatarSize.Md}
         style={styles.badgeWrapper}
         name={IconName.SwapHorizontal}
-        backgroundColor={theme.colors.success.muted}
-        iconColor={IconColor.Success}
+        backgroundColor={theme.colors.info.muted}
+        iconColor={IconColor.Info}
       />
       <View style={styles.boxLeft}>
         <Text variant={TextVariant.BodyLGMedium}>

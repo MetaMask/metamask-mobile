@@ -68,9 +68,11 @@ const NotificationsDetails = ({ route }: Props) => {
         {state.header && <ModalHeader modalHeader={state.header} />}
 
         {/* Modal Fields */}
-        {state.fields.map((field, idx) => (
-          <ModalField key={idx} modalField={field} />
-        ))}
+        <View style={styles.fieldsContainer}>
+          {state.fields.map((field, idx) => (
+            <ModalField key={idx} modalField={field} />
+          ))}
+        </View>
 
         {/* Modal Footers */}
         {state.footer && <ModalFooter modalFooter={state.footer} />}
@@ -105,7 +107,7 @@ NotificationsDetails.navigationOptions = ({
 
   const styles = StyleSheet.create({
     backIcon: {
-      marginLeft: 16,
+      marginHorizontal: 16,
     },
   });
 
@@ -116,7 +118,6 @@ NotificationsDetails.navigationOptions = ({
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Md}
-          // eslint-disable-next-line react-native/no-inline-styles
           style={styles.backIcon}
         />
       </TouchableOpacity>

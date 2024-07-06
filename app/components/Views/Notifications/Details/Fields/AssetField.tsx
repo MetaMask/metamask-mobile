@@ -4,7 +4,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import Text, {
   TextColor,
   TextVariant,
@@ -39,7 +39,7 @@ function AssetField(props: AssetFieldProps) {
       {/* Token Logo + Network Badge */}
       <BadgeWrapper
         testID={'badge-wrapper'}
-        badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
+        badgePosition={DEFAULT_BADGEWRAPPER_BADGEPOSITION}
         badgeElement={
           <Badge
             testID={'badge-element'}

@@ -32,6 +32,7 @@ export default function NFTImageHeader(props: NFTImageHeaderProps) {
             testID={'badge-element'}
             variant={BadgeVariant.Network}
             imageSource={badgeSource}
+            style={styles.customBadgePosition}
           />
         }
         style={styles.badgeWrapper}
