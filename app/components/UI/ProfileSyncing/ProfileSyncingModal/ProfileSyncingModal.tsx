@@ -39,10 +39,10 @@ const ProfileSyncingModal = () => {
 
   // TODO: Handle errror/loading states from enabling/disabling profile syncing
   const closeBottomSheet = () => {
-    bottomSheetRef.current?.onCloseBottomSheet(() => {
+    bottomSheetRef.current?.onCloseBottomSheet(async () => {
       if (isProfileSyncingEnabled) {
-        disableProfileSyncing();
-        disableNotifications();
+        await disableProfileSyncing();
+        await disableNotifications();
       }
     });
   };
