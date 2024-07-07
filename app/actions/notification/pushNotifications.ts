@@ -49,6 +49,7 @@ export const enableProfileSyncing = async () => {
 
 export const disableProfileSyncing = async () => {
   try {
+    await NotificationServicesController.disableNotificationServices();
     await UserStorageController.disableProfileSyncing();
   } catch (error) {
     return getErrorMessage(error);
