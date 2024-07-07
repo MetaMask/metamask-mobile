@@ -119,8 +119,6 @@ const NotificationOptionToggle = ({
         ) : null}
       </View>
       <View style={styles.switchElement}>
-        {/* TODO - we need a loading state while switch is being toggled */}
-        {/* TODO - handle and show error states */}
         <Switch
           value={isEnabled}
           onValueChange={() => toggleAccount(!isEnabled)}

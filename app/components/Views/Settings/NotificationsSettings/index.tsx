@@ -1,8 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
-import React, { FC, useEffect, useMemo } from 'react';
-import { Pressable, ScrollView, Switch, View, Modal } from 'react-native';
+import React, { FC, useEffect, useMemo, useCallback } from 'react';
+import { Pressable, ScrollView, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
+
+import { RootState } from '../../../../reducers';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -14,6 +17,7 @@ import { useAccounts } from '../../../../components/hooks/useAccounts';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 
+import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
 import { Props } from './NotificationsSettings.types';
 import createStyles from './NotificationsSettings.styles';
 import NotificationOptionToggle from './NotificationOptionToggle';
@@ -33,20 +37,29 @@ import {
   useEnableNotifications,
 } from '../../../../util/notifications/hooks/useNotifications';
 import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
-import { RootState } from '../../../../reducers';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
+
   const accountAddresses = useMemo(
     () => accounts.map((a) => a.address),
     [accounts],
   );
   const accountSettingsProps = useAccountSettingsProps(accountAddresses);
-  const { enableNotifications, loading: eLoading } = useEnableNotifications();
-  const { disableNotifications, loading: dLoading } = useDisableNotifications();
+  const {
+    enableNotifications,
+    loading: enableLoading,
+    error: enablingError,
+  } = useEnableNotifications();
 
-  const loading = eLoading || dLoading;
+  const {
+    disableNotifications,
+    loading: disableLoading,
+    error: disablingError,
+  } = useDisableNotifications();
+
+  const loading = enableLoading || disableLoading;
+  const errorText = enablingError || disablingError;
   const theme = useTheme();
   // Selectors
   const isMetamaskNotificationsEnabled = useSelector(
@@ -121,6 +134,31 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     </>
   );
 
+  const renderAccounts = useCallback(() => {
+    const refetchAccountSettings = async () => {
+      await accountSettingsProps.update(accountAddresses);
+    };
+
+    return accounts.map((account) => (
+      <NotificationOptionToggle
+        type={NotificationsToggleTypes.ACCOUNT}
+        icon={accountAvatarType}
+        key={account.address}
+        title={account.name}
+        address={account.address}
+        disabledSwitch={accountSettingsProps.initialLoading}
+        isLoading={accountSettingsProps.accountsBeingUpdated.includes(
+          account.address,
+        )}
+        isEnabled={
+          accountSettingsProps.data?.[account.address.toLowerCase()] ?? false
+        }
+        refetchAccountSettings={refetchAccountSettings}
+      />
+    ));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountSettingsProps]);
+
   return (
     <ScrollView style={styles.wrapper}>
       <MainNotificationSettings />
@@ -136,37 +174,18 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             )}
             styles={styles}
           />
-          {accounts.map((account) => (
-            <NotificationOptionToggle
-              type={NotificationsToggleTypes.ACCOUNT}
-              icon={accountAvatarType}
-              key={account.address}
-              title={account.name}
-              address={account.address}
-              disabledSwitch={accountSettingsProps.initialLoading}
-              isLoading={accountSettingsProps.accountsBeingUpdated.includes(
-                account.address,
-              )}
-              isEnabled={
-                accountSettingsProps.data?.[account.address.toLowerCase()] ??
-                false
-              }
-              refetchAccountSettings={async () => {
-                await accountSettingsProps.update(accountAddresses);
-              }}
-            />
-          ))}
+          {renderAccounts()}
         </>
       )}
-      <Modal animationType="slide" transparent visible={loading}>
-        <View style={styles.loader}>
-          <Text variant={TextVariant.BodyMD}>
-            {!isMetamaskNotificationsEnabled
-              ? strings('app_settings.enabling_notifications')
-              : strings('app_settings.disabling_notifications')}
-          </Text>
-        </View>
-      </Modal>
+      <SwitchLoadingModal
+        loading={loading}
+        loadingText={
+          !isMetamaskNotificationsEnabled
+            ? strings('app_settings.enabling_notifications')
+            : strings('app_settings.disabling_notifications')
+        }
+        error={errorText}
+      />
     </ScrollView>
   );
 };

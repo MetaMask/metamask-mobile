@@ -42,19 +42,6 @@ const mockInitialState = {
           },
         },
       },
-      PreferencesController: {
-        selectedAddress: MOCK_ADDRESS_1,
-        identities: {
-          [MOCK_ADDRESS_1]: {
-            address: MOCK_ADDRESS_1,
-            name: 'Account 1',
-          },
-          [MOCK_ADDRESS_2]: {
-            address: MOCK_ADDRESS_2,
-            name: 'Account 2',
-          },
-        },
-      },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
         providerConfig: {
