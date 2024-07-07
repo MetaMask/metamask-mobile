@@ -4,9 +4,12 @@ import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
   getAmount,
+  getNativeTokenDetailsByChainId,
+  getNetworkFees,
   getNotificationBadge,
   shortenAddress,
 } from '../../notification.util';
+import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
 
 type ERC20Notification = ExtractedNotification<
   TRIGGER_TYPES.ERC20_RECEIVED | TRIGGER_TYPES.ERC20_SENT
@@ -19,17 +22,24 @@ const isERC20Notification = isOfTypeNodeGuard([
 
 const isSent = (n: ERC20Notification) => n.type === TRIGGER_TYPES.ERC20_SENT;
 
-const title = (n: ERC20Notification) => {
+const menuTitle = (n: ERC20Notification) => {
   const address = shortenAddress(isSent(n) ? n.data.to : n.data.from);
   return strings(`notifications.menu_item_title.${n.type}`, {
     address,
   });
 };
 
+const modalTitle = (n: ERC20Notification) =>
+  isSent(n)
+    ? strings('notifications.modal.title_sent', { symbol: n.data.token.symbol })
+    : strings('notifications.modal.title_received', {
+        symbol: n.data.token.symbol,
+      });
+
 const state: NotificationState<ERC20Notification> = {
   guardFn: isERC20Notification,
   createMenuItem: (notification) => ({
-    title: title(notification),
+    title: menuTitle(notification),
 
     description: {
       start: notification.data.token.name,
@@ -50,6 +60,58 @@ const state: NotificationState<ERC20Notification> = {
 
     createdAt: notification.createdAt,
   }),
+  createModalDetails: (notification) => {
+    const nativeTokenDetails = getNativeTokenDetailsByChainId(
+      notification.chain_id,
+    );
+    return {
+      title: modalTitle(notification),
+      createdAt: notification.createdAt,
+      fields: [
+        {
+          type: 'ModalField-Address',
+          label: isSent(notification)
+            ? strings('notifications.modal.label_address_to_you')
+            : strings('notifications.modal.label_address_to'),
+          address: notification.data.to,
+        },
+        {
+          type: 'ModalField-Address',
+          label: isSent(notification)
+            ? strings('notifications.modal.label_address_from')
+            : strings('notifications.modal.label_address_from_you'),
+          address: notification.data.from,
+        },
+        {
+          type: 'ModalField-Transaction',
+          txHash: notification.tx_hash,
+        },
+        {
+          type: 'ModalField-Asset',
+          label: strings('notifications.modal.label_asset'),
+          description: notification.data.token.name,
+          amount: getTokenAmount(notification.data.token),
+          usdAmount: getTokenUSDAmount(notification.data.token),
+          tokenIconUrl: notification.data.token.image,
+          tokenNetworkUrl: nativeTokenDetails?.image,
+        },
+        {
+          type: 'ModalField-Network',
+          iconUrl: nativeTokenDetails?.image,
+          name: nativeTokenDetails?.name,
+        },
+        {
+          type: 'ModalField-NetworkFee',
+          getNetworkFees: () => getNetworkFees(notification),
+        },
+      ],
+      footer: {
+        type: 'ModalFooter-BlockExplorer',
+        chainId: notification.chain_id,
+        txHash: notification.tx_hash,
+      },
+    };
+  },
 };
 
 export default state;

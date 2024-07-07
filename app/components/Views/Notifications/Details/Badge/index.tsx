@@ -34,13 +34,13 @@ function NotificationBadge({
       ].includes(notificationType)
     ) {
       return {
-        style: styles.nftLogo,
-        placeholderStyle: styles.nftPlaceholder,
+        style: styles.squareLogo,
+        placeholderStyle: styles.squareLogoPlaceholder,
       };
     }
     return {
-      style: styles.assetLogo,
-      placeholderStyle: styles.assetPlaceholder,
+      style: styles.circleLogo,
+      placeholderStyle: styles.circleLogoPlaceholder,
     };
   };
 

@@ -2,7 +2,11 @@ import { strings } from '../../../../../locales/i18n';
 import { TRIGGER_TYPES } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
-import { getNotificationBadge } from '../../notification.util';
+import {
+  formatAmount,
+  getNativeTokenDetailsByChainId,
+  getNotificationBadge,
+} from '../../notification.util';
 
 type LidoReadyWithDrawnNotification =
   ExtractedNotification<TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN>;
@@ -31,6 +35,52 @@ const state: NotificationState<LidoReadyWithDrawnNotification> = {
 
     createdAt: notification.createdAt,
   }),
+  createModalDetails: (notification) => {
+    const nativeTokenDetails = getNativeTokenDetailsByChainId(
+      notification.chain_id,
+    );
+
+    return {
+      title: strings('notifications.modal.title_untake_ready'),
+      createdAt: notification.createdAt,
+      fields: [
+        {
+          type: 'ModalField-Address',
+          label: strings('notifications.modal.label_account'),
+          address: notification.address,
+        },
+        {
+          type: 'ModalField-Asset',
+          label: strings('notifications.modal.label_unstake_ready'),
+          description: notification.data.staked_eth.symbol,
+          amount: `${formatAmount(
+            parseFloat(notification.data.staked_eth.amount),
+            { shouldEllipse: true },
+          )} ${notification.data.staked_eth.symbol}`,
+          usdAmount: `$${formatAmount(
+            parseFloat(notification.data.staked_eth.usd),
+            { shouldEllipse: true },
+          )}`,
+          tokenIconUrl: notification.data.staked_eth.image,
+          tokenNetworkUrl: nativeTokenDetails?.image,
+        },
+        {
+          type: 'ModalField-Transaction',
+          txHash: notification.tx_hash,
+        },
+        {
+          type: 'ModalField-StakingProvider',
+          stakingProvider: notification.data.staked_eth.symbol,
+          tokenIconUrl: notification.data.staked_eth.image,
+        },
+      ],
+      footer: {
+        type: 'ModalFooter-BlockExplorer',
+        chainId: notification.chain_id,
+        txHash: notification.tx_hash,
+      },
+    };
+  },
 };
 
 export default state;

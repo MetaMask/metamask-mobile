@@ -8,6 +8,7 @@ import Badge, {
 import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import RemoteImage from '../../../../components/Base/RemoteImage';
 import METAMASK_FOX from '../../../../images/fox.png';
+import { View } from 'react-native';
 
 type NotificationIconProps = Pick<NotificationMenuItem, 'image' | 'badgeIcon'>;
 
@@ -46,18 +47,20 @@ function NotificationIcon(props: NotificationIconProps) {
   const { styles } = useStyles();
 
   return (
-    <BadgeWrapper
-      badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
-      badgeElement={
-        <Badge
-          variant={BadgeVariant.NotificationsKinds}
-          iconName={props.badgeIcon}
-        />
-      }
-      style={styles.badgeWrapper}
-    >
-      <MenuIcon {...props} />
-    </BadgeWrapper>
+    <View style={styles.itemLogoSize}>
+      <BadgeWrapper
+        badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.NotificationsKinds}
+            iconName={props.badgeIcon}
+          />
+        }
+        style={styles.badgeWrapper}
+      >
+        <MenuIcon {...props} />
+      </BadgeWrapper>
+    </View>
   );
 }
 

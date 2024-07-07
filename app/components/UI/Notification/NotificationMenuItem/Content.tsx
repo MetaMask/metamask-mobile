@@ -17,10 +17,14 @@ function NotificationContent(props: NotificationContentProps) {
   const { styles } = useStyles();
 
   return (
-    <View style={styles.rowContainer}>
+    <View style={styles.containerFill}>
       {/* Section 1 - Title + Timestamp */}
       <View style={styles.rowInsider}>
-        <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
+        <Text
+          color={TextColor.Alternative}
+          variant={TextVariant.BodySM}
+          style={styles.containerFill}
+        >
           {props.title}
         </Text>
         <Text color={TextColor.Muted} variant={TextVariant.BodySM}>
@@ -29,7 +33,7 @@ function NotificationContent(props: NotificationContentProps) {
       </View>
       {/* Section 2 - Left Desc + Right Desc */}
       <View style={styles.rowInsider}>
-        <Text style={styles.textBox} variant={TextVariant.BodyMD}>
+        <Text style={styles.containerFill} variant={TextVariant.BodyMD}>
           {props.description.start}
         </Text>
         {props.description.end && (

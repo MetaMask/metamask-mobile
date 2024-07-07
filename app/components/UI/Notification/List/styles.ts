@@ -23,6 +23,10 @@ export const createStyles = ({ colors, typography }: Theme) =>
       width: '100%',
       height: '100%',
     },
+    menuItemContainer: {
+      flexDirection: 'row',
+      gap: 16,
+    },
 
     tabUnderlineStyle: {
       height: 2,
@@ -54,6 +58,11 @@ export const createStyles = ({ colors, typography }: Theme) =>
       width: 20,
       height: 20,
     },
+    itemLogoSize: {
+      width: 32,
+      height: 32,
+    },
+    containerFill: { flex: 1 },
     badgeWrapper: {
       alignItems: 'center',
       justifyContent: 'center',
@@ -93,10 +102,10 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    rowContainer: { flex: 1, marginLeft: 42, alignItem: 'center' },
     rowInsider: {
       flex: 1,
       flexDirection: 'row',
+      gap: 8,
       justifyContent: 'space-between',
     },
     ethLogo: {
@@ -114,10 +123,6 @@ export const createStyles = ({ colors, typography }: Theme) =>
       alignSelf: 'flex-start',
       position: 'absolute',
       top: '25%',
-    },
-    textBox: {
-      flexShrink: 1,
-      maxWidth: '85%',
     },
     button: {
       marginTop: 16,

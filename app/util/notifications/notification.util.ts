@@ -251,6 +251,11 @@ export const getNetworkNameByChainId = (
     chainId.toString() as NotificationChains
   ] || undefined;
 
+/**
+ * Gets token information for the notification chains we support.
+ * @param chainId Notification Chain Id. This is a subset of chains that support notifications
+ * @returns native token details for a given chain
+ */
 export function getNativeTokenDetailsByChainId(chainId: number) {
   const chainIdString = chainId.toString();
   if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ETHEREUM) {
@@ -301,6 +306,39 @@ export function getNativeTokenDetailsByChainId(chainId: number) {
       symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
       image: images['LINEA-MAINNET'],
     };
+  }
+
+  return undefined;
+}
+
+/**
+ * Gets block explorer information for the notification chains we support
+ * @param chainId Notification Chain Id. This is a subset of chains that support notifications
+ * @returns some default block explorers for the chains we support.
+ */
+export function getBlockExplorerByChainId(chainId: number) {
+  const chainIdString = chainId.toString();
+
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ETHEREUM) {
+    return 'https://etherscan.io';
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.OPTIMISM) {
+    return 'https://optimistic.etherscan.io';
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.BSC) {
+    return 'https://bscscan.com';
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.POLYGON) {
+    return 'https://polygonscan.com';
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
+    return 'https://arbiscan.io';
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.AVALANCHE) {
+    return 'https://snowtrace.io';
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.LINEA) {
+    return 'https://lineascan.build';
   }
 
   return undefined;
@@ -513,7 +551,6 @@ export const sortNotifications = (
   }
 
   // NOTE - sorting may be expensive due to re-creating Date obj.
-  // TODO - see if this can be tidied.
   return notifications.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );

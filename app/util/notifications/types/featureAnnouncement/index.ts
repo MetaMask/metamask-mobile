@@ -1,11 +1,4 @@
-import type { TypeFeatureAnnouncement } from './TypeFeatureAnnouncement';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 
-export type { TypeFeatureAnnouncementFields } from './TypeFeatureAnnouncement';
-
-import type { TRIGGER_TYPES } from '../../constants/triggers';
-
-export interface FeatureAnnouncementRawNotification {
-  type: TRIGGER_TYPES.FEATURES_ANNOUNCEMENT;
-  createdAt: Date;
-  data: TypeFeatureAnnouncement['fields'];
-}
+export type FeatureAnnouncementRawNotification =
+  NotificationServicesController.Types.FeatureAnnouncementRawNotification;

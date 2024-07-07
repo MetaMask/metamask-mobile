@@ -16,6 +16,7 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { Notification } from '../../../../util/notifications';
+import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
@@ -53,16 +54,24 @@ function Loading() {
 
 function NotificationsListItem(props: NotificationsListItemProps) {
   const { styles } = useStyles();
+  const { markNotificationAsRead } = useMarkNotificationAsRead();
 
   const onNotificationClick = useCallback(
     (item: Notification) => {
+      markNotificationAsRead([
+        {
+          id: item.id,
+          type: item.type,
+          isRead: item.isRead,
+        },
+      ]);
       if (hasNotificationModal(item.type)) {
         props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
           notification: item,
         });
       }
     },
-    [props.navigation],
+    [markNotificationAsRead, props.navigation],
   );
 
   const menuItemState = useMemo(() => {
