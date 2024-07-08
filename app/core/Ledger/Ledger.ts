@@ -153,3 +153,15 @@ export const ledgerSignTypedMessage = async (
     version,
   );
 };
+
+/**
+ * Unlock Ledger Wallet Account with index, and add it that account to metamask
+ *
+ * @param index - The index of the account to unlock
+ */
+export const unlockLedgerWalletAccount = async (index: number) => {
+  await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    keyring.setAccountToUnlock(index);
+    await keyring.addAccounts(1);
+  });
+};
