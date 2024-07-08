@@ -734,7 +734,10 @@ const App = ({ userLoggedIn }) => {
 
   const LedgerConnectFlow = () => (
     <Stack.Navigator initialRouteName={Routes.HW.LEDGER_CONNECT}>
-      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={LedgerSelectAccount} />
+      <Stack.Screen
+        name={Routes.HW.LEDGER_CONNECT}
+        component={LedgerSelectAccount}
+      />
     </Stack.Navigator>
   );
 
