@@ -129,7 +129,9 @@ describe('PPOM Utils', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ]) as any;
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
-      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(0);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        0,
+      );
       expect(spyTransactionAction).toHaveBeenCalledTimes(0);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       MockEngine.context.AccountsController.listAccounts = (() => []) as any;
