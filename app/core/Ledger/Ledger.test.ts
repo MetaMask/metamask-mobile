@@ -6,6 +6,7 @@ import {
   getLedgerAccountsByPage,
   ledgerSignTypedMessage,
   openEthereumAppOnLedger,
+  unlockLedgerWalletAccount,
 } from './Ledger';
 import Engine from '../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -37,6 +38,7 @@ interface mockKeyringType {
   getPreviousPage: jest.Mock;
   setDeviceId: jest.Mock;
   setHdPath: jest.Mock;
+  setAccountToUnlock: jest.Mock;
 }
 
 describe('Ledger core', () => {
@@ -98,6 +100,7 @@ describe('Ledger core', () => {
       ]),
       setDeviceId: jest.fn(),
       setHdPath: jest.fn(),
+      setAccountToUnlock: jest.fn(),
     };
 
     mockKeyringController.withKeyring.mockImplementation(
@@ -128,6 +131,12 @@ describe('Ledger core', () => {
       await connectLedgerHardware(mockTransport, 'bar');
       expect(ledgerKeyring.setHdPath).toHaveBeenCalled();
       expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
+    });
+
+    it('does not call keyring.setHdPath and keyring.setDeviceId if deviceId is the same', async () => {
+      await connectLedgerHardware(mockTransport, 'deviceId');
+      expect(ledgerKeyring.setHdPath).not.toHaveBeenCalled();
+      expect(ledgerKeyring.setDeviceId).not.toHaveBeenCalled();
     });
   });
 
@@ -188,6 +197,14 @@ describe('Ledger core', () => {
         MockEngine.context.KeyringController.signTypedMessage,
       ).toHaveBeenCalledWith(expectedArg, SignTypedDataVersion.V4);
       expect(value).toBe('signature');
+    });
+  });
+
+  describe(`unlockLedgerWalletAccount`, () => {
+    it(`calls keyring.setAccountToUnlock and addAccounts`, async () => {
+      await unlockLedgerWalletAccount(1);
+      expect(ledgerKeyring.setAccountToUnlock).toHaveBeenCalled();
+      expect(ledgerKeyring.addAccounts).toHaveBeenCalledWith(1);
     });
   });
 });

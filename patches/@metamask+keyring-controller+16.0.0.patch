@@ -17,18 +17,18 @@ index 5b557f5..ff65f14 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 +++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 @@ -7,7 +7,7 @@
-
-
-
+ 
+ 
+ 
 -var _chunk2GJQ6KDWjs = require('./chunk-2GJQ6KDW.js');
 +var _chunkEGSSQX6Ljs = require('./chunk-EGSSQX6L.js');
  require('./chunk-ZGV2QNCG.js');
-
-
+ 
+ 
 @@ -18,5 +18,5 @@ require('./chunk-ZGV2QNCG.js');
-
-
-
+ 
+ 
+ 
 -exports.AccountImportStrategy = _chunk2GJQ6KDWjs.AccountImportStrategy; exports.KeyringController = _chunk2GJQ6KDWjs.KeyringController; exports.KeyringTypes = _chunk2GJQ6KDWjs.KeyringTypes; exports.SignTypedDataVersion = _chunk2GJQ6KDWjs.SignTypedDataVersion; exports.default = _chunk2GJQ6KDWjs.KeyringController_default; exports.getDefaultKeyringState = _chunk2GJQ6KDWjs.getDefaultKeyringState; exports.isCustodyKeyring = _chunk2GJQ6KDWjs.isCustodyKeyring; exports.keyringBuilderFactory = _chunk2GJQ6KDWjs.keyringBuilderFactory;
 +exports.AccountImportStrategy = _chunkEGSSQX6Ljs.AccountImportStrategy; exports.KeyringController = _chunkEGSSQX6Ljs.KeyringController; exports.KeyringTypes = _chunkEGSSQX6Ljs.KeyringTypes; exports.SignTypedDataVersion = _chunkEGSSQX6Ljs.SignTypedDataVersion; exports.default = _chunkEGSSQX6Ljs.KeyringController_default; exports.getDefaultKeyringState = _chunkEGSSQX6Ljs.getDefaultKeyringState; exports.isCustodyKeyring = _chunkEGSSQX6Ljs.isCustodyKeyring; exports.keyringBuilderFactory = _chunkEGSSQX6Ljs.keyringBuilderFactory;
  //# sourceMappingURL=KeyringController.js.map
@@ -65,8 +65,8 @@ index 81fdecf..3844651 100644
  _subscribeToQRKeyringEvents = new WeakSet();
  subscribeToQRKeyringEvents_fn = function(qrKeyring) {
 @@ -1465,4 +1463,4 @@ var KeyringController_default = KeyringController;
-
-
+ 
+ 
  exports.KeyringTypes = KeyringTypes; exports.isCustodyKeyring = isCustodyKeyring; exports.AccountImportStrategy = AccountImportStrategy; exports.SignTypedDataVersion = SignTypedDataVersion; exports.keyringBuilderFactory = keyringBuilderFactory; exports.getDefaultKeyringState = getDefaultKeyringState; exports.KeyringController = KeyringController; exports.KeyringController_default = KeyringController_default;
 -//# sourceMappingURL=chunk-2GJQ6KDW.js.map
 \ No newline at end of file
@@ -103,18 +103,18 @@ index 35b2a0f..655541f 100644
 --- a/node_modules/@metamask/keyring-controller/dist/index.js
 +++ b/node_modules/@metamask/keyring-controller/dist/index.js
 @@ -6,7 +6,7 @@
-
-
-
+ 
+ 
+ 
 -var _chunk2GJQ6KDWjs = require('./chunk-2GJQ6KDW.js');
 +var _chunkEGSSQX6Ljs = require('./chunk-EGSSQX6L.js');
  require('./chunk-ZGV2QNCG.js');
-
-
+ 
+ 
 @@ -16,5 +16,5 @@ require('./chunk-ZGV2QNCG.js');
-
-
-
+ 
+ 
+ 
 -exports.AccountImportStrategy = _chunk2GJQ6KDWjs.AccountImportStrategy; exports.KeyringController = _chunk2GJQ6KDWjs.KeyringController; exports.KeyringTypes = _chunk2GJQ6KDWjs.KeyringTypes; exports.SignTypedDataVersion = _chunk2GJQ6KDWjs.SignTypedDataVersion; exports.getDefaultKeyringState = _chunk2GJQ6KDWjs.getDefaultKeyringState; exports.isCustodyKeyring = _chunk2GJQ6KDWjs.isCustodyKeyring; exports.keyringBuilderFactory = _chunk2GJQ6KDWjs.keyringBuilderFactory;
 +exports.AccountImportStrategy = _chunkEGSSQX6Ljs.AccountImportStrategy; exports.KeyringController = _chunkEGSSQX6Ljs.KeyringController; exports.KeyringTypes = _chunkEGSSQX6Ljs.KeyringTypes; exports.SignTypedDataVersion = _chunkEGSSQX6Ljs.SignTypedDataVersion; exports.getDefaultKeyringState = _chunkEGSSQX6Ljs.getDefaultKeyringState; exports.isCustodyKeyring = _chunkEGSSQX6Ljs.isCustodyKeyring; exports.keyringBuilderFactory = _chunkEGSSQX6Ljs.keyringBuilderFactory;
  //# sourceMappingURL=index.js.map
