@@ -6,7 +6,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import NotificationIcon from './Icon';
 import { TRIGGER_TYPES } from '../../../../util/notifications';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
 
 import SVG_MM_LOGO_PATH from '../../../../images/fox.svg';
@@ -17,7 +17,7 @@ Linking.openURL = jest.fn(() => Promise.resolve('opened https://metamask.io!'));
 const mockInitialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
     },
   },
 };
