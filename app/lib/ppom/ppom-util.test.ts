@@ -123,13 +123,16 @@ describe('PPOM Utils', () => {
       );
       MockEngine.context.PreferencesController.state.securityAlertsEnabled =
         false;
-      MockEngine.context.AccountsController.listAccounts = () => [
-        { address: '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb' },
-      ];
+      MockEngine.context.AccountsController.listAccounts = (() => [
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { address: '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb' } as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ]) as any;
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
-      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
-      expect(spyTransactionAction).toBeCalledTimes(0);
-      MockEngine.context.AccountsController.listAccounts = () => [];
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(0);
+      expect(spyTransactionAction).toHaveBeenCalledTimes(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      MockEngine.context.AccountsController.listAccounts = (() => []) as any;
     });
 
     it('should not validate user if on a non supporting blockaid network', async () => {

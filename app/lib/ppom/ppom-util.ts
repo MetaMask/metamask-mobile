@@ -24,13 +24,9 @@ import {
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
 
-type Params = Record<string, unknown> & {
-  to?: string;
-};
-
 export interface PPOMRequest {
   method: string;
-  params: Params[];
+  params: unknown[];
   origin?: string;
 }
 
@@ -87,7 +83,9 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
 
   if (req.method === 'eth_sendTransaction') {
     const internalAccounts = AccountsController.listAccounts();
-    const { to: toAddress } = req?.params?.[0] ?? {};
+    const toAddress: string | undefined = (
+      req?.params?.[0] as Record<string, string>
+    ).to;
 
     if (
       internalAccounts.some(
