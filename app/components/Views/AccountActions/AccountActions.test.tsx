@@ -12,18 +12,6 @@ import Routes from '../../../constants/navigation/Routes';
 import AccountActions from './AccountActions';
 import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AccountActionsModal.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import {
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
-  MOCK_ADDRESS_2,
-} from '../../../util/test/accountsControllerTestUtils';
-import {
-  EDIT_ACCOUNT,
-  REMOVE_HARDWARE_ACCOUNT,
-  SHARE_ADDRESS,
-  SHOW_PRIVATE_KEY,
-  VIEW_ETHERSCAN,
-} from './AccountActions.constants';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -186,7 +174,7 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(getByTestId(EDIT_ACCOUNT));
+    fireEvent.press(getByTestId(AccountActionsModalSelectorsIDs.EDIT_ACCOUNT));
 
     expect(mockNavigate).toHaveBeenCalledWith('EditAccountName');
   });
@@ -197,7 +185,9 @@ describe('AccountActions', () => {
         state: initialState,
       });
 
-      fireEvent.press(getByTestId(REMOVE_HARDWARE_ACCOUNT));
+      fireEvent.press(
+        getByTestId(AccountActionsModalSelectorsIDs.REMOVE_HARDWARE_ACCOUNT),
+      );
 
       expect(Alert.alert).toHaveBeenCalled();
 
@@ -232,7 +222,9 @@ describe('AccountActions', () => {
         },
       );
 
-      fireEvent.press(getByTestId(REMOVE_HARDWARE_ACCOUNT));
+      fireEvent.press(
+        getByTestId(AccountActionsModalSelectorsIDs.REMOVE_HARDWARE_ACCOUNT),
+      );
 
       expect(Alert.alert).toHaveBeenCalled();
 

@@ -1,6 +1,6 @@
 // Third party dependencies.
-import React, { useMemo, useRef } from 'react';
-import { Platform, View } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { Alert, View, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
@@ -34,14 +34,6 @@ import Logger from '../../../util/Logger';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
 import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AccountActionsModal.selectors';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  EDIT_ACCOUNT,
-  REMOVE_HARDWARE_ACCOUNT,
-  SHARE_ADDRESS,
-  SHOW_PRIVATE_KEY,
-  VIEW_ETHERSCAN,
-} from './AccountActions.constants';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getKeyringByAddress, isHardwareAccount } from '../../../util/address';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
@@ -175,7 +167,7 @@ const AccountActions = () => {
       await removeAccountsFromPermissions([selectedAddress]);
       const newAccounts = await Controller.KeyringController.getAccounts();
       trackEvent(MetaMetricsEvents.WALLET_REMOVED, {
-        accountType: kr.type,
+        accountType: kr?.type,
         address: selectedAddress,
       });
 
@@ -185,7 +177,7 @@ const AccountActions = () => {
       const { keyrings } = Controller.KeyringController.state;
 
       const updatedKeyring = keyrings.find(
-        (keyring) => keyring.type === kr.type,
+        (keyring) => keyring.type === kr?.type,
       );
 
       // If there are no more accounts in the keyring, forget the device
@@ -197,7 +189,7 @@ const AccountActions = () => {
         requestForgetDevice = true;
       }
       if (requestForgetDevice) {
-        switch (kr.type) {
+        switch (kr?.type) {
           case ExtendedKeyringTypes.ledger:
             await forgetLedger();
             trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
@@ -269,7 +261,7 @@ const AccountActions = () => {
             actionTitle={strings('accounts.remove_hardware_account')}
             iconName={IconName.Close}
             onPress={showRemoveHWAlert}
-            {...generateTestId(Platform, REMOVE_HARDWARE_ACCOUNT)}
+            testID={AccountActionsModalSelectorsIDs.REMOVE_HARDWARE_ACCOUNT}
           />
         )}
       </View>
