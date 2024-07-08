@@ -24,9 +24,9 @@ import {
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
 
-interface Params {
-  to: string;
-}
+type Params = Record<string, unknown> & {
+  to?: string;
+};
 
 export interface PPOMRequest {
   method: string;
