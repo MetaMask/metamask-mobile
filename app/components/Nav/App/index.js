@@ -104,7 +104,7 @@ import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
-import Index from '../../Views/LedgerSelectAccount';
+import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
@@ -734,7 +734,7 @@ const App = ({ userLoggedIn }) => {
 
   const LedgerConnectFlow = () => (
     <Stack.Navigator initialRouteName={Routes.HW.LEDGER_CONNECT}>
-      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={Index} />
+      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={LedgerSelectAccount} />
     </Stack.Navigator>
   );
 
