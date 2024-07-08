@@ -307,7 +307,7 @@ exports[`QRAccountDisplay renders correctly 1`] = `
                     <RCTSafeAreaView
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "marginVertical": 32,
                         }
                       }
@@ -317,7 +317,7 @@ exports[`QRAccountDisplay renders correctly 1`] = `
                         style={
                           {
                             "alignSelf": "center",
-                            "color": "#24272A",
+                            "color": "#141618",
                             "fontFamily": "Euclid Circular B",
                             "fontSize": 16,
                             "fontWeight": "500",
@@ -333,7 +333,7 @@ exports[`QRAccountDisplay renders correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#24272A",
+                            "color": "#141618",
                             "fontFamily": "Euclid Circular B",
                             "fontSize": 14,
                             "fontWeight": "400",
@@ -349,7 +349,7 @@ exports[`QRAccountDisplay renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#BBC0C5",
+                              "color": "#9fa6ae",
                               "fontFamily": "Euclid Circular B",
                               "fontSize": 14,
                               "fontWeight": "400",
@@ -384,7 +384,7 @@ exports[`QRAccountDisplay renders correctly 1`] = `
                         variant="Link"
                       >
                         <SvgMock
-                          color="#0376C9"
+                          color="#0376c9"
                           height={16}
                           name="Copy"
                           style={
@@ -400,7 +400,7 @@ exports[`QRAccountDisplay renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#0376C9",
+                              "color": "#0376c9",
                               "fontFamily": "Euclid Circular B",
                               "fontSize": 14,
                               "fontWeight": "400",

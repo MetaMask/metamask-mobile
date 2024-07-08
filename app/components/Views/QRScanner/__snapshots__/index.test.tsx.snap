@@ -124,7 +124,7 @@ exports[`QrScanner should render correctly 1`] = `
                   }
                 }
               >
-                QRScanner
+                QRTabSwitcher
               </Text>
             </View>
           </View>
@@ -304,11 +304,15 @@ exports[`QrScanner should render correctly 1`] = `
                       }
                     }
                   >
-                    <View
+                    <RCTSafeAreaView
                       style={
                         {
                           "backgroundColor": "#000000",
-                          "flex": 1,
+                          "height": "100%",
+                          "left": 0,
+                          "position": "absolute",
+                          "top": 0,
+                          "width": "100%",
                         }
                       }
                     >
@@ -328,65 +332,13 @@ exports[`QrScanner should render correctly 1`] = `
                           style={
                             {
                               "backgroundColor": "rgba(242, 244, 246, 0.33)",
+                              "display": "flex",
                               "flex": 1,
                               "flexBasis": 0,
+                              "flexDirection": "column",
                             }
                           }
-                        >
-                          <TouchableOpacity
-                            onPress={[Function]}
-                            style={
-                              {
-                                "alignSelf": "flex-end",
-                                "color": "#FFFFFF",
-                                "marginRight": 20,
-                                "marginTop": 20,
-                                "position": "absolute",
-                                "width": 40,
-                              }
-                            }
-                          >
-                            <Text
-                              allowFontScaling={false}
-                              style={
-                                [
-                                  {
-                                    "color": "#FFFFFF",
-                                    "fontSize": 50,
-                                  },
-                                  undefined,
-                                  {
-                                    "fontFamily": "Ionicons",
-                                    "fontStyle": "normal",
-                                    "fontWeight": "normal",
-                                  },
-                                  {},
-                                ]
-                              }
-                            >
-                              
-                            </Text>
-                          </TouchableOpacity>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "rgba(20, 22, 24, 1.0)",
-                                "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 16,
-                                "fontWeight": "500",
-                                "height": "100%",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                                "paddingBottom": 28,
-                                "textAlign": "center",
-                                "textAlignVertical": "bottom",
-                              }
-                            }
-                          >
-                            Scan a QR code
-                          </Text>
-                        </View>
+                        />
                         <View
                           style={
                             {
@@ -395,12 +347,35 @@ exports[`QrScanner should render correctly 1`] = `
                             }
                           }
                         >
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#ffffff",
+                                "fontFamily": "Euclid Circular B",
+                                "fontSize": 14,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                                "paddingBottom": 28,
+                                "position": "absolute",
+                                "textAlign": "center",
+                                "textAlignVertical": "bottom",
+                                "top": -40,
+                                "width": "100%",
+                              }
+                            }
+                          >
+                            Scan a QR code
+                          </Text>
                           <View
                             style={
                               {
                                 "backgroundColor": "rgba(242, 244, 246, 0.33)",
+                                "display": "flex",
                                 "flex": 1,
                                 "flexBasis": 0,
+                                "flexDirection": "column",
                               }
                             }
                           />
@@ -426,8 +401,10 @@ exports[`QrScanner should render correctly 1`] = `
                             style={
                               {
                                 "backgroundColor": "rgba(242, 244, 246, 0.33)",
+                                "display": "flex",
                                 "flex": 1,
                                 "flexBasis": 0,
+                                "flexDirection": "column",
                               }
                             }
                           />
@@ -436,13 +413,15 @@ exports[`QrScanner should render correctly 1`] = `
                           style={
                             {
                               "backgroundColor": "rgba(242, 244, 246, 0.33)",
+                              "display": "flex",
                               "flex": 1,
                               "flexBasis": 0,
+                              "flexDirection": "column",
                             }
                           }
                         />
                       </RCTSafeAreaView>
-                    </View>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>
