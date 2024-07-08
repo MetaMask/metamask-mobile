@@ -1,26 +1,12 @@
 import ReceiveRequest from './';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import { renderScreen } from '../../../util/test/renderWithProvider';
-import { cloneDeep } from 'lodash';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-        identities: {
-          address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-          name: 'Account 1',
-        },
-      },
-      NetworkController: {
-        providerConfig: {
-          type: 'mainnet',
-          chainId: '0x1',
-          ticker: 'ETH',
-        },
-      },
+      ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
   fiatOrders: {

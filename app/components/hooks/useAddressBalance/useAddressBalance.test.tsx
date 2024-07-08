@@ -6,9 +6,8 @@ import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import { Asset } from './useAddressBalance.types';
 import useAddressBalance from './useAddressBalance';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import backgroundState from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
 
@@ -22,7 +21,7 @@ const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {

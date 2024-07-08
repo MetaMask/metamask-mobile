@@ -1,11 +1,11 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import QrScanner from './';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 

@@ -3,13 +3,13 @@ import Device from '../../../util/device';
 import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks';
+import { Colors } from '../../../util/theme/models';
+
 /**
  * Style sheet function for NetworkSelector screen.
  * @returns StyleSheet object.
  */
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     addNetworkButton: {
       marginHorizontal: 16,
@@ -19,9 +19,47 @@ const createStyles = (colors: any) =>
         ? 12
         : 0,
     },
+    networkMenu: {
+      alignItems: 'center',
+    },
+    containerDeleteText: {
+      paddingLeft: 16,
+      paddingRight: 8,
+      alignItems: 'center',
+    },
+    textCentred: {
+      textAlign: 'center',
+    },
+    buttonWrapper: {
+      flexDirection: 'row',
+      flex: 1,
+      width: '80%',
+    },
+    button: {
+      width: '100%',
+    },
+    container: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      backgroundColor: colors.background.default,
+    },
+    item: {
+      paddingLeft: 8,
+    },
+    buttonMenu: {
+      backgroundColor: colors.background.alternative,
+    },
     switchContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      alignItems: 'center',
+      marginVertical: 16,
+      marginHorizontal: 16,
+    },
+    popularNetworkTitleContainer: {
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
       alignItems: 'center',
       marginVertical: 16,
       marginHorizontal: 16,
@@ -96,6 +134,23 @@ const createStyles = (colors: any) =>
       color: colors.text.default,
       fontSize: 10,
       marginTop: 4,
+    },
+    searchContainer: {
+      marginLeft: 16,
+      marginRight: 16,
+      marginBottom: 8,
+    },
+    gasInfoContainer: {
+      paddingHorizontal: 4,
+    },
+    gasInfoIcon: {
+      color: colors.icon.alternative,
+    },
+    hitSlop: {
+      top: 10,
+      left: 10,
+      bottom: 10,
+      right: 10,
     },
   });
 

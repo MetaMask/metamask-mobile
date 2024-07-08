@@ -45,6 +45,8 @@ android/app/google-services.json
 node_modules/
 npm-debug.log
 yarn-error.log
+.yalc
+yalc.lock
 
 # buck
 buck-out/
@@ -113,3 +115,6 @@ app/lib/ppom/ppom.html.js
 
 # ccache
 ccache
+
+# open-rpc/test-coverage
+html-report/

@@ -8,7 +8,7 @@ import {
   Linking,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
-import { connect, useSelector } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
@@ -43,8 +43,8 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
+  isMainNet,
 } from '../../../util/networks';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
   selectTicker,
@@ -54,7 +54,11 @@ import {
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
 import { selectTokens } from '../../../selectors/tokensController';
-import { useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
 import { WalletAccount } from '../../../components/UI/WalletAccount';
 import {
   selectConversionRate,
@@ -70,6 +74,14 @@ import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
+import { selectUseNftDetection } from '../../../selectors/preferencesController';
+import { setNftAutoDetectionModalOpen } from '../../../actions/security';
+import {
+  hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
+  showNftFetchingLoadingIndicator as showNftFetchingLoadingIndicatorAction,
+} from '../../../reducers/collectibles';
+import { getCurrentRoute } from '../../../reducers/navigation';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -110,6 +122,16 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
   });
 
+interface WalletProps {
+  navigation: NavigationProp<ParamListBase>;
+  storePrivacyPolicyShownDate: () => void;
+  shouldShowNewPrivacyToast: boolean;
+  currentRouteName: string;
+  storePrivacyPolicyClickedOrClosed: () => void;
+  showNftFetchingLoadingIndicator: () => void;
+  hideNftFetchingLoadingIndicator: () => void;
+}
+
 /**
  * Main view for the wallet
  */
@@ -117,10 +139,11 @@ const Wallet = ({
   navigation,
   storePrivacyPolicyShownDate,
   shouldShowNewPrivacyToast,
+  currentRouteName,
   storePrivacyPolicyClickedOrClosed,
-}: // TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-any) => {
+  showNftFetchingLoadingIndicator,
+  hideNftFetchingLoadingIndicator,
+}: WalletProps) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
@@ -128,6 +151,7 @@ any) => {
   const { trackEvent } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
+  const dispatch = useDispatch();
 
   /**
    * Object containing the balance of the current selected account
@@ -254,6 +278,10 @@ any) => {
   const networkName = useSelector(selectNetworkName);
 
   const networkImageSource = useSelector(selectNetworkImageSource);
+  const useNftDetection = useSelector(selectUseNftDetection);
+  const isNFTAutoDetectionModalViewed = useSelector(
+    (state: RootState) => state.security.isNFTAutoDetectionModalViewed,
+  );
 
   /**
    * Callback to trigger when pressing the navigation title.
@@ -266,6 +294,31 @@ any) => {
       chain_id: getDecimalChainId(providerConfig.chainId),
     });
   }, [navigate, providerConfig.chainId, trackEvent]);
+
+  const checkNftAutoDetectionModal = useCallback(() => {
+    const isOnMainnet = isMainNet(providerConfig.chainId);
+    if (!useNftDetection && isOnMainnet && !isNFTAutoDetectionModalViewed) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.NFT_AUTO_DETECTION_MODAL,
+      });
+      dispatch(setNftAutoDetectionModalOpen(true));
+    }
+  }, [
+    dispatch,
+    isNFTAutoDetectionModalViewed,
+    navigation,
+    providerConfig.chainId,
+    useNftDetection,
+  ]);
+
+  useEffect(() => {
+    if (
+      currentRouteName === 'Wallet' ||
+      currentRouteName === 'SecuritySettings'
+    ) {
+      checkNftAutoDetectionModal();
+    }
+  });
 
   /**
    * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
@@ -331,20 +384,15 @@ any) => {
     providerConfig.rpcUrl,
     networkOnboardingState,
     prevChainId,
+    checkNftAutoDetectionModal,
   ]);
 
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const {
-          TokenDetectionController,
-          NftDetectionController,
-          AccountTrackerController,
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } = Engine.context as any;
+        const { TokenDetectionController, AccountTrackerController } =
+          Engine.context;
         TokenDetectionController.detectTokens();
-        NftDetectionController.detectNfts();
         AccountTrackerController.refresh();
       });
     },
@@ -393,14 +441,26 @@ any) => {
   );
 
   const onChangeTab = useCallback(
-    (obj) => {
+    async (obj) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(MetaMetricsEvents.WALLET_TOKENS);
       } else {
         trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
+        // Call detect nfts
+        const { NftDetectionController } = Engine.context;
+        try {
+          showNftFetchingLoadingIndicator();
+          await NftDetectionController.detectNfts();
+        } finally {
+          hideNftFetchingLoadingIndicator();
+        }
       }
     },
-    [trackEvent],
+    [
+      trackEvent,
+      hideNftFetchingLoadingIndicator,
+      showNftFetchingLoadingIndicator,
+    ],
   );
 
   const turnOnBasicFunctionality = useCallback(() => {
@@ -442,7 +502,10 @@ any) => {
       assets = tokens;
     }
     return (
-      <View style={styles.wrapper}>
+      <View
+        style={styles.wrapper}
+        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+      >
         {!basicFunctionalityEnabled ? (
           <View style={styles.banner}>
             <BannerAlert
@@ -525,7 +588,7 @@ any) => {
 
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
-      <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
+      <View style={baseStyles.flexGrow}>
         {selectedAddress ? renderContent() : renderLoader()}
 
         {renderOnboardingWizard()}
@@ -538,6 +601,7 @@ any) => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
+  currentRouteName: getCurrentRoute(state),
 });
 
 // TODO: Replace "any" with type
@@ -547,6 +611,10 @@ const mapDispatchToProps = (dispatch: any) => ({
     dispatch(storePrivacyPolicyShownDateAction(Date.now())),
   storePrivacyPolicyClickedOrClosed: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
+  showNftFetchingLoadingIndicator: () =>
+    dispatch(showNftFetchingLoadingIndicatorAction()),
+  hideNftFetchingLoadingIndicator: () =>
+    dispatch(hideNftFetchingLoadingIndicatorAction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Wallet);

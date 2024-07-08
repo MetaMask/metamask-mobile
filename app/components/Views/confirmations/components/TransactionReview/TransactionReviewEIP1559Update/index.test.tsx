@@ -4,13 +4,13 @@ import renderWithProvider, {
   renderHookWithProvider,
 } from '../../../../../../util/test/renderWithProvider';
 import TransactionReviewEIP1559 from '.';
-import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 const initialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0x0': {
