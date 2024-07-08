@@ -2,7 +2,7 @@ import { merge } from 'lodash';
 import type { GasFeeState } from '@metamask/gas-fee-controller';
 import useGasPriceEstimation from './useGasPriceEstimation';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import Engine from '../../../../core/Engine';
 
 type DeepPartial<BaseType> = {
@@ -23,7 +23,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 const mockInitialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 

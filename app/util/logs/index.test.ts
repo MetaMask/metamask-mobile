@@ -1,5 +1,5 @@
 import { generateStateLogs } from '.';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { backgroundState } from '../../util/test/initial-root-state';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -16,7 +16,7 @@ describe('logs :: generateStateLogs', () => {
     const mockStateInput = {
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           KeyringController: {
             vault: 'vault mock',
           },
@@ -40,7 +40,7 @@ describe('logs :: generateStateLogs', () => {
       buildNumber: '123',
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           KeyringController: {
             vault: 'vault mock',
           },

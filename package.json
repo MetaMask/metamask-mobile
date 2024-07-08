@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.24.4",
+  "version": "7.26.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -137,7 +137,7 @@
     "socket.io-client/engine.io-client/ws": "^8.17.1"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.27.1",
+    "@consensys/on-ramp-sdk": "1.28.1",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/tx": "^3.2.1",
     "@ethersproject/abi": "^5.7.0",

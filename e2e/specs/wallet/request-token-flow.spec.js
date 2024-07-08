@@ -14,7 +14,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import TestHelpers from '../../helpers';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
@@ -45,7 +45,7 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
 
   it('should request asset from Action button', async () => {
     await loginToApp();
-    await WalletView.isVisible();
+    await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapReceiveButton();
     await RequestPaymentModal.tapRequestPaymentButton();

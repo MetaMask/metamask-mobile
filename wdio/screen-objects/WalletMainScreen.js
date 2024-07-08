@@ -1,24 +1,13 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
 import { ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID } from './testIDs/Components/OnboardingWizard.testIds';
-import {
-  IMPORT_NFT_BUTTON_ID,
-  IMPORT_TOKEN_BUTTON_ID,
-  MAIN_WALLET_ACCOUNT_ACTIONS,
-  NAVBAR_NETWORK_BUTTON,
-  NAVBAR_NETWORK_TEXT,
-  NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
-  SECURE_WALLET_BACKUP_ALERT_MODAL,
-  SHARE_ADDRESS,
-  SHOW_PRIVATE_KEY,
-  VIEW_ETHERSCAN,
-  WALLET_ACCOUNT_ICON,
-} from './testIDs/Screens/WalletView.testIds';
+import { ProtectWalletModalSelectorsIDs } from '../../e2e/selectors/Modals/ProtectWalletModal.selectors';
+import { AccountActionsModalSelectorsIDs } from '../../e2e/selectors/Modals/AccountActionsModal.selectors';
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 import { TabBarSelectorIDs } from '../../e2e/selectors/TabBar.selectors';
 
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
-import { WalletViewSelectorsIDs } from "../../e2e/selectors/wallet/WalletView.selectors.js";
+import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors.js';
 
 class WalletMainScreen {
   get noThanks() {
@@ -28,19 +17,19 @@ class WalletMainScreen {
   }
 
   get ImportToken() {
-    return Selectors.getElementByPlatform(IMPORT_TOKEN_BUTTON_ID);
+    return Selectors.getElementByPlatform(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
   }
 
   get ImportNFT() {
-    return Selectors.getElementByPlatform(IMPORT_NFT_BUTTON_ID);
+    return Selectors.getElementByPlatform(WalletViewSelectorsIDs.IMPORT_NFT_BUTTON);
   }
 
   get TokenNotificationTitle() {
     return Selectors.getElementByPlatform(NOTIFICATION_TITLE);
   }
 
-  get Identicon() {
-    return Selectors.getXpathElementByResourceId(WALLET_ACCOUNT_ICON);
+  get accountIcon() {
+    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ICON);
   }
 
   get WalletScreenContainer() {
@@ -48,37 +37,37 @@ class WalletMainScreen {
   }
 
   get networkInNavBar() {
-    return Selectors.getXpathElementByResourceId(NAVBAR_NETWORK_BUTTON);
+    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
   }
 
   get remindMeLaterNotification() {
     return Selectors.getElementByPlatform(
-      NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+      ProtectWalletModalSelectorsIDs.REMIND_ME_LATER_BUTTON,
     );
   }
 
   get backupAlertModal() {
-    return Selectors.getElementByPlatform(SECURE_WALLET_BACKUP_ALERT_MODAL);
+    return Selectors.getElementByPlatform(ProtectWalletModalSelectorsIDs.COLLAPSED_WALLET_MODAL);
   }
 
   get networkNavbarTitle() {
-    return Selectors.getXpathElementByResourceId(NAVBAR_NETWORK_TEXT);
+    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT);
   }
 
   get accountActionsButton() {
-    return Selectors.getXpathElementByResourceId(MAIN_WALLET_ACCOUNT_ACTIONS);
+    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
   }
 
   get privateKeyActionButton() {
-    return Selectors.getElementByPlatform(SHOW_PRIVATE_KEY);
+    return Selectors.getElementByPlatform(AccountActionsModalSelectorsIDs.SHOW_PRIVATE_KEY);
   }
 
   get shareAddressActionButton() {
-    return Selectors.getElementByPlatform(SHARE_ADDRESS);
+    return Selectors.getElementByPlatform(AccountActionsModalSelectorsIDs.SHARE_ADDRESS);
   }
 
   get viewEtherscanActionButton() {
-    return Selectors.getElementByPlatform(VIEW_ETHERSCAN);
+    return Selectors.getElementByPlatform(AccountActionsModalSelectorsIDs.VIEW_ETHERSCAN);
   }
 
   get walletButton() {
@@ -122,7 +111,7 @@ class WalletMainScreen {
   }
 
   async tapIdenticon() {
-    await Gestures.waitAndTap(this.Identicon);
+    await Gestures.waitAndTap(this.accountIcon);
   }
 
   async tapNetworkNavBar() {

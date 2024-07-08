@@ -10,6 +10,12 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import AccountActions from './AccountActions';
+import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AccountActionsModal.selectors';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import {
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+  MOCK_ADDRESS_2,
+} from '../../../util/test/accountsControllerTestUtils';
 import {
   EDIT_ACCOUNT,
   REMOVE_HARDWARE_ACCOUNT,
@@ -19,6 +25,7 @@ import {
 } from './AccountActions.constants';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { strings } from '../../../../locales/i18n';
 import { act } from '@testing-library/react-hooks';
@@ -27,7 +34,7 @@ const initialState = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
@@ -110,10 +117,18 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    expect(getByTestId(EDIT_ACCOUNT)).toBeDefined();
-    expect(getByTestId(VIEW_ETHERSCAN)).toBeDefined();
-    expect(getByTestId(SHARE_ADDRESS)).toBeDefined();
-    expect(getByTestId(SHOW_PRIVATE_KEY)).toBeDefined();
+    expect(
+      getByTestId(AccountActionsModalSelectorsIDs.EDIT_ACCOUNT),
+    ).toBeDefined();
+    expect(
+      getByTestId(AccountActionsModalSelectorsIDs.VIEW_ETHERSCAN),
+    ).toBeDefined();
+    expect(
+      getByTestId(AccountActionsModalSelectorsIDs.SHARE_ADDRESS),
+    ).toBeDefined();
+    expect(
+      getByTestId(AccountActionsModalSelectorsIDs.SHOW_PRIVATE_KEY),
+    ).toBeDefined();
   });
 
   it('navigates to webview when View on Etherscan is clicked', () => {
@@ -121,7 +136,9 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(getByTestId(VIEW_ETHERSCAN));
+    fireEvent.press(
+      getByTestId(AccountActionsModalSelectorsIDs.VIEW_ETHERSCAN),
+    );
 
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
@@ -137,7 +154,7 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(getByTestId(SHARE_ADDRESS));
+    fireEvent.press(getByTestId(AccountActionsModalSelectorsIDs.SHARE_ADDRESS));
 
     expect(Share.open).toHaveBeenCalledWith({
       message: toChecksumHexAddress(
@@ -151,7 +168,9 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(getByTestId(SHOW_PRIVATE_KEY));
+    fireEvent.press(
+      getByTestId(AccountActionsModalSelectorsIDs.SHOW_PRIVATE_KEY),
+    );
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
