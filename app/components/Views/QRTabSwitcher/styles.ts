@@ -38,7 +38,7 @@ const createStyles = (theme: Theme) =>
       top: 90,
       width: 300,
       height: 40,
-      backgroundColor: '#F2F4F6',
+      backgroundColor: theme.brandColors.grey050,
     },
     segmentedControlItem: {
       flex: 1,

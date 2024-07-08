@@ -2085,7 +2085,7 @@
     "coming_soon": "Coming soon...",
     "request_payment": "Request Payment",
     "copy": "Copy",
-    "copy_address": "Copy address",
+    "copy_address": "Copy address"
   },
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnect Sessions",

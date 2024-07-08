@@ -23,9 +23,12 @@ export enum Screens {
   Receive,
 }
 export interface QRTabSwitcherParams {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onScanSuccess: (data: any, content?: string) => void;
-  onScanError?: (error: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onStartScan?: (data: any) => Promise<void>;
+  onScanError?: (error: string) => void;
   initialScreen?: Screens;
   disableTabber?: boolean;
   origin?: string;

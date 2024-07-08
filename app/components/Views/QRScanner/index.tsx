@@ -17,7 +17,6 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { RNCamera } from 'react-native-camera';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -47,11 +46,12 @@ const QRScanner = ({
   onStartScan,
   origin,
 }: {
-  onScanSuccess: (data: any, content?: string) => void;
-  onScanError?: (error: string) => void;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onScanSuccess: (data: any, content?: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onStartScan?: (data: any) => Promise<void>;
+  onScanError?: (error: string) => void;
   origin?: string;
 }) => {
   const navigation = useNavigation();
@@ -286,7 +286,7 @@ const QRScanner = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* <RNCamera
+      <RNCamera
         onMountError={onError}
         captureAudio={false}
         style={styles.preview}
@@ -300,7 +300,7 @@ const QRScanner = ({
           buttonNegative: strings('qr_scanner.cancel'),
         }}
         onStatusChange={onStatusChange}
-      /> */}
+      />
       <SafeAreaView style={styles.overlayContainerColumn}>
         <View style={styles.overlay} />
 

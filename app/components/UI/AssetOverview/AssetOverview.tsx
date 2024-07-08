@@ -50,12 +50,7 @@ import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { Screens } from '../../../components/Views/QRTabSwitcher';
-
-const trackEvent = (event, params = {}) => {
-  MetaMetrics.getInstance().trackEvent(event, params);
-};
 
 interface AssetOverviewProps {
   navigation: {
