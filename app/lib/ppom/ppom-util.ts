@@ -24,9 +24,13 @@ import {
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
 
+interface Params {
+  to: string;
+}
+
 export interface PPOMRequest {
   method: string;
-  params: unknown[];
+  params: Params[];
   origin?: string;
 }
 
@@ -61,6 +65,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
     PPOMController: ppomController,
     PreferencesController,
     NetworkController,
+    AccountsController,
   } = Engine.context;
 
   const chainId = NetworkController.state.providerConfig.chainId;
@@ -78,6 +83,20 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
     !isSupportedChain
   ) {
     return;
+  }
+
+  if (req.method === 'eth_sendTransaction') {
+    const internalAccounts = AccountsController.listAccounts();
+    const { to: toAddress } = req?.params?.[0] ?? {};
+
+    if (
+      internalAccounts.some(
+        ({ address }: { address: string }) =>
+          address?.toLowerCase() === toAddress?.toLowerCase(),
+      )
+    ) {
+      return;
+    }
   }
 
   const isTransaction = isTransactionRequest(req);

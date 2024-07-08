@@ -33,6 +33,12 @@ jest.mock('../../core/Engine', () => ({
         providerConfig: { chainId: CHAIN_ID_MOCK },
       },
     },
+    AccountsController: {
+      state: {
+        internalAccounts: { accounts: [] },
+      },
+      listAccounts: () => [],
+    },
   },
 }));
 
@@ -108,6 +114,22 @@ describe('PPOM Utils', () => {
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
       expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
       expect(spyTransactionAction).toBeCalledTimes(0);
+    });
+
+    it('should not validate if request is send to users own account ', async () => {
+      const spyTransactionAction = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      MockEngine.context.PreferencesController.state.securityAlertsEnabled =
+        false;
+      MockEngine.context.AccountsController.listAccounts = () => [
+        { address: '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb' },
+      ];
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
+      expect(spyTransactionAction).toBeCalledTimes(0);
+      MockEngine.context.AccountsController.listAccounts = () => [];
     });
 
     it('should not validate user if on a non supporting blockaid network', async () => {
