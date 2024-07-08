@@ -1872,7 +1872,7 @@
   dependencies:
     "@ethereumjs/util" "^9.0.3"
 
-"@ethereumjs/rlp@^4.0.1":
+"@ethereumjs/rlp@^4.0.0", "@ethereumjs/rlp@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-4.0.1.tgz#626fabfd9081baab3d0a3074b0c7ecaf674aaa41"
   integrity sha512-tqsQiBQDQdmPWE1xkkBq4rlSW5QZpLOUJ5RJh2/9fug+q9tnUhuZoVLk7s0scUIKTOzEtR72DFBXI4WiZcMpvw==
