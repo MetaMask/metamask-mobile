@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import ReceiveRequest from './';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
