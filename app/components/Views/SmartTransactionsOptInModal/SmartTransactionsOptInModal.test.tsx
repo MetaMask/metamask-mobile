@@ -3,7 +3,7 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import SmartTransactionsOptInModal from './SmartTranactionsOptInModal';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
@@ -47,7 +47,7 @@ jest.mock('../../../core/redux/slices/smartTransactions', () => ({
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 
