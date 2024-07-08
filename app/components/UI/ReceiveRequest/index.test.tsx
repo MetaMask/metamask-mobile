@@ -22,6 +22,11 @@ const initialState = {
   },
 };
 
+jest.mock('../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../util/address'),
+  renderAccountName: jest.fn(),
+}));
+
 describe('ReceiveRequest', () => {
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
