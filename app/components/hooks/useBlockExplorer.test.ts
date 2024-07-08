@@ -2,7 +2,7 @@ import { NetworkController } from '@metamask/network-controller';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../constants/navigation/Routes';
 import { LINEA_GOERLI, RPC } from '../../../app/constants/network';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { backgroundState } from '../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import useBlockExplorer from './useBlockExplorer';
 
@@ -10,7 +10,7 @@ const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
         providerConfig: {
           type: LINEA_GOERLI,
@@ -62,7 +62,7 @@ describe('useBlockExplorer', () => {
         settings: {},
         engine: {
           backgroundState: {
-            ...initialBackgroundState,
+            ...backgroundState,
             NetworkController: {
               providerConfig: {
                 type: RPC,

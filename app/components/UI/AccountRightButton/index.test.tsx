@@ -1,12 +1,12 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import AccountRightButton from './';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
         providerConfig: {
           chainId: 0x1,

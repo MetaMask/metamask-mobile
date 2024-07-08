@@ -1,12 +1,12 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import SearchTokenAutocomplete from './';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       PreferencesController: {
         useTokenDetection: true,
       },
