@@ -16,7 +16,7 @@ const AllProperties = Symbol('*');
 // This describes the subset of background controller state attached to errors
 // sent to Sentry These properties have some potential to be useful for
 // debugging, and they do not contain any identifiable information.
-export const SENTRY_STATE = {
+export const sentryStateMask = {
   accounts: true,
   alert: true,
   bookmarks: true,
@@ -410,7 +410,7 @@ function rewriteReport(report) {
     removeDeviceName(report);
 
     const appState = store?.getState();
-    const maskedState = maskObject(appState, SENTRY_STATE);
+    const maskedState = maskObject(appState, sentryStateMask);
     report.contexts.appState = maskedState || {};
   } catch (err) {
     console.error('ENTER ERROR OF REPORT ', err);

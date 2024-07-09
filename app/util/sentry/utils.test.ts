@@ -5,7 +5,7 @@ import {
   excludeEvents,
   captureSentryFeedback,
   maskObject,
-  SENTRY_STATE,
+  sentryStateMask,
 } from './utils';
 
 jest.mock('@sentry/react-native', () => ({
@@ -479,7 +479,7 @@ describe('captureSentryFeedback', () => {
     };
 
     it('masks initial root state fixture', () => {
-      const maskedState = maskObject(rootState, SENTRY_STATE);
+      const maskedState = maskObject(rootState, sentryStateMask);
 
       expect(maskedState).toMatchSnapshot();
     });
