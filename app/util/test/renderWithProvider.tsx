@@ -13,8 +13,12 @@ import { Theme } from '../theme/models';
 import configureStore from './configureStore';
 import { RootState } from '../../reducers';
 
+export type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
+};
+
 interface ProviderValues {
-  state?: RootState;
+  state?: DeepPartial<RootState>;
   theme?: Theme;
 }
 
