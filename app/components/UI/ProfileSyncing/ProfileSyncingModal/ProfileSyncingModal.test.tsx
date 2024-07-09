@@ -19,6 +19,24 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+const MOCK_STORE_STATE = {
+  engine: {
+    backgroundState: {
+      NotificationServicesController: {
+        isNotificationServicesEnabled: true,
+      },
+      UserStorageController: {
+        isProfileSyncingEnabled: true,
+      },
+    },
+  },
+};
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (fn: (state: unknown) => unknown) => fn(MOCK_STORE_STATE),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -38,6 +56,8 @@ jest.mock('@react-navigation/native', () => {
 describe('ProfileSyncingModal', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
       <ProfileSyncingModal navigation={useNavigation()} />,
     );
     expect(toJSON()).toMatchSnapshot();
