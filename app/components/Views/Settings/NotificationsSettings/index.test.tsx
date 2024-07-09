@@ -2,7 +2,7 @@ import React from 'react';
 
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import NotificationsSettings from '.';
 import { Props } from './NotificationsSettings.types';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
@@ -16,7 +16,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },

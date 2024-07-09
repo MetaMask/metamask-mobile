@@ -1,12 +1,7 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": [],
-    "vault": {
-      "cipher": "mock-cipher",
-      "iv": "mock-iv",
-      "lib": "original"
-    }
+    "keyrings": []
   },
   "LoggingController": {
     "logs": {}
@@ -136,7 +131,28 @@
   },
   "SmartTransactionsController": {
     "smartTransactionsState": {
-      "liveness": true
+      "smartTransactions": {},
+      "userOptIn": false,
+      "userOptInV2": false,
+      "fees": {
+        "approvalTxFees": false,
+        "tradeTxFees": false
+      },
+      "liveness": true,
+      "livenessByChainId": {
+        "mainnet": true,
+        "sepolia": true
+      },
+      "feesByChainId": {
+        "mainnet": {
+          "approvalTxFees": false,
+          "tradeTxFees": false
+        },
+        "sepolia": {
+          "approvalTxFees": false,
+          "tradeTxFees": false
+        }
+      }
     }
   },
   "SnapController": {

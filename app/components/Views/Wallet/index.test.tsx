@@ -8,8 +8,10 @@ import { screen } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 const mockEngine = Engine;
 
@@ -88,7 +90,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountsController: {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
@@ -142,7 +144,9 @@ describe('Wallet', () => {
   });
   it('should render scan qr icon', () => {
     render(Wallet);
-    const scanButton = screen.getByTestId('wallet-scan-button');
+    const scanButton = screen.getByTestId(
+      WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
+    );
     expect(scanButton).toBeDefined();
   });
   it('should render ScrollableTabView', () => {
@@ -151,7 +155,7 @@ describe('Wallet', () => {
   });
   it('should render fox icon', () => {
     render(Wallet);
-    const foxIcon = screen.getByTestId('fox-icon');
+    const foxIcon = screen.getByTestId(CommonSelectorsIDs.FOX_ICON);
     expect(foxIcon).toBeDefined();
   });
 });

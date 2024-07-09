@@ -3,7 +3,7 @@ import { processFiatOrder } from '../../index';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import OrderDetails from './OrderDetails';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -141,7 +141,7 @@ function render(Component: React.ComponentType, orders = [mockOrder]) {
       state: {
         engine: {
           backgroundState: {
-            ...initialBackgroundState,
+            ...backgroundState,
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           },
         },

@@ -45,7 +45,6 @@ import {
   getIsNetworkOnboarded,
   isMainNet,
 } from '../../../util/networks';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
   selectTicker,
@@ -588,7 +587,7 @@ const Wallet = ({
 
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
-      <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
+      <View style={baseStyles.flexGrow}>
         {selectedAddress ? renderContent() : renderLoader()}
 
         {renderOnboardingWizard()}

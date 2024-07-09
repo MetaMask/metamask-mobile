@@ -94,6 +94,7 @@ export const getNotificationsList = createDeepEqualSelector(
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.metamaskNotificationsList,
 );
+
 export const getMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
