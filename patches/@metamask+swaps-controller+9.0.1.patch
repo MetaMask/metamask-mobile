@@ -1,0 +1,37 @@
+diff --git a/node_modules/@metamask/swaps-controller/dist/swapsUtil.js b/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
+index 8ef3cc4..56a6010 100644
+--- a/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
++++ b/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
+@@ -525,10 +525,24 @@ exports.calcTokenAmount = calcTokenAmount;
+ async function estimateGas(transaction, ethQuery) {
+     const estimatedTransaction = { ...transaction };
+     const { value, data } = estimatedTransaction;
++
+     const { gasLimit } = await (0, controller_utils_1.query)(ethQuery, 'getBlockByNumber', [
+         'latest',
+         false,
+     ]);
++    const balance = await (0, controller_utils_1.query)(ethQuery, 'getBalance', [transaction.from]);
++    const gasPrice = await (0, controller_utils_1.query)(ethQuery, 'gasPrice');
++
++    const balanceBN = BigInt(balance);
++    const gasPriceBN = BigInt(gasPrice);
++    const valueBN = BigInt(transaction.value || '0');
++    const estimatedGasLimitBN = BigInt(transaction.gasLimit || '21000'); // Default gas limit
++    const totalCostBN = valueBN + gasPriceBN * estimatedGasLimitBN;
++
++    if (balanceBN < totalCostBN) {
++        throw new Error('Insufficient funds for gas * price + value');
++    }
++    
+     estimatedTransaction.data = !data
+         ? data
+         : /* istanbul ignore next */ (0, utils_1.add0x)(data);
+@@ -539,6 +553,7 @@ async function estimateGas(transaction, ethQuery) {
+     return { blockGasLimit: gasLimit, gas: (0, utils_1.add0x)(gasHex) };
+ }
+ exports.estimateGas = estimateGas;
++
+ /**
+  * Given the standard set of information about a transaction, returns a transaction properly formatted for
+  * publishing via JSON RPC and web3.
