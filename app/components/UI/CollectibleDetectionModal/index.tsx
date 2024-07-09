@@ -4,7 +4,6 @@ import { strings } from '../../../../locales/i18n';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import { BannerVariant } from '../../../component-library/components/Banners/Banner';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 import {
   ToastContext,
   ToastVariants,
@@ -64,7 +63,6 @@ const CollectibleDetectionModal = () => {
           variant: ButtonVariants.Link,
           label: strings('wallet.nfts_autodetect_cta'),
           onPress: showToastAndEnableNFtDetection,
-          textVariant: TextVariant.BodyMD,
         }}
       />
     </View>
