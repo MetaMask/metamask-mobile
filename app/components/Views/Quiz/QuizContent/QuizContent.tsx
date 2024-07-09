@@ -49,6 +49,7 @@ const QuizContent = ({
         <Text
           variant={TextVariant.HeadingLG}
           style={{ ...styles.title, ...title.style }}
+          testID={title.testID}
         >
           {title.content}
         </Text>

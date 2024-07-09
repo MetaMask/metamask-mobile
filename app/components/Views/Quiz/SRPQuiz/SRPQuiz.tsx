@@ -179,6 +179,8 @@ const SRPQuiz = () => {
         title={{
           content: strings('srp_security_quiz.question_one.wrong_answer_title'),
           style: styles.wrongText,
+          testID:
+            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_one.wrong_answer_description',

@@ -17,6 +17,7 @@ export interface IQuizInformationProps {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     style?: any;
+    testID?: string;
   };
   buttons: {
     onPress: () => void;

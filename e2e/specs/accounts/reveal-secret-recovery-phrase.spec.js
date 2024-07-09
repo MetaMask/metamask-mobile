@@ -8,7 +8,7 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.js';
-import RevealSeedViewSelectorsIDs from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
+import { RevealSeedViewSelectorsIDs } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
 
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -19,6 +19,9 @@ import {
 
 describe(SmokeAccounts('reveal secret recovery phrase'), () => {
   it('completes quiz after wrong answers', async () => {
+    const wrongQuestionOneTitle =
+      'Wrong! No one can help get your Secret Recovery Phrase back';
+
     await withFixtures(
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
@@ -35,6 +38,10 @@ describe(SmokeAccounts('reveal secret recovery phrase'), () => {
         await SecurityAndPrivacy.tapRevealSecretRecoveryPhraseButton();
         await RevealSecretRecoveryPhrase.tapGetStarted();
         await RevealSecretRecoveryPhrase.tapQuestionOneWrongAnswer();
+        await TestHelpers.checkIfHasText(
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_TITLE,
+          wrongQuestionOneTitle,
+        );
       },
     );
   });

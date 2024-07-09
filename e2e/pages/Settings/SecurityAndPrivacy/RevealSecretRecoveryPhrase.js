@@ -27,9 +27,9 @@ class RevealSecretRecoveryPhrase {
     );
   }
 
-  get questionOneContainer() {
+  get questionOneWrongTitle() {
     return Matchers.getElementByID(
-      RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_CONTAINER_ID,
+      RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_TITLE,
     );
   }
 

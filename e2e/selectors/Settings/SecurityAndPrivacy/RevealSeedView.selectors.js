@@ -7,10 +7,10 @@ export const RevealSeedViewSelectorsIDs = {
   // SECRET_RECOVERY_PHRASE_QUIZ_LEARN_MORE_BUTTON_ID:
   //   'security-quiz-learn-more-button',
 
-  SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_CONTAINER_ID:
-    'security-quiz-question-one-container',
   SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_ANSWER_ID:
     'security-quiz-question-one-wrong-answer',
+  SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_TITLE:
+    'security-quiz-question-one-wrong-title',
   // SECRET_RECOVERY_PHRASE_QUIZ_RESPONSE_ONE_WRONG_CONTAINER_ID:
   //   'security-quiz-question-one-wrong-answer-response-container',
   // SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_ANSWER_TRY_AGAIN_ID:
