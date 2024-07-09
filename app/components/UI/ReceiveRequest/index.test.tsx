@@ -22,8 +22,8 @@ const initialState = {
   },
 };
 
-jest.mock('../../../../../util/address', () => ({
-  ...jest.requireActual('../../../../../util/address'),
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
   renderAccountName: jest.fn(),
 }));
 
