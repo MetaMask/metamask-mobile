@@ -53,7 +53,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   collectibles: any;
-  engine: { backgroundState: EngineState | Record<string, never> };
+  engine: { backgroundState: EngineState };
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   privacy: any;

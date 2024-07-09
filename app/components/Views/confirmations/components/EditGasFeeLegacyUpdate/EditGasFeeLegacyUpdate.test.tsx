@@ -1,13 +1,13 @@
 import React from 'react';
 
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import EditGasFeeLegacyUpdate from '.';
 
 const mockInitialState = (txnType = 'none') => ({
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       GasFeeController: {
         gasEstimateType: txnType,
       },

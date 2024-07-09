@@ -46,18 +46,18 @@ class ReadOnlyNetworkStore {
   }
 
   // Async Storage
-  async getItem(key) {
+  async getString(key) {
     await this._initIfRequired();
     const value = this._asyncState[key];
     return value !== undefined ? value : null;
   }
 
-  async setItem(key, value) {
+  async set(key, value) {
     await this._initIfRequired();
     this._asyncState[key] = value;
   }
 
-  async removeItem(key) {
+  async delete(key) {
     await this._initIfRequired();
     delete this._asyncState[key];
   }
