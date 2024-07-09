@@ -20,7 +20,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       paddingTop: 16,
     },
     headerImageContainer: {
-      padding: 16,
+      paddingBottom: 16,
       alignSelf: 'center',
     },
     headerImageFull: {
