@@ -215,11 +215,6 @@ describe('BlockaidBanner', () => {
     );
 
     expect(wrapper).toMatchSnapshot();
-    // expect(
-    //   await wrapper.queryByText(
-    //     'We’re still evaluating the safety of this request. Wait or proceed with caution.',
-    //   ),
-    // ).toBeDefined();
   });
 
   it('should not render if resultType is benign', async () => {
