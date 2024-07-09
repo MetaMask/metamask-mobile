@@ -11,7 +11,7 @@ import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
 import ExperienceEnhancerModal from './pages/modals/ExperienceEnhancerModal';
 import SettingsView from './pages/Settings/SettingsView';
-import WalletView from './pages/WalletView';
+import WalletView from './pages/wallet/WalletView';
 import WhatsNewModal from './pages/modals/WhatsNewModal';
 import Accounts from '../wdio/helpers/Accounts';
 import SkipAccountSecurityModal from './pages/modals/SkipAccountSecurityModal';
@@ -153,7 +153,7 @@ export const CreateNewWallet = async () => {
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
   await device.enableSynchronization();
-  await WalletView.isVisible();
+  await Assertions.checkIfVisible(WalletView.container);
 
   //'Should dismiss Automatic Security checks screen'
   await TestHelpers.delay(3500);
@@ -208,10 +208,20 @@ export const switchToSepoliaNetwork = async () => {
   await NetworkListModal.changeNetworkTo(
     CustomNetworks.Sepolia.providerConfig.nickname,
   );
-  await WalletView.isNetworkNameVisible(
+  await Assertions.checkIfVisible(NetworkEducationModal.container);
+  await Assertions.checkIfElementToHaveText(
+    NetworkEducationModal.networkName,
     CustomNetworks.Sepolia.providerConfig.nickname,
   );
   await NetworkEducationModal.tapGotItButton();
+  await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+  try {
+    await Assertions.checkIfVisible(ToastModal.container);
+    await Assertions.checkIfNotVisible(ToastModal.container);
+  } catch {
+    // eslint-disable-next-line no-console
+    console.log('Toast is not visible');
+  }
 };
 
 export const loginToApp = async () => {

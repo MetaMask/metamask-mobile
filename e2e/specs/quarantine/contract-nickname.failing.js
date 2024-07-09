@@ -6,7 +6,7 @@ import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselVie
 import ContractNickNameView from '../../pages/ContractNickNameView';
 import SendView from '../../pages/Send/SendView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 import LoginView from '../../pages/LoginView';
 
@@ -64,7 +64,7 @@ describe('Adding Contract Nickname', () => {
     await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
     await ImportWalletView.enterPassword(validAccount.password);
     await ImportWalletView.reEnterPassword(validAccount.password);
-    await WalletView.isVisible();
+    await Assertions.checkIfVisible(WalletView.container);
   });
 
   it('Should dismiss Automatic Security checks screen', async () => {
@@ -103,8 +103,8 @@ describe('Adding Contract Nickname', () => {
     await NetworkListModal.changeNetworkTo(
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
-
-    await WalletView.isNetworkNameVisible(
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
     await TestHelpers.delay(1500);
@@ -138,7 +138,7 @@ describe('Adding Contract Nickname', () => {
     await LoginView.toggleRememberMe();
 
     await LoginView.enterPassword(validAccount.password);
-    await WalletView.isVisible();
+    await Assertions.checkIfVisible(WalletView.container);
   });
 
   it('should deep link to the approval modal', async () => {
@@ -174,7 +174,7 @@ describe('Adding Contract Nickname', () => {
 
   it('should verify contract does not appear in contacts view', async () => {
     // Check that we are on the wallet screen
-    await WalletView.isVisible();
+    await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
 
