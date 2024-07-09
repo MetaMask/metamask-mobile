@@ -132,12 +132,6 @@ describe('Ledger core', () => {
       expect(ledgerKeyring.setHdPath).toHaveBeenCalled();
       expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
     });
-
-    it('does not call keyring.setHdPath and keyring.setDeviceId if deviceId is the same', async () => {
-      await connectLedgerHardware(mockTransport, 'deviceId');
-      expect(ledgerKeyring.setHdPath).not.toHaveBeenCalled();
-      expect(ledgerKeyring.setDeviceId).not.toHaveBeenCalled();
-    });
   });
 
   describe('openEthereumAppOnLedger', () => {

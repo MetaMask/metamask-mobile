@@ -46,10 +46,8 @@ export const connectLedgerHardware = async (
 ): Promise<string> => {
   const appAndVersion = await withLedgerKeyring(
     async (keyring: LedgerKeyring) => {
-      if (keyring.getDeviceId() !== deviceId) {
-        keyring.setHdPath("m/44'/60'/0'/0");
-        keyring.setDeviceId(deviceId);
-      }
+      keyring.setHdPath("m/44'/60'/0'/0");
+      keyring.setDeviceId(deviceId);
 
       const bridge = keyring.bridge as LedgerMobileBridge;
       await bridge.updateTransportMethod(transport);
