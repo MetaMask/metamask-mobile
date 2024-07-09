@@ -5020,23 +5020,7 @@
     "@metamask/base-controller" "^5.0.2"
     "@metamask/controller-utils" "^9.1.0"
 
-"@metamask/profile-sync-controller@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.1.1.tgz#1830d5e7b5869b2c84641f7482fa464a6cbb5077"
-  integrity sha512-bs35tuTOcLIp3BiU0bGe3dX/If7oFyXiNGsMxU+4GJ94mzaHvP5mxjUyCPsySvlugaUT7TOJyRN9YyFitth3Xg==
-  dependencies:
-    "@metamask/base-controller" "^6.0.0"
-    "@metamask/snaps-controllers" "^8.1.1"
-    "@metamask/snaps-sdk" "^4.2.0"
-    "@metamask/snaps-utils" "^7.4.0"
-    "@noble/ciphers" "^0.5.2"
-    "@noble/hashes" "^1.4.0"
-    ethers "^6.12.0"
-    immer "^9.0.6"
-    loglevel "^1.8.1"
-    siwe "^2.3.2"
-
-"@metamask/profile-sync-controller@^0.1.2":
+"@metamask/profile-sync-controller@^0.1.1", "@metamask/profile-sync-controller@^0.1.2":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.1.2.tgz#e1d26fdcd54c1b67aa6e25c056e521f200b34b5d"
   integrity sha512-0waIQliijpAX1jSIeqOE518zGasjnGtYWysjq1qlv4klNwcQpCYqBVl5lDv6xQ3MQHJWKepFhd8cabYHq5p3CQ==
@@ -14911,12 +14895,7 @@ csstype@^2.5.7:
   resolved "https://registry.yarnpkg.com/csstype/-/csstype-2.6.19.tgz#feeb5aae89020bb389e1f63669a5ed490e391caa"
   integrity sha512-ZVxXaNy28/k3kJg0Fou5MiYpp88j7H9hLZp8PDC3jV0WFjfH5E9xHb56L0W59cPbKbcHXeP4qyT8PrHp8t6LcQ==
 
-csstype@^3.0.2:
-  version "3.0.8"
-  resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.0.8.tgz#d2266a792729fb227cd216fb572f43728e1ad340"
-  integrity sha512-jXKhWqXPmlUeoQnF/EhTtTl4C9SnrxSH/jZUih3jmO6lBKr99rP3/+FmrMj4EFpOXzMtXHAZkd3x0E6h6Fgflw==
-
-csstype@^3.0.8, csstype@^3.0.9:
+csstype@^3.0.2, csstype@^3.0.8, csstype@^3.0.9:
   version "3.1.3"
   resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.1.3.tgz#d80ff294d114fb0e6ac500fbf85b60137d7eff81"
   integrity sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==
@@ -15705,14 +15684,7 @@ domelementtype@^2.0.1, domelementtype@^2.2.0, domelementtype@^2.3.0:
   resolved "https://registry.yarnpkg.com/domelementtype/-/domelementtype-2.3.0.tgz#5c45e8e869952626331d7aab326d01daf65d589d"
   integrity sha512-OLETBj6w0OsagBwdXnPdN0cnMfF9opN69co+7ZrbfPGrdpPVNBUj02spi6B1N7wChLQiPn4CSH/zJvXw56gmHw==
 
-domhandler@^4.0.0, domhandler@^4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/domhandler/-/domhandler-4.2.0.tgz#f9768a5f034be60a89a27c2e4d0f74eba0d8b059"
-  integrity sha512-zk7sgt970kzPks2Bf+dwT/PLzghLnsivb9CcxkvR8Mzr66Olr0Ofd8neSbglHJHaHa2MadfoSdNlKYAaafmWfA==
-  dependencies:
-    domelementtype "^2.2.0"
-
-domhandler@^4.2.2:
+domhandler@^4.0.0, domhandler@^4.2.0, domhandler@^4.2.2:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/domhandler/-/domhandler-4.3.1.tgz#8d792033416f59d68bc03a5aa7b018c1ca89279c"
   integrity sha512-GrwoxYN+uWlzO8uhUXRl0P+kHE4GtVPfYzVLcUxPL7KNdHKj66vvlhiweIHqYYXWlw+T8iLMp42Lm67ghw4WMQ==
@@ -15726,16 +15698,7 @@ domhandler@^5.0.2, domhandler@^5.0.3:
   dependencies:
     domelementtype "^2.3.0"
 
-domutils@^2.5.2, domutils@^2.6.0:
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/domutils/-/domutils-2.7.0.tgz#8ebaf0c41ebafcf55b0b72ec31c56323712c5442"
-  integrity sha512-8eaHa17IwJUPAiB+SoTYBo5mCdeMgdcAoXJ59m6DT1vw+5iLS3gNoqYaRowaBKtGVrOF1Jz4yDTgYKLK2kvfJg==
-  dependencies:
-    dom-serializer "^1.0.1"
-    domelementtype "^2.2.0"
-    domhandler "^4.2.0"
-
-domutils@^2.8.0:
+domutils@^2.5.2, domutils@^2.6.0, domutils@^2.8.0:
   version "2.8.0"
   resolved "https://registry.yarnpkg.com/domutils/-/domutils-2.8.0.tgz#4437def5db6e2d1f5d6ee859bd95ca7d02048135"
   integrity sha512-w96Cjofp72M5IIhpjgobBimYEfoPjx1Vx0BSX9P30WBdZW2WIKU0T1Bd0kz2eNZ9ikjKgHbEyKx8BB6H1L3h3A==
@@ -18022,15 +17985,10 @@ for-each@^0.3.3:
   dependencies:
     is-callable "^1.1.3"
 
-foreach@^2.0.4:
+foreach@^2.0.4, foreach@~2.0.1:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/foreach/-/foreach-2.0.6.tgz#87bcc8a1a0e74000ff2bf9802110708cfb02eb6e"
   integrity sha512-k6GAGDyqLe9JaebCsFCoudPPWfihKu8pylYXRlqP1J7ms39iPoTtk2fviNglIeQEwdh0bQeKJ01ZPyuyQvKzwg==
-
-foreach@~2.0.1:
-  version "2.0.5"
-  resolved "https://registry.yarnpkg.com/foreach/-/foreach-2.0.5.tgz#0bee005018aeb260d0a3af3ae658dd0136ec1b99"
-  integrity sha1-C+4AUBiusmDQo6865ljdATbsG5k=
 
 foreground-child@^2.0.0:
   version "2.0.0"
@@ -29973,7 +29931,7 @@ ws@8.13.0:
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.13.0.tgz#9a9fb92f93cf41512a0735c8f4dd09b8a1211cd0"
   integrity sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==
 
-ws@8.14.1, ws@8.2.3, ws@8.5.0, ws@^8.0.0, ws@^8.17.1, ws@^8.5.0, ws@^8.8.1, ws@~8.11.0:
+ws@8.14.1, ws@8.17.1, ws@8.2.3, ws@8.5.0, ws@^8.0.0, ws@^8.17.1, ws@^8.5.0, ws@^8.8.1, ws@~8.11.0:
   version "8.17.1"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.17.1.tgz#9293da530bb548febc95371d90f9c878727d919b"
   integrity sha512-6XQFvXTkbfUOZOKKILFG1PDK2NDQs4azKQl26T0YS5CxqWLgXajbPZ+h4gZekJyRqFU8pvnbAbbs/3TgRPy+GQ==
