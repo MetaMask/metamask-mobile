@@ -326,9 +326,7 @@ exports[`QRAccountDisplay renders correctly 1`] = `
                             "marginBottom": 16,
                           }
                         }
-                      >
-                        Account 1
-                      </Text>
+                      />
                       <Text
                         accessibilityRole="text"
                         style={
