@@ -34,6 +34,7 @@ describe(SmokeAccounts('reveal secret recovery phrase'), () => {
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacy.tapRevealSecretRecoveryPhraseButton();
         await RevealSecretRecoveryPhrase.tapGetStarted();
+        await RevealSecretRecoveryPhrase.tapQuestionOneWrongAnswer();
       },
     );
   });

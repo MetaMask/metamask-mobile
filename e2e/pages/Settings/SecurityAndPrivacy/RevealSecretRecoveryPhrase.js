@@ -140,6 +140,10 @@ class RevealSecretRecoveryPhrase {
   async tapGetStarted() {
     await Gestures.waitAndTap(this.getStarted);
   }
+
+  async tapQuestionOneWrongAnswer() {
+    await Gestures.waitAndTap(this.questionOneWrongAnswer);
+  }
 }
 
 export default new RevealSecretRecoveryPhrase();

@@ -121,6 +121,8 @@ const SRPQuiz = () => {
             label: strings('srp_security_quiz.question_one.wrong_answer'),
             onPress: () => setStage(QuizStage.wrongAnswerQuestionOne),
             variant: ButtonVariants.Secondary,
+            testID:
+              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_ANSWER_ID,
           },
           {
             label: strings('srp_security_quiz.question_one.right_answer'),
