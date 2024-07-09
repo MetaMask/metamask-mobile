@@ -22,6 +22,7 @@ export interface IQuizInformationProps {
     onPress: () => void;
     label: string;
     variant: ButtonVariants;
+    testID?: string;
   }[];
   dismiss: () => void;
   header?: string;

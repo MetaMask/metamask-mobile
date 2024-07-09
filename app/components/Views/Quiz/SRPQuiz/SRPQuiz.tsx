@@ -19,6 +19,8 @@ import { QuizContent } from '../QuizContent';
 import stylesheet from './styles';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
+import { RevealSeedViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
+
 const introductionImg = require('../../../../images/reveal-srp.png');
 
 const SRPQuiz = () => {
@@ -91,6 +93,8 @@ const SRPQuiz = () => {
               trackEvent(MetaMetricsEvents.SRP_REVEAL_START_CTA_SELECTED, {});
               setStage(QuizStage.questionOne);
             },
+            testID:
+              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_GET_STARTED_BUTTON_ID,
             variant: ButtonVariants.Primary,
           },
           {

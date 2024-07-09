@@ -67,6 +67,7 @@ const QuizContent = ({
             onPress={btn.onPress}
             label={btn.label}
             style={styles.button}
+            testID={btn.testID}
           />
         ))}
       </View>
