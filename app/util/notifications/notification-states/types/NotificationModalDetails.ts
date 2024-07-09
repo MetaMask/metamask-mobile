@@ -42,6 +42,14 @@ export interface ModalFieldNetwork {
    * Name of the network. E.g. Ethereum
    */
   name?: string;
+  /**
+   * Boolean to determine if the network fee is collapsed or not
+   */
+  isCollapsed: boolean;
+  /**
+   * Function to set the network fee collapsed state
+   */
+  setIsCollapsed: (isCollapsed: boolean) => void;
 }
 
 export interface ModalFieldAsset {
@@ -126,6 +134,14 @@ export interface ModalFieldNetworkFee {
   type: 'ModalField-NetworkFee';
 
   getNetworkFees: () => ReturnType<typeof getNetworkFees>;
+  /**
+   * Boolean to determine if the network fee is collapsed or not
+   */
+  isCollapsed: boolean;
+  /**
+   * Function to set the network fee collapsed state
+   */
+  setIsCollapsed: (isCollapsed: boolean) => void;
 }
 
 export interface ModalFieldAnnouncementDescription {

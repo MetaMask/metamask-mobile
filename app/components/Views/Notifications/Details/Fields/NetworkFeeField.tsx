@@ -51,7 +51,6 @@ function NetworkFeeLabelAndValue(props: {
 
 function NetworkFeeField(props: NetworkFeeFieldProps) {
   const { styles } = useStyles();
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const sheetRef = useRef<BottomSheetRef>(null);
   const networkFee = useNetworkFee(props);
 
@@ -59,7 +58,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
     return null;
   }
 
-  if (isCollapsed) {
+  if (props.isCollapsed) {
     return null;
   }
 
@@ -68,7 +67,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
     <BottomSheet
       ref={sheetRef}
       shouldNavigateBack={false}
-      onClose={() => setIsCollapsed(true)}
+      onClose={() => props.setIsCollapsed(true)}
     >
       <View style={styles.gasDetails}>
         <NetworkFeeLabelAndValue

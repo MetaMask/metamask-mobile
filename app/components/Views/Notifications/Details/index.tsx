@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
@@ -36,6 +36,8 @@ interface Props {
 const NotificationsDetails = ({ route }: Props) => {
   const { notification } = route.params;
   const { markNotificationAsRead } = useMarkNotificationAsRead();
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(true);
+
   const theme = useTheme();
   const styles = createStyles(theme);
 
@@ -68,11 +70,14 @@ const NotificationsDetails = ({ route }: Props) => {
         {state.header && <ModalHeader modalHeader={state.header} />}
 
         {/* Modal Fields */}
-        <View style={styles.fieldsContainer}>
-          {state.fields.map((field, idx) => (
-            <ModalField key={idx} modalField={field} />
-          ))}
-        </View>
+        {state.fields.map((field, idx) => (
+          <ModalField
+            key={idx}
+            modalField={field}
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+          />
+        ))}
 
         {/* Modal Footers */}
         {state.footer && <ModalFooter modalFooter={state.footer} />}

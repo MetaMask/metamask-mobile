@@ -144,6 +144,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
     },
     gasDetails: {
       marginBottom: 80,
+      paddingHorizontal: 16,
     },
     squareLogoLarge: {
       width: 96,

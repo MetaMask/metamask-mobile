@@ -12,9 +12,21 @@ import TransactionField from './TransactionField';
 
 interface Props {
   modalField: ModalField;
+  /**
+   * Boolean to determine if the network fee is collapsed or not
+   */
+  isCollapsed: boolean;
+  /**
+   * Function to set the network fee collapsed state
+   */
+  setIsCollapsed: (isCollapsed: boolean) => void;
 }
 
-export default function ModalField({ modalField }: Props) {
+export default function ModalField({
+  modalField,
+  isCollapsed,
+  setIsCollapsed,
+}: Props) {
   if (modalField.type === 'ModalField-AnnouncementDescription')
     return <AnnouncementDescriptionField {...modalField} />;
 
@@ -28,10 +40,22 @@ export default function ModalField({ modalField }: Props) {
     return <NFTCollectionField {...modalField} />;
 
   if (modalField.type === 'ModalField-Network')
-    return <NetworkField {...modalField} />;
+    return (
+      <NetworkField
+        {...modalField}
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+      />
+    );
 
   if (modalField.type === 'ModalField-NetworkFee')
-    return <NetworkFeeField {...modalField} />;
+    return (
+      <NetworkFeeField
+        {...modalField}
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+      />
+    );
 
   if (modalField.type === 'ModalField-StakingProvider')
     return <StakingProviderField {...modalField} />;
