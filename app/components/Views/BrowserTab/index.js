@@ -1481,7 +1481,6 @@ export const BrowserTab = (props) => {
                 setIpfsBannerVisible: () => setIpfsBannerVisible(false),
               },
             }),
-          textVariant: TextVariant.BodyMD,
           label: 'Turn on IPFS gateway',
         }}
         variant={BannerVariant.Alert}
