@@ -8,7 +8,7 @@ import { ENSCache } from '../../../util/ENSUtils';
 import { Transaction } from './AccountFromToInfoCard.types';
 import AccountFromToInfoCard from '.';
 import Engine from '../../../core/Engine';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
@@ -23,7 +23,7 @@ const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {

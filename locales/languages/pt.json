@@ -413,7 +413,7 @@
     "no_tokens": "Você não tem nenhum token!",
     "no_nfts_yet": "Nenhum NFT até agora",
     "nfts_autodetection_title": "Detecção de NFTs",
-    "nfts_autodetection_desc": "Permite à MetaMask detectar e exibir automaticamente os NFTs em sua carteira.",
+    "nfts_autodetection_desc": "Permita que a MetaMask detecte e exiba automaticamente os NFTs em sua carteira.",
     "network_details_check": "A verificação dos dados da rede",
     "network_with_chain_id": "A rede com a ID de cadeia",
     "chain_list_returned_different_ticker_symbol": "O símbolo deste token não corresponde ao nome ou ID da cadeia inseridos para a rede. Muitos tokens populares apresentam símbolos semelhantes, que podem ser usados por golpistas para induzir você ao erro de enviar um token mais valioso em troca. Verifique todos os detalhes antes de continuar.",
@@ -805,6 +805,7 @@
     "security_desc": "Configurações de privacidade, MetaMetrics, chave privada e Frase de Recuperação Secreta da carteira",
     "networks_title": "Redes",
     "networks_default_title": "Rede padrão",
+    "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
     "networks_default_cta": "Usar essa rede",
     "networks_desc": "Adicione e edite redes RPC personalizadas",
     "network_name_label": "Nome da rede",
@@ -820,6 +821,7 @@
     "network_other_networks": "Outras redes",
     "network_rpc_networks": "Redes RPC",
     "network_add_network": "Adicionar rede",
+    "network_add_custom_network": "Add a custom network",
     "network_add": "Adicionar",
     "network_save": "Salvar",
     "remove_network_title": "Deseja remover essa rede?",
@@ -994,6 +996,7 @@
     "token_nft_ens_subheading": "Detecção automática de tokens, NFTs e ENS",
     "security_check_subheading": "Verificações de segurança",
     "symbol_required": "O símbolo é obrigatório.",
+    "blockaid_desc": "This feature alerts you to malicious activity by actively reviewing transaction and signature requests.",
     "security_alerts": "Alertas de segurança",
     "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor.",
     "smart_transactions_opt_in_heading": "Transações inteligentes",
@@ -1030,6 +1033,7 @@
     "cancel": "Cancelar",
     "loading": "Conectando à MetaMask...",
     "unkown_dapp": "Nome do dapp indisponível",
+    "unknown": "Unknown",
     "no_connections": "Nenhuma conexão",
     "no_connections_desc": "Se conectar uma conta a um site ou app, você os verá aqui."
   },
@@ -1201,9 +1205,9 @@
   "enable_nft-auto-detection": {
     "title": "Ativar detecção automática de NFTs",
     "description": "Permita que a MetaMask detecte e exiba seus NFTs com detecção automática. Você será capaz de:",
-    "immediateAccess": "Acessar suas NFTs imediatamente",
+    "immediateAccess": "Acessar seus NFTs imediatamente",
     "navigate": "Navegar tranquilo por seus ativos digitais",
-    "dive": "Acessar e começar a usar diretamente seus NFTs",
+    "dive": "Acessar diretamente e começar a usar seus NFTs",
     "allow": "Permitir",
     "notRightNow": "Agora não"
   },
@@ -1653,6 +1657,7 @@
     "network_currency_symbol": "Símbolo da moeda",
     "network_block_explorer_url": "URL do explorador de blocos",
     "search": "Pesquisar rede adicionada anteriormente",
+    "search-short": "Search",
     "add": "Adicionar",
     "cancel": "Cancelar",
     "approve": "Aprovar",
@@ -1660,7 +1665,9 @@
     "malicious_network_warning": "Um provedor de rede mal-intencionado pode mentir sobre o estado da blockchain e registrar sua atividade na rede. Adicione apenas redes personalizadas em que você confia.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "Informações da rede",
+    "additional_network_information_title": "Additional Networks Information",
     "network_warning_desc": "Essa conexão de rede depende de terceiros. Ela pode ser menos confiável ou permitir que eles rastreiem as atividades.",
+    "additonial_network_information_desc": "Some of these networks rely on third parties. The connections may be less reliable or enable third-parties to track activity.",
     "learn_more": "Saiba mais",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Alternar para rede",
@@ -2617,10 +2624,10 @@
     "submit_ticket_6": "aqui.",
     "submit_ticket_7": "Inclua a mensagem de erro e a captura de tela.",
     "submit_ticket_8": "Envie-nos um relatório de erros",
-    "submit_ticket_9": "Inclua detalhes sobre a ocorrência.",
+    "submit_ticket_9": "Inclua detalhes sobre o que aconteceu.",
     "bug_report_prompt_title": "Conte-nos o que aconteceu",
     "bug_report_prompt_description": "Adicione detalhes para que possamos descobrir o que deu errado.",
-    "bug_report_thanks": "Obrigado! Daremos uma olhada em breve.",
+    "bug_report_thanks": "Obrigado! Vamos verificar em breve.",
     "save_seedphrase_1": "Se o erro persistir,",
     "save_seedphrase_2": "salve sua Frase de Recuperação Secreta",
     "save_seedphrase_3": "e reinstale o app. Observação: você NÃO poderá restaurar sua carteira sem a Frase de Recuperação Secreta.",
@@ -2660,7 +2667,7 @@
     "transaction_simulation": {
       "title": "Alterações de saldo estimadas",
       "description_1": "Agora você pode ver os possíveis resultados de suas transações antes de realizá-las!",
-      "description_2": "Isto é apenas uma simulação, portanto não podemos garantir o resultado. Você pode desativar isso quando quiser em Configurações > Segurança e privacidade."
+      "description_2": "Isto é apenas uma simulação, portanto não podemos garantir o resultado. Você pode desativar isso quando quiser em Configurações > Segurança e Privacidade."
     }
   },
   "invalid_network": {
@@ -3068,7 +3075,7 @@
   },
   "install_snap": {
     "title": "Solicitação de conexão",
-    "description": "{{origin}} deseja baixar e se conectar a {{snap}}. Certifique-se de que você confia nos autores antes de prosseguir.",
+    "description": "{{origin}} wants to use {{snap}}.",
     "permissions_request_title": "Solicitação de permissões",
     "permissions_request_description": "{{origin}} deseja instalar {{snap}}, que está solicitando as permissões a seguir.",
     "approve_permissions": "Aprovar",

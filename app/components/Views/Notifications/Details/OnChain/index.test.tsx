@@ -7,7 +7,7 @@ import { render } from '@testing-library/react-native';
 import OnChainDetails from '.';
 import { createStyles } from '../styles';
 import MOCK_NOTIFICATIONS from '../../../../../components/UI/Notification/__mocks__/mock_notifications';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { mockTheme } from '../../../../../util/theme';
 import { HalRawNotification } from '../../../../../util/notifications/types';
 import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
@@ -20,9 +20,7 @@ const mockInitialState = {
     isEnabled: true,
   },
   engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-    },
+    backgroundState,
   },
 };
 const accountAvatarType = AvatarAccountType.Blockies;

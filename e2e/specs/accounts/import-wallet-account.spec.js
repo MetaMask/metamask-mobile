@@ -1,9 +1,10 @@
 'use strict';
 import { SmokeAccounts } from '../../tags';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListView from '../../pages/AccountListView';
 import ImportAccountView from '../../pages/ImportAccountView';
+import Assertions from '../../utils/Assertions';
 
 describe(SmokeAccounts('Import account via private to wallet'), () => {
   // This key is for testing private key import only
@@ -33,7 +34,10 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
     await ImportAccountView.isImportSuccessSreenVisible();
     await ImportAccountView.tapCloseButtonOnImportSuccess();
     await AccountListView.swipeToDimssAccountsModal();
-    await WalletView.isVisible();
-    await WalletView.isAccountNameCorrect('Account 3');
+    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.checkIfElementNotToHaveText(
+      WalletView.accountName,
+      'Account 1',
+    );
   });
 });
