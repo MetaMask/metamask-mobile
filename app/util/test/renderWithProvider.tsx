@@ -13,13 +13,12 @@ import { Theme } from '../theme/models';
 import configureStore from './configureStore';
 import { RootState } from '../../reducers';
 
-interface _DeepPartialArray<T> extends Array<DeepPartial<T>> {}
 export type DeepPartial<T> = T extends Function
   ? T
-  : T extends (infer U)[]
-  ? _DeepPartialArray<U>
+  : T extends Array<infer U>
+  ? Array<DeepPartial<U>>
   : T extends object
-  ? DeepPartial<T>
+  ? { [K in keyof T]?: DeepPartial<T[K]> }
   : T | undefined;
 
 interface ProviderValues {
