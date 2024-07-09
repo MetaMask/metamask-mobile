@@ -91,7 +91,7 @@ const LedgerSelectAccount = () => {
           await unlockLedgerWalletAccount(index);
         }
       } catch (err) {
-        Logger.log('Error: Connecting QR hardware wallet', err);
+        Logger.log('Error: Connecting Ledger hardware wallet', err);
       }
       setBlockingModalVisible(false);
 
