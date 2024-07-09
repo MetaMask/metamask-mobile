@@ -28,6 +28,11 @@ const initialState = {
   },
 };
 
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  renderAccountName: jest.fn(),
+}));
+
 const TestWrapper = () => (
   // eslint-disable-next-line react/react-in-jsx-scope
   <QRAccountDisplay
