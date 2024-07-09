@@ -1,5 +1,6 @@
-import { hexToBN } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
+import { hexToBN } from '@metamask/controller-utils';
+import { Hex } from '@metamask/utils';
 import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import {
@@ -62,8 +63,7 @@ export default function useBalance(asset?: Asset) {
     );
     balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
   } else {
-    const exchangeRate =
-      tokenExchangeRates?.[assetAddress as `0x${string}`]?.price;
+    const exchangeRate = tokenExchangeRates?.[assetAddress as Hex]?.price;
     balance =
       assetAddress && assetAddress in balances
         ? renderFromTokenMinimalUnit(
