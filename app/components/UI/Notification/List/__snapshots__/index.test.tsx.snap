@@ -6,6 +6,7 @@ exports[`NotificationsList should render correctly 1`] = `
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
+      "marginHorizontal": 8,
     }
   }
 >

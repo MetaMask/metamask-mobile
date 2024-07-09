@@ -20,1166 +20,723 @@ exports[`NotificationsDetails should renders correctly 1`] = `
         {
           "alignItems": "flex-start",
           "flex": 1,
+          "paddingHorizontal": 16,
+          "paddingTop": 16,
+          "width": "100%",
         }
       }
     >
       <View
         style={
           {
-            "flexDirection": "row",
-            "justifyContent": "flex-start",
-            "minWidth": "100%",
-            "paddingHorizontal": 16,
-            "paddingVertical": 8,
+            "gap": 4,
           }
         }
       >
         <View
           style={
             {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#ffffff",
-              "borderRadius": 16,
-              "height": 32,
-              "justifyContent": "center",
-              "overflow": "hidden",
-              "position": "absolute",
-              "width": 32,
-            }
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "overflow": "hidden",
-                },
-                {
-                  "backgroundColor": "#F71101",
-                  "borderRadius": 16,
-                  "height": 32,
-                  "width": 32,
-                },
-                undefined,
-              ]
-            }
-          >
-            <RNSVGSvgView
-              bbHeight={32}
-              bbWidth={32}
-              focusable={false}
-              height={32}
-              style={
-                [
-                  {
-                    "backgroundColor": "transparent",
-                    "borderWidth": 0,
-                  },
-                  {
-                    "flex": 0,
-                    "height": 32,
-                    "width": 32,
-                  },
-                ]
-              }
-              width={32}
-            >
-              <RNSVGGroup
-                fill={
-                  {
-                    "payload": 4278190080,
-                    "type": 0,
-                  }
-                }
-              >
-                <RNSVGRect
-                  fill={
-                    {
-                      "payload": 4278410586,
-                      "type": 0,
-                    }
-                  }
-                  height={32}
-                  matrix={
-                    [
-                      0.2621891786408647,
-                      0.9650164944723114,
-                      -0.9650164944723114,
-                      0.2621891786408647,
-                      28.989017910194196,
-                      -2.810551068011469,
-                    ]
-                  }
-                  propList={
-                    [
-                      "fill",
-                    ]
-                  }
-                  width={32}
-                  x={0}
-                  y={0}
-                />
-                <RNSVGRect
-                  fill={
-                    {
-                      "payload": 4294152960,
-                      "type": 0,
-                    }
-                  }
-                  height={32}
-                  matrix={
-                    [
-                      0.9297764858882513,
-                      0.3681245526846782,
-                      -0.3681245526846782,
-                      0.9297764858882513,
-                      21.133232160453403,
-                      -11.542984224879246,
-                    ]
-                  }
-                  propList={
-                    [
-                      "fill",
-                    ]
-                  }
-                  width={32}
-                  x={0}
-                  y={0}
-                />
-                <RNSVGRect
-                  fill={
-                    {
-                      "payload": 4294013186,
-                      "type": 0,
-                    }
-                  }
-                  height={32}
-                  matrix={
-                    [
-                      -0.38751558645210277,
-                      0.9218631515885006,
-                      -0.9218631515885006,
-                      -0.38751558645210277,
-                      64.43991375638838,
-                      1.8315726786661735,
-                    ]
-                  }
-                  propList={
-                    [
-                      "fill",
-                    ]
-                  }
-                  width={32}
-                  x={0}
-                  y={0}
-                />
-              </RNSVGGroup>
-            </RNSVGSvgView>
-          </View>
-        </View>
-        <View
-          style={
-            {
-              "alignSelf": "flex-start",
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 16,
-                "fontWeight": "500",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            From
-          </Text>
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            hitSlop={
-              {
-                "bottom": 24,
-                "left": 24,
-                "right": 24,
-                "top": 24,
-              }
-            }
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              }
-            }
-          >
-            <Text
-              numberOfLines={1}
-              style={
-                {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontWeight": "400",
-                }
-              }
-            >
-              0x881D...300C
-            </Text>
-            <SvgMock
-              color="#141618"
-              height={20}
-              name="Copy"
-              style={
-                {
-                  "color": "#6a737d",
-                  "height": 20,
-                  "marginHorizontal": 8,
-                  "width": 20,
-                }
-              }
-              width={20}
-            />
-          </View>
-        </View>
-        <View
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          hitSlop={
-            {
-              "bottom": 24,
-              "left": 24,
-              "right": 24,
-              "top": 24,
-            }
-          }
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            {
-              "alignSelf": "flex-start",
               "flexDirection": "row",
-              "marginLeft": "auto",
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "alignSelf": "flex-start",
-                "color": "#0376c9",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            Add contact
-          </Text>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "flexDirection": "row",
-            "justifyContent": "flex-start",
-            "minWidth": "100%",
-            "paddingHorizontal": 16,
-            "paddingVertical": 8,
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#ffffff",
-              "borderRadius": 16,
-              "height": 32,
-              "justifyContent": "center",
-              "overflow": "hidden",
-              "position": "absolute",
-              "width": 32,
+              "gap": 16,
+              "minWidth": "100%",
+              "paddingVertical": 5,
             }
           }
         >
           <View
             style={
-              [
-                {
-                  "overflow": "hidden",
-                },
-                {
-                  "backgroundColor": "#F71101",
-                  "borderRadius": 16,
-                  "height": 32,
-                  "width": 32,
-                },
-                undefined,
-              ]
+              {
+                "alignSelf": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 16,
+                "height": 32,
+                "overflow": "hidden",
+                "width": 32,
+              }
             }
           >
-            <RNSVGSvgView
-              bbHeight={32}
-              bbWidth={32}
-              focusable={false}
-              height={32}
+            <View
               style={
                 [
                   {
-                    "backgroundColor": "transparent",
-                    "borderWidth": 0,
+                    "overflow": "hidden",
                   },
                   {
-                    "flex": 0,
+                    "backgroundColor": "#F71101",
+                    "borderRadius": 16,
                     "height": 32,
                     "width": 32,
                   },
+                  undefined,
                 ]
               }
-              width={32}
             >
-              <RNSVGGroup
-                fill={
-                  {
-                    "payload": 4278190080,
-                    "type": 0,
-                  }
-                }
-              >
-                <RNSVGRect
-                  fill={
-                    {
-                      "payload": 4278410586,
-                      "type": 0,
-                    }
-                  }
-                  height={32}
-                  matrix={
-                    [
-                      0.2621891786408647,
-                      0.9650164944723114,
-                      -0.9650164944723114,
-                      0.2621891786408647,
-                      28.989017910194196,
-                      -2.810551068011469,
-                    ]
-                  }
-                  propList={
-                    [
-                      "fill",
-                    ]
-                  }
-                  width={32}
-                  x={0}
-                  y={0}
-                />
-                <RNSVGRect
-                  fill={
-                    {
-                      "payload": 4294152960,
-                      "type": 0,
-                    }
-                  }
-                  height={32}
-                  matrix={
-                    [
-                      0.9297764858882513,
-                      0.3681245526846782,
-                      -0.3681245526846782,
-                      0.9297764858882513,
-                      21.133232160453403,
-                      -11.542984224879246,
-                    ]
-                  }
-                  propList={
-                    [
-                      "fill",
-                    ]
-                  }
-                  width={32}
-                  x={0}
-                  y={0}
-                />
-                <RNSVGRect
-                  fill={
-                    {
-                      "payload": 4294013186,
-                      "type": 0,
-                    }
-                  }
-                  height={32}
-                  matrix={
-                    [
-                      -0.38751558645210277,
-                      0.9218631515885006,
-                      -0.9218631515885006,
-                      -0.38751558645210277,
-                      64.43991375638838,
-                      1.8315726786661735,
-                    ]
-                  }
-                  propList={
-                    [
-                      "fill",
-                    ]
-                  }
-                  width={32}
-                  x={0}
-                  y={0}
-                />
-              </RNSVGGroup>
-            </RNSVGSvgView>
-          </View>
-        </View>
-        <View
-          style={
-            {
-              "alignSelf": "flex-start",
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 16,
-                "fontWeight": "500",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            To
-          </Text>
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            hitSlop={
-              {
-                "bottom": 24,
-                "left": 24,
-                "right": 24,
-                "top": 24,
-              }
-            }
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              }
-            }
-          >
-            <Text
-              numberOfLines={1}
-              style={
-                {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontWeight": "400",
-                }
-              }
-            >
-              0x881D...300d
-            </Text>
-            <SvgMock
-              color="#141618"
-              height={20}
-              name="Copy"
-              style={
-                {
-                  "color": "#6a737d",
-                  "height": 20,
-                  "marginHorizontal": 8,
-                  "width": 20,
-                }
-              }
-              width={20}
-            />
-          </View>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "flexDirection": "row",
-            "justifyContent": "flex-start",
-            "minWidth": "100%",
-            "paddingHorizontal": 16,
-            "paddingVertical": 8,
-          }
-        }
-      >
-        <View
-          onLayout={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "justifyContent": "center",
-              "position": "absolute",
-            }
-          }
-          testID="badge-wrapper-badge"
-        >
-          <View>
-            <View
-              useNativeDriver={true}
-            >
-              <Image
-                fadeIn={true}
-                onError={[Function]}
-                onLoadEnd={[Function]}
-                source={
-                  {
-                    "uri": undefined,
-                  }
-                }
+              <RNSVGSvgView
+                bbHeight={32}
+                bbWidth={32}
+                focusable={false}
+                height={32}
                 style={
                   [
                     {
-                      "borderRadius": 12,
-                      "height": 24,
-                      "width": 24,
+                      "backgroundColor": "transparent",
+                      "borderWidth": 0,
                     },
-                    undefined,
-                    undefined,
-                    undefined,
                     {
-                      "borderRadius": 16,
+                      "flex": 0,
                       "height": 32,
                       "width": 32,
                     },
                   ]
                 }
-                testID="network-main-asset-badge"
-              />
-              <View
-                collapsable={false}
+                width={32}
+              >
+                <RNSVGGroup
+                  fill={
+                    {
+                      "payload": 4278190080,
+                      "type": 0,
+                    }
+                  }
+                >
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4278410586,
+                        "type": 0,
+                      }
+                    }
+                    height={32}
+                    matrix={
+                      [
+                        0.2621891786408647,
+                        0.9650164944723114,
+                        -0.9650164944723114,
+                        0.2621891786408647,
+                        28.989017910194196,
+                        -2.810551068011469,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={32}
+                    x={0}
+                    y={0}
+                  />
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4294152960,
+                        "type": 0,
+                      }
+                    }
+                    height={32}
+                    matrix={
+                      [
+                        0.9297764858882513,
+                        0.3681245526846782,
+                        -0.3681245526846782,
+                        0.9297764858882513,
+                        21.133232160453403,
+                        -11.542984224879246,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={32}
+                    x={0}
+                    y={0}
+                  />
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4294013186,
+                        "type": 0,
+                      }
+                    }
+                    height={32}
+                    matrix={
+                      [
+                        -0.38751558645210277,
+                        0.9218631515885006,
+                        -0.9218631515885006,
+                        -0.38751558645210277,
+                        64.43991375638838,
+                        1.8315726786661735,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={32}
+                    x={0}
+                    y={0}
+                  />
+                </RNSVGGroup>
+              </RNSVGSvgView>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "flexDirection": "column",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              To
+            </Text>
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              hitSlop={
+                {
+                  "bottom": 24,
+                  "left": 24,
+                  "right": 24,
+                  "top": 24,
+                }
+              }
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 2,
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
                 style={
                   {
-                    "bottom": 0,
-                    "left": 0,
-                    "opacity": 1,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontWeight": "400",
                   }
                 }
               >
-                <View
-                  style={
-                    [
-                      {
-                        "borderRadius": 16,
-                        "height": 32,
-                        "width": 32,
-                      },
-                      {
-                        "backgroundColor": "#eee",
-                      },
-                      undefined,
-                    ]
+                0x881D...300d
+              </Text>
+              <SvgMock
+                color="#141618"
+                height={20}
+                name="Copy"
+                style={
+                  {
+                    "color": "#6a737d",
+                    "height": 20,
+                    "width": 20,
                   }
-                />
-              </View>
+                }
+                width={20}
+              />
             </View>
           </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 16,
+              "minWidth": "100%",
+              "paddingVertical": 5,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignSelf": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 16,
+                "height": 32,
+                "overflow": "hidden",
+                "width": 32,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "overflow": "hidden",
+                  },
+                  {
+                    "backgroundColor": "#F71101",
+                    "borderRadius": 16,
+                    "height": 32,
+                    "width": 32,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <RNSVGSvgView
+                bbHeight={32}
+                bbWidth={32}
+                focusable={false}
+                height={32}
+                style={
+                  [
+                    {
+                      "backgroundColor": "transparent",
+                      "borderWidth": 0,
+                    },
+                    {
+                      "flex": 0,
+                      "height": 32,
+                      "width": 32,
+                    },
+                  ]
+                }
+                width={32}
+              >
+                <RNSVGGroup
+                  fill={
+                    {
+                      "payload": 4278190080,
+                      "type": 0,
+                    }
+                  }
+                >
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4278410586,
+                        "type": 0,
+                      }
+                    }
+                    height={32}
+                    matrix={
+                      [
+                        0.2621891786408647,
+                        0.9650164944723114,
+                        -0.9650164944723114,
+                        0.2621891786408647,
+                        28.989017910194196,
+                        -2.810551068011469,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={32}
+                    x={0}
+                    y={0}
+                  />
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4294152960,
+                        "type": 0,
+                      }
+                    }
+                    height={32}
+                    matrix={
+                      [
+                        0.9297764858882513,
+                        0.3681245526846782,
+                        -0.3681245526846782,
+                        0.9297764858882513,
+                        21.133232160453403,
+                        -11.542984224879246,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={32}
+                    x={0}
+                    y={0}
+                  />
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4294013186,
+                        "type": 0,
+                      }
+                    }
+                    height={32}
+                    matrix={
+                      [
+                        -0.38751558645210277,
+                        0.9218631515885006,
+                        -0.9218631515885006,
+                        -0.38751558645210277,
+                        64.43991375638838,
+                        1.8315726786661735,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={32}
+                    x={0}
+                    y={0}
+                  />
+                </RNSVGGroup>
+              </RNSVGSvgView>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "flexDirection": "column",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              From (You)
+            </Text>
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              hitSlop={
+                {
+                  "bottom": 24,
+                  "left": 24,
+                  "right": 24,
+                  "top": 24,
+                }
+              }
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 2,
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontWeight": "400",
+                  }
+                }
+              >
+                0x881D...300C
+              </Text>
+              <SvgMock
+                color="#141618"
+                height={20}
+                name="Copy"
+                style={
+                  {
+                    "color": "#6a737d",
+                    "height": 20,
+                    "width": 20,
+                  }
+                }
+                width={20}
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 16,
+              "minWidth": "100%",
+              "paddingVertical": 5,
+            }
+          }
+        >
           <View
             style={
               {
                 "alignItems": "center",
-                "aspectRatio": 1,
-                "bottom": 0,
-                "height": 0,
+                "alignSelf": "center",
+                "backgroundColor": "#1c82341a",
+                "borderRadius": 16,
+                "height": 32,
                 "justifyContent": "center",
-                "position": "absolute",
-                "right": 0,
-                "transform": [
-                  {
-                    "translateX": 0,
-                  },
-                  {
-                    "translateY": 0,
-                  },
-                ],
+                "overflow": "hidden",
+                "width": 32,
+              }
+            }
+          >
+            <SvgMock
+              color="#1c8234"
+              height={20}
+              name="Check"
+              style={
+                {
+                  "height": 20,
+                  "width": 20,
+                }
+              }
+              width={20}
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "flexDirection": "column",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Status
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#6a737d",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Confirmed
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-end",
+                "alignSelf": "flex-start",
+                "flex": 1,
+                "flexDirection": "column",
               }
             }
           >
             <View
-              onLayout={[Function]}
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              hitSlop={
+                {
+                  "bottom": 24,
+                  "left": 24,
+                  "right": 24,
+                  "top": 24,
+                }
+              }
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
-                  "aspectRatio": 1,
-                  "height": "50%",
-                  "justifyContent": "center",
-                  "maxHeight": 24,
-                  "minHeight": 8,
-                  "opacity": 0,
+                  "flexDirection": "row",
+                  "gap": 2,
                 }
               }
-              testID="badge-network"
             >
-              <View
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#ffffff",
-                    "borderRadius": 16,
-                    "borderWidth": 2,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "overflow": "hidden",
-                    "shadowColor": "#0000001a",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 1,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                    "width": 32,
+                    "color": "#0376c9",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
                   }
                 }
               >
-                <Image
-                  onError={[Function]}
-                  resizeMode="contain"
-                  source={
-                    {
-                      "uri": "MockImage",
-                    }
+                Transaction ID
+              </Text>
+              <SvgMock
+                color="#0376c9"
+                height={20}
+                name="Copy"
+                style={
+                  {
+                    "height": 20,
+                    "width": 20,
                   }
-                  style={
-                    {
-                      "height": 32,
-                      "width": 32,
-                    }
-                  }
-                  testID="network-avatar-image"
-                />
-              </View>
+                }
+                width={20}
+              />
             </View>
           </View>
         </View>
         <View
           style={
             {
-              "alignSelf": "flex-start",
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 16,
-                "fontWeight": "500",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Asset
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            Ethereum
-          </Text>
-        </View>
-        <View
-          style={
-            {
-              "alignSelf": "flex-start",
               "flexDirection": "row",
-              "marginLeft": "auto",
+              "gap": 16,
+              "minWidth": "100%",
+              "paddingVertical": 5,
             }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 16,
-                "fontWeight": "500",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            808.000000000000000000
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          />
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "flexDirection": "row",
-            "justifyContent": "flex-start",
-            "minWidth": "100%",
-            "paddingHorizontal": 16,
-            "paddingVertical": 8,
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#1c82341a",
-              "borderRadius": 16,
-              "height": 32,
-              "justifyContent": "center",
-              "overflow": "hidden",
-              "position": "absolute",
-              "width": 32,
-            }
-          }
-        >
-          <SvgMock
-            color="#1c8234"
-            height={20}
-            name="Check"
-            style={
-              {
-                "height": 20,
-                "width": 20,
-              }
-            }
-            width={20}
-          />
-        </View>
-        <View
-          style={
-            {
-              "alignSelf": "flex-start",
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 16,
-                "fontWeight": "500",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Status
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            Confirmed
-          </Text>
-        </View>
-        <View
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          hitSlop={
-            {
-              "bottom": 24,
-              "left": 24,
-              "right": 24,
-              "top": 24,
-            }
-          }
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            {
-              "alignSelf": "flex-start",
-              "flexDirection": "row",
-              "marginLeft": "auto",
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "alignSelf": "flex-start",
-                "color": "#0376c9",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            Transaction ID
-          </Text>
-          <SvgMock
-            color="#0376c9"
-            height={20}
-            name="Copy"
-            style={
-              {
-                "height": 20,
-                "marginLeft": 8,
-                "width": 20,
-              }
-            }
-            width={20}
-          />
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "flexDirection": "row",
-            "justifyContent": "flex-start",
-            "minWidth": "100%",
-            "paddingHorizontal": 16,
-            "paddingVertical": 8,
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#ffffff",
-              "borderRadius": 16,
-              "height": 32,
-              "justifyContent": "center",
-              "overflow": "hidden",
-              "position": "absolute",
-              "width": 32,
-            }
-          }
-        >
-          <Image
-            onError={[Function]}
-            resizeMode="contain"
-            source={
-              {
-                "uri": "MockImage",
-              }
-            }
-            style={
-              {
-                "height": 32,
-                "width": 32,
-              }
-            }
-            testID="network-avatar-image"
-          />
-        </View>
-        <View
-          style={
-            {
-              "alignSelf": "flex-start",
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 16,
-                "fontWeight": "500",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Network
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            ETHEREUM
-          </Text>
-        </View>
-      </View>
-      <View
-        onLayout={[Function]}
-        style={
-          [
-            {
-              "bottom": 0,
-              "justifyContent": "flex-end",
-              "left": 0,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-            },
-            {
-              "paddingBottom": 0,
-            },
-          ]
-        }
-      >
-        <View
-          style={
-            [
-              {
-                "backgroundColor": "#00000099",
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-              {
-                "opacity": 0,
-              },
-            ]
-          }
-        >
-          <TouchableOpacity
-            onPress={[Function]}
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          />
-        </View>
-        <View
-          onLayout={[Function]}
-          style={
-            [
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-              },
-              {
-                "paddingBottom": 0,
-              },
-            ]
           }
         >
           <View
-            collapsable={false}
-            onGestureHandlerEvent={[Function]}
-            onGestureHandlerStateChange={[Function]}
             onLayout={[Function]}
             style={
-              [
-                {
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#bbc0c566",
-                  "borderTopLeftRadius": 8,
-                  "borderTopRightRadius": 8,
-                  "borderWidth": 1,
-                  "maxHeight": 1334,
-                  "overflow": "hidden",
-                  "paddingBottom": 0,
-                  "shadowColor": "#0000001a",
-                  "shadowOffset": {
-                    "height": 2,
-                    "width": 0,
-                  },
-                  "shadowOpacity": 1,
-                  "shadowRadius": 40,
-                },
-                {
-                  "transform": [
-                    {
-                      "translateY": 1334,
-                    },
-                  ],
-                },
-              ]
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "padding": 4,
-                }
+              {
+                "alignSelf": "center",
+                "position": "relative",
               }
-            >
-              <View
+            }
+            testID="badge-wrapper-badge"
+          >
+            <View>
+              <Image
+                onError={[Function]}
+                placeholderStyle={
+                  {
+                    "backgroundColor": "#f2f4f6",
+                    "borderColor": "#f2f4f6",
+                    "borderRadius": 16,
+                    "borderWidth": 0.5,
+                    "height": 32,
+                    "width": 32,
+                  }
+                }
+                source={
+                  {
+                    "uri": "MockImage",
+                  }
+                }
                 style={
                   {
-                    "backgroundColor": "#bbc0c566",
-                    "borderRadius": 2,
-                    "height": 4,
-                    "width": 40,
+                    "borderColor": "#f2f4f6",
+                    "borderRadius": 16,
+                    "borderWidth": 0.5,
+                    "height": 32,
+                    "overflow": "hidden",
+                    "width": 32,
                   }
                 }
               />
@@ -1187,226 +744,246 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             <View
               style={
                 {
-                  "marginBottom": 80,
+                  "alignItems": "center",
+                  "aspectRatio": 1,
+                  "height": 0,
+                  "justifyContent": "center",
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateY": -0,
+                    },
+                  ],
                 }
               }
             >
               <View
+                onLayout={[Function]}
                 style={
                   {
-                    "flexDirection": "row",
-                    "justifyContent": "flex-start",
-                    "minWidth": "100%",
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 8,
+                    "alignItems": "center",
+                    "aspectRatio": 1,
+                    "height": "50%",
+                    "justifyContent": "center",
+                    "maxHeight": 24,
+                    "minHeight": 8,
+                    "opacity": 0,
                   }
                 }
+                testID="badge-network"
               >
-                <Text
-                  accessibilityRole="text"
+                <View
                   style={
                     {
-                      "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "alignItems": "center",
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#ffffff",
+                      "borderRadius": 16,
+                      "borderWidth": 2,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "overflow": "hidden",
+                      "shadowColor": "#0000001a",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 1,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                      "width": 32,
                     }
                   }
                 >
-                  Gas Limit (Units)
-                </Text>
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "marginLeft": "auto",
+                  <Image
+                    onError={[Function]}
+                    resizeMode="contain"
+                    source={
+                      {
+                        "uri": "MockImage",
+                      }
                     }
-                  }
-                >
-                  N/A
-                </Text>
-              </View>
-              <View
-                style={
-                  {
-                    "flexDirection": "row",
-                    "justifyContent": "flex-start",
-                    "minWidth": "100%",
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
+                    style={
+                      {
+                        "height": 32,
+                        "width": 32,
+                      }
                     }
-                  }
-                >
-                  Gas Used (Units)
-                </Text>
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "marginLeft": "auto",
-                    }
-                  }
-                >
-                  N/A
-                </Text>
-              </View>
-              <View
-                style={
-                  {
-                    "flexDirection": "row",
-                    "justifyContent": "flex-start",
-                    "minWidth": "100%",
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  Base Fee (GWEI)
-                </Text>
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "marginLeft": "auto",
-                    }
-                  }
-                >
-                  N/A
-                </Text>
-              </View>
-              <View
-                style={
-                  {
-                    "flexDirection": "row",
-                    "justifyContent": "flex-start",
-                    "minWidth": "100%",
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  Priority Fee (GWEI)
-                </Text>
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "marginLeft": "auto",
-                    }
-                  }
-                >
-                  N/A
-                </Text>
-              </View>
-              <View
-                style={
-                  {
-                    "flexDirection": "row",
-                    "justifyContent": "flex-start",
-                    "minWidth": "100%",
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  Max Fee Per Gas
-                </Text>
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "marginLeft": "auto",
-                    }
-                  }
-                >
-                  N/A
-                </Text>
+                    testID="network-avatar-image"
+                  />
+                </View>
               </View>
             </View>
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "flexDirection": "column",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Asset
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#6a737d",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Ethereum
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-end",
+                "alignSelf": "flex-start",
+                "flex": 1,
+                "flexDirection": "column",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              808 ETH
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#6a737d",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              $670.64
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 16,
+              "minWidth": "100%",
+              "paddingVertical": 5,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 16,
+                "height": 32,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 32,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={
+                {
+                  "uri": "MockImage",
+                }
+              }
+              style={
+                {
+                  "height": 32,
+                  "width": 32,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "flexDirection": "column",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Network
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#6a737d",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Ethereum
+            </Text>
           </View>
         </View>
       </View>
@@ -1450,21 +1027,8 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             }
           }
         >
-          View on Etherscan
+          View on block explorer
         </Text>
-        <SvgMock
-          color="#0376c9"
-          height={16}
-          name="Arrow2Upright"
-          style={
-            {
-              "height": 16,
-              "marginLeft": 8,
-              "width": 16,
-            }
-          }
-          width={16}
-        />
       </TouchableOpacity>
     </View>
   </View>

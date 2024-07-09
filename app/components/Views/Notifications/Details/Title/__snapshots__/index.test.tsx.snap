@@ -4,7 +4,8 @@ exports[`Header should render correctly 1`] = `
 <View
   style={
     {
-      "alignItems": "center",
+      "flexDirection": "row",
+      "flexWrap": "wrap",
       "marginTop": 4,
     }
   }
