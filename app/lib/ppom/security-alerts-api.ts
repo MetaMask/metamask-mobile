@@ -1,6 +1,8 @@
+import { Hex } from '@metamask/utils';
 import { SecurityAlertResponse } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 
 const ENDPOINT_VALIDATE = 'validate';
+const ENDPOINT_SUPPORTED_CHAINS = 'supportedChains';
 
 export interface SecurityAlertsAPIRequest {
   method: string;
@@ -19,6 +21,10 @@ export async function validateWithSecurityAlertsAPI(
   return postRequest(endpoint, request);
 }
 
+export async function getSupportedChains(): Promise<Hex[]> {
+  return getRequest(ENDPOINT_SUPPORTED_CHAINS);
+}
+
 async function postRequest(endpoint: string, body: unknown) {
   const url = getUrl(endpoint);
 
@@ -29,6 +35,20 @@ async function postRequest(endpoint: string, body: unknown) {
       'Content-Type': 'application/json',
     },
   });
+
+  if (!response.ok) {
+    throw new Error(
+      `Security alerts API request failed with status: ${response.status}`,
+    );
+  }
+
+  return response.json();
+}
+
+async function getRequest(endpoint: string) {
+  const url = getUrl(endpoint);
+
+  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(

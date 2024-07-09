@@ -2,11 +2,9 @@ import { normalizeTransactionParams } from '@metamask/transaction-controller';
 import * as SignatureRequestActions from '../../actions/signatureRequest'; // eslint-disable-line import/no-namespace
 import * as TransactionActions from '../../actions/transaction'; // eslint-disable-line import/no-namespace
 import Engine from '../../core/Engine';
-import PPOMUtil from './ppom-util';
-import {
-  isSecurityAlertsAPIEnabled,
-  validateWithSecurityAlertsAPI,
-} from './security-alerts-api';
+import PPOMUtil, { isChainSupported } from './ppom-util';
+// eslint-disable-next-line import/no-namespace
+import * as securityAlertAPI from './security-alerts-api';
 
 const CHAIN_ID_MOCK = '0x1';
 
@@ -76,10 +74,12 @@ const mockSignatureRequest = {
 
 describe('PPOM Utils', () => {
   const validateWithSecurityAlertsAPIMock = jest.mocked(
-    validateWithSecurityAlertsAPI,
+    securityAlertAPI.validateWithSecurityAlertsAPI,
   );
 
-  const isSecurityAlertsEnabledMock = jest.mocked(isSecurityAlertsAPIEnabled);
+  const isSecurityAlertsEnabledMock = jest.mocked(
+    securityAlertAPI.isSecurityAlertsAPIEnabled,
+  );
 
   const normalizeTransactionParamsMock = jest.mocked(
     normalizeTransactionParams,
@@ -238,6 +238,9 @@ describe('PPOM Utils', () => {
 
     it('uses security alerts API if enabled', async () => {
       isSecurityAlertsEnabledMock.mockReturnValue(true);
+      jest
+        .spyOn(securityAlertAPI, 'getSupportedChains')
+        .mockImplementation(async () => [CHAIN_ID_MOCK]);
 
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
 
@@ -252,6 +255,9 @@ describe('PPOM Utils', () => {
 
     it('uses controller if security alerts API throws', async () => {
       isSecurityAlertsEnabledMock.mockReturnValue(true);
+      jest
+        .spyOn(securityAlertAPI, 'getSupportedChains')
+        .mockImplementation(async () => [CHAIN_ID_MOCK]);
 
       validateWithSecurityAlertsAPIMock.mockRejectedValue(
         new Error('Test Error'),
@@ -268,6 +274,34 @@ describe('PPOM Utils', () => {
         CHAIN_ID_MOCK,
         mockRequest,
       );
+    });
+  });
+
+  describe('isChainSupported', () => {
+    describe('when security alerts API is enabled', () => {
+      beforeEach(async () => {
+        isSecurityAlertsEnabledMock.mockReturnValue(true);
+        jest
+          .spyOn(securityAlertAPI, 'getSupportedChains')
+          .mockImplementation(async () => [CHAIN_ID_MOCK]);
+      });
+      it('returns true if chain is supported', async () => {
+        expect(await isChainSupported(CHAIN_ID_MOCK)).toStrictEqual(true);
+      });
+
+      it('returns false if chain is not supported', async () => {
+        expect(await isChainSupported('0x2')).toStrictEqual(false);
+      });
+    });
+
+    describe('when security alerts API is disabled', () => {
+      it('returns true if chain is supported', async () => {
+        expect(await isChainSupported(CHAIN_ID_MOCK)).toStrictEqual(true);
+      });
+
+      it('returns false if chain is not supported', async () => {
+        expect(await isChainSupported('0x2')).toStrictEqual(false);
+      });
     });
   });
 });

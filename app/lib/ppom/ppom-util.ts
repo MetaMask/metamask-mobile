@@ -19,10 +19,12 @@ import {
 import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 import AppConstants from '../../core/AppConstants';
 import {
+  getSupportedChains,
   isSecurityAlertsAPIEnabled,
   validateWithSecurityAlertsAPI,
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
+import { Hex } from '@metamask/utils';
 
 export interface PPOMRequest {
   method: string;
@@ -65,7 +67,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
 
   const chainId = NetworkController.state.providerConfig.chainId;
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
-  const isSupportedChain = BLOCKAID_SUPPORTED_CHAIN_IDS.includes(chainId);
+  const isSupportedChain = await isChainSupported(chainId);
 
   const isSecurityAlertsEnabled =
     PreferencesController.state.securityAlertsEnabled;
@@ -117,6 +119,13 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
       updateControllerState: true,
     });
   }
+}
+
+export async function isChainSupported(chainId: Hex): Promise<boolean> {
+  const supportedChains = isSecurityAlertsAPIEnabled()
+    ? await getSupportedChains()
+    : BLOCKAID_SUPPORTED_CHAIN_IDS;
+  return supportedChains.includes(chainId);
 }
 
 async function validateWithController(
