@@ -672,8 +672,7 @@
     "hint_text": "Scan your Keystone wallet to ",
     "purpose_connect": "connect",
     "purpose_sign": "confirm the transaction",
-    "select_accounts": "Select an Account",
-    "please_wait": "Please wait"
+    "select_accounts": "Select an Account"
   },
   "data_collection_modal": {
     "accept": "Okay",
@@ -3128,5 +3127,8 @@
     "title": "Estimated changes",
     "tooltip_description": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
     "total_fiat": "Total = {{currency}}"
+  },
+  "common": {
+    "please_wait": "Please wait"
   }
 }

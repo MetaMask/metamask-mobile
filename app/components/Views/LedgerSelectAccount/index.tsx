@@ -173,9 +173,7 @@ const LedgerSelectAccount = () => {
         isLoadingAction
         onAnimationCompleted={onAnimationCompleted}
       >
-        <Text style={styles.text}>
-          {strings('connect_qr_hardware.please_wait')}
-        </Text>
+        <Text style={styles.text}>{strings('common.please_wait')}</Text>
       </BlockingActionModal>
     </>
   );

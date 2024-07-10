@@ -243,7 +243,7 @@ describe('AccountActions', () => {
 
       await waitFor(() => {
         expect(
-          getByText(strings('connect_qr_hardware.please_wait')),
+          getByText(strings('common.please_wait')),
         ).toBeDefined();
       });
     });

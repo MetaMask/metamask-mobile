@@ -271,7 +271,7 @@ const AccountActions = () => {
         onAnimationCompleted={triggerRemoveHWAccount}
       >
         <Text style={styles.text}>
-          {strings('connect_qr_hardware.please_wait')}
+          {strings('common.please_wait')}
         </Text>
       </BlockingActionModal>
     </BottomSheet>
