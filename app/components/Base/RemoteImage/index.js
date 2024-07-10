@@ -47,9 +47,15 @@ const createStyles = () =>
       left: 5,
     },
     testImageStyle: {
-      padding: 0,
-      width: '100%',
-      height: '100%',
+      resizeMode: 'contain',
+      /*   width: 114,
+      height: 114,
+      borderRadius: 12, */
+    },
+    testImageContainer: {
+      width: 114,
+      height: 114,
+      borderRadius: 12,
     },
   });
 
@@ -129,6 +135,8 @@ const RemoteImage = (props) => {
   }
 
   if (props.fadeIn) {
+    console.log('🚀 ~ RemoteImage ~ props:', props);
+
     return (
       <>
         {props.isTokenImage ? (

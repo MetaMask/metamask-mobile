@@ -1,3 +1,4 @@
+/* eslint-disable no-duplicate-imports */
 import React, {
   useCallback,
   useContext,
@@ -6,7 +7,8 @@ import React, {
   useState,
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
-import { Animated, Linking, View } from 'react-native';
+// eslint-disable-next-line import/no-duplicates
+import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
@@ -114,6 +116,8 @@ import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetec
 import NftOptions from '../../../components/Views/NftOptions';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
+// eslint-disable-next-line import/no-duplicates
+import { View } from 'react-native';
 ///: END:ONLY_INCLUDE_IF
 
 const clearStackNavigatorOptions = {
