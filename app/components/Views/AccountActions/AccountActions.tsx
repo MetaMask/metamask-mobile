@@ -44,6 +44,7 @@ import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
 import { HardwareDeviceTypes } from '../../../core/Analytics/MetaMetrics.types';
+import { KeyringObject } from '@metamask/keyring-controller';
 
 const AccountActions = () => {
   const { colors } = useTheme();
@@ -158,28 +159,46 @@ const AccountActions = () => {
     );
   }, []);
 
-  const triggerRemoveHWAccount = useCallback(async () => {
-    if (blockingModalVisible && selectedAddress) {
-      const keyring = getKeyringByAddress(selectedAddress);
-      let requestForgetDevice = false;
-
-      // Remove account from KeyringController
-      await Controller.KeyringController.removeAccount(selectedAddress as Hex);
-      await removeAccountsFromPermissions([selectedAddress]);
-      const newAccounts = await Controller.KeyringController.getAccounts();
+  /**
+   * Remove the hardware account from the keyring
+   * @param keyring - The keyring object
+   * @param address - The address to remove
+   */
+  const removeHardwareAccount = useCallback(
+    async (keyring: KeyringObject, address: Hex) => {
+      await Controller.KeyringController.removeAccount(address);
+      await removeAccountsFromPermissions([address]);
       trackEvent(MetaMetricsEvents.WALLET_REMOVED, {
         accountType: keyring?.type,
-        address: selectedAddress,
+        address,
       });
+    },
+    [Controller.KeyringController, trackEvent],
+  );
 
-      // setSelectedAddress to the initial account
+  /**
+   * Reselect the first account after removing the selected account
+   */
+  const reselectFirstAccount = useCallback(async () => {
+    const newAccounts = await Controller.KeyringController.getAccounts();
+    if (newAccounts && newAccounts.length > 0) {
       Engine.setSelectedAddress(newAccounts[0]);
+    }
+  }, [Controller.KeyringController]);
 
+  /**
+   * Forget the device if there are no more accounts in the keyring
+   * @param keyring - The keyring object
+   */
+  const forgetDeviceIfRequired = useCallback(
+    async (keyring: KeyringObject) => {
+      // re-fetch the latest keyrings from KeyringController state.
       const { keyrings } = Controller.KeyringController.state;
-
       const updatedKeyring = keyrings.find((kr) => kr.type === keyring?.type);
 
       // If there are no more accounts in the keyring, forget the device
+      let requestForgetDevice = false;
+
       if (updatedKeyring) {
         if (updatedKeyring.accounts.length === 0) {
           requestForgetDevice = true;
@@ -205,14 +224,35 @@ const AccountActions = () => {
             break;
         }
       }
+    },
+    [Controller.KeyringController, trackEvent],
+  );
+
+  /**
+   * Trigger the remove hardware account action when user click on the remove account button
+   */
+  const triggerRemoveHWAccount = useCallback(async () => {
+    if (blockingModalVisible && selectedAddress) {
+      const keyring = getKeyringByAddress(selectedAddress);
+      if (!keyring) {
+        console.error('Keyring not found for address:', selectedAddress);
+        return;
+      }
+
+      await removeHardwareAccount(keyring, selectedAddress as Hex);
+
+      await reselectFirstAccount();
+
+      await forgetDeviceIfRequired(keyring);
 
       setBlockingModalVisible(false);
     }
   }, [
-    Controller.KeyringController,
     blockingModalVisible,
+    forgetDeviceIfRequired,
+    removeHardwareAccount,
+    reselectFirstAccount,
     selectedAddress,
-    trackEvent,
   ]);
 
   const goToEditAccountName = () => {
