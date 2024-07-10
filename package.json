@@ -228,7 +228,6 @@
     "cockatiel": "^3.1.2",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
-    "contentful": "^10.8.7",
     "crypto-js": "^4.2.0",
     "d3-shape": "^3.2.0",
     "dnode": "1.2.2",

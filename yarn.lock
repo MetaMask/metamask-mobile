@@ -14455,7 +14455,7 @@ contentful-sdk-core@^8.1.0:
     p-throttle "^4.1.1"
     qs "^6.11.2"
 
-contentful@^10.3.6, contentful@^10.8.7:
+contentful@^10.3.6:
   version "10.12.2"
   resolved "https://registry.yarnpkg.com/contentful/-/contentful-10.12.2.tgz#512cb721210285d20670a759ee764f1f0ff9e194"
   integrity sha512-PqVqqJvNbEgu05tnIVY6Z01aTlpQStkoabAWJkZcwghWdjxXb/SDpV1SvTr8OQwI63ER04KYhgyWRTNPinomoA==
