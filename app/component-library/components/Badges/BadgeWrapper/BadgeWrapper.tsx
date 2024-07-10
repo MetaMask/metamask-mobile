@@ -21,6 +21,8 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   children,
   badgeElement,
   style,
+ // badgeWrapperStyle,
+ // badgeElementStyle,
 }) => {
   const { size: containerSize, onLayout: onLayoutContainerSize } =
     useComponentSize();
@@ -39,7 +41,7 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
       testID={BADGE_WRAPPER_BADGE_TEST_ID}
     >
       <View>{children}</View>
-      <View style={styles.badge}>{badgeElement}</View>
+      <View style={styles.badge}>{badgeElement}</View> 
     </View>
   );
 };

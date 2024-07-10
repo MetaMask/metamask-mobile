@@ -1,5 +1,73 @@
 import { ViewStyle } from 'react-native';
 
+interface Attribute {
+  key: string;
+  value: string;
+}
+
+interface FloorAsk {
+  sourceDomain: string;
+  source: {
+    id: string;
+    domain: string;
+    name: string;
+    icon: string;
+    url: string;
+  };
+  price: {
+    amount: {
+      native: string;
+      decimal: string;
+      usd: string;
+    };
+    currency: {
+      symbol: string;
+    };
+  };
+}
+
+interface TopBid {
+  sourceDomain: string;
+  price: {
+    amount: {
+      native: number;
+      decimal: string;
+      usd: string;
+    };
+    currency: {
+      symbol: string;
+    };
+  };
+}
+
+interface LastSale {
+  orderSource?: string;
+  timestamp: number;
+  sourceDomain: string;
+  price: {
+    amount: {
+      native: number;
+      decimal: string;
+      usd: string;
+    };
+    currency: {
+      symbol: string;
+    };
+  };
+}
+
+interface Collection {
+  openseaVerificationStatus: string;
+  tokenCount?: string;
+  name: string;
+  ownerCount?: string;
+  creator?: string;
+  symbol: string;
+  contractDeployedAt?: string;
+  floorAsk: FloorAsk;
+  topBid: TopBid;
+}
+
 export interface Collectible {
   name: string;
   tokenId: number;
@@ -13,6 +81,12 @@ export interface Collectible {
   standard: string;
   imageOriginal?: string;
   error: string | undefined;
+  attributes?: Attribute[];
+  collection?: Collection;
+  lastSale?: LastSale;
+  description?: string;
+  rarityRank?: string;
+  topBid?: TopBid;
 }
 
 export interface CollectibleMediaProps {
@@ -25,4 +99,5 @@ export interface CollectibleMediaProps {
   style?: ViewStyle;
   onClose?: () => void;
   onPressColectible?: () => void;
+  isTokenImage?: boolean;
 }

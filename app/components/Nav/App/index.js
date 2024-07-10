@@ -111,6 +111,7 @@ import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+import NftOptions from '../../../components/Views/NftOptions';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -665,6 +666,7 @@ const App = ({ userLoggedIn }) => {
       />
       <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
       <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+      <Stack.Screen name={'NftOptions'} component={NftOptions} />
       <Stack.Screen
         name={Routes.MODAL.UPDATE_NEEDED}
         component={UpdateNeeded}

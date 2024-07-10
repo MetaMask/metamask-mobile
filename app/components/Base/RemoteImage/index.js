@@ -10,11 +10,45 @@ import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
 import Identicon from '../../UI/Identicon';
+import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../component-library/components/Badges/Badge';
+import { useSelector } from 'react-redux';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
+import {
+  getTestNetImageByChainId,
+  isLineaMainnet,
+  isMainNet,
+  isTestNet,
+} from '../../../util/networks';
+import images from 'images/image-icons';
+import { selectNetworkName } from '../../../selectors/networkInfos';
+import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+
+import { BadgeAnchorElementShape } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 
 const createStyles = () =>
   StyleSheet.create({
     svgContainer: {
       overflow: 'hidden',
+    },
+    badgeWrapper: {
+      // position: 'relative',
+      flex: 1,
+    },
+    badgeElement: {
+      position: 'absolute',
+      top: 8,
+      left: 5,
+    },
+    testImageStyle: {
+      padding: 0,
+      width: '100%',
+      height: '100%',
     },
   });
 
@@ -25,6 +59,9 @@ const RemoteImage = (props) => {
   const isImageUrl = isUrl(props?.source?.uri);
   const ipfsGateway = useIpfsGateway();
   const styles = createStyles();
+  const chainId = useSelector(selectChainId);
+  const ticker = useSelector(selectTicker);
+  const networkName = useSelector(selectNetworkName);
   const resolvedIpfsUrl = useMemo(() => {
     try {
       const url = new URL(props.source.uri);
@@ -39,6 +76,16 @@ const RemoteImage = (props) => {
   const uri = resolvedIpfsUrl || source.uri;
 
   const onError = ({ nativeEvent: { error } }) => setError(error);
+
+  const NetworkBadgeSource = () => {
+    if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
+
+    if (isMainNet(chainId)) return images.ETHEREUM;
+
+    if (isLineaMainnet(chainId)) return images['LINEA-MAINNET'];
+
+    return ticker ? images[ticker] : undefined;
+  };
 
   if (error && props.address) {
     return <Identicon address={props.address} customStyle={props.style} />;
@@ -74,11 +121,41 @@ const RemoteImage = (props) => {
 
   if (props.fadeIn) {
     return (
-      <FadeIn placeholderStyle={props.placeholderStyle}>
-        <Image {...props} source={{ uri }} onError={onError} />
-      </FadeIn>
+      <>
+        {props.isTokenImage ? (
+          <FadeIn placeholderStyle={props.placeholderStyle}>
+            <View>
+              <BadgeWrapper
+                //  badgeElementStyle={styles.badgeElement}
+                //    badgeWrapperStyle={styles.badgeWrapper}
+                badgePosition={DEFAULT_BADGEWRAPPER_BADGEPOSITION}
+                anchorElementShape={BadgeAnchorElementShape.Rectangular}
+                badgeElement={
+                  <Badge
+                    variant={BadgeVariant.Network}
+                    imageSource={NetworkBadgeSource()}
+                    name={networkName}
+                  />
+                }
+              >
+                <Image
+                  style={styles.testImageStyle}
+                  {...props}
+                  source={{ uri }}
+                  onError={onError}
+                />
+              </BadgeWrapper>
+            </View>
+          </FadeIn>
+        ) : (
+          <FadeIn placeholderStyle={props.placeholderStyle}>
+            <Image {...props} source={{ uri }} onError={onError} />
+          </FadeIn>
+        )}
+      </>
     );
   }
+
   return <Image {...props} source={{ uri }} onError={onError} />;
 };
 
@@ -111,6 +188,8 @@ RemoteImage.propTypes = {
    * Token address
    */
   address: PropTypes.string,
+
+  isTokenImage: PropTypes.bool,
 };
 
 export default RemoteImage;

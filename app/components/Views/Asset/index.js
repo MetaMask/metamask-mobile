@@ -63,6 +63,7 @@ import { updateIncomingTransactions } from '../../../util/transaction-controller
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import Text from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -529,6 +530,7 @@ class Asset extends PureComponent {
             headerHeight={280}
             onScrollThroughContent={this.onScrollThroughContent}
           />
+          /*         <Text>sqjkbdjksqdjsqn</Text> */
         )}
         {!asset.balanceError && (displayBuyButton || displaySwapsButton) && (
           <View style={{ ...styles.footer, ...styles.footerBorder }}>

@@ -38,11 +38,7 @@ import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
+
 import {
   default as MorphText,
   TextVariant,
@@ -53,6 +49,11 @@ import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Net
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
 import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../component-library/components/Icons/Icon';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -1099,6 +1100,66 @@ export function getImportTokenNavbarOptions(
       </TouchableOpacity>
     ),
     headerLeft: null,
+    headerStyle: [
+      innerStyles.headerStyle,
+      contentOffset && innerStyles.headerShadow,
+    ],
+  };
+}
+
+export function getNftDetailsNavbarOptions(
+  navigation,
+  themeColors,
+  onRightPress,
+  contentOffset = 0,
+) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerShadow: {
+      elevation: 2,
+      shadowColor: themeColors.background.primary,
+      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
+      shadowOffset: { height: 4, width: 0 },
+      shadowRadius: 8,
+    },
+    headerIcon: {
+      color: themeColors.primary.default,
+    },
+    headerBackIcon: {
+      color: themeColors.icon.default,
+    },
+  });
+  return {
+    headerLeft: () => (
+      // eslint-disable-next-line react/jsx-no-bind
+      <TouchableOpacity
+        onPress={() => navigation.pop()}
+        style={styles.backButton}
+        {...generateTestId(Platform, ASSET_BACK_BUTTON)}
+      >
+        <IonicIcon
+          name={'ios-arrow-back'}
+          size={24}
+          style={innerStyles.headerBackIcon}
+        />
+      </TouchableOpacity>
+    ),
+    headerRight: onRightPress
+      ? () => (
+          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+            <MaterialCommunityIcon
+              name={'dots-vertical'} // TODO fix this make it vertical
+              size={28}
+              style={innerStyles.headerBackIcon}
+            />
+          </TouchableOpacity>
+          // eslint-disable-next-line no-mixed-spaces-and-tabs
+        )
+      : () => <View />,
     headerStyle: [
       innerStyles.headerStyle,
       contentOffset && innerStyles.headerShadow,

@@ -126,7 +126,14 @@ const CollectibleContracts = ({
 
   const onItemPress = useCallback(
     (collectible, contractName) => {
-      navigation.navigate('CollectiblesDetails', { collectible, contractName });
+      // Navigate to new NFT details page
+      navigation.push('NftDetails', {
+        collectible,
+      });
+      /*     navigation.navigate('CollectiblesDetails', {
+        collectible,
+        contractName,
+      });    */
     },
     [navigation],
   );

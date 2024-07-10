@@ -30,6 +30,7 @@ const CollectibleModal = () => {
   const dispatch = useDispatch();
 
   const { contractName, collectible } = useParams<CollectibleModalParams>();
+  console.log("🚀 ~ CollectibleModal ~ contractName:", contractName)
 
   const modalRef = useRef(null);
 

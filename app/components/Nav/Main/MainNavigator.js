@@ -83,6 +83,8 @@ import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
 import { isTest } from '../../../util/test/utils';
 
+import NftDetails from '../../Views/NftDetails';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -542,6 +544,19 @@ const SendView = () => (
   </Stack.Navigator>
 );
 
+/* eslint-disable react/prop-types */
+const NftDetailsModeView = (props) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name=" " // No name here because this title will be displayed in the header of the page
+      component={NftDetails}
+      initialParams={{
+        collectible: props.route.params?.collectible,
+      }}
+    />
+  </Stack.Navigator>
+);
+
 const SendFlowView = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -735,6 +750,7 @@ const MainNavigator = () => (
       name={Routes.NOTIFICATIONS.VIEW}
       component={NotificationsModeView}
     />
+    <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name={Routes.RAMP.BUY}>

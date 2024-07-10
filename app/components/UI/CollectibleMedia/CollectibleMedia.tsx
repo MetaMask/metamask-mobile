@@ -33,6 +33,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   cover,
   onClose,
   onPressColectible,
+  isTokenImage,
 }) => {
   const [sourceUri, setSourceUri] = useState<string | null>(null);
   const { colors } = useTheme();
@@ -194,6 +195,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             ]}
             onError={fallback}
             testID="nft-image"
+            isTokenImage={isTokenImage}
           />
         );
       }
@@ -222,6 +224,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     renderFallback,
     fallback,
     displayNftMedia,
+    isTokenImage,
   ]);
 
   return (
