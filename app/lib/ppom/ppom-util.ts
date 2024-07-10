@@ -121,11 +121,18 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
   }
 }
 
-export async function isChainSupported(chainId: Hex): Promise<boolean> {
-  const supportedChains = isSecurityAlertsAPIEnabled()
-    ? await getSupportedChains()
-    : BLOCKAID_SUPPORTED_CHAIN_IDS;
-  return supportedChains.includes(chainId);
+async function isChainSupported(chainId: Hex): Promise<boolean> {
+  try {
+    const supportedChains = isSecurityAlertsAPIEnabled()
+      ? await getSupportedChains()
+      : BLOCKAID_SUPPORTED_CHAIN_IDS;
+    return supportedChains.includes(chainId);
+  } catch (e) {
+    Logger.log(
+      `Error fetching supported chains from security alerts API: ${e}`,
+    );
+    return BLOCKAID_SUPPORTED_CHAIN_IDS.includes(chainId);
+  }
 }
 
 async function validateWithController(
@@ -202,4 +209,4 @@ function normalizeRequest(request: PPOMRequest): PPOMRequest {
   };
 }
 
-export default { validateRequest };
+export default { validateRequest, isChainSupported };

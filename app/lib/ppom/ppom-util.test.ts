@@ -2,7 +2,7 @@ import { normalizeTransactionParams } from '@metamask/transaction-controller';
 import * as SignatureRequestActions from '../../actions/signatureRequest'; // eslint-disable-line import/no-namespace
 import * as TransactionActions from '../../actions/transaction'; // eslint-disable-line import/no-namespace
 import Engine from '../../core/Engine';
-import PPOMUtil, { isChainSupported } from './ppom-util';
+import PPOMUtil from './ppom-util';
 // eslint-disable-next-line import/no-namespace
 import * as securityAlertAPI from './security-alerts-api';
 
@@ -286,21 +286,34 @@ describe('PPOM Utils', () => {
           .mockImplementation(async () => [CHAIN_ID_MOCK]);
       });
       it('returns true if chain is supported', async () => {
-        expect(await isChainSupported(CHAIN_ID_MOCK)).toStrictEqual(true);
+        expect(await PPOMUtil.isChainSupported(CHAIN_ID_MOCK)).toStrictEqual(
+          true,
+        );
       });
 
       it('returns false if chain is not supported', async () => {
-        expect(await isChainSupported('0x2')).toStrictEqual(false);
+        expect(await PPOMUtil.isChainSupported('0x2')).toStrictEqual(false);
+      });
+
+      it('returns correctly if security alerts API throws', async () => {
+        jest
+          .spyOn(securityAlertAPI, 'getSupportedChains')
+          .mockRejectedValue(new Error('Test Error'));
+        expect(await PPOMUtil.isChainSupported(CHAIN_ID_MOCK)).toStrictEqual(
+          true,
+        );
       });
     });
 
     describe('when security alerts API is disabled', () => {
       it('returns true if chain is supported', async () => {
-        expect(await isChainSupported(CHAIN_ID_MOCK)).toStrictEqual(true);
+        expect(await PPOMUtil.isChainSupported(CHAIN_ID_MOCK)).toStrictEqual(
+          true,
+        );
       });
 
       it('returns false if chain is not supported', async () => {
-        expect(await isChainSupported('0x2')).toStrictEqual(false);
+        expect(await PPOMUtil.isChainSupported('0x2')).toStrictEqual(false);
       });
     });
   });
