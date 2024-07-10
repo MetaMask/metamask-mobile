@@ -242,9 +242,7 @@ describe('AccountActions', () => {
       });
 
       await waitFor(() => {
-        expect(
-          getByText(strings('common.please_wait')),
-        ).toBeDefined();
+        expect(getByText(strings('common.please_wait'))).toBeDefined();
       });
     });
   });

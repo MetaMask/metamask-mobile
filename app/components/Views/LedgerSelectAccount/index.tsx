@@ -107,7 +107,7 @@ const LedgerSelectAccount = () => {
     setBlockingModalVisible(true);
     await forgetLedger();
     dispatch(setReloadAccounts(true));
-    trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
+    trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
       device_type: 'Ledger',
     });
     setBlockingModalVisible(false);
@@ -118,17 +118,16 @@ const LedgerSelectAccount = () => {
     if (!blockingModalVisible) {
       return;
     }
-    
+
     if (forgetDevice) {
       await onForget();
       // ...
-        setBlockingModalVisible(false);
-        setForgetDevice(false);
-      } else if (unlockAccounts.trigger) {
-        await onUnlock(unlockAccounts.accountIndexes);
-        setBlockingModalVisible(false);
-        setUnlockAccounts({ trigger: false, accountIndexes: [] });
-      }
+      setBlockingModalVisible(false);
+      setForgetDevice(false);
+    } else if (unlockAccounts.trigger) {
+      await onUnlock(unlockAccounts.accountIndexes);
+      setBlockingModalVisible(false);
+      setUnlockAccounts({ trigger: false, accountIndexes: [] });
     }
   }, [
     blockingModalVisible,

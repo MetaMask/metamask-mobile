@@ -159,7 +159,7 @@ const AccountActions = () => {
 
   const triggerRemoveHWAccount = useCallback(async () => {
     if (blockingModalVisible && selectedAddress) {
-      const kr = getKeyringByAddress(selectedAddress);
+      const keyring = getKeyringByAddress(selectedAddress);
       let requestForgetDevice = false;
 
       // Remove account from KeyringController
@@ -167,7 +167,7 @@ const AccountActions = () => {
       await removeAccountsFromPermissions([selectedAddress]);
       const newAccounts = await Controller.KeyringController.getAccounts();
       trackEvent(MetaMetricsEvents.WALLET_REMOVED, {
-        accountType: kr?.type,
+        accountType: keyring?.type,
         address: selectedAddress,
       });
 
@@ -176,9 +176,7 @@ const AccountActions = () => {
 
       const { keyrings } = Controller.KeyringController.state;
 
-      const updatedKeyring = keyrings.find(
-        (kr) => kr.type === keyring?.type,
-      );
+      const updatedKeyring = keyrings.find((kr) => kr.type === keyring?.type);
 
       // If there are no more accounts in the keyring, forget the device
       if (updatedKeyring) {
@@ -189,16 +187,18 @@ const AccountActions = () => {
         requestForgetDevice = true;
       }
       if (requestForgetDevice) {
-        switch (kr?.type) {
+        switch (keyring?.type) {
           case ExtendedKeyringTypes.ledger:
             await forgetLedger();
-            trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
+            trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
               device_type: 'Ledger',
             });
             break;
           case ExtendedKeyringTypes.qr:
             await Controller.KeyringController.forgetQRDevice();
-            // there is not a MetaMetricsEvent for this action??
+            trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
+              device_type: 'QR Hardware Wallet',
+            });
             break;
           default:
             break;
@@ -270,9 +270,7 @@ const AccountActions = () => {
         isLoadingAction
         onAnimationCompleted={triggerRemoveHWAccount}
       >
-        <Text style={styles.text}>
-          {strings('common.please_wait')}
-        </Text>
+        <Text style={styles.text}>{strings('common.please_wait')}</Text>
       </BlockingActionModal>
     </BottomSheet>
   );
