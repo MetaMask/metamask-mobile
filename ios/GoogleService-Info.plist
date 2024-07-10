@@ -14,10 +14,6 @@
 	<string>notifications-dev-e4e6d</string>
 	<key>STORAGE_BUCKET</key>
 	<string>$(FCM_CONFIG_STORAGE_BUCKET)</string>
-	<key>IS_ADS_ENABLED</key>
-	<false></false>
-	<key>IS_ANALYTICS_ENABLED</key>
-	<false></false>
 	<key>IS_APPINVITE_ENABLED</key>
 	<true></true>
 	<key>IS_GCM_ENABLED</key>
