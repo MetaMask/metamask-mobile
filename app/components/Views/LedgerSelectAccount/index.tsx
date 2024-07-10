@@ -115,9 +115,13 @@ const LedgerSelectAccount = () => {
   }, [dispatch, navigation, trackEvent]);
 
   const onAnimationCompleted = useCallback(async () => {
-    if (blockingModalVisible) {
-      if (forgetDevice) {
-        await onForget();
+    if (!blockingModalVisible) {
+      return;
+    }
+    
+    if (forgetDevice) {
+      await onForget();
+      // ...
         setBlockingModalVisible(false);
         setForgetDevice(false);
       } else if (unlockAccounts.trigger) {

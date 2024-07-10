@@ -177,7 +177,7 @@ const AccountActions = () => {
       const { keyrings } = Controller.KeyringController.state;
 
       const updatedKeyring = keyrings.find(
-        (keyring) => keyring.type === kr?.type,
+        (kr) => kr.type === keyring?.type,
       );
 
       // If there are no more accounts in the keyring, forget the device

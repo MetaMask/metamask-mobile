@@ -356,7 +356,7 @@ describe('LedgerConfirmationModal', () => {
     expect(onConfirmation).toHaveBeenCalled();
   });
 
-  it('logs LEDGER_HARDWARE_WALLET_ERROR thrown when ledger error occurs', async () => {
+  it('logs LEDGER_HARDWARE_WALLET_ERROR event when the ledger error occurs', async () => {
     const onConfirmation = jest.fn();
 
     const ledgerLogicToRun = jest.fn();
