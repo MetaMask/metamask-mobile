@@ -10,7 +10,7 @@ import NotificationManager from '../../../../../core/NotificationManager';
 import { InteractionManager } from 'react-native';
 import AppConstants from '../../../../../core/AppConstants';
 import { strings } from '../../../../../../locales/i18n';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
 jest.mock('../../../../../components/hooks/useMetrics');
@@ -53,7 +53,7 @@ const mockStore = configureMockStore();
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 

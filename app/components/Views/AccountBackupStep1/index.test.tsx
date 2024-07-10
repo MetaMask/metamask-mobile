@@ -1,6 +1,6 @@
 import { ComponentType } from 'react';
 import AccountBackupStep1 from './';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 
 jest.mock('../../../core/Engine', () => ({
@@ -22,7 +22,7 @@ describe('AccountBackupStep1', () => {
       {
         state: {
           engine: {
-            backgroundState: initialBackgroundState,
+            backgroundState,
           },
         },
       },

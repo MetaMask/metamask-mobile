@@ -6,7 +6,7 @@ import NotificationManager from '../../../../../core/NotificationManager';
 import { InteractionManager } from 'react-native';
 import AppConstants from '../../../../../core/AppConstants';
 import { strings } from '../../../../../../locales/i18n';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { act, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import/no-namespace
@@ -94,7 +94,7 @@ const messageParamsMock = {
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
   signatureRequest: {
     securityAlertResponse: {

@@ -3,7 +3,6 @@ import React, { useRef, useState, LegacyRef } from 'react';
 import {
   TouchableOpacity,
   View,
-  Platform,
   FlatList,
   RefreshControl,
   Pressable,
@@ -34,11 +33,6 @@ import {
   isMainnetByChainId,
   isTestNet,
 } from '../../../util/networks';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  IMPORT_TOKEN_BUTTON_ID,
-  MAIN_WALLET_VIEW_VIA_TOKENS_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   selectChainId,
   selectNetworkClientId,
@@ -68,7 +62,6 @@ import Button, {
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
-import SkeletonText from '../Ramp/components/SkeletonText';
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
@@ -98,6 +91,9 @@ import Box from '../../UI/Ramp/components/Box';
 import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
 import { isPortfolioUrl } from '../../../../app/util/url';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { zeroAddress } from 'ethereumjs-util';
+import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
+import AggregatedPercentage from '../../../component-library/components-temp/Price/AggregatedPercentage';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -129,6 +125,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   );
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
+
   const hideZeroBalanceTokens = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -286,7 +283,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         style={styles.add}
         onPress={goToAddToken}
         disabled={!isAddTokenEnabled}
-        {...generateTestId(Platform, IMPORT_TOKEN_BUTTON_ID)}
+        testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
       >
         <Text style={styles.centered}>
           <Text style={styles.emptyText}>
@@ -361,6 +358,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const { balanceFiat, balanceValueFormatted } = handleBalance(asset);
 
+    const pricePercentChange1d = itemAddress
+      ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
+      : tokenExchangeRates?.[zeroAddress()]?.pricePercentChange1d;
+
     // render balances according to primary currency
     let mainBalance, secondaryBalance;
     mainBalance = TOKEN_BALANCE_LOADING;
@@ -428,6 +429,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         onLongPress={asset.isETH ? null : showRemoveMenu}
         asset={asset}
         balance={secondaryBalance}
+        mainBalance={mainBalance}
       >
         <BadgeWrapper
           badgeElement={
@@ -463,14 +465,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             {/** Add button link to Portfolio Stake if token is mainnet ETH */}
             {asset.isETH && isMainnet && renderStakeButton(asset)}
           </View>
-
-          <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
-            {mainBalance === TOKEN_BALANCE_LOADING ? (
-              <SkeletonText thin style={styles.skeleton} />
-            ) : (
-              mainBalance
-            )}
-          </Text>
+          {!isTestNet(chainId) ? (
+            <PercentageChange value={pricePercentChange1d} />
+          ) : null}
         </View>
 
         {renderScamWarningIcon(asset)}
@@ -616,12 +613,23 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     return (
       <View style={styles.networth}>
-        <Text
-          style={styles.fiatBalance}
-          testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-        >
-          {fiatBalance}
-        </Text>
+        <View>
+          <Text
+            style={styles.fiatBalance}
+            testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+          >
+            {fiatBalance}
+          </Text>
+
+          {!isTestNet(chainId) ? (
+            <AggregatedPercentage
+              ethFiat={balance?.ethFiat}
+              tokenFiat={balance?.tokenFiat}
+              tokenFiat1dAgo={balance?.tokenFiat1dAgo}
+              ethFiat1dAgo={balance?.ethFiat1dAgo}
+            />
+          ) : null}
+        </View>
         <Button
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Md}
@@ -703,7 +711,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   return (
     <View
       style={styles.wrapper}
-      {...generateTestId(Platform, MAIN_WALLET_VIEW_VIA_TOKENS_ID)}
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       {tokens?.length ? renderList() : renderEmpty()}
       <ActionSheet
