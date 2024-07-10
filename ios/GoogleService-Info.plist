@@ -9,9 +9,9 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>io.metamask.MetaMask</string>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>PROJECT_ID</key>
-	<string>notifications-dev-e4e6d</string>
+	<string>$(FCM_CONFIG_PROJECT_ID)</string>
 	<key>STORAGE_BUCKET</key>
 	<string>$(FCM_CONFIG_STORAGE_BUCKET)</string>
 	<key>IS_APPINVITE_ENABLED</key>

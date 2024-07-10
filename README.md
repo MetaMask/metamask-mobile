@@ -49,7 +49,7 @@ ATTENTION: In case you don't provide your own Firebase project config file, you 
 base64 -i ./android/app/mock-google-services.json
 ```
 
-Copy the resul to your clipboard and paste it in the GOOGLE_SERVICES_B64 variable in the .env file you are running the app.
+Copy the result to your clipboard and paste it in the GOOGLE_SERVICES_B64 variable in the .env file you are running the app.
 
 In case of any doubt, please follow the instructions in the link below to get your Firebase project config file.
 
