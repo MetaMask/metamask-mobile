@@ -9,7 +9,7 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 
 // Internal dependencies
 import NetworkSelector from './NetworkSelector';
-import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
 
 const mockEngine = Engine;
