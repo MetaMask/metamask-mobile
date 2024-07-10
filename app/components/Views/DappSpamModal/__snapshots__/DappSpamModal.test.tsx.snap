@@ -53,7 +53,7 @@ exports[`DappSpamModal renders SiteBlockedContent if user opt in to block dapp 1
         }
       }
     >
-      Multiple requests detected
+      You've temporarily blocked this site
     </Text>
     <View
       style={
@@ -77,7 +77,7 @@ exports[`DappSpamModal renders SiteBlockedContent if user opt in to block dapp 1
       }
     }
   >
-    Site is blocked from sending requests for 1 minute.
+    The site will be blocked for 1 minute.
   </Text>
   <View
     style={
@@ -183,7 +183,7 @@ exports[`DappSpamModal renders spam modal content by default 1`] = `
         }
       }
     >
-      Multiple requests detected
+      We've noticed multiple requests
     </Text>
     <View
       style={
@@ -193,6 +193,78 @@ exports[`DappSpamModal renders spam modal content by default 1`] = `
         }
       }
     />
+  </View>
+  <View
+    style={
+      {
+        "marginBottom": 16,
+      }
+    }
+  >
+    <View
+      iconName="LockSlash"
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "center",
+          "backgroundColor": "#ffffff",
+          "borderColor": "#bbc0c5",
+          "borderRadius": 99,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "paddingLeft": 8,
+          "paddingRight": 16,
+          "paddingVertical": 8,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderRadius": 16,
+            "height": 24,
+            "marginRight": 8,
+            "overflow": "hidden",
+            "width": 24,
+          }
+        }
+      >
+        <Image
+          onError={[Function]}
+          resizeMode="contain"
+          source={
+            {
+              "uri": "https://api.faviconkit.com/scam.origin/50",
+            }
+          }
+          style={
+            {
+              "flex": 1,
+              "height": undefined,
+              "width": undefined,
+            }
+          }
+          testID="favicon-avatar-image"
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#6a737d",
+            "flexShrink": 1,
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        https://scam.origin
+      </Text>
+    </View>
   </View>
   <Text
     accessibilityRole="text"
@@ -204,10 +276,11 @@ exports[`DappSpamModal renders spam modal content by default 1`] = `
         "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 22,
+        "textAlign": "center",
       }
     }
   >
-    The site has sent you multiple requests. It might be a scam site trying to steal your assets by sending multiple requests. Do you want to disconnect from the site?
+    If you're being spammed with multiple requests, you can temporarily block the site.
   </Text>
   <View
     style={
@@ -256,7 +329,7 @@ exports[`DappSpamModal renders spam modal content by default 1`] = `
           }
         }
       >
-        Continue
+        Cancel
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
@@ -294,7 +367,7 @@ exports[`DappSpamModal renders spam modal content by default 1`] = `
           }
         }
       >
-        Block DApp requests for 1 minute
+        Temporarily block this site
       </Text>
     </TouchableOpacity>
   </View>

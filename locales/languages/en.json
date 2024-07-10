@@ -3128,11 +3128,10 @@
   "spam_filter": {
     "block_dapp_requests_for_1_minute": "Temporarily block this site",
     "cancel": "Cancel",
-    "description": "This site could be trying to steal your assets. To avoid more requests, we recommend you disconnect from this site.",
+    "description": "If you're being spammed with multiple requests, you can temporarily block the site.",
     "got_it": "Got it",
-    "proceed": "Proceed",
-    "site_blocked_description": "You'll only be blocked for 1 minute.",
+    "site_blocked_description": "The site will be blocked for 1 minute.",
     "site_blocked_title": "You've temporarily blocked this site",
-    "title": "Potential scam detected"
+    "title": "We've noticed multiple requests"
   }
 }
