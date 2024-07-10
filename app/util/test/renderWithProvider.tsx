@@ -13,13 +13,13 @@ import { Theme } from '../theme/models';
 import configureStore from './configureStore';
 import { RootState } from '../../reducers';
 
-// DeepPartial is a generic type that recursively makes all properties of a given type T optional.
-export type DeepPartial<T> = T extends Function
+// DeepPartial is a generic type that recursively makes all properties of a given type T optional
+export type DeepPartial<T> = T extends (...args: unknown[]) => unknown
   ? // If T is a function, return T as is.
     T
-  : T extends Array<infer U>
+  : T extends (infer U)[]
   ? // If T is an array, apply DeepPartial to its elements.
-    Array<DeepPartial<U>>
+    DeepPartial<U>[]
   : T extends object
   ? // If T is an object, apply DeepPartial to each property of T.
     { [K in keyof T]?: DeepPartial<T[K]> }
