@@ -1,32 +1,35 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TabCountIcon should render correctly 1`] = `
-<ContextProvider
-  value={
-    {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
+<View
+  style={
+    [
+      {
+        "alignItems": "center",
+        "borderColor": "#6a737d",
+        "borderRadius": 6,
+        "borderWidth": 2,
+        "justifyContent": "center",
       },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
+      undefined,
+    ]
   }
 >
-  <Component />
-</ContextProvider>
+  <Text
+    style={
+      {
+        "alignSelf": "center",
+        "color": "#6a737d",
+        "flex": 0,
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 15,
+        "fontWeight": "400",
+        "textAlign": "center",
+      }
+    }
+    testID="show-tabs-number"
+  >
+    1
+  </Text>
+</View>
 `;
