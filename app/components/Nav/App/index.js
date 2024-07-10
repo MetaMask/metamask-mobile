@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
-import { Animated, Linking } from 'react-native';
+import { Animated, Linking, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
@@ -112,6 +112,9 @@ import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctional
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import { SnapsExecutionWebView } from '../../../lib/snaps';
+///: END:ONLY_INCLUDE_IF
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -776,6 +779,15 @@ const App = ({ userLoggedIn }) => {
     // do not render unless a route is defined
     (route && (
       <>
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        }
+        <View>
+          <SnapsExecutionWebView />
+        </View>
+        {
+          ///: END:ONLY_INCLUDE_IF
+        }
         {isBlockaidFeatureEnabled() && <PPOMView />}
         <NavigationContainer
           // Prevents artifacts when navigating between screens
