@@ -47,10 +47,19 @@ const createStyles = () =>
       left: 5,
     },
     testImageStyle: {
-      resizeMode: 'contain',
+      // resizeMode: 'contain',
+      width: '100%',
+      height: '100%',
       /*   width: 114,
       height: 114,
       borderRadius: 12, */
+      borderRadius: 8,
+    },
+    detailedImageStyle: {
+      //   width: 'auto',
+      aspectRatio: 1,
+      height: 300,
+      borderRadius: 8,
     },
     testImageContainer: {
       width: 114,
@@ -136,7 +145,8 @@ const RemoteImage = (props) => {
 
   if (props.fadeIn) {
     console.log('🚀 ~ RemoteImage ~ props:', props);
-
+    //const { propsStyle, ...restProps } = props;
+    const { style, ...restProps } = props;
     return (
       <>
         {props.isTokenImage ? (
@@ -155,12 +165,19 @@ const RemoteImage = (props) => {
                   />
                 }
               >
-                <Image
-                  style={styles.testImageStyle}
-                  {...props}
-                  source={{ uri }}
-                  onError={onError}
-                />
+                <View style={!props.isFullRatio && style}>
+                  <Image
+                    style={
+                      props.isFullRatio
+                        ? styles.detailedImageStyle
+                        : styles.testImageStyle
+                    }
+                    {...restProps}
+                    source={{ uri }}
+                    onError={onError}
+                    resizeMode={props.isFullRatio ? 'contain' : 'cover'}
+                  />
+                </View>
               </BadgeWrapper>
             </View>
           </FadeIn>
@@ -207,6 +224,8 @@ RemoteImage.propTypes = {
   address: PropTypes.string,
 
   isTokenImage: PropTypes.bool,
+
+  isFullRatio: PropTypes.bool,
 };
 
 export default RemoteImage;

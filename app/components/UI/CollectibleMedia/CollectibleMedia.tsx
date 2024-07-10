@@ -34,6 +34,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   onClose,
   onPressColectible,
   isTokenImage,
+  isFullRatio,
 }) => {
   const [sourceUri, setSourceUri] = useState<string | null>(null);
   const { colors } = useTheme();
@@ -196,6 +197,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             onError={fallback}
             testID="nft-image"
             isTokenImage={isTokenImage}
+            isFullRatio={isFullRatio}
           />
         );
       }
@@ -209,23 +211,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     }
 
     return renderFallback(false);
-  }, [
-    collectible,
-    sourceUri,
-    onClose,
-    renderAnimation,
-    style,
-    tiny,
-    small,
-    big,
-    cover,
-    styles,
-    isIpfsGatewayEnabled,
-    renderFallback,
-    fallback,
-    displayNftMedia,
-    isTokenImage,
-  ]);
+  }, [displayNftMedia, isIpfsGatewayEnabled, sourceUri, collectible.error, collectible.animation, renderFallback, renderAnimation, onClose, styles.mediaPlayer, styles.cover, styles.image, styles.tinyImage, styles.smallImage, styles.bigImage, cover, style, tiny, small, big, fallback, isTokenImage, isFullRatio]);
 
   return (
     <View style={styles.container(collectible.backgroundColor)}>

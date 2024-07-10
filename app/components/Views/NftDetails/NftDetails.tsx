@@ -198,6 +198,7 @@ const NftDetails = () => {
               renderAnimation
               collectible={collectible}
               isTokenImage
+              isFullRatio
             />
           </View>
           <View>
