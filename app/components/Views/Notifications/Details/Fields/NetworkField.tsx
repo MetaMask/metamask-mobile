@@ -30,7 +30,7 @@ function NetworkField(props: NetworkFieldProps) {
     return networkUrl;
   }, [iconUrl]);
 
-  if (!iconUrl || !iconUrl) {
+  if (!iconUrl) {
     return null;
   }
 
