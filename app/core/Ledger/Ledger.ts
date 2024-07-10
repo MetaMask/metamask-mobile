@@ -6,7 +6,7 @@ import {
   LedgerKeyring,
   LedgerMobileBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
-import LEDGER_HD_PATH from './constants';
+import { OperationTypes, LEDGER_HD_PATH } from './constants';
 
 /**
  * Perform an operation with the Ledger keyring.
@@ -100,22 +100,25 @@ export const getDeviceId = async (): Promise<string> =>
 
 /**
  * Unlock Ledger Accounts by page
- * @param page - The page number to unlock
+ * @param operation - the operation number, <br> 0: Get First Page<br> 1: Get Next Page <br> -1: Get Previous Page
+ * @return The Ledger Accounts
  */
-export const getLedgerAccountsByPage = async (
-  page: number,
+export const getLedgerAccountsByOperation = async (
+  operation: number,
 ): Promise<{ balance: string; address: string; index: number }[]> => {
   try {
     const accounts = await withLedgerKeyring(async (keyring: LedgerKeyring) => {
-      switch (page) {
-        case -1:
+      switch (operation) {
+        case OperationTypes.GET_PREVIOUS_PAGE:
           return await keyring.getPreviousPage();
-        case 1:
+        case OperationTypes.GET_NEXT_PAGE:
           return await keyring.getNextPage();
         default:
           return await keyring.getFirstPage();
       }
     });
+
+    console.warn(`Returning accounts by ${operation}`, accounts);
 
     return accounts.map((account) => ({
       ...account,

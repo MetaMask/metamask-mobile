@@ -3,7 +3,7 @@ import {
   connectLedgerHardware,
   forgetLedger,
   getDeviceId,
-  getLedgerAccountsByPage,
+  getLedgerAccountsByOperation,
   ledgerSignTypedMessage,
   openEthereumAppOnLedger,
   unlockLedgerWalletAccount,
@@ -162,17 +162,17 @@ describe('Ledger core', () => {
     });
   });
 
-  describe('getLedgerAccountsByPage', () => {
+  describe('getLedgerAccountsByOperation', () => {
     it('calls ledgerKeyring.getNextPage on ledgerKeyring', async () => {
-      await getLedgerAccountsByPage(1);
+      await getLedgerAccountsByOperation(1);
       expect(ledgerKeyring.getNextPage).toHaveBeenCalled();
     });
     it('calls getPreviousPage on ledgerKeyring', async () => {
-      await getLedgerAccountsByPage(-1);
+      await getLedgerAccountsByOperation(-1);
       expect(ledgerKeyring.getPreviousPage).toHaveBeenCalled();
     });
     it('calls getFirstPage on ledgerKeyring', async () => {
-      await getLedgerAccountsByPage(0);
+      await getLedgerAccountsByOperation(0);
       expect(ledgerKeyring.getFirstPage).toHaveBeenCalled();
     });
   });

@@ -12,7 +12,7 @@ import ledgerDeviceLightImage from 'images/ledger-device-light.png';
 import ledgerDeviceDarkImage from 'images/ledger-device-dark.png';
 import {
   forgetLedger,
-  getLedgerAccountsByPage,
+  getLedgerAccountsByOperation,
   unlockLedgerWalletAccount,
 } from '../../../core/Ledger/Ledger';
 import LedgerConnect from '../LedgerConnect';
@@ -22,6 +22,9 @@ import { useDispatch } from 'react-redux';
 import { KeyringController } from '@metamask/keyring-controller';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './index.styles';
+import {
+  OperationTypes
+} from '../../../core/Ledger/constants';
 
 const LedgerSelectAccount = () => {
   const navigation = useNavigation<StackNavigationProp<never>>();
@@ -65,17 +68,23 @@ const LedgerSelectAccount = () => {
     trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
       device_type: 'Ledger',
     });
-    const _accounts = await getLedgerAccountsByPage(0);
+    const _accounts = await getLedgerAccountsByOperation(
+      OperationTypes.GET_FIRST_PAGE,
+    );
     setAccounts(_accounts);
   }, [trackEvent]);
 
   const nextPage = useCallback(async () => {
-    const _accounts = await getLedgerAccountsByPage(1);
+    const _accounts = await getLedgerAccountsByOperation(
+      OperationTypes.GET_NEXT_PAGE,
+    );
     setAccounts(_accounts);
   }, []);
 
   const prevPage = useCallback(async () => {
-    const _accounts = await getLedgerAccountsByPage(-1);
+    const _accounts = await getLedgerAccountsByOperation(
+      OperationTypes.GET_PREVIOUS_PAGE,
+    );
     setAccounts(_accounts);
   }, []);
 
