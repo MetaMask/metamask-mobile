@@ -22,7 +22,6 @@ const initialState = {
   settings: {},
   engine: {
     backgroundState: {
-      // ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {

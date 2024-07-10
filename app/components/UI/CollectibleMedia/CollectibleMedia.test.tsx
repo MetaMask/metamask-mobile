@@ -3,11 +3,11 @@ import React from 'react';
 import CollectibleMedia from './CollectibleMedia';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockInitialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 

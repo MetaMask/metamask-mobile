@@ -2,12 +2,12 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AssetIcon from './';
 const sampleLogo = 'https://s3.amazonaws.com/airswap-token-images/WBTC.png';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockInitialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       PreferencesController: {
         featureFlags: {},
         ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',

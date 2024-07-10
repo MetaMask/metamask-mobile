@@ -5,7 +5,7 @@ import { fireEvent } from '@testing-library/react-native';
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 // Internal dependencies
 import NetworkSelector from './NetworkSelector';
@@ -38,7 +38,7 @@ const initialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0x': {

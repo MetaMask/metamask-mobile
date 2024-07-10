@@ -27,12 +27,10 @@ import Device from '../../../util/device';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import BrowserUrlBar from '../BrowserUrlBar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { NAVBAR_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
-import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
 import ButtonIcon, {
@@ -49,11 +47,12 @@ import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Net
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
 import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
-import Icon, {
+import {
   IconName,
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
+import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -291,7 +290,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
         <TouchableOpacity
           onPress={rightAction}
           style={styles.backButton}
-          {...generateTestId(Platform, EDIT_BUTTON)}
+          testID={AddContactViewSelectorsIDs.EDIT_BUTTON}
         >
           <Text style={innerStyles.headerButtonText}>
             {editMode
@@ -985,7 +984,7 @@ export function getWalletNavbarOptions(
           label={networkName}
           imageSource={networkImageSource}
           onPress={onPressTitle}
-          {...generateTestId(Platform, NAVBAR_NETWORK_BUTTON)}
+          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
         />
       </View>
     ),

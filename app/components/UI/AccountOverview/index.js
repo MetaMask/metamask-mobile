@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   InteractionManager,
-  Platform,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -11,12 +10,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import {
-  WALLET_ACCOUNT_ICON,
-  WALLET_ACCOUNT_NAME_LABEL_INPUT,
-  WALLET_ACCOUNT_NAME_LABEL_TEXT,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -168,10 +162,6 @@ class AccountOverview extends PureComponent {
      */
     account: PropTypes.object,
     /**
-    /* Selected currency
-    */
-    currentCurrency: PropTypes.string,
-    /**
     /* Triggers global alert
     */
     showAlert: PropTypes.func,
@@ -188,18 +178,10 @@ class AccountOverview extends PureComponent {
      */
     protectWalletModalVisible: PropTypes.func,
     /**
-     * Start transaction with asset
-     */
-    newAssetTransaction: PropTypes.func,
-    /**
     /* navigation object required to access the props
     /* passed by the parent component
     */
     navigation: PropTypes.object,
-    /**
-     * Action that toggles the receive modal
-     */
-    toggleReceiveModal: PropTypes.func,
     /**
      * The chain ID for the current selected network
      */
@@ -373,7 +355,7 @@ class AccountOverview extends PureComponent {
               style={styles.identiconBorder}
               disabled={onboardingWizard}
               onPress={this.openAccountSelector}
-              {...generateTestId(Platform, WALLET_ACCOUNT_ICON)}
+              testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
             >
               <Identicon
                 address={address}
@@ -400,7 +382,7 @@ class AccountOverview extends PureComponent {
                   onChangeText={this.onAccountLabelChange}
                   onSubmitEditing={this.setAccountLabel}
                   onBlur={this.setAccountLabel}
-                  {...generateTestId(Platform, WALLET_ACCOUNT_NAME_LABEL_INPUT)}
+                  testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_INPUT}
                   value={accountLabel}
                   selectTextOnFocus
                   ref={this.input}
@@ -425,10 +407,7 @@ class AccountOverview extends PureComponent {
                         },
                       ]}
                       numberOfLines={1}
-                      {...generateTestId(
-                        Platform,
-                        WALLET_ACCOUNT_NAME_LABEL_TEXT,
-                      )}
+                      testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
                     >
                       {isDefaultAccountName(name) && ens ? ens : name}
                     </Text>
