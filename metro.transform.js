@@ -19,7 +19,7 @@ const availableFeatures = new Set([
   'beta',
 ]);
 
-const mainFeatureSet = new Set(['preinstalled-snaps']);
+const mainFeatureSet = new Set([]);
 const flaskFeatureSet = new Set([
   'flask',
   'preinstalled-snaps',
