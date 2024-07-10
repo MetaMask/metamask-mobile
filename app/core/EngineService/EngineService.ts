@@ -117,15 +117,15 @@ class EngineService {
       },
       {
         name: 'AuthenticationController',
-        key: `${engine.context.AuthenticationController.name}:stateChange`,
+        key: 'AuthenticationController:stateChange',
       },
       {
         name: 'UserStorageController',
-        key: `${engine.context.UserStorageController.name}:stateChange`,
+        key: 'UserStorageController:stateChange',
       },
       {
         name: 'NotificationServicesController',
-        key: `${engine.context.NotificationServicesController.name}:stateChange`,
+        key: 'NotificationServicesController:stateChange',
       },
     ];
 
