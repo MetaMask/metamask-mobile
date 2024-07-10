@@ -279,14 +279,17 @@ const NftDetails = () => {
                 ) : null
               }
             />
-            <NftDetailsBox
-              titleTextStyle={styles.generalInfoTitleTextStyle}
-              titleStyle={styles.generalInfoTitleStyle}
-              valueStyle={styles.generalInfoValueStyle}
-              title={strings('nft_details.rank')}
-              value={`#${collectible.rarityRank}`}
-              valueTextStyle={styles.generalInfoValueTextStyle}
-            />
+            {collectible.rarityRank ? (
+              <NftDetailsBox
+                titleTextStyle={styles.generalInfoTitleTextStyle}
+                titleStyle={styles.generalInfoTitleStyle}
+                valueStyle={styles.generalInfoValueStyle}
+                title={strings('nft_details.rank')}
+                value={`#${collectible.rarityRank}`}
+                valueTextStyle={styles.generalInfoValueTextStyle}
+              />
+            ) : null}
+
             <NftDetailsBox
               titleTextStyle={styles.generalInfoTitleTextStyle}
               titleStyle={styles.generalInfoTitleStyle}

@@ -6,7 +6,7 @@ interface Attribute {
 }
 
 interface FloorAsk {
-  sourceDomain: string;
+  sourceDomain?: string;
   source: {
     id: string;
     domain: string;
@@ -16,9 +16,9 @@ interface FloorAsk {
   };
   price: {
     amount: {
-      native: string;
-      decimal: string;
-      usd: string;
+      native: number;
+      decimal: number;
+      usd: number;
     };
     currency: {
       symbol: string;
@@ -27,12 +27,12 @@ interface FloorAsk {
 }
 
 interface TopBid {
-  sourceDomain: string;
+  sourceDomain?: string;
   price: {
     amount: {
       native: number;
-      decimal: string;
-      usd: string;
+      decimal: number;
+      usd: number;
     };
     currency: {
       symbol: string;
@@ -57,35 +57,35 @@ interface LastSale {
 }
 
 interface Collection {
-  openseaVerificationStatus: string;
+  openseaVerificationStatus?: string;
   tokenCount?: string;
-  name: string;
+  name?: string;
   ownerCount?: string;
   creator?: string;
-  symbol: string;
+  symbol?: string;
   contractDeployedAt?: string;
-  floorAsk: FloorAsk;
-  topBid: TopBid;
+  floorAsk?: FloorAsk;
+  topBid?: TopBid;
 }
 
 export interface Collectible {
   name: string;
   tokenId: number;
   image: string;
-  imagePreview: string;
+  imagePreview?: string;
   address: string;
   animation?: string;
-  backgroundColor: string;
-  tokenURI: string;
+  backgroundColor?: string;
+  tokenURI?: string;
   contractName?: string;
   standard: string;
   imageOriginal?: string;
-  error: string | undefined;
+  error?: string | undefined;
   attributes?: Attribute[];
   collection?: Collection;
   lastSale?: LastSale;
   description?: string;
-  rarityRank?: string;
+  rarityRank?: number;
   topBid?: TopBid;
 }
 
