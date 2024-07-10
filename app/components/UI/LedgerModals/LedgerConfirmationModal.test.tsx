@@ -19,6 +19,7 @@ import { strings } from '../../../../locales/i18n';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent } from '@testing-library/react-native';
+import { HardwareDeviceTypes } from '../../../core/Analytics/MetaMetrics.types';
 
 jest.mock('../../hooks/Ledger/useBluetooth', () => ({
   __esModule: true,
@@ -393,7 +394,7 @@ describe('LedgerConfirmationModal', () => {
       1,
       MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR,
       {
-        device_type: 'Ledger',
+        device_type: HardwareDeviceTypes.LEDGER,
         error: 'LEDGER_ETH_APP_NOT_INSTALLED',
       },
     );

@@ -24,6 +24,7 @@ import {
 } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { HardwareDeviceTypes } from '../../../../core/Analytics/MetaMetrics.types';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -107,7 +108,7 @@ const SelectHardwareWallet = () => {
 
   const navigateToConnectLedger = async () => {
     trackEvent(MetaMetricsEvents.CONNECT_LEDGER, {
-      device_type: 'Ledger',
+      device_type: HardwareDeviceTypes.LEDGER,
     });
 
     navigation.navigate(Routes.HW.CONNECT_LEDGER);

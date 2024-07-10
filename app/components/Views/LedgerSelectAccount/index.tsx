@@ -23,6 +23,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './index.styles';
 import OperationTypes from '../../../core/Ledger/types';
+import { HardwareDeviceTypes } from '../../../core/Analytics/MetaMetrics.types';
 
 const LedgerSelectAccount = () => {
   const navigation = useNavigation<StackNavigationProp<never>>();
@@ -64,7 +65,7 @@ const LedgerSelectAccount = () => {
 
   const onConnectHardware = useCallback(async () => {
     trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
-      device_type: 'Ledger',
+      device_type: HardwareDeviceTypes.LEDGER,
     });
     const _accounts = await getLedgerAccountsByOperation(
       OperationTypes.GET_FIRST_PAGE,
@@ -103,7 +104,7 @@ const LedgerSelectAccount = () => {
       setBlockingModalVisible(false);
 
       trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
-        device_type: 'Ledger',
+        device_type: HardwareDeviceTypes.LEDGER,
       });
       navigation.pop(2);
     },
@@ -115,7 +116,7 @@ const LedgerSelectAccount = () => {
     await forgetLedger();
     dispatch(setReloadAccounts(true));
     trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
-      device_type: 'Ledger',
+      device_type: HardwareDeviceTypes.LEDGER,
     });
     setBlockingModalVisible(false);
     navigation.dispatch(StackActions.pop(2));

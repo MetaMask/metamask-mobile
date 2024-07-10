@@ -43,6 +43,7 @@ import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
+import { HardwareDeviceTypes } from '../../../core/Analytics/MetaMetrics.types';
 
 const AccountActions = () => {
   const { colors } = useTheme();
@@ -191,13 +192,13 @@ const AccountActions = () => {
           case ExtendedKeyringTypes.ledger:
             await forgetLedger();
             trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
-              device_type: 'Ledger',
+              device_type: HardwareDeviceTypes.LEDGER,
             });
             break;
           case ExtendedKeyringTypes.qr:
             await Controller.KeyringController.forgetQRDevice();
             trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
-              device_type: 'QR Hardware Wallet',
+              device_type: HardwareDeviceTypes.QR,
             });
             break;
           default:

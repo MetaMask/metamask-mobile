@@ -29,6 +29,7 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { HardwareDeviceTypes } from '../../../core/Analytics/MetaMetrics.types';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
@@ -214,7 +215,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
   const onConnectHardware = useCallback(async () => {
     trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
-      device_type: 'QR Hardware',
+      device_type: HardwareDeviceTypes.QR,
     });
     resetError();
     const [qrInteractions, connectQRHardwarePromise] =
@@ -231,7 +232,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     (ur: UR) => {
       hideScanner();
       trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS, {
-        device_type: 'QR Hardware',
+        device_type: HardwareDeviceTypes.QR,
       });
       if (!qrInteractionsRef.current) {
         const errorMessage = 'Missing QR keyring interactions';
