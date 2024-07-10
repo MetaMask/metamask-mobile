@@ -6,6 +6,7 @@ import {
   captureSentryFeedback,
   maskObject,
   sentryStateMask,
+  AllProperties,
 } from './utils';
 
 jest.mock('@sentry/react-native', () => ({
@@ -482,6 +483,116 @@ describe('captureSentryFeedback', () => {
       const maskedState = maskObject(rootState, sentryStateMask);
 
       expect(maskedState).toMatchSnapshot();
+    });
+    it('handles undefined mask', () => {
+      const maskedState = maskObject(rootState, undefined);
+      expect(maskedState).toEqual({
+        accounts: 'object',
+        alert: 'object',
+        bookmarks: 'object',
+        browser: 'object',
+        collectibles: 'object',
+        engine: 'object',
+        experimentalSettings: 'object',
+        fiatOrders: 'object',
+        infuraAvailability: 'object',
+        inpageProvider: 'object',
+        legalNotices: 'object',
+        modals: 'object',
+        navigation: 'object',
+        networkOnboarded: 'object',
+        notification: 'object',
+        onboarding: 'object',
+        privacy: 'object',
+        rpcEvents: 'object',
+        sdk: 'object',
+        security: 'object',
+        settings: 'object',
+        signatureRequest: 'object',
+        smartTransactions: 'object',
+        swaps: 'object',
+        transaction: 'object',
+        transactionMetrics: 'object',
+        user: 'object',
+        wizard: 'object',
+      });
+    });
+    it('handles empty rootState', () => {
+      const maskedState = maskObject({}, sentryStateMask);
+      expect(maskedState).toEqual({});
+    });
+    it('handles rootState with more keys than what is defined in the mask', () => {
+      const maskedState = maskObject(rootState, { legalNotices: true });
+      expect(maskedState).toEqual({
+        legalNotices: {
+          newPrivacyPolicyToastClickedOrClosed: true,
+          newPrivacyPolicyToastShownDate: null,
+        },
+        accounts: 'object',
+        alert: 'object',
+        bookmarks: 'object',
+        browser: 'object',
+        collectibles: 'object',
+        engine: 'object',
+        experimentalSettings: 'object',
+        fiatOrders: 'object',
+        infuraAvailability: 'object',
+        inpageProvider: 'object',
+        modals: 'object',
+        navigation: 'object',
+        networkOnboarded: 'object',
+        notification: 'object',
+        onboarding: 'object',
+        privacy: 'object',
+        rpcEvents: 'object',
+        sdk: 'object',
+        security: 'object',
+        settings: 'object',
+        signatureRequest: 'object',
+        smartTransactions: 'object',
+        swaps: 'object',
+        transaction: 'object',
+        transactionMetrics: 'object',
+        user: 'object',
+        wizard: 'object',
+      });
+    });
+    it('handles submask with { [AllProperties]: false, enabled: true }', () => {
+      const submask = {
+        [AllProperties]: false,
+        enabled: true,
+      };
+      const maskedState = maskObject(rootState, submask);
+      expect(maskedState).toEqual({
+        accounts: 'object',
+        alert: 'object',
+        bookmarks: 'object',
+        browser: 'object',
+        collectibles: 'object',
+        engine: 'object',
+        experimentalSettings: 'object',
+        fiatOrders: 'object',
+        infuraAvailability: 'object',
+        inpageProvider: 'object',
+        legalNotices: 'object',
+        modals: 'object',
+        navigation: 'object',
+        networkOnboarded: 'object',
+        notification: 'object',
+        onboarding: 'object',
+        privacy: 'object',
+        rpcEvents: 'object',
+        sdk: 'object',
+        security: 'object',
+        settings: 'object',
+        signatureRequest: 'object',
+        smartTransactions: 'object',
+        swaps: 'object',
+        transaction: 'object',
+        transactionMetrics: 'object',
+        user: 'object',
+        wizard: 'object',
+      });
     });
   });
 });

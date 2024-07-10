@@ -11,7 +11,7 @@ import { store } from '../../store';
 /**
  * This symbol matches all object properties when used in a mask
  */
-const AllProperties = Symbol('*');
+export const AllProperties = Symbol('*');
 
 // This describes the subset of background controller state attached to errors
 // sent to Sentry These properties have some potential to be useful for
@@ -364,11 +364,12 @@ function removeSES(report) {
  *
  * If a property is excluded, its type is included instead.
  *
- * @param {object} object - The object to mask
+ * @param {object} objectToMask - The object to mask
  * @param {{[key: string]: object | boolean}} mask - The mask to apply to the object
+ * @returns {object} - The masked object
  */
-export function maskObject(object, mask = true) {
-  if (!object) return null;
+export function maskObject(objectToMask, mask = {}) {
+  if (!objectToMask) return {};
   let maskAllProperties = false;
   if (Object.keys(mask).includes(AllProperties)) {
     if (Object.keys(mask).length > 1) {
@@ -376,16 +377,19 @@ export function maskObject(object, mask = true) {
     }
     maskAllProperties = true;
   }
-  return Object.keys(object).reduce((state, key) => {
+
+  return Object.keys(objectToMask).reduce((state, key) => {
     const maskKey = maskAllProperties ? mask[AllProperties] : mask[key];
-    if (maskKey === true) {
-      state[key] = object[key];
-    } else if (maskKey && typeof maskKey === 'object') {
-      state[key] = maskObject(object[key], maskKey);
-    } else if (maskKey === undefined || maskKey === false) {
-      state[key] = typeof object[key];
-    } else {
-      throw new Error(`Unsupported mask entry: ${maskKey}`);
+    const shouldPrintValue = maskKey === true;
+    const shouldIterateSubMask =
+      Boolean(maskKey) && typeof maskKey === 'object';
+    const shouldPrintType = maskKey === undefined || maskKey === false;
+    if (shouldPrintValue) {
+      state[key] = objectToMask[key];
+    } else if (shouldIterateSubMask) {
+      state[key] = maskObject(objectToMask[key], maskKey);
+    } else if (shouldPrintType) {
+      state[key] = typeof objectToMask[key];
     }
     return state;
   }, {});
@@ -411,7 +415,7 @@ function rewriteReport(report) {
 
     const appState = store?.getState();
     const maskedState = maskObject(appState, sentryStateMask);
-    report.contexts.appState = maskedState || {};
+    report.contexts.appState = maskedState;
   } catch (err) {
     console.error('ENTER ERROR OF REPORT ', err);
     throw err;
