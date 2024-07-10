@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useMemo, useRef } from 'react';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
@@ -34,13 +34,7 @@ import styleSheet from './AccountActions.styles';
 import Logger from '../../../util/Logger';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  EDIT_ACCOUNT,
-  SHARE_ADDRESS,
-  SHOW_PRIVATE_KEY,
-  VIEW_ETHERSCAN,
-} from './AccountActions.constants';
+import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AccountActionsModal.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const AccountActions = () => {
@@ -144,7 +138,7 @@ const AccountActions = () => {
           actionTitle={strings('account_actions.edit_name')}
           iconName={IconName.Edit}
           onPress={goToEditAccountName}
-          {...generateTestId(Platform, EDIT_ACCOUNT)}
+          testID={AccountActionsModalSelectorsIDs.EDIT_ACCOUNT}
         />
         {isExplorerVisible && (
           <AccountAction
@@ -155,20 +149,20 @@ const AccountActions = () => {
             }
             iconName={IconName.Export}
             onPress={viewInEtherscan}
-            {...generateTestId(Platform, VIEW_ETHERSCAN)}
+            testID={AccountActionsModalSelectorsIDs.VIEW_ETHERSCAN}
           />
         )}
         <AccountAction
           actionTitle={strings('drawer.share_address')}
           iconName={IconName.Share}
           onPress={onShare}
-          {...generateTestId(Platform, SHARE_ADDRESS)}
+          testID={AccountActionsModalSelectorsIDs.SHARE_ADDRESS}
         />
         <AccountAction
           actionTitle={strings('account_details.show_private_key')}
           iconName={IconName.Key}
           onPress={goToExportPrivateKey}
-          {...generateTestId(Platform, SHOW_PRIVATE_KEY)}
+          testID={AccountActionsModalSelectorsIDs.SHOW_PRIVATE_KEY}
         />
       </View>
     </BottomSheet>

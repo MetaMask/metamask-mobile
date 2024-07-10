@@ -10,6 +10,7 @@ import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
 import Identicon from '../../UI/Identicon';
+import useSvgUriViewBox from '../../hooks/useSvgUriViewBox';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -40,16 +41,19 @@ const RemoteImage = (props) => {
 
   const onError = ({ nativeEvent: { error } }) => setError(error);
 
+  const isSVG =
+    source &&
+    source.uri &&
+    source.uri.match('.svg') &&
+    (isImageUrl || resolvedIpfsUrl);
+
+  const viewbox = useSvgUriViewBox(uri, isSVG);
+
   if (error && props.address) {
     return <Identicon address={props.address} customStyle={props.style} />;
   }
 
-  if (
-    source &&
-    source.uri &&
-    source.uri.match('.svg') &&
-    (isImageUrl || resolvedIpfsUrl)
-  ) {
+  if (isSVG) {
     const style = props.style || {};
     if (source.__packager_asset && typeof style !== 'number') {
       if (!style.width) {
@@ -66,7 +70,13 @@ const RemoteImage = (props) => {
         componentLabel="RemoteImage-SVG"
       >
         <View style={{ ...style, ...styles.svgContainer }}>
-          <SvgUri {...props} uri={uri} width={'100%'} height={'100%'} />
+          <SvgUri
+            {...props}
+            uri={uri}
+            width={'100%'}
+            height={'100%'}
+            viewBox={viewbox}
+          />
         </View>
       </ComponentErrorBoundary>
     );
