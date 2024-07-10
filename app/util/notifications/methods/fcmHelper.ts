@@ -37,8 +37,8 @@ export async function registerAppWithFCM() {
       .then((status: unknown) => {
         Logger.log('registerDeviceForRemoteMessages status', status);
       })
-      .catch((error: unknown) => {
-        Logger.log('registerDeviceForRemoteMessages error ', error);
+      .catch((error: Error) => {
+        Logger.error(error);
       });
   }
 }
@@ -55,8 +55,8 @@ export async function unRegisterAppWithFCM() {
       .then((status: unknown) => {
         Logger.log('unregisterDeviceForRemoteMessages status', status);
       })
-      .catch((error: unknown) => {
-        Logger.log('unregisterDeviceForRemoteMessages error ', error);
+      .catch((error: Error) => {
+        Logger.error(error);
       });
   }
   await messaging().deleteToken();
@@ -80,8 +80,8 @@ export const checkApplicationNotificationPermission = async () => {
     .then((result) => {
       Logger.log('POST_NOTIFICATIONS status:', result);
     })
-    .catch((error: unknown) => {
-      Logger.log('POST_NOTIFICATIONS error ', error);
+    .catch((error: Error) => {
+      Logger.error(error);
     });
 };
 
@@ -92,8 +92,8 @@ export const getFcmToken = async () => {
   try {
     token = await messaging().getToken();
     Logger.log('getFcmToken-->', token);
-  } catch (error) {
-    Logger.log('getFcmToken Device Token error ', error);
+  } catch (error: unknown) {
+    Logger.error(error as Error);
   }
   return token;
 };
