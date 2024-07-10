@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 import NetworkInfo from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
@@ -19,7 +19,7 @@ const store = mockStore(initialState);
 
 describe('NetworkInfo', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    render(
       <Provider store={store}>
         <NetworkInfo
           type={''}
@@ -30,6 +30,6 @@ describe('NetworkInfo', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(screen.getByText('Network Info')).toBeTruthy();
   });
 });
