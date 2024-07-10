@@ -22,7 +22,7 @@ import { useDispatch } from 'react-redux';
 import { KeyringController } from '@metamask/keyring-controller';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './index.styles';
-import { OperationTypes } from '../../../core/Ledger/constants';
+import OperationTypes from '../../../core/Ledger/types';
 
 const LedgerSelectAccount = () => {
   const navigation = useNavigation<StackNavigationProp<never>>();
