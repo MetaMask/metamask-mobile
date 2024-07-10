@@ -1,5 +1,5 @@
 import Engine from './Engine';
-import initialState from '../util/test/initial-background-state.json';
+import { backgroundState } from '../util/test/initial-root-state';
 
 jest.unmock('./Engine');
 
@@ -43,22 +43,10 @@ describe('Engine', () => {
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
-    let backgroundState = engine.datamodel.state;
+    const initialBackgroundState = engine.datamodel.state;
 
-    backgroundState = {
+    expect(initialBackgroundState).toStrictEqual({
       ...backgroundState,
-      KeyringController: {
-        ...backgroundState.KeyringController,
-        vault: {
-          cipher: 'mock-cipher',
-          iv: 'mock-iv',
-          lib: 'original',
-        },
-      },
-    };
-
-    expect(backgroundState).toStrictEqual({
-      ...initialState,
 
       // JSON cannot store the value undefined, so we append it here
       SmartTransactionsController: {
@@ -93,7 +81,7 @@ describe('Engine', () => {
   });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {
-    const engine = Engine.init(initialState);
+    const engine = Engine.init(backgroundState);
     const invalidAddress = '0xInvalidAddress';
 
     expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(

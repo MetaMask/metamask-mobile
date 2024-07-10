@@ -6,7 +6,7 @@ import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import { View } from 'react-native';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { regex } from '../../../../app/util/regex';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
@@ -29,7 +29,7 @@ jest.mock('../../../util/address', () => {
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
         network: '1',
         providerConfig: {
@@ -48,16 +48,6 @@ const initialState = {
       PreferencesController: {
         isMultiAccountBalancesEnabled: true,
         selectedAddress: BUSINESS_ACCOUNT,
-        identities: {
-          [BUSINESS_ACCOUNT]: {
-            address: BUSINESS_ACCOUNT,
-            name: 'Business Account',
-          },
-          [PERSONAL_ACCOUNT]: {
-            address: PERSONAL_ACCOUNT,
-            name: 'Personal Account',
-          },
-        },
       },
       CurrencyRateController: {
         currentCurrency: 'usd',
@@ -120,12 +110,12 @@ describe('AccountSelectorList', () => {
     onRemoveImportedAccount.mockClear();
   });
 
-  it('should render correctly', async () => {
+  it('renders correctly', async () => {
     const { toJSON } = renderComponent(initialState);
     await waitFor(() => expect(toJSON()).toMatchSnapshot());
   });
 
-  it('should render all accounts with balances', async () => {
+  it('renders all accounts with balances', async () => {
     const { queryByTestId, getAllByTestId, toJSON } =
       renderComponent(initialState);
 
@@ -186,7 +176,7 @@ describe('AccountSelectorList', () => {
     });
   });
 
-  it('should render all accounts with right acessory', async () => {
+  it('renders all accounts with right accessory', async () => {
     const { getAllByTestId, toJSON } = renderComponent(
       initialState,
       AccountSelectorListRightAccessoryUseAccounts,
@@ -197,6 +187,15 @@ describe('AccountSelectorList', () => {
       expect(rightAccessories.length).toBe(2);
 
       expect(toJSON()).toMatchSnapshot();
+    });
+  });
+  it('renders correct account names', async () => {
+    const { getAllByTestId } = renderComponent(initialState);
+
+    await waitFor(() => {
+      const accountNameItems = getAllByTestId('cellbase-avatar-title');
+      expect(within(accountNameItems[0]).getByText('Account 1')).toBeDefined();
+      expect(within(accountNameItems[1]).getByText('Account 2')).toBeDefined();
     });
   });
 });
