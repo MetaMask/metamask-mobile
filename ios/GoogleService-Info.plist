@@ -11,7 +11,7 @@
 	<key>BUNDLE_ID</key>
 	<string>io.metamask.MetaMask</string>
 	<key>PROJECT_ID</key>
-	<string>notifications-dev-e4e6d</string>
+	<string>$(FCM_CONFIG_PROJECT_ID)</string>
 	<key>STORAGE_BUCKET</key>
 	<string>$(FCM_CONFIG_STORAGE_BUCKET)</string>
 	<key>IS_ADS_ENABLED</key>
