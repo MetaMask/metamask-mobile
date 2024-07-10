@@ -11,11 +11,13 @@ import {
   screen,
   render as renderComponent,
 } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import {
+  renderScreen,
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 
 import Quotes, { QuotesParams } from './Quotes';
 import { mockQuotesData } from './Quotes.constants';
-import type { DeepPartial } from './Quotes.types';
 import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
 
