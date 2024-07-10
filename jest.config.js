@@ -12,7 +12,7 @@ process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 const config = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
-  testEnvironment: 'jest-environment-node',
+  testEnvironment: 'jest-environment-jsdom', // Updated to jsdom for RNTL compatibility
   transformIgnorePatterns: [
     'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee)))',
   ],
@@ -21,8 +21,7 @@ const config = {
     '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
-  snapshotSerializers: ['enzyme-to-json/serializer'],
-  // This is an environment variable that can be used to execute logic only in development
+  // Removed Enzyme snapshot serializer
   collectCoverage: process.env.NODE_ENV !== 'production',
   collectCoverageFrom: ['<rootDir>/app/**/*.{js,ts,tsx,jsx}'],
   coveragePathIgnorePatterns: [
