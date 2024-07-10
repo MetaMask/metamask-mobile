@@ -378,20 +378,20 @@ export function maskObject(objectToMask, mask = {}) {
     maskAllProperties = true;
   }
 
-  return Object.keys(objectToMask).reduce((state, key) => {
+  return Object.keys(objectToMask).reduce((maskedObject, key) => {
     const maskKey = maskAllProperties ? mask[AllProperties] : mask[key];
     const shouldPrintValue = maskKey === true;
     const shouldIterateSubMask =
       Boolean(maskKey) && typeof maskKey === 'object';
     const shouldPrintType = maskKey === undefined || maskKey === false;
     if (shouldPrintValue) {
-      state[key] = objectToMask[key];
+      maskedObject[key] = objectToMask[key];
     } else if (shouldIterateSubMask) {
-      state[key] = maskObject(objectToMask[key], maskKey);
+      maskedObject[key] = maskObject(objectToMask[key], maskKey);
     } else if (shouldPrintType) {
-      state[key] = typeof objectToMask[key];
+      maskedObject[key] = typeof objectToMask[key];
     }
-    return state;
+    return maskedObject;
   }, {});
 }
 
