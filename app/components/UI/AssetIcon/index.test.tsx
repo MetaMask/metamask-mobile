@@ -2,21 +2,14 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AssetIcon from './';
 const sampleLogo = 'https://s3.amazonaws.com/airswap-token-images/WBTC.png';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockInitialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       PreferencesController: {
         featureFlags: {},
-        identities: {
-          '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
-            address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
-            name: 'Account 1',
-            importTime: 1684232000456,
-          },
-        },
         ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
         lostIdentities: {},
         selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
@@ -34,13 +27,6 @@ const mockInitialState = {
         _W: {
           featureFlags: {},
           frequentRpcList: [],
-          identities: {
-            '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
-              address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
-              name: 'Account 1',
-              importTime: 1684232000456,
-            },
-          },
           ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
           lostIdentities: {},
           selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',

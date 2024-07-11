@@ -217,7 +217,7 @@ export function isApprovalTransaction(data) {
  * Generates ERC20 approval data
  *
  * @param {object} opts - Object containing spender address, value and data
- * @param {string} opts.spender - The address of the spender
+ * @param {string | null} opts.spender - The address of the spender
  * @param {string} opts.value - The amount of tokens to be approved or increased
  * @param {string} [opts.data] - The data of the transaction
  * @returns {String} - String containing the generated data, by default for approve method
@@ -517,7 +517,7 @@ export function getEther(ticker) {
  * @param {object} config.addressBook - Object of address book entries
  * @param {string} config.chainId - network id
  * @param {string} config.toAddress - hex address of tx recipient
- * @param {object} config.identities - object of identities
+ * @param {array} config.identities - array of accounts objects from AccountsController
  * @param {string} config.ensRecipient - name of ens recipient
  * @returns {string} - recipient name
  */
@@ -525,7 +525,7 @@ export function getTransactionToName({
   addressBook,
   chainId,
   toAddress,
-  identities,
+  internalAccounts,
   ensRecipient,
 }) {
   if (ensRecipient) {
@@ -535,11 +535,19 @@ export function getTransactionToName({
   const networkAddressBook = addressBook[chainId];
   const checksummedToAddress = toChecksumAddress(toAddress);
 
+  // Convert internalAccounts array to a map for quick lookup
+  const internalAccountsMap = internalAccounts.reduce((acc, account) => {
+    acc[toChecksumAddress(account.address)] = account;
+    return acc;
+  }, {});
+
+  const matchingAccount = internalAccountsMap[checksummedToAddress];
+
   const transactionToName =
     (networkAddressBook &&
       networkAddressBook[checksummedToAddress] &&
       networkAddressBook[checksummedToAddress].name) ||
-    (identities[checksummedToAddress] && identities[checksummedToAddress].name);
+    (matchingAccount && matchingAccount.metadata.name);
 
   return transactionToName;
 }
