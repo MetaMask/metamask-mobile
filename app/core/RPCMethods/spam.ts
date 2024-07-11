@@ -88,7 +88,7 @@ export function processOriginThrottlingRejection({
   }
 
   store.dispatch(onRPCRequestRejectedByUser(req.origin));
-  
+
   if (selectOriginAtSpamThreshold(store.getState(), req.origin)) {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.DAPP_SPAM_MODAL,

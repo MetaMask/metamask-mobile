@@ -78,7 +78,8 @@ export const selectDappBlockedForRPCRequests = (
   }
   const currentTime = Date.now();
   const { rejections, lastRejection } = originState;
-  const isWithinOneMinute = currentTime - lastRejection <= BLOCKING_THRESHOLD_IN_MS;
+  const isWithinOneMinute =
+    currentTime - lastRejection <= BLOCKING_THRESHOLD_IN_MS;
 
   return rejections >= NUMBER_OF_REJECTIONS_THRESHOLD && isWithinOneMinute;
 };
