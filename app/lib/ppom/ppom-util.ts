@@ -19,7 +19,7 @@ import {
 import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 import AppConstants from '../../core/AppConstants';
 import {
-  getSupportedChains,
+  getSecurityAlertsAPISupportedChainIds,
   isSecurityAlertsAPIEnabled,
   validateWithSecurityAlertsAPI,
 } from './security-alerts-api';
@@ -121,18 +121,20 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
   }
 }
 
-async function isChainSupported(chainId: Hex): Promise<boolean> {
+export async function isChainSupported(chainId: Hex): Promise<boolean> {
+  let supportedChainIds = BLOCKAID_SUPPORTED_CHAIN_IDS;
+
   try {
-    const supportedChains = isSecurityAlertsAPIEnabled()
-      ? await getSupportedChains()
-      : BLOCKAID_SUPPORTED_CHAIN_IDS;
-    return supportedChains.includes(chainId);
+    if (isSecurityAlertsAPIEnabled()) {
+      supportedChainIds = await getSecurityAlertsAPISupportedChainIds();
+    }
   } catch (e) {
     Logger.log(
       `Error fetching supported chains from security alerts API: ${e}`,
     );
-    return BLOCKAID_SUPPORTED_CHAIN_IDS.includes(chainId);
   }
+
+  return supportedChainIds.includes(chainId);
 }
 
 async function validateWithController(

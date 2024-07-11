@@ -15,40 +15,20 @@ export function isSecurityAlertsAPIEnabled() {
 
 export async function validateWithSecurityAlertsAPI(
   chainId: string,
-  request: SecurityAlertsAPIRequest,
+  payload: SecurityAlertsAPIRequest,
 ): Promise<SecurityAlertResponse> {
   const endpoint = `${ENDPOINT_VALIDATE}/${chainId}`;
-  return postRequest(endpoint, request);
+  return request(endpoint, payload);
 }
 
-export async function getSupportedChains(): Promise<Hex[]> {
-  return getRequest(ENDPOINT_SUPPORTED_CHAINS);
+export async function getSecurityAlertsAPISupportedChainIds(): Promise<Hex[]> {
+  return request(ENDPOINT_SUPPORTED_CHAINS);
 }
 
-async function postRequest(endpoint: string, body: unknown) {
+async function request(endpoint: string, options?: RequestInit) {
   const url = getUrl(endpoint);
 
-  const response = await fetch(url, {
-    method: 'POST',
-    body: JSON.stringify(body),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Security alerts API request failed with status: ${response.status}`,
-    );
-  }
-
-  return response.json();
-}
-
-async function getRequest(endpoint: string) {
-  const url = getUrl(endpoint);
-
-  const response = await fetch(url);
+  const response = await fetch(url, options);
 
   if (!response.ok) {
     throw new Error(

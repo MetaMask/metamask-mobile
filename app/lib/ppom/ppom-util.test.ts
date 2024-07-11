@@ -81,6 +81,11 @@ describe('PPOM Utils', () => {
     securityAlertAPI.isSecurityAlertsAPIEnabled,
   );
 
+  const getSupportedChainIdsMock = jest.spyOn(
+    securityAlertAPI,
+    'getSecurityAlertsAPISupportedChainIds',
+  );
+
   const normalizeTransactionParamsMock = jest.mocked(
     normalizeTransactionParams,
   );
@@ -238,9 +243,7 @@ describe('PPOM Utils', () => {
 
     it('uses security alerts API if enabled', async () => {
       isSecurityAlertsEnabledMock.mockReturnValue(true);
-      jest
-        .spyOn(securityAlertAPI, 'getSupportedChains')
-        .mockImplementation(async () => [CHAIN_ID_MOCK]);
+      getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
 
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
 
@@ -255,9 +258,7 @@ describe('PPOM Utils', () => {
 
     it('uses controller if security alerts API throws', async () => {
       isSecurityAlertsEnabledMock.mockReturnValue(true);
-      jest
-        .spyOn(securityAlertAPI, 'getSupportedChains')
-        .mockImplementation(async () => [CHAIN_ID_MOCK]);
+      getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
 
       validateWithSecurityAlertsAPIMock.mockRejectedValue(
         new Error('Test Error'),
@@ -281,9 +282,7 @@ describe('PPOM Utils', () => {
     describe('when security alerts API is enabled', () => {
       beforeEach(async () => {
         isSecurityAlertsEnabledMock.mockReturnValue(true);
-        jest
-          .spyOn(securityAlertAPI, 'getSupportedChains')
-          .mockImplementation(async () => [CHAIN_ID_MOCK]);
+        getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
       });
       it('returns true if chain is supported', async () => {
         expect(await PPOMUtil.isChainSupported(CHAIN_ID_MOCK)).toStrictEqual(
@@ -297,7 +296,7 @@ describe('PPOM Utils', () => {
 
       it('returns correctly if security alerts API throws', async () => {
         jest
-          .spyOn(securityAlertAPI, 'getSupportedChains')
+          .spyOn(securityAlertAPI, 'getSecurityAlertsAPISupportedChainIds')
           .mockRejectedValue(new Error('Test Error'));
         expect(await PPOMUtil.isChainSupported(CHAIN_ID_MOCK)).toStrictEqual(
           true,
