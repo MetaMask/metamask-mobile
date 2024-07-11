@@ -9,6 +9,7 @@ import { createStyles } from './styles';
 import { WebViewInterface } from '@metamask/snaps-controllers/dist/types/services/webview/WebViewMessageStream';
 import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { PostMessageEvent } from '@metamask/post-message-stream';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import WebViewHTML from '@metamask/snaps-execution-environments/dist/browserify/webview/index.html';
 
