@@ -66,10 +66,10 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../util/smart-transactions';
+import { cloneDeep, isEqual } from 'lodash';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
-import { cloneDeep, isEqual } from 'lodash';
 ///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);
