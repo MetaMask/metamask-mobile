@@ -4,10 +4,10 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { resetOriginSpamState } from '../../../core/redux/slices/originThrottling';
-import DappSpamModal, {
+import OriginSpamModal, {
   BLOCK_BUTTON_TEST_ID,
   CONTINUE_BUTTON_TEST_ID,
-} from './DappSpamModal';
+} from './OriginSpamModal';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -41,7 +41,7 @@ const mockInitialState = {
   },
 };
 
-describe('DappSpamModal', () => {
+describe('OriginSpamModal', () => {
   const mockResetOriginSpamState = jest.mocked(resetOriginSpamState);
 
   beforeEach(() => {
@@ -51,7 +51,7 @@ describe('DappSpamModal', () => {
   describe('renders', () => {
     it('spam modal content by default', () => {
       const { toJSON } = renderWithProvider(
-        <DappSpamModal route={NAVIGATION_PARAMS_MOCK} />,
+        <OriginSpamModal route={NAVIGATION_PARAMS_MOCK} />,
         {
           state: mockInitialState,
         },
@@ -61,7 +61,7 @@ describe('DappSpamModal', () => {
 
     it('SiteBlockedContent if user opt in to block dapp', () => {
       const wrapper = renderWithProvider(
-        <DappSpamModal route={NAVIGATION_PARAMS_MOCK} />,
+        <OriginSpamModal route={NAVIGATION_PARAMS_MOCK} />,
         {
           state: mockInitialState,
         },
@@ -73,7 +73,7 @@ describe('DappSpamModal', () => {
 
   it('reset dapp spam state on clicking continue button', () => {
     const wrapper = renderWithProvider(
-      <DappSpamModal route={NAVIGATION_PARAMS_MOCK} />,
+      <OriginSpamModal route={NAVIGATION_PARAMS_MOCK} />,
       {
         state: mockInitialState,
       },

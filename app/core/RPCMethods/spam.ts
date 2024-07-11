@@ -6,9 +6,8 @@ import { containsUserRejectedError } from '../../util/middlewares';
 import Routes from '../../constants/navigation/Routes';
 import { RPC_METHODS } from '../SDKConnect/SDKConnectConstants';
 import {
-  selectDappBlockedForRPCRequests,
+  selectOriginBlockedForRPCRequests,
   onRPCRequestRejectedByUser,
-  selectOriginAtSpamThreshold,
 } from '../redux/slices/originThrottling';
 
 export const BLOCKABLE_SPAM_RPC_METHODS = new Set([
@@ -27,14 +26,9 @@ export const BLOCKABLE_SPAM_RPC_METHODS = new Set([
 // Origin added in the createOriginMiddleware
 export type ExtendedJSONRPCRequest = JsonRpcRequest & { origin: string };
 
-export const ACTIVE_SPAM_PROMPT_ERROR = providerErrors.unauthorized(
-  'Request blocked due to active spam modal.',
+export const SPAM_FILTER_ACTIVATED = providerErrors.unauthorized(
+  'Request blocked due to spam filter.',
 );
-
-export const USER_IDENTIFIED_REQUEST_AS_SPAM_ERROR =
-  providerErrors.unauthorized(
-    'Request blocked as the user identified it as spam.',
-  );
 
 export function validateOriginThrottling({
   req,
@@ -50,14 +44,9 @@ export function validateOriginThrottling({
 
   const appState = store.getState();
 
-  const isDappBlocked = selectDappBlockedForRPCRequests(appState, req.origin);
+  const isDappBlocked = selectOriginBlockedForRPCRequests(appState, req.origin);
   if (isDappBlocked) {
-    throw USER_IDENTIFIED_REQUEST_AS_SPAM_ERROR;
-  }
-
-  const hasActiveSpamPrompt = selectOriginAtSpamThreshold(appState, req.origin);
-  if (hasActiveSpamPrompt) {
-    throw ACTIVE_SPAM_PROMPT_ERROR;
+    throw SPAM_FILTER_ACTIVATED;
   }
 }
 
@@ -89,7 +78,7 @@ export function processOriginThrottlingRejection({
 
   store.dispatch(onRPCRequestRejectedByUser(req.origin));
 
-  if (selectOriginAtSpamThreshold(store.getState(), req.origin)) {
+  if (selectOriginBlockedForRPCRequests(store.getState(), req.origin)) {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.DAPP_SPAM_MODAL,
       params: { origin: req.origin },

@@ -117,7 +117,7 @@ import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
-import DappSpamModal from '../../Views/DappSpamModal/DappSpamModal';
+import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -710,7 +710,7 @@ const App = ({ userLoggedIn }) => {
       />
       <Stack.Screen
         name={Routes.SHEET.DAPP_SPAM_MODAL}
-        component={DappSpamModal}
+        component={OriginSpamModal}
       />
     </Stack.Navigator>
   );

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DappSpamModal renders SiteBlockedContent if user opt in to block dapp 1`] = `
+exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp 1`] = `
 <View
   style={
     {
@@ -130,7 +130,7 @@ exports[`DappSpamModal renders SiteBlockedContent if user opt in to block dapp 1
 </View>
 `;
 
-exports[`DappSpamModal renders spam modal content by default 1`] = `
+exports[`OriginSpamModal renders spam modal content by default 1`] = `
 <View
   style={
     {
@@ -298,7 +298,7 @@ exports[`DappSpamModal renders spam modal content by default 1`] = `
           "paddingHorizontal": 16,
         }
       }
-      testID="continue-dapp-button"
+      testID="continue-origin-button"
       variant="Secondary"
     >
       <Text
@@ -336,7 +336,7 @@ exports[`DappSpamModal renders spam modal content by default 1`] = `
           "paddingHorizontal": 16,
         }
       }
-      testID="block-dapp-button"
+      testID="block-origin-button"
       variant="Primary"
     >
       <Text

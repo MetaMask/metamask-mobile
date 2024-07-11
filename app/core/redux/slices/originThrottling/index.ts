@@ -68,7 +68,7 @@ export const { onRPCRequestRejectedByUser, resetOriginSpamState } = actions;
 const selectOriginState = (state: RootState, origin: string) =>
   state[name].origins[origin];
 
-export const selectDappBlockedForRPCRequests = (
+export const selectOriginBlockedForRPCRequests = (
   state: RootState,
   origin: string,
 ) => {
@@ -82,22 +82,4 @@ export const selectDappBlockedForRPCRequests = (
     currentTime - lastRejection <= BLOCKING_THRESHOLD_IN_MS;
 
   return rejections >= NUMBER_OF_REJECTIONS_THRESHOLD && isWithinOneMinute;
-};
-
-export const selectOriginAtSpamThreshold = (
-  state: RootState,
-  origin: string,
-) => {
-  const originState = selectOriginState(state, origin);
-  if (!originState) {
-    return false;
-  }
-  const currentTime = Date.now();
-  const isUnderThreshold =
-    currentTime - originState.lastRejection < REJECTION_THRESHOLD_IN_MS;
-  const hasReachedThreshold =
-    originState.rejections >= NUMBER_OF_REJECTIONS_THRESHOLD &&
-    isUnderThreshold;
-
-  return hasReachedThreshold;
 };

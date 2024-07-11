@@ -24,8 +24,8 @@ import Text, {
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { resetOriginSpamState } from '../../../core/redux/slices/originThrottling';
 
-export const BLOCK_BUTTON_TEST_ID = 'block-dapp-button';
-export const CONTINUE_BUTTON_TEST_ID = 'continue-dapp-button';
+export const BLOCK_BUTTON_TEST_ID = 'block-origin-button';
+export const CONTINUE_BUTTON_TEST_ID = 'continue-origin-button';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -61,12 +61,12 @@ const MultipleRequestContent = ({
   onCloseModal,
   onResetOriginSpamState,
   origin,
-  setBlockDapp,
+  setBlockOrigin,
 }: {
   onCloseModal: () => void;
   onResetOriginSpamState: () => void;
   origin: string;
-  setBlockDapp: (value: boolean) => void;
+  setBlockOrigin: (value: boolean) => void;
 }) => {
   const styles = createStyles();
 
@@ -120,9 +120,9 @@ const MultipleRequestContent = ({
           width={ButtonWidthTypes.Full}
         />
         <Button
-          label={strings('spam_filter.block_dapp_requests_for_1_minute')}
+          label={strings('spam_filter.block_origin_requests_for_1_minute')}
           onPress={() => {
-            setBlockDapp(true);
+            setBlockOrigin(true);
           }}
           size={ButtonSize.Lg}
           testID={BLOCK_BUTTON_TEST_ID}
@@ -160,7 +160,7 @@ const SiteBlockedContent = ({ onCloseModal }: { onCloseModal: () => void }) => {
   );
 };
 
-const DappSpamModal = ({
+const OriginSpamModal = ({
   route,
 }: {
   route: { params: { origin: string } };
@@ -169,19 +169,19 @@ const DappSpamModal = ({
   const { origin } = route.params;
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const [isBlockDappOptedIn, setBlockDapp] = useState(false);
+  const [isBlockOriginOptedIn, setBlockOrigin] = useState(false);
 
   const handleCloseModal = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
 
   const handleResetOriginSpamState = useCallback(() => {
-    if (isBlockDappOptedIn) {
+    if (isBlockOriginOptedIn) {
       handleCloseModal();
       return;
     }
     dispatch(resetOriginSpamState(origin));
-  }, [isBlockDappOptedIn, dispatch, origin]);
+  }, [isBlockOriginOptedIn, dispatch, origin]);
 
   return (
     <BottomSheet
@@ -190,14 +190,14 @@ const DappSpamModal = ({
       ref={sheetRef}
     >
       <View style={styles.wrapper}>
-        {isBlockDappOptedIn ? (
+        {isBlockOriginOptedIn ? (
           <SiteBlockedContent onCloseModal={handleCloseModal} />
         ) : (
           <MultipleRequestContent
             onCloseModal={handleCloseModal}
             onResetOriginSpamState={handleResetOriginSpamState}
             origin={origin}
-            setBlockDapp={setBlockDapp}
+            setBlockOrigin={setBlockOrigin}
           />
         )}
       </View>
@@ -205,4 +205,4 @@ const DappSpamModal = ({
   );
 };
 
-export default DappSpamModal;
+export default OriginSpamModal;

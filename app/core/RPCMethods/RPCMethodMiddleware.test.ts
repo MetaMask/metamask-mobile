@@ -1315,7 +1315,7 @@ describe('getRpcMethodMiddleware', () => {
     const assumedBlockableRPCMethod = 'eth_sendTransaction';
     const mockBlockedOrigin = 'blocked.origin';
 
-    it('blocks the request when the origin has an active spam prompt', async () => {
+    it('blocks the request when the origin has an active spam filter for origin', async () => {
       // Restore mock for this test
       mockValidateOriginThrottling.mockImplementationOnce(
         jest.requireActual('./spam').validateOriginThrottling,
@@ -1343,8 +1343,7 @@ describe('getRpcMethodMiddleware', () => {
 
       const response = await callMiddleware({ middleware, request });
 
-      const expectedError =
-        jest.requireActual('./spam').ACTIVE_SPAM_PROMPT_ERROR;
+      const expectedError = jest.requireActual('./spam').SPAM_FILTER_ACTIVATED;
       expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
       expect((response as JsonRpcFailure).error.message).toBe(
         expectedError.message,

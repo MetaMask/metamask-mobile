@@ -3126,7 +3126,7 @@
     "total_fiat": "Total = {{currency}}"
   },
   "spam_filter": {
-    "block_dapp_requests_for_1_minute": "Temporarily block this site",
+    "block_origin_requests_for_1_minute": "Temporarily block this site",
     "cancel": "Cancel",
     "description": "If you're being spammed with multiple requests, you can temporarily block the site.",
     "got_it": "Got it",
