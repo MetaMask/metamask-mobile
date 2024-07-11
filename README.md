@@ -46,7 +46,7 @@ Before running the app, keep in mind that MetaMask uses FCM (Firebase Cloud Mess
 ATTENTION: In case you don't provide your own Firebase project config file, you can make usage of a mock file at `android/app/mock-google-services.json`, following the steps below from the root of the project:
 
 ```bash
-base64 -i ./android/app/mock-google-services.json
+base64 -i ./android/app/google-services-example.json
 ```
 
 Copy the result to your clipboard and paste it in the GOOGLE_SERVICES_B64 variable in the .env file you are running the app.
