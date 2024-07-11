@@ -218,68 +218,75 @@ const NftDetails = () => {
             {renderDescription()}
           </View>
           <View style={styles.generalInfoFrame}>
-            <NftDetailsBox
-              titleTextStyle={styles.generalInfoTitleTextStyle}
-              titleStyle={styles.generalInfoTitleStyle}
-              valueStyle={styles.generalInfoValueStyle}
-              title={strings('nft_details.bought_for')}
-              value={
-                hasLastSalePrice
-                  ? formatCurrency(
-                      `${collectible.lastSale?.price?.amount?.usd}`,
-                      currentCurrency,
-                    )
-                  : strings('nft_details.data_unavailable')
-              }
-              valueTextStyle={
-                hasLastSalePrice
-                  ? styles.generalInfoValueTextStyle
-                  : styles.generalInfoTitleTextStyle
-              }
-              icon={
-                hasLastSalePrice && collectible?.lastSale?.orderSource ? (
-                  <TouchableOpacity onPress={() => viewLastSalePriceSource()}>
-                    <Icon
-                      name={IconName.Export}
-                      size={IconSize.Xs}
-                      style={styles.iconExport}
-                    />
-                  </TouchableOpacity>
-                ) : null
-              }
-            />
-            <NftDetailsBox
-              titleTextStyle={styles.generalInfoTitleTextStyle}
-              titleStyle={styles.generalInfoTitleStyle}
-              valueStyle={styles.generalInfoValueStyle}
-              title={strings('nft_details.highest_floor_price')}
-              value={
-                hasFloorAskPrice
-                  ? formatCurrency(
-                      `${collectible.collection?.floorAsk?.price?.amount?.usd}`,
-                      currentCurrency,
-                    )
-                  : strings('nft_details.price_unavailable')
-              }
-              valueTextStyle={
-                hasFloorAskPrice
-                  ? styles.generalInfoValueTextStyle
-                  : styles.generalInfoTitleTextStyle
-              }
-              icon={
-                hasFloorAskPrice ? (
-                  <TouchableOpacity
-                    onPress={() => viewHighestFloorPriceSource()}
-                  >
-                    <Icon
-                      name={IconName.Export}
-                      size={IconSize.Xs}
-                      style={styles.iconExport}
-                    />
-                  </TouchableOpacity>
-                ) : null
-              }
-            />
+            {hasLastSalePrice || hasFloorAskPrice ? (
+              <>
+                <NftDetailsBox
+                  titleTextStyle={styles.generalInfoTitleTextStyle}
+                  titleStyle={styles.generalInfoTitleStyle}
+                  valueStyle={styles.generalInfoValueStyle}
+                  title={strings('nft_details.bought_for')}
+                  value={
+                    hasLastSalePrice
+                      ? formatCurrency(
+                          `${collectible.lastSale?.price?.amount?.usd}`,
+                          currentCurrency,
+                        )
+                      : strings('nft_details.data_unavailable')
+                  }
+                  valueTextStyle={
+                    hasLastSalePrice
+                      ? styles.generalInfoValueTextStyle
+                      : styles.generalInfoTitleTextStyle
+                  }
+                  icon={
+                    hasLastSalePrice && collectible?.lastSale?.orderSource ? (
+                      <TouchableOpacity
+                        onPress={() => viewLastSalePriceSource()}
+                      >
+                        <Icon
+                          name={IconName.Export}
+                          size={IconSize.Xs}
+                          style={styles.iconExport}
+                        />
+                      </TouchableOpacity>
+                    ) : null
+                  }
+                />
+                <NftDetailsBox
+                  titleTextStyle={styles.generalInfoTitleTextStyle}
+                  titleStyle={styles.generalInfoTitleStyle}
+                  valueStyle={styles.generalInfoValueStyle}
+                  title={strings('nft_details.highest_floor_price')}
+                  value={
+                    hasFloorAskPrice
+                      ? formatCurrency(
+                          `${collectible.collection?.floorAsk?.price?.amount?.usd}`,
+                          currentCurrency,
+                        )
+                      : strings('nft_details.price_unavailable')
+                  }
+                  valueTextStyle={
+                    hasFloorAskPrice
+                      ? styles.generalInfoValueTextStyle
+                      : styles.generalInfoTitleTextStyle
+                  }
+                  icon={
+                    hasFloorAskPrice ? (
+                      <TouchableOpacity
+                        onPress={() => viewHighestFloorPriceSource()}
+                      >
+                        <Icon
+                          name={IconName.Export}
+                          size={IconSize.Xs}
+                          style={styles.iconExport}
+                        />
+                      </TouchableOpacity>
+                    ) : null
+                  }
+                />
+              </>
+            ) : null}
+
             {collectible.rarityRank ? (
               <NftDetailsBox
                 titleTextStyle={styles.generalInfoTitleTextStyle}

@@ -35,6 +35,10 @@ export default class AddCustomTokenView {
     await TestHelpers.tap(CUSTOM_TOKEN_BACK_BUTTON_ID);
   }
 
+  static async tapCollectible(name) {
+    await TestHelpers.tap(name);
+  }
+
   static async tapNextButton() {
     await TestHelpers.tap(NEXT_BUTTON_CUSTOM_IMPORT);
   }
