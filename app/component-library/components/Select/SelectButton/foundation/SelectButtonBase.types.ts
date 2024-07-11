@@ -1,6 +1,6 @@
 // Third party dependencies.
 import { SelectValueProps } from '../../SelectValue/SelectValue.types';
-import { TouchableOpacityProps } from 'react-native';
+import { TouchableOpacityProps, Insets } from 'react-native';
 
 /**
  * SelectButtonBase component props.
@@ -16,4 +16,8 @@ export interface SelectButtonBaseProps
    * Optional prop to configure the disabled state.
    */
   isDisabled?: boolean;
+  /**
+   * Override hitSlop property to resolve conflict.
+   */
+  hitSlop?: Insets | undefined;
 }
