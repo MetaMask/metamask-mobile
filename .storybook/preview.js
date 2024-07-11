@@ -6,9 +6,9 @@ import {
 } from './decorators';
 
 export const decorators = [
+  withTheme,
   withSafeArea,
   withNavigation,
-  withTheme,
   withMockStore,
 ];
 
