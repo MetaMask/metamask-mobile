@@ -171,23 +171,27 @@ const DappSpamModal = ({
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isBlockDappOptedIn, setBlockDapp] = useState(false);
 
-  const onResetOriginSpamState = () => {
+  const handleResetOriginSpamState = () => {
     dispatch(resetOriginSpamState(origin));
   };
 
-  const onCloseModal = () => {
+  const handleCloseModal = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
 
   return (
-    <BottomSheet ref={sheetRef} isInteractable={false}>
+    <BottomSheet
+      isInteractable
+      onClose={handleResetOriginSpamState}
+      ref={sheetRef}
+    >
       <View style={styles.wrapper}>
         {isBlockDappOptedIn ? (
-          <SiteBlockedContent onCloseModal={onCloseModal} />
+          <SiteBlockedContent onCloseModal={handleCloseModal} />
         ) : (
           <MultipleRequestContent
-            onCloseModal={onCloseModal}
-            onResetOriginSpamState={onResetOriginSpamState}
+            onCloseModal={handleCloseModal}
+            onResetOriginSpamState={handleResetOriginSpamState}
             origin={origin}
             setBlockDapp={setBlockDapp}
           />
