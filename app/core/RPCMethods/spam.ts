@@ -80,7 +80,7 @@ export function processOriginThrottlingRejection({
 
   if (selectOriginBlockedForRPCRequests(store.getState(), req.origin)) {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.DAPP_SPAM_MODAL,
+      screen: Routes.SHEET.ORIGIN_SPAM_MODAL,
       params: { origin: req.origin },
     });
   }

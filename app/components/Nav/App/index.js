@@ -709,7 +709,7 @@ const App = ({ userLoggedIn }) => {
         component={NFTAutoDetectionModal}
       />
       <Stack.Screen
-        name={Routes.SHEET.DAPP_SPAM_MODAL}
+        name={Routes.SHEET.ORIGIN_SPAM_MODAL}
         component={OriginSpamModal}
       />
     </Stack.Navigator>

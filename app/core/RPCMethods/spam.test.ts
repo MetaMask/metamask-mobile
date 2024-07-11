@@ -181,7 +181,7 @@ describe('utils', () => {
       expect(navigation.navigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
-          screen: Routes.SHEET.DAPP_SPAM_MODAL,
+          screen: Routes.SHEET.ORIGIN_SPAM_MODAL,
           params: { origin: SCAM_ORIGIN_MOCK },
         },
       );
