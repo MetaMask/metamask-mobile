@@ -48,6 +48,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
+  NetworkClientId,
   NetworkController,
   NetworkControllerActions,
   NetworkControllerEvents,
@@ -1021,15 +1022,18 @@ class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
+      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       blockTracker: networkController.getProviderAndBlockTracker().blockTracker,
       disableSendFlowHistory: true,
       disableHistory: true,
       disableSwaps: true,
       getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-      getCurrentNetworkEIP1559Compatibility: (networkClientId) =>
-        networkController.getEIP1559Compatibility(
-          networkClientId,
-        ) as Promise<boolean>,
+      // @ts-expect-error TransactionController is missing networkClientId argument in type
+      getCurrentNetworkEIP1559Compatibility: (
+        networkClientId?: NetworkClientId,
+      ) => networkController.getEIP1559Compatibility(networkClientId),
+      // @ts-expect-error NetworkController in TransactionController is later version
+      // but only breaking change is Node version and bumped dependencies
       getNetworkClientRegistry:
         networkController.getNetworkClientRegistry.bind(networkController),
       getNetworkState: () => networkController.state,
@@ -1050,6 +1054,8 @@ class Engine {
         updateTransactions: true,
       },
       isSimulationEnabled: () => false,
+      // @ts-expect-error TransactionController is using later BaseController version
+      // but only breaking change is Node version
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
@@ -1134,6 +1140,7 @@ class Engine {
         getNonceLock: this.transactionController.getNonceLock.bind(
           this.transactionController,
         ),
+        // @ts-expect-error Older TransactionController version in SmartTransactionsController means TransactionMeta types don't match.
         getTransactions: this.transactionController.getTransactions.bind(
           this.transactionController,
         ),
