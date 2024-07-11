@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-//@ts-expect-error This repo is in javascript, no types available at the moment
 import contractMap from '@metamask/contract-metadata';
 import { TokenListToken } from '@metamask/assets-controllers';
 import { useSelector } from 'react-redux';

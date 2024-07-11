@@ -272,3 +272,8 @@ declare module 'react-native-vector-icons/Zocial' {
    */
   export default class Zocial extends ZocialIconType {}
 }
+
+declare module '@metamask/contract-metadata' {
+  const content: Record<string, TokenListToken>;
+  export default content;
+}
