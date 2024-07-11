@@ -49,15 +49,15 @@ export function validateOriginThrottling({
   }
 
   const appState = store.getState();
-  const hasActiveSpamPrompt = selectOriginAtSpamThreshold(appState, req.origin);
-
-  if (hasActiveSpamPrompt) {
-    throw ACTIVE_SPAM_PROMPT_ERROR;
-  }
 
   const isDappBlocked = selectDappBlockedForRPCRequests(appState, req.origin);
   if (isDappBlocked) {
     throw USER_IDENTIFIED_REQUEST_AS_SPAM_ERROR;
+  }
+
+  const hasActiveSpamPrompt = selectOriginAtSpamThreshold(appState, req.origin);
+  if (hasActiveSpamPrompt) {
+    throw ACTIVE_SPAM_PROMPT_ERROR;
   }
 }
 

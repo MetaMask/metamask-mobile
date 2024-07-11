@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ImageSourcePropType, StyleSheet, View } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
@@ -171,13 +171,17 @@ const DappSpamModal = ({
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isBlockDappOptedIn, setBlockDapp] = useState(false);
 
-  const handleResetOriginSpamState = () => {
-    dispatch(resetOriginSpamState(origin));
-  };
-
   const handleCloseModal = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
+
+  const handleResetOriginSpamState = useCallback(() => {
+    if (isBlockDappOptedIn) {
+      handleCloseModal();
+      return;
+    }
+    dispatch(resetOriginSpamState(origin));
+  }, [isBlockDappOptedIn, dispatch, origin]);
 
   return (
     <BottomSheet
