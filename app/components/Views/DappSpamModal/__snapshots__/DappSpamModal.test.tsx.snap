@@ -154,45 +154,30 @@ exports[`DappSpamModal renders spam modal content by default 1`] = `
   <View
     style={
       {
-        "alignItems": "center",
-        "backgroundColor": "#ffffff",
         "flexDirection": "row",
-        "height": 32,
-        "justifyContent": "space-between",
-        "margin": 16,
+        "marginBottom": 16,
+        "marginTop": 16,
       }
     }
   >
-    <View
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    />
     <Text
       accessibilityRole="text"
       style={
         {
           "color": "#141618",
+          "flex": 1,
+          "flexWrap": "wrap",
           "fontFamily": "Euclid Circular B",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
           "lineHeight": 24,
+          "textAlign": "center",
         }
       }
     >
       We've noticed multiple requests
     </Text>
-    <View
-      style={
-        {
-          "alignItems": "flex-end",
-          "flex": 1,
-        }
-      }
-    />
   </View>
   <View
     style={
