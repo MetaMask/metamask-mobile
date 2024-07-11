@@ -25,22 +25,18 @@ export const sentryStateMask = {
   engine: {
     backgroundState: {
       AccountTrackerController: {
-        accounts: false,
-        accountsByChainId: false,
+        [AllProperties]: false,
       },
       AccountsController: {
         internalAccounts: {
-          accounts: false,
-          selectedAccount: false,
+          [AllProperties]: false,
         },
       },
       AddressBookController: {
-        addressBook: false,
+        [AllProperties]: false,
       },
       ApprovalController: {
-        approvalFlows: false,
-        pendingApprovals: false,
-        pendingApprovalCount: false,
+        [AllProperties]: false,
       },
       AssetsContractController: {},
       CurrencyRateController: {
@@ -52,63 +48,46 @@ export const sentryStateMask = {
         gasEstimateType: true,
         gasFeeEstimates: true,
         gasFeeEstimatesByChainId: true,
-        nonRPCGasFeeApisDisabled: false,
       },
       KeyringController: {
         isUnlocked: true,
-        keyrings: false,
       },
       LoggingController: {
-        logs: false,
+        [AllProperties]: false,
       },
       NetworkController: {
-        networkConfigurations: false,
         networksMetadata: true,
         providerConfig: {
           chainId: true,
           id: true,
           nickname: true,
-          rpcPrefs: false,
-          rpcUrl: false,
           ticker: true,
           type: true,
         },
-        selectedNetworkClientId: false,
       },
       NftController: {
-        allNftContracts: false,
-        allNfts: false,
-        ignoredNfts: false,
+        [AllProperties]: false,
       },
-      NftDetectionController: false,
       PPOMController: {
         storageMetadata: [],
         versionInfo: [],
       },
       PermissionController: {
-        subjects: false,
+        [AllProperties]: false,
       },
       PhishingController: {},
       PreferencesController: {
         disabledRpcMethodPreferences: true,
         featureFlags: true,
-        identities: false,
         isIpfsGatewayEnabled: true,
-        ipfsGateway: false,
-        lostIdentities: false,
-        securityAlertsEnabled: false,
         displayNftMedia: true,
-        selectedAddress: false,
         useNftDetection: true,
         useTokenDetection: true,
         useTransactionSimulations: true,
       },
       SignatureController: {
         unapprovedMsgCount: true,
-        unapprovedMsgs: false,
         unapprovedPersonalMsgCount: true,
-        unapprovedPersonalMsgs: false,
-        unapprovedTypedMessages: false,
         unapprovedTypedMessagesCount: true,
       },
       SmartTransactionsController: {
@@ -118,38 +97,30 @@ export const sentryStateMask = {
             tradeTxFees: true,
           },
           liveness: true,
-          smartTransactions: false,
           userOptIn: true,
           userOptInV2: true,
         },
       },
       SnapController: {
-        unencryptedSnapStates: false,
-        snapStates: false,
-        snaps: false,
+        [AllProperties]: false,
       },
       SnapInterface: {
-        interfaces: false,
+        [AllProperties]: false,
       },
       SnapsRegistry: {
-        database: false,
-        lastUpdated: false,
-        databaseUnavailable: false,
+        [AllProperties]: false,
       },
       SubjectMetadataController: {
-        subjectMetadata: false,
+        [AllProperties]: false,
       },
       SwapsController: {
         swapsState: {
-          approveTxId: false,
-          customApproveTxData: false,
           customGasPrice: true,
           customMaxFeePerGas: true,
           customMaxGas: true,
           customMaxPriorityFeePerGas: true,
           errorKey: true,
           fetchParams: true,
-          quotes: false,
           quotesLastFetched: true,
           quotesPollingLimitEnabled: true,
           routeState: true,
@@ -163,9 +134,6 @@ export const sentryStateMask = {
           swapsStxGetTransactionsRefreshTime: true,
           swapsStxMaxFeeMultiplier: true,
           swapsUserFeeLevel: true,
-          tokens: false,
-          topAggId: false,
-          tradeTxId: false,
         },
       },
       TokenDetectionController: {
@@ -173,13 +141,12 @@ export const sentryStateMask = {
       },
       TokenListController: {
         preventPollingOnNetworkRestart: true,
-        tokenList: false,
         tokensChainsCache: {
           [AllProperties]: false,
         },
       },
       TokenRatesController: {
-        marketData: false,
+        [AllProperties]: false,
       },
       TokensController: {
         allDetectedTokens: {
@@ -191,20 +158,13 @@ export const sentryStateMask = {
         allTokens: {
           [AllProperties]: false,
         },
-        detectedTokens: false,
-        ignoredTokens: false,
-        tokens: false,
       },
       TransactionController: {
-        transactions: false,
-        lastFetchedBlockNumbers: false,
-        methodData: false,
-        submitHistory: false,
+        [AllProperties]: false,
       },
     },
   },
   experimentalSettings: true,
-  fiatOrders: false,
   infuraAvailability: true,
   inpageProvider: true,
   legalNotices: true,
@@ -218,13 +178,8 @@ export const sentryStateMask = {
   sdk: true,
   security: true,
   settings: true,
-  signatureRequest: false,
   smartTransactions: true,
-  swaps: false,
-  transaction: false,
-  transactionMetrics: false,
   user: {
-    ambiguousAddressEntries: false,
     appTheme: true,
     backUpSeedphraseVisible: true,
     gasEducationCarouselSeen: true,
