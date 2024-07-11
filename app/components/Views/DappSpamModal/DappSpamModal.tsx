@@ -18,7 +18,9 @@ import {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import Text from '../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { resetOriginSpamState } from '../../../core/redux/slices/originThrottling';
 
@@ -32,6 +34,16 @@ const createStyles = () =>
       flexDirection: 'column',
       gap: 16,
       paddingTop: 24,
+    },
+    titleWrapper: {
+      flexDirection: 'row',
+      marginBottom: 16,
+      marginTop: 16,
+    },
+    title: {
+      flex: 1,
+      flexWrap: 'wrap',
+      textAlign: 'center',
     },
     wrapper: {
       alignItems: 'center',
@@ -80,7 +92,11 @@ const MultipleRequestContent = ({
         name={IconName.Danger}
         size={IconSize.Xl}
       />
-      <SheetHeader title={strings('spam_filter.title')} />
+      <View style={styles.titleWrapper}>
+        <Text style={styles.title} variant={TextVariant.HeadingMD}>
+          {strings('spam_filter.title')}
+        </Text>
+      </View>
       <View style={styles.tagWrapper}>
         <TagUrl
           imageSource={favicon}

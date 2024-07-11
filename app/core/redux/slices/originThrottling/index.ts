@@ -3,7 +3,7 @@ import { RootState } from '../../../../reducers';
 
 export const NUMBER_OF_REJECTIONS_THRESHOLD = 3;
 export const REJECTION_THRESHOLD_IN_MS = 30000;
-const ONE_MINUTE_IN_MS = 60000;
+const BLOCKING_THRESHOLD_IN_MS = 60000;
 
 export interface OriginState {
   rejections: number;
@@ -68,7 +68,7 @@ export const { onRPCRequestRejectedByUser, resetOriginSpamState } = actions;
 const selectOriginState = (state: RootState, origin: string) =>
   state[name].origins[origin];
 
-export const isDappBlockedForRPCRequests = (
+export const selectDappBlockedForRPCRequests = (
   state: RootState,
   origin: string,
 ) => {
@@ -78,7 +78,7 @@ export const isDappBlockedForRPCRequests = (
   }
   const currentTime = Date.now();
   const { rejections, lastRejection } = originState;
-  const isWithinOneMinute = currentTime - lastRejection <= ONE_MINUTE_IN_MS;
+  const isWithinOneMinute = currentTime - lastRejection <= BLOCKING_THRESHOLD_IN_MS;
 
   return rejections >= NUMBER_OF_REJECTIONS_THRESHOLD && isWithinOneMinute;
 };

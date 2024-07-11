@@ -6,7 +6,7 @@ import { containsUserRejectedError } from '../../util/middlewares';
 import Routes from '../../constants/navigation/Routes';
 import { RPC_METHODS } from '../SDKConnect/SDKConnectConstants';
 import {
-  isDappBlockedForRPCRequests,
+  selectDappBlockedForRPCRequests,
   onRPCRequestRejectedByUser,
   selectOriginAtSpamThreshold,
 } from '../redux/slices/originThrottling';
@@ -55,7 +55,7 @@ export function validateOriginThrottling({
     throw ACTIVE_SPAM_PROMPT_ERROR;
   }
 
-  const isDappBlocked = isDappBlockedForRPCRequests(appState, req.origin);
+  const isDappBlocked = selectDappBlockedForRPCRequests(appState, req.origin);
   if (isDappBlocked) {
     throw USER_IDENTIFIED_REQUEST_AS_SPAM_ERROR;
   }
@@ -78,16 +78,21 @@ export function processOriginThrottlingRejection({
   };
 }) {
   const isBlockableRPCMethod = BLOCKABLE_SPAM_RPC_METHODS.has(req.method);
-  if (
-    isBlockableRPCMethod &&
-    containsUserRejectedError(error.message, error?.code)
-  ) {
-    store.dispatch(onRPCRequestRejectedByUser(req.origin));
-    if (selectOriginAtSpamThreshold(store.getState(), req.origin)) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.DAPP_SPAM_MODAL,
-        params: { origin: req.origin },
-      });
-    }
+
+  if (!isBlockableRPCMethod) {
+    return;
+  }
+
+  if (!containsUserRejectedError(error.message, error?.code)) {
+    return;
+  }
+
+  store.dispatch(onRPCRequestRejectedByUser(req.origin));
+  
+  if (selectOriginAtSpamThreshold(store.getState(), req.origin)) {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.DAPP_SPAM_MODAL,
+      params: { origin: req.origin },
+    });
   }
 }
