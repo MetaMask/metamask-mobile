@@ -6,13 +6,14 @@ import { containsUserRejectedError } from '../../util/middlewares';
 import Routes from '../../constants/navigation/Routes';
 import { RPC_METHODS } from '../SDKConnect/SDKConnectConstants';
 import {
-  selectOriginBlockedForRPCRequests,
+  selectIsOriginBlockedForRPCRequests,
   onRPCRequestRejectedByUser,
 } from '../redux/slices/originThrottling';
 
 export const BLOCKABLE_SPAM_RPC_METHODS = new Set([
   RPC_METHODS.ETH_SENDTRANSACTION,
   RPC_METHODS.ETH_SIGN,
+  RPC_METHODS.ETH_SIGNTYPEDEATA,
   RPC_METHODS.ETH_SIGNTYPEDEATAV3,
   RPC_METHODS.ETH_SIGNTYPEDEATAV4,
   RPC_METHODS.METAMASK_CONNECTSIGN,
@@ -44,7 +45,7 @@ export function validateOriginThrottling({
 
   const appState = store.getState();
 
-  const isDappBlocked = selectOriginBlockedForRPCRequests(appState, req.origin);
+  const isDappBlocked = selectIsOriginBlockedForRPCRequests(appState, req.origin);
   if (isDappBlocked) {
     throw SPAM_FILTER_ACTIVATED;
   }
@@ -78,7 +79,7 @@ export function processOriginThrottlingRejection({
 
   store.dispatch(onRPCRequestRejectedByUser(req.origin));
 
-  if (selectOriginBlockedForRPCRequests(store.getState(), req.origin)) {
+  if (selectIsOriginBlockedForRPCRequests(store.getState(), req.origin)) {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.ORIGIN_SPAM_MODAL,
       params: { origin: req.origin },

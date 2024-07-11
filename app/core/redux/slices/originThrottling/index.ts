@@ -68,7 +68,7 @@ export const { onRPCRequestRejectedByUser, resetOriginSpamState } = actions;
 const selectOriginState = (state: RootState, origin: string) =>
   state[name].origins[origin];
 
-export const selectOriginBlockedForRPCRequests = (
+export const selectIsOriginBlockedForRPCRequests = (
   state: RootState,
   origin: string,
 ) => {
