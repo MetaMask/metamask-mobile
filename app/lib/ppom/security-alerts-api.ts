@@ -15,10 +15,16 @@ export function isSecurityAlertsAPIEnabled() {
 
 export async function validateWithSecurityAlertsAPI(
   chainId: string,
-  payload: SecurityAlertsAPIRequest,
+  body: SecurityAlertsAPIRequest,
 ): Promise<SecurityAlertResponse> {
   const endpoint = `${ENDPOINT_VALIDATE}/${chainId}`;
-  return request(endpoint, payload);
+  return request(endpoint, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 }
 
 export async function getSecurityAlertsAPISupportedChainIds(): Promise<Hex[]> {
