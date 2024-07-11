@@ -595,4 +595,29 @@ describe('captureSentryFeedback', () => {
       });
     });
   });
+
+  it.only('handle root state with value null and mask false', () => {
+    const submask = {
+      SnapsController: {
+        [AllProperties]: false,
+      },
+    };
+    const maskedState = maskObject(
+      {
+        SnapsController: {
+          enabled: undefined,
+          data: null,
+          exampleObj: {},
+        },
+      },
+      submask,
+    );
+    expect(maskedState).toEqual({
+      SnapsController: {
+        enabled: 'undefined',
+        data: 'null',
+        exampleObj: 'object',
+      },
+    });
+  });
 });

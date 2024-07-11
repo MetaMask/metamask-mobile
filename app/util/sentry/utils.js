@@ -344,7 +344,9 @@ export function maskObject(objectToMask, mask = {}) {
     } else if (shouldIterateSubMask) {
       maskedObject[key] = maskObject(objectToMask[key], maskKey);
     } else if (shouldPrintType) {
-      maskedObject[key] = typeof objectToMask[key];
+      // Since typeof null is object, it is more valuable to us having the null instead of object
+      maskedObject[key] =
+        objectToMask[key] === null ? 'null' : typeof objectToMask[key];
     }
     return maskedObject;
   }, {});
