@@ -1491,6 +1491,8 @@ export const BrowserTab = (props) => {
     </View>
   );
 
+  const isNotProd = process.env.NODE_ENV !== 'production';
+
   /**
    * Main render
    */
@@ -1535,6 +1537,7 @@ export const BrowserTab = (props) => {
                 testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
+                webviewDebuggingEnabled={isNotProd}
               />
               {ipfsBannerVisible && renderIpfsBanner()}
             </>
