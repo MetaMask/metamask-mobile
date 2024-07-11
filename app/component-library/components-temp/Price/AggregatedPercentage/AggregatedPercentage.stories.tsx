@@ -3,6 +3,7 @@ import { Provider } from 'react-redux';
 import AggregatedPercentage from './AggregatedPercentage';
 import { createStore } from 'redux';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { ComponentStory, Meta } from '@storybook/react-native';
 
 const mockInitialState = {
   wizard: {
@@ -16,7 +17,7 @@ const mockInitialState = {
 const rootReducer = (state = mockInitialState) => state;
 const store = createStore(rootReducer);
 
-export default {
+const AggregatedPercentageStory: Meta<typeof AggregatedPercentage> = {
   title: 'Component Library / AggregatedPercentage',
   component: AggregatedPercentage,
   decorators: [
@@ -26,9 +27,26 @@ export default {
       </Provider>
     ),
   ],
+  args: {
+    ethFiat: 1000,
+    tokenFiat: 500,
+    tokenFiat1dAgo: 950,
+    ethFiat1dAgo: 450,
+  },
 };
 
-const Template = (args) => <AggregatedPercentage {...args} />;
+export default AggregatedPercentageStory;
+
+interface AggregatedPercentageArgs {
+  ethFiat: number;
+  tokenFiat: number;
+  tokenFiat1dAgo: number;
+  ethFiat1dAgo: number;
+}
+
+const Template: ComponentStory<typeof AggregatedPercentage> = (
+  args: AggregatedPercentageArgs,
+) => <AggregatedPercentage {...args} />;
 
 export const Default = Template.bind({});
 Default.args = {
