@@ -7,7 +7,7 @@ import { render } from '@testing-library/react-native';
 import AnnouncementsDetails from '.';
 import { createStyles } from '../styles';
 import MOCK_NOTIFICATIONS from '../../../../../components/UI/Notification/__mocks__/mock_notifications';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { mockTheme } from '../../../../../util/theme';
 import { FeatureAnnouncementRawNotification } from '../../../../../util/notifications/types';
 
@@ -19,9 +19,7 @@ const mockInitialState = {
     isEnabled: true,
   },
   engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-    },
+    backgroundState,
   },
 };
 
@@ -32,6 +30,8 @@ describe('AnnouncementsDetails', () => {
   const store = mockStore(mockInitialState);
 
   let navigation: NavigationProp<ParamListBase>;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let styles: Record<string, any>;
   beforeEach(() => {
     navigation = {

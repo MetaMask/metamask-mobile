@@ -16,6 +16,8 @@ const hideCurrentNotification = jest.fn();
 const showSimpleNotification = jest.fn();
 const removeNotificationById = jest.fn();
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let notificationManager: any;
 
 describe('NotificationManager', () => {

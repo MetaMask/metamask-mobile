@@ -11,11 +11,13 @@ import {
   screen,
   render as renderComponent,
 } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import {
+  renderScreen,
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 
 import Quotes, { QuotesParams } from './Quotes';
 import { mockQuotesData } from './Quotes.constants';
-import type { DeepPartial } from './Quotes.types';
 import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
 
@@ -23,7 +25,7 @@ import { RampSDK } from '../../sdk';
 import useQuotes from '../../hooks/useQuotes';
 
 import Routes from '../../../../../constants/navigation/Routes';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RampType } from '../../types';
 
 function render(Component: React.ComponentType) {
@@ -35,7 +37,7 @@ function render(Component: React.ComponentType) {
     {
       state: {
         engine: {
-          backgroundState: initialBackgroundState,
+          backgroundState,
         },
       },
     },

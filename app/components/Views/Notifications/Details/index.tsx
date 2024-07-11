@@ -33,6 +33,8 @@ import renderOnChainDetails from './OnChain';
 import Header from './Header';
 
 interface Props {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   route: {
     params: {
@@ -48,6 +50,8 @@ const NotificationsDetails = ({ navigation, route }: Props) => {
   const theme = useTheme();
   const styles = createStyles(theme);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -104,8 +108,14 @@ NotificationsDetails.navigationOptions = ({
   theme,
   navigation,
 }: {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   route: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   theme: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 }) => ({
   headerLeft: () => (

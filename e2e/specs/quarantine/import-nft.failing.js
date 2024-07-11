@@ -1,7 +1,7 @@
 'use strict';
-import { SmokeCore } from '../../tags';
-import TestHelpers from '../../helpers';
-import WalletView from '../../pages/WalletView';
+import { SmokeAssets } from '../../tags';
+import Assertions from '../../utils/Assertions';
+import WalletView from '../../pages/wallet/WalletView';
 import AddCustomTokenView from '../../pages/AddCustomTokenView';
 import { loginToApp } from '../../viewHelper';
 import {
@@ -11,7 +11,7 @@ import {
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 
-describe(SmokeCore('Import NFT'), () => {
+describe(SmokeAssets('Import NFT'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });
@@ -48,13 +48,13 @@ describe(SmokeCore('Import NFT'), () => {
         await AddCustomTokenView.isVisible();
         await AddCustomTokenView.typeInNFTAddress(erc1155ContractAddress);
         await AddCustomTokenView.typeInNFTIdentifier('1');
-        await WalletView.isVisible();
+        await Assertions.checkIfVisible(WalletView.container);
         // Wait for asset to load
-        await TestHelpers.delay(3000);
-        await WalletView.isNFTVisibleInWallet('TestDappNFTs');
+        await Assertions.checkIfVisible(WalletView.nftInWallet('TestDappNFTs'));
         // Tap on Collectible
         await WalletView.tapOnNFTInWallet('TestDappNFTs');
-        await WalletView.isNFTNameVisible('TestDappNFTs #1');
+        //TODO: isNFTNameVisible have been removed. Update it for valid implementations
+        //await WalletView.isNFTNameVisible('TestDappNFTs #1');
         await WalletView.scrollUpOnNFTsTab();
       },
     );

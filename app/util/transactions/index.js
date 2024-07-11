@@ -2,7 +2,12 @@ import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
 import humanizeDuration from 'humanize-duration';
-import { query, isSmartContractCode } from '@metamask/controller-utils';
+import {
+  query,
+  isSmartContractCode,
+  ERC721,
+  ERC1155,
+} from '@metamask/controller-utils';
 import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
@@ -54,6 +59,7 @@ export const TOKEN_METHOD_TRANSFER_FROM = 'transferfrom';
 export const TOKEN_METHOD_INCREASE_ALLOWANCE = 'increaseAllowance';
 export const CONTRACT_METHOD_DEPLOY = 'deploy';
 export const CONNEXT_METHOD_DEPOSIT = 'connextdeposit';
+export const TOKEN_METHOD_SET_APPROVAL_FOR_ALL = 'setapprovalforall';
 
 export const SEND_ETHER_ACTION_KEY = 'sentEther';
 export const DEPLOY_CONTRACT_ACTION_KEY = 'deploy';
@@ -64,16 +70,19 @@ export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 export const SMART_CONTRACT_INTERACTION_ACTION_KEY = 'smartContractInteraction';
 export const SWAPS_TRANSACTION_ACTION_KEY = 'swapsTransaction';
 export const INCREASE_ALLOWANCE_ACTION_KEY = 'increaseAllowance';
+export const SET_APPROVE_FOR_ALL_ACTION_KEY = 'setapprovalforall';
 
 export const TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
 export const APPROVE_FUNCTION_SIGNATURE = '0x095ea7b3';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 export const INCREASE_ALLOWANCE_SIGNATURE = '0x39509351';
+export const SET_APPROVAL_FOR_ALL_SIGNATURE = '0xa22cb465';
 
 export const TRANSACTION_TYPES = {
   APPROVE: 'transaction_approve',
-  INCREASE_ALLOWANCE: 'increaseAllowance',
+  INCREASE_ALLOWANCE: 'transaction_increase_allowance',
+  SET_APPROVAL_FOR_ALL: 'transaction_set_approval_for_all',
   RECEIVED: 'transaction_received',
   RECEIVED_COLLECTIBLE: 'transaction_received_collectible',
   RECEIVED_TOKEN: 'transaction_received_token',
@@ -109,7 +118,12 @@ const reviewActionKeys = {
     'transactions.tx_review_unknown',
   ),
   [APPROVE_ACTION_KEY]: strings('transactions.tx_review_approve'),
-  [INCREASE_ALLOWANCE_ACTION_KEY]: strings('transactions.increase_allowance'),
+  [INCREASE_ALLOWANCE_ACTION_KEY]: strings(
+    'transactions.tx_review_increase_allowance',
+  ),
+  [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
+    'transactions.tx_review_set_approval_for_all',
+  ),
 };
 
 /**
@@ -125,6 +139,9 @@ const actionKeys = {
   [SWAPS_TRANSACTION_ACTION_KEY]: strings('transactions.swaps_transaction'),
   [APPROVE_ACTION_KEY]: strings('transactions.approve'),
   [INCREASE_ALLOWANCE_ACTION_KEY]: strings('transactions.increase_allowance'),
+  [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
+    'transactions.set_approval_for_all',
+  ),
 };
 
 /**
@@ -189,16 +206,18 @@ export function getFourByteSignature(data) {
  */
 export function isApprovalTransaction(data) {
   const fourByteSignature = getFourByteSignature(data);
-  return [APPROVE_FUNCTION_SIGNATURE, INCREASE_ALLOWANCE_SIGNATURE].includes(
-    fourByteSignature,
-  );
+  return [
+    APPROVE_FUNCTION_SIGNATURE,
+    INCREASE_ALLOWANCE_SIGNATURE,
+    SET_APPROVAL_FOR_ALL_SIGNATURE,
+  ].includes(fourByteSignature);
 }
 
 /**
  * Generates ERC20 approval data
  *
  * @param {object} opts - Object containing spender address, value and data
- * @param {string} opts.spender - The address of the spender
+ * @param {string | null} opts.spender - The address of the spender
  * @param {string} opts.value - The amount of tokens to be approved or increased
  * @param {string} [opts.data] - The data of the transaction
  * @returns {String} - String containing the generated data, by default for approve method
@@ -300,6 +319,8 @@ export async function getMethodData(data) {
     return { name: TOKEN_METHOD_APPROVE };
   } else if (fourByteSignature === INCREASE_ALLOWANCE_SIGNATURE) {
     return { name: TOKEN_METHOD_INCREASE_ALLOWANCE };
+  } else if (fourByteSignature === SET_APPROVAL_FOR_ALL_SIGNATURE) {
+    return { name: TOKEN_METHOD_SET_APPROVAL_FOR_ALL };
   } else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
     return { name: CONTRACT_METHOD_DEPLOY };
   }
@@ -496,7 +517,7 @@ export function getEther(ticker) {
  * @param {object} config.addressBook - Object of address book entries
  * @param {string} config.chainId - network id
  * @param {string} config.toAddress - hex address of tx recipient
- * @param {object} config.identities - object of identities
+ * @param {array} config.identities - array of accounts objects from AccountsController
  * @param {string} config.ensRecipient - name of ens recipient
  * @returns {string} - recipient name
  */
@@ -504,7 +525,7 @@ export function getTransactionToName({
   addressBook,
   chainId,
   toAddress,
-  identities,
+  internalAccounts,
   ensRecipient,
 }) {
   if (ensRecipient) {
@@ -514,11 +535,19 @@ export function getTransactionToName({
   const networkAddressBook = addressBook[chainId];
   const checksummedToAddress = toChecksumAddress(toAddress);
 
+  // Convert internalAccounts array to a map for quick lookup
+  const internalAccountsMap = internalAccounts.reduce((acc, account) => {
+    acc[toChecksumAddress(account.address)] = account;
+    return acc;
+  }, {});
+
+  const matchingAccount = internalAccountsMap[checksummedToAddress];
+
   const transactionToName =
     (networkAddressBook &&
       networkAddressBook[checksummedToAddress] &&
       networkAddressBook[checksummedToAddress].name) ||
-    (identities[checksummedToAddress] && identities[checksummedToAddress].name);
+    (matchingAccount && matchingAccount.metadata.name);
 
   return transactionToName;
 }
@@ -1167,7 +1196,7 @@ export const parseTransactionEIP1559 = (
     });
     const tokenAmount = renderFromTokenMinimalUnit(rawAmountString, decimals);
 
-    const exchangeRate = contractExchangeRates[address];
+    const exchangeRate = contractExchangeRates[address]?.price;
 
     [
       renderableTotalMinNative,
@@ -1314,7 +1343,7 @@ export const parseTransactionLegacy = (
     });
     const transferValue = renderFromTokenMinimalUnit(rawAmountString, decimals);
     const transactionValue = `${transferValue} ${symbol}`;
-    const exchangeRate = contractExchangeRates[address];
+    const exchangeRate = contractExchangeRates?.[address]?.price;
     const transactionFeeFiatNumber = weiToFiatNumber(
       weiTransactionFee,
       conversionRate,
@@ -1539,3 +1568,13 @@ export const getIsSwapTransaction = (data, origin, to, chainId) => {
  */
 export const getIsNativeTokenTransferred = (txParams) =>
   txParams?.value !== '0x0';
+
+/**
+ * Checks if the given token standard is non-fungible (ERC721 or ERC1155).
+ *
+ * @param {string} tokenStandard - The token standard to check.
+ * @returns {boolean} - True if the token standard is ERC721 or ERC1155, otherwise false.
+ */
+export function isNFTTokenStandard(tokenStandard) {
+  return [ERC721, ERC1155].includes(tokenStandard);
+}

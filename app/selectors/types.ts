@@ -21,7 +21,7 @@ import { GasFeeController } from '@metamask/gas-fee-controller';
 import { PPOMState } from '@metamask/ppom-validator';
 import { ApprovalControllerState } from '@metamask/approval-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapController } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 export interface EngineState {
@@ -42,7 +42,7 @@ export interface EngineState {
       TokenRatesController: TokenRatesState;
       TransactionController: TransactionState;
       SwapsController: SwapsController;
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController: SnapController;
       ///: END:ONLY_INCLUDE_IF
       GasFeeController: GasFeeController;

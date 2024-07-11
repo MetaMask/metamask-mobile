@@ -52,6 +52,8 @@ const createApprovalControllerMock = ({
   pendingApprovals,
 }: {
   addAndShowApprovalRequest: () => void;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pendingApprovals?: any[];
 }) =>
   ({
@@ -110,6 +112,8 @@ const defaultTransactionMeta: TransactionMeta = {
 
 const createRequest = ({
   addAndShowApprovalRequest = getDefaultAddAndShowApprovalRequest(),
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pendingApprovals = [] as any[],
   transactionMeta = defaultTransactionMeta,
 } = {}) => ({

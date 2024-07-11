@@ -5,6 +5,8 @@ import ApprovalModal from '../ApprovalModal';
 import AccountApproval from '../../UI/AccountApproval';
 
 export interface ConnectApprovalProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 }
 

@@ -11,7 +11,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core/';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
 import { TextColor } from '../../../component-library/components/Texts/Text';
@@ -32,11 +32,17 @@ const Settings = () => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<any>();
 
   const seedphraseBackedUp = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.seedphraseBackedUp,
   );
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
   const updateNavBar = useCallback(() => {
@@ -106,7 +112,7 @@ const Settings = () => {
     });
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   const onPressSnaps = () => {
     navigation.navigate(...createSnapsSettingsListNavDetails());
   };
@@ -216,7 +222,7 @@ const Settings = () => {
         testID={SettingsViewSelectorsIDs.NETWORKS}
       />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
       }
       <SettingsDrawer
         title={strings('app_settings.snaps.title')}

@@ -47,6 +47,9 @@ import migration43 from './043';
 import migration44 from './044';
 import migration45 from './045';
 import migration46 from './046';
+import migration47 from './047';
+import migration48 from './048';
+import migration49 from './049';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -106,6 +109,9 @@ export const migrationList: MigrationsList = {
   44: migration44,
   45: migration45,
   46: migration46,
+  47: migration47,
+  48: migration48,
+  49: migration49,
 };
 
 // Enable both synchronous and asynchronous migrations

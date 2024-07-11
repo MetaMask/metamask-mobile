@@ -9,11 +9,15 @@ const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 
 class WalletConnectPort extends EventEmitter {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(wcRequestActions: any) {
     super();
     this._wcRequestActions = wcRequestActions;
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   postMessage = (msg: any) => {
     try {
       if (msg?.data?.method === NOTIFICATION_NAMES.chainChanged) {
