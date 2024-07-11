@@ -45,7 +45,10 @@ export function validateOriginThrottling({
 
   const appState = store.getState();
 
-  const isDappBlocked = selectIsOriginBlockedForRPCRequests(appState, req.origin);
+  const isDappBlocked = selectIsOriginBlockedForRPCRequests(
+    appState,
+    req.origin,
+  );
   if (isDappBlocked) {
     throw SPAM_FILTER_ACTIVATED;
   }
