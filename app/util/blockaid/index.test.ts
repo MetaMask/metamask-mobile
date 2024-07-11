@@ -12,7 +12,9 @@ import {
   getBlockaidMetricsParams,
   isBlockaidSupportedOnCurrentChain,
   getBlockaidTransactionMetricsParams,
+  TransactionType,
 } from '.';
+import { TransactionStatus } from '@metamask/transaction-controller';
 
 describe('Blockaid util', () => {
   describe('getBlockaidTransactionMetricsParams', () => {
@@ -27,10 +29,17 @@ describe('Blockaid util', () => {
     });
 
     it('returns empty object when transaction id does not match security response id', () => {
-      const transaction = {
-        id: 1,
+      const transaction: TransactionType = {
+        id: '1',
+        status: TransactionStatus.approved,
+        time: 0,
+        chainId: '0x1',
+        txParams: {
+          to: '0x',
+          from: '0x',
+        },
         currentTransactionSecurityAlertResponse: {
-          id: 2,
+          id: '2',
           response: {
             result_type: ResultType.Malicious,
             reason: Reason.notApplicable,
@@ -47,10 +56,17 @@ describe('Blockaid util', () => {
     });
 
     it('returns metrics params object when transaction id matches security response id', () => {
-      const transaction = {
-        id: 1,
+      const transaction: TransactionType = {
+        id: '1',
+        status: TransactionStatus.approved,
+        time: 0,
+        chainId: '0x1',
+        txParams: {
+          to: '0x',
+          from: '0x',
+        },
         currentTransactionSecurityAlertResponse: {
-          id: 1,
+          id: '1',
           response: {
             result_type: ResultType.Malicious,
             reason: Reason.notApplicable,
@@ -91,7 +107,9 @@ describe('Blockaid util', () => {
     });
 
     it('returns empty object when chain id is not in supported chain ids list', () => {
-      jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('10');
+      jest
+        .spyOn(NetworkControllerMock, 'selectChainId')
+        .mockReturnValue('0x10');
       const result = getBlockaidMetricsParams(undefined);
       expect(result).toStrictEqual({});
     });
