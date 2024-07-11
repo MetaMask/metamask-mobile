@@ -12,7 +12,7 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { selectTicker } from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
 
 const useAddressBalance = (
@@ -23,10 +23,12 @@ const useAddressBalance = (
   const [addressBalance, setAddressBalance] = useState('0');
 
   const { accounts, contractBalances, selectedAddress } = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => ({
       accounts: selectAccounts(state),
       contractBalances: selectContractBalances(state),
-      selectedAddress: selectSelectedAddress(state),
+      selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
     }),
   );
   const ticker = useSelector(selectTicker);
@@ -41,6 +43,8 @@ const useAddressBalance = (
         name,
       } = asset;
       const contractAddress = safeToChecksumAddress(rawAddress);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { TokensController } = Engine.context as any;
       if (!contractAddress || !decimals) {
         return;
@@ -61,6 +65,7 @@ const useAddressBalance = (
 
   useEffect(() => {
     const setBalance = () => {
+      if (!address) return;
       const parsedTicker = getTicker(ticker);
       const checksumAddress = safeToChecksumAddress(address);
       if (!checksumAddress) {

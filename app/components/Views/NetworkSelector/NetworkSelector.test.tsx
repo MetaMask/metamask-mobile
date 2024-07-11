@@ -5,7 +5,7 @@ import { fireEvent } from '@testing-library/react-native';
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 // Internal dependencies
 import NetworkSelector from './NetworkSelector';
@@ -25,10 +25,6 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     NetworkController: { setActiveNetwork: jest.fn() },
     PreferencesController: {
-      selectedAddress: '0x',
-      identities: {
-        '0x': { name: 'Account 1', address: '0x' },
-      },
       setShowTestNetworks: jest.fn(),
     },
     CurrencyRateController: { updateExchangeRate: jest.fn() },
@@ -42,7 +38,7 @@ const initialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0x': {
@@ -105,10 +101,6 @@ const initialState = {
       },
       PreferencesController: {
         showTestNetworks: false,
-        selectedAddress: '0x',
-        identities: {
-          '0x': { name: 'Account 1', address: '0x' },
-        },
       },
       NftController: {
         allNfts: { '0x': { '0x1': [] } },
@@ -120,6 +112,8 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>

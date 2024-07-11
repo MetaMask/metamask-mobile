@@ -27,6 +27,8 @@ export class mmStorage {
     }
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static saveLocal(key: string, value: any) {
     if (!key) {
       return;

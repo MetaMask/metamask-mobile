@@ -44,6 +44,8 @@ describe('Date util :: msBetweenDates', () => {
           return new DateReal(...args);
         }
         return mockDate;
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
     const todayOneHourEarlier = new Date().getTime() - 1000;

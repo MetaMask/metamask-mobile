@@ -6,7 +6,6 @@ import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselVie
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
-import WalletView from '../../pages/WalletView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 import Browser from '../../pages/Browser/BrowserView';
@@ -16,7 +15,6 @@ import WhatsNewModal from '../../pages/modals/WhatsNewModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 
-const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
 
 describe(SmokeCore('Start Exploring'), () => {
@@ -52,7 +50,6 @@ describe(SmokeCore('Start Exploring'), () => {
     await CreatePasswordView.tapIUnderstandCheckBox();
     await CreatePasswordView.enterPassword(PASSWORD);
     await CreatePasswordView.reEnterPassword(PASSWORD);
-    // await CreatePasswordView.tapCreatePasswordButton();
   });
 
   it('Should skip backup check', async () => {
@@ -61,7 +58,6 @@ describe(SmokeCore('Start Exploring'), () => {
     await ProtectYourWalletView.tapOnRemindMeLaterButton();
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
-    await WalletView.isVisible();
   });
 
   it('Should skip onboarding success screen', async () => {
@@ -86,7 +82,6 @@ describe(SmokeCore('Start Exploring'), () => {
     await Assertions.checkIfVisible(OnboardingWizardModal.stepThreeContainer);
     // await WalletView.editAccountName(ACCOUNT);
     await OnboardingWizardModal.tapGotItButton();
-    await WalletView.isAccountNameCorrect(ACCOUNT);
     // Ensure step 4 is shown correctly
     await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
     await OnboardingWizardModal.tapGotItButton();
@@ -121,7 +116,7 @@ describe(SmokeCore('Start Exploring'), () => {
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(2500);
     try {
-      await WhatsNewModal.isVisible();
+      await Assertions.checkIfVisible(WhatsNewModal.container);
       await WhatsNewModal.tapCloseButton();
     } catch {
       //

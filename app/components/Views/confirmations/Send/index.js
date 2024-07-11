@@ -58,13 +58,14 @@ import { selectTokens } from '../../../../selectors/tokensController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../../selectors/preferencesController';
+  selectInternalAccounts,
+  selectSelectedInternalAccountChecksummedAddress,
+} from '../../../../selectors/accountsController';
 import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
+import { toLowerCaseEquals } from '../../../../util/general';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -126,9 +127,9 @@ class Send extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
-     * List of accounts from the PreferencesController
+     * List of accounts from the AccountsController
      */
-    identities: PropTypes.object,
+    internalAccounts: PropTypes.array,
     /**
      * Selected address as string
      */
@@ -317,7 +318,8 @@ class Send extends PureComponent {
     function_name = null, // eslint-disable-line no-unused-vars
     parameters = null,
   }) => {
-    const { addressBook, chainId, identities, selectedAddress } = this.props;
+    const { addressBook, chainId, internalAccounts, selectedAddress } =
+      this.props;
 
     let newTxMeta = {};
     let txRecipient;
@@ -344,7 +346,7 @@ class Send extends PureComponent {
           addressBook,
           chainId,
           toAddress: newTxMeta.to,
-          identities,
+          internalAccounts,
           ensRecipient: newTxMeta.ensRecipient,
         });
 
@@ -384,7 +386,7 @@ class Send extends PureComponent {
           addressBook,
           chainId,
           toAddress: to,
-          identities,
+          internalAccounts,
           ensRecipient,
         });
         break;
@@ -418,7 +420,10 @@ class Send extends PureComponent {
     }
 
     newTxMeta.from = selectedAddress;
-    newTxMeta.transactionFromName = identities[selectedAddress].name;
+    const fromAccount = internalAccounts.find((account) =>
+      toLowerCaseEquals(account.address, selectedAddress),
+    );
+    newTxMeta.transactionFromName = fromAccount.metadata.name;
     this.props.setTransactionObject(newTxMeta);
     this.mounted && this.setState({ ready: true, transactionKey: Date.now() });
   };
@@ -783,8 +788,8 @@ const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
   tokens: selectTokens(state),
   chainId: selectChainId(state),
-  identities: selectIdentities(state),
-  selectedAddress: selectSelectedAddress(state),
+  internalAccounts: selectInternalAccounts(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
   tokenList: selectTokenList(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),

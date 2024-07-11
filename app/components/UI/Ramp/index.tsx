@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import WebView from 'react-native-webview';
+import WebView from '@metamask/react-native-webview';
 import AppConstants from '../../../core/AppConstants';
 import NotificationManager from '../../../core/NotificationManager';
 import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
@@ -220,8 +220,14 @@ function FiatOrders() {
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const navigation = useNavigation();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pendingOrders = useSelector<any, FiatOrder[]>(getPendingOrders);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const customOrderIds = useSelector<any, CustomIdData[]>(getCustomOrderIds);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const authenticationUrls = useSelector<any, string[]>(getAuthenticationUrls);
 
   const dispatchAddFiatOrder = useCallback(

@@ -3,16 +3,16 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import Routes from '../../../../../constants/navigation/Routes';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import {
+  renderScreen,
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+
 import { addTransaction } from '../../../../../util/transaction-controller';
 import SendTransaction from './SendTransaction';
 import APP_CONSTANTS from '../../../../../core/AppConstants';
 const { ACH_LIGHT, ACH_DARK } = APP_CONSTANTS.URLS.ICONS;
-
-type DeepPartial<BaseType> = {
-  [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
-};
 
 const mockOrder = {
   id: 'test-id-1',
@@ -263,7 +263,7 @@ function render(Component: React.ComponentType, orders = mockedOrders) {
     {
       state: {
         engine: {
-          backgroundState: initialBackgroundState,
+          backgroundState,
         },
         fiatOrders: {
           orders,
@@ -400,6 +400,7 @@ describe('SendTransaction View', () => {
           },
           {
             "deviceConfirmedOn": "metamask_mobile",
+            "origin": "RAMPS_SEND",
           },
         ],
       ]
@@ -444,6 +445,7 @@ describe('SendTransaction View', () => {
           },
           {
             "deviceConfirmedOn": "metamask_mobile",
+            "origin": "RAMPS_SEND",
           },
         ],
       ]
