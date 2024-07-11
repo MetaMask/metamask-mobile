@@ -24,6 +24,9 @@ const SelectOption: React.FC<SelectOptionProps> = ({
     style,
   });
 
+  // Extract only the props that SelectValue expects
+  const { hitSlop, ...selectValueProps } = props;
+
   return (
     <ListItemSelect
       style={styles.base}
@@ -33,7 +36,7 @@ const SelectOption: React.FC<SelectOptionProps> = ({
       isDisabled={isDisabled}
       accessibilityRole="menuitem"
     >
-      <SelectValue {...props} />
+      <SelectValue {...selectValueProps} />
     </ListItemSelect>
   );
 };

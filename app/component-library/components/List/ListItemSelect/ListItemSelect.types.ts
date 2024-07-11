@@ -8,8 +8,8 @@ import { ListItemProps } from '../ListItem/ListItem.types';
  * ListItemSelect component props.
  */
 export interface ListItemSelectProps
-  extends TouchableOpacityProps,
-    Omit<ListItemProps, 'style'> {
+  extends Omit<TouchableOpacityProps, 'hitSlop'>,
+    Omit<ListItemProps, 'style' | 'hitSlop'> {
   /**
    * Optional prop to determine if the item is selected.
    */
@@ -18,6 +18,10 @@ export interface ListItemSelectProps
    * Optional prop to determine if the item is disabled.
    */
   isDisabled?: boolean;
+  /**
+   * Optional prop to define the hitSlop area.
+   */
+  hitSlop?: TouchableOpacityProps['hitSlop'];
 }
 
 /**
