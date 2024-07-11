@@ -6,18 +6,9 @@ First, make sure you have the following running:
 - Your Android emulator or iOS simulator
 - `yarn start:android` or `yarn start:ios`
 
-Next, install the [Flipper](https://fbflipper.com/) desktop app (verified working with v0.127.0)
+You now have access to React Native Debugger on your relative simulator or emulator. You can open it by pressing `Cmd + D` on iOS or `Cmd + M` on Android. You can also open it by running `yarn debug` in the terminal.
 
-- Once Flipper is installed, configure your system as follows:
-  - Install react-devtools: `npm i -g react-devtools@4.22.1`
-  - Update Android SDK location settings by accessing Flipper's settings via the `Gear Icon` -> `Settings`
-    - Example SDK path: `/Users/<USER_NAME>/Library/Android/sdk`
-
-Finally, check that the debugger is working:
-
-- Open your emulator or simulator alongside the Flipper app
-- Flipper should auto-detect the device and the application to debug
-- You should now be able to access features such as `Logs`
+You will need an additional tool for Redux and network debugging.
 
 #### Debugging Physical iOS devices
 
