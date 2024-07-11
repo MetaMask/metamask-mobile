@@ -21,6 +21,7 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   children,
   badgeElement,
   style,
+  isTokenImage,
   // badgeWrapperStyle,
   // badgeElementStyle,
 }) => {
@@ -32,6 +33,7 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
     anchorElementShape,
     badgePosition,
     containerSize,
+    isTokenImage,
   });
 
   return (

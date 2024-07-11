@@ -144,8 +144,6 @@ const RemoteImage = (props) => {
   }
 
   if (props.fadeIn) {
-    console.log('🚀 ~ RemoteImage ~ props:', props);
-    //const { propsStyle, ...restProps } = props;
     const { style, ...restProps } = props;
     return (
       <>
@@ -153,6 +151,7 @@ const RemoteImage = (props) => {
           <FadeIn placeholderStyle={props.placeholderStyle}>
             <View>
               <BadgeWrapper
+                isTokenImage
                 //  badgeElementStyle={styles.badgeElement}
                 //    badgeWrapperStyle={styles.badgeWrapper}
                 badgePosition={DEFAULT_BADGEWRAPPER_BADGEPOSITION}
@@ -165,17 +164,13 @@ const RemoteImage = (props) => {
                   />
                 }
               >
-                <View style={!props.isFullRatio && style}>
+                <View style={style}>
                   <Image
-                    style={
-                      props.isFullRatio
-                        ? styles.detailedImageStyle
-                        : styles.testImageStyle
-                    }
+                    style={styles.testImageStyle}
                     {...restProps}
                     source={{ uri }}
                     onError={onError}
-                    resizeMode={props.isFullRatio ? 'contain' : 'cover'}
+                    resizeMode={'cover'}
                   />
                 </View>
               </BadgeWrapper>

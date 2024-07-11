@@ -55,6 +55,7 @@ export interface BadgeWrapperProps extends ViewProps {
 
   badgeElementStyle?: StyleProp<ViewStyle> | undefined;
   badgeWrapperStyle?: StyleProp<ViewStyle> | undefined;
+  isTokenImage?: boolean;
 }
 
 /**
@@ -64,4 +65,5 @@ export type BadgeWrapperStyleSheetVars = Pick<BadgeWrapperProps, 'style'> & {
   anchorElementShape: BadgeAnchorElementShape;
   badgePosition: BadgePosition | BadgePositionCustom;
   containerSize: { width: number; height: number } | null;
+  isTokenImage?: boolean;
 };

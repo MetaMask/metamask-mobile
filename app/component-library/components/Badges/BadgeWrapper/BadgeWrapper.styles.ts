@@ -24,7 +24,13 @@ const styleSheet = (params: {
   vars: BadgeWrapperStyleSheetVars;
 }) => {
   const { vars } = params;
-  const { style, anchorElementShape, badgePosition, containerSize } = vars;
+  const {
+    style,
+    anchorElementShape,
+    badgePosition,
+    containerSize,
+    isTokenImage,
+  } = vars;
   let anchoringOffset, positionObj, xOffset, yOffset;
   const elementHeight = containerSize?.height || 0;
   let isCustomPosition = false;
@@ -44,8 +50,8 @@ const styleSheet = (params: {
   switch (badgePosition) {
     case BadgePosition.TopRight:
       positionObj = {
-        top: anchoringOffset,
-        right: anchoringOffset,
+        top: isTokenImage ? 8 : anchoringOffset,
+        right: isTokenImage ? 8 : anchoringOffset,
       };
       xOffset = elementHeight / 2;
       yOffset = elementHeight / -2;

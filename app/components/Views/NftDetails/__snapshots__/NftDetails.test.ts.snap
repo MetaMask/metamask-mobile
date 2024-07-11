@@ -365,16 +365,7 @@ exports[`NftDetails should render correctly 1`] = `
                                       testID="badge-wrapper-badge"
                                     >
                                       <View>
-                                        <Image
-                                          fadeIn={true}
-                                          isTokenImage={true}
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            {
-                                              "uri": "https://img.reservoir.tools/images/v2/mainnet/m8Rol%2FE80oMmjzi7K7IQ0u6HzXVyHUh6MaSEPbYQy1GRP1ztTkhG1VSzAwMMXv97QfX8ZgwGwpR8nf9yb12HQqI%2BXfaLY%2BhMdAJk7UThICr6sEjrTDK%2BhfdaXGiZnjM%2BawmNp3vHAw1Ev5N5b97XEQ%3D%3D.png?width=512",
-                                            }
-                                          }
+                                        <View
                                           style={
                                             [
                                               {
@@ -396,8 +387,28 @@ exports[`NftDetails should render correctly 1`] = `
                                               },
                                             ]
                                           }
-                                          testID="nft-image"
-                                        />
+                                        >
+                                          <Image
+                                            fadeIn={true}
+                                            isFullRatio={true}
+                                            isTokenImage={true}
+                                            onError={[Function]}
+                                            resizeMode="cover"
+                                            source={
+                                              {
+                                                "uri": "https://img.reservoir.tools/images/v2/mainnet/m8Rol%2FE80oMmjzi7K7IQ0u6HzXVyHUh6MaSEPbYQy1GRP1ztTkhG1VSzAwMMXv97QfX8ZgwGwpR8nf9yb12HQqI%2BXfaLY%2BhMdAJk7UThICr6sEjrTDK%2BhfdaXGiZnjM%2BawmNp3vHAw1Ev5N5b97XEQ%3D%3D.png?width=512",
+                                              }
+                                            }
+                                            style={
+                                              {
+                                                "borderRadius": 8,
+                                                "height": "100%",
+                                                "width": "100%",
+                                              }
+                                            }
+                                            testID="nft-image"
+                                          />
+                                        </View>
                                       </View>
                                       <View
                                         style={
@@ -407,8 +418,8 @@ exports[`NftDetails should render correctly 1`] = `
                                             "height": 0,
                                             "justifyContent": "center",
                                             "position": "absolute",
-                                            "right": 0,
-                                            "top": 0,
+                                            "right": 8,
+                                            "top": 8,
                                             "transform": [
                                               {
                                                 "translateX": 0,

@@ -211,7 +211,30 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     }
 
     return renderFallback(false);
-  }, [displayNftMedia, isIpfsGatewayEnabled, sourceUri, collectible.error, collectible.animation, renderFallback, renderAnimation, onClose, styles.mediaPlayer, styles.cover, styles.image, styles.tinyImage, styles.smallImage, styles.bigImage, cover, style, tiny, small, big, fallback, isTokenImage, isFullRatio]);
+  }, [
+    displayNftMedia,
+    isIpfsGatewayEnabled,
+    sourceUri,
+    collectible.error,
+    collectible.animation,
+    renderFallback,
+    renderAnimation,
+    onClose,
+    styles.mediaPlayer,
+    styles.cover,
+    styles.image,
+    styles.tinyImage,
+    styles.smallImage,
+    styles.bigImage,
+    cover,
+    style,
+    tiny,
+    small,
+    big,
+    fallback,
+    isTokenImage,
+    isFullRatio,
+  ]);
 
   return (
     <View style={styles.container(collectible.backgroundColor)}>
