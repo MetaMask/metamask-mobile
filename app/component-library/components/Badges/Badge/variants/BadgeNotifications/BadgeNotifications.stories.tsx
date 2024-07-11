@@ -12,9 +12,9 @@ const BadgeBadgeNotificationsMeta = {
   title: 'Component Library / Badges',
   component: BadgeBadgeNotificationssComponent,
   argTypes: {
-    name: {
+    iconName: {
       control: { type: 'text' },
-      defaultValue: SAMPLE_BADGENOTIFICATIONS_PROPS.name,
+      defaultValue: SAMPLE_BADGENOTIFICATIONS_PROPS.iconName,
     },
   },
 };
