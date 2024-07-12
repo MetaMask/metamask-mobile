@@ -6,7 +6,13 @@ import React, {
   useState,
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
-import { Animated, Linking, View } from 'react-native';
+import {
+  Animated,
+  Linking,
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  View,
+  ///: END:ONLY_INCLUDE_IF
+} from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
@@ -44,7 +50,6 @@ import {
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
-import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
@@ -783,7 +788,7 @@ const App = ({ userLoggedIn }) => {
         {
           ///: END:ONLY_INCLUDE_IF
         }
-        {isBlockaidFeatureEnabled() && <PPOMView />}
+        <PPOMView />
         <NavigationContainer
           // Prevents artifacts when navigating between screens
           theme={{
