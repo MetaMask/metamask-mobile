@@ -1,6 +1,35 @@
 import { confusables } from 'unicode-confusables';
 import { strings } from '../../../locales/i18n';
-import confusablesMap from 'unicode-confusables/data/confusables.json';
+// import confusablesMap from 'unicode-confusables/data/confusables.json';
+
+const confusablesMap = {
+  A: 'Α',
+  B: 'Β',
+  C: 'Ϲ',
+  D: 'Ꭰ',
+  E: 'Ε',
+  F: 'Ϝ',
+  G: 'Ԍ',
+  H: 'Η',
+  I: 'Ι',
+  J: 'Ј',
+  K: 'Κ',
+  L: 'Ꮮ',
+  M: 'Μ',
+  N: 'Ν',
+  O: 'Ο',
+  P: 'Ρ',
+  Q: 'Ⴓ',
+  R: 'Ꭱ',
+  S: 'Ѕ',
+  T: 'Τ',
+  U: 'Ս',
+  V: 'Ѵ',
+  W: 'Ԝ',
+  X: 'Χ',
+  Y: 'Υ',
+  Z: 'Ζ'
+};
 
 export const collectConfusables = (ensName) => {
   const key = 'similarTo';

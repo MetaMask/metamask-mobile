@@ -143,15 +143,15 @@ describe('getNotificationBadge', () => {
 describe('sortNotifications', () => {
   it('sorts notifications by createdAt in descending order', () => {
     const notifications: Notification[] = [
-      { id: '1', createdAt: new Date('2023-01-01') },
-      { id: '3', createdAt: new Date('2023-01-03') },
-      { id: '2', createdAt: new Date('2023-01-02') },
+      { id: '1', createdAt: new Date('2023-01-01'), trigger_id: 'trigger1', chain_id: 1, block_number: 123456, block_timestamp: '2023-01-01T00:00:00Z', tx_hash: '0xabc123', unread: true, created_at: '2023-01-01T00:00:00Z', type: TRIGGER_TYPES.ETH_SENT, data: { kind: 'eth_sent', from: '0xABC123', to: '0xDEF456', amount: { usd: '0.000', eth: '1.5' }, network_fee: { gas_price: '0.003', native_token_price_in_usd: '3.700' } }, isRead: false },
+      { id: '3', createdAt: new Date('2023-01-03'), trigger_id: 'trigger3', chain_id: 1, block_number: 123458, block_timestamp: '2023-01-03T00:00:00Z', tx_hash: '0xdef456', unread: true, created_at: '2023-01-03T00:00:00Z', type: TRIGGER_TYPES.ETH_SENT, data: { kind: 'eth_sent', from: '0xABC123', to: '0xDEF456', amount: { usd: '0.000', eth: '1.5' }, network_fee: { gas_price: '0.003', native_token_price_in_usd: '3.700' } }, isRead: false },
+      { id: '2', createdAt: new Date('2023-01-02'), trigger_id: 'trigger2', chain_id: 1, block_number: 123457, block_timestamp: '2023-01-02T00:00:00Z', tx_hash: '0xghi789', unread: true, created_at: '2023-01-02T00:00:00Z', type: TRIGGER_TYPES.ETH_SENT, data: { kind: 'eth_sent', from: '0xABC123', to: '0xDEF456', amount: { usd: '0.000', eth: '1.5' }, network_fee: { gas_price: '0.003', native_token_price_in_usd: '3.700' } }, isRead: false }
     ];
     const sortedNotifications = sortNotifications(notifications);
     expect(sortedNotifications).toEqual([
-      { id: '3', createdAt: new Date('2023-01-03') },
-      { id: '2', createdAt: new Date('2023-01-02') },
-      { id: '1', createdAt: new Date('2023-01-01') },
+      { id: '3', createdAt: new Date('2023-01-03'), trigger_id: 'trigger3', chain_id: 1, block_number: 123458, block_timestamp: '2023-01-03T00:00:00Z', tx_hash: '0xdef456', unread: true, created_at: '2023-01-03T00:00:00Z', type: TRIGGER_TYPES.ETH_SENT, data: { kind: 'eth_sent', from: '0xABC123', to: '0xDEF456', amount: { usd: '0.000', eth: '1.5' }, network_fee: { gas_price: '0.003', native_token_price_in_usd: '3.700' } }, isRead: false },
+      { id: '2', createdAt: new Date('2023-01-02'), trigger_id: 'trigger2', chain_id: 1, block_number: 123457, block_timestamp: '2023-01-02T00:00:00Z', tx_hash: '0xghi789', unread: true, created_at: '2023-01-02T00:00:00Z', type: TRIGGER_TYPES.ETH_SENT, data: { kind: 'eth_sent', from: '0xABC123', to: '0xDEF456', amount: { usd: '0.000', eth: '1.5' }, network_fee: { gas_price: '0.003', native_token_price_in_usd: '3.700' } }, isRead: false },
+      { id: '1', createdAt: new Date('2023-01-01'), trigger_id: 'trigger1', chain_id: 1, block_number: 123456, block_timestamp: '2023-01-01T00:00:00Z', tx_hash: '0xabc123', unread: true, created_at: '2023-01-01T00:00:00Z', type: TRIGGER_TYPES.ETH_SENT, data: { kind: 'eth_sent', from: '0xABC123', to: '0xDEF456', amount: { usd: '0.000', eth: '1.5' }, network_fee: { gas_price: '0.003', native_token_price_in_usd: '3.700' } }, isRead: false }
     ]);
   });
 
@@ -161,7 +161,7 @@ describe('sortNotifications', () => {
 
   it('handles array with single element', () => {
     const singleNotification: Notification[] = [
-      { id: '1', createdAt: new Date('2023-01-01') },
+      { id: '1', createdAt: new Date('2023-01-01'), trigger_id: 'trigger1', chain_id: 1, block_number: 123456, block_timestamp: '2023-01-01T00:00:00Z', tx_hash: '0xabc123', unread: true, created_at: '2023-01-01T00:00:00Z', type: TRIGGER_TYPES.ETH_SENT, data: { kind: 'eth_sent', from: '0xABC123', to: '0xDEF456', amount: { usd: '0.000', eth: '1.5' }, network_fee: { gas_price: '0.003', native_token_price_in_usd: '3.700' } }, isRead: false }
     ];
     expect(sortNotifications(singleNotification)).toEqual(singleNotification);
   });
