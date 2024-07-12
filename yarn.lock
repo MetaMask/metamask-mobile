@@ -3994,6 +3994,15 @@
     "@metamask/safe-event-emitter" "^3.0.0"
     "@metamask/utils" "^8.3.0"
 
+"@metamask/eth-json-rpc-provider@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-provider/-/eth-json-rpc-provider-4.0.0.tgz#0ab54548fceda1829f313f2f8ec072ef91cce687"
+  integrity sha512-HB/I5eNsS67rE5C+px5zASyEuAoK/UFeWe4c4FIm2U4zMo7Y2EED1p10A4zHRHjpctObHdvNDcZQbfu2gHcqsQ==
+  dependencies:
+    "@metamask/json-rpc-engine" "^9.0.0"
+    "@metamask/safe-event-emitter" "^3.0.0"
+    "@metamask/utils" "^8.3.0"
+
 "@metamask/eth-query@^3.0.1":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/eth-query/-/eth-query-3.0.1.tgz#3439eb6c7d5ccff1d6a66df1d1802bae0c890444"
@@ -4162,6 +4171,23 @@
     "@metamask/ethjs-unit" "^0.3.0"
     "@metamask/network-controller" "^18.1.0"
     "@metamask/polling-controller" "^6.0.2"
+    "@metamask/utils" "^8.3.0"
+    "@types/bn.js" "^5.1.5"
+    "@types/uuid" "^8.3.0"
+    bn.js "^5.2.1"
+    uuid "^8.3.2"
+
+"@metamask/gas-fee-controller@^18.0.0":
+  version "18.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-18.0.0.tgz#a6ac49fa1a637708d36bce9306407496bf61ccce"
+  integrity sha512-BbFLXnxx/qcbktt9EsxOQpm2Q2rWm/vgaRSMXAMv3zqNo4INhYFpLxkOFL/qifTGpOpdMvoSjjvgBaTXkDO3xQ==
+  dependencies:
+    "@metamask/base-controller" "^6.0.0"
+    "@metamask/controller-utils" "^11.0.0"
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/ethjs-unit" "^0.3.0"
+    "@metamask/network-controller" "^19.0.0"
+    "@metamask/polling-controller" "^8.0.0"
     "@metamask/utils" "^8.3.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
@@ -4362,6 +4388,26 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
+"@metamask/network-controller@^19.0.0":
+  version "19.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-19.0.0.tgz#83cb2e6f4f8f596126b47386e45d7cd5a349803d"
+  integrity sha512-uUweNraW48sQ7haqJ1sU92xAtMXJXN0Q6kFycSo5HuYZ5wactmZFY9DWPmSoAN+S6xXJkLocAQgKeGVKfJntnA==
+  dependencies:
+    "@metamask/base-controller" "^6.0.0"
+    "@metamask/controller-utils" "^11.0.0"
+    "@metamask/eth-block-tracker" "^9.0.2"
+    "@metamask/eth-json-rpc-infura" "^9.1.0"
+    "@metamask/eth-json-rpc-middleware" "^12.1.1"
+    "@metamask/eth-json-rpc-provider" "^4.0.0"
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/json-rpc-engine" "^9.0.0"
+    "@metamask/rpc-errors" "^6.2.1"
+    "@metamask/swappable-obj-proxy" "^2.2.0"
+    "@metamask/utils" "^8.3.0"
+    async-mutex "^0.5.0"
+    immer "^9.0.6"
+    uuid "^8.3.2"
+
 "@metamask/nonce-tracker@^5.0.0":
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/nonce-tracker/-/nonce-tracker-5.0.0.tgz#4f24e4eb7be685ddbf0757df918e807c2961ccc8"
@@ -4476,6 +4522,19 @@
     "@metamask/base-controller" "^5.0.2"
     "@metamask/controller-utils" "^9.1.0"
     "@metamask/network-controller" "^18.1.0"
+    "@metamask/utils" "^8.3.0"
+    "@types/uuid" "^8.3.0"
+    fast-json-stable-stringify "^2.1.0"
+    uuid "^8.3.2"
+
+"@metamask/polling-controller@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-8.0.0.tgz#4dedac3ce3821d9435562d3a43523d3161c8e089"
+  integrity sha512-5dD5di0VrEB3JNcU+0AoEqdvOfBUuUNvtQ4XRyTJMhEIkq/983X42/bwESjRHx5p60vixaWcfaKZAY6frOVIEw==
+  dependencies:
+    "@metamask/base-controller" "^6.0.0"
+    "@metamask/controller-utils" "^11.0.0"
+    "@metamask/network-controller" "^19.0.0"
     "@metamask/utils" "^8.3.0"
     "@types/uuid" "^8.3.0"
     fast-json-stable-stringify "^2.1.0"
