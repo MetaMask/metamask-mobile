@@ -229,7 +229,7 @@ const NftDetails = () => {
                 'verified' ? ( // TODO check openseaVerificationStatus value approved or verified
                 <Icon
                   name={IconName.SecurityTick}
-                  size={IconSize.Sm}
+                  size={IconSize.Md}
                   style={styles.iconVerified}
                 />
               ) : null}

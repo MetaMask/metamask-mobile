@@ -30,7 +30,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     iconVerified: {
       color: colors.primary.default,
-      paddingTop: 16,
+      paddingTop: 18,
+      marginLeft: 4,
     },
     generalInfoFrame: {
       display: 'flex',
@@ -39,6 +40,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'center',
       paddingTop: 10,
+      paddingBottom: 6,
     },
     heading: {
       color: colors.text.default,
