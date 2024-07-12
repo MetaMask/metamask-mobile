@@ -25,9 +25,8 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { strings } from '../../../../locales/i18n';
-
 // Internal dependencies
 import styleSheet from './AccountActions.styles';
 import Logger from '../../../util/Logger';
@@ -35,7 +34,7 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
 import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AccountActionsModal.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { getKeyringByAddress, isHardwareAccount } from '../../../util/address';
+import { isHardwareAccount } from '../../../util/address';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import ExtendedKeyringTypes, {
   HardwareDeviceTypes,
@@ -45,7 +44,6 @@ import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
-import { KeyringObject } from '@metamask/keyring-controller';
 
 const AccountActions = () => {
   const { colors } = useTheme();
@@ -64,9 +62,10 @@ const AccountActions = () => {
 
   const providerConfig = useSelector(selectProviderConfig);
 
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
-  );
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAddress = selectedAccount?.address;
+  const keyring = selectedAccount?.metadata.keyring;
+
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const blockExplorer = useMemo(() => {
@@ -164,17 +163,21 @@ const AccountActions = () => {
    * @param keyring - The keyring object
    * @param address - The address to remove
    */
-  const removeHardwareAccount = useCallback(
-    async (keyring: KeyringObject, address: Hex) => {
-      await controllers.KeyringController.removeAccount(address);
-      await removeAccountsFromPermissions([address]);
+  const removeHardwareAccount = useCallback(async () => {
+    if (selectedAddress) {
+      await controllers.KeyringController.removeAccount(selectedAddress as Hex);
+      await removeAccountsFromPermissions([selectedAddress]);
       trackEvent(MetaMetricsEvents.WALLET_REMOVED, {
         accountType: keyring?.type,
-        address,
+        selectedAddress,
       });
-    },
-    [controllers.KeyringController, trackEvent],
-  );
+    }
+  }, [
+    controllers.KeyringController,
+    keyring?.type,
+    selectedAddress,
+    trackEvent,
+  ]);
 
   /**
    * Selects the first account after removing the previous selected account
@@ -190,64 +193,62 @@ const AccountActions = () => {
    * Forget the device if there are no more accounts in the keyring
    * @param keyringType - The keyring type
    */
-  const forgetDeviceIfRequired = useCallback(
-    async (keyringType: string) => {
-      // re-fetch the latest keyrings from KeyringController state.
-      const { keyrings } = controllers.KeyringController.state;
-      const updatedKeyring = keyrings.find((kr) => kr.type === keyringType);
+  const forgetDeviceIfRequired = useCallback(async () => {
+    // re-fetch the latest keyrings from KeyringController state.
+    const { keyrings } = controllers.KeyringController.state;
+    const keyringType = keyring?.type;
+    const updatedKeyring = keyrings.find((kr) => kr.type === keyringType);
 
-      // If there are no more accounts in the keyring, forget the device
-      let requestForgetDevice = false;
+    // If there are no more accounts in the keyring, forget the device
+    let requestForgetDevice = false;
 
-      if (updatedKeyring) {
-        if (updatedKeyring.accounts.length === 0) {
-          requestForgetDevice = true;
-        }
-      } else {
+    if (updatedKeyring) {
+      if (updatedKeyring.accounts.length === 0) {
         requestForgetDevice = true;
       }
-      if (requestForgetDevice) {
-        switch (keyringType) {
-          case ExtendedKeyringTypes.ledger:
-            await forgetLedger();
-            trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
-              device_type: HardwareDeviceTypes.LEDGER,
-            });
-            break;
-          case ExtendedKeyringTypes.qr:
-            await controllers.KeyringController.forgetQRDevice();
-            // we dont have metrics for qr device forget yet.
-            break;
-          default:
-            break;
-        }
+    } else {
+      requestForgetDevice = true;
+    }
+    if (requestForgetDevice) {
+      switch (keyringType) {
+        case ExtendedKeyringTypes.ledger:
+          await forgetLedger();
+          trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
+            device_type: HardwareDeviceTypes.LEDGER,
+          });
+          break;
+        case ExtendedKeyringTypes.qr:
+          await controllers.KeyringController.forgetQRDevice();
+          // we dont have metrics for qr device forget yet.
+          break;
+        default:
+          break;
       }
-    },
-    [controllers.KeyringController, trackEvent],
-  );
+    }
+  }, [controllers.KeyringController, keyring?.type, trackEvent]);
 
   /**
    * Trigger the remove hardware account action when user click on the remove account button
    */
   const triggerRemoveHWAccount = useCallback(async () => {
     if (blockingModalVisible && selectedAddress) {
-      const keyring = getKeyringByAddress(selectedAddress);
       if (!keyring) {
         console.error('Keyring not found for address:', selectedAddress);
         return;
       }
 
-      await removeHardwareAccount(keyring, selectedAddress as Hex);
+      await removeHardwareAccount();
 
       await selectFirstAccount();
 
-      await forgetDeviceIfRequired(keyring.type);
+      await forgetDeviceIfRequired();
 
       setBlockingModalVisible(false);
     }
   }, [
     blockingModalVisible,
     forgetDeviceIfRequired,
+    keyring,
     removeHardwareAccount,
     selectFirstAccount,
     selectedAddress,

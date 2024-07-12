@@ -131,7 +131,7 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+        url: 'https://etherscan.io/address/0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
         title: 'etherscan.io',
       },
     });
@@ -145,9 +145,7 @@ describe('AccountActions', () => {
     fireEvent.press(getByTestId(AccountActionsModalSelectorsIDs.SHARE_ADDRESS));
 
     expect(Share.open).toHaveBeenCalledWith({
-      message: toChecksumHexAddress(
-        '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
-      ),
+      message: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
     });
   });
 
