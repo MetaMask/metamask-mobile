@@ -397,7 +397,7 @@
       "view_on_os": "View on OpenSea",
       "remove_nft": "Remove NFT"
     },
-    "disclaimer": " Disclaimer: MetaMask pull the media file from the source URL. This URL sometimes is changed by the marketplace the NFT was minted on."
+    "disclaimer": "Disclaimer: MetaMask pulls the media file from the source URL. This URL is sometimes changed by the marketplace the NFT was minted on."
   },
   "wallet": {
     "title": "Wallet",
