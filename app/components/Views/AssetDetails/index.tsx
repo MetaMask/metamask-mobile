@@ -331,7 +331,7 @@ const AssetDetails = (props: Props) => {
         address={address}
         type={'short'}
       />
-        <Icon style={styles.copyIcon} name={'copy'} size={16} />
+      <Icon style={styles.copyIcon} name={'copy'} size={16} />
     </TouchableOpacity>
   );
 
