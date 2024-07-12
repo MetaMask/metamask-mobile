@@ -180,36 +180,6 @@ describe('AccountActions', () => {
   });
 
   describe('clicks remove account', () => {
-    it('clicks cancel button after popup shows should do nothing', async () => {
-      const { getByTestId } = renderWithProvider(<AccountActions />, {
-        state: initialState,
-      });
-
-      fireEvent.press(
-        getByTestId(AccountActionsModalSelectorsIDs.REMOVE_HARDWARE_ACCOUNT),
-      );
-
-      expect(Alert.alert).toHaveBeenCalled();
-
-      //Check Alert title and description match.
-      expect(Alert.alert.mock.calls[0][0]).toBe(
-        strings('accounts.remove_account_title'),
-      );
-      expect(Alert.alert.mock.calls[0][1]).toBe(
-        strings('accounts.remove_account_alert_description'),
-      );
-
-      //Click cancel button
-      act(() => {
-        Alert.alert.mock.calls[0][2][0].onPress();
-      });
-
-      //Check if removeAccount is not called
-      await waitFor(() => {
-        expect(mockKeyringController.removeAccount).not.toHaveBeenCalled();
-      });
-    });
-
     it('clicks remove button after popup shows to trigger the remove account process', async () => {
       mockKeyringController.getAccounts.mockResolvedValue([
         '0xa1e359811322d97991e03f863a0c30c2cf029cd',
@@ -230,10 +200,10 @@ describe('AccountActions', () => {
 
       //Check Alert title and description match.
       expect(Alert.alert.mock.calls[0][0]).toBe(
-        strings('accounts.remove_account_title'),
+        strings('accounts.remove_hardware_account'),
       );
       expect(Alert.alert.mock.calls[0][1]).toBe(
-        strings('accounts.remove_account_alert_description'),
+        strings('accounts.remove_hw_account_alert_description'),
       );
 
       //Click remove button

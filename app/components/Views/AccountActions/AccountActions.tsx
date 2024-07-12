@@ -142,12 +142,11 @@ const AccountActions = () => {
 
   const showRemoveHWAlert = useCallback(() => {
     Alert.alert(
-      strings('accounts.remove_account_title'),
-      strings('accounts.remove_account_alert_description'),
+      strings('accounts.remove_hardware_account'),
+      strings('accounts.remove_hw_account_alert_description'),
       [
         {
           text: strings('accounts.remove_account_alert_cancel_btn'),
-          onPress: () => false,
           style: 'cancel',
         },
         {
