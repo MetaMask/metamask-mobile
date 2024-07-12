@@ -119,8 +119,6 @@ export const getLedgerAccountsByOperation = async (
       }
     });
 
-    console.warn(`Returning accounts by ${operation}`, accounts);
-
     return accounts.map((account) => ({
       ...account,
       balance: '0x0',
