@@ -5,8 +5,6 @@
     "deceptive_request_title": "Dies ist eine betrügerische Anfrage.",
     "failed_title": "Anfrage ist möglicherweise nicht sicher",
     "failed_description": "Aufgrund eines Fehlers wurde diese Anfrage vom Sicherheitsanbieter nicht überprüft. Gehen Sie mit Bedacht vor.",
-    "loading_title": "Suche nach Sicherheitsbenachrichtigungen ...",
-    "loading_complete_title": "Führen Sie immer Ihre eigene Due-Diligence-Prüfung durch, bevor Sie Anfragen genehmigen.",
     "malicious_domain_description": "Sie haben es mit einer bösartigen Domain zu tun. Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "other_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "raw_signature_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
@@ -805,6 +803,7 @@
     "security_desc": "Datenschutzeinstellungen, MetaMetrics, privater Schlüssel und geheime Wiederherstellungsphrase für die Wallet",
     "networks_title": "Netzwerke",
     "networks_default_title": "Standardnetzwerk",
+    "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
     "networks_default_cta": "Dieses Netzwerk verwenden",
     "networks_desc": "Benutzerdefinierte RPC-Netzwerke hinzufügen und verwalten",
     "network_name_label": "Netzwerkname",
@@ -820,6 +819,7 @@
     "network_other_networks": "Sonstige Netzwerke",
     "network_rpc_networks": "RPC-Netzwerke",
     "network_add_network": "Netzwerk hinzufügen",
+    "network_add_custom_network": "Add a custom network",
     "network_add": "Hinzufügen",
     "network_save": "Speichern",
     "remove_network_title": "Möchten Sie dieses Netzwerk entfernen?",
@@ -994,6 +994,7 @@
     "token_nft_ens_subheading": "Automatische Token-, NFT- und ENS-Erkennung",
     "security_check_subheading": "Sicherheitsprüfungen",
     "symbol_required": "Symbol ist erforderlich.",
+    "blockaid_desc": "This feature alerts you to malicious activity by actively reviewing transaction and signature requests.",
     "security_alerts": "Sicherheitsbenachrichtigungen",
     "security_alerts_desc": "Diese Funktion warnt Sie vor bösartigen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie Anfragen genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
@@ -1003,7 +1004,7 @@
     "simulation_details_description": "Schalten Sie dies ein, um die Kontostandänderungen von Transaktionen zu schätzen, bevor Sie sie bestätigen. Dies ist keine Garantie für das endgültige Ergebnis Ihrer Transaktionen. ",
     "simulation_details_learn_more": "Erfahren Sie mehr.",
     "aes_crypto_test_form_title": "AES Crypto – Testformular",
-    "aes_crypto_test_form_description": "Abschnitt, der ausschließlich für E2E-Tests entwickelt wurde. Wenn dies in Ihrer App sichtbar ist, melden Sie dies bitte dem MetaMask-Support."
+    "aes_crypto_test_form_description": "Abschnitt, der ausschließlich für E2E-Tests entwickelt wurde. Wenn dies in Ihrer App sichtbar ist, melden Sie es bitte dem MetaMask-Support."
   },
   "aes_crypto_test_form": {
     "generate_random_salt": "Zufällige Salt generieren",
@@ -1030,6 +1031,7 @@
     "cancel": "Stornieren",
     "loading": "Verbindung mit MetaMask wird hergestellt ...",
     "unkown_dapp": "DAPP-Name nicht verfügbar",
+    "unknown": "Unknown",
     "no_connections": "Keine Verbindungen",
     "no_connections_desc": "Wenn Sie ein Konto mit einer Website oder einer App verbinden, wird es hier angezeigt."
   },
@@ -1410,7 +1412,7 @@
     "token": "Token",
     "nft": "NFT",
     "you_trust_this_site": "Durch Genehmigungserteilung gewähren Sie dem folgenden Drittanbieter Zugriff auf Ihre Gelder.",
-    "you_trust_this_third_party": "Dies gestattet es Dritten, ohne weitere Benachrichtigung auf Ihre NFTs zuzugreifen und diese zu übertragen, bis Sie dieses Zugriffsrecht widerrufen.",
+    "you_trust_this_third_party": "Dies gestattet Dritten, ohne weitere Benachrichtigung auf Ihre NFTs zuzugreifen und diese zu übertragen, bis Sie dieses Zugriffsrecht widerrufen.",
     "you_trust_this_address": "Vertrauen Sie dieser Adresse? Wenn Sie diese Genehmigung erteilen, gewähren Sie dieser Adresse Zugriff auf Ihre Gelder.",
     "edit_permission": "Genehmigung bearbeiten",
     "edit": "Bearbeiten",
@@ -1653,6 +1655,7 @@
     "network_currency_symbol": "Währungssymbol",
     "network_block_explorer_url": "Block-Explorer-URL",
     "search": "Suche nach einem zuvor hinzugefügten Netzwerk",
+    "search-short": "Search",
     "add": "Hinzufügen",
     "cancel": "Stornieren",
     "approve": "Genehmigen",
@@ -1660,7 +1663,9 @@
     "malicious_network_warning": "Ein betrügerischer Netzwerkanbieter kann bezüglich des Status der Blockchain täuschen und Ihre Netzwerkaktivitäten aufzeichnen. Fügen Sie nur vertrauenswürdige benutzerdefinierte Netzwerke hinzu.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "Netzwerkinformationen",
+    "additional_network_information_title": "Additional Networks Information",
     "network_warning_desc": "Diese Netzwerkverbindung ist von Dritten abhängig. Diese Verbindung kann unzuverlässig sein oder es Dritten ermöglichen, Aktivitäten zu verfolgen.",
+    "additonial_network_information_desc": "Some of these networks rely on third parties. The connections may be less reliable or enable third-parties to track activity.",
     "learn_more": "Mehr erfahren",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Zu Netzwerk wechseln",
@@ -2626,7 +2631,7 @@
     "save_seedphrase_3": "und installieren Sie die App neu. Achtung: Sie können Ihre Wallet ohne ihre geheime Wiederherstellungsphrase NICHT wiederherstellen.",
     "copied_clipboard": "In die Zwischenablage kopiert",
     "ok": "OK",
-    "cancel": "Stornieren",
+    "cancel": "Abbrechen",
     "send": "Senden"
   },
   "whats_new": {
@@ -2658,7 +2663,7 @@
       "benefit_3_2": "Updates"
     },
     "transaction_simulation": {
-      "title": "Geschätzte Kontostandänderungen",
+      "title": "Geschätzte Saldoänderungen",
       "description_1": "Jetzt können Sie das mögliche Ergebnis Ihrer Transaktionen sehen, bevor Sie sie tätigen!",
       "description_2": "Dies ist nur eine Simulation, wir können also nicht für das Endergebnis garantieren. Sie können dies jederzeit unter Einstellungen > Sicherheit und Datenschutz ausschalten."
     }
@@ -3068,7 +3073,7 @@
   },
   "install_snap": {
     "title": "Verbindungsanfrage",
-    "description": "{{origin}} möchte {{snap}} herunterladen und sich mit diesem verbinden. Stellen Sie sicher, dass Sie den Autoren vertrauen, bevor Sie fortfahren.",
+    "description": "{{origin}} wants to use {{snap}}.",
     "permissions_request_title": "Genehmigungsanfrage",
     "permissions_request_description": "{{origin}} möchte {{snap}} installieren, das die folgenden Genehmigungen anfordert.",
     "approve_permissions": "Genehmigen",

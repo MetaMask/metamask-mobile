@@ -1,11 +1,11 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import Onboarding from './';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockInitialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
     },
   },
 };

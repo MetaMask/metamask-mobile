@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
 import NotificationsDetails from './index';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import MOCK_NOTIFICATIONS from '../../../../components/UI/Notification/__mocks__/mock_notifications';
 
 const mockInitialState = {
@@ -13,9 +13,7 @@ const mockInitialState = {
     useBlockieIcon: false,
   },
   engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-    },
+    backgroundState,
   },
 };
 
