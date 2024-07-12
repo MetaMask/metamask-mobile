@@ -83,7 +83,7 @@ const AddAsset = () => {
     });
   };
 
-  const renderTabBar = (props) => (
+  const renderTabBar = (props: typeof DefaultTabBar.prototype.props) => (
     <View style={styles.base}>
       <DefaultTabBar
         underlineStyle={styles.tabUnderlineStyle}
@@ -135,7 +135,6 @@ const AddAsset = () => {
                 ? {
                     variant: ButtonVariants.Link,
                     onPress: goToSecuritySettings,
-                    textVariant: TextVariant.BodyMD,
                     label: strings('wallet.display_nft_media_cta'),
                   }
                 : undefined
@@ -146,10 +145,7 @@ const AddAsset = () => {
       {assetType === 'token' ? (
         <ScrollableTabView key={chainId} renderTabBar={renderTabBar}>
           {isTokenDetectionSupported && (
-            <SearchTokenAutocomplete
-              navigation={navigation}
-              tabLabel={strings('add_asset.search_token')}
-            />
+            <SearchTokenAutocomplete navigation={navigation} />
           )}
           <AddCustomToken
             chainId={chainId}
