@@ -15,9 +15,12 @@ const createStyles = (colors: Colors) =>
 
 interface Props {
   currency?: string;
+  name: string;
+  size: number;
+  style: object;
 }
 
-const CurrencyChevron = ({ currency, ...props }: Props) => {
+const CurrencyChevron = ({ currency, name, size, style, ...props }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
@@ -27,7 +30,7 @@ const CurrencyChevron = ({ currency, ...props }: Props) => {
           {currency}
         </Text>
         {'  '}
-        <Entypo name="chevron-down" size={16} style={styles.chevron} />
+        <Entypo name={name} size={size} style={[styles.chevron, style]} />
       </Text>
     </View>
   );
