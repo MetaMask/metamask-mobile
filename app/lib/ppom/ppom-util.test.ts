@@ -1,6 +1,7 @@
 import { normalizeTransactionParams } from '@metamask/transaction-controller';
 import * as SignatureRequestActions from '../../actions/signatureRequest'; // eslint-disable-line import/no-namespace
 import * as TransactionActions from '../../actions/transaction'; // eslint-disable-line import/no-namespace
+import * as NetworkControllerSelectors from '../../selectors/networkController'; // eslint-disable-line import/no-namespace
 import Engine from '../../core/Engine';
 import PPOMUtil from './ppom-util';
 import {
@@ -38,6 +39,13 @@ jest.mock('../../core/Engine', () => ({
         internalAccounts: { accounts: [] },
       },
       listAccounts: () => [],
+    },
+  },
+  backgroundState: {
+    NetworkController: {
+      providerConfig: {
+        chainId: 0x1,
+      },
     },
   },
 }));
@@ -142,8 +150,9 @@ describe('PPOM Utils', () => {
         TransactionActions,
         'setTransactionSecurityAlertResponse',
       );
-      MockEngine.context.NetworkController.state.providerConfig.chainId =
-        '0xfa';
+      jest
+        .spyOn(NetworkControllerSelectors, 'selectChainId')
+        .mockReturnValue('0xfa');
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
       expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
       expect(spyTransactionAction).toBeCalledTimes(0);
