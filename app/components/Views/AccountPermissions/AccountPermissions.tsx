@@ -50,6 +50,7 @@ import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { RootState } from '../../../reducers';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
@@ -62,9 +63,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       metadata: { origin: hostname },
     },
   } = props.route.params;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
+  const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
@@ -73,9 +72,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => Object.keys(selectNetworkConfigurations(state)).length + 1,
+    (state: RootState) => Object.keys(selectNetworkConfigurations(state)).length + 1,
   );
 
   const origin: string = useSelector(getActiveTabUrl, isEqual);
@@ -95,9 +92,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
   const permittedAccountsList = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.engine.backgroundState.PermissionController,
+    (state: RootState) => state.engine.backgroundState.PermissionController,
   );
   const permittedAccountsByHostname = getPermittedAccountsByHostname(
     permittedAccountsList,
@@ -135,6 +130,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
         labelOptions: [{ label: strings('toast.disconnected_all') }],
+        hasNoTimeout: true,
       });
       previousPermittedAccounts.current = permittedAccountsByHostname.length;
     }
@@ -189,10 +185,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           source: metricsSource,
           number_of_accounts: accounts?.length,
         });
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (e: any) {
-        Logger.error(e, 'Error while trying to add a new account.');
+      } catch (e: unknown) {
+        Logger.error(e as Error, 'Error while trying to add a new account.');
       } finally {
         setIsLoading(false);
       }
@@ -235,6 +229,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         labelOptions,
         accountAddress: newActiveAddress,
         accountAvatarType,
+        hasNoTimeout: true,
       });
       const totalAccounts = accountsLength;
       // TODO: confirm this value is the newly added accounts or total connected accounts
@@ -244,10 +239,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         number_of_accounts_connected: connectedAccounts,
         number_of_networks: nonTestnetNetworks,
       });
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-      Logger.error(e, 'Error while trying to connect to a dApp.');
+    } catch (e: unknown) {
+      Logger.error(e as Error, 'Error while trying to connect to a dApp.');
     } finally {
       setIsLoading(false);
     }
