@@ -3983,6 +3983,15 @@
     "@metamask/safe-event-emitter" "^3.0.0"
     "@metamask/utils" "^8.3.0"
 
+"@metamask/eth-json-rpc-provider@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-provider/-/eth-json-rpc-provider-4.0.0.tgz#0ab54548fceda1829f313f2f8ec072ef91cce687"
+  integrity sha512-HB/I5eNsS67rE5C+px5zASyEuAoK/UFeWe4c4FIm2U4zMo7Y2EED1p10A4zHRHjpctObHdvNDcZQbfu2gHcqsQ==
+  dependencies:
+    "@metamask/json-rpc-engine" "^9.0.0"
+    "@metamask/safe-event-emitter" "^3.0.0"
+    "@metamask/utils" "^8.3.0"
+
 "@metamask/eth-ledger-bridge-keyring@^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-ledger-bridge-keyring/-/eth-ledger-bridge-keyring-4.0.0.tgz#95e3ba575ea24c9059f4bec1ea418def450b3f55"
@@ -3994,15 +4003,6 @@
     "@ledgerhq/hw-app-eth" "6.26.1"
     "@metamask/eth-sig-util" "^7.0.1"
     hdkey "^2.1.0"
-
-"@metamask/eth-json-rpc-provider@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-provider/-/eth-json-rpc-provider-4.0.0.tgz#0ab54548fceda1829f313f2f8ec072ef91cce687"
-  integrity sha512-HB/I5eNsS67rE5C+px5zASyEuAoK/UFeWe4c4FIm2U4zMo7Y2EED1p10A4zHRHjpctObHdvNDcZQbfu2gHcqsQ==
-  dependencies:
-    "@metamask/json-rpc-engine" "^9.0.0"
-    "@metamask/safe-event-emitter" "^3.0.0"
-    "@metamask/utils" "^8.3.0"
 
 "@metamask/eth-query@^3.0.1":
   version "3.0.1"
