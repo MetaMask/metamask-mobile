@@ -4654,12 +4654,12 @@
   resolved "https://registry.yarnpkg.com/@metamask/react-native-splash-screen/-/react-native-splash-screen-3.2.0.tgz#06a6547c143b088e47af40eacea9ac6657ac937f"
   integrity sha512-V8Cn0MXe9jdaUli/DK3PoJ71tx7k3IW2v2slqflvNstvHiO3MpCtdylsYIyu+tiPwI2JiyLRzLK8s02/3jxk6g==
 
-"@metamask/react-native-webview@^14.0.1":
-  version "14.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/react-native-webview/-/react-native-webview-14.0.1.tgz#db1a1f4abea077b17fcc163538db4fcd7b2890bd"
-  integrity sha512-euctbS170XwxCCOIP36pr3N2bW8hQdZIKzpoEpWFK+5aumQ7UrTmwswcD3OCqnlk5JvpsRvlixIje8AA+6Gmtg==
+"@metamask/react-native-webview@^14.0.2":
+  version "14.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-webview/-/react-native-webview-14.0.2.tgz#f21938c80e5edc0ea3be4f114eb6769f5c62888c"
+  integrity sha512-InIp5w9622VP7jaovrSnWxxXOYuFUfASGhi/tFFkg7V3+FMs4g3V1fMpmrgZa/b5WLTELk9wgpETE9lg8Z8xfw==
   dependencies:
-    escape-string-regexp "2.0.0"
+    escape-string-regexp "^4.0.0"
     invariant "2.2.4"
 
 "@metamask/rpc-errors@^6.0.0", "@metamask/rpc-errors@^6.2.1":
@@ -15713,15 +15713,15 @@ escape-html@^1.0.3, escape-html@~1.0.3:
   resolved "https://registry.yarnpkg.com/escape-html/-/escape-html-1.0.3.tgz#0258eae4d3d0c0974de1c169188ef0051d1d1988"
   integrity sha1-Aljq5NPQwJdN4cFpGI7wBR0dGYg=
 
-escape-string-regexp@2.0.0, escape-string-regexp@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-2.0.0.tgz#a30304e99daa32e23b2fd20f51babd07cffca344"
-  integrity sha512-UpzcLCXolUWcNu5HtVMHYdXJjArjsF9C0aNnquZYY4uW/Vu0miy5YoWvbV345HauVvcAUnpRuhMMcqTcGOY2+w==
-
 escape-string-regexp@^1.0.2, escape-string-regexp@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
   integrity sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=
+
+escape-string-regexp@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-2.0.0.tgz#a30304e99daa32e23b2fd20f51babd07cffca344"
+  integrity sha512-UpzcLCXolUWcNu5HtVMHYdXJjArjsF9C0aNnquZYY4uW/Vu0miy5YoWvbV345HauVvcAUnpRuhMMcqTcGOY2+w==
 
 escape-string-regexp@^4.0.0:
   version "4.0.0"
