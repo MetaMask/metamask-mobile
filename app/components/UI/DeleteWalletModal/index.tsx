@@ -10,8 +10,8 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { OutlinedTextField } from 'react-native-material-textfield';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { createStyles } from './styles';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import WarningExistingUserModal from '../WarningExistingUserModal';
@@ -153,6 +153,7 @@ const DeleteWalletModal = () => {
             style={styles.areYouSure}
             testID={DeleteWalletModalSelectorsIDs.CONTAINER}
           >
+            {/* @ts-expect-error: TypeScript does not recognize Icon as a valid JSX component */}
             <Icon
               style={styles.warningIcon}
               size={46}
