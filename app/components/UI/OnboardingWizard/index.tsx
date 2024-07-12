@@ -6,6 +6,7 @@ import Modal from 'react-native-modal';
 import type { Theme } from '@metamask/design-tokens';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { colors as importedColors } from '../../../styles/common';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 import Step1 from './Step1';
 import Step2 from './Step2';
@@ -71,11 +72,7 @@ const createStyles = ({ colors, typography }: Theme) =>
   });
 
 interface OnboardingWizardProps {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  navigation: NavigationProp<ParamListBase>;
   coachmarkRef: React.RefObject<any> | null;
 }
 
@@ -83,6 +80,7 @@ const OnboardingWizard = ({
   navigation,
   coachmarkRef,
 }: OnboardingWizardProps) => {
+  // @ts-expect-error: Suppressing error because DrawerContext type is not properly defined in the current file
   const { drawerRef } = useContext(DrawerContext);
   const theme = useTheme();
   const dispatch = useDispatch();
