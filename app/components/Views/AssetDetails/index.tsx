@@ -15,7 +15,6 @@ import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import EthereumAddress from '../../UI/EthereumAddress';
-import Icon from 'react-native-vector-icons/Feather';
 import TokenImage from '../../UI/TokenImage';
 import Networks, { getDecimalChainId } from '../../../util/networks';
 import Engine from '../../../core/Engine';
@@ -43,6 +42,11 @@ import { selectTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import Icon from 'react-native-vector-icons/Feather';
+
+interface MarketDataDetails {
+  price: number;
+}
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -128,7 +132,9 @@ const AssetDetails = (props: Props) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.settings.primaryCurrency,
   );
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenExchangeRates: Record<string, MarketDataDetails> = useSelector(
+    selectContractExchangeRates,
+  );
   const tokenBalances = useSelector(selectContractBalances);
   const token = useMemo(
     () => tokens.find((rawToken) => rawToken.address === address),
@@ -270,7 +276,7 @@ const AssetDetails = (props: Props) => {
     let balanceDisplay = '';
     const exchangeRate =
       tokenExchangeRates && address in tokenExchangeRates
-        ? tokenExchangeRates[address]?.price
+        ? (tokenExchangeRates[address] as MarketDataDetails)?.price
         : undefined;
     const balance =
       address in tokenBalances
@@ -325,7 +331,7 @@ const AssetDetails = (props: Props) => {
         address={address}
         type={'short'}
       />
-      <Icon style={styles.copyIcon} name={'copy'} size={16} />
+        <Icon style={styles.copyIcon} name={'copy'} size={16} />
     </TouchableOpacity>
   );
 
