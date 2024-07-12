@@ -130,6 +130,19 @@ const styleSheet = (params: { theme: Theme }) => {
     buttonSend: {
       flexGrow: 1,
     },
+    fullImageContainer: {
+      position: 'relative',
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    fullImageItem: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      padding: 16,
+    },
   });
 };
 export default styleSheet;

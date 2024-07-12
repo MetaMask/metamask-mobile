@@ -187,11 +187,30 @@ const NftDetails = () => {
     );
   };
 
+  const onMediaPress = useCallback(() => {
+    // Navigate to new NFT details page
+    navigation.navigate('NftDetailsFullImage', {
+      collectible,
+    });
+  }, [collectible, navigation]);
+
+  const hasPriceSection =
+    getCurrentHighestBidValue() || collectible?.lastSale?.timestamp;
+  const hasCollectionSection =
+    collectible?.collection?.name ||
+    collectible?.collection?.tokenCount ||
+    collectible?.collection?.creator;
+  const hasAttributesSection =
+    collectible?.attributes && collectible?.attributes?.length !== 0;
+
   return (
     <SafeAreaView style={styles.wrapper}>
       <ScrollView>
         <View style={styles.infoContainer}>
-          <View style={[styles.collectibleMediaWrapper]}>
+          <TouchableOpacity
+            style={[styles.collectibleMediaWrapper]}
+            onPress={onMediaPress}
+          >
             <CollectibleMedia
               style={styles.collectibleMediaStyle}
               cover
@@ -200,7 +219,7 @@ const NftDetails = () => {
               isTokenImage
               isFullRatio
             />
-          </View>
+          </TouchableOpacity>
           <View>
             <View style={styles.nameWrapper}>
               <Text style={styles.heading}>{collectible.name}</Text>
@@ -358,8 +377,10 @@ const NftDetails = () => {
             titleStyle={styles.informationRowTitleStyle}
             valueStyle={styles.informationRowValueStyle}
           />
+          {hasCollectionSection ? (
+            <Text style={styles.heading}>Collection</Text>
+          ) : null}
 
-          <Text style={styles.heading}>Collection</Text>
           <NftDetailsInformationRow
             title={strings('nft_details.unique_token_holders')}
             value={collectible.collection?.ownerCount}
@@ -408,7 +429,7 @@ const NftDetails = () => {
             }}
           />
 
-          <Text style={styles.heading}>Price</Text>
+          {hasPriceSection ? <Text style={styles.heading}>Price</Text> : null}
           <NftDetailsInformationRow
             title={strings('nft_details.last_sold')}
             value={
@@ -427,7 +448,10 @@ const NftDetails = () => {
             valueStyle={styles.informationRowValueStyle}
           />
 
-          <Text style={styles.heading}>Attributes</Text>
+          {hasAttributesSection ? (
+            <Text style={styles.heading}>Attributes</Text>
+          ) : null}
+
           {collectible?.attributes?.length !== 0 ? (
             <View style={styles.generalInfoFrame}>
               {collectible.attributes?.map((elm, idx) => {
