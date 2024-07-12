@@ -1,5 +1,4 @@
 process.env.TZ = 'America/Toronto';
-process.env.MM_BLOCKAID_UI_ENABLED = 'true';
 
 process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
 process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
