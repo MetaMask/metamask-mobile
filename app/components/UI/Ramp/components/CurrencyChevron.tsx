@@ -27,6 +27,7 @@ const CurrencyChevron = ({ currency, ...props }: Props) => {
           {currency}
         </Text>
         {'  '}
+        {/* @ts-expect-error: Entypo component type definitions issue */}
         <Entypo name="chevron-down" size={16} style={styles.chevron} />
       </Text>
     </View>
