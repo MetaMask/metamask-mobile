@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { createIconSet } from 'react-native-vector-icons';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import { createStyles } from './styles';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
@@ -28,6 +28,13 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useDispatch } from 'react-redux';
 import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
+
+const glyphMap = {
+  'exclamation-triangle': 0xf071,
+  // Add other FontAwesome icons as needed
+};
+
+const CustomIcon = createIconSet(glyphMap, 'FontAwesome');
 
 const DELETE_KEYWORD = 'delete';
 
@@ -153,7 +160,7 @@ const DeleteWalletModal = () => {
             style={styles.areYouSure}
             testID={DeleteWalletModalSelectorsIDs.CONTAINER}
           >
-            <Icon
+            <CustomIcon
               style={styles.warningIcon}
               size={46}
               color={colors.error.default}
