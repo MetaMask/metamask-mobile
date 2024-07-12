@@ -48,9 +48,9 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
       "CurrencyRateController": {
         "currencyRates": {
           "ETH": {
-            "conversionDate": "1720196397.083",
-            "conversionRate": "2985.14",
-            "usdConversionRate": "2985.14",
+            "conversionDate": 1720196397083,
+            "conversionRate": 298514,
+            "usdConversionRate": 298514,
           },
         },
         "currentCurrency": "usd",
@@ -60,10 +60,10 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
         "gasEstimateType": "none",
         "gasFeeEstimates": {},
         "gasFeeEstimatesByChainId": {},
-        "nonRPCGasFeeApisDisabled": "number",
+        "nonRPCGasFeeApisDisabled": "boolean",
       },
       "KeyringController": {
-        "isUnlocked": 1,
+        "isUnlocked": true,
         "keyrings": "object",
         "vault": "string",
       },
@@ -75,7 +75,7 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
         "networksMetadata": {
           "mainnet": {
             "EIPS": {
-              "1559": 1,
+              "1559": true,
             },
             "status": "available",
           },
@@ -93,21 +93,19 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
         "ignoredNfts": "object",
       },
       "NftDetectionController": "object",
-      "PermissionController": {
-        "subjects": "object",
-      },
+      "PermissionController": {},
       "PreferencesController": {
         "disabledRpcMethodPreferences": {
-          "eth_sign": 0,
+          "eth_sign": false,
         },
-        "displayNftMedia": 1,
+        "displayNftMedia": true,
         "featureFlags": {},
         "identities": "object",
         "ipfsGateway": "string",
-        "isIpfsGatewayEnabled": 1,
-        "isMultiAccountBalancesEnabled": "number",
+        "isIpfsGatewayEnabled": true,
+        "isMultiAccountBalancesEnabled": "boolean",
         "lostIdentities": "object",
-        "securityAlertsEnabled": "number",
+        "securityAlertsEnabled": "boolean",
         "selectedAddress": "string",
         "showIncomingTransactions": "object",
         "showTestNetworks": "boolean",

@@ -8,6 +8,9 @@ import {
   sentryStateMask,
   AllProperties,
 } from './utils';
+import { DeepPartial } from '../test/renderWithProvider';
+import { RootState } from '../../reducers';
+import { NetworkStatus } from '@metamask/network-controller';
 
 jest.mock('@sentry/react-native', () => ({
   ...jest.requireActual('@sentry/react-native'),
@@ -131,7 +134,7 @@ describe('captureSentryFeedback', () => {
   });
 
   describe('maskObject', () => {
-    const rootState = {
+    const rootState: DeepPartial<RootState> = {
       legalNotices: {
         newPrivacyPolicyToastClickedOrClosed: true,
         newPrivacyPolicyToastShownDate: null,
@@ -194,9 +197,9 @@ describe('captureSentryFeedback', () => {
           CurrencyRateController: {
             currencyRates: {
               ETH: {
-                conversionDate: '1720196397.083',
-                conversionRate: '2985.14',
-                usdConversionRate: '2985.14',
+                conversionDate: 1720196397083,
+                conversionRate: 298514,
+                usdConversionRate: 298514,
               },
             },
             currentCurrency: 'usd',
@@ -206,10 +209,10 @@ describe('captureSentryFeedback', () => {
             gasEstimateType: 'none',
             gasFeeEstimates: {},
             gasFeeEstimatesByChainId: {},
-            nonRPCGasFeeApisDisabled: 0,
+            nonRPCGasFeeApisDisabled: false,
           },
           KeyringController: {
-            isUnlocked: 1,
+            isUnlocked: true,
             keyrings: [
               {
                 accounts: ['0x6312c98831d74754f86dd4936668a13b7e9ba411'],
@@ -226,9 +229,9 @@ describe('captureSentryFeedback', () => {
             networksMetadata: {
               mainnet: {
                 EIPS: {
-                  1559: 1,
+                  1559: true,
                 },
-                status: 'available',
+                status: NetworkStatus.Available,
               },
             },
             providerConfig: {
@@ -244,14 +247,12 @@ describe('captureSentryFeedback', () => {
             ignoredNfts: [],
           },
           NftDetectionController: {},
-          PermissionController: {
-            subjects: {},
-          },
+          PermissionController: undefined,
           PreferencesController: {
             disabledRpcMethodPreferences: {
-              eth_sign: 0,
+              eth_sign: false,
             },
-            displayNftMedia: 1,
+            displayNftMedia: true,
             featureFlags: {},
             identities: {
               '0x6312c98831D74754F86dd4936668A13B7e9bA411': {
@@ -261,10 +262,10 @@ describe('captureSentryFeedback', () => {
               },
             },
             ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
-            isIpfsGatewayEnabled: 1,
-            isMultiAccountBalancesEnabled: 1,
+            isIpfsGatewayEnabled: true,
+            isMultiAccountBalancesEnabled: true,
             lostIdentities: {},
-            securityAlertsEnabled: 1,
+            securityAlertsEnabled: true,
             selectedAddress: '0x6312c98831D74754F86dd4936668A13B7e9bA411',
             showIncomingTransactions: {
               '0x1': true,
@@ -596,7 +597,7 @@ describe('captureSentryFeedback', () => {
     });
   });
 
-  it.only('handle root state with value null and mask false', () => {
+  it('handle root state with value null and mask false', () => {
     const submask = {
       SnapsController: {
         [AllProperties]: false,
