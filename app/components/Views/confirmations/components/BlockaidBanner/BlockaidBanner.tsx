@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
-import { useSelector } from 'react-redux';
 import { View } from 'react-native-animatable';
 import { captureException } from '@sentry/react-native';
 import { deflate } from 'react-native-gzip';
@@ -13,10 +12,7 @@ import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../compo
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
-import {
-  isBlockaidFeatureEnabled,
-  isBlockaidSupportedOnCurrentChain,
-} from '../../../../../util/blockaid';
+import { isBlockaidFeatureEnabled } from '../../../../../util/blockaid';
 import {
   FALSE_POSITIVE_REPOST_LINE_TEST_ID,
   REASON_DESCRIPTION_I18N_KEY_MAP,
@@ -34,7 +30,6 @@ import {
   UTM_SOURCE,
 } from '../../../../../constants/urls';
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
-import { selectIsSecurityAlertsEnabled } from '../../../../../selectors/preferencesController';
 import BlockaidVersionInfo from '../../../../../lib/ppom/blockaid-version';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import AppConstants from '../../../../../core/AppConstants';
@@ -65,7 +60,6 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   } = bannerProps;
   const { styles, theme } = useStyles(styleSheet, { style });
   const [reportUrl, setReportUrl] = useState<string>('');
-  const isSecurityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
   useEffect(() => {
     if (!securityAlertResponse) {
@@ -100,12 +94,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     })();
   }, [securityAlertResponse]);
 
-  if (
-    !securityAlertResponse ||
-    !isBlockaidFeatureEnabled() ||
-    !isBlockaidSupportedOnCurrentChain() ||
-    !isSecurityAlertsEnabled
-  ) {
+  if (!securityAlertResponse || !isBlockaidFeatureEnabled()) {
     return null;
   }
 

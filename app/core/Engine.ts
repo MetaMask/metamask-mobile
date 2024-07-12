@@ -164,7 +164,6 @@ import {
 } from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
 ///: END:ONLY_INCLUDE_IF
-import { isBlockaidFeatureEnabled } from '../util/blockaid';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
@@ -1299,10 +1298,7 @@ class Engine {
       subjectMetadataController,
       ///: END:ONLY_INCLUDE_IF
       accountsController,
-    ];
-
-    if (isBlockaidFeatureEnabled()) {
-      const ppomController = new PPOMController({
+      new PPOMController({
         chainId: networkController.state.providerConfig.chainId,
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
@@ -1334,9 +1330,8 @@ class Engine {
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         nativeCrypto: Crypto as any,
-      });
-      controllers.push(ppomController);
-    }
+      }),
+    ];
 
     // set initial state
     // TODO: Pass initial state into each controller constructor instead
