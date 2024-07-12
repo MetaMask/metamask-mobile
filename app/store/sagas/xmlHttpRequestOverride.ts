@@ -20,6 +20,8 @@ if (process.env.JEST_WORKER_ID !== undefined) {
     }
   }
 
+  // This should probably be done completely differently - the types are not the issue here
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   global.XMLHttpRequest = FakeXMLHttpRequest as any;
 }
 
@@ -63,7 +65,7 @@ export function overrideXMLHttpRequest() {
   };
 
   // Override the 'send' method to implement the blocking logic
-  global.XMLHttpRequest.prototype.send = function (...args: any[]) {
+  global.XMLHttpRequest.prototype.send = function (...args: unknown[]) {
     // Check if the current request should be blocked
     if (shouldBlockRequest(currentUrl)) {
       handleError(); // Trigger an error callback or handle the blocked request as needed
