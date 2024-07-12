@@ -129,8 +129,6 @@ describe('PPOM Utils', () => {
         TransactionActions,
         'setTransactionSecurityAlertResponse',
       );
-      MockEngine.context.PreferencesController.state.securityAlertsEnabled =
-        false;
       MockEngine.context.AccountsController.listAccounts = jest
         .fn()
         .mockReturnValue([
