@@ -14,7 +14,7 @@ const BadgeBadgeNotificationsMeta = {
   argTypes: {
     name: {
       control: { type: 'text' },
-      defaultValue: SAMPLE_BADGENOTIFICATIONS_PROPS.name,
+      defaultValue: SAMPLE_BADGENOTIFICATIONS_PROPS.iconName,
     },
   },
 };

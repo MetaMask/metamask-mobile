@@ -5,6 +5,7 @@ import { TouchableOpacityProps } from 'react-native';
 /**
  * SelectButtonBase component props.
  */
+// @ts-expect-error ts(2320) 'hitSlop' mismatch within libraries'
 export interface SelectButtonBaseProps
   extends Omit<SelectValueProps, 'style'>,
     TouchableOpacityProps {
