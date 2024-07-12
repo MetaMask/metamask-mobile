@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { IconProps } from 'react-native-vector-icons/Icon';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import { useDispatch } from 'react-redux';
 import { ThunkDispatch } from 'redux-thunk';
@@ -33,12 +32,6 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { clearHistory } from '../../../actions/browser';
-
-// This double type assertion is necessary because the Icon component from react-native-vector-icons
-// doesn't have perfect TypeScript definitions. We first cast to 'unknown' and then to the desired type
-// to ensure TypedIcon has the correct type without TypeScript errors.
-const TypedIcon: React.ComponentType<IconProps> =
-  Icon as unknown as React.ComponentType<IconProps>;
 
 const DELETE_KEYWORD = 'delete';
 
@@ -164,7 +157,8 @@ const DeleteWalletModal = () => {
             style={styles.areYouSure}
             testID={DeleteWalletModalSelectorsIDs.CONTAINER}
           >
-            <TypedIcon
+            {/* @ts-expect-error Icon from react-native-vector-icons is not properly typed */}
+            <Icon
               style={styles.warningIcon}
               size={46}
               color={colors.error.default}
