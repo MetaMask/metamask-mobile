@@ -237,7 +237,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const actualIcon = useMemo(
     () =>
-      faviconSource?.uri
+      faviconSource && (faviconSource as { uri: string }).uri
         ? faviconSource
         : dappIconUrl
         ? { uri: dappIconUrl }
@@ -411,6 +411,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         labelOptions,
         accountAddress: activeAddress,
         accountAvatarType,
+        hasNoTimeout: false,
       });
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
