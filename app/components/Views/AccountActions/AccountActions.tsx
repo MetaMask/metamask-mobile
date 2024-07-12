@@ -56,7 +56,7 @@ const AccountActions = () => {
 
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
 
-  const Controller = useMemo(() => {
+  const controllers = useMemo(() => {
     const { KeyringController, PreferencesController } = Engine.context;
     return { KeyringController, PreferencesController };
   }, []);
@@ -177,12 +177,12 @@ const AccountActions = () => {
   );
 
   /**
-   * Reselect the first account after removing the selected account
+   * Selects the first account after removing the previous selected account
    */
-  const reselectFirstAccount = useCallback(async () => {
-    const newAccounts = await Controller.KeyringController.getAccounts();
-    if (newAccounts && newAccounts.length > 0) {
-      Engine.setSelectedAddress(newAccounts[0]);
+  const selectFirstAccount = useCallback(async () => {
+    const accounts = await Controller.KeyringController.getAccounts();
+    if (accounts && accounts.length > 0) {
+      Engine.setSelectedAddress(accounts[0]);
     }
   }, [Controller.KeyringController]);
 

@@ -99,7 +99,7 @@ const LedgerSelectAccount = () => {
           await unlockLedgerWalletAccount(index);
         }
       } catch (err) {
-        Logger.log('Error: Connecting Ledger hardware wallet', err);
+        // Do nothing
       }
       setBlockingModalVisible(false);
 

@@ -210,7 +210,7 @@ describe('AccountActions', () => {
       });
     });
 
-    it('clicks remove button after popup shows triggers remove process', async () => {
+    it('clicks remove button after popup shows to trigger the remove account process', async () => {
       mockKeyringController.getAccounts.mockResolvedValue([
         '0xa1e359811322d97991e03f863a0c30c2cf029cd',
       ]);
