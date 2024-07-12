@@ -17,6 +17,8 @@ interface NotificationActionsProps {
     actionUrl: string;
     isExternal: boolean;
   };
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: any;
 }
 

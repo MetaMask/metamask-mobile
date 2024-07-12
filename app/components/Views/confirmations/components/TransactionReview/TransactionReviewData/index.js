@@ -15,7 +15,6 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../../../../selectors/tokenRatesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -186,7 +185,6 @@ class TransactionReviewData extends PureComponent {
 const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  contractExchangeRates: selectContractExchangeRates(state),
   transaction: state.transaction,
 });
 

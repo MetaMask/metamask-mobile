@@ -23,6 +23,8 @@ const ClearPrivacy = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   const clearApprovals = () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { PermissionController } = Engine.context as any;
     PermissionController?.clearState?.();
     SDKConnect.getInstance().removeAll();

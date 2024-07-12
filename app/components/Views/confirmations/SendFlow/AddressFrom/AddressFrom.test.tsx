@@ -5,7 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import { render } from '@testing-library/react-native';
 
 import SendFlowAddressFrom from '.';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../../../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../../../util/ENSUtils'),
@@ -44,7 +44,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0xd018538C87232FF95acbCe4870629b75640a78E7': {
@@ -52,13 +52,32 @@ const mockInitialState = {
           },
         },
       },
-      PreferencesController: {
-        selectedAddress: '0xd018538C87232FF95acbCe4870629b75640a78E7',
-        identities: {
-          '0xd018538C87232FF95acbCe4870629b75640a78E7': {
-            address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
-            name: 'Account 1',
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            '30313233-3435-4637-b839-383736353430': {
+              // Lower case address to test edge case
+              address: '0xd018538c87232ff95acbce4870629b75640a78e7',
+              id: '30313233-3435-4637-b839-383736353430',
+              options: {},
+              metadata: {
+                name: 'Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              methods: [
+                'personal_sign',
+                'eth_sign',
+                'eth_signTransaction',
+                'eth_signTypedData_v1',
+                'eth_signTypedData_v3',
+                'eth_signTypedData_v4',
+              ],
+              type: 'eip155:eoa',
+            },
           },
+          selectedAccount: '30313233-3435-4637-b839-383736353430',
         },
       },
       KeyringController: {

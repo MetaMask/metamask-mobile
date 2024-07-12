@@ -1,7 +1,8 @@
 import React from 'react';
 import AccountApproval from '.';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -14,6 +15,13 @@ jest.mock('../../../core/Engine', () => ({
     },
     KeyringController: {
       getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
+      state: {
+        keyrings: [
+          {
+            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+          },
+        ],
+      },
     },
   },
 }));
@@ -21,7 +29,8 @@ jest.mock('../../../core/Engine', () => ({
 const mockInitialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };

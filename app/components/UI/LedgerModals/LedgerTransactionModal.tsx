@@ -41,6 +41,8 @@ const LedgerTransactionModal = () => {
   const modalRef = useRef<ReusableModalRef | null>(null);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { TransactionController, ApprovalController } = Engine.context as any;
 
   const { transactionId, onConfirmationComplete, deviceId, replacementParams } =

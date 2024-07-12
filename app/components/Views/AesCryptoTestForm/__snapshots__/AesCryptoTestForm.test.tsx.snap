@@ -1,0 +1,621 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AesCryptoTestForm renders correctly 1`] = `
+<RCTScrollView
+  testID="aes-crypto-form-scroll"
+>
+  <View>
+    <RCTSafeAreaView
+      style={
+        {
+          "paddingHorizontal": 15,
+        }
+      }
+    >
+      <RCTSafeAreaView
+        style={
+          {
+            "paddingVertical": 10,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "paddingVertical": 5,
+            }
+          }
+        >
+          Generate Random Salt
+        </Text>
+        <View
+          style={
+            {
+              "paddingVertical": 5,
+            }
+          }
+        >
+          <TextInput
+            autoComplete="off"
+            autoCorrect={false}
+            autoFocus={false}
+            onChangeText={[Function]}
+            placeholder="Salt bytes count"
+            style={
+              {
+                "borderColor": "#f2f4f6",
+                "borderRadius": 50,
+                "borderWidth": 2,
+                "paddingHorizontal": 10,
+                "paddingVertical": 10,
+              }
+            }
+            testID="salt-bytes-count-input"
+          />
+        </View>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#0376c9",
+              "borderRadius": 20,
+              "flexDirection": "row",
+              "height": 40,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+              "width": "100%",
+            }
+          }
+          testID="generate-salt-button"
+          variant="Primary"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Generate
+          </Text>
+        </TouchableOpacity>
+      </RCTSafeAreaView>
+      <RCTSafeAreaView
+        style={
+          {
+            "paddingVertical": 10,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "paddingVertical": 5,
+            }
+          }
+        >
+          Generate encryption key from password
+        </Text>
+        <View
+          style={
+            {
+              "paddingVertical": 5,
+            }
+          }
+        >
+          <TextInput
+            autoComplete="off"
+            autoCorrect={false}
+            autoFocus={false}
+            onChangeText={[Function]}
+            placeholder="Password"
+            style={
+              {
+                "borderColor": "#f2f4f6",
+                "borderRadius": 50,
+                "borderWidth": 2,
+                "paddingHorizontal": 10,
+                "paddingVertical": 10,
+              }
+            }
+            testID="password-input"
+          />
+        </View>
+        <View
+          style={
+            {
+              "paddingVertical": 5,
+            }
+          }
+        >
+          <TextInput
+            autoComplete="off"
+            autoCorrect={false}
+            autoFocus={false}
+            onChangeText={[Function]}
+            placeholder="Salt"
+            style={
+              {
+                "borderColor": "#f2f4f6",
+                "borderRadius": 50,
+                "borderWidth": 2,
+                "paddingHorizontal": 10,
+                "paddingVertical": 10,
+              }
+            }
+            testID="salt-input-for-encryption-key"
+          />
+        </View>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#0376c9",
+              "borderRadius": 20,
+              "flexDirection": "row",
+              "height": 40,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+              "width": "100%",
+            }
+          }
+          testID="generate-encryption-key-button"
+          variant="Primary"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Generate
+          </Text>
+        </TouchableOpacity>
+      </RCTSafeAreaView>
+      <RCTSafeAreaView
+        style={
+          {
+            "paddingVertical": 10,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "paddingVertical": 5,
+            }
+          }
+        >
+          Encrypt with key
+        </Text>
+        <View
+          style={
+            {
+              "paddingVertical": 5,
+            }
+          }
+        >
+          <TextInput
+            autoComplete="off"
+            autoCorrect={false}
+            autoFocus={false}
+            onChangeText={[Function]}
+            placeholder="Encryption Key"
+            style={
+              {
+                "borderColor": "#f2f4f6",
+                "borderRadius": 50,
+                "borderWidth": 2,
+                "paddingHorizontal": 10,
+                "paddingVertical": 10,
+              }
+            }
+            testID="encryption-key-input-for-encryption-with-key"
+          />
+        </View>
+        <View
+          style={
+            {
+              "paddingVertical": 5,
+            }
+          }
+        >
+          <TextInput
+            autoComplete="off"
+            autoCorrect={false}
+            autoFocus={false}
+            onChangeText={[Function]}
+            placeholder="Data"
+            style={
+              {
+                "borderColor": "#f2f4f6",
+                "borderRadius": 50,
+                "borderWidth": 2,
+                "paddingHorizontal": 10,
+                "paddingVertical": 10,
+              }
+            }
+            testID="data-input-for-encryption-with-key"
+          />
+        </View>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#0376c9",
+              "borderRadius": 20,
+              "flexDirection": "row",
+              "height": 40,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+              "width": "100%",
+            }
+          }
+          testID="encrypt-with-key-button"
+          variant="Primary"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Encrypt
+          </Text>
+        </TouchableOpacity>
+      </RCTSafeAreaView>
+      <RCTSafeAreaView
+        style={
+          {
+            "paddingVertical": 10,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "paddingVertical": 5,
+            }
+          }
+        >
+          Decrypt with key
+        </Text>
+        <View
+          style={
+            {
+              "paddingVertical": 5,
+            }
+          }
+        >
+          <TextInput
+            autoComplete="off"
+            autoCorrect={false}
+            autoFocus={false}
+            onChangeText={[Function]}
+            placeholder="Encryption Key"
+            style={
+              {
+                "borderColor": "#f2f4f6",
+                "borderRadius": 50,
+                "borderWidth": 2,
+                "paddingHorizontal": 10,
+                "paddingVertical": 10,
+              }
+            }
+            testID="encryption-key-input-for-decryption-with-key"
+          />
+        </View>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#0376c9",
+              "borderRadius": 20,
+              "flexDirection": "row",
+              "height": 40,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+              "width": "100%",
+            }
+          }
+          testID="decrypt-with-key-button"
+          variant="Primary"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Decrypt
+          </Text>
+        </TouchableOpacity>
+      </RCTSafeAreaView>
+      <RCTSafeAreaView
+        style={
+          {
+            "paddingVertical": 10,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "paddingVertical": 5,
+            }
+          }
+        >
+          Encrypt
+        </Text>
+        <View
+          style={
+            {
+              "paddingVertical": 5,
+            }
+          }
+        >
+          <TextInput
+            autoComplete="off"
+            autoCorrect={false}
+            autoFocus={false}
+            onChangeText={[Function]}
+            placeholder="Data"
+            style={
+              {
+                "borderColor": "#f2f4f6",
+                "borderRadius": 50,
+                "borderWidth": 2,
+                "paddingHorizontal": 10,
+                "paddingVertical": 10,
+              }
+            }
+            testID="data-input-for-encryption"
+          />
+        </View>
+        <View
+          style={
+            {
+              "paddingVertical": 5,
+            }
+          }
+        >
+          <TextInput
+            autoComplete="off"
+            autoCorrect={false}
+            autoFocus={false}
+            onChangeText={[Function]}
+            placeholder="Password"
+            style={
+              {
+                "borderColor": "#f2f4f6",
+                "borderRadius": 50,
+                "borderWidth": 2,
+                "paddingHorizontal": 10,
+                "paddingVertical": 10,
+              }
+            }
+            testID="password-input-for-encryption"
+          />
+        </View>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#0376c9",
+              "borderRadius": 20,
+              "flexDirection": "row",
+              "height": 40,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+              "width": "100%",
+            }
+          }
+          testID="encrypt-button"
+          variant="Primary"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Encrypt
+          </Text>
+        </TouchableOpacity>
+      </RCTSafeAreaView>
+      <RCTSafeAreaView
+        style={
+          {
+            "paddingVertical": 10,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "paddingVertical": 5,
+            }
+          }
+        >
+          Decrypt
+        </Text>
+        <View
+          style={
+            {
+              "paddingVertical": 5,
+            }
+          }
+        >
+          <TextInput
+            autoComplete="off"
+            autoCorrect={false}
+            autoFocus={false}
+            onChangeText={[Function]}
+            placeholder="Password"
+            style={
+              {
+                "borderColor": "#f2f4f6",
+                "borderRadius": 50,
+                "borderWidth": 2,
+                "paddingHorizontal": 10,
+                "paddingVertical": 10,
+              }
+            }
+            testID="password-input-for-decryption"
+          />
+        </View>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#0376c9",
+              "borderRadius": 20,
+              "flexDirection": "row",
+              "height": 40,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+              "width": "100%",
+            }
+          }
+          testID="decrypt-button"
+          variant="Primary"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Decrypt
+          </Text>
+        </TouchableOpacity>
+      </RCTSafeAreaView>
+    </RCTSafeAreaView>
+  </View>
+</RCTScrollView>
+`;
