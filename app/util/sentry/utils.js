@@ -338,7 +338,7 @@ export function maskObject(objectToMask, mask = {}) {
     const shouldPrintValue = maskKey === true;
     const shouldIterateSubMask =
       Boolean(maskKey) && typeof maskKey === 'object';
-    const shouldPrintType = maskKey === undefined || maskKey === false;
+    const shouldPrintType = maskKey == undefined || maskKey === false;
     if (shouldPrintValue) {
       maskedObject[key] = objectToMask[key];
     } else if (shouldIterateSubMask) {
