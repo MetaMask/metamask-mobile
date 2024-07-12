@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { ComponentType } from 'react';
+import { StyleSheet, View, StyleProp, ViewStyle } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
@@ -17,6 +17,12 @@ interface Props {
   currency?: string;
 }
 
+interface EntypoProps {
+  name: string;
+  size: number;
+  style: StyleProp<ViewStyle>;
+}
+
 const CurrencyChevron = ({ currency, ...props }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -27,7 +33,11 @@ const CurrencyChevron = ({ currency, ...props }: Props) => {
           {currency}
         </Text>
         {'  '}
-        <Entypo name="chevron-down" size={16} style={styles.chevron} />
+        {React.createElement(Entypo as unknown as ComponentType<EntypoProps>, {
+          name: 'chevron-down',
+          size: 16,
+          style: styles.chevron,
+        })}
       </Text>
     </View>
   );
