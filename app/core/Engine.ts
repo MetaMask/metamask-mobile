@@ -1396,7 +1396,6 @@ class Engine {
       subjectMetadataController,
       ///: END:ONLY_INCLUDE_IF
       accountsController,
-      
       new PPOMController({
         chainId: networkController.state.providerConfig.chainId,
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
