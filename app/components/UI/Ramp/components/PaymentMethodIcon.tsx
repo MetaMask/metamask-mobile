@@ -1,131 +1,47 @@
 import React from 'react';
 import { StyleProp, TextStyle } from 'react-native';
-import { Payment, PaymentType } from '@consensys/on-ramp-sdk';
-import { PaymentIcon, PaymentIconType } from '@consensys/on-ramp-sdk/dist/API';
+import { PaymentType } from '@consensys/on-ramp-sdk';
 
-import AntDesignIcon from 'react-native-vector-icons/AntDesign';
-import EntypoIcon from 'react-native-vector-icons/Entypo';
-import EvilIconsIcon from 'react-native-vector-icons/EvilIcons';
-import FeatherIcon from 'react-native-vector-icons/Feather';
-import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-// import FontistoIcon from 'react-native-vector-icons/Fontisto';
-import FoundationIcon from 'react-native-vector-icons/Foundation';
-import IoniconsIcon from 'react-native-vector-icons/Ionicons';
-import MaterialsIconsIcon from 'react-native-vector-icons/MaterialIcons';
-import MaterialsCommunityIconsIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import OcticonsIcon from 'react-native-vector-icons/Octicons';
-import SimpleLineIconsIcon from 'react-native-vector-icons/SimpleLineIcons';
-import ZocialIcon from 'react-native-vector-icons/Zocial';
+import Icon from 'app/component-library/components/Icons/Icon/Icon';
+import {
+  IconName,
+  IconSize,
+} from 'app/component-library/components/Icons/Icon/Icon.types';
 
 interface iconParams {
-  paymentMethodIcons?: Payment['icons'];
+  paymentMethodIcons?: { name: IconName }[];
   paymentMethodType?: PaymentType;
   style?: StyleProp<TextStyle>;
-  name?: string;
-  size: number;
-}
-
-enum Icon {
-  Apple = 'apple',
-  GooglePay = 'google',
-  Card = 'credit-card',
-  Bank = 'bank',
-  Wallet = 'wallet',
-}
-
-function getIconComponent(icon: PaymentIcon) {
-  switch (icon.type) {
-    case PaymentIconType.AntDesign: {
-      return AntDesignIcon;
-    }
-    case PaymentIconType.Entypo: {
-      return EntypoIcon;
-    }
-    case PaymentIconType.EvilIcons: {
-      return EvilIconsIcon;
-    }
-    case PaymentIconType.Feather: {
-      return FeatherIcon;
-    }
-    case PaymentIconType.FontAwesome: {
-      return FontAwesomeIcon;
-    }
-    case PaymentIconType.FontAwesome5: {
-      return FontAwesome5Icon;
-    }
-    case PaymentIconType.Fontisto: {
-      return null;
-    }
-    case PaymentIconType.Foundation: {
-      return FoundationIcon;
-    }
-    case PaymentIconType.Ionicons: {
-      return IoniconsIcon;
-    }
-    case PaymentIconType.MaterialIcons: {
-      return MaterialsIconsIcon;
-    }
-    case PaymentIconType.MaterialCommunityIcons: {
-      return MaterialsCommunityIconsIcon;
-    }
-    case PaymentIconType.Octicons: {
-      return OcticonsIcon;
-    }
-    case PaymentIconType.SimpleLineIcons: {
-      return SimpleLineIconsIcon;
-    }
-    case PaymentIconType.Zocial: {
-      return ZocialIcon;
-    }
-    default: {
-      return null;
-    }
-  }
-}
-
-function getIcon(icon: PaymentIcon) {
-  const IconComponent = getIconComponent(icon);
-  if (IconComponent?.hasIcon(icon.name)) {
-    return IconComponent;
-  }
-  return null;
+  size?: IconSize;
 }
 
 const PaymentMethodIcon = ({
   paymentMethodIcons,
   paymentMethodType,
-  ...props
-}: iconParams & Omit<React.ComponentProps<typeof AntDesignIcon>, 'name'>) => {
+  style,
+  size,
+}: iconParams) => {
   if (paymentMethodIcons && paymentMethodIcons.length > 0) {
-    const IconComponent = getIcon(paymentMethodIcons[0]);
-    if (IconComponent) {
-      return <IconComponent name={paymentMethodIcons[0].name} {...props} />;
-    }
+    return <Icon name={paymentMethodIcons[0].name} style={style} size={size} />;
   }
 
   if (paymentMethodType) {
     switch (paymentMethodType) {
-      case PaymentType.ApplePay: {
-        return <FontAwesomeIcon name={Icon.Apple} {...props} />;
-      }
-      case PaymentType.GooglePay: {
-        return <FontAwesomeIcon name={Icon.GooglePay} {...props} />;
-      }
-      case PaymentType.BankTransfer: {
-        return <MaterialsCommunityIconsIcon name={Icon.Bank} {...props} />;
-      }
-      case PaymentType.DebitCreditCard: {
-        return <MaterialsIconsIcon name={Icon.Card} {...props} />;
-      }
+      case PaymentType.ApplePay:
+        return <Icon name={IconName.Bank} style={style} size={size} />; // Using 'Bank' as a placeholder for 'ApplePay'
+      case PaymentType.GooglePay:
+        return <Icon name={IconName.Card} style={style} size={size} />; // Using 'Card' as a placeholder for 'GooglePay'
+      case PaymentType.BankTransfer:
+        return <Icon name={IconName.Bank} style={style} size={size} />;
+      case PaymentType.DebitCreditCard:
+        return <Icon name={IconName.Card} style={style} size={size} />;
       case PaymentType.Wallet:
-      default: {
-        return <SimpleLineIconsIcon name={Icon.Wallet} {...props} />;
-      }
+      default:
+        return <Icon name={IconName.Wallet} style={style} size={size} />;
     }
   }
 
-  return <SimpleLineIconsIcon name={Icon.Wallet} {...props} />;
+  return <Icon name={IconName.Wallet} style={style} size={size} />;
 };
 
 export default PaymentMethodIcon;
