@@ -1,6 +1,7 @@
 import bookmarksReducer from './bookmarks';
 import browserReducer from './browser';
 import engineReducer from '../core/redux/slices/engine';
+import featureFlagsReducer from '../core/redux/slices/featureFlags';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
 import settingsReducer from './settings';
@@ -54,6 +55,9 @@ export interface RootState {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   collectibles: any;
   engine: { backgroundState: EngineState };
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  featureFlags: any;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   privacy: any;
@@ -132,6 +136,7 @@ const rootReducer = combineReducers<RootState, any>({
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   engine: engineReducer as any,
+  featureFlags: featureFlagsReducer,
   privacy: privacyReducer,
   bookmarks: bookmarksReducer,
   browser: browserReducer,

@@ -16,6 +16,10 @@ import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
 import AppConstants from '../../../app/core/AppConstants';
 import { XMLHttpRequest as _XMLHttpRequest } from 'xhr2';
+import {
+  getFeatureFlagsSuccess,
+  getFeatureFlagsError,
+} from '../../core/redux/slices/featureFlags';
 
 if (typeof global.XMLHttpRequest === 'undefined') {
   global.XMLHttpRequest = _XMLHttpRequest;
@@ -23,6 +27,18 @@ if (typeof global.XMLHttpRequest === 'undefined') {
 
 const originalSend = XMLHttpRequest.prototype.send;
 const originalOpen = XMLHttpRequest.prototype.open;
+
+interface GenericObject {
+  [key: string]: unknown;
+}
+
+type DataArray<T extends GenericObject> = T[];
+
+interface FeatureFlagResponse {
+  status: string;
+  data: DataArray<GenericObject>;
+  message?: string;
+}
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -166,8 +182,30 @@ export function* basicFunctionalityToggle() {
   }
 }
 
+function* fetchFeatureFlags(): Generator {
+  try {
+    let response: FeatureFlagResponse = {
+      status: '',
+      data: [],
+    };
+    yield fetch('http://localhost:3000/launch-darkly')
+      .then((res) => res.json())
+      .then((res) => (response = res));
+
+    if (response.status !== 'ok') {
+      yield put(getFeatureFlagsError(response.message));
+      return;
+    }
+    yield put(getFeatureFlagsSuccess(response.data));
+  } catch (error) {
+    console.error(error);
+    yield put(getFeatureFlagsError(error));
+  }
+}
+
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
+  yield fork(fetchFeatureFlags);
 }
