@@ -100,6 +100,9 @@ const DeleteWalletModal = () => {
     });
   };
 
+  // Type assertion to bypass TypeScript errors related to the Icon component
+  const IconComponent = Icon as any;
+
   return (
     <ReusableModal ref={modalRef}>
       {showConfirm ? (
@@ -153,7 +156,7 @@ const DeleteWalletModal = () => {
             style={styles.areYouSure}
             testID={DeleteWalletModalSelectorsIDs.CONTAINER}
           >
-            <Icon
+            <IconComponent
               style={styles.warningIcon}
               size={46}
               color={colors.error.default}
