@@ -210,15 +210,13 @@ const AccountActions = () => {
         switch (keyringType) {
           case ExtendedKeyringTypes.ledger:
             await forgetLedger();
-            trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
+            trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
               device_type: HardwareDeviceTypes.LEDGER,
             });
             break;
           case ExtendedKeyringTypes.qr:
             await controllers.KeyringController.forgetQRDevice();
-            trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
-              device_type: HardwareDeviceTypes.QR,
-            });
+            // we dont have metrics for qr device forget yet.
             break;
           default:
             break;

@@ -353,9 +353,7 @@ enum EVENT_NAME {
   CONNECT_LEDGER_SUCCESS = 'Connected Account with hardware wallet',
   LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
   LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
-
-  // common hardware wallet
-  HARDWARE_WALLET_FORGOTTEN = 'Hardware wallet forgotten',
+  LEDGER_HARDWARE_WALLET_FORGOTTEN = 'Ledger hardware wallet forgotten',
 
   //Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
@@ -844,7 +842,9 @@ const events = {
   LEDGER_HARDWARE_WALLET_ERROR: generateOpt(
     EVENT_NAME.LEDGER_HARDWARE_WALLET_ERROR,
   ),
-  HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
+  LEDGER_HARDWARE_WALLET_FORGOTTEN: generateOpt(
+    EVENT_NAME.LEDGER_HARDWARE_WALLET_FORGOTTEN,
+  ),
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),

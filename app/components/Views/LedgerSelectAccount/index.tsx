@@ -114,7 +114,7 @@ const LedgerSelectAccount = () => {
     setBlockingModalVisible(true);
     await forgetLedger();
     dispatch(setReloadAccounts(true));
-    trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
+    trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
       device_type: HardwareDeviceTypes.LEDGER,
     });
     setBlockingModalVisible(false);
