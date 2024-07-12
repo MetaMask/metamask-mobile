@@ -168,16 +168,35 @@ const AccountPermissionsRevoke = ({
                   );
                   toastRef?.current?.showToast({
                     variant: ToastVariants.Account,
-                    labelOptions,
+                    labelOptions: [
+                      {
+                        label: `${name} `,
+                        isBold: true,
+                      },
+                      { label: strings('toast.disconnected') },
+                      {
+                        label: `\n${newActiveAccountName} `,
+                        isBold: true,
+                      },
+                      { label: strings('toast.now_active') },
+                    ],
                     accountAddress: nextActiveAddress,
                     accountAvatarType,
+                    hasNoTimeout: false,
                   });
                 } else {
                   // Just disconnect
                   removePermittedAccounts(hostname, [address]);
                   toastRef?.current?.showToast({
                     variant: ToastVariants.Plain,
-                    labelOptions,
+                    labelOptions: [
+                      {
+                        label: `${name} `,
+                        isBold: true,
+                      },
+                      { label: strings('toast.disconnected') },
+                    ],
+                    hasNoTimeout: false,
                   });
                 }
                 trackEvent(MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS, {
