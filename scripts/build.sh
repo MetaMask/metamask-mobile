@@ -189,6 +189,16 @@ prebuild_android(){
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
 
+ #Create google-services.json file to be used by the Firebase services.
+  # Check if GOOGLE_SERVICES_B64 is set
+  if [ ! -z "$GOOGLE_SERVICES_B64" ]; then
+    echo -n $GOOGLE_SERVICES_B64 | base64 -d > ./android/app/google-services.json
+    echo "google-services.json has been created successfully."
+  else
+    echo "GOOGLE_SERVICES_B64 is not set in the .env file."
+    exit 1
+  fi
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $ANDROID_ENV_FILE ]
 		then
@@ -373,7 +383,7 @@ buildIosQA(){
 
 buildAndroidQA(){
   remapEnvVariableQA
-  
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.qa
 	fi

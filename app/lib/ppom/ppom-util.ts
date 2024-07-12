@@ -1,6 +1,5 @@
 import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
 import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
-import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../util/networks';
 import {
   Reason,
   ResultType,
@@ -57,26 +56,12 @@ const SECURITY_ALERT_RESPONSE_IN_PROGRESS = {
 };
 
 async function validateRequest(req: PPOMRequest, transactionId?: string) {
-  const {
-    PPOMController: ppomController,
-    PreferencesController,
-    NetworkController,
-  } = Engine.context;
+  const { PPOMController: ppomController, NetworkController } = Engine.context;
 
   const chainId = NetworkController.state.providerConfig.chainId;
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
-  const isSupportedChain = BLOCKAID_SUPPORTED_CHAIN_IDS.includes(chainId);
 
-  const isSecurityAlertsEnabled =
-    PreferencesController.state.securityAlertsEnabled;
-
-  if (
-    !ppomController ||
-    !isBlockaidFeatureEnabled() ||
-    !isSecurityAlertsEnabled ||
-    !isConfirmationMethod ||
-    !isSupportedChain
-  ) {
+  if (!ppomController || !isBlockaidFeatureEnabled() || !isConfirmationMethod) {
     return;
   }
 
