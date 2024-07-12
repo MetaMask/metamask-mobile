@@ -19,6 +19,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
+import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
@@ -56,7 +57,11 @@ const AccountPermissionsConnected = ({
   const networkImageSource = useSelector(selectNetworkImageSource);
 
   const activeAddress = selectedAddresses[0];
-  const { toastRef } = useContext(ToastContext);
+  const {
+    toastRef,
+  }: {
+    toastRef: React.RefObject<ToastRef> | undefined;
+  } = useContext(ToastContext);
 
   const onConnectMoreAccounts = useCallback(() => {
     onSetSelectedAddresses([]);
@@ -77,18 +82,21 @@ const AccountPermissionsConnected = ({
         accounts,
         ensByAccountAddress,
       });
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Account,
-        labelOptions: [
-          {
-            label: `${activeAccountName} `,
-            isBold: true,
-          },
-          { label: strings('toast.now_active') },
-        ],
-        accountAddress: address,
-        accountAvatarType,
-      });
+      if (toastRef?.current) {
+        toastRef.current.showToast({
+          variant: ToastVariants.Account,
+          labelOptions: [
+            {
+              label: `${activeAccountName} `,
+              isBold: true,
+            },
+            { label: strings('toast.now_active') },
+          ],
+          accountAddress: address,
+          accountAvatarType,
+          hasNoTimeout: false,
+        });
+      }
     },
     [
       activeAddress,
