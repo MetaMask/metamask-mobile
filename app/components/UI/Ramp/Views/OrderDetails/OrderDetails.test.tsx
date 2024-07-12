@@ -1,7 +1,10 @@
 import React from 'react';
 import { processFiatOrder } from '../../index';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../../../util/test/renderWithProvider';
 import OrderDetails from './OrderDetails';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
@@ -45,10 +48,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-type DeepPartial<BaseType> = {
-  [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
-};
 
 const mockOrder: DeepPartial<FiatOrder> = {
   id: 'test-order-1',
