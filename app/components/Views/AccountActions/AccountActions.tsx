@@ -37,13 +37,14 @@ import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modal
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getKeyringByAddress, isHardwareAccount } from '../../../util/address';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
-import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import ExtendedKeyringTypes, {
+  HardwareDeviceTypes,
+} from '../../../constants/keyringTypes';
 import { forgetLedger } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
-import { HardwareDeviceTypes } from '../../../core/Analytics/MetaMetrics.types';
 import { KeyringObject } from '@metamask/keyring-controller';
 
 const AccountActions = () => {
@@ -166,35 +167,35 @@ const AccountActions = () => {
    */
   const removeHardwareAccount = useCallback(
     async (keyring: KeyringObject, address: Hex) => {
-      await Controller.KeyringController.removeAccount(address);
+      await controllers.KeyringController.removeAccount(address);
       await removeAccountsFromPermissions([address]);
       trackEvent(MetaMetricsEvents.WALLET_REMOVED, {
         accountType: keyring?.type,
         address,
       });
     },
-    [Controller.KeyringController, trackEvent],
+    [controllers.KeyringController, trackEvent],
   );
 
   /**
    * Selects the first account after removing the previous selected account
    */
   const selectFirstAccount = useCallback(async () => {
-    const accounts = await Controller.KeyringController.getAccounts();
+    const accounts = await controllers.KeyringController.getAccounts();
     if (accounts && accounts.length > 0) {
       Engine.setSelectedAddress(accounts[0]);
     }
-  }, [Controller.KeyringController]);
+  }, [controllers.KeyringController]);
 
   /**
    * Forget the device if there are no more accounts in the keyring
-   * @param keyring - The keyring object
+   * @param keyringType - The keyring type
    */
   const forgetDeviceIfRequired = useCallback(
-    async (keyring: KeyringObject) => {
+    async (keyringType: string) => {
       // re-fetch the latest keyrings from KeyringController state.
-      const { keyrings } = Controller.KeyringController.state;
-      const updatedKeyring = keyrings.find((kr) => kr.type === keyring?.type);
+      const { keyrings } = controllers.KeyringController.state;
+      const updatedKeyring = keyrings.find((kr) => kr.type === keyringType);
 
       // If there are no more accounts in the keyring, forget the device
       let requestForgetDevice = false;
@@ -207,7 +208,7 @@ const AccountActions = () => {
         requestForgetDevice = true;
       }
       if (requestForgetDevice) {
-        switch (keyring?.type) {
+        switch (keyringType) {
           case ExtendedKeyringTypes.ledger:
             await forgetLedger();
             trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
@@ -215,7 +216,7 @@ const AccountActions = () => {
             });
             break;
           case ExtendedKeyringTypes.qr:
-            await Controller.KeyringController.forgetQRDevice();
+            await controllers.KeyringController.forgetQRDevice();
             trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
               device_type: HardwareDeviceTypes.QR,
             });
@@ -225,7 +226,7 @@ const AccountActions = () => {
         }
       }
     },
-    [Controller.KeyringController, trackEvent],
+    [controllers.KeyringController, trackEvent],
   );
 
   /**
@@ -241,9 +242,9 @@ const AccountActions = () => {
 
       await removeHardwareAccount(keyring, selectedAddress as Hex);
 
-      await reselectFirstAccount();
+      await selectFirstAccount();
 
-      await forgetDeviceIfRequired(keyring);
+      await forgetDeviceIfRequired(keyring.type);
 
       setBlockingModalVisible(false);
     }
@@ -251,7 +252,7 @@ const AccountActions = () => {
     blockingModalVisible,
     forgetDeviceIfRequired,
     removeHardwareAccount,
-    reselectFirstAccount,
+    selectFirstAccount,
     selectedAddress,
   ]);
 

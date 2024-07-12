@@ -19,7 +19,7 @@ import { strings } from '../../../../locales/i18n';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent } from '@testing-library/react-native';
-import { HardwareDeviceTypes } from '../../../core/Analytics/MetaMetrics.types';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
 jest.mock('../../hooks/Ledger/useBluetooth', () => ({
   __esModule: true,

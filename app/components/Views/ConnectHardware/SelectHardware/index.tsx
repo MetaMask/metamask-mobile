@@ -24,7 +24,7 @@ import {
 } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
-import { HardwareDeviceTypes } from '../../../../core/Analytics/MetaMetrics.types';
+import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -29,7 +29,7 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { HardwareDeviceTypes } from '../../../core/Analytics/MetaMetrics.types';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type

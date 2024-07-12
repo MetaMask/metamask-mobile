@@ -152,8 +152,3 @@ export interface IDeleteRegulationStatus {
   hasCollectedDataSinceDeletionRequest: boolean;
   dataDeletionRequestStatus: DataDeleteStatus;
 }
-
-export enum HardwareDeviceTypes {
-  LEDGER = 'Ledger',
-  QR = 'QR Hardware',
-}

@@ -5,7 +5,6 @@ import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Logger from '../../../util/Logger';
 import { useAssetFromTheme, useTheme } from '../../../util/theme';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
 import ledgerDeviceLightImage from 'images/ledger-device-light.png';
@@ -23,7 +22,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './index.styles';
 import OperationTypes from '../../../core/Ledger/types';
-import { HardwareDeviceTypes } from '../../../core/Analytics/MetaMetrics.types';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
 const LedgerSelectAccount = () => {
   const navigation = useNavigation<StackNavigationProp<never>>();
@@ -129,7 +128,6 @@ const LedgerSelectAccount = () => {
 
     if (forgetDevice) {
       await onForget();
-      // ...
       setBlockingModalVisible(false);
       setForgetDevice(false);
     } else if (unlockAccounts.trigger) {

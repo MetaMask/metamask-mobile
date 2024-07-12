@@ -16,7 +16,7 @@ import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
-import { HardwareDeviceTypes } from '../../../core/Analytics/MetaMetrics.types';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
