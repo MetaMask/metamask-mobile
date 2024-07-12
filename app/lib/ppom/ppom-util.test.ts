@@ -8,7 +8,6 @@ import {
   isSecurityAlertsAPIEnabled,
   validateWithSecurityAlertsAPI,
 } from './security-alerts-api';
-import { InternalAccountTypes } from '@metamask/keyring-api';
 
 const CHAIN_ID_MOCK = '0x1';
 
@@ -39,7 +38,7 @@ jest.mock('../../core/Engine', () => ({
       state: {
         internalAccounts: { accounts: [] },
       },
-      listAccounts: jest.fn().mockReturnValue(() => []),
+      listAccounts: jest.fn().mockReturnValue([]),
     },
   },
   backgroundState: {
@@ -134,7 +133,7 @@ describe('PPOM Utils', () => {
         false;
       MockEngine.context.AccountsController.listAccounts = jest
         .fn()
-        .mockReturnValue(() => [
+        .mockReturnValue([
           {
             address: '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb',
           },
@@ -146,7 +145,7 @@ describe('PPOM Utils', () => {
       expect(spyTransactionAction).toHaveBeenCalledTimes(0);
       MockEngine.context.AccountsController.listAccounts = jest
         .fn()
-        .mockReturnValue(() => []);
+        .mockReturnValue([]);
     });
 
     it('should not validate user if on a non supporting blockaid network', async () => {
