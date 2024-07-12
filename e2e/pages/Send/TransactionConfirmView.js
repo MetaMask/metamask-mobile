@@ -72,7 +72,7 @@ class TransactionConfirmationView {
   }
 
   async tapConfirmButton() {
-    await Gestures.waitAndTap(await this.confirmButton);
+    await Gestures.waitAndTap(this.confirmButton);
   }
 
   async tapCancelButton() {
