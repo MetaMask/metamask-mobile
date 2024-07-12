@@ -70,6 +70,7 @@ const AnimatedFox: React.FC<AnimatedFoxProps> = ({ bgColor }) => {
 
   return (
     <WebView
+      pointerEvents="none"
       ref={webviewRef}
       style={styles}
       source={{
