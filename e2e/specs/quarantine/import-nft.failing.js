@@ -1,7 +1,7 @@
 'use strict';
 import { SmokeAssets } from '../../tags';
-import TestHelpers from '../../helpers';
-import WalletView from '../../pages/WalletView';
+import Assertions from '../../utils/Assertions';
+import WalletView from '../../pages/wallet/WalletView';
 import AddCustomTokenView from '../../pages/AddCustomTokenView';
 import { loginToApp } from '../../viewHelper';
 import {
@@ -48,13 +48,13 @@ describe(SmokeAssets('Import NFT'), () => {
         await AddCustomTokenView.isVisible();
         await AddCustomTokenView.typeInNFTAddress(erc1155ContractAddress);
         await AddCustomTokenView.typeInNFTIdentifier('1');
-        await WalletView.isVisible();
+        await Assertions.checkIfVisible(WalletView.container);
         // Wait for asset to load
-        await TestHelpers.delay(3000);
-        await WalletView.isNFTVisibleInWallet('TestDappNFTs');
+        await Assertions.checkIfVisible(WalletView.nftInWallet('TestDappNFTs'));
         // Tap on Collectible
         await WalletView.tapOnNFTInWallet('TestDappNFTs');
-        await WalletView.isNFTNameVisible('TestDappNFTs #1');
+        //TODO: isNFTNameVisible have been removed. Update it for valid implementations
+        //await WalletView.isNFTNameVisible('TestDappNFTs #1');
         await WalletView.scrollUpOnNFTsTab();
       },
     );

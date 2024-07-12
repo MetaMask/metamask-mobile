@@ -1,0 +1,22 @@
+{
+  "project_info": {
+    "project_id": "mockproject-1234",
+    "project_number": "123456789000",
+    "name": "FirebaseQuickstarts",
+    "firebase_url": "https://mockproject-1234.firebaseio.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123456789000:android:f1bf012572b04063",
+        "client_id": "android:com.google.samples.quickstart.admobexample",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "com.google.samples.quickstart.admobexample",
+          "certificate_hash": []
+        }
+      },
+    }
+  ],
+  "configuration_version": "1"
+}
