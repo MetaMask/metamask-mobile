@@ -14,7 +14,6 @@ import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modal
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { strings } from '../../../../locales/i18n';
 import { act } from '@testing-library/react-hooks';
 
