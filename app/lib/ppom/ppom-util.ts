@@ -56,13 +56,33 @@ const SECURITY_ALERT_RESPONSE_IN_PROGRESS = {
 };
 
 async function validateRequest(req: PPOMRequest, transactionId?: string) {
-  const { PPOMController: ppomController, NetworkController } = Engine.context;
+  const {
+    AccountsController,
+    NetworkController,
+    PPOMController: ppomController,
+  } = Engine.context;
 
   const chainId = NetworkController.state.providerConfig.chainId;
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
 
   if (!ppomController || !isBlockaidFeatureEnabled() || !isConfirmationMethod) {
     return;
+  }
+
+  if (req.method === 'eth_sendTransaction') {
+    const internalAccounts = AccountsController.listAccounts();
+    const toAddress: string | undefined = (
+      req?.params?.[0] as Record<string, string>
+    ).to;
+
+    if (
+      internalAccounts.some(
+        ({ address }: { address: string }) =>
+          address?.toLowerCase() === toAddress?.toLowerCase(),
+      )
+    ) {
+      return;
+    }
   }
 
   const isTransaction = isTransactionRequest(req);
