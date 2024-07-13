@@ -5,8 +5,34 @@ exports[`BadgeBase - snapshots should render badge correctly 1`] = `
   style={{}}
   testID="badge-base"
 >
-  <Tag
-    label="Children"
-  />
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#bbc0c5",
+        "borderRadius": 10,
+        "borderWidth": 1,
+        "height": 24,
+        "justifyContent": "center",
+        "paddingHorizontal": 4,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#141618",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Children
+    </Text>
+  </View>
 </View>
 `;
