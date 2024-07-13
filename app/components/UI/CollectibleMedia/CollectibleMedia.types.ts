@@ -87,6 +87,7 @@ export interface Collectible {
   description?: string;
   rarityRank?: number;
   topBid?: TopBid;
+  isCurrentlyOwned?: boolean;
 }
 
 export interface CollectibleMediaProps {

@@ -136,7 +136,9 @@ const NftDetails = () => {
   }, [collectible, navigation, dispatch]);
 
   const isTradable = useCallback(
-    () => collectible.standard === 'ERC721',
+    () =>
+      collectible.standard === 'ERC721' &&
+      collectible.isCurrentlyOwned === true,
     [collectible],
   );
 
@@ -224,9 +226,7 @@ const NftDetails = () => {
             <View style={styles.nameWrapper}>
               <Text style={styles.heading}>{collectible.name}</Text>
               {collectible.collection?.openseaVerificationStatus ===
-                'approved' ||
-              collectible.collection?.openseaVerificationStatus ===
-                'verified' ? ( // TODO check openseaVerificationStatus value approved or verified
+              'verified' ? (
                 <Icon
                   name={IconName.SecurityTick}
                   size={IconSize.Md}
@@ -484,7 +484,7 @@ const NftDetails = () => {
             onPress={onSend}
             disabled={false} // TODO check why ERC1155 is still disabled on mobile
           >
-            Send
+            {strings('transaction.send')}
           </StyledButton>
         </View>
       ) : null}
