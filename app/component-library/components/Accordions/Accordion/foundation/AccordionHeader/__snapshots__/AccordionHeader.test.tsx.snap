@@ -15,13 +15,18 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
   testID="accordionheader"
 >
   <Text
+    accessibilityRole="text"
     style={
       {
         "color": "#0376c9",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
       }
     }
     testID="accordionheader-title"
-    variant="sBodyMD"
   >
     Sample Accordion Header Title
   </Text>
@@ -42,11 +47,18 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
     }
     testID="accordionheader-arrow-icon-animation"
   >
-    <Icon
+    <SvgMock
       color="#0376c9"
+      height={16}
       name="ArrowDown"
-      size="16"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
       testID="accordionheader-arrow-icon"
+      width={16}
     />
   </View>
 </TouchableOpacity>
@@ -67,13 +79,18 @@ exports[`AccordionHeader - Snapshot should render default settings correctly 1`]
   testID="accordionheader"
 >
   <Text
+    accessibilityRole="text"
     style={
       {
         "color": "#0376c9",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
       }
     }
     testID="accordionheader-title"
-    variant="sBodyMD"
   >
     Sample Accordion Header Title
   </Text>
@@ -94,11 +111,18 @@ exports[`AccordionHeader - Snapshot should render default settings correctly 1`]
     }
     testID="accordionheader-arrow-icon-animation"
   >
-    <Icon
+    <SvgMock
       color="#0376c9"
+      height={16}
       name="ArrowDown"
-      size="16"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
       testID="accordionheader-arrow-icon"
+      width={16}
     />
   </View>
 </TouchableOpacity>
