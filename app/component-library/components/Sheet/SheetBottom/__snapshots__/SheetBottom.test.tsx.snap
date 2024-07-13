@@ -1,9 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SheetBottom should render correctly on android: android 1`] = `
-<KeyboardAvoidingView
-  behavior="height"
-  keyboardVerticalOffset={8}
+<View
+  onLayout={[Function]}
   style={
     {
       "bottom": 0,
@@ -42,63 +41,65 @@ exports[`SheetBottom should render correctly on android: android 1`] = `
       }
     />
   </View>
-  <PanGestureHandler
-    enabled={true}
-    onGestureEvent={[Function]}
+  <View
+    collapsable={false}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    onLayout={[Function]}
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "borderTopLeftRadius": 16,
+          "borderTopRightRadius": 16,
+          "maxHeight": 1083,
+          "overflow": "hidden",
+          "paddingBottom": 3,
+        },
+        {
+          "transform": [
+            {
+              "translateY": 1334,
+            },
+          ],
+        },
+      ]
+    }
   >
     <View
-      onLayout={[Function]}
       style={
-        [
-          {
-            "backgroundColor": "#ffffff",
-            "borderTopLeftRadius": 16,
-            "borderTopRightRadius": 16,
-            "maxHeight": 1083,
-            "overflow": "hidden",
-            "paddingBottom": 3,
-          },
-          {
-            "transform": [
-              {
-                "translateY": 1334,
-              },
-            ],
-          },
-        ]
-      }
-    >
-      <View
-        style={
-          {
-            "alignSelf": "center",
-            "backgroundColor": "#bbc0c566",
-            "borderRadius": 2,
-            "height": 4,
-            "marginTop": 4,
-            "width": 40,
-          }
+        {
+          "alignSelf": "center",
+          "backgroundColor": "#bbc0c566",
+          "borderRadius": 2,
+          "height": 4,
+          "marginTop": 4,
+          "width": 40,
         }
-      />
-      <View />
-    </View>
-  </PanGestureHandler>
-</KeyboardAvoidingView>
+      }
+    />
+    <View />
+  </View>
+</View>
 `;
 
 exports[`SheetBottom should render correctly on ios: ios 1`] = `
-<KeyboardAvoidingView
-  behavior="padding"
-  keyboardVerticalOffset={-3}
+<View
+  onLayout={[Function]}
   style={
-    {
-      "bottom": 0,
-      "justifyContent": "flex-end",
-      "left": 0,
-      "position": "absolute",
-      "right": 0,
-      "top": 0,
-    }
+    [
+      {
+        "bottom": 0,
+        "justifyContent": "flex-end",
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      },
+      {
+        "paddingBottom": 0,
+      },
+    ]
   }
 >
   <View
@@ -128,46 +129,44 @@ exports[`SheetBottom should render correctly on ios: ios 1`] = `
       }
     />
   </View>
-  <PanGestureHandler
-    enabled={true}
-    onGestureEvent={[Function]}
+  <View
+    collapsable={false}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    onLayout={[Function]}
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "borderTopLeftRadius": 16,
+          "borderTopRightRadius": 16,
+          "maxHeight": 1083,
+          "overflow": "hidden",
+          "paddingBottom": 3,
+        },
+        {
+          "transform": [
+            {
+              "translateY": 1334,
+            },
+          ],
+        },
+      ]
+    }
   >
     <View
-      onLayout={[Function]}
       style={
-        [
-          {
-            "backgroundColor": "#ffffff",
-            "borderTopLeftRadius": 16,
-            "borderTopRightRadius": 16,
-            "maxHeight": 1083,
-            "overflow": "hidden",
-            "paddingBottom": 3,
-          },
-          {
-            "transform": [
-              {
-                "translateY": 1334,
-              },
-            ],
-          },
-        ]
-      }
-    >
-      <View
-        style={
-          {
-            "alignSelf": "center",
-            "backgroundColor": "#bbc0c566",
-            "borderRadius": 2,
-            "height": 4,
-            "marginTop": 4,
-            "width": 40,
-          }
+        {
+          "alignSelf": "center",
+          "backgroundColor": "#bbc0c566",
+          "borderRadius": 2,
+          "height": 4,
+          "marginTop": 4,
+          "width": 40,
         }
-      />
-      <View />
-    </View>
-  </PanGestureHandler>
-</KeyboardAvoidingView>
+      }
+    />
+    <View />
+  </View>
+</View>
 `;
