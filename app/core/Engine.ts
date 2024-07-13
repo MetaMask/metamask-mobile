@@ -48,7 +48,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
-  NetworkClientId,
   NetworkController,
   NetworkControllerActions,
   NetworkControllerEvents,
@@ -1027,11 +1026,11 @@ class Engine {
       disableSendFlowHistory: true,
       disableHistory: true,
       disableSwaps: true,
-      getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+      getGasFeeEstimates:
+        gasFeeController.fetchGasFeeEstimates.bind(gasFeeController),
       // @ts-expect-error TransactionController is missing networkClientId argument in type
-      getCurrentNetworkEIP1559Compatibility: (
-        networkClientId?: NetworkClientId,
-      ) => networkController.getEIP1559Compatibility(networkClientId),
+      getCurrentNetworkEIP1559Compatibility:
+        networkController.getEIP1559Compatibility.bind(networkController),
       // @ts-expect-error NetworkController in TransactionController is later version
       // but only breaking change is Node version and bumped dependencies
       getNetworkClientRegistry:

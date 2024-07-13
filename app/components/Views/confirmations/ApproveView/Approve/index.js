@@ -318,7 +318,8 @@ class Approve extends PureComponent {
         this.props.gasFeeEstimates &&
         transaction.gas &&
         (!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
-          !transaction.gas.eq(prevProps?.transaction?.gas))
+          !transaction.gas.eq(prevProps?.transaction?.gas) ||
+          !this.state.ready)
       ) {
         this.computeGasEstimates(null, null, gasEstimateTypeChanged);
       }
@@ -448,12 +449,14 @@ class Approve extends PureComponent {
       transactionToSend.maxPriorityFeePerGas = addHexPrefix(
         eip1559GasTransaction.suggestedMaxPriorityFeePerGasHex,
       ); //'0x3b9aca00';
-      delete transactionToSend.gasPrice;
+      transactionToSend.gasPrice = undefined;
     } else {
       transactionToSend.gas = legacyGasTransaction.suggestedGasLimitHex;
       transactionToSend.gasPrice = addHexPrefix(
         legacyGasTransaction.suggestedGasPriceHex,
       );
+      transactionToSend.maxFeePerGas = undefined;
+      transactionToSend.maxPriorityFeePerGas = undefined;
     }
 
     if (showCustomNonce && transactionToSend.nonce) {
