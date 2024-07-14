@@ -9,9 +9,8 @@ interface FirebaseAppOptions {
   clientId?: string;
   androidClientId?: string;
   deepLinkURLScheme?: string;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [name: string]: any;
+  authDomain?: string;
+  measurementId?: string;
 }
 
 const getEnvStr = (test: string, prod: string, override?: string) =>
@@ -70,3 +69,6 @@ function getFirebaseConfigEnv(): FirebaseAppOptions | null {
 }
 
 export const FIREBASE_CONFIG = getFirebaseConfigEnv();
+
+export const isNotificationsFeatureEnabled = () =>
+  process.env.MM_NOTIFICATIONS_UI_ENABLED === 'true';
