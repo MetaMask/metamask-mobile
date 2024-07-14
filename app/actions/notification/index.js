@@ -100,3 +100,9 @@ export function removeNotVisibleNotifications() {
     type: ACTIONS.REMOVE_NOT_VISIBLE_NOTIFICATIONS,
   };
 }
+export function updateNotificationStatus(notificationsSettings) {
+  return {
+    type: 'UPDATE_NOTIFICATION_STATUS',
+    notificationsSettings,
+  };
+}
