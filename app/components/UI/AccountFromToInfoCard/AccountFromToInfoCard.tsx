@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { Text, TouchableOpacity, View } from 'react-native';
+import Logger from '../../../util/Logger';
 
 import TransactionTypes from '../../../core/TransactionTypes';
 import useAddressBalance from '../../../components/hooks/useAddressBalance/useAddressBalance';
@@ -58,23 +59,31 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 
   useEffect(() => {
     const fetchFromAccountDetails = async () => {
+      Logger.log('Starting ENS resolution process for fromAddress');
       if (!fromAddress) {
+        Logger.log('No fromAddress provided, skipping ENS resolution');
         return;
       }
 
       if (transactionFromName) {
+        Logger.log(`Using provided transactionFromName: ${transactionFromName}`);
         if (fromAccountName !== transactionFromName) {
           setFromAccountName(transactionFromName);
+          Logger.log(`Updated fromAccountName to: ${transactionFromName}`);
         }
         return;
       }
 
+      Logger.log(`Resolving ENS for fromAddress: ${fromAddress}`);
       const fromEns = await doENSReverseLookup(fromAddress, chainId);
       if (fromEns) {
+        Logger.log(`ENS resolution result for fromAddress: ${fromEns}`);
         if (fromAccountName !== fromEns) {
           setFromAccountName(fromEns);
+          Logger.log(`Updated fromAccountName to ENS: ${fromEns}`);
         }
       } else {
+        Logger.log('No ENS found, searching for matching internal account');
         const accountWithMatchingFromAddress = internalAccounts.find(
           (account) => toLowerCaseEquals(account.address, fromAddress),
         );
@@ -85,8 +94,10 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 
         if (fromAccountName !== newName) {
           setFromAccountName(newName);
+          Logger.log(`Updated fromAccountName to: ${newName}`);
         }
       }
+      Logger.log('ENS resolution process for fromAddress completed');
     };
 
     fetchFromAccountDetails();
@@ -98,37 +109,46 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     fromAccountName,
   ]);
 
-  useEffect(() => {
-    const fetchAccountDetails = async () => {
-      if (existingToAddress) {
-        if (toAccountName !== existingToAddress.name) {
-          setToAccountName(existingToAddress.name);
-        }
-        return;
+useEffect(() => {
+  const fetchAccountDetails = async () => {
+    Logger.log('Starting ENS resolution process for toAddress');
+    if (existingToAddress) {
+      Logger.log(`Using existing toAddress: ${existingToAddress.name}`);
+      if (toAccountName !== existingToAddress.name) {
+        setToAccountName(existingToAddress.name);
+        Logger.log(`Updated toAccountName to: ${existingToAddress.name}`);
       }
+      return;
+    }
 
-      const toEns = await doENSReverseLookup(toAddress, chainId);
-      if (toEns) {
-        if (toAccountName !== toEns) {
-          setToAccountName(toEns);
-        }
-      } else {
-        const accountWithMatchingToAddress = internalAccounts.find((account) =>
-          toLowerCaseEquals(account.address, toAddress),
-        );
-
-        const newName = accountWithMatchingToAddress
-          ? accountWithMatchingToAddress.metadata.name
-          : toAddress;
-
-        if (toAccountName !== newName) {
-          setToAccountName(newName);
-        }
+    Logger.log(`Resolving ENS for toAddress: ${toAddress}`);
+    const toEns = await doENSReverseLookup(toAddress, chainId);
+    if (toEns) {
+      Logger.log(`ENS resolution result for toAddress: ${toEns}`);
+      if (toAccountName !== toEns) {
+        setToAccountName(toEns);
+        Logger.log(`Updated toAccountName to ENS: ${toEns}`);
       }
-    };
+    } else {
+      Logger.log('No ENS found, searching for matching internal account');
+      const accountWithMatchingToAddress = internalAccounts.find((account) =>
+        toLowerCaseEquals(account.address, toAddress),
+      );
 
-    fetchAccountDetails();
-  }, [existingToAddress, chainId, toAddress, internalAccounts, toAccountName]);
+      const newName = accountWithMatchingToAddress
+        ? accountWithMatchingToAddress.metadata.name
+        : toAddress;
+
+      if (toAccountName !== newName) {
+        setToAccountName(newName);
+        Logger.log(`Updated toAccountName to: ${newName}`);
+      }
+    }
+    Logger.log('ENS resolution process for toAddress completed');
+  };
+
+  fetchAccountDetails();
+}, [existingToAddress, chainId, toAddress, internalAccounts, toAccountName]);
 
   useEffect(() => {
     const accountNames = internalAccounts.map(
@@ -179,6 +199,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 
   return (
     <>
+      {Logger.log(`Rendering with fromAccountName: ${fromAccountName}, toAccountName: ${toAccountName}`)}
       <View style={styles.inputWrapper}>
         {fromAddress && (
           <AddressFrom
