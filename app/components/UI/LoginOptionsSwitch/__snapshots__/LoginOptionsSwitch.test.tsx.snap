@@ -1,37 +1,59 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`LoginWithBiometricsSwitch should render correctly 1`] = `
-<ContextProvider
-  value={
+exports[`LoginOptionsSwitch should not render biometric option when shouldRenderBiometricOption is null 1`] = `null`;
+
+exports[`LoginOptionsSwitch should render correctly with biometric option 1`] = `
+<View
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "marginBottom": 30,
+      "marginTop": 20,
+      "position": "relative",
     }
   }
 >
-  <Component
-    biometryChoiceState={true}
-    onUpdateBiometryChoice={[Function]}
-    onUpdateRememberMe={[Function]}
-    shouldRenderBiometricOption="Face"
+  <Text
+    style={
+      {
+        "color": "#141618",
+        "flex": 1,
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 16,
+        "fontWeight": "400",
+      }
+    }
+  >
+    [missing "en.biometrics.enable_face" translation]
+  </Text>
+  <RCTSwitch
+    accessibilityRole="switch"
+    onChange={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onTintColor="#0376c9"
+    style={
+      [
+        {
+          "height": 31,
+          "width": 51,
+        },
+        [
+          {
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          },
+          {
+            "backgroundColor": "#bbc0c566",
+            "borderRadius": 16,
+          },
+        ],
+      ]
+    }
+    testID="login-with-biometrics-switch"
+    thumbTintColor="#ffffff"
+    tintColor="#bbc0c566"
+    value={true}
   />
-</ContextProvider>
+</View>
 `;
