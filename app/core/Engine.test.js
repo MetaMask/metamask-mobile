@@ -23,7 +23,7 @@ jest.mock('@metamask/snaps-controllers', () => ({
 }));
 
 // Add mock for TransactionController
-jest.mock('../core/TransactionController', () => ({
+jest.mock('./TransactionController', () => ({
   TransactionController: jest.fn().mockImplementation(() => ({
     getTransactions: jest.fn().mockReturnThis(),
     // Add other necessary methods here
