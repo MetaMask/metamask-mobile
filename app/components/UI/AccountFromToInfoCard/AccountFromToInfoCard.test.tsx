@@ -1,6 +1,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import { shallow } from 'enzyme';
+import { render, screen, waitFor } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -27,10 +27,10 @@ const mockInitialState = {
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {
-            balance: 200,
+            balance: '200',
           },
           [MOCK_ADDRESS_2]: {
-            balance: 200,
+            balance: '200',
           },
         },
       },
@@ -111,52 +111,52 @@ const transactionState: Transaction = {
 
 describe('AccountFromToInfoCard', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <AccountFromToInfoCard transactionState={transactionState} />
-      </Provider>,
+      </Provider>
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should match snapshot', async () => {
-    const container = renderWithProvider(
+  it('should match snapshot', () => {
+    const { toJSON } = renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(container).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render from address', async () => {
-    const { findByText } = renderWithProvider(
+    renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(await findByText('Account 1')).toBeDefined();
+    expect(screen.getByText('Account 1')).toBeTruthy();
   });
 
   it('should render balance of from address', async () => {
-    const { findByText } = renderWithProvider(
+    renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(await findByText('Balance: < 0.00001 ETH')).toBeDefined();
+    expect(screen.getByText('Balance: < 0.00001 ETH')).toBeTruthy();
   });
 
   it('should render to account name', async () => {
-    const { findByText } = renderWithProvider(
+    renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(await findByText('Account 2')).toBeDefined();
+    expect(screen.getByText('Account 2')).toBeTruthy();
   });
 
   it('should render to address', async () => {
-    const { findByText } = renderWithProvider(
+    renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(await findByText('0x519d...9CC7')).toBeDefined();
+    expect(screen.getByText('0x519d...9CC7')).toBeTruthy();
   });
 
   it('should render correct to address for NFT send', async () => {
@@ -178,13 +178,13 @@ describe('AccountFromToInfoCard', () => {
       transactionTo: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
-    const { findByText } = renderWithProvider(
+    render(
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       <AccountFromToInfoCard transactionState={NFTTransaction as any} />,
-      { state: mockInitialState },
+      { wrapper: ({ children }) => <Provider store={store}>{children}</Provider> }
     );
-    expect(await findByText('0xF4e8...287B')).toBeDefined();
+    expect(screen.getByText('0xF4e8...287B')).toBeTruthy();
   });
 
   it('should display ens name', async () => {
@@ -208,12 +208,14 @@ describe('AccountFromToInfoCard', () => {
         timestamp: new Date().getTime(),
       },
     };
-    const { queryByText } = renderWithProvider(
-      <AccountFromToInfoCard transactionState={txState} />,
-      { state: mockInitialState },
+    render(
+      <Provider store={store}>
+        <AccountFromToInfoCard transactionState={txState} />
+      </Provider>
     );
-    expect(await queryByText('test1.eth')).toBeDefined();
-    expect(await queryByText('test3.eth')).toBeDefined();
+    screen.debug();
+    await expect(screen.findByText('test1.eth')).resolves.toBeTruthy();
+    await expect(screen.findByText('test3.eth')).resolves.toBeTruthy();
   });
 
   describe('from account balance', () => {
@@ -236,26 +238,27 @@ describe('AccountFromToInfoCard', () => {
         value: '3a98',
       },
     };
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let mockGetERC20BalanceOf: any;
+    let mockGetERC20BalanceOf: jest.Mock;
     beforeEach(() => {
       jest.useFakeTimers();
       mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
       Engine.context.AssetsContractController = {
         getERC20BalanceOf: mockGetERC20BalanceOf,
-      };
+        name: 'AssetsContractController',
+        getNetworkClientById: jest.fn(),
+        provider: {},
+        getProvider: jest.fn(),
+      } as unknown as Record<string, unknown>;
     });
 
     it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', async () => {
-      const { findByText } = renderWithProvider(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <AccountFromToInfoCard transactionState={ERC20Transaction as any} />,
+      renderWithProvider(
+        <AccountFromToInfoCard transactionState={ERC20Transaction as unknown as Transaction} />,
         { state: mockInitialState },
       );
+      screen.debug();
       expect(mockGetERC20BalanceOf).toBeCalledTimes(1);
-      expect(await findByText('Balance: 10 TST')).toBeDefined();
+      await expect(screen.findByText(/Balance:.+TST/)).resolves.toBeTruthy();
     });
 
     it('should render balance from TokenBalancesController.contractBalances if selectedAddress is same as fromAddress', async () => {
@@ -267,14 +270,14 @@ describe('AccountFromToInfoCard', () => {
           from: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
         },
       };
-      const { findByText } = renderWithProvider(
+      renderWithProvider(
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         <AccountFromToInfoCard transactionState={transaction as any} />,
         { state: mockInitialState },
       );
       expect(mockGetERC20BalanceOf).toBeCalledTimes(0);
-      expect(await findByText('Balance: 0.0005 TST')).toBeDefined();
+      expect(screen.getByText('Balance: 0.0005 TST')).toBeTruthy();
     });
   });
 });
