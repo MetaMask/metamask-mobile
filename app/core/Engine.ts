@@ -45,7 +45,6 @@ import {
   BaseController,
   RestrictedControllerMessenger,
   StateConstraint,
-  EventConstraint,
 } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
