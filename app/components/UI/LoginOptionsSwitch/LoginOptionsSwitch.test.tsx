@@ -1,16 +1,18 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 import LoginOptionsSwitch from './LoginOptionsSwitch';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-describe('LoginWithBiometricsSwitch', () => {
+
+describe('LoginOptionsSwitch', () => {
   const mockStore = configureMockStore();
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   const handleUpdate = (_biometricsEnabled: boolean) => {};
-  it('should render correctly', () => {
+
+  it('should render correctly with biometric option', () => {
     const store = mockStore({});
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <LoginOptionsSwitch
           shouldRenderBiometricOption={BIOMETRY_TYPE.FACE}
@@ -20,12 +22,14 @@ describe('LoginWithBiometricsSwitch', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Face ID')).toBeTruthy();
+    expect(screen.getByText('Remember me')).toBeTruthy();
   });
 
-  it('should return empty object when shouldRenderBiometricOption is undefined and allowLoginWithRememberMe is false in settings', () => {
+  it('should not render biometric option when shouldRenderBiometricOption is null', () => {
     const store = mockStore({});
-    const wrapper = shallow(
+    render(
       <Provider store={store}>
         <LoginOptionsSwitch
           onUpdateBiometryChoice={handleUpdate}
@@ -35,6 +39,7 @@ describe('LoginWithBiometricsSwitch', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchObject({});
+    expect(screen.queryByText('Face ID')).toBeNull();
+    expect(screen.getByText('Remember me')).toBeTruthy();
   });
 });
