@@ -43,7 +43,7 @@ const config = {
     '\\.png': '<rootDir>/app/__mocks__/pngMock.js',
     '\\.detoxrc.json': '<rootDir>/.detoxrc.json',
   },
-  testMatch: ['<rootDir>/e2e/**/*.test.js'],
+  testMatch: ['<rootDir>/e2e/specs/**/*.spec.js'],
   // Disable jest cache
   cache: false,
 };
