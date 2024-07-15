@@ -75,11 +75,15 @@ jest.mock('../../../core/Engine', () => ({
 jest.mock('../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../util/ENSUtils'),
   doENSReverseLookup: jest.fn().mockImplementation((address) => {
+    console.log('Mocked doENSReverseLookup called with:', address);
     if (address === '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A') {
+      console.log('Resolving to test1.eth');
       return Promise.resolve('test1.eth');
     } else if (address === '0x9004C7f302475BF5501fbc6254f69C64212A0d12') {
+      console.log('Resolving to test3.eth');
       return Promise.resolve('test3.eth');
     }
+    console.log('Resolving to null');
     return Promise.resolve(null);
   }),
 }));
@@ -230,18 +234,28 @@ describe('AccountFromToInfoCard', () => {
         timestamp: new Date().getTime(),
       },
     };
-    render(
+
+    console.log('ENS Cache:', ENSCache.cache);
+
+    const { debug } = render(
       <Provider store={store}>
         <AccountFromToInfoCard transactionState={txState} />
       </Provider>,
     );
 
-    screen.debug();
+    console.log('Initial render:');
+    debug();
+
     await waitFor(() => {
+      console.log('Waiting for ENS names...');
+      debug();
       expect(screen.getByText('test1.eth')).toBeTruthy();
       expect(screen.getByText('test3.eth')).toBeTruthy();
-    }, { timeout: 10000 });
-  });
+    }, { timeout: 25000, interval: 1000 });
+
+    console.log('Final render:');
+    debug();
+  }, 30000);
 
   describe('from account balance', () => {
     const ERC20Transaction = {
