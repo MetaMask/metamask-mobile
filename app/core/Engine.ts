@@ -32,7 +32,6 @@ import {
   BaseState,
   RestrictedControllerMessenger,
   StateConstraint,
-  EventConstraint,
 } from '@metamask/base-controller';
 import { RestrictedControllerMessenger as ApprovalControllerRestrictedMessenger } from '@metamask/approval-controller/node_modules/@metamask/base-controller';
 import {
