@@ -1,6 +1,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, waitFor } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import PropTypes from 'prop-types';
 
@@ -228,9 +228,11 @@ describe('AccountFromToInfoCard', () => {
         <AccountFromToInfoCard transactionState={txState} />
       </Provider>,
     );
-    screen.debug();
-    await expect(screen.findByText('test1.eth')).resolves.toBeTruthy();
-    await expect(screen.findByText('test3.eth')).resolves.toBeTruthy();
+
+    await waitFor(() => {
+      expect(screen.getByText('test1.eth')).toBeTruthy();
+      expect(screen.getByText('test3.eth')).toBeTruthy();
+    }, { timeout: 5000 });
   });
 
   describe('from account balance', () => {
