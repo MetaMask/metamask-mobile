@@ -22,6 +22,14 @@ jest.mock('@metamask/snaps-controllers', () => ({
   })),
 }));
 
+// Add mock for TransactionController
+jest.mock('../core/TransactionController', () => ({
+  TransactionController: jest.fn().mockImplementation(() => ({
+    getTransactions: jest.fn().mockReturnThis(),
+    // Add other necessary methods here
+  })),
+}));
+
 describe('Engine', () => {
   it('should expose an API', () => {
     const engine = Engine.init({});
@@ -54,6 +62,7 @@ describe('Engine', () => {
 
   it('calling Engine.destroy deletes the old instance', async () => {
     const engine = Engine.init({});
+    expect(engine.context.TransactionController).toBeDefined();
     await engine.destroyEngineInstance();
     const newEngine = Engine.init({});
     expect(engine).not.toStrictEqual(newEngine);
