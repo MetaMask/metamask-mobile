@@ -10,13 +10,17 @@ import {
 } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
 import { storybookPropsGroupID } from '../../../../../component-library/constants/storybook.constants';
 import BlockaidBanner from './BlockaidBanner';
-import { BlockaidBannerProps, FlagType, Reason } from './BlockaidBanner.types';
+import { BlockaidBannerProps, Reason } from './BlockaidBanner.types';
 
 export const getBlockaidBannerStoryProps = (): BlockaidBannerProps => {
   const flagTypeSelector = select(
     'flagType',
-    FlagType,
-    FlagType.Warning,
+    {
+      Warning: 'Warning',
+      Danger: 'Danger',
+      Info: 'Info',
+    },
+    'Warning',
     storybookPropsGroupID,
   );
 
@@ -37,12 +41,6 @@ export const getBlockaidBannerStoryProps = (): BlockaidBannerProps => {
   return {
     title,
     description,
-    reason: reasonSelector,
-    flagType: flagTypeSelector,
-    features: [
-      'Operator is an EOA',
-      'Operator is untrusted according to previous activity',
-    ],
   };
 };
 
