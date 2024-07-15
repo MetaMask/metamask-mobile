@@ -1,5 +1,7 @@
 // Buffer is made available globally for compatibility reasons
-global.Buffer = global.Buffer || require('buffer').Buffer;
+if (typeof global.Buffer === 'undefined') {
+  global.Buffer = require('buffer').Buffer;
+}
 
 // TextEncoder and TextDecoder are now available globally in Node.js v11+
 
@@ -13,17 +15,23 @@ jest.mock('react-native', () => {
 });
 
 // If TextEncoder is not available, provide a mock implementation
-if (typeof TextEncoder === 'undefined') {
-  global.TextEncoder = global.TextEncoder || (function() {
-    const { TextEncoder } = require('util');
-    return TextEncoder;
-  })();
+if (typeof global.TextEncoder === 'undefined') {
+  global.TextEncoder = function TextEncoder() {
+    return {
+      encode: function(input) {
+        return Buffer.from(input, 'utf-8');
+      }
+    };
+  };
 }
 
 // If TextDecoder is not available, provide a mock implementation
-if (typeof TextDecoder === 'undefined') {
-  global.TextDecoder = global.TextDecoder || (function() {
-    const { TextDecoder } = require('util');
-    return TextDecoder;
-  })();
+if (typeof global.TextDecoder === 'undefined') {
+  global.TextDecoder = function TextDecoder() {
+    return {
+      decode: function(input) {
+        return Buffer.from(input).toString('utf-8');
+      }
+    };
+  };
 }
