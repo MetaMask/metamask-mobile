@@ -9,6 +9,16 @@ jest.mock('@metamask/snaps-controllers', () => ({
     get: jest.fn(),
     update: jest.fn(),
   })),
+  SnapController: jest.fn().mockImplementation(() => ({
+    addSnap: jest.fn(),
+    removeSnap: jest.fn(),
+    getSnap: jest.fn(),
+    updateSnap: jest.fn(),
+    enableSnap: jest.fn(),
+    disableSnap: jest.fn(),
+    on: jest.fn(),
+    off: jest.fn(),
+  })),
 }));
 
 describe('Engine', () => {
