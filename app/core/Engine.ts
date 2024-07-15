@@ -1351,16 +1351,16 @@ class Engine {
 
     this.datamodel = new ComposableController(
       controllers as unknown as BaseController<
-        string,
+        any,
         StateConstraint,
-        RestrictedControllerMessenger<string, never, string, never, string>
+        RestrictedControllerMessenger<any, never, any, never, any>
       >[],
-      this.controllerMessenger as unknown as RestrictedControllerMessenger<
+      this.controllerMessenger as unknown as import('@metamask/approval-controller/node_modules/@metamask/base-controller').RestrictedControllerMessenger<
         'ComposableController',
         never,
-        string,
+        any,
         never,
-        string
+        any
       >,
     );
     this.context = controllers.reduce<Partial<typeof this.context>>(
@@ -1564,7 +1564,7 @@ class Engine {
           const tokenBalanceFiat = balanceToFiatNumber(
             tokenBalance as string | number,
             conversionRate,
-            exchangeRate as number | undefined,
+            exchangeRate ? exchangeRate : 0,
             decimalsToShow,
           );
 
