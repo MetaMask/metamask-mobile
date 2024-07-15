@@ -15,7 +15,7 @@ const config = {
     '<rootDir>/app/util/test/testSetup.js',
   ],
   transformIgnorePatterns: [
-    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|@metamask/snaps-rpc-methods|@metamask/snaps-utils|@metamask/sdk-communication-layer|multiformats|nanoid)))',
+    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|@metamask/snaps-rpc-methods|@metamask/snaps-utils|@metamask/sdk-communication-layer|multiformats|nanoid|uuid)))',
   ],
   transform: {
     '^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest',
