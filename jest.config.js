@@ -13,9 +13,10 @@ const config = {
   setupFilesAfterEnv: [
     '<rootDir>/jest.setup.js',
     '<rootDir>/app/util/test/testSetup.js',
+    '<rootDir>/jest.setupMocks.js',
   ],
   transformIgnorePatterns: [
-    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|@metamask/snaps-rpc-methods|@metamask/snaps-utils|@metamask/sdk-communication-layer|multiformats|nanoid|uuid)))',
+    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|@metamask/snaps-rpc-methods|@metamask/snaps-utils|@metamask/sdk-communication-layer|multiformats|nanoid|uuid|@walletconnect|uint8arrays)))',
   ],
   transform: {
     '^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest',
@@ -44,6 +45,7 @@ const config = {
   },
   // Disable jest cache
   cache: false,
+  testEnvironment: 'jsdom',
 };
 
 if (process.env.TEST_ENV === 'e2e') {
@@ -58,12 +60,9 @@ if (process.env.TEST_ENV === 'e2e') {
 } else {
   // For unit tests
   config.testMatch = ['<rootDir>/app/**/__tests__/**/*.js?(x)', '<rootDir>/app/**/?(*.)+(spec|test).js?(x)'];
-  config.testEnvironment = 'jest-environment-jsdom';
   config.globalSetup = undefined;
   config.globalTeardown = undefined;
 }
 
 // eslint-disable-next-line import/no-commonjs
 module.exports = config;
-
-jest.mock('@metamask/sdk-communication-layer', () => require('./__mocks__/@metamask/sdk-communication-layer'));
