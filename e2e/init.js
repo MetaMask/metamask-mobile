@@ -1,12 +1,17 @@
+const detox = require('detox');
+const config = require('../.detoxrc.json');
 import Utilities from './utils/Utilities';
 
-/**
- * Before all tests, modify the app launch arguments to include the blacklistURLs.
- * This sets up the environment for Detox tests.
- */
 beforeAll(async () => {
+  await detox.init(config);
   device.appLaunchArgs.modify({
     detoxURLBlacklistRegex: Utilities.BlacklistURLs,
     permissions: { notifications: 'YES' },
   });
 });
+
+afterAll(async () => {
+  await detox.cleanup();
+});
+
+global.device = detox.device;
