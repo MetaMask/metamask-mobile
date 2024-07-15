@@ -13,6 +13,7 @@ const config = {
   setupFilesAfterEnv: [
     '<rootDir>/app/util/test/testSetup.js',
     '<rootDir>/e2e/init.js',
+    '<rootDir>/jest.setup.js',
   ],
   transformIgnorePatterns: [
     'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee)))',
