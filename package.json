@@ -177,7 +177,7 @@
     "@metamask/react-native-webview": "^14.0.2",
     "@metamask/rpc-errors": "^6.2.1",
     "@metamask/scure-bip39": "^2.1.0",
-    "@metamask/sdk-communication-layer": "^0.20.2",
+    "@metamask/sdk-communication-layer": "0.26.4",
     "@metamask/signature-controller": "^16.0.0",
     "@metamask/slip44": "3.1.0",
     "@metamask/smart-transactions-controller": "10.1.1",
