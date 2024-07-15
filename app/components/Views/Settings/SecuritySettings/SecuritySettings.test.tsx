@@ -1,4 +1,5 @@
 import React from 'react';
+import { act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import SecuritySettings from './SecuritySettings';
@@ -24,6 +25,15 @@ import {
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
+
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  RN.DeviceEventEmitter = {
+    ...RN.DeviceEventEmitter,
+    removeListener: jest.fn(),
+  };
+  return RN;
+});
 
 const initialState = {
   privacy: { approvedHosts: {} },
@@ -80,53 +90,68 @@ describe('SecuritySettings', () => {
       scrollToDetectNFTs: undefined,
     };
   });
-  it('should render correctly', () => {
-    const wrapper = renderWithProvider(<SecuritySettings />, {
-      state: initialState,
-    });
-    expect(wrapper.toJSON()).toMatchSnapshot();
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
-  it('should render all sections', () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <SecuritySettings />,
-      {
+
+  it('should render correctly', async () => {
+    let wrapper;
+    await act(async () => {
+      wrapper = renderWithProvider(<SecuritySettings />, {
         state: initialState,
-      },
-    );
-    expect(getByText('Protect your wallet')).toBeTruthy();
+      });
+    });
+    expect(wrapper!.toJSON()).toMatchSnapshot();
+  });
+
+  it('should render all sections', async () => {
+    let getByText: any, getByTestId: any;
+    await act(async () => {
+      ({ getByText, getByTestId } = renderWithProvider(
+        <SecuritySettings />,
+        {
+          state: initialState,
+        },
+      ));
+    });
+    expect(getByText!('Protect your wallet')).toBeTruthy();
     expect(
-      getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
+      getByTestId!(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
     ).toBeTruthy();
-    expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
-    expect(getByTestId(LOGIN_OPTIONS)).toBeTruthy();
-    expect(getByTestId(TURN_ON_REMEMBER_ME)).toBeTruthy();
-    expect(getByTestId(REVEAL_PRIVATE_KEY_SECTION)).toBeTruthy();
-    expect(getByTestId(SDK_SECTION)).toBeTruthy();
-    expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
-    expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();
-    expect(getByTestId(META_METRICS_SECTION)).toBeTruthy();
-    expect(getByTestId(DELETE_METRICS_BUTTON)).toBeTruthy();
-    expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeTruthy();
-    expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
-    expect(getByTestId(BATCH_BALANCE_REQUESTS_SECTION)).toBeTruthy();
+    expect(getByTestId!(AUTO_LOCK_SECTION)).toBeTruthy();
+    expect(getByTestId!(LOGIN_OPTIONS)).toBeTruthy();
+    expect(getByTestId!(TURN_ON_REMEMBER_ME)).toBeTruthy();
+    expect(getByTestId!(REVEAL_PRIVATE_KEY_SECTION)).toBeTruthy();
+    expect(getByTestId!(SDK_SECTION)).toBeTruthy();
+    expect(getByTestId!(CLEAR_PRIVACY_SECTION)).toBeTruthy();
+    expect(getByTestId!(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();
+    expect(getByTestId!(META_METRICS_SECTION)).toBeTruthy();
+    expect(getByTestId!(DELETE_METRICS_BUTTON)).toBeTruthy();
+    expect(getByTestId!(META_METRICS_DATA_MARKETING_SECTION)).toBeTruthy();
+    expect(getByTestId!(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
+    expect(getByTestId!(BATCH_BALANCE_REQUESTS_SECTION)).toBeTruthy();
     expect(SecurityPrivacyViewSelectorsIDs.INCOMING_TRANSACTIONS).toBeTruthy();
-    expect(getByTestId(NFT_DISPLAY_MEDIA_MODE_SECTION)).toBeTruthy();
-    expect(getByTestId(NFT_AUTO_DETECT_MODE_SECTION)).toBeTruthy();
-    expect(getByTestId(IPFS_GATEWAY_SECTION)).toBeTruthy();
-    expect(getByText('Automatic security checks')).toBeTruthy();
-    expect(getByTestId(USE_SAFE_CHAINS_LIST_VALIDATION)).toBeTruthy();
+    expect(getByTestId!(NFT_DISPLAY_MEDIA_MODE_SECTION)).toBeTruthy();
+    expect(getByTestId!(NFT_AUTO_DETECT_MODE_SECTION)).toBeTruthy();
+    expect(getByTestId!(IPFS_GATEWAY_SECTION)).toBeTruthy();
+    expect(getByText!('Automatic security checks')).toBeTruthy();
+    expect(getByTestId!(USE_SAFE_CHAINS_LIST_VALIDATION)).toBeTruthy();
   });
 
   it('renders Blockaid settings', async () => {
-    const { getByTestId, findByText } = renderWithProvider(
-      <SecuritySettings />,
-      {
-        state: initialState,
-      },
-    );
+    let getByTestId: any, findByText: any;
+    await act(async () => {
+      ({ getByTestId, findByText } = renderWithProvider(
+        <SecuritySettings />,
+        {
+          state: initialState,
+        },
+      ));
+    });
 
-    expect(await findByText('Security alerts')).toBeDefined();
-    const toggle = getByTestId(SECURITY_ALERTS_TOGGLE_TEST_ID);
+    expect(await findByText!('Security alerts')).toBeDefined();
+    const toggle = getByTestId!(SECURITY_ALERTS_TOGGLE_TEST_ID);
     expect(toggle).toBeDefined();
     expect(toggle.props.value).toBe(true);
   });
