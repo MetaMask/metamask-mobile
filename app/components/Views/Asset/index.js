@@ -63,6 +63,7 @@ import { updateIncomingTransactions } from '../../../util/transaction-controller
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { hexStringToUint8Array } from '../../../util/hexUtils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -189,7 +190,7 @@ class Asset extends PureComponent {
   navSymbol = undefined;
   navAddress = undefined;
   selectedAddress = toChecksumHexAddress(
-    this.props.selectedInternalAccount?.address,
+    hexStringToUint8Array(this.props.selectedInternalAccount?.address),
   );
 
   updateNavBar = (contentOffset = 0) => {
