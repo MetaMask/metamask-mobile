@@ -1,6 +1,13 @@
-// Buffer is made available globally for compatibility reasons
+// Define Buffer globally without relying on the 'buffer' module
 if (typeof global.Buffer === 'undefined') {
-  global.Buffer = require('buffer').Buffer;
+  global.Buffer = {
+    from: (input, encoding) => {
+      if (typeof input === 'string') {
+        return new Uint8Array([...input].map(char => char.charCodeAt(0)));
+      }
+      return new Uint8Array(input);
+    },
+  };
 }
 
 // TextEncoder and TextDecoder are now available globally in Node.js v11+
@@ -19,7 +26,7 @@ if (typeof global.TextEncoder === 'undefined') {
   global.TextEncoder = function TextEncoder() {
     return {
       encode: function(input) {
-        return Buffer.from(input, 'utf-8');
+        return global.Buffer.from(input, 'utf-8');
       }
     };
   };
@@ -30,7 +37,7 @@ if (typeof global.TextDecoder === 'undefined') {
   global.TextDecoder = function TextDecoder() {
     return {
       decode: function(input) {
-        return Buffer.from(input).toString('utf-8');
+        return global.Buffer.from(input).toString('utf-8');
       }
     };
   };
