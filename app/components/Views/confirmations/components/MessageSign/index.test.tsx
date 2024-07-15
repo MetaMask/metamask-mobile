@@ -14,7 +14,7 @@ import * as addressUtils from '../../../../../util/address';
 import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
-const fakeAddress = '0xE413f7dB07f9B93936189867588B1440D823e651';
+const mockFakeAddress = '0xE413f7dB07f9B93936189867588B1440D823e651';
 
 jest.mock('../../../../../components/hooks/useMetrics');
 
@@ -30,7 +30,7 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     KeyringController: {
       state: {
-        keyrings: [{ accounts: [fakeAddress] }],
+        keyrings: [{ accounts: [mockFakeAddress] }],
       },
     },
   },
@@ -89,7 +89,7 @@ const messageParamsMock = {
   data: 'message',
   origin: 'example.com',
   metamaskId: 'TestMessageId',
-  from: '0xE413f7dB07f9B93936189867588B1440D823e651',
+  from: mockFakeAddress,
 };
 
 const initialState = {
