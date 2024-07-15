@@ -1363,7 +1363,7 @@ class Engine {
         any,
         never,
         any
-      >
+      >,
     );
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({

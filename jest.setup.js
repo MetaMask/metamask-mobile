@@ -23,9 +23,18 @@ jest.mock('react-native', () => {
 });
 
 // Mock specific React Native components
-jest.mock('react-native/Libraries/Components/Touchable/TouchableOpacity', () => 'TouchableOpacity');
-jest.mock('react-native/Libraries/Components/Touchable/TouchableHighlight', () => 'TouchableHighlight');
-jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => 'TextInput');
+jest.mock(
+  'react-native/Libraries/Components/Touchable/TouchableOpacity',
+  () => 'TouchableOpacity',
+);
+jest.mock(
+  'react-native/Libraries/Components/Touchable/TouchableHighlight',
+  () => 'TouchableHighlight',
+);
+jest.mock(
+  'react-native/Libraries/Components/TextInput/TextInput',
+  () => 'TextInput',
+);
 
 // If TextEncoder is not available, provide a mock implementation
 if (typeof global.TextEncoder === 'undefined') {
