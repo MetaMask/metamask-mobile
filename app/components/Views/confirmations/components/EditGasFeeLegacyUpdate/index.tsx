@@ -12,6 +12,11 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { useSelector } from 'react-redux';
 
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { IconProps } from 'react-native-vector-icons/Icon';
+
+// Add type assertions for Icon and MaterialCommunityIcon
+const TypedIcon = Icon as unknown as React.ComponentType<IconProps>;
+const TypedMaterialCommunityIcon = MaterialCommunityIcon as unknown as React.ComponentType<IconProps>;
 
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -136,13 +141,13 @@ const EditGasFeeLegacy = ({
 
       const lowerValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimate?.low
-          : gasFeeEstimate?.gasPrice,
+          ? (gasFeeEstimate as any)?.low
+          : (gasFeeEstimate as any)?.gasPrice,
       );
       const higherValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimate?.high
-          : gasFeeEstimate?.gasPrice,
+          ? (gasFeeEstimate as any)?.high
+          : (gasFeeEstimate as any)?.gasPrice,
       ).multipliedBy(new BigNumber(1.5));
 
       const valueBN = new BigNumber(value);
@@ -186,7 +191,7 @@ const EditGasFeeLegacy = ({
           small
           type={AlertType.Warning}
           renderIcon={() => (
-            <MaterialCommunityIcon
+            <TypedMaterialCommunityIcon
               name="information"
               size={20}
               color={colors.warning.default}
@@ -214,7 +219,7 @@ const EditGasFeeLegacy = ({
           small
           type={AlertType.Error}
           renderIcon={() => (
-            <MaterialCommunityIcon
+            <TypedMaterialCommunityIcon
               name="information"
               size={20}
               color={colors.error.default}
@@ -268,7 +273,7 @@ const EditGasFeeLegacy = ({
             <View>
               <View style={styles.customGasHeader}>
                 <TouchableOpacity onPress={onCancel}>
-                  <Icon
+                  <TypedIcon
                     name={'ios-arrow-back'}
                     size={24}
                     color={colors.text.default}
@@ -277,7 +282,7 @@ const EditGasFeeLegacy = ({
                 <Text variant={TextVariant.HeadingSM}>
                   {strings('transaction.edit_priority')}
                 </Text>
-                <Icon
+                <TypedIcon
                   name={'ios-arrow-back'}
                   size={24}
                   color={colors.background.default}
@@ -340,7 +345,7 @@ const EditGasFeeLegacy = ({
                             hitSlop={styles.hitSlop}
                             onPress={() => handleInfoModalPress('gas_limit')}
                           >
-                            <MaterialCommunityIcon
+                            <TypedMaterialCommunityIcon
                               name="information"
                               size={14}
                               style={styles.labelInfo}
@@ -368,7 +373,7 @@ const EditGasFeeLegacy = ({
                             hitSlop={styles.hitSlop}
                             onPress={() => handleInfoModalPress('gas_price')}
                           >
-                            <MaterialCommunityIcon
+                            <TypedMaterialCommunityIcon
                               name="information"
                               size={14}
                               style={styles.labelInfo}
