@@ -5,6 +5,7 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
+import { hexStringToUint8Array } from '../util/hexUtils';
 
 /**
  *
@@ -67,8 +68,21 @@ export const selectSelectedInternalAccountChecksummedAddress = createSelector(
     const selectedAddress = account?.address;
     console.log('Input to toChecksumHexAddress:', selectedAddress);
     console.log('Type of input:', typeof selectedAddress);
-    const result = selectedAddress ? toChecksumHexAddress(selectedAddress) : undefined;
-    console.log('Output from toChecksumHexAddress:', result);
-    return result;
+
+    if (!selectedAddress || typeof selectedAddress !== 'string') {
+      console.log('Invalid or undefined address');
+      return undefined;
+    }
+
+    try {
+      const addressUint8Array = hexStringToUint8Array(selectedAddress);
+      const result = toChecksumHexAddress(addressUint8Array);
+      console.log('Output from toChecksumHexAddress:', result);
+      return result;
+    } catch (error) {
+      console.error('Error converting address to checksum format:', error);
+      captureException(error);
+      return undefined;
+    }
   },
 );
