@@ -18,18 +18,21 @@ jest.mock('../../../util/theme', () => {
     // Add any other color properties used in your application
   };
 
-  const mockTheme = {
+  const mockThemeInner = {
     colors: mockColors,
   };
 
   return {
     ThemeContext: {
-      _currentValue: mockTheme,
+      _currentValue: mockThemeInner,
       Provider: ({ children }: { children: React.ReactNode }) => children,
-      Consumer: ({ children }: { children: (context: { colors: typeof mockColors }) => React.ReactNode }) =>
-        children({ colors: mockColors }),
+      Consumer: ({
+        children,
+      }: {
+        children: (context: { colors: typeof mockColors }) => React.ReactNode;
+      }) => children({ colors: mockColors }),
     },
-    mockTheme: mockTheme,
+    mockTheme: mockThemeInner,
   };
 });
 
@@ -46,7 +49,7 @@ describe('EditGasFeeLegacy', () => {
           }}
           view={''}
         />
-      </ThemeContext.Provider>
+      </ThemeContext.Provider>,
     );
     expect(toJSON()).toMatchSnapshot();
   });
