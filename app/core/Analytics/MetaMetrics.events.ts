@@ -366,6 +366,9 @@ enum EVENT_NAME {
 
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
+  // Nft auto detection modal
+  NFT_AUTO_DETECTION_ENABLED_MODAL = 'Nft Autodetection Enabled from modal',
+  NFT_AUTO_DETECTION_DISBLED_MODAL = 'Nft Autodetection Disabled from modal',
 }
 
 enum ACTIONS {
@@ -868,6 +871,13 @@ const events = {
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
+  ),
+  // Nft auto detection modal
+  NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,
+  ),
+  NFT_AUTO_DETECTION_MODAL_DISABLE: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_DISBLED_MODAL,
   ),
 };
 

@@ -149,39 +149,40 @@ const SmartTransactionsOptInModal = () => {
     modalRef.current?.dismissModal();
   };
 
-  const optIn = () => {
+  const markOptInModalAsSeen = async () => {
+    const version = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+    dispatch(updateOptInModalAppVersionSeen(version));
+  };
+
+  const optIn = async () => {
     Engine.context.PreferencesController.setSmartTransactionsOptInStatus(true);
     trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
       stx_opt_in: true,
       location: 'SmartTransactionsOptInModal',
     });
-
     hasOptedIn.current = true;
+    await markOptInModalAsSeen();
     dismissModal();
   };
 
-  const optOut = () => {
+  const optOut = async () => {
     Engine.context.PreferencesController.setSmartTransactionsOptInStatus(false);
     trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
       stx_opt_in: false,
       location: 'SmartTransactionsOptInModal',
     });
-
     hasOptedIn.current = false;
+    await markOptInModalAsSeen();
     navigation.navigate(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.ADVANCED_SETTINGS,
     });
   };
 
   const handleDismiss = async () => {
-    // Opt out of STX if no prior decision made
+    // Opt out of STX if no prior decision made.
     if (hasOptedIn.current === null) {
       optOut();
     }
-
-    // Save the current app version as the last app version seen
-    const version = await AsyncStorage.getItem(CURRENT_APP_VERSION);
-    dispatch(updateOptInModalAppVersionSeen(version));
   };
 
   const Header = () => (

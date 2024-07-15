@@ -1,8 +1,17 @@
 import { normalizeTransactionParams } from '@metamask/transaction-controller';
 import * as SignatureRequestActions from '../../actions/signatureRequest'; // eslint-disable-line import/no-namespace
 import * as TransactionActions from '../../actions/transaction'; // eslint-disable-line import/no-namespace
+import * as NetworkControllerSelectors from '../../selectors/networkController'; // eslint-disable-line import/no-namespace
 import Engine from '../../core/Engine';
 import PPOMUtil from './ppom-util';
+import {
+  isSecurityAlertsAPIEnabled,
+  validateWithSecurityAlertsAPI,
+} from './security-alerts-api';
+
+const CHAIN_ID_MOCK = '0x1';
+
+jest.mock('./security-alerts-api');
 
 jest.mock('../../util/transaction-controller', () => ({
   __esModule: true,
@@ -22,11 +31,25 @@ jest.mock('../../core/Engine', () => ({
     },
     NetworkController: {
       state: {
-        providerConfig: { chainId: '0x1' },
+        providerConfig: { chainId: CHAIN_ID_MOCK },
+      },
+    },
+    AccountsController: {
+      state: {
+        internalAccounts: { accounts: [] },
+      },
+      listAccounts: jest.fn().mockReturnValue([]),
+    },
+  },
+  backgroundState: {
+    NetworkController: {
+      providerConfig: {
+        chainId: 0x1,
       },
     },
   },
 }));
+
 const MockEngine = jest.mocked(Engine);
 
 jest.mock('@metamask/transaction-controller', () => ({
@@ -65,14 +88,21 @@ const mockSignatureRequest = {
   origin: 'metamask.github.io',
 };
 
-describe('validateResponse', () => {
+describe('PPOM Utils', () => {
+  const validateWithSecurityAlertsAPIMock = jest.mocked(
+    validateWithSecurityAlertsAPI,
+  );
+
+  const isSecurityAlertsEnabledMock = jest.mocked(isSecurityAlertsAPIEnabled);
+
   const normalizeTransactionParamsMock = jest.mocked(
     normalizeTransactionParams,
   );
 
   beforeEach(() => {
     MockEngine.context.PreferencesController.state.securityAlertsEnabled = true;
-    MockEngine.context.NetworkController.state.providerConfig.chainId = '0x1';
+    MockEngine.context.NetworkController.state.providerConfig.chainId =
+      CHAIN_ID_MOCK;
 
     normalizeTransactionParamsMock.mockImplementation((params) => params);
   });
@@ -81,142 +111,200 @@ describe('validateResponse', () => {
     jest.clearAllMocks();
   });
 
-  it('should not validate if preference securityAlertsEnabled is false', async () => {
-    const spyTransactionAction = jest.spyOn(
-      TransactionActions,
-      'setTransactionSecurityAlertResponse',
-    );
-    MockEngine.context.PreferencesController.state.securityAlertsEnabled =
-      false;
-    await PPOMUtil.validateRequest(mockRequest, '123');
-    expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
-    expect(spyTransactionAction).toBeCalledTimes(0);
-  });
-
-  it('should not validate user if on a non supporting blockaid network', async () => {
-    const spyTransactionAction = jest.spyOn(
-      TransactionActions,
-      'setTransactionSecurityAlertResponse',
-    );
-    MockEngine.context.NetworkController.state.providerConfig.chainId = '0xfa';
-    await PPOMUtil.validateRequest(mockRequest, '123');
-    expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
-    expect(spyTransactionAction).toBeCalledTimes(0);
-  });
-
-  it('should not validate if requested method is not allowed', async () => {
-    const spyTransactionAction = jest.spyOn(
-      TransactionActions,
-      'setTransactionSecurityAlertResponse',
-    );
-    MockEngine.context.PreferencesController.state.securityAlertsEnabled =
-      false;
-    await PPOMUtil.validateRequest(
-      {
-        ...mockRequest,
-        method: 'eth_someMethod',
-      },
-      '123',
-    );
-    expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
-    expect(spyTransactionAction).toBeCalledTimes(0);
-  });
-
-  it('should not validate transaction and update response as failed if method type is eth_sendTransaction and transactionid is not defined', async () => {
-    const spyTransactionAction = jest.spyOn(
-      TransactionActions,
-      'setTransactionSecurityAlertResponse',
-    );
-    await PPOMUtil.validateRequest(mockRequest);
-    expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
-    expect(spyTransactionAction).toBeCalledTimes(1);
-  });
-
-  it('should invoke PPOMController usePPOM if securityAlertsEnabled is true', async () => {
-    await PPOMUtil.validateRequest(mockRequest, '123');
-    expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(1);
-  });
-
-  it('should update transaction with validation result', async () => {
-    const spy = jest.spyOn(
-      TransactionActions,
-      'setTransactionSecurityAlertResponse',
-    );
-    await PPOMUtil.validateRequest(mockRequest, '123');
-    expect(spy).toBeCalledTimes(2);
-  });
-
-  it('should update signature requests with validation result', async () => {
-    const spy = jest.spyOn(SignatureRequestActions, 'default');
-    await PPOMUtil.validateRequest(mockSignatureRequest);
-    expect(spy).toBeCalledTimes(2);
-  });
-
-  it('normalizes transaction requests before validation', async () => {
-    const normalizedTransactionParamsMock = {
-      ...mockRequest.params[0],
-      data: '0xabcd',
-    };
-
-    const validateMock = jest.fn();
-
-    const ppomMock = {
-      validateJsonRpc: validateMock,
-    };
-
-    MockEngine.context.PPOMController?.usePPOM.mockImplementation(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (callback: any) => callback(ppomMock),
-    );
-
-    normalizeTransactionParamsMock.mockReturnValue(
-      normalizedTransactionParamsMock,
-    );
-
-    await PPOMUtil.validateRequest(mockRequest, '123');
-
-    expect(normalizeTransactionParamsMock).toBeCalledTimes(1);
-    expect(normalizeTransactionParamsMock).toBeCalledWith(
-      mockRequest.params[0],
-    );
-
-    expect(validateMock).toBeCalledTimes(1);
-    expect(validateMock).toBeCalledWith({
-      ...mockRequest,
-      params: [normalizedTransactionParamsMock],
+  describe('validateRequest', () => {
+    it('should not validate if preference securityAlertsEnabled is false', async () => {
+      const spyTransactionAction = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      MockEngine.context.PreferencesController.state.securityAlertsEnabled =
+        false;
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
+      expect(spyTransactionAction).toBeCalledTimes(0);
     });
-  });
 
-  it('normalizes transaction request origin before validation', async () => {
-    const validateMock = jest.fn();
+    it('should not validate if request is send to users own account ', async () => {
+      const spyTransactionAction = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      MockEngine.context.AccountsController.listAccounts = jest
+        .fn()
+        .mockReturnValue([
+          {
+            address: '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb',
+          },
+        ]);
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        0,
+      );
+      expect(spyTransactionAction).toHaveBeenCalledTimes(0);
+      MockEngine.context.AccountsController.listAccounts = jest
+        .fn()
+        .mockReturnValue([]);
+    });
 
-    const ppomMock = {
-      validateJsonRpc: validateMock,
-    };
+    it('should not validate user if on a non supporting blockaid network', async () => {
+      const spyTransactionAction = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      jest
+        .spyOn(NetworkControllerSelectors, 'selectChainId')
+        .mockReturnValue('0xfa');
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
+      expect(spyTransactionAction).toBeCalledTimes(0);
+    });
 
-    MockEngine.context.PPOMController?.usePPOM.mockImplementation(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (callback: any) => callback(ppomMock),
-    );
+    it('should not validate if requested method is not allowed', async () => {
+      const spyTransactionAction = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      MockEngine.context.PreferencesController.state.securityAlertsEnabled =
+        false;
+      await PPOMUtil.validateRequest(
+        {
+          ...mockRequest,
+          method: 'eth_someMethod',
+        },
+        CHAIN_ID_MOCK,
+      );
+      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
+      expect(spyTransactionAction).toBeCalledTimes(0);
+    });
 
-    await PPOMUtil.validateRequest(
-      {
+    it('should not validate transaction and update response as failed if method type is eth_sendTransaction and transactionid is not defined', async () => {
+      const spyTransactionAction = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      await PPOMUtil.validateRequest(mockRequest);
+      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
+      expect(spyTransactionAction).toBeCalledTimes(1);
+    });
+
+    it('should invoke PPOMController usePPOM if securityAlertsEnabled is true', async () => {
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(1);
+    });
+
+    it('should update transaction with validation result', async () => {
+      const spy = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(spy).toBeCalledTimes(2);
+    });
+
+    it('should update signature requests with validation result', async () => {
+      const spy = jest.spyOn(SignatureRequestActions, 'default');
+      await PPOMUtil.validateRequest(mockSignatureRequest);
+      expect(spy).toBeCalledTimes(2);
+    });
+
+    it('normalizes transaction requests before validation', async () => {
+      const normalizedTransactionParamsMock = {
+        ...mockRequest.params[0],
+        data: '0xabcd',
+      };
+
+      const validateMock = jest.fn();
+
+      const ppomMock = {
+        validateJsonRpc: validateMock,
+      };
+
+      MockEngine.context.PPOMController?.usePPOM.mockImplementation(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (callback: any) => callback(ppomMock),
+      );
+
+      normalizeTransactionParamsMock.mockReturnValue(
+        normalizedTransactionParamsMock,
+      );
+
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+
+      expect(normalizeTransactionParamsMock).toBeCalledTimes(1);
+      expect(normalizeTransactionParamsMock).toBeCalledWith(
+        mockRequest.params[0],
+      );
+
+      expect(validateMock).toBeCalledTimes(1);
+      expect(validateMock).toBeCalledWith({
         ...mockRequest,
-        origin: 'wc::metamask.github.io',
-      },
-      '123',
-    );
+        params: [normalizedTransactionParamsMock],
+      });
+    });
 
-    expect(normalizeTransactionParamsMock).toBeCalledTimes(1);
-    expect(normalizeTransactionParamsMock).toBeCalledWith(
-      mockRequest.params[0],
-    );
+    it('normalizes transaction request origin before validation', async () => {
+      const validateMock = jest.fn();
 
-    expect(validateMock).toBeCalledTimes(1);
-    expect(validateMock).toBeCalledWith({
-      ...mockRequest,
+      const ppomMock = {
+        validateJsonRpc: validateMock,
+      };
+
+      MockEngine.context.PPOMController?.usePPOM.mockImplementation(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (callback: any) => callback(ppomMock),
+      );
+
+      await PPOMUtil.validateRequest(
+        {
+          ...mockRequest,
+          origin: 'wc::metamask.github.io',
+        },
+        CHAIN_ID_MOCK,
+      );
+
+      expect(normalizeTransactionParamsMock).toBeCalledTimes(1);
+      expect(normalizeTransactionParamsMock).toBeCalledWith(
+        mockRequest.params[0],
+      );
+
+      expect(validateMock).toBeCalledTimes(1);
+      expect(validateMock).toBeCalledWith({
+        ...mockRequest,
+      });
+    });
+
+    it('uses security alerts API if enabled', async () => {
+      isSecurityAlertsEnabledMock.mockReturnValue(true);
+
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+
+      expect(MockEngine.context.PPOMController?.usePPOM).not.toHaveBeenCalled();
+
+      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
+      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(
+        CHAIN_ID_MOCK,
+        mockRequest,
+      );
+    });
+
+    it('uses controller if security alerts API throws', async () => {
+      isSecurityAlertsEnabledMock.mockReturnValue(true);
+
+      validateWithSecurityAlertsAPIMock.mockRejectedValue(
+        new Error('Test Error'),
+      );
+
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        1,
+      );
+
+      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
+      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(
+        CHAIN_ID_MOCK,
+        mockRequest,
+      );
     });
   });
 });

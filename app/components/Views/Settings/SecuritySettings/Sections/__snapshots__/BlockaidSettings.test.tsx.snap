@@ -71,7 +71,24 @@ exports[`BlockaidSettings should render correctly 1`] = `
       }
     }
   >
-    Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon, Sepolia and Base.
+    This feature alerts you to malicious activity by actively reviewing transaction and signature requests.
+     
+    <Text
+      accessibilityRole="text"
+      onPress={[Function]}
+      style={
+        {
+          "color": "#6a737d",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Learn more.
+    </Text>
   </Text>,
 ]
 `;

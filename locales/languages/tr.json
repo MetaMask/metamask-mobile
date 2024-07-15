@@ -5,8 +5,6 @@
     "deceptive_request_title": "Bu, aldatıcı bir taleptir",
     "failed_title": "Talep güvenli olmayabilir",
     "failed_description": "Bu talep bir hatadan dolayı güvenlik sağlayıcısı tarafından doğrulanmadı. Dikkatli bir şekilde ilerleyin.",
-    "loading_title": "Güvenlik uyarıları kontrol ediliyor...",
-    "loading_complete_title": "Herhangi bir uyarı alınmadı. Talepleri onaylamadan önce kendiniz her zaman gerekli özeni gösterin.",
     "malicious_domain_description": "Kötü niyetli bir alanla etkileşimde bulunuyorsunuz. Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
     "other_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
     "raw_signature_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
@@ -365,17 +363,17 @@
     "title": "Al"
   },
   "experience_enhancer_modal": {
-    "title": "Help us enhance your experience",
-    "paragraph1a": "In addition to ",
-    "paragraph1b": ", we'd like to use data (like information from cookies) to learn how you interact with our marketing communications.",
+    "title": "Deneyiminizi iyileştirmemize yardımcı olun",
+    "paragraph1a": "Biz ",
+    "paragraph1b": "dışında verileri (çerezlerden alınan bilgiler gibi) pazarlama iletişimlerimizle nasıl etkileşimde bulunduğunuzu öğrenmek amacıyla kullanırız.",
     "link": "MetaMetrics",
-    "paragraph2": "This helps us personalize what we share with you, like:",
-    "bullet1": "Latest developments",
-    "bullet2": "Product features",
-    "bullet3": "Other relevant promotional materials",
-    "footer": "Remember, we never sell the data you provide and you can opt out any time.",
-    "accept": "I agree",
-    "cancel": "No thanks"
+    "paragraph2": "Sizinle örneğin şunlar gibi neleri paylaşacağımızı kişiselleştirebilmemize yardımcı olur:",
+    "bullet1": "En yeni gelişmeler",
+    "bullet2": "Ürün özellikleri",
+    "bullet3": "İlgili diğer promosyon materyalleri",
+    "footer": "Unutmayın, sunduğunuz verileri hiçbir zaman satmayız ve dilediğiniz zaman tercihinizi değiştirebilirsiniz.",
+    "accept": "Kabul ediyorum",
+    "cancel": "Hayır, istemiyorum"
   },
   "wallet": {
     "title": "Cüzdan",
@@ -413,7 +411,7 @@
     "no_tokens": "Tokeniniz yok!",
     "no_nfts_yet": "Henüz NFT yok",
     "nfts_autodetection_title": "NFT algılama",
-    "nfts_autodetection_desc": "MetaMask'ın OpenSea'den NFT'leri otomatik olarak algılayıp MetaMask cüzdanınızda göstermesine izin verin.",
+    "nfts_autodetection_desc": "MetaMask'in otomatik olarak cüzdanınızdaki NFT'leri algılayıp göstermesine izin verin.",
     "network_details_check": "Ağ bilgileri kontrolü",
     "network_with_chain_id": "Zincir kimliği olan ağ",
     "chain_list_returned_different_ticker_symbol": "Bu token sembolü, girilen ağ adı veya zincir kimliği ile eşleşmiyor. Pek çok popüler token benzer sembolleri kullanır ve dolandırıcılar, karşılığında daha değerli bir token gönderecekleri yönünde sizi kandırmak için bunları kullanabilirler. Devam etmeden önce her şeyi doğrulayın.",
@@ -454,7 +452,7 @@
     "display_nft_media_cta": "NFT medyasını göster seçeneğini açın",
     "display_media_nft_warning": "NFT medyasını ve verilerini göstermek IP adresinizi merkezi sunuculara ifşa edebilir. Sadece mevcut riskleri anlıyorsanız NFT'yi içe aktarın.",
     "nfts_autodetect_title": "NFT otomatik algılama",
-    "nfts_autodetect_cta": "Ayarlar kısmında NFT'leri Otomatik Algıla seçeneğini açın",
+    "nfts_autodetect_cta": "NFT otomatik algılamayı etkinleştir",
     "turn_on_network_check_cta": "Ağ bilgileri kontrolünü aç",
     "display_nft_media_cta_new_1": "Bir NFT'yi görmek için NFT medyasını göster seçeneğini açın",
     "display_nft_media_cta_new_2": "Ayarlar > Güvenlik ve Gizlilik.",
@@ -520,7 +518,7 @@
     "description_title": "MetaMask'ı iyileştirmemize yardımcı olun",
     "description_content_1": "MetaMask'i iyileştirmek için temel kullanım verilerini toplamak istiyoruz. Burada sunduğunuz verileri asla satmadığımızı bilmenizi isteriz.",
     "description_content_2": "Topladığımız ölçümler her zaman şu şekilde olacaktır...",
-    "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relavent news (like product features).",
+    "checkbox": "Bu verileri, pazarlama iletişimlerimizle nasıl etkileşimde bulunduğunuzu öğrenmek için kullanacağız. İlgili haberleri (ürün özellikleri gibi) paylaşabiliriz.",
     "action_description_1_prefix": "Özel:",
     "action_description_2_prefix": "Genel:",
     "action_description_3_prefix": "İsteğe bağlı:",
@@ -650,7 +648,8 @@
     "revoked_all": "Tüm hesaplar iptal edildi.",
     "accounts_connected": "hesap bağlandı.",
     "disconnected": "bağlantısı kesildi.",
-    "disconnected_all": "Tüm hesapların bağlantısı kesildi."
+    "disconnected_all": "Tüm hesapların bağlantısı kesildi.",
+    "nft_detection_enabled": "NFT otomatik algılama etkinleştirildi"
   },
   "connect_qr_hardware": {
     "title": "QR tabanlı bir donanım cüzdanı bağlayın",
@@ -671,8 +670,8 @@
     "please_wait": "Lütfen bekleyin"
   },
   "data_collection_modal": {
-    "accept": "Okay",
-    "content": "You turned off data collection for our marketing purposes. This only applies to this device. If you use MetaMask on other devices, make sure to opt out there as well."
+    "accept": "Tamam",
+    "content": "Pazarlama amacıyla veri toplama seçeneğini kapattınız. Bu, sadece bu cihaz için geçerlidir. MetaMask'i başka cihazlarda kullanırsanız orada da vazgeçtiğinizden emin olun."
   },
   "account_selector": {
     "prev": "ÖNCEKİ",
@@ -804,6 +803,7 @@
     "security_desc": "Gizlilik ayarları, MetaMetrics, özel anahtar ve cüzdan Gizli Kurtarma İfadesi",
     "networks_title": "Ağlar",
     "networks_default_title": "Varsayılan Ağ",
+    "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
     "networks_default_cta": "Bu ağı kullan",
     "networks_desc": "Kişisel RPC ağı ekle ve düzenle",
     "network_name_label": "Ağ Adı",
@@ -819,6 +819,7 @@
     "network_other_networks": "Diğer Ağlar",
     "network_rpc_networks": "RPC Ağları",
     "network_add_network": "Ağ Ekle",
+    "network_add_custom_network": "Add a custom network",
     "network_add": "Ekle",
     "network_save": "Kaydet",
     "remove_network_title": "Bu ağı kaldırmak istiyor musunuz?",
@@ -845,9 +846,9 @@
     "clear_history_desc": "Tüm tarayıcı geçmişini temizlemek için bu seçeneği seçin.",
     "clear_cookies_desc": "Tarayıcının çerezlerini temizlemek için bu seçeneği seçin.",
     "metametrics_title": "MetaMetrics'e katıl",
-    "metametrics_description": "Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.",
-    "data_collection_title": "Data collection for marketing",
-    "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
+    "metametrics_description": "MetaMetrics'in ürünümüzü iyileştirmek için temel kullanım ve tanılama verilerini toplamasına izin verin. Bu cihaz için MetaMetrics'i devre dışı bırakabilirsiniz.",
+    "data_collection_title": "Pazarlama amacıyla veri toplama",
+    "data_collection_description": "MetaMetrics'i, pazarlama iletişimlerimizle nasıl etkileşimde bulunduğunuzu öğrenmek için kullanacağız. İlgili haberleri (ürün özellikleri ve diğer materyaller gibi) paylaşabiliriz.",
     "batch_balance_requests_title": "Toplu hesap bakiyesi talepleri",
     "batch_balance_requests_description": "Hesapları toplarız ve bakiyelerinizi göstermek için Infura'yı sorgularız. Bunu kapattığınız takdirde sadece aktif hesaplar sorgulanır. Bazı merkeziyetsiz uygulamalar siz cüzdanınızı bağlamadığınız sürece çalışmaz.",
     "third_party_title": "Gelen işlemleri al",
@@ -888,6 +889,13 @@
     "delete": "Sil",
     "network_exists": "Bu ağ zaten eklenmiş.",
     "delete_metrics_title": "MetaMetrics verilerini sil",
+    "delete_metrics_description_part_one": "Bu işlem cüzdanınızla ilişkili geçmiş",
+    "delete_metrics_description_part_two": "MetaMetrics",
+    "delete_metrics_description_part_three": "verilerini silecektir.",
+    "delete_metrics_description_before_delete": "Bu veriler silindikten sonra cüzdanınız ve hesaplarınız tam olarak şimdi olduğu gibi kalacaktır. Bu işlem 30 güne kadar sürebilir. Şunu görüntüleyin:",
+    "delete_metrics_description_after_delete_part_one": "Bu eylemi şurada başlattınız:",
+    "delete_metrics_description_after_delete_part_two": ". Bu işlem 30 gün kadar sürebilir. Şunu görüntüleyin:",
+    "delete_metrics_description_privacy_policy": "Gizlilik Politikası.",
     "delete_metrics_button": "MetaMetrics verilerini sil",
     "check_status_button": "Durumu Kontrol Et",
     "delete_metrics_confirm_modal_title": "MetaMetrics verilerini sil?",
@@ -986,12 +994,31 @@
     "token_nft_ens_subheading": "Token, NFT ve ENS otomatik algılama",
     "security_check_subheading": "Güvenlik kontrolleri",
     "symbol_required": "Sembol gerekli.",
-    "blockaid_desc": "Gizlilik koruması - Hiçbir veri üçüncü taraflarla paylaşılmaz. Arbitrum, Avalanche, BNB chain, Ethereum Ana Ağı, Optimism, Polygon, Sepolia ve Base için sunulur.",
+    "blockaid_desc": "This feature alerts you to malicious activity by actively reviewing transaction and signature requests.",
     "security_alerts": "Güvenlik uyarıları",
     "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel olarak incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı aktivitelere karşı sizi uyarır. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır. Bu özelliği etkinleştirerek sağlayıcının kullanım koşullarını kabul etmiş olursunuz.",
     "smart_transactions_opt_in_heading": "Akıllı İşlemler",
-    "smart_transactions_opt_in_desc": "Daha güvenilir ve güvenli işlemler ile ETH Ana Ağı üzerinde ayarlanabilir ücretler için Akıllı İşlemleri açın.",
-    "smart_transactions_learn_more": "Daha fazla bilgi edinin."
+    "smart_transactions_opt_in_desc": "Daha güvenilir ve emniyetli işlemler için Ethereum Ana Ağı üzerinde Akıllı İşlemleri açın.",
+    "smart_transactions_learn_more": "Daha fazla bilgi edinin.",
+    "simulation_details": "Bakiye değişikliklerini tahmin edin",
+    "simulation_details_description": "İşlemleri onaylamadan önce işlemlerin neden olacağı bakiye değişikliklerini tahmin etmek için bunu açın. İşlemlerinizin nihai sonucunu garanti etmez. ",
+    "simulation_details_learn_more": "Daha fazla bilgi edinin.",
+    "aes_crypto_test_form_title": "AES Crypto - Test Biçimi",
+    "aes_crypto_test_form_description": "Bu kısım özel olarak E2E testi için geliştirilmiştir. Bu, uygulamanızda görünüyorsa lütfen MetaMask destek bölümüne bildirin."
+  },
+  "aes_crypto_test_form": {
+    "generate_random_salt": "Rastgele Tuz Oluştur",
+    "salt_bytes_count": "Tuz bayt sayımı",
+    "generate": "Oluştur",
+    "generate_encryption_key": "Şifreden şifreleme anahtarı oluştur",
+    "password": "Şifre",
+    "salt": "Tuz",
+    "encrypt_with_key": "Anahtar ile şifrele",
+    "encrypt": "Şifrele",
+    "encryption_key": "Şifreleme Anahtarı",
+    "data": "Veri",
+    "decrypt_with_key": "Anahtar ile şifre çöz",
+    "decrypt": "Şifre çöz"
   },
   "sdk": {
     "disconnect_title": "Tüm sitelerin bağlantısı kesilsin mi?",
@@ -1004,6 +1031,7 @@
     "cancel": "İptal",
     "loading": "MetaMask'a bağlanılıyor...",
     "unkown_dapp": "Merkeziyetsiz uygulama adı kullanılamıyor",
+    "unknown": "Unknown",
     "no_connections": "Bağlantı yok",
     "no_connections_desc": "Bir siteye veya bir uygulamaya bağladığınız hesabı burada göreceksiniz."
   },
@@ -1171,6 +1199,15 @@
     "show_private_key": "Özel anahtarı göster",
     "account_copied_to_clipboard": "Genel adres panoya kopyalandı",
     "share_public_key": "Halka açık anahtarım paylaşılıyor: "
+  },
+  "enable_nft-auto-detection": {
+    "title": "NFT otomatik algılamayı etkinleştir",
+    "description": "MetaMask'in otomatik algılama ile NFT'lerinizi algılamasına ve göstermesine izin verin. Şunları yapabileceksiniz:",
+    "immediateAccess": "NFT'lerinize anında erişim sağlayın",
+    "navigate": "Dijital varlıklarınızda zahmetsizce gezinin",
+    "dive": "Doğrudan NFT'lerinizi kullanmaya başlayın",
+    "allow": "İzin Ver",
+    "notRightNow": "Şimdi değil"
   },
   "detected_tokens": {
     "title": "{{tokenCount}} yeni token bulundu",
@@ -1370,10 +1407,12 @@
     "approve": "Onayla",
     "allow_to_access": "Erişim izni verin:",
     "allow_to_address_access": "Bu adrese erişim izni verin:",
+    "allow_to_transfer_all": "Şunların tümüne erişim ve transfer izni verin:",
     "spend_cap": "Şunun için harcama üst limiti:",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "İzin vererek aşağıdaki üçüncü tarafın bakiyenize erişim sağlamasına izin verirsiniz.",
+    "you_trust_this_third_party": "Üçüncü bir tarafın, siz bu erişimi iptal edene kadar başka bildirim yapılmaksızın NFT'lerinize erişim sağlamasına ve NFT'lerinizi transfer edebilmesine izin verir.",
     "you_trust_this_address": "Bu adrese güveniyor musunuz? Bu izni vererek bu adresin paranıza erişim sağlamasına izin veriyorsunuz.",
     "edit_permission": "İzni düzenle",
     "edit": "Düzenle",
@@ -1477,6 +1516,8 @@
     "tx_review_transfer_from": "Şuradan Transfer Et",
     "tx_review_unknown": "Bilinmeyen Yöntem",
     "tx_review_approve": "Onayla",
+    "tx_review_increase_allowance": "Ödeneği Artır",
+    "tx_review_set_approval_for_all": "Tümüne Onay Ver",
     "sent_ether": "Ether Gönderdi",
     "self_sent_ether": "Sana Ether Gönderdi",
     "received_ether": "Ether Aldı",
@@ -1498,11 +1539,17 @@
     "smart_contract_interaction": "Akıllı sözleşme etkileşimi",
     "swaps_transaction": "Swap işlemi",
     "approve": "Onayla",
+    "increase_allowance": "Ödeneği Artır",
+    "set_approval_for_all": "Tümüne Onay Ver",
     "hash": "Hash",
     "from": "Kimden",
     "to": "Kime",
     "details": "Ayrıntılar",
     "amount": "Tutar",
+    "fee": {
+      "transaction_fee_in_ether": "İşlem Ücreti",
+      "transaction_fee_in_usd": "İşlem Ücreti (USD)"
+    },
     "gas_used": "Kullanılan Gaz (Birim)",
     "gas_limit": "Gaz Limiti (Birimler)",
     "gas_price": "Gaz Fiyatı (GWEI)",
@@ -1608,6 +1655,7 @@
     "network_currency_symbol": "Para Birimi Sembolü",
     "network_block_explorer_url": "Blok Gezgini URL Adresi",
     "search": "Önceden eklenmiş ağı ara",
+    "search-short": "Search",
     "add": "Ekle",
     "cancel": "İptal et",
     "approve": "Onayla",
@@ -1615,7 +1663,9 @@
     "malicious_network_warning": "Kötü amaçlı bir ağ sağlayıcı blokzincirinin durumu hakkında yalan söyleyebilir ve ağ aktivitenizi kaydedebilir. Sadece güvendiğiniz özel ağları ekleyin.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "Ağ Bilgileri",
+    "additional_network_information_title": "Additional Networks Information",
     "network_warning_desc": "Bu ağ bağlantısı üçüncü taraflara dayalıdır. Bu bağlantı daha az güvenilir olabilir ya da üçüncü tarafların aktiviteyi takip etmesini sağlayabilir.",
+    "additonial_network_information_desc": "Some of these networks rely on third parties. The connections may be less reliable or enable third-parties to track activity.",
     "learn_more": "Daha fazlasını öğrenin",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Ağ değiştir",
@@ -1630,6 +1680,8 @@
     "you_can": "Veya",
     "add_network": "manuel olarak daha fazla ekleyebilirsiniz.",
     "select_network": "Bir ağ seçin",
+    "enabled_networks": "Etkinleştirilen ağlar",
+    "additional_networks": "İlave ağlar",
     "show_test_networks": "Test ağlarını göster",
     "deprecated_goerli": "Ethereum'da yaşanan protokol değişikliklerinden dolayı: Goerli test ağı güvenilir bir şekilde çalışmayabilir ve yakında kullanım dışı olacak.",
     "network_deprecated_title": "Bu ağ artık kullanılmıyor",
@@ -1898,19 +1950,26 @@
     "back_to_safety": "Güvenliğe geri dön"
   },
   "notifications": {
+    "staked": "Stake edildi",
+    "received": "Alınan",
+    "unstaked": "Unstake edildi",
+    "to": "Alıcı",
+    "rate": "Oran (ücretler dahil)",
+    "unstaking_requested": "Unstake talep edildi",
     "stake_completed": "Stake tamamlandı",
     "withdrawal_completed": "Para çekme işlemi tamamlandı",
     "unstake_completed": "Unstake tamamlandı",
     "withdrawal_requested": "Para çekme talep edildi",
     "stake_ready_to_be_withdrawn": "Stake çekilmeye hazır",
     "swap_completed": "{{from}} - {{to}} swap işlemi gerçekleştirildi",
+    "swap": "Swap yapılan",
     "sent": "Alıcı: {{address}}",
-    "received": "Gönderen: {{address}}",
-    "nft_sent": "Sent NFT to {{address}}",
-    "erc721_sent": "Sent NFT to {{address}}",
-    "erc1155_sent": "Sent NFT to {{address}}",
-    "erc721_received": "Received NFT from {{address}}",
-    "erc1155_received": "Received NFT from {{address}}",
+    "received_from": "Gönderen: {{address}}",
+    "nft_sent": "NFT alıcısı: {{address}}",
+    "erc721_sent": "NFT alıcısı: {{address}}",
+    "erc1155_sent": "NFT alıcısı: {{address}}",
+    "erc721_received": "NFT gönderen: {{address}}",
+    "erc1155_received": "NFT gönderen: {{address}}",
     "received_nft": "NFT gönderen: {{address}}",
     "pending_title": "İşlem gönderildi",
     "pending_deposit_title": "Para yatırma işlemi sürüyor!",
@@ -1952,6 +2011,7 @@
     "wc_description": "Lütfen uygulamayı kontrol edin",
     "wallet": "Cüzdan",
     "web3": "Web3",
+    "staking_provider": "Stake Sağlayıcısı",
     "empty": {
       "title": "Burada gösterilecek bir şey yok",
       "message": "Burası cüzdanınızda aktivite olduğunda bildirimleri bulabileceğiniz yerdir. "
@@ -2561,11 +2621,18 @@
     "submit_ticket_5": "Buradan",
     "submit_ticket_6": "bir sorgu gönderin.",
     "submit_ticket_7": "Lütfen hata mesajını ve ekran görüntüsünü dahil edin.",
+    "submit_ticket_8": "Bize bir hata raporu gönderin",
+    "submit_ticket_9": "Lütfen sorunla ilgili ayrıntıları ekleyin.",
+    "bug_report_prompt_title": "Ne olduğunu bize söyleyin",
+    "bug_report_prompt_description": "Neyin ters gittiğini anlayabilmemiz için ayrıntıları ekleyin.",
+    "bug_report_thanks": "Teşekkürler! Kısa bir süre sonra inceleyeceğiz.",
     "save_seedphrase_1": "Bu hata devam ederse",
     "save_seedphrase_2": "Gizli Kurtarma İfadenizi kaydedin",
     "save_seedphrase_3": "ve uygulamayı tekrar yükleyin. Not: Gizli Kurtarma İfadeniz olmadan cüzdanınızı geri YÜKLEYEMEZSİNİZ.",
     "copied_clipboard": "Panoya kopyalandı",
-    "ok": "Tamam"
+    "ok": "Tamam",
+    "cancel": "İptal",
+    "send": "Gönder"
   },
   "whats_new": {
     "title": "Yenilikler",
@@ -2585,7 +2652,7 @@
       "header": "İyileştirilmiş İşlem Koruması",
       "description_1": "Akıllı İşlemler ile daha yüksek başarı oranlarının, arkadan çalıştırma korumasının ve daha iyi görünürlüğün kilidini açın.",
       "description_2": "Sadece Ethereum'da mevcuttur. Dilediğiniz zaman ayarlar kısmında etkinleştirin veya devre dışı bırakın.",
-      "secondary_button": "İyileştirilmiş korumayı etkinleştirme",
+      "secondary_button": "Ayarlar kısmında yönet",
       "primary_button": "Etkinleştir",
       "learn_more": "Daha fazla bilgi edinin.",
       "benefit_1_1": "%99,5 başarı oranı",
@@ -2594,6 +2661,11 @@
       "benefit_2_2": "tasarruf sağlar",
       "benefit_3_1": "Gerçek zamanlı",
       "benefit_3_2": "güncellemeler"
+    },
+    "transaction_simulation": {
+      "title": "Tahmini bakiye değişiklikleri",
+      "description_1": "Artık gerçekleştirmeden önce işlemlerinizin potansiyel sonuçlarını görebilirsiniz!",
+      "description_2": "Bu sadece bir simülasyondur, bu nedenle nihai sonucu garanti edemeyiz. Bunu dilediğiniz zaman şurada kapatabilirsiniz: Ayarlar > Güvenlik ve Gizlilik."
     }
   },
   "invalid_network": {
@@ -3001,7 +3073,7 @@
   },
   "install_snap": {
     "title": "Bağlantı talebi",
-    "description": "{{origin}}, {{snap}} adlı snap'i indirerek bağlanmak istiyor. İlerlemeden önce yazarlarına güvendiğinizden emin olun.",
+    "description": "{{origin}} wants to use {{snap}}.",
     "permissions_request_title": "İzin talebi",
     "permissions_request_description": "{{origin}}, {{snap}} adlı snap'i yüklemek istiyor ve bu snap aşağıdaki izinleri talep ediyor.",
     "approve_permissions": "Onayla",
@@ -3025,7 +3097,8 @@
     "manage_networks": "Ağları yönet",
     "manage_networks_body": "Ethereum verilerine mümkün olan en güvenilir ve gizli erişimi sunmak amacıyla uzak yordam çağrısı (RPC) sağlayıcısı olarak Infura kullanırız. Kendi RPC'nizi seçebilirsiniz ancak tüm RPC'lerin işlemleri gerçekleştirmek için IP adresinizi ve Ethereum cüzdanınızı alacağını unutmayın. Infura'nın verileri nasıl kullandığı hakkında daha fazla bilgi edinmek için ",
     "manage_networks_body2": " $1 bölümümüzü okuyun.",
-    "functionality_body": "Token verileri ve değeri, en iyi gaz ayarları, güvenlik güncellemeleri ve daha fazlasını içerir. Bu hizmetleri kullanırken tıpkı bir web sitesini ziyaret ederken olduğu gibi IP adresiniz MetaMask ile paylaşılır.",
+    "functionality_body": "MetaMask, internet hizmetleri üzerinden token bilgileri ve gaz ayarları gibi temel özellikler sunar. İnternet hizmetlerini kullandığınızda IP adresiniz, bu durumda MetaMask ile, paylaşılır. Bu tıpkı herhangi bir web sitesini ziyaret ettiğinizde olduğu gibidir. MetaMask bu verileri geçici olarak kullanır ve verilerinizi hiçbir zaman satmaz. Bir VPN kullanabilir veya bu hizmetleri kapatabilirsiniz ancak bu durum MetaMask deneyiminizi etkileyebilir. Daha fazla bilgi için ",
+    "functionality_body2": " bölümümüzü okuyun.",
     "sheet": {
       "title_off": "Temel işlevselliği kapat",
       "description_off": "Bu, MetaMask'te zamanınızı tamamen optimize edemeyeceğiniz anlamına gelir. Temel özellikler (token bilgileri, en iyi gaz ayarları vb. gibi) sizin için sunulmayacaktır.",
@@ -3038,5 +3111,16 @@
         "turn_off": "Kapat"
       }
     }
+  },
+  "simulation_details": {
+    "failed": "Tahmininiz yüklenirken bir hata oldu.",
+    "fiat_not_available": "Mevcut Değil",
+    "incoming_heading": "Aldığınız",
+    "no_balance_changes": "Cüzdanınız için herhangi bir değişiklik öngörülmüyor",
+    "outgoing_heading": "Gönderdiğiniz",
+    "reverted": "Bu işlemin başarısız olması muhtemel",
+    "title": "Tahmini değişiklikler",
+    "tooltip_description": "Tahmini değişiklikler bu işlemi gerçekleştirirseniz meydana gelebilecek değişikliklerdir. Bu bir garanti değil, sadece bir tahmindir.",
+    "total_fiat": "Toplam = {{currency}}"
   }
 }

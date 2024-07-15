@@ -5,7 +5,7 @@ import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import Device from '../../../../util/device';
 
 const originalFetch = global.fetch;
@@ -25,7 +25,7 @@ beforeEach(() => {
   initialState = {
     settings: { showHexData: true },
     engine: {
-      backgroundState: initialBackgroundState,
+      backgroundState,
     },
   };
   mockNavigate.mockClear();

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
-import { WebView } from 'react-native-webview';
+import { WebView } from '@metamask/react-native-webview';
 import type { NetworkState } from '@metamask/network-controller';
 
 import Text, {

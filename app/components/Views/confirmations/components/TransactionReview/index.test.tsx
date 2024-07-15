@@ -8,7 +8,7 @@ import * as TransactionUtils from '../../../../../util/transactions';
 // eslint-disable-next-line import/no-namespace
 import * as BlockaidUtils from '../../../../../util/blockaid';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
@@ -64,6 +64,11 @@ jest.mock('../../../../../core/Engine', () => ({
         ],
       },
     },
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
+      },
+    },
   },
 }));
 
@@ -86,7 +91,7 @@ jest.mock('react-native-gzip', () => ({
 const mockState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {
@@ -95,12 +100,6 @@ const mockState = {
         },
       },
       PreferencesController: {
-        selectedAddress: MOCK_ADDRESS_3,
-        identities: {
-          [MOCK_ADDRESS_1]: { name: 'Account 1' },
-          [MOCK_ADDRESS_2]: { name: 'Account 2' },
-          [MOCK_ADDRESS_3]: { name: 'Account 3' },
-        },
         securityAlertsEnabled: true,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
