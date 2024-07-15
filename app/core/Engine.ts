@@ -26,8 +26,8 @@ import {
   TokensControllerEvents,
   TokenListControllerActions,
   TokenListControllerEvents,
-  TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
+import { TransactionMeta } from '@metamask/transaction-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
 import PREINSTALLED_SNAPS from '../lib/snaps/preinstalled-snaps';
@@ -290,7 +290,7 @@ export interface EngineState {
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
   PhishingController: PhishingControllerState;
-  TokenBalancesController: TokenBalancesControllerState;
+  TokenBalancesController: TokenBalancesController;
   TokenRatesController: TokenRatesState;
   TransactionController: TransactionState;
   SmartTransactionsController: SmartTransactionsControllerState;
@@ -454,7 +454,6 @@ class Engine {
         useTokenDetection:
           initialState?.PreferencesController?.useTokenDetection ?? true,
         useNftDetection: true, // set this to true to enable nft detection by default to new users
-        displayNftMedia: true,
         securityAlertsEnabled: true,
         ...initialState.PreferencesController,
       },
@@ -528,10 +527,6 @@ class Engine {
         getERC1155TokenURI: assetsContractController.getERC1155TokenURI.bind(
           assetsContractController,
         ),
-      },
-      {
-        useIPFSSubdomains: false,
-        chainId: networkController.state.providerConfig.chainId,
       },
     );
 
@@ -1026,8 +1021,10 @@ class Engine {
       disableSendFlowHistory: true,
       disableHistory: true,
       getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-      getCurrentNetworkEIP1559Compatibility:
-        networkController.getEIP1559Compatibility.bind(networkController),
+      getCurrentNetworkEIP1559Compatibility: async () => {
+        const result = await networkController.getEIP1559Compatibility();
+        return result !== undefined ? result : false;
+      },
       //@ts-expect-error Expected due to Transaction Controller do not have controller utils containing linea-sepolia data
       // This can be removed when controller-utils be updated to v^9
       getNetworkState: () => networkController.state,
@@ -1048,7 +1045,7 @@ class Engine {
         updateTransactions: true,
       },
       isSimulationEnabled: () =>
-        preferencesController.state.useTransactionSimulations,
+        Boolean(preferencesController.state.useSimulationEnabled),
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
@@ -1071,7 +1068,7 @@ class Engine {
         }),
 
       hooks: {
-        publish: (transactionMeta) => {
+        publish: (transactionMeta: TransactionMeta) => {
           const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
             store.getState(),
           );
@@ -1117,9 +1114,6 @@ class Engine {
           ),
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
-        getNonceLock: this.transactionController.getNonceLock.bind(
-          this.transactionController,
-        ),
         // @ts-expect-error txController.getTransactions only uses txMeta.status and txMeta.hash, which v13 TxController has
         getTransactions: this.transactionController.getTransactions.bind(
           this.transactionController,
@@ -1136,6 +1130,14 @@ class Engine {
           networkController.getProviderAndBlockTracker().provider as any,
 
         trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
+        getNonceLock: async (address: string) => {
+          return {
+            nextNonce: await this.transactionController.getNextNonce(address),
+            releaseLock: () => {
+              // No-op for now, as we don't have a direct equivalent
+            },
+          };
+        },
       },
       {
         supportedChainIds: [
@@ -1190,8 +1192,6 @@ class Engine {
               ),
             },
           ),
-        // Remove this when TokensController is extending Base Controller v2
-        getTokensState: () => tokensController.state,
         getBalancesInSingleCall:
           assetsContractController.getBalancesInSingleCall.bind(
             assetsContractController,
@@ -1614,11 +1614,10 @@ class Engine {
       // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
       const tokens = backgroundState.TokensController.tokens;
-      const tokenBalances =
-        backgroundState.TokenBalancesController.contractBalances;
+      const tokenBalances = backgroundState.TokenBalancesController.state.contractBalances;
 
       let tokenFound = false;
-      tokens.forEach((token: { address: string | number }) => {
+      tokens.forEach((token: { address: string }) => {
         if (
           tokenBalances[token.address] &&
           !isZero(tokenBalances[token.address])
@@ -1628,7 +1627,7 @@ class Engine {
       });
 
       const fiatBalance = this.getTotalFiatAccountBalance() || 0;
-      const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
+      const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.tokenFiat;
 
       return totalFiatBalance > 0 || tokenFound || nfts.length > 0;
     } catch (e) {
@@ -1666,7 +1665,8 @@ class Engine {
       ignoredNfts: [],
     });
 
-    TokenBalancesController.reset();
+    // Reset TokenBalancesController state
+    this.context.TokenBalancesController.resetState();
     TokenRatesController.update({ marketData: {} });
 
     TransactionController.update({
@@ -1725,7 +1725,6 @@ class Engine {
     requestData?: Record<string, Json>,
     opts: AcceptOptions & { handleErrors?: boolean } = {
       waitForResult: false,
-      deleteAfterResult: false,
       handleErrors: true,
     },
   ) {
@@ -1734,7 +1733,6 @@ class Engine {
     try {
       return await ApprovalController.accept(id, requestData, {
         waitForResult: opts.waitForResult,
-        deleteAfterResult: opts.deleteAfterResult,
       });
     } catch (err) {
       if (opts.handleErrors === false) {
