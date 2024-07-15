@@ -13,7 +13,6 @@ const config = {
   setupFilesAfterEnv: [
     '<rootDir>/jest.setup.js',
     '<rootDir>/app/util/test/testSetup.js',
-    '<rootDir>/e2e/init.js',
   ],
   transformIgnorePatterns: [
     'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee)))',
@@ -52,6 +51,10 @@ if (process.env.TEST_ENV === 'e2e') {
   config.testEnvironment = 'detox/runners/jest/testEnvironment';
   config.globalSetup = 'detox/runners/jest/globalSetup';
   config.globalTeardown = 'detox/runners/jest/globalTeardown';
+  config.setupFilesAfterEnv = [
+    ...config.setupFilesAfterEnv,
+    '<rootDir>/e2e/init.js',
+  ];
 } else {
   // For unit tests
   config.testMatch = ['<rootDir>/app/**/__tests__/**/*.js?(x)', '<rootDir>/app/**/?(*.)+(spec|test).js?(x)'];
