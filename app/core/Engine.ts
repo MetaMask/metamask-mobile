@@ -1363,7 +1363,7 @@ class Engine {
         any,
         never,
         any
-      >,
+      >
     );
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({
@@ -1383,8 +1383,10 @@ class Engine {
       nfts.setApiKey(process.env.MM_OPENSEA_KEY);
     }
 
-    // @ts-expect-error TODO: Align transaction types between keyring and TransactionController
-    transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
+    // TODO: Align transaction types between keyring and TransactionController
+    if (transaction && typeof transaction.configure === 'function') {
+      transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
+    }
 
     transaction.hub.on('incomingTransactionBlock', (blockNumber: number) => {
       NotificationManager.gotIncomingTransaction(blockNumber);
