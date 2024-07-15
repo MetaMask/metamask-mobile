@@ -3,6 +3,14 @@ import { backgroundState } from '../util/test/initial-root-state';
 
 jest.unmock('./Engine');
 
+jest.mock('@metamask/snaps-controllers', () => ({
+  ...jest.requireActual('@metamask/snaps-controllers'),
+  JsonSnapsRegistry: jest.fn().mockImplementation(() => ({
+    get: jest.fn(),
+    update: jest.fn(),
+  })),
+}));
+
 describe('Engine', () => {
   it('should expose an API', () => {
     const engine = Engine.init({});
