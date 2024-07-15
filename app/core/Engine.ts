@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
-import { AnyAction } from 'redux';
-import { RootState } from '../reducers';
 import {
   AccountTrackerController,
   AccountTrackerState,
@@ -1355,15 +1353,17 @@ class Engine {
       controllers as BaseController<
         string,
         StateConstraint,
+        // TODO: Replace 'any' with a more specific type that satisfies EventConstraint
         RestrictedControllerMessenger<string, never, any, never, any>
       >[],
       this.controllerMessenger as unknown as RestrictedControllerMessenger<
         'ComposableController',
         never,
+        // TODO: Replace 'any' with a more specific type that satisfies EventConstraint
         any,
         never,
         any
-      >
+      >,
     );
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({
