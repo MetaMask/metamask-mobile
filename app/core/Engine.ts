@@ -12,7 +12,6 @@ import {
   NftController,
   NftDetectionController,
   NftState,
-  TokenBalancesController,
   TokenDetectionController,
   TokenListController,
   TokenListState,
@@ -290,7 +289,6 @@ export interface EngineState {
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
   PhishingController: PhishingControllerState;
-  TokenBalancesController: TokenBalancesController;
   TokenRatesController: TokenRatesState;
   TransactionController: TransactionState;
   SmartTransactionsController: SmartTransactionsControllerState;
@@ -334,7 +332,6 @@ interface Controllers {
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
   PPOMController: PPOMController;
-  TokenBalancesController: TokenBalancesController;
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
   TokenRatesController: TokenRatesController;
@@ -1039,8 +1036,7 @@ class Engine {
         updateTransactions: true,
       },
       isSimulationEnabled: () =>
-        // TODO: Add 'simulationEnabled' to PreferencesState type if it should be included
-        Boolean((preferencesController.state as any).simulationEnabled),
+        Boolean((preferencesController.state as { simulationEnabled?: boolean }).simulationEnabled),
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
@@ -1125,7 +1121,7 @@ class Engine {
           networkController.getProviderAndBlockTracker().provider as any,
 
         trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
-        getNonceLock: async (address: string) => ({
+        getNonceLock: async (_address: string) => ({
           // TODO: Implement a method to get the next nonce for the given address
           // This is a temporary placeholder. Replace with the correct implementation.
           nextNonce: 0,
@@ -1214,19 +1210,9 @@ class Engine {
       networkController,
       phishingController,
       preferencesController,
-      new TokenBalancesController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenBalancesController',
-          allowedActions: ['PreferencesController:getState'],
-          allowedEvents: ['TokensController:stateChange'],
-        }),
-        //@ts-expect-error onTokensStateChange will be removed when Tokens Controller extends Base Controller v2
-        onTokensStateChange: (listener) => tokensController.subscribe(listener),
-        getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
-          assetsContractController,
-        ),
-        interval: 180000,
-      }),
+      // TokenBalancesController has been removed
+      // If you need token balance functionality, consider using an alternative method
+      // or implementing it within an existing controller
       new TokenRatesController({
         onTokensStateChange: (listener) => tokensController.subscribe(listener),
         onNetworkStateChange: (listener) =>
@@ -1356,9 +1342,8 @@ class Engine {
     }
 
     this.datamodel = new ComposableController(
-      // @ts-expect-error The ComposableController needs to be updated to support BaseControllerV2
-      controllers,
-      this.controllerMessenger,
+      controllers as unknown as BaseController<string, unknown>[],
+      this.controllerMessenger as unknown as RestrictedControllerMessenger<'ComposableController', never, any, never, any>,
     );
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({
