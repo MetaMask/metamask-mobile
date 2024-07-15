@@ -6,6 +6,8 @@ import Engine from '../../../core/Engine';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { hexStringToUint8Array } from '../../../util/hexUtils';
 
+console.log('Starting Asset component test file');
+
 const mockedEngine = Engine;
 
 const mockInitialState = {
@@ -43,7 +45,12 @@ jest.mock('../../../core/Engine.ts', () => {
 });
 
 describe('Asset', () => {
+  beforeAll(() => {
+    console.log('Setting up Asset component test suite');
+  });
+
   it('should render correctly', () => {
+    console.log('Beginning Asset component render test');
     const { toJSON } = renderWithProvider(
       <Asset
         navigation={{ setOptions: () => null }}
