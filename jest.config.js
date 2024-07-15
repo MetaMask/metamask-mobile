@@ -54,7 +54,7 @@ if (process.env.TEST_ENV === 'e2e') {
 } else {
   // For unit tests
   config.testMatch = ['<rootDir>/app/**/__tests__/**/*.js?(x)', '<rootDir>/app/**/?(*.)+(spec|test).js?(x)'];
-  config.testEnvironment = 'jsdom';
+  config.testEnvironment = 'jest-environment-jsdom';
   config.globalSetup = undefined;
   config.globalTeardown = undefined;
 }
