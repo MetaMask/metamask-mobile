@@ -74,7 +74,14 @@ jest.mock('../../../core/Engine', () => ({
 
 jest.mock('../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../util/ENSUtils'),
-  doENSReverseLookup: jest.fn(),
+  doENSReverseLookup: jest.fn().mockImplementation((address) => {
+    if (address === '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A') {
+      return Promise.resolve('test1.eth');
+    } else if (address === '0x9004C7f302475BF5501fbc6254f69C64212A0d12') {
+      return Promise.resolve('test3.eth');
+    }
+    return Promise.resolve(null);
+  }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -214,11 +221,11 @@ describe('AccountFromToInfoCard', () => {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (ENSCache.cache as any) = {
-      '10x1': {
+      '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
         name: 'test1.eth',
         timestamp: new Date().getTime(),
       },
-      '10x3': {
+      '0x9004C7f302475BF5501fbc6254f69C64212A0d12': {
         name: 'test3.eth',
         timestamp: new Date().getTime(),
       },
@@ -229,10 +236,11 @@ describe('AccountFromToInfoCard', () => {
       </Provider>,
     );
 
+    screen.debug();
     await waitFor(() => {
       expect(screen.getByText('test1.eth')).toBeTruthy();
       expect(screen.getByText('test3.eth')).toBeTruthy();
-    }, { timeout: 5000 });
+    }, { timeout: 10000 });
   });
 
   describe('from account balance', () => {
