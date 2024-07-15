@@ -3,7 +3,7 @@ if (typeof global.Buffer === 'undefined') {
   global.Buffer = {
     from: (input, encoding) => {
       if (typeof input === 'string') {
-        return new Uint8Array([...input].map(char => char.charCodeAt(0)));
+        return new Uint8Array([...input].map((char) => char.charCodeAt(0)));
       }
       return new Uint8Array(input);
     },
@@ -25,9 +25,9 @@ jest.mock('react-native', () => {
 if (typeof global.TextEncoder === 'undefined') {
   global.TextEncoder = function TextEncoder() {
     return {
-      encode: function(input) {
+      encode(input) {
         return global.Buffer.from(input, 'utf-8');
-      }
+      },
     };
   };
 }
@@ -36,9 +36,9 @@ if (typeof global.TextEncoder === 'undefined') {
 if (typeof global.TextDecoder === 'undefined') {
   global.TextDecoder = function TextDecoder() {
     return {
-      decode: function(input) {
+      decode(input) {
         return global.Buffer.from(input).toString('utf-8');
-      }
+      },
     };
   };
 }
