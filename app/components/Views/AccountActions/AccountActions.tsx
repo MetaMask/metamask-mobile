@@ -167,7 +167,7 @@ const AccountActions = () => {
     if (selectedAddress) {
       await controllers.KeyringController.removeAccount(selectedAddress as Hex);
       await removeAccountsFromPermissions([selectedAddress]);
-      trackEvent(MetaMetricsEvents.WALLET_REMOVED, {
+      trackEvent(MetaMetricsEvents.ACCOUNT_REMOVED, {
         accountType: keyring?.type,
         selectedAddress,
       });
