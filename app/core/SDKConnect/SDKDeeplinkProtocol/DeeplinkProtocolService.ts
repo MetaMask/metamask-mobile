@@ -100,18 +100,7 @@ export default class DeeplinkProtocolService {
       isRemoteConn: true,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sendMessage: (msg: any) => {
-        const response = {
-          ...msg,
-          data: {
-            ...msg.data,
-            chainId: this.getChainId(),
-            accounts: this.getSelectedAccounts(),
-          },
-        };
-
-        return this.sendMessage(response);
-      },
+      sendMessage: (msg: any) => this.sendMessage(msg),
       ...defaultBridgeParams,
     });
 
@@ -121,6 +110,15 @@ export default class DeeplinkProtocolService {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async sendMessage(message: any, forceRedirect?: boolean) {
+    const messageWithMetadata = {
+      ...message,
+      data: {
+        ...message.data,
+        chainId: this.getChainId(),
+        accounts: this.getSelectedAccounts(),
+      },
+    };
+
     const id = message?.data?.id;
 
     DevLogger.log(`DeeplinkProtocolService::sendMessage id=${id}`);
@@ -129,14 +127,14 @@ export default class DeeplinkProtocolService {
 
     DevLogger.log(
       `DeeplinkProtocolService::sendMessage method=${rpcMethod}`,
-      message,
+      messageWithMetadata,
     );
     // handle multichain rpc call responses separately
     const chainRPCs = this.batchRPCManager.getById(id);
     if (chainRPCs) {
       const isLastRpcOrError = await handleBatchRpcResponse({
         chainRpcs: chainRPCs,
-        msg: message,
+        msg: messageWithMetadata,
         backgroundBridge: this.bridgeByClientId[this.currentClientId ?? ''],
         batchRPCManager: this.batchRPCManager,
         sendMessage: ({ msg }) => this.sendMessage(msg),
@@ -155,7 +153,7 @@ export default class DeeplinkProtocolService {
 
         if (hasError) {
           this.openDeeplink({
-            message,
+            message: messageWithMetadata,
             clientId: this.currentClientId ?? '',
           });
           return;
@@ -201,12 +199,12 @@ export default class DeeplinkProtocolService {
 
       DevLogger.log(
         `DeeplinkProtocolService::sendMessage sending deeplink message=${JSON.stringify(
-          message,
+          messageWithMetadata,
         )}`,
       );
 
       this.openDeeplink({
-        message,
+        message: messageWithMetadata,
         clientId: this.currentClientId ?? '',
       });
     } catch (error) {
@@ -328,10 +326,7 @@ export default class DeeplinkProtocolService {
       } else {
         this.sendMessage(
           {
-            data: {
-              chainId: this.getChainId(),
-              accounts: this.getSelectedAccounts(),
-            },
+            data: {},
           },
           true,
         ).catch((err) => {
@@ -407,10 +402,7 @@ export default class DeeplinkProtocolService {
 
         this.sendMessage(
           {
-            data: {
-              chainId: this.getChainId(),
-              accounts: this.getSelectedAccounts(),
-            },
+            data: {},
           },
           true,
         ).catch((err) => {
@@ -671,8 +663,6 @@ export default class DeeplinkProtocolService {
             {
               data: {
                 id: data.id,
-                accounts: this.getSelectedAccounts(),
-                chainId: this.getChainId(),
                 error: {
                   code: -32602,
                   message:
