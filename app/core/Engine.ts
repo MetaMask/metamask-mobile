@@ -44,6 +44,8 @@ import {
   ControllerMessenger,
   BaseController,
   RestrictedControllerMessenger,
+  StateConstraint,
+  EventConstraint,
 } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
@@ -1349,8 +1351,18 @@ class Engine {
     }
 
     this.datamodel = new ComposableController(
-      controllers as unknown as BaseController<string, unknown, RestrictedControllerMessenger<string, never, any, never, any>>[],
-      this.controllerMessenger as unknown as RestrictedControllerMessenger<'ComposableController', never, any, never, any>,
+      controllers as unknown as BaseController<
+        string,
+        StateConstraint,
+        RestrictedControllerMessenger<string, never, string, never, string>
+      >[],
+      this.controllerMessenger as unknown as RestrictedControllerMessenger<
+        'ComposableController',
+        never,
+        string,
+        never,
+        string
+      >,
     );
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({
