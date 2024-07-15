@@ -68,11 +68,10 @@ const initialState = {
 
 describe('ApproveTransactionModal', () => {
   it('render matches snapshot', () => {
-    // TODO: Revisit this type assertion when we have more information about the expected state structure
     const { toJSON } = renderScreen(
       ApproveTransactionModal as unknown as React.ComponentType<object>,
       { name: 'Approve' },
-      { state: initialState as any },
+      { state: initialState as { engine: object; transaction: object; settings: object; browser: object; fiatOrders: object } },
     );
     expect(toJSON()).toMatchSnapshot();
   });
