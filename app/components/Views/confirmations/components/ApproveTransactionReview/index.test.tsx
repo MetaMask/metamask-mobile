@@ -1,8 +1,10 @@
+import React from 'react';
 import ApproveTransactionModal from '.';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import { SET_APPROVAL_FOR_ALL_SIGNATURE } from '../../../../../util/transactions';
+import { EngineState } from '../../../../../core/Engine';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -40,7 +42,15 @@ const transaction = {
   data,
 };
 
-const initialState = {
+type InitialState = {
+  engine: { backgroundState: EngineState };
+  transaction: typeof transaction;
+  settings: { primaryCurrency: string };
+  browser: { activeTab: number; tabs: Array<{ id: number; url: string }> };
+  fiatOrders: { networks: Array<{ active: boolean; chainId: number; chainName: string; shortName: string; nativeTokenSupported: boolean }> };
+};
+
+const initialState: InitialState = {
   engine: {
     backgroundState,
   },
@@ -68,9 +78,9 @@ const initialState = {
 describe('ApproveTransactionModal', () => {
   it('render matches snapshot', () => {
     const { toJSON } = renderScreen(
-      ApproveTransactionModal,
+      ApproveTransactionModal as unknown as React.ComponentType<any>,
       { name: 'Approve' },
-      { state: initialState },
+      { state: initialState as any },
     );
     expect(toJSON()).toMatchSnapshot();
   });
