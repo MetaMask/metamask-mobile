@@ -71,7 +71,15 @@ describe('ApproveTransactionModal', () => {
     const { toJSON } = renderScreen(
       ApproveTransactionModal as unknown as React.ComponentType<object>,
       { name: 'Approve' },
-      { state: initialState as { engine: object; transaction: object; settings: object; browser: object; fiatOrders: object } },
+      {
+        state: initialState as {
+          engine: object;
+          transaction: object;
+          settings: object;
+          browser: object;
+          fiatOrders: object;
+        },
+      },
     );
     expect(toJSON()).toMatchSnapshot();
   });

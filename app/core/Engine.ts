@@ -39,7 +39,7 @@ import {
   AddressBookController,
   AddressBookState,
 } from '@metamask/address-book-controller';
-import { BaseState, ControllerMessenger } from '@metamask/base-controller';
+import { BaseState, ControllerMessenger, BaseController } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
@@ -1036,7 +1036,10 @@ class Engine {
         updateTransactions: true,
       },
       isSimulationEnabled: () =>
-        Boolean((preferencesController.state as { simulationEnabled?: boolean }).simulationEnabled),
+        Boolean(
+          (preferencesController.state as { simulationEnabled?: boolean })
+            .simulationEnabled,
+        ),
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
@@ -1343,7 +1346,7 @@ class Engine {
 
     this.datamodel = new ComposableController(
       controllers as unknown as BaseController<string, unknown>[],
-      this.controllerMessenger as unknown as RestrictedControllerMessenger<'ComposableController', never, any, never, any>,
+      this.controllerMessenger as unknown as ControllerMessenger<string, string>,
     );
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({
@@ -1488,7 +1491,6 @@ class Engine {
       CurrencyRateController,
       PreferencesController,
       AccountTrackerController,
-      TokenBalancesController,
       TokenRatesController,
       TokensController,
       NetworkController,
@@ -1534,7 +1536,6 @@ class Engine {
           100 || ethFiat;
 
     if (tokens.length > 0) {
-      const { contractBalances: tokenBalances } = TokenBalancesController.state;
       const { marketData } = TokenRatesController.state;
       const tokenExchangeRates = marketData[chainId];
       tokens.forEach(
@@ -1544,17 +1545,8 @@ class Engine {
               ? tokenExchangeRates[item.address as Hex]?.price
               : undefined;
 
-          const tokenBalance =
-            item.balance ||
-            (item.address in tokenBalances
-              ? renderFromTokenMinimalUnit(
-                  tokenBalances[item.address],
-                  item.decimals,
-                )
-              : undefined);
+          const tokenBalance = item.balance;
           const tokenBalanceFiat = balanceToFiatNumber(
-            // TODO: Fix this by handling or eliminating the undefined case
-            // @ts-expect-error This variable can be `undefined`, which would break here.
             tokenBalance,
             conversionRate,
             exchangeRate,
@@ -1594,15 +1586,10 @@ class Engine {
       // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
       const tokens = backgroundState.TokensController.tokens;
-      const tokenBalances =
-        backgroundState.TokenBalancesController.state.contractBalances;
 
       let tokenFound = false;
-      tokens.forEach((token: { address: string }) => {
-        if (
-          tokenBalances[token.address] &&
-          !isZero(tokenBalances[token.address])
-        ) {
+      tokens.forEach((token: { address: string; balance?: string }) => {
+        if (token.balance && !isZero(token.balance)) {
           tokenFound = true;
         }
       });
@@ -1624,7 +1611,6 @@ class Engine {
       TransactionController,
       TokensController,
       NftController,
-      TokenBalancesController,
       TokenRatesController,
       PermissionController,
       LoggingController,
