@@ -1,5 +1,5 @@
 const detox = require('detox');
-const config = require('../.detoxrc.json');
+const config = require('../../.detoxrc.json');
 import Utilities from './utils/Utilities';
 
 beforeAll(async () => {
