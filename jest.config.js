@@ -44,6 +44,8 @@ const config = {
     '\\.detoxrc.json': '<rootDir>/.detoxrc.json',
   },
   testMatch: ['<rootDir>/e2e/specs/**/*.spec.js'],
+  globalSetup: 'detox/runners/jest/globalSetup',
+  globalTeardown: 'detox/runners/jest/globalTeardown',
   // Disable jest cache
   cache: false,
 };
