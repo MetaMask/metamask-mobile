@@ -39,7 +39,12 @@ import {
   AddressBookController,
   AddressBookState,
 } from '@metamask/address-book-controller';
-import { BaseState, ControllerMessenger, BaseController } from '@metamask/base-controller';
+import {
+  BaseState,
+  ControllerMessenger,
+  BaseController,
+  RestrictedControllerMessenger,
+} from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
@@ -140,7 +145,6 @@ import {
 import AppConstants from './AppConstants';
 import { store } from '../store';
 import {
-  renderFromTokenMinimalUnit,
   balanceToFiatNumber,
   weiToFiatNumber,
   toHexadecimal,
@@ -1345,8 +1349,8 @@ class Engine {
     }
 
     this.datamodel = new ComposableController(
-      controllers as unknown as BaseController<string, unknown>[],
-      this.controllerMessenger as unknown as ControllerMessenger<string, string>,
+      controllers as unknown as BaseController<string, unknown, RestrictedControllerMessenger<string, never, any, never, any>>[],
+      this.controllerMessenger as unknown as RestrictedControllerMessenger<'ComposableController', never, any, never, any>,
     );
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({
@@ -1547,17 +1551,17 @@ class Engine {
 
           const tokenBalance = item.balance;
           const tokenBalanceFiat = balanceToFiatNumber(
-            tokenBalance,
+            tokenBalance as string | number,
             conversionRate,
-            exchangeRate,
+            exchangeRate as number | undefined,
             decimalsToShow,
           );
 
           const tokenBalance1dAgo =
             tokenBalanceFiat +
               (tokenBalanceFiat *
-                tokenExchangeRates?.[item.address as `0x${string}`]
-                  ?.pricePercentChange1d) /
+                (tokenExchangeRates?.[item.address as `0x${string}`]
+                  ?.pricePercentChange1d ?? 0)) /
                 100 || tokenBalanceFiat;
 
           tokenFiat += tokenBalanceFiat;
