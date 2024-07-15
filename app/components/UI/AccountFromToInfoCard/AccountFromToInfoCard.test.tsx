@@ -257,6 +257,19 @@ describe('AccountFromToInfoCard', () => {
     debug();
   }, 30000);
 
+  it('should correctly mock doENSReverseLookup', async () => {
+    const { doENSReverseLookup } = require('../../../util/ENSUtils');
+
+    const result1 = await doENSReverseLookup('0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A');
+    expect(result1).toBe('test1.eth');
+
+    const result2 = await doENSReverseLookup('0x9004C7f302475BF5501fbc6254f69C64212A0d12');
+    expect(result2).toBe('test3.eth');
+
+    const result3 = await doENSReverseLookup('0x1234567890123456789012345678901234567890');
+    expect(result3).toBeNull();
+  });
+
   describe('from account balance', () => {
     const ERC20Transaction = {
       assetType: 'ERC20',
