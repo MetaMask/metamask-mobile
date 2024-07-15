@@ -28,6 +28,9 @@ jest.mock('@metamask/transaction-controller', () => ({
     getTransactions: jest.fn().mockReturnThis(),
     confirmExternalTransaction: jest.fn(),
     configure: jest.fn(),
+    hub: {
+      on: jest.fn(),
+    },
     // Add other necessary methods here
   })),
 }));
