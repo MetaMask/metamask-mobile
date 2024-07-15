@@ -619,11 +619,6 @@ class DrawerView extends PureComponent {
   };
 
   onReceive = () => {
-    this.hideDrawer();
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE);
-  };
-
-  onReceive = () => {
     this.props.navigation.navigate('QRTabSwitcher', {
       initialScreen: Screens.Receive,
       disableTabber: true,
