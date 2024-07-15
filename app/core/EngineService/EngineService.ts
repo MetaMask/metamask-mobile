@@ -1,7 +1,6 @@
 import UntypedEngine from '../Engine';
 import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { store as importedStore } from '../../store';
 import Logger from '../../util/Logger';
 import {
@@ -118,14 +117,11 @@ class EngineService {
         name: 'AccountsController',
         key: `${engine.context.AccountsController.name}:stateChange`,
       },
-    ];
-
-    if (isBlockaidFeatureEnabled()) {
-      controllers.push({
+      {
         name: 'PPOMController',
         key: `${engine.context.PPOMController.name}:stateChange`,
-      });
-    }
+      },
+    ];
 
     engine?.datamodel?.subscribe?.(() => {
       if (!engine.context.KeyringController.metadata.vault) {

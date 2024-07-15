@@ -67,16 +67,14 @@ const initialState = {
             chainId: '0x89',
             nickname: 'Polygon Mainnet',
             rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
-            rpcUrl:
-              'https://polygon-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+            rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345',
             ticker: 'MATIC',
           },
           networkId3: {
             chainId: '0xa',
             nickname: 'Optimism',
             rpcPrefs: { blockExplorerUrl: 'https://optimistic.etherscan.io' },
-            rpcUrl:
-              'https://optimism-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+            rpcUrl: 'https://optimism-mainnet.infura.io/v3/12345',
             ticker: 'ETH',
           },
           networkId4: {

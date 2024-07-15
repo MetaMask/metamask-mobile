@@ -116,7 +116,6 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
@@ -997,7 +996,7 @@ const Settings: React.FC = () => {
           <RememberMeOptionSection />
         </View>
         <RevealPrivateKey />
-        {isBlockaidFeatureEnabled() && <BlockaidSettings />}
+        <BlockaidSettings />
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
         <View>
           <Text
