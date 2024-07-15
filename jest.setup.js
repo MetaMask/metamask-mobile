@@ -16,10 +16,26 @@ jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   RN.DeviceEventEmitter = {
     ...RN.DeviceEventEmitter,
+    addListener: jest.fn(),
     removeListener: jest.fn(),
   };
   return RN;
 });
+
+// Mock specific React Native components
+jest.mock('react-native/Libraries/Components/Touchable/TouchableOpacity', () => 'TouchableOpacity');
+jest.mock('react-native/Libraries/Components/Touchable/TouchableHighlight', () => 'TouchableHighlight');
+jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => 'TextInput');
+
+// Mock JsonSnapsRegistry
+jest.mock('../app/core/SnapsRegistry', () => ({
+  JsonSnapsRegistry: jest.fn().mockImplementation(() => ({
+    // Add any methods or properties that are used in the tests
+    // For example:
+    // getSnap: jest.fn(),
+    // updateSnap: jest.fn(),
+  })),
+}));
 
 // If TextEncoder is not available, provide a mock implementation
 if (typeof global.TextEncoder === 'undefined') {
