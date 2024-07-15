@@ -412,7 +412,6 @@ const RootRPCMethodsUI = (props) => {
           transactionMeta.txParams.to = toAddress;
 
           setTransactionObject({
-            type: 'INDIVIDUAL_TOKEN_TRANSACTION',
             selectedAsset: asset,
             id: transactionMeta.id,
             origin: transactionMeta.origin,

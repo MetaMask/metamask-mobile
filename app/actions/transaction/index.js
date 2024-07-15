@@ -151,7 +151,6 @@ export function setEtherTransaction(transaction) {
  */
 export function setIndividualTokenTransaction(token) {
   return {
-    type: 'SET_INDIVIDUAL_TOKEN_TRANSACTION',
     token,
   };
 }

@@ -365,7 +365,6 @@ class Send extends PureComponent {
           '0';
         newTxMeta = {
           assetType: 'ERC20',
-          type: 'INDIVIDUAL_TOKEN_TRANSACTION',
           paymentRequest: true,
           selectedAsset,
           ensRecipient,

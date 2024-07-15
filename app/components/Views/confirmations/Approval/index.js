@@ -619,10 +619,12 @@ class Approval extends PureComponent {
         EIP1559GasData.suggestedMaxPriorityFeePerGasHex,
       ); //'0x3b9aca00';
       transactionToSend.to = safeToChecksumAddress(transaction.to);
-      delete transactionToSend.gasPrice;
+      transactionToSend.gasPrice = undefined;
     } else {
       transactionToSend.gas = BNToHex(transaction.gas);
       transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
+      transactionToSend.maxFeePerGas = undefined;
+      transactionToSend.maxPriorityFeePerGas = undefined;
     }
 
     return transactionToSend;
@@ -655,10 +657,12 @@ class Approval extends PureComponent {
       transactionToSend.maxPriorityFeePerGas = addHexPrefix(
         EIP1559GasData.suggestedMaxPriorityFeePerGasHex,
       ); //'0x3b9aca00';
-      delete transactionToSend.gasPrice;
+      transactionToSend.gasPrice = undefined;
     } else {
       transactionToSend.gas = BNToHex(transaction.gas);
       transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
+      transactionToSend.maxFeePerGas = undefined;
+      transactionToSend.maxPriorityFeePerGas = undefined;
     }
 
     return transactionToSend;

@@ -457,8 +457,10 @@ class Confirm extends PureComponent {
     }
     // add transaction
     const { TransactionController } = Engine.context;
+    const transactionParams = this.prepareTransactionToSend();
+
     const { result, transactionMeta } =
-      await TransactionController.addTransaction(this.props.transaction, {
+      await TransactionController.addTransaction(transactionParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         origin: TransactionTypes.MMM,
       });
@@ -714,12 +716,14 @@ class Confirm extends PureComponent {
       transactionToSend.estimatedBaseFee = addHexPrefix(
         EIP1559GasTransaction.estimatedBaseFeeHex,
       );
-      delete transactionToSend.gasPrice;
+      transactionToSend.gasPrice = undefined;
     } else {
       transactionToSend.gas = legacyGasTransaction.suggestedGasLimitHex;
       transactionToSend.gasPrice = addHexPrefix(
         legacyGasTransaction.suggestedGasPriceHex,
       );
+      transactionToSend.maxFeePerGas = undefined;
+      transactionToSend.maxPriorityFeePerGas = undefined;
     }
 
     transactionToSend.from = fromSelectedAddress;
