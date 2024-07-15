@@ -18,6 +18,7 @@ jest.mock('@metamask/snaps-controllers', () => ({
     disableSnap: jest.fn(),
     on: jest.fn(),
     off: jest.fn(),
+    getTransactions: jest.fn().mockReturnThis(),
   })),
 }));
 
