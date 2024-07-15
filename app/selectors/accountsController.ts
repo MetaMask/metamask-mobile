@@ -65,6 +65,10 @@ export const selectSelectedInternalAccountChecksummedAddress = createSelector(
   selectSelectedInternalAccount,
   (account) => {
     const selectedAddress = account?.address;
-    return selectedAddress ? toChecksumHexAddress(selectedAddress) : undefined;
+    console.log('Input to toChecksumHexAddress:', selectedAddress);
+    console.log('Type of input:', typeof selectedAddress);
+    const result = selectedAddress ? toChecksumHexAddress(selectedAddress) : undefined;
+    console.log('Output from toChecksumHexAddress:', result);
+    return result;
   },
 );
