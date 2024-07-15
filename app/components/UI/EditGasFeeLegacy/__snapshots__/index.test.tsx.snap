@@ -14,15 +14,34 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
     }
   }
 >
-  <ScrollView
+  <RCTScrollView
     style={
       {
         "paddingHorizontal": 24,
       }
     }
   >
-    <TouchableWithoutFeedback>
-      <View>
+    <View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessible={true}
+        focusable={false}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      >
         <View>
           <View
             style={
@@ -36,28 +55,104 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             }
           >
             <TouchableOpacity>
-              <Icon
+              <Text
                 allowFontScaling={false}
-                color="#141618"
-                name="ios-arrow-back"
-                size={24}
-              />
+                style={
+                  [
+                    {
+                      "color": "#141618",
+                      "fontSize": 24,
+                    },
+                    undefined,
+                    {
+                      "fontFamily": "Ionicons",
+                      "fontStyle": "normal",
+                      "fontWeight": "normal",
+                    },
+                    {},
+                  ]
+                }
+              >
+                
+              </Text>
             </TouchableOpacity>
             <Text
-              black={true}
-              bold={true}
+              style={
+                [
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontWeight": "600",
+                  },
+                  undefined,
+                  {
+                    "color": "#141618",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "color": "#141618",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
             >
               Edit gas fee
             </Text>
-            <Icon
+            <Text
               allowFontScaling={false}
-              color="#ffffff"
-              name="ios-arrow-back"
-              size={24}
-            />
+              style={
+                [
+                  {
+                    "color": "#ffffff",
+                    "fontSize": 24,
+                  },
+                  undefined,
+                  {
+                    "fontFamily": "Ionicons",
+                    "fontStyle": "normal",
+                    "fontWeight": "normal",
+                  },
+                  {},
+                ]
+              }
+            >
+              
+            </Text>
           </View>
         </View>
-        <FadeAnimationView>
+        <View
+          collapsable={false}
+          pointerEvents={null}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+        >
           <View
             style={
               {
@@ -81,23 +176,94 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 }
               >
                 <Text
-                  black={true}
-                  right={true}
                   style={
-                    {
-                      "fontSize": 48,
-                    }
+                    [
+                      {
+                        "color": "#141618",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 30,
+                        "fontWeight": "400",
+                        "marginVertical": 2,
+                      },
+                      undefined,
+                      {
+                        "textAlign": "right",
+                      },
+                      undefined,
+                      undefined,
+                      {
+                        "color": "#141618",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "color": "#141618",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "fontSize": 48,
+                      },
+                    ]
                   }
                 >
                   ~
                 </Text>
               </View>
               <Text
-                black={true}
                 style={
-                  {
-                    "fontSize": 48,
-                  }
+                  [
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                      "marginVertical": 2,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "color": "#141618",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "color": "#141618",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "fontSize": 48,
+                    },
+                  ]
                 }
               />
               <View
@@ -109,12 +275,91 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               />
             </View>
             <Text
-              big={true}
-              black={true}
+              style={
+                [
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "color": "#141618",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "color": "#141618",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "fontSize": 16,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
             >
               <Text
-                black={true}
-                bold={true}
+                style={
+                  [
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                      "marginVertical": 2,
+                    },
+                    undefined,
+                    undefined,
+                    {
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontWeight": "600",
+                    },
+                    undefined,
+                    {
+                      "color": "#141618",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "color": "#141618",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                  ]
+                }
               />
             </Text>
           </View>
@@ -140,9 +385,18 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                   }
                 }
               >
-                <RangeInput
-                  increment={"1000"}
-                  leftLabelComponent={
+                <View>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "flexWrap": "wrap",
+                        "justifyContent": "space-between",
+                        "marginBottom": 14,
+                      }
+                    }
+                  >
                     <View
                       style={
                         {
@@ -152,9 +406,50 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                       }
                     >
                       <Text
-                        black={true}
-                        bold={true}
-                        noMargin={true}
+                        style={
+                          [
+                            {
+                              "color": "#141618",
+                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontSize": 30,
+                              "fontWeight": "400",
+                              "marginVertical": 2,
+                            },
+                            undefined,
+                            undefined,
+                            {
+                              "fontFamily": "EuclidCircularB-Bold",
+                              "fontWeight": "600",
+                            },
+                            undefined,
+                            {
+                              "color": "#141618",
+                            },
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            {
+                              "color": "#141618",
+                            },
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            {
+                              "marginVertical": 0,
+                            },
+                            undefined,
+                          ]
+                        }
                       >
                         Gas limit
                          
@@ -170,24 +465,231 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         }
                         onPress={[Function]}
                       >
-                        <Icon
+                        <Text
                           allowFontScaling={false}
-                          name="information"
-                          size={14}
                           style={
-                            {
-                              "color": "#9fa6ae",
-                            }
+                            [
+                              {
+                                "color": undefined,
+                                "fontSize": 14,
+                              },
+                              {
+                                "color": "#9fa6ae",
+                              },
+                              {
+                                "fontFamily": "Material Design Icons",
+                                "fontStyle": "normal",
+                                "fontWeight": "normal",
+                              },
+                              {},
+                            ]
                           }
-                        />
+                        >
+                          
+                        </Text>
                       </TouchableOpacity>
                     </View>
-                  }
-                  min={"21000"}
-                  name="Gas limit"
-                  onChangeValue={[Function]}
-                  value="21000"
-                />
+                  </View>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderColor": "#bbc0c5",
+                        "borderRadius": 6,
+                        "borderWidth": 1,
+                        "flexDirection": "row",
+                        "height": 42,
+                        "justifyContent": "space-between",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        {
+                          "flex": 1,
+                          "marginLeft": 17,
+                        }
+                      }
+                    >
+                      <TouchableOpacity
+                        hitSlop={
+                          {
+                            "bottom": 10,
+                            "left": 10,
+                            "right": 10,
+                            "top": 10,
+                          }
+                        }
+                        onPress={[Function]}
+                        style={
+                          {
+                            "alignItems": "center",
+                            "borderColor": "#0376c9",
+                            "borderRadius": 100,
+                            "borderWidth": 2,
+                            "height": 20,
+                            "justifyContent": "center",
+                            "width": 20,
+                          }
+                        }
+                      >
+                        <Text
+                          allowFontScaling={false}
+                          style={
+                            [
+                              {
+                                "color": undefined,
+                                "fontSize": 10,
+                              },
+                              {
+                                "color": "#0376c9",
+                                "paddingLeft": 0.5,
+                                "paddingTop": 1,
+                              },
+                              {
+                                "fontFamily": "FontAwesome",
+                                "fontStyle": "normal",
+                                "fontWeight": "normal",
+                              },
+                              {},
+                            ]
+                          }
+                        >
+                          
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                          "justifyContent": "center",
+                        }
+                      }
+                    >
+                      <TextInput
+                        keyboardAppearance="light"
+                        keyboardType="numeric"
+                        onBlur={[Function]}
+                        onChangeText={[Function]}
+                        style={
+                          {
+                            "color": "#141618",
+                            "height": 38,
+                            "minWidth": 10,
+                            "paddingRight": 6,
+                          }
+                        }
+                        value="21000"
+                      />
+                    </View>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "row",
+                          "justifyContent": "flex-end",
+                          "marginRight": 17,
+                        }
+                      }
+                    >
+                      <Text
+                        adjustsFontSizeToFit={true}
+                        numberOfLines={2}
+                        style={
+                          [
+                            {
+                              "color": "#141618",
+                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontSize": 30,
+                              "fontWeight": "400",
+                              "marginVertical": 2,
+                            },
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            {
+                              "flex": 1,
+                              "fontSize": 11,
+                              "marginRight": 14,
+                              "paddingLeft": 2,
+                              "textAlign": "center",
+                            },
+                          ]
+                        }
+                      />
+                      <TouchableOpacity
+                        hitSlop={
+                          {
+                            "bottom": 10,
+                            "left": 10,
+                            "right": 10,
+                            "top": 10,
+                          }
+                        }
+                        onPress={[Function]}
+                        style={
+                          {
+                            "alignItems": "center",
+                            "borderColor": "#0376c9",
+                            "borderRadius": 100,
+                            "borderWidth": 2,
+                            "height": 20,
+                            "justifyContent": "center",
+                            "width": 20,
+                          }
+                        }
+                      >
+                        <Text
+                          allowFontScaling={false}
+                          style={
+                            [
+                              {
+                                "color": undefined,
+                                "fontSize": 10,
+                              },
+                              {
+                                "color": "#0376c9",
+                                "paddingLeft": 0.5,
+                                "paddingTop": 1,
+                              },
+                              {
+                                "fontFamily": "FontAwesome",
+                                "fontStyle": "normal",
+                                "fontWeight": "normal",
+                              },
+                              {},
+                            ]
+                          }
+                        >
+                          
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
               </View>
               <View
                 style={
@@ -196,9 +698,18 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                   }
                 }
               >
-                <RangeInput
-                  increment={"1"}
-                  leftLabelComponent={
+                <View>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "flexWrap": "wrap",
+                        "justifyContent": "space-between",
+                        "marginBottom": 14,
+                      }
+                    }
+                  >
                     <View
                       style={
                         {
@@ -208,9 +719,50 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                       }
                     >
                       <Text
-                        black={true}
-                        bold={true}
-                        noMargin={true}
+                        style={
+                          [
+                            {
+                              "color": "#141618",
+                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontSize": 30,
+                              "fontWeight": "400",
+                              "marginVertical": 2,
+                            },
+                            undefined,
+                            undefined,
+                            {
+                              "fontFamily": "EuclidCircularB-Bold",
+                              "fontWeight": "600",
+                            },
+                            undefined,
+                            {
+                              "color": "#141618",
+                            },
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            {
+                              "color": "#141618",
+                            },
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            {
+                              "marginVertical": 0,
+                            },
+                            undefined,
+                          ]
+                        }
                       >
                         Gas price
                          
@@ -226,62 +778,364 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         }
                         onPress={[Function]}
                       >
-                        <Icon
+                        <Text
                           allowFontScaling={false}
-                          name="information"
-                          size={14}
                           style={
-                            {
-                              "color": "#9fa6ae",
-                            }
+                            [
+                              {
+                                "color": undefined,
+                                "fontSize": 14,
+                              },
+                              {
+                                "color": "#9fa6ae",
+                              },
+                              {
+                                "fontFamily": "Material Design Icons",
+                                "fontStyle": "normal",
+                                "fontWeight": "normal",
+                              },
+                              {},
+                            ]
                           }
-                        />
+                        >
+                          
+                        </Text>
                       </TouchableOpacity>
                     </View>
-                  }
-                  min={"0"}
-                  name="Gas price"
-                  onChangeValue={[Function]}
-                  unit="GWEI"
-                  value="10"
-                />
+                  </View>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderColor": "#bbc0c5",
+                        "borderRadius": 6,
+                        "borderWidth": 1,
+                        "flexDirection": "row",
+                        "height": 42,
+                        "justifyContent": "space-between",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        {
+                          "flex": 1,
+                          "marginLeft": 17,
+                        }
+                      }
+                    >
+                      <TouchableOpacity
+                        hitSlop={
+                          {
+                            "bottom": 10,
+                            "left": 10,
+                            "right": 10,
+                            "top": 10,
+                          }
+                        }
+                        onPress={[Function]}
+                        style={
+                          {
+                            "alignItems": "center",
+                            "borderColor": "#0376c9",
+                            "borderRadius": 100,
+                            "borderWidth": 2,
+                            "height": 20,
+                            "justifyContent": "center",
+                            "width": 20,
+                          }
+                        }
+                      >
+                        <Text
+                          allowFontScaling={false}
+                          style={
+                            [
+                              {
+                                "color": undefined,
+                                "fontSize": 10,
+                              },
+                              {
+                                "color": "#0376c9",
+                                "paddingLeft": 0.5,
+                                "paddingTop": 1,
+                              },
+                              {
+                                "fontFamily": "FontAwesome",
+                                "fontStyle": "normal",
+                                "fontWeight": "normal",
+                              },
+                              {},
+                            ]
+                          }
+                        >
+                          
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                          "justifyContent": "center",
+                        }
+                      }
+                    >
+                      <TextInput
+                        keyboardAppearance="light"
+                        keyboardType="numeric"
+                        onBlur={[Function]}
+                        onChangeText={[Function]}
+                        style={
+                          {
+                            "color": "#141618",
+                            "height": 38,
+                            "minWidth": 10,
+                            "paddingRight": 6,
+                          }
+                        }
+                        value="10"
+                      />
+                      <Text
+                        onPress={[Function]}
+                        style={
+                          [
+                            {
+                              "color": "#141618",
+                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontSize": 30,
+                              "fontWeight": "400",
+                              "marginVertical": 2,
+                            },
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            {
+                              "color": "#141618",
+                            },
+                            undefined,
+                            undefined,
+                            false,
+                            undefined,
+                            {
+                              "color": "#141618",
+                            },
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                          ]
+                        }
+                      >
+                        GWEI
+                      </Text>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "row",
+                          "justifyContent": "flex-end",
+                          "marginRight": 17,
+                        }
+                      }
+                    >
+                      <Text
+                        adjustsFontSizeToFit={true}
+                        numberOfLines={2}
+                        style={
+                          [
+                            {
+                              "color": "#141618",
+                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontSize": 30,
+                              "fontWeight": "400",
+                              "marginVertical": 2,
+                            },
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            {
+                              "flex": 1,
+                              "fontSize": 11,
+                              "marginRight": 14,
+                              "paddingLeft": 2,
+                              "textAlign": "center",
+                            },
+                          ]
+                        }
+                      />
+                      <TouchableOpacity
+                        hitSlop={
+                          {
+                            "bottom": 10,
+                            "left": 10,
+                            "right": 10,
+                            "top": 10,
+                          }
+                        }
+                        onPress={[Function]}
+                        style={
+                          {
+                            "alignItems": "center",
+                            "borderColor": "#0376c9",
+                            "borderRadius": 100,
+                            "borderWidth": 2,
+                            "height": 20,
+                            "justifyContent": "center",
+                            "width": 20,
+                          }
+                        }
+                      >
+                        <Text
+                          allowFontScaling={false}
+                          style={
+                            [
+                              {
+                                "color": undefined,
+                                "fontSize": 10,
+                              },
+                              {
+                                "color": "#0376c9",
+                                "paddingLeft": 0.5,
+                                "paddingTop": 1,
+                              },
+                              {
+                                "fontFamily": "FontAwesome",
+                                "fontStyle": "normal",
+                                "fontWeight": "normal",
+                              },
+                              {},
+                            ]
+                          }
+                        >
+                          
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
               </View>
             </View>
           </View>
-        </FadeAnimationView>
-        <View>
-          <StyledButton
-            disabledContainerStyle={
-              {
-                "opacity": 0.6,
-              }
-            }
-            onPress={[Function]}
-            styleDisabled={
-              {
-                "opacity": 0.6,
-              }
-            }
-            type="confirm"
-          >
-            Save
-          </StyledButton>
         </View>
-        <InfoModal
-          body={
-            <View>
-              <Text
-                grey={true}
-                infoModal={true}
-              />
-            </View>
+        <View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={0.2}
+            onPress={[Function]}
+            style={
+              [
+                [
+                  {
+                    "borderRadius": 100,
+                    "justifyContent": "center",
+                    "padding": 15,
+                  },
+                  {
+                    "backgroundColor": "#0376c9",
+                    "minHeight": 50,
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#007aff",
+                    "fontSize": 17,
+                    "fontWeight": "500",
+                    "textAlign": "center",
+                  },
+                  null,
+                  [
+                    {
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "600",
+                      "textAlign": "center",
+                    },
+                    {
+                      "color": "#ffffff",
+                    },
+                    undefined,
+                  ],
+                  null,
+                ]
+              }
+            >
+              Save
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <Modal
+          animationType="none"
+          deviceHeight={null}
+          deviceWidth={null}
+          hardwareAccelerated={false}
+          hideModalContentWhileAnimating={false}
+          onBackdropPress={[Function]}
+          onModalHide={[Function]}
+          onModalWillHide={[Function]}
+          onModalWillShow={[Function]}
+          onRequestClose={[Function]}
+          onSwipeComplete={[Function]}
+          panResponderThreshold={4}
+          scrollHorizontal={false}
+          scrollOffset={0}
+          scrollOffsetMax={0}
+          scrollTo={null}
+          statusBarTranslucent={false}
+          supportedOrientations={
+            [
+              "portrait",
+              "landscape",
+            ]
           }
-          isVisible={false}
-          title={null}
-          toggleModal={[Function]}
+          swipeDirection="down"
+          swipeThreshold={100}
+          transparent={true}
+          visible={false}
         />
       </View>
-    </TouchableWithoutFeedback>
-  </ScrollView>
+    </View>
+  </RCTScrollView>
 </View>
 `;
