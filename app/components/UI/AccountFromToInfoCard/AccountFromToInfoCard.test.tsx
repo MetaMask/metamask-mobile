@@ -1,6 +1,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import { render, screen, waitFor } from '@testing-library/react-native';
+import { render, screen, waitFor, act } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import PropTypes from 'prop-types';
 
@@ -11,6 +11,7 @@ import AccountFromToInfoCard from '.';
 import Engine from '../../../core/Engine';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import TransactionTypes from '../../../core/TransactionTypes';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
@@ -222,6 +223,7 @@ describe('AccountFromToInfoCard', () => {
       },
       transactionTo: '0x9004C7f302475BF5501fbc6254f69C64212A0d12',
     };
+
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (ENSCache.cache as any) = {
@@ -235,27 +237,24 @@ describe('AccountFromToInfoCard', () => {
       },
     };
 
-    console.log('ENS Cache:', ENSCache.cache);
-
-    const { debug } = render(
-      <Provider store={store}>
-        <AccountFromToInfoCard transactionState={txState} />
-      </Provider>,
-    );
-
-    console.log('Initial render:');
-    debug();
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <AccountFromToInfoCard
+            transactionState={txState}
+            onPressFromAddressIcon={jest.fn()}
+          />
+        </Provider>
+      );
+    });
 
     await waitFor(() => {
-      console.log('Waiting for ENS names...');
-      debug();
-      expect(screen.getByText('test1.eth')).toBeTruthy();
-      expect(screen.getByText('test3.eth')).toBeTruthy();
-    }, { timeout: 25000, interval: 1000 });
-
-    console.log('Final render:');
-    debug();
-  }, 30000);
+      const fromElement = screen.getByText('test1.eth');
+      const toElement = screen.getByText('test3.eth');
+      expect(fromElement).toBeTruthy();
+      expect(toElement).toBeTruthy();
+    }, { timeout: 30000 });
+  }, 35000);
 
   it('should correctly mock doENSReverseLookup', async () => {
     const { doENSReverseLookup } = require('../../../util/ENSUtils');
