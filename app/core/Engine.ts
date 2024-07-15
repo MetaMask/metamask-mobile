@@ -1126,8 +1126,9 @@ class Engine {
 
         trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
         getNonceLock: async (address: string) => ({
-          // TODO: Verify if 'getTransactionCount' is the correct replacement for 'getNextNonce'
-          nextNonce: await this.transactionController.getTransactionCount(address),
+          // TODO: Implement a method to get the next nonce for the given address
+          // This is a temporary placeholder. Replace with the correct implementation.
+          nextNonce: 0,
           releaseLock: () => {
             // No-op for now, as we don't have a direct equivalent
           },
