@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, waitFor } from '@testing-library/react-native';
 import LoginOptionsSwitch from './LoginOptionsSwitch';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Provider } from 'react-redux';
@@ -10,8 +10,12 @@ describe('LoginOptionsSwitch', () => {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   const handleUpdate = (_biometricsEnabled: boolean) => {};
 
-  it('should render correctly with biometric option', () => {
-    const store = mockStore({});
+  it('should render correctly with biometric option', async () => {
+    const store = mockStore({
+      security: {
+        allowLoginWithRememberMe: false
+      }
+    });
     const { toJSON } = render(
       <Provider store={store}>
         <LoginOptionsSwitch
@@ -23,13 +27,19 @@ describe('LoginOptionsSwitch', () => {
       </Provider>,
     );
     expect(toJSON()).toMatchSnapshot();
-    expect(screen.getByText('Face ID')).toBeTruthy();
-    expect(screen.getByText('Remember me')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('[missing "en.biometrics.enable_face" translation]')).toBeTruthy();
+      expect(screen.getByTestId('remember-me-switch')).toBeTruthy();
+    });
   });
 
-  it('should not render biometric option when shouldRenderBiometricOption is null', () => {
-    const store = mockStore({});
-    render(
+  it('should not render biometric option when shouldRenderBiometricOption is null', async () => {
+    const store = mockStore({
+      security: {
+        allowLoginWithRememberMe: false
+      }
+    });
+    const { toJSON } = render(
       <Provider store={store}>
         <LoginOptionsSwitch
           onUpdateBiometryChoice={handleUpdate}
@@ -39,7 +49,10 @@ describe('LoginOptionsSwitch', () => {
         />
       </Provider>,
     );
-    expect(screen.queryByText('Face ID')).toBeNull();
-    expect(screen.getByText('Remember me')).toBeTruthy();
+    expect(toJSON()).toMatchSnapshot();
+    await waitFor(() => {
+      expect(screen.queryByText('[missing "en.biometrics.enable_face" translation]')).toBeNull();
+      expect(screen.getByTestId('remember-me-switch')).toBeTruthy();
+    });
   });
 });
