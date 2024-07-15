@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import React from 'react';
 
-import { select, text } from '@storybook/addon-knobs';
+import { text } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
 import {
@@ -10,27 +10,9 @@ import {
 } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
 import { storybookPropsGroupID } from '../../../../../component-library/constants/storybook.constants';
 import BlockaidBanner from './BlockaidBanner';
-import { BlockaidBannerProps, Reason } from './BlockaidBanner.types';
+import { BlockaidBannerProps } from './BlockaidBanner.types';
 
 export const getBlockaidBannerStoryProps = (): BlockaidBannerProps => {
-  const flagTypeSelector = select(
-    'flagType',
-    {
-      Warning: 'Warning',
-      Danger: 'Danger',
-      Info: 'Info',
-    },
-    'Warning',
-    storybookPropsGroupID,
-  );
-
-  const reasonSelector = select(
-    'reason',
-    Reason,
-    Reason.approvalFarming,
-    storybookPropsGroupID,
-  );
-
   const title = text('title', SAMPLE_BANNERALERT_TITLE, storybookPropsGroupID);
   const description = text(
     'description',
