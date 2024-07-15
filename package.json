@@ -154,7 +154,7 @@
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^10.0.0",
     "@metamask/design-tokens": "^4.0.0",
-    "@metamask/eth-ledger-bridge-keyring": "^4.0.0",
+    "@metamask/eth-ledger-bridge-keyring": "^4.1.0",
     "@metamask/eth-sig-util": "^7.0.2",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/gas-fee-controller": "^18.0.0",
