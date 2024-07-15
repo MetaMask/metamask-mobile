@@ -86,7 +86,7 @@ const initialState: InitialState = {
 describe('ApproveTransactionModal', () => {
   it('render matches snapshot', () => {
     const { toJSON } = renderScreen(
-      ApproveTransactionModal as unknown as React.ComponentType<any>,
+      ApproveTransactionModal as unknown as React.ComponentType<{}>,
       { name: 'Approve' },
       { state: initialState as any },
     );
