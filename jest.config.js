@@ -65,3 +65,5 @@ if (process.env.TEST_ENV === 'e2e') {
 
 // eslint-disable-next-line import/no-commonjs
 module.exports = config;
+
+jest.mock('@metamask/sdk-communication-layer', () => require('./__mocks__/@metamask/sdk-communication-layer'));
