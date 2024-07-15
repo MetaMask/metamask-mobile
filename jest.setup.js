@@ -1,4 +1,4 @@
-global.Buffer = global.Buffer || require('buffer').Buffer;
+global.Buffer = require('buffer').Buffer;
 
 // TextEncoder and TextDecoder are now available globally in Node.js v11+
 
