@@ -14,7 +14,6 @@ const config = {
     '<rootDir>/app/util/test/testSetup.js',
     '<rootDir>/e2e/init.js',
   ],
-  testEnvironment: 'detox/runners/jest/testEnvironment',
   transformIgnorePatterns: [
     'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee)))',
   ],
@@ -43,12 +42,22 @@ const config = {
     '\\.png': '<rootDir>/app/__mocks__/pngMock.js',
     '\\.detoxrc.json': '<rootDir>/.detoxrc.json',
   },
-  testMatch: ['<rootDir>/e2e/specs/**/*.spec.js'],
-  globalSetup: 'detox/runners/jest/globalSetup',
-  globalTeardown: 'detox/runners/jest/globalTeardown',
   // Disable jest cache
   cache: false,
 };
+
+if (process.env.TEST_ENV === 'e2e') {
+  config.testMatch = ['<rootDir>/e2e/specs/**/*.spec.js'];
+  config.testEnvironment = 'detox/runners/jest/testEnvironment';
+  config.globalSetup = 'detox/runners/jest/globalSetup';
+  config.globalTeardown = 'detox/runners/jest/globalTeardown';
+} else {
+  // For unit tests
+  config.testMatch = ['<rootDir>/app/**/__tests__/**/*.js?(x)', '<rootDir>/app/**/?(*.)+(spec|test).js?(x)'];
+  config.testEnvironment = 'jsdom';
+  config.globalSetup = undefined;
+  config.globalTeardown = undefined;
+}
 
 // eslint-disable-next-line import/no-commonjs
 module.exports = config;
