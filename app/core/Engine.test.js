@@ -89,6 +89,13 @@ describe('Engine', () => {
         metamaskNotificationsReadList: [],
         subscriptionAccountsSeen: [],
       },
+      AuthenticationController: {
+        isSignedIn: false,
+      },
+      UserStorageController: {
+        isProfileSyncingEnabled: true,
+        isProfileSyncingUpdateLoading: false,
+      },
     });
   });
 
