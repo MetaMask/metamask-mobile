@@ -6,7 +6,9 @@ jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   RN.DeviceEventEmitter = {
     ...RN.DeviceEventEmitter,
-    removeListener: jest.fn(),
+    removeListener: jest.fn(() => {
+      console.log('Mocking DeviceEventEmitter.removeListener');
+    }),
   };
   return RN;
 });

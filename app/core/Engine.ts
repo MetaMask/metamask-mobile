@@ -920,8 +920,9 @@ class Engine {
         allowedActions: [],
       });
 
-    console.log('Debug - initialState.SnapsRegistry:', initialState.SnapsRegistry);
-    console.log('Debug - snapsRegistryMessenger:', snapsRegistryMessenger);
+    console.log('Debug - Before JsonSnapsRegistry initialization');
+    console.log('Debug - initialState:', JSON.stringify(initialState, null, 2));
+    console.log('Debug - Messenger:', JSON.stringify(snapsRegistryMessenger, null, 2));
     console.log('Debug - requireAllowlist:', requireAllowlist);
 
     const snapsRegistry = new JsonSnapsRegistry({
