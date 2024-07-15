@@ -237,24 +237,20 @@ describe('AccountFromToInfoCard', () => {
       },
     };
 
-    await act(async () => {
-      render(
-        <Provider store={store}>
-          <AccountFromToInfoCard
-            transactionState={txState}
-            onPressFromAddressIcon={jest.fn()}
-          />
-        </Provider>
-      );
-    });
+    const { findByText } = render(
+      <Provider store={store}>
+        <AccountFromToInfoCard
+          transactionState={txState}
+          onPressFromAddressIcon={jest.fn()}
+        />
+      </Provider>
+    );
 
-    await waitFor(() => {
-      const fromElement = screen.getByText('test1.eth');
-      const toElement = screen.getByText('test3.eth');
-      expect(fromElement).toBeTruthy();
-      expect(toElement).toBeTruthy();
-    }, { timeout: 30000 });
-  }, 35000);
+    await waitFor(async () => {
+      await expect(findByText('test1.eth')).resolves.toBeTruthy();
+      await expect(findByText('test3.eth')).resolves.toBeTruthy();
+    }, { timeout: 5000 });
+  }, 10000);
 
   it('should correctly mock doENSReverseLookup', async () => {
     const { doENSReverseLookup } = require('../../../util/ENSUtils');
