@@ -274,7 +274,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const prevPage = useCallback(async () => {
     resetError();
     const [qrInteractions, connectQRHardwarePromise] =
-      await initiateQRHardwareConnection(1);
+      await initiateQRHardwareConnection(-1);
 
     qrInteractionsRef.current = qrInteractions;
     const previousPageAccounts = await connectQRHardwarePromise;
