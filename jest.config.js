@@ -14,7 +14,7 @@ const config = {
     '<rootDir>/app/util/test/testSetup.js',
     '<rootDir>/e2e/init.js',
   ],
-  testEnvironment: 'jest-environment-node',
+  testEnvironment: 'detox/runners/jest/testEnvironment',
   transformIgnorePatterns: [
     'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee)))',
   ],
@@ -43,6 +43,7 @@ const config = {
     '\\.png': '<rootDir>/app/__mocks__/pngMock.js',
     '\\.detoxrc.json': '<rootDir>/.detoxrc.json',
   },
+  testMatch: ['<rootDir>/e2e/**/*.test.js'],
   // Disable jest cache
   cache: false,
 };
