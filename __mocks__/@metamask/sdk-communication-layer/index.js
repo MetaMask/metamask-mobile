@@ -23,4 +23,4 @@ const mock = {
   isConnected: jest.fn(),
 };
 
-module.exports = mock;
+export default mock;
