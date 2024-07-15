@@ -12,14 +12,19 @@ if (typeof global.Buffer === 'undefined') {
 
 // TextEncoder and TextDecoder are now available globally in Node.js v11+
 
+const mockDeviceEventEmitter = {
+  addListener: jest.fn(),
+  removeListener: jest.fn(),
+  emit: jest.fn(),
+  removeAllListeners: jest.fn(),
+};
+
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
-  RN.DeviceEventEmitter = {
-    ...RN.DeviceEventEmitter,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
+  return {
+    ...RN,
+    DeviceEventEmitter: mockDeviceEventEmitter,
   };
-  return RN;
 });
 
 // Mock specific React Native components

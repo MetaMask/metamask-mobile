@@ -33,10 +33,12 @@ import {
   RestrictedControllerMessenger,
   StateConstraint,
 } from '@metamask/base-controller';
+import { RestrictedControllerMessenger as ApprovalControllerRestrictedMessenger } from '@metamask/approval-controller/node_modules/@metamask/base-controller';
 import {
   TransactionMeta,
   TransactionController,
   TransactionState,
+  TransactionParams,
 } from '@metamask/transaction-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -1356,7 +1358,7 @@ class Engine {
         // TODO: Replace 'any' with a more specific type that satisfies EventConstraint
         RestrictedControllerMessenger<string, never, any, never, any>
       >[],
-      this.controllerMessenger as unknown as RestrictedControllerMessenger<
+      this.controllerMessenger as unknown as ApprovalControllerRestrictedMessenger<
         'ComposableController',
         never,
         // TODO: Replace 'any' with a more specific type that satisfies EventConstraint
@@ -1385,12 +1387,14 @@ class Engine {
 
     // TODO: Align transaction types between keyring and TransactionController
     if (transaction && typeof transaction.configure === 'function') {
-      transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
+      transaction.configure({ sign: keyring.signTransaction.bind(keyring) as unknown as (txParams: TransactionParams, from: string) => Promise<any> });
     }
 
-    transaction.hub.on('incomingTransactionBlock', (blockNumber: number) => {
-      NotificationManager.gotIncomingTransaction(blockNumber);
-    });
+    if (transaction && transaction.hub) {
+      transaction.hub.on('incomingTransactionBlock', (blockNumber: number) => {
+        NotificationManager.gotIncomingTransaction(blockNumber);
+      });
+    }
 
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
