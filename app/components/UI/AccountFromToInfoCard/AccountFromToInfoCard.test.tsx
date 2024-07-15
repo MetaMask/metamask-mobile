@@ -11,6 +11,14 @@ import Engine from '../../../core/Engine';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
+type AssetsContractController = Partial<{
+  getERC20BalanceOf: jest.Mock;
+  name: string;
+  getNetworkClientById: jest.Mock;
+  provider: unknown;
+  getProvider: jest.Mock;
+}> & Record<string, unknown>;
+
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
 
@@ -242,13 +250,18 @@ describe('AccountFromToInfoCard', () => {
     beforeEach(() => {
       jest.useFakeTimers();
       mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
+      // @ts-ignore: Bypass type check for AssetsContractController mock
       Engine.context.AssetsContractController = {
         getERC20BalanceOf: mockGetERC20BalanceOf,
         name: 'AssetsContractController',
         getNetworkClientById: jest.fn(),
-        provider: {},
+        provider: {
+          sendAsync: jest.fn(),
+          send: jest.fn(),
+          emit: jest.fn(),
+        },
         getProvider: jest.fn(),
-      } as unknown as Record<string, unknown>;
+      } as unknown as typeof Engine.context.AssetsContractController;
     });
 
     it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', async () => {
