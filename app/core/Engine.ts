@@ -917,9 +917,9 @@ class Engine {
     // Console statements removed to address linting issues
 
     const snapsRegistry = new JsonSnapsRegistry({
-      state: initialState.SnapsRegistry,
-      messenger: snapsRegistryMessenger,
-      refetchOnAllowlistMiss: requireAllowlist,
+      state: (initialState.SnapsRegistry || {}) as SnapsRegistryState,
+      messenger: snapsRegistryMessenger || {},
+      refetchOnAllowlistMiss: requireAllowlist ?? false,
       url: {
         registry: 'https://acl.execution.metamask.io/latest/registry.json',
         signature: 'https://acl.execution.metamask.io/latest/signature.json',
