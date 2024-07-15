@@ -9,6 +9,7 @@ exports[`Badge should render badge network given the badge network variant 1`] =
       },
     }
   }
+  isScaled={true}
   name="Ethereum"
   testID="badge-badgenetwork"
 />
