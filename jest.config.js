@@ -41,6 +41,7 @@ const config = {
   moduleNameMapper: {
     '\\.svg': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.png': '<rootDir>/app/__mocks__/pngMock.js',
+    '\\.detoxrc.json': '<rootDir>/.detoxrc.json',
   },
   // Disable jest cache
   cache: false,
