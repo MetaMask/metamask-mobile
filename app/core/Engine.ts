@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
+import { AnyAction } from 'redux';
+import { RootState } from '../reducers';
 import {
   AccountTrackerController,
   AccountTrackerState,
@@ -27,6 +29,13 @@ import {
   TokenListControllerEvents,
 } from '@metamask/assets-controllers';
 import {
+  BaseController,
+  ControllerMessenger,
+  BaseState,
+  RestrictedControllerMessenger,
+  StateConstraint,
+} from '@metamask/base-controller';
+import {
   TransactionMeta,
   TransactionController,
   TransactionState,
@@ -39,13 +48,6 @@ import {
   AddressBookController,
   AddressBookState,
 } from '@metamask/address-book-controller';
-import {
-  BaseState,
-  ControllerMessenger,
-  BaseController,
-  RestrictedControllerMessenger,
-  StateConstraint,
-} from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
@@ -1350,18 +1352,18 @@ class Engine {
     }
 
     this.datamodel = new ComposableController(
-      controllers as unknown as BaseController<
-        any,
+      controllers as BaseController<
+        string,
         StateConstraint,
-        RestrictedControllerMessenger<any, never, any, never, any>
+        RestrictedControllerMessenger<string, never, any, never, any>
       >[],
-      this.controllerMessenger as unknown as import('@metamask/approval-controller/node_modules/@metamask/base-controller').RestrictedControllerMessenger<
+      this.controllerMessenger as unknown as RestrictedControllerMessenger<
         'ComposableController',
         never,
         any,
         never,
         any
-      >,
+      >
     );
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({
@@ -1564,7 +1566,7 @@ class Engine {
           const tokenBalanceFiat = balanceToFiatNumber(
             tokenBalance as string | number,
             conversionRate,
-            exchangeRate ? exchangeRate : 0,
+            exchangeRate || 0,
             decimalsToShow,
           );
 
