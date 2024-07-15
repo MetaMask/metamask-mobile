@@ -128,7 +128,7 @@ const ApproveTransactionHeader = ({
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
-  const imageSource = faviconSource?.uri
+  const imageSource = typeof faviconSource === 'object' && 'uri' in faviconSource
     ? faviconSource
     : sdkDappMetadata?.icon
     ? { uri: sdkDappMetadata.icon }
@@ -151,7 +151,7 @@ const ApproveTransactionHeader = ({
         accountTokenBalance={addressBalance}
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
-        accountTypeLabel={accountTypeLabel}
+        accountTypeLabel={accountTypeLabel ?? undefined}
         accountNetwork={networkName}
         badgeProps={{
           variant: BadgeVariant.Network,
