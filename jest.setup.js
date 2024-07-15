@@ -1,14 +1,10 @@
-import { TextEncoder, TextDecoder } from 'util';
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
+// TextEncoder and TextDecoder are now available globally in Node.js v11+
 
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   RN.DeviceEventEmitter = {
     ...RN.DeviceEventEmitter,
-    removeListener: jest.fn(() => {
-      console.log('Mocking DeviceEventEmitter.removeListener');
-    }),
+    removeListener: jest.fn(),
   };
   return RN;
 });

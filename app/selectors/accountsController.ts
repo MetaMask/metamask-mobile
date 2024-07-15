@@ -66,21 +66,14 @@ export const selectSelectedInternalAccountChecksummedAddress = createSelector(
   selectSelectedInternalAccount,
   (account) => {
     const selectedAddress = account?.address;
-    console.log('Input to toChecksumHexAddress:', selectedAddress);
-    console.log('Type of input:', typeof selectedAddress);
 
     if (!selectedAddress || typeof selectedAddress !== 'string') {
-      console.log('Invalid or undefined address');
       return undefined;
     }
 
     try {
-      const addressUint8Array = hexStringToUint8Array(selectedAddress);
-      const result = toChecksumHexAddress(addressUint8Array);
-      console.log('Output from toChecksumHexAddress:', result);
-      return result;
+      return toChecksumHexAddress(selectedAddress);
     } catch (error) {
-      console.error('Error converting address to checksum format:', error);
       captureException(error);
       return undefined;
     }

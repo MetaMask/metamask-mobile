@@ -42,13 +42,21 @@ const transaction = {
   data,
 };
 
-type InitialState = {
+interface InitialState {
   engine: { backgroundState: EngineState };
   transaction: typeof transaction;
   settings: { primaryCurrency: string };
-  browser: { activeTab: number; tabs: Array<{ id: number; url: string }> };
-  fiatOrders: { networks: Array<{ active: boolean; chainId: number; chainName: string; shortName: string; nativeTokenSupported: boolean }> };
-};
+  browser: { activeTab: number; tabs: { id: number; url: string }[] };
+  fiatOrders: {
+    networks: {
+      active: boolean;
+      chainId: number;
+      chainName: string;
+      shortName: string;
+      nativeTokenSupported: boolean;
+    }[];
+  };
+}
 
 const initialState: InitialState = {
   engine: {

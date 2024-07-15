@@ -27,7 +27,11 @@ import {
   TokenListControllerActions,
   TokenListControllerEvents,
 } from '@metamask/assets-controllers';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionController,
+  TransactionState,
+} from '@metamask/transaction-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
 import PREINSTALLED_SNAPS from '../lib/snaps/preinstalled-snaps';
@@ -64,10 +68,6 @@ import {
   PreferencesControllerEvents,
   PreferencesState,
 } from '@metamask/preferences-controller';
-import {
-  TransactionController,
-  TransactionState,
-} from '@metamask/transaction-controller';
 import {
   GasFeeController,
   GasFeeState,
@@ -488,47 +488,44 @@ class Engine {
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
-    const nftController = new NftController(
-      {
-        onPreferencesStateChange,
-        onNetworkStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            listener,
-          ),
-        getNetworkClientById:
-          networkController.getNetworkClientById.bind(networkController),
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'NftController',
-          allowedActions: [
-            `${approvalController.name}:addRequest`,
-            `${networkController.name}:getNetworkClientById`,
-          ],
-          allowedEvents: [],
-        }),
-        chainId: networkController.state.providerConfig.chainId,
+    const nftController = new NftController({
+      onPreferencesStateChange,
+      onNetworkStateChange: (listener) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          listener,
+        ),
+      getNetworkClientById:
+        networkController.getNetworkClientById.bind(networkController),
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'NftController',
+        allowedActions: [
+          `${approvalController.name}:addRequest`,
+          `${networkController.name}:getNetworkClientById`,
+        ],
+        allowedEvents: [],
+      }),
+      chainId: networkController.state.providerConfig.chainId,
 
-        getERC721AssetName: assetsContractController.getERC721AssetName.bind(
-          assetsContractController,
-        ),
-        getERC721AssetSymbol:
-          assetsContractController.getERC721AssetSymbol.bind(
-            assetsContractController,
-          ),
-        getERC721TokenURI: assetsContractController.getERC721TokenURI.bind(
-          assetsContractController,
-        ),
-        getERC721OwnerOf: assetsContractController.getERC721OwnerOf.bind(
-          assetsContractController,
-        ),
-        getERC1155BalanceOf: assetsContractController.getERC1155BalanceOf.bind(
-          assetsContractController,
-        ),
-        getERC1155TokenURI: assetsContractController.getERC1155TokenURI.bind(
-          assetsContractController,
-        ),
-      },
-    );
+      getERC721AssetName: assetsContractController.getERC721AssetName.bind(
+        assetsContractController,
+      ),
+      getERC721AssetSymbol: assetsContractController.getERC721AssetSymbol.bind(
+        assetsContractController,
+      ),
+      getERC721TokenURI: assetsContractController.getERC721TokenURI.bind(
+        assetsContractController,
+      ),
+      getERC721OwnerOf: assetsContractController.getERC721OwnerOf.bind(
+        assetsContractController,
+      ),
+      getERC1155BalanceOf: assetsContractController.getERC1155BalanceOf.bind(
+        assetsContractController,
+      ),
+      getERC1155TokenURI: assetsContractController.getERC1155TokenURI.bind(
+        assetsContractController,
+      ),
+    });
 
     const loggingController = new LoggingController({
       messenger: this.controllerMessenger.getRestricted<
@@ -917,7 +914,10 @@ class Engine {
 
     console.log('Debug - Before JsonSnapsRegistry initialization');
     console.log('Debug - initialState:', JSON.stringify(initialState, null, 2));
-    console.log('Debug - Messenger:', JSON.stringify(snapsRegistryMessenger, null, 2));
+    console.log(
+      'Debug - Messenger:',
+      JSON.stringify(snapsRegistryMessenger, null, 2),
+    );
     console.log('Debug - requireAllowlist:', requireAllowlist);
 
     const snapsRegistry = new JsonSnapsRegistry({
@@ -1130,14 +1130,12 @@ class Engine {
           networkController.getProviderAndBlockTracker().provider as any,
 
         trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
-        getNonceLock: async (address: string) => {
-          return {
-            nextNonce: await this.transactionController.getNextNonce(address),
-            releaseLock: () => {
-              // No-op for now, as we don't have a direct equivalent
-            },
-          };
-        },
+        getNonceLock: async (address: string) => ({
+          nextNonce: await this.transactionController.getNextNonce(address),
+          releaseLock: () => {
+            // No-op for now, as we don't have a direct equivalent
+          },
+        }),
       },
       {
         supportedChainIds: [
@@ -1614,7 +1612,8 @@ class Engine {
       // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
       const tokens = backgroundState.TokensController.tokens;
-      const tokenBalances = backgroundState.TokenBalancesController.state.contractBalances;
+      const tokenBalances =
+        backgroundState.TokenBalancesController.state.contractBalances;
 
       let tokenFound = false;
       tokens.forEach((token: { address: string }) => {

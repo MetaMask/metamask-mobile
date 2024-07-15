@@ -16,7 +16,8 @@ import { IconProps } from 'react-native-vector-icons/Icon';
 
 // Add type assertions for Icon and MaterialCommunityIcon
 const TypedIcon = Icon as unknown as React.ComponentType<IconProps>;
-const TypedMaterialCommunityIcon = MaterialCommunityIcon as unknown as React.ComponentType<IconProps>;
+const TypedMaterialCommunityIcon =
+  MaterialCommunityIcon as unknown as React.ComponentType<IconProps>;
 
 import { strings } from '../../../../../../locales/i18n';
 import Text, {

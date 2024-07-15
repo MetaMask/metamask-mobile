@@ -9,6 +9,4 @@ function hexStringToUint8Array(hexString) {
   return bytes;
 }
 
-module.exports = {
-  hexStringToUint8Array,
-};
+export { hexStringToUint8Array };

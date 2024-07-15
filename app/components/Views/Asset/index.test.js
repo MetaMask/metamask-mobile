@@ -56,7 +56,11 @@ describe('Asset', () => {
         navigation={{ setOptions: () => null }}
         route={{ params: { symbol: 'ETH', address: 'something', isETH: true } }}
         transactions={[]}
-        selectedInternalAccount={{ address: hexStringToUint8Array('0x1234567890123456789012345678901234567890') }}
+        selectedInternalAccount={{
+          address: hexStringToUint8Array(
+            '0x1234567890123456789012345678901234567890',
+          ),
+        }}
       />,
       {
         state: mockInitialState,
