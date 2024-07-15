@@ -189,9 +189,16 @@ class Asset extends PureComponent {
   filter = undefined;
   navSymbol = undefined;
   navAddress = undefined;
-  selectedAddress = toChecksumHexAddress(
-    hexStringToUint8Array(this.props.selectedInternalAccount?.address),
-  );
+  selectedAddress = '';
+
+  constructor(props) {
+    super(props);
+    console.log('Input address:', props.selectedInternalAccount?.address);
+    const uint8Array = hexStringToUint8Array(props.selectedInternalAccount?.address);
+    console.log('Uint8Array output:', uint8Array);
+    this.selectedAddress = toChecksumHexAddress(uint8Array);
+    console.log('Checksum address:', this.selectedAddress);
+  }
 
   updateNavBar = (contentOffset = 0) => {
     const { navigation, route, chainId, rpcUrl, networkConfigurations } =
