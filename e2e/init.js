@@ -1,5 +1,5 @@
 import detox from 'detox';
-import config from '../../.detoxrc.json';
+import config from '../.detoxrc.json';
 import Utilities from './utils/Utilities';
 
 beforeAll(async () => {

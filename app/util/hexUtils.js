@@ -9,4 +9,4 @@ function hexStringToUint8Array(hexString) {
   return bytes;
 }
 
-export { hexStringToUint8Array };
+export default hexStringToUint8Array;

@@ -192,7 +192,9 @@ class Asset extends PureComponent {
 
   constructor(props) {
     super(props);
-    const addressUint8Array = hexStringToUint8Array(props.selectedInternalAccount?.address);
+    const addressUint8Array = hexStringToUint8Array(
+      props.selectedInternalAccount?.address,
+    );
     this.selectedAddress = toChecksumHexAddress(addressUint8Array);
   }
 

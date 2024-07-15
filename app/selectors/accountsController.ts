@@ -5,7 +5,6 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
-import { hexStringToUint8Array } from '../util/hexUtils';
 
 /**
  *
