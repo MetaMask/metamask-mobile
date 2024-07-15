@@ -77,6 +77,18 @@ describe('Engine', () => {
           userOptInV2: undefined,
         },
       },
+      NotificationServicesController: {
+        isCheckingAccountsPresence: false,
+        isFeatureAnnouncementsEnabled: false,
+        isFetchingMetamaskNotifications: false,
+        isMetamaskNotificationsFeatureSeen: false,
+        isNotificationServicesEnabled: false,
+        isUpdatingMetamaskNotifications: false,
+        isUpdatingMetamaskNotificationsAccount: [],
+        metamaskNotificationsList: [],
+        metamaskNotificationsReadList: [],
+        subscriptionAccountsSeen: [],
+      },
     });
   });
 
