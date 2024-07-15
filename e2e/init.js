@@ -3,6 +3,7 @@ const config = require('../../.detoxrc.json');
 import Utilities from './utils/Utilities';
 
 beforeAll(async () => {
+  await detox.installWorker();
   await detox.init(config);
   device.appLaunchArgs.modify({
     detoxURLBlacklistRegex: Utilities.BlacklistURLs,
