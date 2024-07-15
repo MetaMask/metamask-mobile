@@ -6,6 +6,17 @@ import { AddressFrom, AddressTo } from './index';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAddressModal.selectors';
 
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    DeviceEventEmitter: {
+      ...RN.DeviceEventEmitter,
+      removeListener: jest.fn(),
+    },
+  };
+});
+
 const initialState = {
   settings: {},
   engine: {
