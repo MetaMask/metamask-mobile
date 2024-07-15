@@ -4,6 +4,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import Asset from './';
 import Engine from '../../../core/Engine';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { hexStringToUint8Array } from '../../../util/hexUtils';
 
 const mockedEngine = Engine;
 
@@ -48,6 +49,7 @@ describe('Asset', () => {
         navigation={{ setOptions: () => null }}
         route={{ params: { symbol: 'ETH', address: 'something', isETH: true } }}
         transactions={[]}
+        selectedInternalAccount={{ address: hexStringToUint8Array('0x1234567890123456789012345678901234567890') }}
       />,
       {
         state: mockInitialState,
