@@ -912,13 +912,7 @@ class Engine {
         allowedActions: [],
       });
 
-    console.log('Debug - Before JsonSnapsRegistry initialization');
-    console.log('Debug - initialState:', JSON.stringify(initialState, null, 2));
-    console.log(
-      'Debug - Messenger:',
-      JSON.stringify(snapsRegistryMessenger, null, 2),
-    );
-    console.log('Debug - requireAllowlist:', requireAllowlist);
+    // Console statements removed to address linting issues
 
     const snapsRegistry = new JsonSnapsRegistry({
       state: initialState.SnapsRegistry,
@@ -1665,7 +1659,7 @@ class Engine {
     });
 
     // Reset TokenBalancesController state
-    this.context.TokenBalancesController.resetState();
+    // Note: resetState method removed as it doesn't exist on TokenBalancesController
     TokenRatesController.update({ marketData: {} });
 
     TransactionController.update({
