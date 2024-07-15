@@ -47,7 +47,7 @@ import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Net
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
 import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
-import {
+import Icon, {
   IconName,
   IconSize,
   IconColor,
@@ -1134,15 +1134,14 @@ export function getNftDetailsNavbarOptions(
   });
   return {
     headerLeft: () => (
-      // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
         {...generateTestId(Platform, ASSET_BACK_BUTTON)}
       >
-        <IonicIcon
-          name={'ios-arrow-back'}
-          size={24}
+        <Icon
+          name={IconName.Back}
+          size={IconSize.Lg}
           style={innerStyles.headerBackIcon}
         />
       </TouchableOpacity>
@@ -1151,14 +1150,59 @@ export function getNftDetailsNavbarOptions(
       ? () => (
           <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
             <MaterialCommunityIcon
-              name={'dots-vertical'} // TODO fix this make it vertical
+              name={'dots-vertical'}
               size={28}
               style={innerStyles.headerBackIcon}
             />
           </TouchableOpacity>
-          // eslint-disable-next-line no-mixed-spaces-and-tabs
         )
       : () => <View />,
+    headerStyle: [
+      innerStyles.headerStyle,
+      contentOffset && innerStyles.headerShadow,
+    ],
+  };
+}
+
+export function getNftFullImageNavbarOptions(
+  navigation,
+  themeColors,
+  contentOffset = 0,
+) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerShadow: {
+      elevation: 2,
+      shadowColor: themeColors.background.primary,
+      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
+      shadowOffset: { height: 4, width: 0 },
+      shadowRadius: 8,
+    },
+    headerIcon: {
+      color: themeColors.primary.default,
+    },
+    headerBackIcon: {
+      color: themeColors.icon.default,
+    },
+  });
+  return {
+    headerRight: () => (
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.pop()}
+      >
+        <Icon
+          name={IconName.Close2}
+          size={IconSize.Lg}
+          style={innerStyles.headerBackIcon}
+        />
+      </TouchableOpacity>
+    ),
+    headerLeft: () => <View />,
     headerStyle: [
       innerStyles.headerStyle,
       contentOffset && innerStyles.headerShadow,

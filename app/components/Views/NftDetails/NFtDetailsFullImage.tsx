@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect } from 'react';
 import { SafeAreaView, View } from 'react-native';
-import { getNftDetailsNavbarOptions } from '../../UI/Navbar';
+import { getNftFullImageNavbarOptions } from '../../UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../util/navigation/navUtils';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './NftDetails.styles';
-import Routes from '../../../constants/navigation/Routes';
 import { NftDetailsParams } from './NftDetails.types';
 import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 
@@ -19,21 +18,8 @@ const NftDetailsFullImage = () => {
   } = useStyles(styleSheet, {});
 
   const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getNftDetailsNavbarOptions(
-        navigation,
-        colors,
-        () =>
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: 'NftOptions',
-            params: {
-              collectible,
-            },
-          }),
-        undefined,
-      ),
-    );
-  }, [collectible, colors, navigation]);
+    navigation.setOptions(getNftFullImageNavbarOptions(navigation, colors));
+  }, [colors, navigation]);
 
   useEffect(() => {
     updateNavBar();
