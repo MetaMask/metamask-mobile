@@ -16,6 +16,12 @@ module.exports = {
     production: {
       plugins: ['transform-remove-console'],
     },
+    test: {
+      presets: [
+        ['@babel/preset-env', { targets: { node: 'current' }, modules: 'auto' }],
+      ],
+      plugins: ['@babel/plugin-transform-modules-commonjs'],
+    },
   },
   comments: false,
   compact: true,
