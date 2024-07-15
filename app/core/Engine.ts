@@ -1039,7 +1039,8 @@ class Engine {
         updateTransactions: true,
       },
       isSimulationEnabled: () =>
-        Boolean(preferencesController.state.useSimulationEnabled),
+        // TODO: Add 'simulationEnabled' to PreferencesState type if it should be included
+        Boolean((preferencesController.state as any).simulationEnabled),
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
@@ -1125,7 +1126,8 @@ class Engine {
 
         trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
         getNonceLock: async (address: string) => ({
-          nextNonce: await this.transactionController.getNextNonce(address),
+          // TODO: Verify if 'getTransactionCount' is the correct replacement for 'getNextNonce'
+          nextNonce: await this.transactionController.getTransactionCount(address),
           releaseLock: () => {
             // No-op for now, as we don't have a direct equivalent
           },
@@ -1658,8 +1660,7 @@ class Engine {
       ignoredNfts: [],
     });
 
-    // Reset TokenBalancesController state
-    // Note: resetState method removed as it doesn't exist on TokenBalancesController
+    // Reset TokenRatesController state
     TokenRatesController.update({ marketData: {} });
 
     TransactionController.update({
