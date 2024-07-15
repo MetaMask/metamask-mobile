@@ -1,7 +1,8 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import { render, screen, waitFor } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
+import PropTypes from 'prop-types';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { ENSCache } from '../../../util/ENSUtils';
@@ -10,14 +11,6 @@ import AccountFromToInfoCard from '.';
 import Engine from '../../../core/Engine';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-
-type AssetsContractController = Partial<{
-  getERC20BalanceOf: jest.Mock;
-  name: string;
-  getNetworkClientById: jest.Mock;
-  provider: unknown;
-  getProvider: jest.Mock;
-}> & Record<string, unknown>;
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
@@ -118,11 +111,21 @@ const transactionState: Transaction = {
 };
 
 describe('AccountFromToInfoCard', () => {
+  const AccountFromToInfoCardWithProps = ({ transactionState }: { transactionState: Transaction }) => (
+    <AccountFromToInfoCard transactionState={transactionState} />
+  );
+
+  AccountFromToInfoCardWithProps.propTypes = {
+    transactionState: PropTypes.object.isRequired,
+  };
+
+  AccountFromToInfoCardWithProps.displayName = 'AccountFromToInfoCardWithProps';
+
   it('should render correctly', () => {
     const { toJSON } = render(
       <Provider store={store}>
-        <AccountFromToInfoCard transactionState={transactionState} />
-      </Provider>
+        <AccountFromToInfoCardWithProps transactionState={transactionState} />
+      </Provider>,
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -190,7 +193,11 @@ describe('AccountFromToInfoCard', () => {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       <AccountFromToInfoCard transactionState={NFTTransaction as any} />,
-      { wrapper: ({ children }) => <Provider store={store}>{children}</Provider> }
+      {
+        wrapper: ({ children }) => (
+          <Provider store={store}>{children}</Provider>
+        ),
+      },
     );
     expect(screen.getByText('0xF4e8...287B')).toBeTruthy();
   });
@@ -219,7 +226,7 @@ describe('AccountFromToInfoCard', () => {
     render(
       <Provider store={store}>
         <AccountFromToInfoCard transactionState={txState} />
-      </Provider>
+      </Provider>,
     );
     screen.debug();
     await expect(screen.findByText('test1.eth')).resolves.toBeTruthy();
@@ -250,7 +257,6 @@ describe('AccountFromToInfoCard', () => {
     beforeEach(() => {
       jest.useFakeTimers();
       mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
-      // @ts-ignore: Bypass type check for AssetsContractController mock
       Engine.context.AssetsContractController = {
         getERC20BalanceOf: mockGetERC20BalanceOf,
         name: 'AssetsContractController',
@@ -266,7 +272,9 @@ describe('AccountFromToInfoCard', () => {
 
     it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', async () => {
       renderWithProvider(
-        <AccountFromToInfoCard transactionState={ERC20Transaction as unknown as Transaction} />,
+        <AccountFromToInfoCard
+          transactionState={ERC20Transaction as unknown as Transaction}
+        />,
         { state: mockInitialState },
       );
       screen.debug();
