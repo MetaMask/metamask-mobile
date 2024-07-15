@@ -32,6 +32,7 @@ import {
   BaseState,
   RestrictedControllerMessenger,
   StateConstraint,
+  EventConstraint,
 } from '@metamask/base-controller';
 import { RestrictedControllerMessenger as ApprovalControllerRestrictedMessenger } from '@metamask/approval-controller/node_modules/@metamask/base-controller';
 import {
@@ -1355,16 +1356,17 @@ class Engine {
       controllers as BaseController<
         string,
         StateConstraint,
-        // TODO: Replace 'any' with a more specific type that satisfies EventConstraint
-        RestrictedControllerMessenger<string, never, any, never, any>
+        // TODO: Replace this type assertion with a more specific type that satisfies the event constraint
+        RestrictedControllerMessenger<string, never, string, never, string>
       >[],
-      this.controllerMessenger as unknown as ApprovalControllerRestrictedMessenger<
+      this
+        .controllerMessenger as unknown as ApprovalControllerRestrictedMessenger<
         'ComposableController',
         never,
-        // TODO: Replace 'any' with a more specific type that satisfies EventConstraint
-        any,
+        // TODO: Replace this type assertion with a more specific type that satisfies the event constraint
+        string,
         never,
-        any
+        string
       >,
     );
     this.context = controllers.reduce<Partial<typeof this.context>>(
@@ -1387,14 +1389,17 @@ class Engine {
 
     // TODO: Align transaction types between keyring and TransactionController
     if (transaction && typeof transaction.configure === 'function') {
-      transaction.configure({ sign: keyring.signTransaction.bind(keyring) as unknown as (txParams: TransactionParams, from: string) => Promise<any> });
-    }
-
-    if (transaction && transaction.hub) {
-      transaction.hub.on('incomingTransactionBlock', (blockNumber: number) => {
-        NotificationManager.gotIncomingTransaction(blockNumber);
+      transaction.configure({
+        sign: keyring.signTransaction.bind(keyring) as unknown as (
+          txParams: TransactionParams,
+          from: string,
+        ) => Promise<string>,
       });
     }
+
+    transaction?.hub?.on('incomingTransactionBlock', (blockNumber: number) => {
+      NotificationManager.gotIncomingTransaction(blockNumber);
+    });
 
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
