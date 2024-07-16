@@ -121,7 +121,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
   }
 }
 
-export async function isChainSupported(chainId: Hex): Promise<boolean> {
+async function isChainSupported(chainId: Hex): Promise<boolean> {
   let supportedChainIds = BLOCKAID_SUPPORTED_CHAIN_IDS;
 
   try {
@@ -211,4 +211,4 @@ function normalizeRequest(request: PPOMRequest): PPOMRequest {
   };
 }
 
-export default { validateRequest, isChainSupported };
+export default { validateRequest };

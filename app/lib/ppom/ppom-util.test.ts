@@ -276,44 +276,17 @@ describe('PPOM Utils', () => {
         mockRequest,
       );
     });
-  });
 
-  describe('isChainSupported', () => {
-    describe('when security alerts API is enabled', () => {
-      beforeEach(async () => {
-        isSecurityAlertsEnabledMock.mockReturnValue(true);
-        getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
-      });
-      it('returns true if chain is supported', async () => {
-        expect(await PPOMUtil.isChainSupported(CHAIN_ID_MOCK)).toStrictEqual(
-          true,
-        );
-      });
-
-      it('returns false if chain is not supported', async () => {
-        expect(await PPOMUtil.isChainSupported('0x2')).toStrictEqual(false);
-      });
-
-      it('returns correctly if security alerts API throws', async () => {
-        jest
-          .spyOn(securityAlertAPI, 'getSecurityAlertsAPISupportedChainIds')
-          .mockRejectedValue(new Error('Test Error'));
-        expect(await PPOMUtil.isChainSupported(CHAIN_ID_MOCK)).toStrictEqual(
-          true,
-        );
-      });
-    });
-
-    describe('when security alerts API is disabled', () => {
-      it('returns true if chain is supported', async () => {
-        expect(await PPOMUtil.isChainSupported(CHAIN_ID_MOCK)).toStrictEqual(
-          true,
-        );
-      });
-
-      it('returns false if chain is not supported', async () => {
-        expect(await PPOMUtil.isChainSupported('0x2')).toStrictEqual(false);
-      });
+    it('validates correctly if security alerts API throws', async () => {
+      const spy = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      jest
+        .spyOn(securityAlertAPI, 'getSecurityAlertsAPISupportedChainIds')
+        .mockRejectedValue(new Error('Test Error'));
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(spy).toBeCalledTimes(2);
     });
   });
 });
