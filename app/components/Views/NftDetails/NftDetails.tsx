@@ -40,7 +40,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/ContentDisplay';
 import BigNumber from 'bignumber.js';
-import { getShortDateFormatter } from '../../../util/notifications';
+import { formatTimestampToYYYYMMDD } from '../../../util/notifications';
 
 const NftDetails = () => {
   const navigation = useNavigation();
@@ -222,7 +222,7 @@ const NftDetails = () => {
 
   const getFormattedDate = (dateString: number) => {
     const date = new Date(dateString * 1000).getTime();
-    return getShortDateFormatter().format(date);
+    return formatTimestampToYYYYMMDD(date);
   };
 
   const onMediaPress = useCallback(() => {
