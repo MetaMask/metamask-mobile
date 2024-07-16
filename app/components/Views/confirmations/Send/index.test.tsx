@@ -189,7 +189,7 @@ jest.mock('../../../../core/Engine', () => ({
     NetworkController: {
       getProviderAndBlockTracker: jest.fn().mockImplementation(() => ({
         provider: {
-          sendAsync: () => null,
+          request: () => Promise.resolve(null),
         },
       })),
       state: {
