@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
@@ -20,34 +20,23 @@ const styleSheet = (params: {
   vars: AvatarGroupStyleSheetVars;
 }) => {
   const { theme, vars } = params;
-  const { stackWidth, stackHeight } = vars;
+  const { style } = vars;
   const borderWidth = 1;
-  const stackHeightWithBorder = stackHeight + borderWidth * 2;
 
   return StyleSheet.create({
-    base: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      height: stackHeightWithBorder,
-    },
-    stack: {
-      flexDirection: 'row',
-      width: stackWidth + borderWidth * 2,
-      height: stackHeightWithBorder,
-    },
-    stackedAvatarWrapper: {
-      position: 'absolute',
-      borderRadius: 50,
+    base: Object.assign(
+      {
+        flexDirection: 'row',
+        alignItems: 'center',
+      } as ViewStyle,
+      style,
+    ) as ViewStyle,
+    avatar: {
       borderWidth,
       borderColor: theme.colors.background.default,
     },
-    overflowCounterWrapper: {
-      justifyContent: 'center',
-    },
     textStyle: {
-      color: theme.colors.text.alternative,
       marginLeft: 2,
-      bottom: 2,
     },
   });
 };

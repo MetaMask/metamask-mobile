@@ -1,30 +1,66 @@
 # AvatarGroup
 
-AvatarGroup is a component that renders horizontally an array of token avatars. An overflow counter will appear if there are more than four tokens.
+AvatarGroup is a component that horizontally stacks multiple Avatar components.
 
-## Props
+## AvatarGroup Props
 
-This component extends [ViewProps](https://reactnative.dev/docs/view-style-props) from React Native's [View](https://reactnative.dev/docs/view) component.
+This component extends React Native's [ViewProps](https://reactnative.dev/docs/view) component.
 
-### `tokenList`
+### `avatarPropsList`
 
-A list of tokens metadata to be horizontally stacked.
+A list of Avatars to be horizontally stacked.
+Note: AvatarGroup's `size` prop will overwrite each individual avatar's `size`.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [AvatarGroupToken](./AvatarGroup.types.ts#L16)      | Yes                                                     |
+| `AvatarProps[]`                                     | Yes                                                     |
+
+### `size`
+
+Optional enum to select between Avatar Group sizes.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| [`AvatarSize`](../Avatar/Avatar.types.ts)           | No                                                      | `AvatarSize.Xs`                                        |
+
+### `maxStackedAvatars`
+
+Optional enum to select the maximum number of Avatars visible before the overflow counter is displayed.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| `number`                                            | No                                                      | 4                                                      |
 
 ## Usage
 
 ```javascript
-// Replace import with relative path.
-import AvatarGroup from 'app/component-library/components/Avatars/AvatarGroup';
+// Passing list of AvatarProps to avatarPropsList
+const avatarPropsList: AvatarProps[] = [
+  {
+    variant: AvatarVariant.Network,
+    name: SAMPLE_AVATARNETWORK_NAME,
+    imageSource: SAMPLE_AVATARNETWORK_IMAGESOURCE_REMOTE,
+  },
+  {
+    variant: AvatarVariant.Network,
+    name: SAMPLE_AVATARNETWORK_NAME,
+    imageSource: SAMPLE_AVATARNETWORK_IMAGESOURCE_REMOTE,
+  },
+  {
+    variant: AvatarVariant.Network,
+    name: SAMPLE_AVATARNETWORK_NAME,
+    imageSource: SAMPLE_AVATARNETWORK_IMAGESOURCE_REMOTE,
+  },
+];
+<AvatarGroup avatarPropsList={avatarPropsList} />;
 
-<AvatarGroup
-  tokenList={[
-    { id: TOKEN_ID_1, image: TOKEN_IMAGE_1, imageUrl: TOKEN_IMAGE_URL_1 },
-    { id: TOKEN_ID_2, image: TOKEN_IMAGE_2, imageUrl: TOKEN_IMAGE_URL_2 },
-    { id: TOKEN_ID_3, image: TOKEN_IMAGE_3, imageUrl: TOKEN_IMAGE_URL_3 },
-  ]}
-/>;
+// Configuring different Avatar sizes
+<AvatarGroup avatarPropsList={avatarPropsList} size={AvatarSize.Xs} />;
+<AvatarGroup avatarPropsList={avatarPropsList} size={AvatarSize.Sm} />;
+<AvatarGroup avatarPropsList={avatarPropsList} size={AvatarSize.Md} />;
+<AvatarGroup avatarPropsList={avatarPropsList} size={AvatarSize.Lg} />;
+<AvatarGroup avatarPropsList={avatarPropsList} size={AvatarSize.Xl} />;
+
+// Configuring max number of stacked Avatars
+<AvatarGroup avatarPropsList={avatarPropsList} maxStackedAvatars={3} />;
 ```

@@ -1,39 +1,49 @@
-// Third party dependencies.
+// External dependencies
 import React from 'react';
-import { shallow, ShallowWrapper } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
-// Internal dependencies.
+// Internal dependencies
 import AvatarGroup from './AvatarGroup';
 import {
-  AVAILABLE_TOKEN_LIST,
-  STACKED_AVATARS_OVERFLOW_COUNTER_ID,
+  SAMPLE_AVATARGROUP_PROPS,
+  AVATARGROUP_AVATAR_TESTID,
+  AVATARGROUP_OVERFLOWCOUNTER_TESTID,
 } from './AvatarGroup.constants';
 
 describe('AvatarGroup', () => {
-  const findOverflowCounter = (
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    node: ShallowWrapper<any, any, React.Component>,
-  ) => node.prop('testID') === STACKED_AVATARS_OVERFLOW_COUNTER_ID;
+  const renderComponent = (props = {}) =>
+    render(<AvatarGroup {...SAMPLE_AVATARGROUP_PROPS} {...props} />);
 
-  it('should render correctly', () => {
-    const wrapper = shallow(<AvatarGroup tokenList={AVAILABLE_TOKEN_LIST} />);
-    expect(wrapper).toMatchSnapshot();
+  it('should render AvatarGroup component', () => {
+    const { toJSON } = renderComponent();
+    expect(toJSON()).toMatchSnapshot();
   });
-  it('should render overflow counter', () => {
-    const wrapper = shallow(<AvatarGroup tokenList={AVAILABLE_TOKEN_LIST} />);
 
-    const overflowCounter = wrapper.findWhere(findOverflowCounter);
-
-    expect(overflowCounter.exists()).toBeTruthy();
+  it('should render the correct number of avatars', () => {
+    const { getAllByTestId } = renderComponent();
+    const avatars = getAllByTestId(AVATARGROUP_AVATAR_TESTID);
+    expect(avatars.length).toBe(SAMPLE_AVATARGROUP_PROPS.maxStackedAvatars);
   });
-  it('should not render overflow counter', () => {
-    const wrapper = shallow(
-      <AvatarGroup tokenList={AVAILABLE_TOKEN_LIST.slice(0, 4)} />,
-    );
 
-    const overflowCounter = wrapper.findWhere(findOverflowCounter);
+  it('should render the overflow counter when there are more avatars than the max limit', () => {
+    const { getByTestId } = renderComponent();
+    const overflowCounter = getByTestId(AVATARGROUP_OVERFLOWCOUNTER_TESTID);
+    expect(overflowCounter).toBeDefined();
+    const overflowCounterNumber = SAMPLE_AVATARGROUP_PROPS.maxStackedAvatars
+      ? SAMPLE_AVATARGROUP_PROPS.avatarPropsList.length -
+        SAMPLE_AVATARGROUP_PROPS.maxStackedAvatars
+      : SAMPLE_AVATARGROUP_PROPS.avatarPropsList.length;
+    expect(overflowCounter.props.children).toBe(`+${overflowCounterNumber}`);
+  });
 
-    expect(overflowCounter.exists()).toBeFalsy();
+  it('should not render the overflow counter when there are fewer or equal avatars than the max limit', () => {
+    const { queryByTestId } = renderComponent({
+      avatarPropsList: SAMPLE_AVATARGROUP_PROPS.avatarPropsList.slice(
+        0,
+        SAMPLE_AVATARGROUP_PROPS.maxStackedAvatars,
+      ),
+    });
+    const overflowCounter = queryByTestId(AVATARGROUP_OVERFLOWCOUNTER_TESTID);
+    expect(overflowCounter).toBeNull();
   });
 });

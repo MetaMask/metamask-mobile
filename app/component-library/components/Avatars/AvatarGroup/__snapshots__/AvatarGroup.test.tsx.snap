@@ -1,149 +1,298 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AvatarGroup should render correctly 1`] = `
+exports[`AvatarGroup should render AvatarGroup component 1`] = `
 <View
   style={
     {
       "alignItems": "center",
       "flexDirection": "row",
-      "height": 18,
     }
   }
 >
   <View
     style={
       {
-        "flexDirection": "row",
-        "height": 18,
-        "width": 42,
+        "marginLeft": 0,
       }
     }
   >
     <View
-      key="Ethereum-0"
       style={
-        [
-          {
-            "borderColor": "#ffffff",
-            "borderRadius": 50,
-            "borderWidth": 1,
-            "position": "absolute",
-          },
-          {
-            "left": 0,
-          },
-        ]
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderColor": "#ffffff",
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "height": 16,
+          "justifyContent": "center",
+          "overflow": "hidden",
+          "width": 16,
+        }
       }
+      testID="avatargroup-avatar"
     >
-      <AvatarToken
-        imageSource={
+      <SvgMock
+        color="#141618"
+        height={12}
+        name="AddSquare"
+        style={
           {
-            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+            "height": 12,
+            "width": 12,
           }
         }
-        name="Ethereum"
-        size="16"
-      />
-    </View>
-    <View
-      key="Ethereum-1"
-      style={
-        [
-          {
-            "borderColor": "#ffffff",
-            "borderRadius": 50,
-            "borderWidth": 1,
-            "position": "absolute",
-          },
-          {
-            "left": 8,
-          },
-        ]
-      }
-    >
-      <AvatarToken
-        imageSource={
-          {
-            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
-          }
-        }
-        name="Ethereum"
-        size="16"
-      />
-    </View>
-    <View
-      key="Ethereum-2"
-      style={
-        [
-          {
-            "borderColor": "#ffffff",
-            "borderRadius": 50,
-            "borderWidth": 1,
-            "position": "absolute",
-          },
-          {
-            "left": 16,
-          },
-        ]
-      }
-    >
-      <AvatarToken
-        imageSource={
-          {
-            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
-          }
-        }
-        name="Ethereum"
-        size="16"
-      />
-    </View>
-    <View
-      key="Ethereum-3"
-      style={
-        [
-          {
-            "borderColor": "#ffffff",
-            "borderRadius": 50,
-            "borderWidth": 1,
-            "position": "absolute",
-          },
-          {
-            "left": 24,
-          },
-        ]
-      }
-    >
-      <AvatarToken
-        imageSource={
-          {
-            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
-          }
-        }
-        name="Ethereum"
-        size="16"
+        width={12}
       />
     </View>
   </View>
   <View
     style={
       {
-        "justifyContent": "center",
+        "marginLeft": -8,
       }
     }
   >
-    <Text
+    <View
       style={
         {
-          "bottom": 2,
-          "color": "#6a737d",
-          "marginLeft": 2,
+          "backgroundColor": "#ffffff",
+          "borderColor": "#ffffff",
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "height": 16,
+          "overflow": "hidden",
+          "width": 16,
         }
       }
-      testID="stacked-avatar-overflow-counter"
-      variant="sBodyMD"
+      testID="avatargroup-avatar"
     >
-      +10
-    </Text>
+      <Image
+        onError={[Function]}
+        resizeMode="contain"
+        source={
+          {
+            "uri": "https://cryptologos.cc/logos/polygon-matic-logo.png",
+          }
+        }
+        style={
+          {
+            "flex": 1,
+            "height": undefined,
+            "width": undefined,
+          }
+        }
+        testID="token-avatar-image"
+      />
+    </View>
   </View>
+  <View
+    style={
+      {
+        "marginLeft": -8,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "#ffffff",
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "height": 16,
+          "overflow": "hidden",
+          "width": 16,
+        }
+      }
+      testID="avatargroup-avatar"
+    >
+      <Image
+        onError={[Function]}
+        resizeMode="contain"
+        source={
+          {
+            "uri": "https://uniswap.org/favicon.ico",
+          }
+        }
+        style={
+          {
+            "flex": 1,
+            "height": undefined,
+            "width": undefined,
+          }
+        }
+        testID="favicon-avatar-image"
+      />
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "marginLeft": -8,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "#ffffff",
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "height": 16,
+          "overflow": "hidden",
+          "width": 16,
+        }
+      }
+      testID="avatargroup-avatar"
+    >
+      <View
+        style={
+          [
+            {
+              "overflow": "hidden",
+            },
+            {
+              "backgroundColor": "#F1D702",
+              "borderRadius": 8,
+              "height": 16,
+              "width": 16,
+            },
+            undefined,
+          ]
+        }
+      >
+        <RNSVGSvgView
+          bbHeight={16}
+          bbWidth={16}
+          focusable={false}
+          height={16}
+          style={
+            [
+              {
+                "backgroundColor": "transparent",
+                "borderWidth": 0,
+              },
+              {
+                "flex": 0,
+                "height": 16,
+                "width": 16,
+              },
+            ]
+          }
+          width={16}
+        >
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
+            <RNSVGRect
+              fill={
+                {
+                  "payload": 4278401629,
+                  "type": 0,
+                }
+              }
+              height={16}
+              matrix={
+                [
+                  0.9865721616069695,
+                  0.16332596224162158,
+                  -0.16332596224162158,
+                  0.9865721616069695,
+                  2.23306583748379,
+                  -2.8917137837503786,
+                ]
+              }
+              propList={
+                [
+                  "fill",
+                ]
+              }
+              width={16}
+              x={0}
+              y={0}
+            />
+            <RNSVGRect
+              fill={
+                {
+                  "payload": 4293653248,
+                  "type": 0,
+                }
+              }
+              height={16}
+              matrix={
+                [
+                  -0.9510565162951535,
+                  0.3090169943749475,
+                  -0.3090169943749475,
+                  -0.9510565162951535,
+                  28.498926494969496,
+                  14.417102424610755,
+                ]
+              }
+              propList={
+                [
+                  "fill",
+                ]
+              }
+              width={16}
+              x={0}
+              y={0}
+            />
+            <RNSVGRect
+              fill={
+                {
+                  "payload": 4291236897,
+                  "type": 0,
+                }
+              }
+              height={16}
+              matrix={
+                [
+                  -0.9438009515832294,
+                  0.3305143927132231,
+                  -0.3305143927132231,
+                  -0.9438009515832294,
+                  29.414153000493634,
+                  20.103064680104524,
+                ]
+              }
+              propList={
+                [
+                  "fill",
+                ]
+              }
+              width={16}
+              x={0}
+              y={0}
+            />
+          </RNSVGGroup>
+        </RNSVGSvgView>
+      </View>
+    </View>
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#6a737d",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 12,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 20,
+        "marginLeft": 2,
+      }
+    }
+    testID="avatargroup-overflowcounter"
+  >
+    +1
+  </Text>
 </View>
 `;

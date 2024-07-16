@@ -74,7 +74,14 @@ const AccountSelectorList = ({
         )}
       >
         <Text style={styles.balanceLabel}>{fiatBalance}</Text>
-        {tokens && <AvatarGroup tokenList={tokens} />}
+        {tokens && (
+          <AvatarGroup
+            avatarPropsList={tokens.map((tokenObj) => ({
+              ...tokenObj,
+              variant: AvatarVariant.Token,
+            }))}
+          />
+        )}
       </View>
     ),
     [styles.balancesContainer, styles.balanceLabel],

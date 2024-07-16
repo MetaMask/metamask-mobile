@@ -1,21 +1,16 @@
-// Third party dependencies.
-import { ImageSourcePropType, ViewProps } from 'react-native';
+// Third party dependencies
+import { ViewProps } from 'react-native';
+
+// External dependencies
+import { AvatarProps, AvatarSize } from '../Avatar/Avatar.types';
+import { TextVariant } from '../../Texts/Text';
 
 /**
- * Token structure used in AvatarGroup.
+ * Mapping of TextVariant by AvatarSize.
  */
-export interface AvatarGroupToken {
-  /**
-   * Token Name.
-   */
-  name: string;
-  /**
-   * Token image from either remote or local source.
-   */
-  imageSource: ImageSourcePropType;
-}
-
-export type AvatarGroupTokenList = AvatarGroupToken[];
+export type TextVariantByAvatarSize = {
+  [key in AvatarSize]: TextVariant;
+};
 
 /**
  * AvatarGroup component props.
@@ -23,14 +18,21 @@ export type AvatarGroupTokenList = AvatarGroupToken[];
 export interface AvatarGroupProps extends ViewProps {
   /**
    * A list of Avatars to be horizontally stacked.
+   * Note: AvatarGroupProps's size prop will overwrite each individual
+   * avatarProp's size
    */
-  tokenList: AvatarGroupTokenList;
+  avatarPropsList: AvatarProps[];
+  /**
+   * Optional enum to select between Avatar Group sizes.
+   * @default AvatarSize.Xs
+   */
+  size?: AvatarSize;
+  /**
+   * Optional enum to select max number of Avatars visible,
+   * before the overflow counter being displayed
+   * @default 4
+   */
+  maxStackedAvatars?: number;
 }
 
-/**
- * Style sheet input parameters.
- */
-export interface AvatarGroupStyleSheetVars {
-  stackWidth: number;
-  stackHeight: number;
-}
+export type AvatarGroupStyleSheetVars = Pick<AvatarGroupProps, 'style'>;
