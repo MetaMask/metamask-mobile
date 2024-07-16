@@ -301,31 +301,30 @@ export default class DeeplinkProtocolService {
           `DeeplinkProtocolService::clients_connected - new client ${clientInfo.clientId}}`,
           this.connections,
         );
-        // Ask for account permissions
+
         await this.checkPermission({
-          originatorInfo: clientInfo.originatorInfo,
           channelId: clientInfo.clientId,
+          originatorInfo: clientInfo.originatorInfo,
         });
 
         this.setupBridge(clientInfo);
-        // Save session to SDKConnect
-        // Save to local connections
+
         this.connections[clientInfo.clientId] = {
-          connected: true,
           clientId: clientInfo.clientId,
-          originatorInfo: clientInfo.originatorInfo,
+          connected: true,
           validUntil: clientInfo.validUntil,
           scheme: clientInfo.scheme,
+          originatorInfo: clientInfo.originatorInfo,
         };
 
         await SDKConnect.getInstance().addDappConnection({
           id: clientInfo.clientId,
-          lastAuthorized: Date.now(),
           origin: AppConstants.MM_SDK.IOS_SDK,
-          originatorInfo: clientInfo.originatorInfo,
+          lastAuthorized: Date.now(),
           otherPublicKey: this.dappPublicKeyByClientId[clientInfo.clientId],
-          validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
+          originatorInfo: clientInfo.originatorInfo,
           scheme: clientInfo.scheme,
+          validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
         });
       }
 
