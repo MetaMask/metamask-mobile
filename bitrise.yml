@@ -52,6 +52,7 @@ pipelines:
     stages:
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
+      # - notify: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
     stages:
@@ -148,6 +149,7 @@ stages:
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_upgrade_android: {}
+      - notify_success: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
