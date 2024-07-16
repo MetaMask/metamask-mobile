@@ -304,7 +304,7 @@ exports[`QrScanner should render correctly 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <View
                       style={
                         {
                           "backgroundColor": "#000000",
@@ -316,7 +316,7 @@ exports[`QrScanner should render correctly 1`] = `
                         }
                       }
                     >
-                      <RCTSafeAreaView
+                      <View
                         style={
                           {
                             "display": "flex",
@@ -420,8 +420,8 @@ exports[`QrScanner should render correctly 1`] = `
                             }
                           }
                         />
-                      </RCTSafeAreaView>
-                    </RCTSafeAreaView>
+                      </View>
+                    </View>
                   </View>
                 </View>
               </View>
