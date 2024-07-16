@@ -8,6 +8,8 @@ import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import DeeplinkProtocolService from './DeeplinkProtocolService';
+import AppConstants from '../../AppConstants';
+import { DappClient } from '../AndroidSDK/dapp-sdk-types';
 
 jest.mock('../SDKConnect');
 jest.mock('../../../core/Engine');
@@ -335,6 +337,122 @@ describe('DeeplinkProtocolService', () => {
       };
       await service.handleConnection(connectionParams);
       expect(service.connections.connection1).toBeDefined();
+    });
+  });
+
+  describe('handleConnectionEventAsync', () => {
+    let clientInfo: DappClient;
+
+    let params: {
+      dappPublicKey: string;
+      url: string;
+      scheme: string;
+      channelId: string;
+      originatorInfo?: string;
+      request?: string;
+    };
+
+    beforeEach(() => {
+      clientInfo = {
+        clientId: 'client1',
+        originatorInfo: {
+          url: 'test.com',
+          title: 'Test',
+          platform: 'test',
+          dappId: 'dappId',
+        },
+        connected: false,
+        validUntil: Date.now(),
+        scheme: 'scheme1',
+      };
+      params = {
+        dappPublicKey: 'key',
+        url: 'url',
+        scheme: 'scheme1',
+        channelId: 'client1',
+        originatorInfo: Buffer.from(
+          JSON.stringify({
+            originatorInfo: {
+              url: 'test.com',
+              title: 'Test',
+              platform: 'test',
+              dappId: 'dappId',
+            },
+          }),
+        ).toString('base64'),
+        request: JSON.stringify({ id: '1', method: 'test', params: [] }),
+      };
+
+      // Mocking methods
+      service.checkPermission = jest.fn().mockResolvedValue(null);
+      service.setupBridge = jest.fn();
+      service.sendMessage = jest.fn().mockResolvedValue(null);
+      service.processDappRpcRequest = jest.fn().mockResolvedValue(null);
+      service.openDeeplink = jest.fn().mockResolvedValue(null);
+
+      (Engine.context as unknown) = {
+        PermissionController: {
+          requestPermissions: jest.fn().mockResolvedValue(null),
+        },
+        KeyringController: {
+          unlock: jest.fn().mockResolvedValue(null),
+          isUnlocked: jest.fn().mockReturnValue(true),
+        },
+        PreferencesController: {
+          state: {
+            selectedAddress: '0xAddress',
+          },
+        },
+      };
+    });
+
+    it('should setup a new client bridge if the connection does not exist', async () => {
+      await service.handleConnectionEventAsync({ clientInfo, params });
+      expect(service.checkPermission).toHaveBeenCalledWith({
+        originatorInfo: clientInfo.originatorInfo,
+        channelId: clientInfo.clientId,
+      });
+      expect(service.setupBridge).toHaveBeenCalledWith(clientInfo);
+      expect(SDKConnect.getInstance().addDappConnection).toHaveBeenCalledWith({
+        id: clientInfo.clientId,
+        lastAuthorized: expect.any(Number),
+        origin: AppConstants.MM_SDK.IOS_SDK,
+        originatorInfo: clientInfo.originatorInfo,
+        otherPublicKey: service.dappPublicKeyByClientId[clientInfo.clientId],
+        validUntil: expect.any(Number),
+        scheme: clientInfo.scheme,
+      });
+    });
+
+    it('should update existing client connection and process request if exists', async () => {
+      service.connections[clientInfo.clientId] = clientInfo;
+      await service.handleConnectionEventAsync({ clientInfo, params });
+      expect(service.processDappRpcRequest).toHaveBeenCalledWith(params);
+    });
+
+    it('should send error message if connection event fails', async () => {
+      (service.checkPermission as jest.Mock).mockRejectedValue(
+        new Error('Permission error'),
+      );
+      await service.handleConnectionEventAsync({ clientInfo, params });
+      expect(service.sendMessage).toHaveBeenCalledWith({
+        data: {
+          error: new Error('Permission error'),
+          jsonrpc: '2.0',
+        },
+        name: 'metamask-provider',
+      });
+      expect(service.openDeeplink).toHaveBeenCalledWith({
+        message: {
+          data: {
+            error: new Error('Permission error'),
+            jsonrpc: '2.0',
+          },
+          name: 'metamask-provider',
+        },
+        clientId: '',
+        scheme: clientInfo.scheme,
+      });
     });
   });
 

@@ -272,6 +272,117 @@ export default class DeeplinkProtocolService {
     );
   }
 
+  public async handleConnectionEventAsync({
+    clientInfo,
+    params,
+  }: {
+    clientInfo: DappClient;
+    params: {
+      dappPublicKey: string;
+      url: string;
+      scheme: string;
+      channelId: string;
+      originatorInfo?: string;
+      request?: string;
+    };
+  }) {
+    const keyringController = (
+      Engine.context as { KeyringController: KeyringController }
+    ).KeyringController;
+
+    await waitForKeychainUnlocked({
+      keyringController,
+      context: 'DeeplinkProtocolService::setupOnClientsConnectedListener',
+    });
+
+    try {
+      if (!this.connections?.[clientInfo.clientId]) {
+        DevLogger.log(
+          `DeeplinkProtocolService::clients_connected - new client ${clientInfo.clientId}}`,
+          this.connections,
+        );
+        // Ask for account permissions
+        await this.checkPermission({
+          originatorInfo: clientInfo.originatorInfo,
+          channelId: clientInfo.clientId,
+        });
+
+        this.setupBridge(clientInfo);
+        // Save session to SDKConnect
+        // Save to local connections
+        this.connections[clientInfo.clientId] = {
+          connected: true,
+          clientId: clientInfo.clientId,
+          originatorInfo: clientInfo.originatorInfo,
+          validUntil: clientInfo.validUntil,
+          scheme: clientInfo.scheme,
+        };
+
+        await SDKConnect.getInstance().addDappConnection({
+          id: clientInfo.clientId,
+          lastAuthorized: Date.now(),
+          origin: AppConstants.MM_SDK.IOS_SDK,
+          originatorInfo: clientInfo.originatorInfo,
+          otherPublicKey: this.dappPublicKeyByClientId[clientInfo.clientId],
+          validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
+          scheme: clientInfo.scheme,
+        });
+      }
+
+      if (params.request) {
+        await this.processDappRpcRequest(params);
+
+        return;
+      }
+
+      this.sendMessage(
+        {
+          data: {},
+        },
+        true,
+      ).catch((err) => {
+        Logger.log(
+          err,
+          `DeeplinkProtocolService::clients_connected error sending READY message to client`,
+        );
+      });
+    } catch (error) {
+      Logger.log(
+        error,
+        `DeeplinkProtocolService::clients_connected sending jsonrpc error to client - connection rejected`,
+      );
+
+      this.sendMessage({
+        data: {
+          error,
+          jsonrpc: '2.0',
+        },
+        name: 'metamask-provider',
+      }).catch((err) => {
+        Logger.log(
+          err,
+          `DeeplinkProtocolService::clients_connected error failed sending jsonrpc error to client`,
+        );
+      });
+
+      const message = {
+        data: {
+          error,
+          jsonrpc: '2.0',
+        },
+        name: 'metamask-provider',
+      };
+
+      this.openDeeplink({
+        message,
+        clientId: this.currentClientId ?? '',
+        scheme: clientInfo.scheme,
+      });
+
+      return;
+    }
+  }
+
   public async handleConnection(params: {
     dappPublicKey: string;
     url: string;
@@ -350,105 +461,10 @@ export default class DeeplinkProtocolService {
       scheme: clientInfo.scheme,
     });
 
-    const handleEventAsync = async () => {
-      const keyringController = (
-        Engine.context as { KeyringController: KeyringController }
-      ).KeyringController;
-
-      await waitForKeychainUnlocked({
-        keyringController,
-        context: 'DeeplinkProtocolService::setupOnClientsConnectedListener',
-      });
-
-      try {
-        if (!this.connections?.[clientInfo.clientId]) {
-          DevLogger.log(
-            `DeeplinkProtocolService::clients_connected - new client ${clientInfo.clientId}}`,
-            this.connections,
-          );
-          // Ask for account permissions
-          await this.checkPermission({
-            originatorInfo: clientInfo.originatorInfo,
-            channelId: clientInfo.clientId,
-          });
-
-          this.setupBridge(clientInfo);
-          // Save session to SDKConnect
-          // Save to local connections
-          this.connections[clientInfo.clientId] = {
-            connected: true,
-            clientId: clientInfo.clientId,
-            originatorInfo: clientInfo.originatorInfo,
-            validUntil: clientInfo.validUntil,
-            scheme: clientInfo.scheme,
-          };
-
-          await SDKConnect.getInstance().addDappConnection({
-            id: clientInfo.clientId,
-            lastAuthorized: Date.now(),
-            origin: AppConstants.MM_SDK.IOS_SDK,
-            originatorInfo: clientInfo.originatorInfo,
-            otherPublicKey: this.dappPublicKeyByClientId[clientInfo.clientId],
-            validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
-            scheme: clientInfo.scheme,
-          });
-        }
-
-        if (params.request) {
-          await this.processDappRpcRequest(params);
-
-          return;
-        }
-
-        this.sendMessage(
-          {
-            data: {},
-          },
-          true,
-        ).catch((err) => {
-          Logger.log(
-            err,
-            `DeeplinkProtocolService::clients_connected error sending READY message to client`,
-          );
-        });
-      } catch (error) {
-        Logger.log(
-          error,
-          `DeeplinkProtocolService::clients_connected sending jsonrpc error to client - connection rejected`,
-        );
-
-        this.sendMessage({
-          data: {
-            error,
-            jsonrpc: '2.0',
-          },
-          name: 'metamask-provider',
-        }).catch((err) => {
-          Logger.log(
-            err,
-            `DeeplinkProtocolService::clients_connected error failed sending jsonrpc error to client`,
-          );
-        });
-
-        const message = {
-          data: {
-            error,
-            jsonrpc: '2.0',
-          },
-          name: 'metamask-provider',
-        };
-
-        this.openDeeplink({
-          message,
-          clientId: this.currentClientId ?? '',
-          scheme: clientInfo.scheme,
-        });
-
-        return;
-      }
-    };
-
-    handleEventAsync().catch((err) => {
+    this.handleConnectionEventAsync({
+      clientInfo,
+      params,
+    }).catch((err) => {
       Logger.log(
         err,
         `DeeplinkProtocolService::clients_connected error handling event`,
