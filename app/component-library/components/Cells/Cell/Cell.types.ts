@@ -26,5 +26,5 @@ export type CellProps = (
   /**
    * Variant of Cell
    */
-  variant?: CellVariant;
+  variant: CellVariant;
 };

@@ -10,9 +10,9 @@ This component extends [ListItemSelectProps](../../List/ListItemSelect/ListItemS
 
 Props for the [Avatar](../../../../Avatars/Avatar.tsx) component (with the exception of size). Avatar size is restricted to size Md(32x32) for Cells
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [AvatarProps](../../../../Avatars/Avatar.types.ts#L19)                                              | Yes                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span>    | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :----------------------------------------------------- | :------------------------------------------------------ |
+| [AvatarProps](../../../../Avatars/Avatar.types.ts#L19) | Yes                                                     |
 
 ### `title`
 
@@ -20,7 +20,7 @@ Title of the Cell, 1 line truncation.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | Yes                                                     |
+| string or ReactNode                                 | Yes                                                     |
 
 ### `secondaryText`
 
@@ -28,7 +28,7 @@ Optional secondary text below the title, 1 line truncation.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | No                                                      |
+| string or ReactNode                                 | No                                                      |
 
 ### `tertiaryText`
 
@@ -36,7 +36,7 @@ Optional tertiary text below the secondaryText, 1 line truncation.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | No                                                      |
+| string or ReactNode                                 | No                                                      |
 
 ### `tagLabel`
 
@@ -83,18 +83,56 @@ Default: false
 ## Usage
 
 ```javascript
-// Change import path to relative path.
-import CellSelect from 'app/component-library/components/Cells/variants/CellSelect/CellSelect';
-import { CellVariant } from 'app/component-library/components/Cells/Cell.types';
+// Default
+<CellSelect avatarProps={avatarProps} title={'Sample Title'} />;
 
+// Passing Component to title
+<CellSelect avatarProps={avatarProps} title={SampleTitleComponent} />;
+
+// Passing string to secondaryText
 <CellSelect
-  avatarProps={AVATAR_PROPS}
-  title={TITLE}
-  secondaryText={SECONDARY_TEXT}
-  tertiaryText={TERTIARY_TEXT}
-  tagLabel={TAG_LABEL}
-  isSelected={false}
-  isDisabled={false}
-  onPress={() => Alert.alert('Pressed account Cell!')}
+  avatarProps={avatarProps}
+  title={'Sample Title'}
+  secondaryText={'Sample secondaryText'}
+/>;
+
+// Passing Component to secondaryText
+<CellSelect
+  avatarProps={avatarProps}
+  title={'Sample Title'}
+  secondaryText={SampleSecondaryTextComponent}
+/>;
+
+// Passing string to tertiaryText
+<CellSelect
+  avatarProps={avatarProps}
+  title={'Sample Title'}
+  tertiaryText={'Sample tertiaryText'}
+/>;
+
+// Passing Component to tertiaryText
+<CellSelect
+  avatarProps={avatarProps}
+  title={'Sample Title'}
+  tertiaryText={SampleTertiaryTextComponent}
+/>;
+
+// Adding tagLabel
+<CellSelect
+  avatarProps={avatarProps}
+  title={'Sample Title'}
+  tagLabel={'Tag Label'}
+/>;
+
+// Adding accessory to the right of the info section (children)
+<CellSelect avatarProps={avatarProps} title={'Sample Title'}>
+  {SampleEndAccessoryComponent}
+</CellSelect>;
+
+// Configuring isSelected (checked state)
+<CellSelect avatarProps={avatarProps} title={'Sample Title'} isSelected />;
+
+// Configuring isDisabled (disabled state)
+<CellSelect avatarProps={avatarProps} title={'Sample Title'} isDisabled />;
 />;
 ```

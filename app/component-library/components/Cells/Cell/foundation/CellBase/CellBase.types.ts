@@ -1,30 +1,28 @@
-// Third party dependencies.
-import { StyleProp, ViewStyle } from 'react-native';
-
 // External dependencies.
 import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
+import { ListItemProps } from '../../../../List/ListItem/ListItem.types';
 
 /**
  * Cell Account component props.
  */
-export interface CellBaseProps {
+export interface CellBaseProps extends ListItemProps {
   /**
    * Props for avatar component (with the exception of size).
-   * Avatar size is restricted to size Md (32x32) for Cells
+   * Avatar size is defaulted to size Md (32x32) for Cells
    */
   avatarProps: AvatarProps;
   /**
    * Title of the Cell Account, 1 line truncation.
    */
-  title: string;
+  title: string | React.ReactNode;
   /**
    * Optional secondary text below the title, 1 line truncation.
    */
-  secondaryText?: string;
+  secondaryText?: string | React.ReactNode;
   /**
    * Optional tertiary text below the secondaryText, 1 line truncation.
    */
-  tertiaryText?: string;
+  tertiaryText?: string | React.ReactNode;
   /**
    * Optional label (using Tag component) below the title/secondaryText/tertiaryText.
    */
@@ -33,10 +31,6 @@ export interface CellBaseProps {
    * Optional accessory that can be inserted on the right of Cell Account.
    */
   children?: React.ReactNode;
-  /**
-   * Optional prop to control the style of the CellBase.
-   */
-  style?: StyleProp<ViewStyle> | undefined;
 }
 
 /**
