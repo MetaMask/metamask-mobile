@@ -275,7 +275,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const prevPage = useCallback(async () => {
     resetError();
     const [qrInteractions, connectQRHardwarePromise] =
-      await initiateQRHardwareConnection(1);
+      await initiateQRHardwareConnection(-1);
 
     qrInteractionsRef.current = qrInteractions;
     const previousPageAccounts = await connectQRHardwarePromise;
@@ -284,7 +284,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     setAccounts(previousPageAccounts);
   }, [resetError]);
 
-  const onToggle = useCallback(() => {
+  const onCheck = useCallback(() => {
     resetError();
   }, [resetError]);
 
@@ -354,7 +354,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
             selectedAccounts={existingAccounts}
             nextPage={nextPage}
             prevPage={prevPage}
-            toggleAccount={onToggle}
+            onCheck={onCheck}
             onUnlock={onUnlock}
             onForget={onForget}
             title={strings('connect_qr_hardware.select_accounts')}

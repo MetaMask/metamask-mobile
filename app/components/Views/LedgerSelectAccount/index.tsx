@@ -86,9 +86,6 @@ const LedgerSelectAccount = () => {
     setAccounts(_accounts);
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  const onToggle = useCallback(() => {}, []);
-
   const onUnlock = useCallback(
     async (accountIndexes: number[]) => {
       setBlockingModalVisible(true);
@@ -165,7 +162,6 @@ const LedgerSelectAccount = () => {
           selectedAccounts={existingAccounts}
           nextPage={nextPage}
           prevPage={prevPage}
-          toggleAccount={onToggle}
           onUnlock={(accountIndex: number[]) => {
             setUnlockAccounts({ trigger: true, accountIndexes: accountIndex });
             setBlockingModalVisible(true);
