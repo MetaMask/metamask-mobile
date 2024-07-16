@@ -24,7 +24,7 @@ index 0dc70ec..461a210 100644
      };
      return acc;
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js b/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
-index ee6155c..2818700 100644
+index ee6155c..addfe1e 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
 @@ -1,12 +1,16 @@
@@ -40,7 +40,7 @@ index ee6155c..2818700 100644
  var _controllerutils = require('@metamask/controller-utils');
  var _pollingcontroller = require('@metamask/polling-controller');
  var DEFAULT_INTERVAL = 18e4;
-+var supportedNftDetectionNetworks = [_controllerutils.ChainId.mainnet];
++var supportedNftDetectionNetworks = [_controllerutils.ChainId.mainnet, _controllerutils.ChainId['linea-mainnet']];
 +var inProcessNftFetchingUpdates;
  var BlockaidResultType = /* @__PURE__ */ ((BlockaidResultType2) => {
    BlockaidResultType2["Benign"] = "Benign";
