@@ -134,7 +134,9 @@ describe('DeeplinkProtocolService', () => {
 
     it('should handle batch RPC responses', async () => {
       const mockChainRPCs = [{ id: '1' }];
-      const mockMessage = { data: { id: '1', error: null } };
+      const mockMessage = {
+        data: { id: '1', accounts: [], chainId: '0x1', error: null },
+      };
       service.batchRPCManager.getById = jest
         .fn()
         .mockReturnValue(mockChainRPCs);
@@ -165,7 +167,14 @@ describe('DeeplinkProtocolService', () => {
     });
 
     it('should handle error in message data', async () => {
-      const mockMessage = { data: { id: '1', error: new Error('Test error') } };
+      const mockMessage = {
+        data: {
+          id: '1',
+          accounts: [],
+          chainId: '0x1',
+          error: new Error('Test error'),
+        },
+      };
       const openDeeplinkSpy = jest.spyOn(service, 'openDeeplink');
 
       service.currentClientId = 'client1';
@@ -204,7 +213,14 @@ describe('DeeplinkProtocolService', () => {
 
     it('should handle non-final batch RPC response and error in message data', async () => {
       const mockChainRPCs = [{ id: '1' }];
-      const mockMessage = { data: { id: '1', error: new Error('Test error') } };
+      const mockMessage = {
+        data: {
+          id: '1',
+          accounts: [],
+          chainId: '0x1',
+          error: new Error('Test error'),
+        },
+      };
       const devLoggerSpy = jest.spyOn(DevLogger, 'log');
       const openDeeplinkSpy = jest.spyOn(service, 'openDeeplink');
       service.batchRPCManager.getById = jest
