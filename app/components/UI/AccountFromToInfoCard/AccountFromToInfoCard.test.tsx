@@ -126,7 +126,6 @@ describe('AccountFromToInfoCard', () => {
 
   AccountFromToInfoCardWithProps.propTypes = {
     transactionStateProps: PropTypes.object.isRequired,
-    children: PropTypes.node,
   };
 
   AccountFromToInfoCardWithProps.displayName = 'AccountFromToInfoCardWithProps';
@@ -134,7 +133,9 @@ describe('AccountFromToInfoCard', () => {
   it('should render correctly', () => {
     const { toJSON } = render(
       <Provider store={store}>
-        <AccountFromToInfoCardWithProps transactionStateProps={transactionState} />
+        <AccountFromToInfoCardWithProps
+          transactionStateProps={transactionState}
+        />
       </Provider>,
     );
     expect(toJSON()).toMatchSnapshot();
@@ -200,11 +201,17 @@ describe('AccountFromToInfoCard', () => {
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
     render(
-      <AccountFromToInfoCard transactionState={NFTTransaction as unknown as Transaction} />,
+      <AccountFromToInfoCard
+        transactionState={NFTTransaction as unknown as Transaction}
+      />,
       {
-        wrapper: ({ children }: { children: React.ReactNode }) => (
-          <Provider store={store}>{children}</Provider>
-        ),
+        wrapper: ({ children }: { children: React.ReactNode }) => {
+          const Wrapper = ({ children }: { children: React.ReactNode }) => (
+            <Provider store={store}>{children}</Provider>
+          );
+          Wrapper.displayName = 'TestWrapper';
+          return <Wrapper>{children}</Wrapper>;
+        },
       },
     );
     expect(screen.getByText('0xF4e8...287B')).toBeTruthy();
