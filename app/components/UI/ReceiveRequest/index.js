@@ -37,8 +37,9 @@ const createStyles = (theme) => {
       backgroundColor: theme.colors.background.default,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
-      marginTop: 180,
-      height: windowHeight - 180,
+      marginTop: windowHeight * 0.05 + 160,
+      marginBottom: 20,
+      height: windowHeight * 0.95 - 180,
     },
     body: {
       alignItems: 'center',
@@ -72,6 +73,12 @@ const createStyles = (theme) => {
       marginHorizontal: 6,
       borderWidth: 1,
       borderColor: theme.colors.primary.default,
+    },
+    qrCode: {
+      padding: 24,
+      borderRadius: 16,
+      borderWidth: 2,
+      borderColor: theme.colors.background.alternative,
     },
     actionRow: {
       flexDirection: 'row',
@@ -215,13 +222,15 @@ class ReceiveRequest extends PureComponent {
     return (
       <SafeAreaView style={styles.wrapper}>
         <View style={styles.body}>
-          <QRCode
-            logo={PNG_MM_LOGO_PATH}
-            logoSize={55}
-            logoMargin={10}
-            value={`ethereum:${this.props.selectedAddress}@${this.props.chainId}`}
-            size={Dimensions.get('window').width / 2}
-          />
+          <View style={styles.qrCode}>
+            <QRCode
+              logo={PNG_MM_LOGO_PATH}
+              logoSize={35}
+              logoMargin={5}
+              value={`ethereum:${this.props.selectedAddress}@${this.props.chainId}`}
+              size={Dimensions.get('window').width / 2}
+            />
+          </View>
 
           <QRAccountDisplay accountAddress={this.props.selectedAddress} />
 

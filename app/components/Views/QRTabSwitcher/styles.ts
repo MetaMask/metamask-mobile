@@ -1,9 +1,13 @@
-/* eslint-disable react-native/no-color-literals */
-import { StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+const createStyles = (theme: Theme) => {
+  const { height } = Dimensions.get('window');
+
+  const navbarTop = height * 0.05 + 20;
+  const segmentedControllerTop = height * 0.05 + 70;
+
+  return StyleSheet.create({
     container: {
       position: 'relative',
       width: '100%',
@@ -21,7 +25,7 @@ const createStyles = (theme: Theme) =>
       justifyContent: 'flex-end',
       position: 'absolute',
       width: '100%',
-      top: 30,
+      top: navbarTop,
     },
     closeIcon: {
       position: 'absolute',
@@ -35,7 +39,7 @@ const createStyles = (theme: Theme) =>
       alignItems: 'center',
       marginVertical: 10,
       borderRadius: 30,
-      top: 90,
+      top: segmentedControllerTop,
       width: 300,
       height: 40,
       backgroundColor: theme.brandColors.grey050,
@@ -48,7 +52,7 @@ const createStyles = (theme: Theme) =>
     segmentedControlItemSelected: {
       position: 'absolute',
       width: 146,
-      backgroundColor: 'white',
+      backgroundColor: theme.brandColors.white,
       borderRadius: 30,
       height: 36,
       marginLeft: 2,
@@ -56,12 +60,12 @@ const createStyles = (theme: Theme) =>
     },
     text: {
       ...theme.typography.sBodyMD,
-      color: 'black',
+      color: theme.colors.text.default,
     },
     selectedText: {
       ...theme.typography.sBodyMDMedium,
       color: theme.colors.primary.default,
     },
   });
-
+};
 export default createStyles;

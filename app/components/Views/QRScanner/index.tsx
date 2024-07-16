@@ -6,13 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
 import { isValidAddress } from 'ethereumjs-util';
 import React, { useCallback, useRef } from 'react';
-import {
-  Alert,
-  Image,
-  InteractionManager,
-  SafeAreaView,
-  View,
-} from 'react-native';
+import { Alert, Image, InteractionManager, View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -285,7 +279,7 @@ const QRScanner = ({
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <RNCamera
         onMountError={onError}
         captureAudio={false}
@@ -301,7 +295,7 @@ const QRScanner = ({
         }}
         onStatusChange={onStatusChange}
       />
-      <SafeAreaView style={styles.overlayContainerColumn}>
+      <View style={styles.overlayContainerColumn}>
         <View style={styles.overlay} />
 
         <View style={styles.overlayContainerRow}>
@@ -313,8 +307,8 @@ const QRScanner = ({
           <View style={styles.overlay} />
         </View>
         <View style={styles.overlay} />
-      </SafeAreaView>
-    </SafeAreaView>
+      </View>
+    </View>
   );
 };
 

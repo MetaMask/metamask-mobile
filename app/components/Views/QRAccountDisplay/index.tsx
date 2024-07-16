@@ -22,7 +22,7 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { showAlert } from '../../../actions/alert';
-import { selectIdentities } from '../../../selectors/preferencesController';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { useSelector } from 'react-redux';
 import { renderAccountName } from '../../../util/address';
 
@@ -63,7 +63,7 @@ const QRAccountDisplay = (props: { accountAddress: string }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const addr = props.accountAddress;
-  const identities = useSelector(selectIdentities);
+  const identities = useSelector(selectInternalAccounts);
   const accountLabel = renderAccountName(addr, identities);
   const { toastRef } = useContext(ToastContext);
   const addressStart = addr.substring(0, PREFIX_LEN);
