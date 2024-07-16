@@ -19,20 +19,66 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
       }
     }
   >
-    <Image
-      resizeMode="contain"
-      source={
-        {
-          "uri": "MockImage",
-        }
-      }
+    <View
       style={
         {
-          "height": 68,
-          "width": 68,
+          "alignItems": "center",
+          "flexDirection": "row",
+          "marginTop": 30,
+          "width": "100%",
         }
       }
-    />
+    >
+      <Image
+        resizeMode="contain"
+        source={
+          {
+            "uri": "MockImage",
+          }
+        }
+        style={
+          {
+            "height": 68,
+            "width": 68,
+          }
+        }
+      />
+      <TouchableOpacity
+        style={
+          {
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "flex-end",
+            "width": 48,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 15,
+              },
+              {
+                "color": "#141618",
+                "fontSize": 28,
+              },
+              {
+                "fontFamily": "Material Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </TouchableOpacity>
+    </View>
     <Text
       style={
         [
@@ -464,20 +510,66 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
       }
     }
   >
-    <Image
-      resizeMode="contain"
-      source={
-        {
-          "uri": "MockImage",
-        }
-      }
+    <View
       style={
         {
-          "height": 68,
-          "width": 68,
+          "alignItems": "center",
+          "flexDirection": "row",
+          "marginTop": 30,
+          "width": "100%",
         }
       }
-    />
+    >
+      <Image
+        resizeMode="contain"
+        source={
+          {
+            "uri": "MockImage",
+          }
+        }
+        style={
+          {
+            "height": 68,
+            "width": 68,
+          }
+        }
+      />
+      <TouchableOpacity
+        style={
+          {
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "flex-end",
+            "width": 48,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 15,
+              },
+              {
+                "color": "#141618",
+                "fontSize": 28,
+              },
+              {
+                "fontFamily": "Material Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </TouchableOpacity>
+    </View>
     <Text
       style={
         [

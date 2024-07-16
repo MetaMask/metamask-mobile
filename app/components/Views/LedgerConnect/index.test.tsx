@@ -26,6 +26,7 @@ jest.mock('../../../util/device', () => ({
   ...jest.requireActual('../../../util/device'),
   isAndroid: jest.fn(),
   isIos: jest.fn(),
+  isIphoneX: jest.fn(),
   getDeviceWidth: jest.fn(),
   getDeviceHeight: jest.fn(),
 }));
@@ -125,6 +126,7 @@ describe('LedgerConnect', () => {
     getSystemVersion.mockReturnValue('13');
     Device.isAndroid.mockReturnValue(true);
     Device.isIos.mockReturnValue(false);
+    Device.isIphoneX.mockReturnValue(false);
     Device.getDeviceWidth.mockReturnValue(50);
     Device.getDeviceHeight.mockReturnValue(50);
   });

@@ -23,6 +23,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './index.styles';
 import OperationTypes from '../../../core/Ledger/types';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
 const LedgerSelectAccount = () => {
   const navigation = useNavigation<StackNavigationProp<never>>();
@@ -152,10 +153,13 @@ const LedgerSelectAccount = () => {
             resizeMode="contain"
             style={styles.ledgerIcon}
           />
+
           <TouchableOpacity
             onPress={navigation.goBack}
             style={styles.navbarRightButton}
-          />
+          >
+            <MaterialIcon name="close" size={15} style={styles.closeIcon} />
+          </TouchableOpacity>
         </View>
         <AccountSelector
           accounts={accounts}
