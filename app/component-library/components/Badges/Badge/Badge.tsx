@@ -10,6 +10,7 @@ import {
   BADGE_BADGESTATUS_TEST_ID,
   BADGE_BADGENOTIFICATIONS_TEST_ID,
 } from './Badge.constants';
+import { IconName } from '../../Icons/Icon';
 
 const Badge = ({ variant, ...props }: BadgeProps) => {
   switch (variant) {
@@ -21,6 +22,7 @@ const Badge = ({ variant, ...props }: BadgeProps) => {
       return (
         <BadgeNotifications
           testID={BADGE_BADGENOTIFICATIONS_TEST_ID}
+          iconName={IconName.Info}
           {...props}
         />
       );

@@ -20,7 +20,7 @@ export default {
   title: 'Component Library / AggregatedPercentage',
   component: AggregatedPercentage,
   decorators: [
-    (Story) => (
+    (Story: typeof React.Component) => (
       <Provider store={store}>
         <Story />
       </Provider>
@@ -28,36 +28,55 @@ export default {
   ],
 };
 
-const Template = (args) => <AggregatedPercentage {...args} />;
+interface AggregatedPercentageProps {
+  ethFiat: number;
+  tokenFiat: number;
+  tokenFiat1dAgo: number;
+  ethFiat1dAgo: number;
+}
 
-export const Default = Template.bind({});
-Default.args = {
-  ethFiat: 1000,
-  tokenFiat: 500,
-  tokenFiat1dAgo: 950,
-  ethFiat1dAgo: 450,
-};
+const Template = (args: AggregatedPercentageProps) => (
+  <AggregatedPercentage {...args} />
+);
 
-export const NegativePercentageChange = Template.bind({});
-NegativePercentageChange.args = {
-  ethFiat: 900,
-  tokenFiat: 400,
-  tokenFiat1dAgo: 950,
-  ethFiat1dAgo: 1000,
-};
+export const Default = Template.bind(
+  {},
+  {
+    ethFiat: 1000,
+    tokenFiat: 500,
+    tokenFiat1dAgo: 950,
+    ethFiat1dAgo: 450,
+  },
+);
 
-export const PositivePercentageChange = Template.bind({});
-PositivePercentageChange.args = {
-  ethFiat: 1100,
-  tokenFiat: 600,
-  tokenFiat1dAgo: 500,
-  ethFiat1dAgo: 1000,
-};
+export const NegativePercentageChange: (
+  args: AggregatedPercentageProps,
+) => void = Template.bind(
+  {},
+  {
+    ethFiat: 900,
+    tokenFiat: 400,
+    tokenFiat1dAgo: 950,
+    ethFiat1dAgo: 1000,
+  },
+);
 
-export const MixedPercentageChange = Template.bind({});
-MixedPercentageChange.args = {
-  ethFiat: 1050,
-  tokenFiat: 450,
-  tokenFiat1dAgo: 500,
-  ethFiat1dAgo: 1000,
-};
+export const PositivePercentageChange = Template.bind(
+  {},
+  {
+    ethFiat: 1100,
+    tokenFiat: 600,
+    tokenFiat1dAgo: 500,
+    ethFiat1dAgo: 1000,
+  },
+);
+
+export const MixedPercentageChange = Template.bind(
+  {},
+  {
+    ethFiat: 1050,
+    tokenFiat: 450,
+    tokenFiat1dAgo: 500,
+    ethFiat1dAgo: 1000,
+  },
+);
