@@ -202,9 +202,9 @@
     jsesc "^2.5.1"
 
 "@babel/generator@^7.24.8":
-  version "7.24.9"
-  resolved "https://registry.yarnpkg.com/@babel/generator/-/generator-7.24.9.tgz#5c2575a1070e661bbbc9df82a853989c9a656f12"
-  integrity sha512-G8v3jRg+z8IwY1jHFxvCNhOPYPterE4XljNgdGTYfSTtzzwjIswIzIaSPSLs3R7yFuqnqNeay5rjICfqVr+/6A==
+  version "7.24.10"
+  resolved "https://registry.yarnpkg.com/@babel/generator/-/generator-7.24.10.tgz#a4ab681ec2a78bbb9ba22a3941195e28a81d8e76"
+  integrity sha512-o9HBZL1G2129luEUlG1hB4N/nlYNWHnpwlND9eOMclRqqu1YDy2sSYVCFUZwl8I1Gxh+QSRrP2vD7EpUmFVXxg==
   dependencies:
     "@babel/types" "^7.24.9"
     "@jridgewell/gen-mapping" "^0.3.5"
