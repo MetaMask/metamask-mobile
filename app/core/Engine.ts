@@ -179,7 +179,13 @@ import { hasProperty, Hex, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import { providerErrors } from '@metamask/rpc-errors';
-
+// START: Notifications related controllers
+import {
+  AuthenticationController,
+  UserStorageController,
+} from '@metamask/profile-sync-controller';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
+// END: Notifications related controllers
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
 import {
@@ -227,6 +233,11 @@ interface TestOrigin {
 
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
 
+type AuthenticationControllerActions = AuthenticationController.AllowedActions;
+type UserStorageControllerActions = UserStorageController.AllowedActions;
+type NotificationsServicesControllerActions =
+  NotificationServicesController.AllowedActions;
+
 type SnapsGlobalActions =
   | SnapControllerActions
   | SubjectMetadataControllerActions
@@ -241,6 +252,7 @@ type SnapsGlobalEvents =
 
 type GlobalActions =
   | ApprovalControllerActions
+  | AuthenticationControllerActions
   | GetCurrencyRateState
   | GetGasFeeState
   | GetTokenListState
@@ -252,8 +264,10 @@ type GlobalActions =
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
   ///: END:ONLY_INCLUDE_IF
+  | UserStorageControllerActions
   | KeyringControllerActions
   | AccountsControllerActions
+  | NotificationsServicesControllerActions
   | PreferencesControllerActions
   | TokensControllerActions
   | TokenListControllerActions;
@@ -309,6 +323,10 @@ export interface EngineState {
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
+  // Notification Controllers
+  AuthenticationController: AuthenticationController.AuthenticationControllerState;
+  UserStorageController: UserStorageController.UserStorageControllerState;
+  NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
 }
 
 /**
@@ -347,6 +365,10 @@ interface Controllers {
   SubjectMetadataController: SubjectMetadataController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
+  // Notification Controllers
+  AuthenticationController: AuthenticationController.Controller;
+  UserStorageController: UserStorageController.Controller;
+  NotificationServicesController: NotificationServicesController.Controller;
 }
 
 /**
@@ -1014,6 +1036,75 @@ class Engine {
     });
     ///: END:ONLY_INCLUDE_IF
 
+    const authenticationController = new AuthenticationController.Controller({
+      state: initialState.AuthenticationController,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: Resolve/patch mismatch between messenger types
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'AuthenticationController',
+        allowedActions: [
+          'SnapController:handleRequest',
+          'UserStorageController:disableProfileSyncing',
+        ],
+        allowedEvents: [],
+      }),
+      metametrics: {
+        agent: 'mobile',
+        getMetaMetricsId: async () =>
+          (await MetaMetrics.getInstance().getMetaMetricsId()) ?? '',
+      },
+    });
+
+    const userStorageController = new UserStorageController.Controller({
+      getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
+      state: initialState.UserStorageController,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: Resolve/patch mismatch between messenger types
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'UserStorageController',
+        allowedActions: [
+          'SnapController:handleRequest',
+          'AuthenticationController:getBearerToken',
+          'AuthenticationController:getSessionProfile',
+          'AuthenticationController:isSignedIn',
+          'AuthenticationController:performSignOut',
+          'AuthenticationController:performSignIn',
+          'NotificationServicesController:disableNotificationServices',
+          'NotificationServicesController:selectIsNotificationServicesEnabled',
+        ],
+        allowedEvents: [],
+      }),
+    });
+
+    const notificationServicesController =
+      new NotificationServicesController.Controller({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore TODO: Resolve/patch mismatch between messenger types
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'NotificationServicesController',
+          allowedActions: [
+            'KeyringController:getAccounts',
+            'AuthenticationController:getBearerToken',
+            'AuthenticationController:isSignedIn',
+            'UserStorageController:enableProfileSyncing',
+            'UserStorageController:getStorageKey',
+            'UserStorageController:performGetStorage',
+            'UserStorageController:performSetStorage',
+          ],
+          allowedEvents: ['KeyringController:stateChange'],
+        }),
+        state: initialState.NotificationServicesController,
+        env: {
+          isPushIntegrated: false,
+          featureAnnouncements: {
+            platform: 'mobile',
+            accessToken: process.env
+              .FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN as string,
+            spaceId: process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID as string,
+          },
+        },
+      });
+
     this.transactionController = new TransactionController({
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       blockTracker: networkController.getProviderAndBlockTracker().blockTracker,
@@ -1274,6 +1365,9 @@ class Engine {
       gasFeeController,
       approvalController,
       permissionController,
+      authenticationController,
+      userStorageController,
+      notificationServicesController,
       new SignatureController({
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
@@ -1820,6 +1914,10 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      // Notification Controllers
+      AuthenticationController,
+      UserStorageController,
+      NotificationServicesController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -1861,6 +1959,10 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      // Notification Controllers
+      AuthenticationController,
+      UserStorageController,
+      NotificationServicesController,
     };
   },
   get datamodel() {
