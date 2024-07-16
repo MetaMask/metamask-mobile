@@ -49,9 +49,6 @@ end
 def common_target_logic
 	config = use_native_modules!
 
-  # Flags change depending on the env values.
-  flags = get_default_flags()
-
   # If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
   # because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
   #
@@ -64,13 +61,6 @@ def common_target_logic
   flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
   use_react_native!(
     :path => config[:reactNativePath],
-    # to enable hermes on iOS, change `false` to `true` and then install pods
-    # Hermes is now enabled by default. Disable by setting this flag to false.
-    # Upcoming versions of React Native may rely on get_default_flags(), but
-    # we make it explicit here to aid in the React Native upgrade process.
-    #:hermes_enabled => flags[:hermes_enabled],
-    :hermes_enabled => false,
-    :fabric_enabled => flags[:fabric_enabled],
     # Enables Flipper.
     #
     # Note that if you have use_frameworks! enabled, Flipper will not work and
@@ -121,5 +111,4 @@ post_install do |installer|
     # necessary for Mac Catalyst builds
     :mac_catalyst_enabled => false
   )
-  __apply_Xcode_12_5_M1_post_install_workaround(installer)
 end

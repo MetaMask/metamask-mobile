@@ -7,4 +7,4 @@ ruby '>= 3.1.5'
 gem 'cocoapods', '~> 1.12'
 
 # Allow all version updates up to but excluding 7.1.0
-gem 'activesupport', '>= 6.1.7.3', '< 7.1.0'
+gem 'activesupport', '>= 6.1.7.5', '< 7.1.0'
