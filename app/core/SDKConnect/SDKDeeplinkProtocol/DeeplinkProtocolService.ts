@@ -661,11 +661,29 @@ export default class DeeplinkProtocolService {
         const rpcMethod = data.method;
 
         const RPC_METHODS_TO_SKIP = [
-          'wallet_switchEthereumChain',
-          'wallet_addEthereumChain',
+          RPC_METHODS.WALLET_ADDETHEREUMCHAIN,
+          RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN,
         ];
 
-        const isRpcMethodToSkip = RPC_METHODS_TO_SKIP.includes(rpcMethod);
+        const checkForRpcMethodToSkip = () => {
+          const isBatchRequest = rpcMethod === RPC_METHODS.METAMASK_BATCH;
+
+          if (isBatchRequest) {
+            const batchRpcMethods: string[] = data.params.map(
+              (rpc: { method: string }) => rpc.method,
+            );
+
+            const shouldSkip = batchRpcMethods.some((r) =>
+              RPC_METHODS_TO_SKIP.includes(r),
+            );
+
+            return shouldSkip;
+          }
+
+          return RPC_METHODS_TO_SKIP.includes(rpcMethod);
+        };
+
+        const isRpcMethodToSkip = checkForRpcMethodToSkip();
 
         if (isAccountChanged || (!isRpcMethodToSkip && isChainChanged)) {
           const dynamicErrorMessage = `The selected ${
