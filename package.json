@@ -188,7 +188,7 @@
     "@metamask/snaps-utils": "^7.7.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^9.0.1",
-    "@metamask/transaction-controller": "^33.0.1",
+    "@metamask/transaction-controller": "^35.0.0",
     "@metamask/utils": "^8.1.0",
     "@ngraveio/bc-ur": "^1.1.6",
     "@notifee/react-native": "^7.8.2",
