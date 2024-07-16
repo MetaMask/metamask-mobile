@@ -535,7 +535,9 @@ export class WC2Manager {
     this.deeplinkSessions = deeplinkSessions;
     this.navigation = navigation;
 
-    const sessions = web3Wallet.getActiveSessions?.() ?? {};
+    const sessions = web3Wallet.getActiveSessions
+      ? web3Wallet.getActiveSessions()
+      : {};
 
     DevLogger.log(`WC2Manager::constructor()`, navigation);
 
