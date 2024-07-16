@@ -48,7 +48,7 @@ interface LastSale {
     amount: {
       native: number;
       decimal: string;
-      usd: string;
+      usd: number;
     };
     currency: {
       symbol: string;

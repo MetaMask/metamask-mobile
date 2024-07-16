@@ -32,11 +32,15 @@ import {
 } from '../../../selectors/networkController';
 import etherscanLink from '@metamask/etherscan-link';
 import { formatTimestampToDate } from './utils';
-import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
 import { formatCurrency } from '../../../util/confirm-tx';
 import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/ContentDisplay';
+import BigNumber from 'bignumber.js';
 
 const NftDetails = () => {
   const navigation = useNavigation();
@@ -45,6 +49,7 @@ const NftDetails = () => {
   const dispatch = useDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
+  const selectedNativeConversionRate = useSelector(selectConversionRate);
   const hasLastSalePrice = Boolean(collectible.lastSale?.price?.amount?.usd);
   const hasFloorAskPrice = Boolean(
     collectible.collection?.floorAsk?.price?.amount?.usd,
@@ -189,6 +194,32 @@ const NftDetails = () => {
     );
   };
 
+  const applyConversionRate = (value: BigNumber, rate?: number) => {
+    if (typeof rate === 'undefined') {
+      return value;
+    }
+
+    const conversionRate = new BigNumber(rate, 10);
+    return value.times(conversionRate);
+  };
+
+  const getValueInFormattedCurrency = (
+    nativeValue: number,
+    usdValue: number,
+  ) => {
+    const numericVal = new BigNumber(nativeValue, 10);
+    // if current currency is usd or if fetching conversion rate failed then always return USD value
+    if (!selectedNativeConversionRate || currentCurrency === 'usd') {
+      const usdValueFormatted = formatCurrency(usdValue.toString(), 'usd');
+      return usdValueFormatted;
+    }
+    const value = applyConversionRate(
+      numericVal,
+      selectedNativeConversionRate,
+    ).toNumber();
+    return formatCurrency(new BigNumber(value, 10).toString(), currentCurrency);
+  };
+
   const onMediaPress = useCallback(() => {
     // Navigate to new NFT details page
     navigation.navigate('NftDetailsFullImage', {
@@ -245,10 +276,11 @@ const NftDetails = () => {
                   valueStyle={styles.generalInfoValueStyle}
                   title={strings('nft_details.bought_for')}
                   value={
-                    hasLastSalePrice
-                      ? formatCurrency(
-                          `${collectible.lastSale?.price?.amount?.usd}`,
-                          currentCurrency,
+                    collectible.lastSale?.price?.amount?.native &&
+                    collectible.lastSale?.price?.amount?.native
+                      ? getValueInFormattedCurrency(
+                          collectible.lastSale?.price?.amount?.native,
+                          collectible.lastSale?.price?.amount?.usd,
                         )
                       : strings('nft_details.data_unavailable')
                   }
@@ -277,10 +309,12 @@ const NftDetails = () => {
                   valueStyle={styles.generalInfoValueStyle}
                   title={strings('nft_details.highest_floor_price')}
                   value={
-                    hasFloorAskPrice
-                      ? formatCurrency(
-                          `${collectible.collection?.floorAsk?.price?.amount?.usd}`,
-                          currentCurrency,
+                    collectible.collection?.floorAsk?.price?.amount?.native &&
+                    collectible.collection?.floorAsk?.price?.amount?.usd
+                      ? getValueInFormattedCurrency(
+                          collectible.collection?.floorAsk?.price?.amount
+                            ?.native,
+                          collectible.collection?.floorAsk?.price?.amount?.usd,
                         )
                       : strings('nft_details.price_unavailable')
                   }
