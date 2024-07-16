@@ -658,15 +658,27 @@ export default class DeeplinkProtocolService {
         const isAccountChanged = dappAccountAddress !== walletSelectedAddress;
         const isChainChanged = dappAccountChainId !== walletSelectedChainId;
 
-        if (isAccountChanged || isChainChanged) {
+        const rpcMethod = data.method;
+
+        const RPC_METHODS_TO_SKIP = [
+          'wallet_switchEthereumChain',
+          'wallet_addEthereumChain',
+        ];
+
+        const isRpcMethodToSkip = RPC_METHODS_TO_SKIP.includes(rpcMethod);
+
+        if (isAccountChanged || (!isRpcMethodToSkip && isChainChanged)) {
+          const dynamicErrorMessage = `The selected ${
+            isAccountChanged ? 'account' : 'chain'
+          } has changed. Please try again.`;
+
           this.sendMessage(
             {
               data: {
                 id: data.id,
                 error: {
                   code: -32602,
-                  message:
-                    'The selected account or chain has changed. Please try again.',
+                  message: dynamicErrorMessage,
                 },
                 jsonrpc: '2.0',
               },
