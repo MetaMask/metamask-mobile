@@ -207,6 +207,7 @@ import { zeroAddress } from 'ethereumjs-util';
 import { getPermittedAccounts } from './Permissions';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
+import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1052,7 +1053,8 @@ class Engine {
         },
         updateTransactions: true,
       },
-      isSimulationEnabled: () => false,
+      isSimulationEnabled: () =>
+        preferencesController.state.useTransactionSimulations,
       // @ts-expect-error TransactionController is using later BaseController version
       // but only breaking change is Node version
       messenger: this.controllerMessenger.getRestricted({
@@ -1081,14 +1083,9 @@ class Engine {
           addressFrom: address,
           status: SmartTransactionStatuses.PENDING,
         }),
-      sign: (transaction, from, transactionMeta) =>
-        keyringController.signTransaction(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          transaction as any,
-          from,
-          transactionMeta,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ) as Promise<any>,
+      sign: keyringController.signTransaction.bind(
+        keyringController,
+      ) as unknown as TransactionControllerOptions['sign'],
       hooks: {
         publish: (transactionMeta) => {
           const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
