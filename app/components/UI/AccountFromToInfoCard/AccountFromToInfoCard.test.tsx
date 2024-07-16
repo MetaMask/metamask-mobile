@@ -11,7 +11,6 @@ import AccountFromToInfoCard from '.';
 import Engine from '../../../core/Engine';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-import TransactionTypes from '../../../core/TransactionTypes';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
@@ -76,15 +75,11 @@ jest.mock('../../../core/Engine', () => ({
 jest.mock('../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../util/ENSUtils'),
   doENSReverseLookup: jest.fn().mockImplementation((address) => {
-    console.log('Mocked doENSReverseLookup called with:', address);
     if (address === '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A') {
-      console.log('Resolving to test1.eth');
       return Promise.resolve('test1.eth');
     } else if (address === '0x9004C7f302475BF5501fbc6254f69C64212A0d12') {
-      console.log('Resolving to test3.eth');
       return Promise.resolve('test3.eth');
     }
-    console.log('Resolving to null');
     return Promise.resolve(null);
   }),
 }));
@@ -123,12 +118,15 @@ const transactionState: Transaction = {
 };
 
 describe('AccountFromToInfoCard', () => {
-  const AccountFromToInfoCardWithProps = ({ transactionState }: { transactionState: Transaction }) => (
-    <AccountFromToInfoCard transactionState={transactionState} />
-  );
+  const AccountFromToInfoCardWithProps = ({
+    transactionStateProps,
+  }: {
+    transactionStateProps: Transaction;
+  }) => <AccountFromToInfoCard transactionState={transactionStateProps} />;
 
   AccountFromToInfoCardWithProps.propTypes = {
-    transactionState: PropTypes.object.isRequired,
+    transactionStateProps: PropTypes.object.isRequired,
+    children: PropTypes.node,
   };
 
   AccountFromToInfoCardWithProps.displayName = 'AccountFromToInfoCardWithProps';
@@ -136,7 +134,7 @@ describe('AccountFromToInfoCard', () => {
   it('should render correctly', () => {
     const { toJSON } = render(
       <Provider store={store}>
-        <AccountFromToInfoCardWithProps transactionState={transactionState} />
+        <AccountFromToInfoCardWithProps transactionStateProps={transactionState} />
       </Provider>,
     );
     expect(toJSON()).toMatchSnapshot();
@@ -202,11 +200,9 @@ describe('AccountFromToInfoCard', () => {
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
     render(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      <AccountFromToInfoCard transactionState={NFTTransaction as any} />,
+      <AccountFromToInfoCard transactionState={NFTTransaction as unknown as Transaction} />,
       {
-        wrapper: ({ children }) => (
+        wrapper: ({ children }: { children: React.ReactNode }) => (
           <Provider store={store}>{children}</Provider>
         ),
       },
@@ -243,26 +239,35 @@ describe('AccountFromToInfoCard', () => {
           transactionState={txState}
           onPressFromAddressIcon={jest.fn()}
         />,
-        { state: mockInitialState }
+        { state: mockInitialState },
       );
     });
 
-    await waitFor(async () => {
-      await expect(screen.findByText('test1.eth')).resolves.toBeTruthy();
-      await expect(screen.findByText('test3.eth')).resolves.toBeTruthy();
-    }, { timeout: 10000 });
+    await waitFor(
+      async () => {
+        await expect(screen.findByText('test1.eth')).resolves.toBeTruthy();
+        await expect(screen.findByText('test3.eth')).resolves.toBeTruthy();
+      },
+      { timeout: 10000 },
+    );
   }, 15000);
 
   it('should correctly mock doENSReverseLookup', async () => {
-    const { doENSReverseLookup } = require('../../../util/ENSUtils');
+    const { doENSReverseLookup } = await import('../../../util/ENSUtils');
 
-    const result1 = await doENSReverseLookup('0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A');
+    const result1 = await doENSReverseLookup(
+      '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+    );
     expect(result1).toBe('test1.eth');
 
-    const result2 = await doENSReverseLookup('0x9004C7f302475BF5501fbc6254f69C64212A0d12');
+    const result2 = await doENSReverseLookup(
+      '0x9004C7f302475BF5501fbc6254f69C64212A0d12',
+    );
     expect(result2).toBe('test3.eth');
 
-    const result3 = await doENSReverseLookup('0x1234567890123456789012345678901234567890');
+    const result3 = await doENSReverseLookup(
+      '0x1234567890123456789012345678901234567890',
+    );
     expect(result3).toBeNull();
   });
 

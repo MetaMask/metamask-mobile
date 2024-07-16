@@ -66,7 +66,9 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       }
 
       if (transactionFromName) {
-        Logger.log(`Using provided transactionFromName: ${transactionFromName}`);
+        Logger.log(
+          `Using provided transactionFromName: ${transactionFromName}`,
+        );
         if (fromAccountName !== transactionFromName) {
           setFromAccountName(transactionFromName);
           Logger.log(`Updated fromAccountName to: ${transactionFromName}`);
@@ -109,46 +111,46 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     fromAccountName,
   ]);
 
-useEffect(() => {
-  const fetchAccountDetails = async () => {
-    Logger.log('Starting ENS resolution process for toAddress');
-    if (existingToAddress) {
-      Logger.log(`Using existing toAddress: ${existingToAddress.name}`);
-      if (toAccountName !== existingToAddress.name) {
-        setToAccountName(existingToAddress.name);
-        Logger.log(`Updated toAccountName to: ${existingToAddress.name}`);
+  useEffect(() => {
+    const fetchAccountDetails = async () => {
+      Logger.log('Starting ENS resolution process for toAddress');
+      if (existingToAddress) {
+        Logger.log(`Using existing toAddress: ${existingToAddress.name}`);
+        if (toAccountName !== existingToAddress.name) {
+          setToAccountName(existingToAddress.name);
+          Logger.log(`Updated toAccountName to: ${existingToAddress.name}`);
+        }
+        return;
       }
-      return;
-    }
 
-    Logger.log(`Resolving ENS for toAddress: ${toAddress}`);
-    const toEns = await doENSReverseLookup(toAddress, chainId);
-    if (toEns) {
-      Logger.log(`ENS resolution result for toAddress: ${toEns}`);
-      if (toAccountName !== toEns) {
-        setToAccountName(toEns);
-        Logger.log(`Updated toAccountName to ENS: ${toEns}`);
+      Logger.log(`Resolving ENS for toAddress: ${toAddress}`);
+      const toEns = await doENSReverseLookup(toAddress, chainId);
+      if (toEns) {
+        Logger.log(`ENS resolution result for toAddress: ${toEns}`);
+        if (toAccountName !== toEns) {
+          setToAccountName(toEns);
+          Logger.log(`Updated toAccountName to ENS: ${toEns}`);
+        }
+      } else {
+        Logger.log('No ENS found, searching for matching internal account');
+        const accountWithMatchingToAddress = internalAccounts.find((account) =>
+          toLowerCaseEquals(account.address, toAddress),
+        );
+
+        const newName = accountWithMatchingToAddress
+          ? accountWithMatchingToAddress.metadata.name
+          : toAddress;
+
+        if (toAccountName !== newName) {
+          setToAccountName(newName);
+          Logger.log(`Updated toAccountName to: ${newName}`);
+        }
       }
-    } else {
-      Logger.log('No ENS found, searching for matching internal account');
-      const accountWithMatchingToAddress = internalAccounts.find((account) =>
-        toLowerCaseEquals(account.address, toAddress),
-      );
+      Logger.log('ENS resolution process for toAddress completed');
+    };
 
-      const newName = accountWithMatchingToAddress
-        ? accountWithMatchingToAddress.metadata.name
-        : toAddress;
-
-      if (toAccountName !== newName) {
-        setToAccountName(newName);
-        Logger.log(`Updated toAccountName to: ${newName}`);
-      }
-    }
-    Logger.log('ENS resolution process for toAddress completed');
-  };
-
-  fetchAccountDetails();
-}, [existingToAddress, chainId, toAddress, internalAccounts, toAccountName]);
+    fetchAccountDetails();
+  }, [existingToAddress, chainId, toAddress, internalAccounts, toAccountName]);
 
   useEffect(() => {
     const accountNames = internalAccounts.map(
@@ -199,7 +201,9 @@ useEffect(() => {
 
   return (
     <>
-      {Logger.log(`Rendering with fromAccountName: ${fromAccountName}, toAccountName: ${toAccountName}`)}
+      {Logger.log(
+        `Rendering with fromAccountName: ${fromAccountName}, toAccountName: ${toAccountName}`,
+      )}
       <View style={styles.inputWrapper}>
         {fromAddress && (
           <AddressFrom
