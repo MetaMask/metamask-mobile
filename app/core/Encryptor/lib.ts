@@ -38,7 +38,7 @@ class AesEncryptionLibrary implements EncryptionLibrary {
       // - https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
       // - https://eprint.iacr.org/2010/548.pdf
       SHA256_DIGEST_LENGTH,
-      ShaAlgorithm.sha512,
+      ShaAlgorithm.Sha512,
     );
   };
 

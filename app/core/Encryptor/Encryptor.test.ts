@@ -65,7 +65,7 @@ describe('Encryptor', () => {
             'mockedSalt',
             5000,
             256,
-            ShaAlgorithm.sha512,
+            ShaAlgorithm.Sha512,
           ],
         },
       ],

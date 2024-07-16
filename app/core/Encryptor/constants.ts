@@ -21,8 +21,8 @@ export enum KeyDerivationIteration {
  * Supported SHA algorithms in react-native-aes v3.0.3
  */
 export enum ShaAlgorithm {
-  sha256 = 'sha256',
-  sha512 = 'sha512',
+  Sha256 = 'sha256',
+  Sha512 = 'sha512',
 }
 
 /**
