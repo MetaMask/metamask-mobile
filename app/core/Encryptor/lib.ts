@@ -33,6 +33,10 @@ class AesEncryptionLibrary implements EncryptionLibrary {
       opts.params.iterations,
       // We're using SHA512 but returning a key with length 256 bits.
       // Truncating the output to 256 bits is intentional and considered safe.
+      //
+      // References:
+      // - https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
+      // - https://eprint.iacr.org/2010/548.pdf
       SHA256_DIGEST_LENGTH,
       ShaAlgorithm.sha512,
     );
