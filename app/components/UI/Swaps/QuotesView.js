@@ -940,7 +940,7 @@ function SwapsQuotesView({
         await addTokenToAssetsController(destinationToken);
         await addTokenToAssetsController(sourceToken);
       } catch (e) {
-        console.error('Error adding swaps trade transaction', e);
+        // send analytics
       }
     },
     [
@@ -1015,7 +1015,7 @@ function SwapsQuotesView({
           );
         }
       } catch (e) {
-        console.error('Error adding swaps approval transaction', e);
+        // send analytics
       }
     },
     [
@@ -2067,14 +2067,14 @@ function SwapsQuotesView({
                         {primaryCurrency === 'ETH'
                           ? ` ${renderFromWei(
                               toWei(selectedQuoteValue?.maxEthFee || '0x0'),
-                          )} ${getTicker(ticker)}` // eslint-disable-line
+                            )} ${getTicker(ticker)}` // eslint-disable-line
                           : ` ${
                               weiToFiat(
                                 toWei(selectedQuoteValue?.maxEthFee),
                                 conversionRate,
                                 currentCurrency,
                               ) || '' // eslint-disable-next-line
-                          }`}
+                            }`}
                       </Text>
                     </FadeAnimationView>
                   </>

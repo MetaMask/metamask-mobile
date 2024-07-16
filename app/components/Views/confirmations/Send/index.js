@@ -65,7 +65,7 @@ import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { toLowerCaseEquals } from '../../../../util/general';
-import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import TransactionTypes from '../../../../core/TransactionTypes';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -562,7 +562,7 @@ class Send extends PureComponent {
       }
       const { result, transactionMeta } = await addTransaction(transaction, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
-        origin: ORIGIN_METAMASK,
+        origin: TransactionTypes.MMM,
       });
       await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
