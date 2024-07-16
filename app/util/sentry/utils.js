@@ -496,11 +496,11 @@ export function setupSentry() {
       integrations:
         metricsOptIn === AGREED
           ? [
-            ...integrations,
-            new Sentry.ReactNativeTracing({
-              routingInstrumentation,
-            }),
-          ]
+              ...integrations,
+              new Sentry.ReactNativeTracing({
+                routingInstrumentation,
+              }),
+            ]
           : integrations,
       tracesSampleRate: 0.04,
       beforeSend: (report) => rewriteReport(report),
@@ -512,4 +512,4 @@ export function setupSentry() {
 }
 
 // eslint-disable-next-line no-empty-function
-export function deleteSentryData() { }
+export function deleteSentryData() {}
