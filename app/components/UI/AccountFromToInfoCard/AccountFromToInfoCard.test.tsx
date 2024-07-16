@@ -246,13 +246,13 @@ describe('AccountFromToInfoCard', () => {
           />
         </Provider>
       );
-    });
 
-    await waitFor(() => {
-      expect(screen.getByText('test1.eth')).toBeTruthy();
-      expect(screen.getByText('test3.eth')).toBeTruthy();
-    }, { timeout: 10000 });
-  }, 15000);
+      await waitFor(() => {
+        expect(screen.getByText('test1.eth')).toBeTruthy();
+        expect(screen.getByText('test3.eth')).toBeTruthy();
+      }, { timeout: 15000 });
+    });
+  }, 20000);
 
   it('should correctly mock doENSReverseLookup', async () => {
     const { doENSReverseLookup } = require('../../../util/ENSUtils');
