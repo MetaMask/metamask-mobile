@@ -27,21 +27,19 @@ import Device from '../../../util/device';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import BrowserUrlBar from '../BrowserUrlBar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { NAVBAR_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
-import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
 import ButtonIcon, {
   ButtonIconSizes,
-  ButtonIconVariants,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconName,
   IconSize,
+  IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import {
   default as MorphText,
@@ -53,6 +51,7 @@ import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Net
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
 import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
+import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -90,10 +89,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Device.isAndroid() ? 22 : 18,
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
-  infoButton: {
-    paddingRight: Device.isAndroid() ? 0 : 18,
-
-    marginTop: 5,
+  notificationButton: {
+    marginRight: 4,
   },
   disabled: {
     opacity: 0.3,
@@ -292,7 +289,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
         <TouchableOpacity
           onPress={rightAction}
           style={styles.backButton}
-          {...generateTestId(Platform, EDIT_BUTTON)}
+          testID={AddContactViewSelectorsIDs.EDIT_BUTTON}
         >
           <Text style={innerStyles.headerButtonText}>
             {editMode
@@ -986,7 +983,7 @@ export function getWalletNavbarOptions(
           label={networkName}
           imageSource={networkImageSource}
           onPress={onPressTitle}
-          {...generateTestId(Platform, NAVBAR_NETWORK_BUTTON)}
+          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
         />
       </View>
     ),
@@ -1002,20 +999,19 @@ export function getWalletNavbarOptions(
       <View style={styles.leftButtonContainer}>
         {isNotificationsFeatureEnabled() && (
           <ButtonIcon
-            variant={ButtonIconVariants.Primary}
+            iconColor={IconColor.Primary}
             onPress={handleNotificationOnPress}
             iconName={IconName.Notification}
-            style={styles.infoButton}
             size={IconSize.Xl}
             testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+            style={styles.notificationButton}
           />
         )}
 
         <ButtonIcon
-          variant={ButtonIconVariants.Primary}
+          iconColor={IconColor.Primary}
           onPress={openQRScanner}
           iconName={IconName.Scan}
-          style={styles.infoButton}
           size={IconSize.Xl}
           testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
         />
@@ -1085,7 +1081,7 @@ export function getImportTokenNavbarOptions(
       >
         <ButtonIcon
           iconName={IconName.Close}
-          variant={ButtonIconVariants.Secondary}
+          iconColor={IconColor.Default}
           size={ButtonIconSizes.Lg}
           onPress={
             onClose

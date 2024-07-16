@@ -20,6 +20,20 @@ jest.mock('react-native', () => {
   return originalModule;
 });
 
+/*
+ * NOTE: react-native-webview requires a jest mock starting on v12.
+ * More info on https://github.com/react-native-webview/react-native-webview/issues/2934
+ */
+jest.mock('@metamask/react-native-webview', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  const WebView = (props) => <View {...props} />;
+
+  return {
+    WebView,
+  };
+});
+
 jest.mock('../../lib/snaps/preinstalled-snaps');
 
 const mockFs = {
@@ -223,6 +237,10 @@ NativeModules.Aes = {
 NativeModules.AesForked = {
   pbkdf2: jest.fn().mockResolvedValue('mockedKeyForked'),
   decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainTextForked"}'),
+};
+
+NativeModules.RNTar = {
+  unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
 };
 
 jest.mock(

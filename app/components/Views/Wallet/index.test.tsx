@@ -8,24 +8,34 @@ import { screen } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 const mockEngine = Engine;
+
+const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  MOCK_ADDRESS,
+]);
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
-    PreferencesController: {
-      selectedAddress: '0x',
-      identities: {
-        '0x': { name: 'Account 1', address: '0x' },
-      },
-    },
     NftController: {
-      allNfts: { '0x': { '0x1': [] } },
-      allNftContracts: { '0x': { '0x1': [] } },
+      allNfts: {
+        [MOCK_ADDRESS]: {
+          [MOCK_ADDRESS]: [],
+        },
+      },
+      allNftContracts: {
+        [MOCK_ADDRESS]: {
+          [MOCK_ADDRESS]: [],
+        },
+      },
     },
     TokenRatesController: {
       poll: jest.fn(),
@@ -48,6 +58,9 @@ jest.mock('../../../core/Engine', () => ({
         ],
       },
     },
+    AccountsController: {
+      ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+    },
   },
 }));
 
@@ -60,7 +73,11 @@ const mockInitialState = {
   security: {
     dataCollectionForMarketing: true,
   },
-  swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
+  swaps: {
+    [MOCK_ADDRESS]: { isLive: true },
+    hasOnboarded: false,
+    isLive: true,
+  },
   wizard: {
     step: 0,
   },
@@ -69,14 +86,10 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: '0x',
-        identities: {
-          '0x': { name: 'Account 1', address: '0x' },
-        },
+      ...backgroundState,
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
@@ -127,7 +140,9 @@ describe('Wallet', () => {
   });
   it('should render scan qr icon', () => {
     render(Wallet);
-    const scanButton = screen.getByTestId('wallet-scan-button');
+    const scanButton = screen.getByTestId(
+      WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
+    );
     expect(scanButton).toBeDefined();
   });
   it('should render ScrollableTabView', () => {
@@ -136,7 +151,7 @@ describe('Wallet', () => {
   });
   it('should render fox icon', () => {
     render(Wallet);
-    const foxIcon = screen.getByTestId('fox-icon');
+    const foxIcon = screen.getByTestId(CommonSelectorsIDs.FOX_ICON);
     expect(foxIcon).toBeDefined();
   });
 });

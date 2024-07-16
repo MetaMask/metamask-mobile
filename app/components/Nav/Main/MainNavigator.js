@@ -19,7 +19,6 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
-import NotificationsView from '../../Views/Notifications';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
@@ -59,7 +58,7 @@ import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
@@ -79,6 +78,8 @@ import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
+import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
+import { isTest } from '../../../util/test/utils';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -212,7 +213,7 @@ const BrowserFlow = () => (
 
 export const DrawerContext = React.createContext({ drawerRef: null });
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -273,6 +274,21 @@ const SettingsFlow = () => (
       name={Routes.RAMP.ACTIVATION_KEY_FORM}
       component={RampActivationKeyForm}
     />
+    {
+      /**
+       * This screen should only accessed in test mode.
+       * It is used to test the AES crypto functions.
+       *
+       * If this is in production, it is a bug.
+       */
+      isTest && (
+        <Stack.Screen
+          name="AesCryptoTestForm"
+          component={AesCryptoTestForm}
+          options={AesCryptoTestForm.navigationOptions}
+        />
+      )
+    }
     <Stack.Screen
       name="ExperimentalSettings"
       component={ExperimentalSettings}
@@ -343,7 +359,7 @@ const SettingsFlow = () => (
       options={NotificationsSettings.navigationOptions}
     />
     {
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
     }
     <Stack.Screen
       name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
@@ -579,13 +595,9 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const NotificationsModeView = () => (
+/* eslint-disable react/prop-types */
+const NotificationsModeView = (props) => (
   <Stack.Navigator>
-    <Stack.Screen
-      name={Routes.NOTIFICATIONS.VIEW}
-      component={NotificationsView}
-      options={NotificationsView.navigationOptions}
-    />
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}

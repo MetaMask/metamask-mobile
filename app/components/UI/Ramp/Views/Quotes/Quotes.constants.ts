@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 import { QuoteError, QuoteResponse } from '@consensys/on-ramp-sdk';
-import { DeepPartial } from './Quotes.types';
+import { DeepPartial } from '../../../../../util/test/renderWithProvider';
 
 export const mockQuotesData = [
   {

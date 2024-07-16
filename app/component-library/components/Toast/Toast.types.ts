@@ -12,6 +12,7 @@ export enum ToastVariants {
   Plain = 'Plain',
   Account = 'Account',
   Network = 'Network',
+  Icon = 'Icon',
 }
 
 /**
@@ -65,13 +66,21 @@ interface NetworkToastOption extends BaseToastVariants {
   networkImageSource: ImageSourcePropType;
 }
 
+interface IconToastOption extends BaseToastVariants {
+  variant: ToastVariants.Icon;
+  iconName?: string;
+  iconColor?: string;
+  backgroundColor?: string;
+}
+
 /**
  * Different toast options combined in a union type.
  */
 export type ToastOptions =
   | PlainToastOption
   | AccountToastOption
-  | NetworkToastOption;
+  | NetworkToastOption
+  | IconToastOption;
 
 /**
  * Toast component reference.

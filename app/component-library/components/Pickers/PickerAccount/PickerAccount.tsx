@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React, { forwardRef } from 'react';
-import { Platform, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
@@ -15,8 +15,7 @@ import { strings } from '../../../../../locales/i18n';
 import PickerBase from '../PickerBase';
 import { PickerAccountProps } from './PickerAccount.types';
 import styleSheet from './PickerAccount.styles';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { WALLET_ACCOUNT_NAME_LABEL_TEXT } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const PickerAccount: React.ForwardRefRenderFunction<
   TouchableOpacity,
@@ -52,7 +51,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
       <View style={styles.accountNameLabel}>
         <Text
           variant={TextVariant.HeadingSMRegular}
-          {...generateTestId(Platform, WALLET_ACCOUNT_NAME_LABEL_TEXT)}
+          testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
         >
           {accountName}
         </Text>

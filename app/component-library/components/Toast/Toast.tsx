@@ -10,7 +10,6 @@ import React, {
 import {
   Dimensions,
   LayoutChangeEvent,
-  Platform,
   StyleProp,
   View,
   ViewStyle,
@@ -39,8 +38,7 @@ import {
   ToastVariants,
 } from './Toast.types';
 import styles from './Toast.styles';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { TOAST_ID } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+import { ToastSelectorsIDs } from '../../../../e2e/selectors/Modals/ToastModal.selectors';
 import { ButtonProps } from '../Buttons/Button/Button.types';
 
 const visibilityDuration = 2750;
@@ -187,6 +185,18 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           />
         );
       }
+      case ToastVariants.Icon: {
+        const { iconName, iconColor, backgroundColor } = toastOptions;
+        return (
+          <Avatar
+            variant={AvatarVariant.Icon}
+            name={iconName}
+            iconColor={iconColor}
+            backgroundColor={backgroundColor}
+            style={styles.avatar}
+          />
+        );
+      }
     }
   };
 
@@ -198,7 +208,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         {renderAvatar()}
         <View
           style={styles.labelsContainer}
-          {...generateTestId(Platform, TOAST_ID)}
+          testID={ToastSelectorsIDs.CONTAINER}
         >
           {renderLabel(labelOptions)}
           {renderButtonLink(linkButtonOptions)}

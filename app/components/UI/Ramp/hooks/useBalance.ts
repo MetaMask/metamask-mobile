@@ -1,12 +1,12 @@
-import { hexToBN } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
+import { hexToBN } from '@metamask/controller-utils';
 import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectChainId } from '../../../../selectors/networkController';
@@ -19,23 +19,36 @@ import {
   weiToFiat,
 } from '../../../../util/number';
 
+const defaultReturn = {
+  balance: null,
+  balanceFiat: null,
+  balanceBN: null,
+};
+
 interface Asset {
   address: string;
   decimals: number;
 }
 
 export default function useBalance(asset?: Asset) {
-  const assetAddress = safeToChecksumAddress(asset?.address);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const chainId = useSelector(selectChainId);
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountChecksummedAddress,
+  );
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const balances = useSelector(selectContractBalances);
 
-  if (!asset || !assetAddress) {
-    return { balance: null, balanceFiat: null, balanceBN: null };
+  if (!asset) {
+    return defaultReturn;
+  }
+
+  const assetAddress = safeToChecksumAddress(asset.address);
+
+  if (!assetAddress) {
+    return defaultReturn;
   }
 
   let balance, balanceFiat, balanceBN;
@@ -49,10 +62,7 @@ export default function useBalance(asset?: Asset) {
     );
     balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
   } else {
-    const exchangeRate =
-      assetAddress && assetAddress in tokenExchangeRates
-        ? tokenExchangeRates[assetAddress]
-        : undefined;
+    const exchangeRate = tokenExchangeRates?.[assetAddress]?.price;
     balance =
       assetAddress && assetAddress in balances
         ? renderFromTokenMinimalUnit(
@@ -67,7 +77,9 @@ export default function useBalance(asset?: Asset) {
       currentCurrency,
     );
     balanceBN =
-      assetAddress && assetAddress in balances ? balances[assetAddress] : null;
+      assetAddress && assetAddress in balances
+        ? hexToBN(balances[assetAddress])
+        : null;
   }
 
   return { balance, balanceFiat, balanceBN };

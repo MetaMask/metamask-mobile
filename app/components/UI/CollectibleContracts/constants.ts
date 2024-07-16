@@ -1,3 +1,2 @@
-const RefreshTestId = 'refreshControl';
-
-export default RefreshTestId;
+export const RefreshTestId = 'refreshControl';
+export const SpinnerTestId = 'spinner';

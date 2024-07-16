@@ -27,6 +27,12 @@ class SettingsView {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.NETWORKS);
   }
 
+  get aesCryptoTestForm() {
+    return Matchers.getElementByID(
+      SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM,
+    );
+  }
+
   get lockSettingsButton() {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.LOCK);
   }
@@ -64,6 +70,13 @@ class SettingsView {
     );
   }
 
+  async scrollToAesCryptoButton() {
+    await Gestures.scrollToElement(
+      this.aesCryptoTestForm,
+      this.scrollViewIdentifier,
+    );
+  }
+
   async tapGeneralSettings() {
     await Gestures.waitAndTap(this.generalSettingsButton);
   }
@@ -86,6 +99,10 @@ class SettingsView {
 
   async tapContacts() {
     await Gestures.waitAndTap(this.contactsSettingsButton);
+  }
+
+  async tapAesCryptoTestForm() {
+    await Gestures.waitAndTap(this.aesCryptoTestForm);
   }
 
   async tapLock() {

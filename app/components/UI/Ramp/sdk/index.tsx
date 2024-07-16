@@ -300,6 +300,8 @@ export const useRampSDK = () => {
   return contextValue as RampSDK;
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const withRampSDK = (Component: React.FC) => (props: any) =>
   (
     <RampSDKProvider>
