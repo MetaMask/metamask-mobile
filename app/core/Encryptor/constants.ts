@@ -27,6 +27,14 @@ export enum ShaAlgorithm {
 
 /**
  * Supported cipher algorithms in react-native-aes v3.0.3
+ *
+ * Important Note: Make sure to validate the compatibility of the algorithm with the underlying library.
+ * The react-native-aes-crypto does a string validation for the algorithm, so it's important to make sure
+ * we're using the correct string.
+ *
+ * References:
+ * - encrypt: https://github.com/MetaMask/metamask-mobile/pull/9947#:~:text=When-,encrypting,-and%20decypting%20the
+ * - decrypt: https://github.com/MetaMask/metamask-mobile/pull/9947#:~:text=When%20encrypting%20and-,decypting,-the%20library%20uses
  */
 export enum CipherAlgorithm {
   cbc = 'aes-cbc-pkcs7padding',
