@@ -31,7 +31,6 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 import etherscanLink from '@metamask/etherscan-link';
-import { formatTimestampToDate } from './utils';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -41,6 +40,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/ContentDisplay';
 import BigNumber from 'bignumber.js';
+import { getShortDateFormatter } from '../../../util/notifications';
 
 const NftDetails = () => {
   const navigation = useNavigation();
@@ -218,6 +218,11 @@ const NftDetails = () => {
       selectedNativeConversionRate,
     ).toNumber();
     return formatCurrency(new BigNumber(value, 10).toString(), currentCurrency);
+  };
+
+  const getFormattedDate = (dateString: number) => {
+    const date = new Date(dateString * 1000).getTime();
+    return getShortDateFormatter().format(date);
   };
 
   const onMediaPress = useCallback(() => {
@@ -401,7 +406,7 @@ const NftDetails = () => {
             title={strings('nft_details.date_created')}
             value={
               collectible.collection?.contractDeployedAt
-                ? formatTimestampToDate(
+                ? getFormattedDate(
                     getDateCreatedTimestamp(
                       collectible.collection?.contractDeployedAt,
                     ),
@@ -468,7 +473,7 @@ const NftDetails = () => {
             title={strings('nft_details.last_sold')}
             value={
               collectible.lastSale?.timestamp
-                ? formatTimestampToDate(collectible?.lastSale?.timestamp)
+                ? getFormattedDate(collectible.lastSale?.timestamp)
                 : undefined
             }
             titleStyle={styles.informationRowTitleStyle}

@@ -101,6 +101,13 @@ export const getNotificationBadge = (trigger_type: string) => {
   }
 };
 
+export const getShortDateFormatter = () =>
+  Intl.DateTimeFormat(navigator.language, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+
 export function formatDate(createdAt: Date) {
   const now = new Date();
   const date = createdAt;
