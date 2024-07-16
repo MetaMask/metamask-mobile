@@ -201,19 +201,17 @@ describe('AccountFromToInfoCard', () => {
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
 
-    const Wrapper = ({ innerChildren }: { innerChildren: React.ReactNode }) => (
-      <Provider store={store}>{innerChildren}</Provider>
+    const TestWrapper = ({ children }: { children: React.ReactNode }) => (
+      <Provider store={store}>{children}</Provider>
     );
-    Wrapper.displayName = 'TestWrapper';
+    TestWrapper.displayName = 'TestWrapper';
 
     render(
       <AccountFromToInfoCard
         transactionState={NFTTransaction as unknown as Transaction}
       />,
       {
-        wrapper: ({ children }: { children: React.ReactNode }) => (
-          <Wrapper innerChildren={children} />
-        ),
+        wrapper: TestWrapper,
       },
     );
     expect(screen.getByText('0xF4e8...287B')).toBeTruthy();
