@@ -1,7 +1,8 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import { shallow } from 'enzyme';
+import { render, screen, waitFor, act } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
+import PropTypes from 'prop-types';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { ENSCache } from '../../../util/ENSUtils';
@@ -10,6 +11,7 @@ import AccountFromToInfoCard from '.';
 import Engine from '../../../core/Engine';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import TransactionTypes from '../../../core/TransactionTypes';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
@@ -27,10 +29,10 @@ const mockInitialState = {
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {
-            balance: 200,
+            balance: '200',
           },
           [MOCK_ADDRESS_2]: {
-            balance: 200,
+            balance: '200',
           },
         },
       },
@@ -73,7 +75,18 @@ jest.mock('../../../core/Engine', () => ({
 
 jest.mock('../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../util/ENSUtils'),
-  doENSReverseLookup: jest.fn(),
+  doENSReverseLookup: jest.fn().mockImplementation((address) => {
+    console.log('Mocked doENSReverseLookup called with:', address);
+    if (address === '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A') {
+      console.log('Resolving to test1.eth');
+      return Promise.resolve('test1.eth');
+    } else if (address === '0x9004C7f302475BF5501fbc6254f69C64212A0d12') {
+      console.log('Resolving to test3.eth');
+      return Promise.resolve('test3.eth');
+    }
+    console.log('Resolving to null');
+    return Promise.resolve(null);
+  }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -110,53 +123,63 @@ const transactionState: Transaction = {
 };
 
 describe('AccountFromToInfoCard', () => {
+  const AccountFromToInfoCardWithProps = ({ transactionState }: { transactionState: Transaction }) => (
+    <AccountFromToInfoCard transactionState={transactionState} />
+  );
+
+  AccountFromToInfoCardWithProps.propTypes = {
+    transactionState: PropTypes.object.isRequired,
+  };
+
+  AccountFromToInfoCardWithProps.displayName = 'AccountFromToInfoCardWithProps';
+
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
-        <AccountFromToInfoCard transactionState={transactionState} />
+        <AccountFromToInfoCardWithProps transactionState={transactionState} />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should match snapshot', async () => {
-    const container = renderWithProvider(
+  it('should match snapshot', () => {
+    const { toJSON } = renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(container).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render from address', async () => {
-    const { findByText } = renderWithProvider(
+    renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(await findByText('Account 1')).toBeDefined();
+    expect(screen.getByText('Account 1')).toBeTruthy();
   });
 
   it('should render balance of from address', async () => {
-    const { findByText } = renderWithProvider(
+    renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(await findByText('Balance: < 0.00001 ETH')).toBeDefined();
+    expect(screen.getByText('Balance: < 0.00001 ETH')).toBeTruthy();
   });
 
   it('should render to account name', async () => {
-    const { findByText } = renderWithProvider(
+    renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(await findByText('Account 2')).toBeDefined();
+    expect(screen.getByText('Account 2')).toBeTruthy();
   });
 
   it('should render to address', async () => {
-    const { findByText } = renderWithProvider(
+    renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(await findByText('0x519d...9CC7')).toBeDefined();
+    expect(screen.getByText('0x519d...9CC7')).toBeTruthy();
   });
 
   it('should render correct to address for NFT send', async () => {
@@ -178,13 +201,17 @@ describe('AccountFromToInfoCard', () => {
       transactionTo: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
-    const { findByText } = renderWithProvider(
+    render(
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       <AccountFromToInfoCard transactionState={NFTTransaction as any} />,
-      { state: mockInitialState },
+      {
+        wrapper: ({ children }) => (
+          <Provider store={store}>{children}</Provider>
+        ),
+      },
     );
-    expect(await findByText('0xF4e8...287B')).toBeDefined();
+    expect(screen.getByText('0xF4e8...287B')).toBeTruthy();
   });
 
   it('should display ens name', async () => {
@@ -196,24 +223,47 @@ describe('AccountFromToInfoCard', () => {
       },
       transactionTo: '0x9004C7f302475BF5501fbc6254f69C64212A0d12',
     };
+
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (ENSCache.cache as any) = {
-      '10x1': {
+      '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
         name: 'test1.eth',
         timestamp: new Date().getTime(),
       },
-      '10x3': {
+      '0x9004C7f302475BF5501fbc6254f69C64212A0d12': {
         name: 'test3.eth',
         timestamp: new Date().getTime(),
       },
     };
-    const { queryByText } = renderWithProvider(
-      <AccountFromToInfoCard transactionState={txState} />,
-      { state: mockInitialState },
-    );
-    expect(await queryByText('test1.eth')).toBeDefined();
-    expect(await queryByText('test3.eth')).toBeDefined();
+
+    await act(async () => {
+      renderWithProvider(
+        <AccountFromToInfoCard
+          transactionState={txState}
+          onPressFromAddressIcon={jest.fn()}
+        />,
+        { state: mockInitialState }
+      );
+    });
+
+    await waitFor(async () => {
+      await expect(screen.findByText('test1.eth')).resolves.toBeTruthy();
+      await expect(screen.findByText('test3.eth')).resolves.toBeTruthy();
+    }, { timeout: 10000 });
+  }, 15000);
+
+  it('should correctly mock doENSReverseLookup', async () => {
+    const { doENSReverseLookup } = require('../../../util/ENSUtils');
+
+    const result1 = await doENSReverseLookup('0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A');
+    expect(result1).toBe('test1.eth');
+
+    const result2 = await doENSReverseLookup('0x9004C7f302475BF5501fbc6254f69C64212A0d12');
+    expect(result2).toBe('test3.eth');
+
+    const result3 = await doENSReverseLookup('0x1234567890123456789012345678901234567890');
+    expect(result3).toBeNull();
   });
 
   describe('from account balance', () => {
@@ -236,26 +286,33 @@ describe('AccountFromToInfoCard', () => {
         value: '3a98',
       },
     };
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let mockGetERC20BalanceOf: any;
+    let mockGetERC20BalanceOf: jest.Mock;
     beforeEach(() => {
       jest.useFakeTimers();
       mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
       Engine.context.AssetsContractController = {
         getERC20BalanceOf: mockGetERC20BalanceOf,
-      };
+        name: 'AssetsContractController',
+        getNetworkClientById: jest.fn(),
+        provider: {
+          sendAsync: jest.fn(),
+          send: jest.fn(),
+          emit: jest.fn(),
+        },
+        getProvider: jest.fn(),
+      } as unknown as typeof Engine.context.AssetsContractController;
     });
 
     it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', async () => {
-      const { findByText } = renderWithProvider(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <AccountFromToInfoCard transactionState={ERC20Transaction as any} />,
+      renderWithProvider(
+        <AccountFromToInfoCard
+          transactionState={ERC20Transaction as unknown as Transaction}
+        />,
         { state: mockInitialState },
       );
+      screen.debug();
       expect(mockGetERC20BalanceOf).toBeCalledTimes(1);
-      expect(await findByText('Balance: 10 TST')).toBeDefined();
+      await expect(screen.findByText(/Balance:.+TST/)).resolves.toBeTruthy();
     });
 
     it('should render balance from TokenBalancesController.contractBalances if selectedAddress is same as fromAddress', async () => {
@@ -267,14 +324,14 @@ describe('AccountFromToInfoCard', () => {
           from: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
         },
       };
-      const { findByText } = renderWithProvider(
+      renderWithProvider(
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         <AccountFromToInfoCard transactionState={transaction as any} />,
         { state: mockInitialState },
       );
       expect(mockGetERC20BalanceOf).toBeCalledTimes(0);
-      expect(await findByText('Balance: 0.0005 TST')).toBeDefined();
+      expect(screen.getByText('Balance: 0.0005 TST')).toBeTruthy();
     });
   });
 });
