@@ -1310,17 +1310,6 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
   integrity sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==
 
-"@consensys/ledgerhq-metamask-keyring@0.0.9":
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/@consensys/ledgerhq-metamask-keyring/-/ledgerhq-metamask-keyring-0.0.9.tgz#f824381c9cf55c6e6aad5693263dee77a17d2ac2"
-  integrity sha512-o/wdUU/7s8fIZxP0CcKjaWQaoJ1bz2+3BgeQSsizR2WLqZJF8phYF6t9hwfZeFFgM1FMZDuanVapCvOi13QjiA==
-  dependencies:
-    "@ethereumjs/tx" "^4.2.0"
-    "@ledgerhq/hw-app-eth" "6.26.1"
-    "@metamask/eth-sig-util" "^7.0.0"
-    buffer "^6.0.3"
-    ethereumjs-util "^7.1.5"
-
 "@consensys/on-ramp-sdk@1.28.1":
   version "1.28.1"
   resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.28.1.tgz#bcc5c06a20256b471d3943bfe02819edb9cd7212"
@@ -1883,7 +1872,7 @@
   dependencies:
     "@ethereumjs/util" "^9.0.3"
 
-"@ethereumjs/rlp@^4.0.1":
+"@ethereumjs/rlp@^4.0.0", "@ethereumjs/rlp@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-4.0.1.tgz#626fabfd9081baab3d0a3074b0c7ecaf674aaa41"
   integrity sha512-tqsQiBQDQdmPWE1xkkBq4rlSW5QZpLOUJ5RJh2/9fug+q9tnUhuZoVLk7s0scUIKTOzEtR72DFBXI4WiZcMpvw==
@@ -3476,12 +3465,12 @@
     rxjs "6"
     semver "^7.3.5"
 
-"@ledgerhq/devices@^8.2.1", "@ledgerhq/devices@^8.2.2":
-  version "8.2.2"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/devices/-/devices-8.2.2.tgz#d6d758182d690ad66e14f88426c448e8c54d259d"
-  integrity sha512-SKahGA4p0mZ3ovypOJ2wa5mUvUkArE3HBrwWKYf+cRs+t/Licp3OJfhj+DHIxP3AfyH2xR6CFFWECYHeKwGsDQ==
+"@ledgerhq/devices@^8.2.1", "@ledgerhq/devices@^8.4.0":
+  version "8.4.0"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/devices/-/devices-8.4.0.tgz#f3a03576d4a53d731bdaa212a00bd0adbfb86fb1"
+  integrity sha512-TUrMlWZJ+5AFp2lWMw4rGQoU+WtjIqlFX5SzQDL9phaUHrt4TFierAGHsaj5+tUHudhD4JhIaLI2cn1NOyq5NQ==
   dependencies:
-    "@ledgerhq/errors" "^6.16.3"
+    "@ledgerhq/errors" "^6.17.0"
     "@ledgerhq/logs" "^6.12.0"
     rxjs "^7.8.1"
     semver "^7.3.5"
@@ -3491,10 +3480,10 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/errors/-/errors-5.50.0.tgz#e3a6834cb8c19346efca214c1af84ed28e69dad9"
   integrity sha512-gu6aJ/BHuRlpU7kgVpy2vcYk6atjB4iauP2ymF7Gk0ez0Y/6VSMVSJvubeEQN+IV60+OBK0JgeIZG7OiHaw8ow==
 
-"@ledgerhq/errors@^6.10.0", "@ledgerhq/errors@^6.16.2", "@ledgerhq/errors@^6.16.3":
-  version "6.16.3"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/errors/-/errors-6.16.3.tgz#646f68cc7e6e8d5126bce1ca06140c5ad963bee8"
-  integrity sha512-3w7/SJVXOPa9mpzyll7VKoKnGwDD3BzWgN1Nom8byR40DiQvOKjHX+kKQausCedTHVNBn9euzPCNsftZ9+mxfw==
+"@ledgerhq/errors@^6.10.0", "@ledgerhq/errors@^6.16.2", "@ledgerhq/errors@^6.17.0":
+  version "6.17.0"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/errors/-/errors-6.17.0.tgz#0d56361fe6eb7de3b239e661710679f933f1fcca"
+  integrity sha512-xnOVpy/gUUkusEORdr2Qhw3Vd0MGfjyVGgkGR9Ck6FXE26OIdIQ3tNmG5BdZN+gwMMFJJVxxS4/hr0taQfZ43w==
 
 "@ledgerhq/hw-app-eth@5.27.2":
   version "5.27.2"
@@ -3575,12 +3564,12 @@
     events "^3.3.0"
 
 "@ledgerhq/hw-transport@^6.24.1", "@ledgerhq/hw-transport@^6.30.4":
-  version "6.30.5"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport/-/hw-transport-6.30.5.tgz#841c9e4bb3849536db110ca2894d693d55bf54fd"
-  integrity sha512-JMl//7BgPBvWxrWyMu82jj6JEYtsQyOyhYtonWNgtxn6KUZWht3gU4gxmLpeIRr+DiS7e50mW7m3GA+EudZmmA==
+  version "6.31.0"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport/-/hw-transport-6.31.0.tgz#82d8154bbcec8dc0104009a646159190fba5ae76"
+  integrity sha512-BY1poLk8vlJdIYngp8Zfaa/V9n14dqgt1G7iNetVRhJVFEKp9EYONeC3x6q/N7x81LUpzBk6M+T+s46Z4UiXHw==
   dependencies:
-    "@ledgerhq/devices" "^8.2.2"
-    "@ledgerhq/errors" "^6.16.3"
+    "@ledgerhq/devices" "^8.4.0"
+    "@ledgerhq/errors" "^6.17.0"
     "@ledgerhq/logs" "^6.12.0"
     events "^3.3.0"
 
@@ -4002,6 +3991,18 @@
     "@metamask/json-rpc-engine" "^9.0.0"
     "@metamask/safe-event-emitter" "^3.0.0"
     "@metamask/utils" "^8.3.0"
+
+"@metamask/eth-ledger-bridge-keyring@^4.1.0":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-ledger-bridge-keyring/-/eth-ledger-bridge-keyring-4.1.0.tgz#90bb94b931ecba5c8ed9f0023b35f32f4ed8ac5a"
+  integrity sha512-ZNNV6zLwyEbzIAN8WHdTA372xst7/ajX/lvafbZDrSiiA+UuC0CfRSDOS+NOyCNnP+3NRBcJlo1ilDRYRe3ZZg==
+  dependencies:
+    "@ethereumjs/rlp" "^4.0.0"
+    "@ethereumjs/tx" "^4.2.0"
+    "@ethereumjs/util" "^8.0.0"
+    "@ledgerhq/hw-app-eth" "6.26.1"
+    "@metamask/eth-sig-util" "^7.0.1"
+    hdkey "^2.1.0"
 
 "@metamask/eth-query@^3.0.1":
   version "3.0.1"
@@ -18248,12 +18249,13 @@ hastscript@^5.0.0:
     property-information "^5.0.0"
     space-separated-tokens "^1.0.0"
 
-hdkey@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/hdkey/-/hdkey-2.0.1.tgz#0a211d0c510bfc44fa3ec9d44b13b634641cad74"
-  integrity sha512-c+tl9PHG9/XkGgG0tD7CJpRVaE0jfZizDNmnErUAKQ4EjQSOcOUcV3EN9ZEZS8pZ4usaeiiK0H7stzuzna8feA==
+hdkey@^2.0.1, hdkey@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/hdkey/-/hdkey-2.1.0.tgz#755b30b73f54e93c31919c1b2f19205a8e57cb92"
+  integrity sha512-i9Wzi0Dy49bNS4tXXeGeu0vIcn86xXdPQUpEYg+SO1YiO8HtomjmmRMaRyqL0r59QfcD4PfVbSF3qmsWFwAemA==
   dependencies:
     bs58check "^2.1.2"
+    ripemd160 "^2.0.2"
     safe-buffer "^5.1.1"
     secp256k1 "^4.0.0"
 
@@ -25835,7 +25837,7 @@ rimraf@~2.6.2:
   dependencies:
     glob "^7.1.3"
 
-ripemd160@^2.0.0, ripemd160@^2.0.1:
+ripemd160@^2.0.0, ripemd160@^2.0.1, ripemd160@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/ripemd160/-/ripemd160-2.0.2.tgz#a1c1a6f624751577ba5d07914cbc92850585890c"
   integrity sha512-ii4iagi25WusVoiC4B4lq7pbXfAp3D9v5CwfkY33vffw2+pkDjY1D8GaN7spsxvCSx8dkPqOZCEZyfxcmJG2IA==
