@@ -1055,8 +1055,8 @@ class Engine {
       }),
       metametrics: {
         agent: 'mobile',
-        getMetaMetricsId: async () =>
-          (await MetaMetrics.getInstance().getMetaMetricsId()) ?? '',
+        // TODO: Fix this by (await MetaMetrics.getInstance().getMetaMetricsId()) before go live
+        getMetaMetricsId: async () => '',
       },
     });
 
