@@ -13,12 +13,6 @@ class SecurityAndPrivacy {
     );
   }
 
-  get revealSecretRecoveryPhraseButton() {
-    return Matchers.getElementByID(
-      SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON,
-    );
-  }
-
   get deleteWalletButton() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(SECURITY_PRIVACY_DELETE_WALLET_BUTTON)
@@ -74,10 +68,6 @@ class SecurityAndPrivacy {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.CLEAR_BROWSER_COOKIES,
     );
-  }
-
-  async tapRevealSecretRecoveryPhraseButton() {
-    await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton);
   }
 
   async tapChangePasswordButton() {
