@@ -51,7 +51,7 @@ import { isHardwareAccount } from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+// import generateTestId from '../../../../wdio/utils/generateTestId';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
@@ -467,10 +467,9 @@ const RevealPrivateCredential = ({
                 : strings('reveal_credential.srp_abbreviation_text'),
             })}
             onLongPress={() => revealCredential(privCredentialName)}
-            {...generateTestId(
-              Platform,
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID,
-            )}
+            testID={
+              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID
+            }
           />
         </>
       }

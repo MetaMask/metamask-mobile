@@ -11,31 +11,27 @@ export const RevealSeedViewSelectorsIDs = {
     'security-quiz-question-one-wrong-answer',
   SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_TITLE:
     'security-quiz-question-one-wrong-title',
-  // SECRET_RECOVERY_PHRASE_QUIZ_RESPONSE_ONE_WRONG_CONTAINER_ID:
-  //   'security-quiz-question-one-wrong-answer-response-container',
-  // SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_ANSWER_TRY_AGAIN_ID:
-  //   'security-quiz-question-one-wrong-answer-try-again',
-  // SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_RIGHT_ANSWER_ID:
-  //   'security-quiz-question-one-right-answer',
-  // SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_RIGHT_ANSWER_CONTAINER_ID:
-  //   'security-quiz-question-one-right-answer-container',
-  // SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_RIGHT_CONTINUE_ID:
-  //   'security-quiz-question-one-right-continue',
+  SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_ANSWER_TRY_AGAIN_BUTTON_ID:
+    'security-quiz-question-one-wrong-answer-try-again',
+  SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_RIGHT_ANSWER_ID:
+    'security-quiz-question-one-right-answer',
+  SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_RIGHT_TITLE:
+    'security-quiz-question-one-right-answer-title',
+  SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_RIGHT_CONTINUE_ID:
+    'security-quiz-question-one-right-continue',
 
-  // SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_CONTAINER_ID:
-  //   'security-quiz-question-two-container',
-  // SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_WRONG_ANSWER_ID:
-  //   'security-quiz-question-two-wrong-answer',
-  // SECRET_RECOVERY_PHRASE_QUIZ_RESPONSE_TWO_WRONG_CONTAINER_ID:
-  //   'security-quiz-question-two-wrong-answer-response-container',
-  // SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_WRONG_ANSWER_TRY_AGAIN_ID:
-  //   'security-quiz-question-two-wrong-answer-try-again',
-  // SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_RIGHT_ANSWER_ID:
-  //   'security-quiz-question-two-right-answer',
-  // SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_RIGHT_ANSWER_CONTAINER_ID:
-  //   'security-quiz-question-two-right-answer-container',
-  // SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_RIGHT_CONTINUE_ID:
-  //   'security-quiz-question-two-right-continue',
+  SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_WRONG_ANSWER_ID:
+    'security-quiz-question-two-wrong-answer',
+  SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_WRONG_TITLE:
+    'security-quiz-question-two-wrong-answer-title',
+  SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_WRONG_ANSWER_TRY_AGAIN_ID:
+    'security-quiz-question-two-wrong-answer-try-again',
+  SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_RIGHT_ANSWER_ID:
+    'security-quiz-question-two-right-answer',
+  SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_RIGHT_TITLE:
+    'security-quiz-question-two-right-answer-title',
+  SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_RIGHT_CONTINUE_ID:
+    'security-quiz-question-two-right-continue',
 
   PASSWORD_INPUT: 'login-password-input',
   PASSWORD_WARNING_ID: 'password-warning',

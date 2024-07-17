@@ -85,9 +85,10 @@ const createStyles = (colors: any) =>
 interface Props {
   onLongPress: () => void;
   label: string;
+  testID?: string;
 }
 
-const ButtonReveal = ({ onLongPress, label }: Props) => {
+const ButtonReveal = ({ onLongPress, label, testID }: Props) => {
   // Values for animating the stroke
   const progressOrigin = useSharedValue(innerRadius * 2 * Math.PI);
   const progressDestination = useSharedValue(0);
@@ -300,6 +301,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
       onPressIn={triggerPressStart}
       onPressOut={triggerPressEnd}
       activeOpacity={1}
+      testID={testID}
     >
       <Animated.View style={[styles.container, containerStyle]}>
         <View style={styles.progressContainer}>

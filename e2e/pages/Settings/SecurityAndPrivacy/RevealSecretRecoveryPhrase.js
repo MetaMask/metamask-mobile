@@ -47,7 +47,7 @@ class RevealSecretRecoveryPhrase {
 
   get tryAgainOne() {
     return Matchers.getElementByID(
-      RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_ANSWER_TRY_AGAIN_ID,
+      RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_ANSWER_TRY_AGAIN_BUTTON_ID,
     );
   }
 
@@ -143,6 +143,42 @@ class RevealSecretRecoveryPhrase {
 
   async tapQuestionOneWrongAnswer() {
     await Gestures.waitAndTap(this.questionOneWrongAnswer);
+  }
+
+  async tapTryAgainOne() {
+    await Gestures.waitAndTap(this.tryAgainOne);
+  }
+
+  async tapQuestionOneRightAnswer() {
+    await Gestures.waitAndTap(this.questionOneRightAnswer);
+  }
+
+  async tapContinueOne() {
+    await Gestures.waitAndTap(this.continueOne);
+  }
+
+  async tapQuestionTwoWrongAnswer() {
+    await Gestures.waitAndTap(this.questionTwoWrongAnswer);
+  }
+
+  async tapTryAgainTwo() {
+    await Gestures.waitAndTap(this.tryAgainTwo);
+  }
+
+  async tapQuestionTwoRightAnswer() {
+    await Gestures.waitAndTap(this.questionTwoRightAnswer);
+  }
+
+  async tapContinueTwo() {
+    await Gestures.waitAndTap(this.continueTwo);
+  }
+
+  async tapTouchableBox() {
+    await Gestures.waitAndTap(this.touchableBox);
+  }
+
+  async tapRevealRecoveryPhrase() {
+    await Gestures.tapAndLongPress(this.touchableBox);
   }
 }
 

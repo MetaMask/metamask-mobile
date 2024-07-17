@@ -128,6 +128,8 @@ const SRPQuiz = () => {
             label: strings('srp_security_quiz.question_one.right_answer'),
             onPress: () => setStage(QuizStage.rightAnswerQuestionOne),
             variant: ButtonVariants.Secondary,
+            testID:
+              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_RIGHT_ANSWER_ID,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -149,6 +151,8 @@ const SRPQuiz = () => {
         title={{
           content: strings('srp_security_quiz.question_one.right_answer_title'),
           style: styles.rightText,
+          testID:
+            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_RIGHT_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_one.right_answer_description',
@@ -158,6 +162,8 @@ const SRPQuiz = () => {
             label: strings('srp_security_quiz.continue'),
             onPress: () => setStage(QuizStage.questionTwo),
             variant: ButtonVariants.Primary,
+            testID:
+              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_RIGHT_CONTINUE_ID,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -190,6 +196,8 @@ const SRPQuiz = () => {
             label: strings('srp_security_quiz.try_again'),
             onPress: () => setStage(QuizStage.questionOne),
             variant: ButtonVariants.Primary,
+            testID:
+              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_ANSWER_TRY_AGAIN_BUTTON_ID,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -215,11 +223,15 @@ const SRPQuiz = () => {
             label: strings('srp_security_quiz.question_two.right_answer'),
             onPress: () => setStage(QuizStage.rightAnswerQuestionTwo),
             variant: ButtonVariants.Secondary,
+            testID:
+              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_RIGHT_ANSWER_ID,
           },
           {
             label: strings('srp_security_quiz.question_two.wrong_answer'),
             onPress: () => setStage(QuizStage.wrongAnswerQuestionTwo),
             variant: ButtonVariants.Secondary,
+            testID:
+              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_WRONG_ANSWER_ID,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -241,6 +253,8 @@ const SRPQuiz = () => {
         title={{
           content: strings('srp_security_quiz.question_two.right_answer_title'),
           style: styles.rightText,
+          testID:
+            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_RIGHT_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_two.right_answer_description',
@@ -250,6 +264,8 @@ const SRPQuiz = () => {
             label: strings('srp_security_quiz.continue'),
             onPress: goToRevealPrivateCredential,
             variant: ButtonVariants.Primary,
+            testID:
+              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_RIGHT_CONTINUE_ID,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -276,6 +292,8 @@ const SRPQuiz = () => {
         title={{
           content: strings('srp_security_quiz.question_two.wrong_answer_title'),
           style: styles.wrongText,
+          testID:
+            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_WRONG_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_two.wrong_answer_description',
@@ -285,6 +303,8 @@ const SRPQuiz = () => {
             label: strings('srp_security_quiz.try_again'),
             onPress: () => setStage(QuizStage.questionTwo),
             variant: ButtonVariants.Primary,
+            testID:
+              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_WRONG_ANSWER_TRY_AGAIN_ID,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
