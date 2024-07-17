@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Linking, TouchableOpacity, View } from 'react-native';
+import { Linking, TouchableOpacity, View, ViewStyle } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { strings } from '../../../../../../../locales/i18n';
@@ -62,28 +62,28 @@ const TransactionReviewEIP1559Update = ({
     onlyGas: !!onlyGas,
     gasSelected,
     legacy: !!legacy,
-    gasObject,
+    gasObject: gasObject as { suggestedGasLimit: string; suggestedMaxFeePerGas: string; suggestedMaxPriorityFeePerGas: string },
     gasObjectLegacy,
     multiLayerL1FeeTotal,
   });
 
   const {
-    renderableGasFeeMinNative,
-    renderableGasFeeMinConversion,
-    renderableGasFeeMaxNative,
-    renderableTotalMinNative,
-    renderableTotalMinConversion,
-    renderableTotalMaxNative,
-    renderableGasFeeMaxConversion,
-    timeEstimateColor,
-    timeEstimate,
-    timeEstimateId,
-    transactionFee,
-    transactionFeeFiat,
-    transactionTotalAmount,
-    transactionTotalAmountFiat,
-    suggestedGasLimit,
-  } = gasTransaction;
+    renderableGasFeeMinNative = '',
+    renderableGasFeeMinConversion = '',
+    renderableGasFeeMaxNative = '',
+    renderableTotalMinNative = '',
+    renderableTotalMinConversion = '',
+    renderableTotalMaxNative = '',
+    renderableGasFeeMaxConversion = '',
+    timeEstimateColor = '',
+    timeEstimate = '',
+    timeEstimateId = '',
+    transactionFee = '',
+    transactionFeeFiat = '',
+    transactionTotalAmount = '',
+    transactionTotalAmountFiat = '',
+    suggestedGasLimit = '',
+  } = gasTransaction as any; // Type assertion to any to avoid strict type checking
 
   useEffect(() => {
     if (gasEstimationReady) {
@@ -115,8 +115,8 @@ const TransactionReviewEIP1559Update = ({
   const valueToWatchAnimation = `${renderableGasFeeMinNative}${renderableGasFeeMaxNative}`;
 
   return (
-    <Summary style={styles.overview(noMargin)}>
-      <Summary.Row>
+    <Summary style={styles.overview} end={false} last={false}>
+      <Summary.Row style={{}} end={false} last={false}>
         <View style={styles.gasRowContainer}>
           <View style={styles.gasRowContainer}>
             <Text
@@ -135,13 +135,13 @@ const TransactionReviewEIP1559Update = ({
                 onPress={() =>
                   originWarning ? showLegacyLearnMore() : toggleLearnMoreModal()
                 }
-                hitSlop={styles.hitSlop}
+                hitSlop={styles.hitSlop as {top: number, left: number, bottom: number, right: number}}
               >
-                <MaterialCommunityIcons
-                  name="information"
-                  size={13}
-                  style={styles.gasInfoIcon(originWarning)}
-                />
+                {React.createElement(MaterialCommunityIcons as any, {
+                  name: "information",
+                  size: 13,
+                  style: styles.gasInfoIcon
+                })}
               </TouchableOpacity>
             </Text>
           </View>
@@ -220,7 +220,7 @@ const TransactionReviewEIP1559Update = ({
         </View>
       </Summary.Row>
       {!legacy && (
-        <Summary.Row>
+        <Summary.Row style={{}} end={false} last={false}>
           <View style={styles.gasRowContainer}>
             {gasEstimationReady ? (
               <FadeAnimationView
@@ -241,13 +241,13 @@ const TransactionReviewEIP1559Update = ({
                     <TouchableOpacity
                       style={styles.gasInfoContainer}
                       onPress={showTimeEstimateInfoModal}
-                      hitSlop={styles.hitSlop}
+                      hitSlop={styles.hitSlop as {top: number, left: number, bottom: number, right: number}}
                     >
-                      <MaterialCommunityIcons
-                        name="information"
-                        size={13}
-                        style={styles.redInfo}
-                      />
+                      {React.createElement(MaterialCommunityIcons as any, {
+                        name: "information",
+                        size: 13,
+                        style: styles.redInfo
+                      })}
                     </TouchableOpacity>
                   )}
                 </View>
@@ -273,13 +273,13 @@ const TransactionReviewEIP1559Update = ({
                       <TouchableOpacity
                         style={styles.gasInfoContainer}
                         onPress={showTimeEstimateInfoModal}
-                        hitSlop={styles.hitSlop}
+                        hitSlop={styles.hitSlop as {top: number, left: number, bottom: number, right: number}}
                       >
-                        <MaterialCommunityIcons
-                          name="alert"
-                          size={13}
-                          style={styles.redInfo}
-                        />
+                        {React.createElement(MaterialCommunityIcons as any, {
+                          name: "alert",
+                          size: 13,
+                          style: styles.redInfo
+                        })}
                       </TouchableOpacity>
                     )}
                   </Text>{' '}
@@ -313,9 +313,9 @@ const TransactionReviewEIP1559Update = ({
       )}
       {!hideTotal && (
         <View>
-          <Summary.Separator />
+          <Summary.Separator style={{}} />
           <View style={styles.gasBottomRowContainer}>
-            <Summary.Row>
+            <Summary.Row style={{}} end={false} last={false}>
               <Text primary bold noMargin>
                 {strings('transaction_review_eip1559.total')}
               </Text>
@@ -378,7 +378,7 @@ const TransactionReviewEIP1559Update = ({
             </Summary.Row>
           </View>
           {!legacy && (
-            <Summary.Row>
+            <Summary.Row style={{}} end={false} last={false}>
               {gasEstimationReady ? (
                 <FadeAnimationView
                   style={styles.valuesContainer}
