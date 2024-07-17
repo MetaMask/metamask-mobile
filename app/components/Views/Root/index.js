@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, useCallback } from 'react';
 import SplashScreen from '@metamask/react-native-splash-screen';
 import PropTypes from 'prop-types';
 import { Provider } from 'react-redux';
@@ -13,6 +13,7 @@ import { useAppTheme, ThemeContext } from '../../../util/theme';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { isTest } from '../../../util/test/utils';
+import { PerformanceProfiler } from '@shopify/react-native-performance';
 
 /**
  * Top level of the component hierarchy
@@ -83,12 +84,20 @@ export default class Root extends PureComponent {
 const ConnectedRoot = () => {
   const theme = useAppTheme();
 
+  const onReportPrepared = useCallback((report) => {
+    // send report to analytics
+    // eslint-disable-next-line no-console
+    console.log(' ======== REPORT ========:', report);
+  }, []);
+
   return (
     <SafeAreaProvider>
       <ThemeContext.Provider value={theme}>
         <ToastContextWrapper>
           <ErrorBoundary view="Root">
-            <App />
+            <PerformanceProfiler onReportPrepared={onReportPrepared}>
+              <App />
+            </PerformanceProfiler>
           </ErrorBoundary>
         </ToastContextWrapper>
       </ThemeContext.Provider>

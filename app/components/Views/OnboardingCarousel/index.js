@@ -184,10 +184,7 @@ class OnboardingCarousel extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <PerformanceMeasureView
-        interactive={true}
-        screenName="OnboardingCarousel"
-      >
+      <PerformanceMeasureView interactive screenName="OnboardingCarousel">
         <View
           style={baseStyles.flexGrow}
           testID={OnboardingCarouselSelectorIDs.CONTAINER_ID}

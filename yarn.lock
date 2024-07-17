@@ -6296,6 +6296,13 @@
   dependencies:
     "@sentry/types" "7.100.1"
 
+"@shopify/react-native-performance-navigation@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@shopify/react-native-performance-navigation/-/react-native-performance-navigation-3.0.0.tgz#029735cefd30382239825479869187affa2157ec"
+  integrity sha512-KhXXi3Rau2KWqwAXnW77gGuKEvWcMEmh+B5mdfRd9+oJ9QIoCkLPnnGcZYsMh0t3jFrmLFNmWTqScEB3CxkopQ==
+  dependencies:
+    lodash.isequal "^4.5.0"
+
 "@shopify/react-native-performance@^4.1.2":
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/@shopify/react-native-performance/-/react-native-performance-4.1.2.tgz#bd111af291b85ee125feaccd54c8e5f237a76ce7"

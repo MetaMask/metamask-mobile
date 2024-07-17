@@ -6,8 +6,10 @@ import React, {
   useState,
 } from 'react';
 import {
-  PerformanceProfiler,
+  PerformanceMeasureView,
+  useStartProfiler,
 } from '@shopify/react-native-performance';
+import { ReactNavigationPerformanceView } from '@shopify/react-native-performance-navigation';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -295,6 +297,7 @@ const VaultRecoveryFlow = () => (
 
 const App = ({ userLoggedIn }) => {
   const animationRef = useRef(null);
+  const startRenderTimer = useStartProfiler();
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
   const [navigator, setNavigator] = useState(undefined);
@@ -314,11 +317,6 @@ const App = ({ userLoggedIn }) => {
       dispatch(setCurrentBottomNavRoute(route));
     }
   };
-
-  const onReportPrepared = useCallback((report) => {
-    // send report to analytics
-    console.log(' ======== REPORT ========:', report);
-  }, []);
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
@@ -552,18 +550,24 @@ const App = ({ userLoggedIn }) => {
       isInteraction: false,
     }).start(() => {
       setAnimationPlayed(true);
+      // startRenderTimer({ sourceScreen: 'MetaMaskAnimation' });
     });
   }, [opacity]);
 
   const renderSplash = () => {
     if (!animationPlayed) {
       return (
-        <MetaMaskAnimation
-          animationRef={animationRef}
-          animationName={animationNameRef}
-          opacity={opacity}
-          onAnimationFinish={onAnimationFinished}
-        />
+        // <PerformanceMeasureView
+        //   interactive={false}
+        //   screenName="MetaMaskAnimation"
+        // >
+          <MetaMaskAnimation
+            animationRef={animationRef}
+            animationName={animationNameRef}
+            opacity={opacity}
+            onAnimationFinish={onAnimationFinished}
+          />
+        // </PerformanceMeasureView>
       );
     }
     return null;
@@ -771,7 +775,6 @@ const App = ({ userLoggedIn }) => {
     (route && (
       <>
         {isBlockaidFeatureEnabled() && <PPOMView />}
-        <PerformanceProfiler onReportPrepared={onReportPrepared}>
           <NavigationContainer
             // Prevents artifacts when navigating between screens
             theme={{
@@ -888,8 +891,6 @@ const App = ({ userLoggedIn }) => {
               />
             </Stack.Navigator>
           </NavigationContainer>
-        </PerformanceProfiler>
-
         {renderSplash()}
         <Toast ref={toastRef} />
       </>
