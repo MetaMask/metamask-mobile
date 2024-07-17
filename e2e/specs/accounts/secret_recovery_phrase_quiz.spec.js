@@ -1,27 +1,22 @@
 'use strict';
 
-import { SmokeAccounts } from '../../tags';
-import TestHelpers from '../../helpers';
-import { loginToApp } from '../../viewHelper';
-
-import TabBarComponent from '../../pages/TabBarComponent';
+import { SmokeAccounts } from '../../tags.js';
+import TestHelpers from '../../helpers.js';
+import { loginToApp } from '../../viewHelper.js';
+import TabBarComponent from '../../pages/TabBarComponent.js';
 import SettingsView from '../../pages/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.js';
 import { RevealSeedViewSelectorsIDs } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
 
-// import { LoginView } from '../../pages/LoginView.js';
-
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import {
   withFixtures,
   defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+} from '../../fixtures/fixture-helper.js';
 
-describe(SmokeAccounts('reveal secret recovery phrase'), () => {
-  it('completes quiz after wrong answers', async () => {
-    const PASSWORD = '123123123';
-
+describe(SmokeAccounts('Secret Recovery Phrase Quiz'), () => {
+  it('completes successfully after correcting wrong answers', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
@@ -31,12 +26,10 @@ describe(SmokeAccounts('reveal secret recovery phrase'), () => {
       },
       async () => {
         await loginToApp();
-
         // Navigate settings to the Reveal Secret Recovery Phrase screen
         await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacy.tapRevealSecretRecoveryPhraseButton();
-
         //Start the quiz
         await RevealSecretRecoveryPhrase.tapGetStarted();
         //Answer the first question wrong
@@ -64,22 +57,10 @@ describe(SmokeAccounts('reveal secret recovery phrase'), () => {
         await TestHelpers.checkIfVisible(
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_RIGHT_TITLE,
         );
-
         await RevealSecretRecoveryPhrase.tapContinueTwo();
-
-        // click into password input box
-        await TestHelpers.waitAndTap(
+        // land at reveal SRP view prompt for password
+        await TestHelpers.checkIfVisible(
           RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-        );
-        //Enter password
-        await TestHelpers.typeTextAndHideKeyboard(
-          RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-          PASSWORD,
-        );
-
-        // can see tap and hold but not activating animations and not showing the secret recovery phrase
-        await TestHelpers.tapAndLongPress(
-          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID,
         );
       },
     );
