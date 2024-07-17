@@ -1040,7 +1040,7 @@ class Engine {
       }),
     });
     ///: END:ONLY_INCLUDE_IF
-    // eslint-disable-next-line no-console
+
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -1055,11 +1055,10 @@ class Engine {
       }),
       metametrics: {
         agent: 'mobile',
-        // TODO: Need to be fixed before golive.
-        getMetaMetricsId: async () => '',
+        getMetaMetricsId: async () =>
+          (await MetaMetrics.getInstance().getMetaMetricsId()) ?? '',
       },
     });
-    // eslint-disable-next-line no-console
 
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
@@ -1104,8 +1103,9 @@ class Engine {
           isPushIntegrated: false,
           featureAnnouncements: {
             platform: 'mobile',
-            accessToken: 'mAYNB_k65snv4AXW4o8ksZN8BwWDQF9702HKV7yBDZI',
-            spaceId: '',
+            accessToken: process.env
+              .FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN as string,
+            spaceId: process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID as string,
           },
         },
       });
