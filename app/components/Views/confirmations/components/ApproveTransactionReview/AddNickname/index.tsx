@@ -6,7 +6,7 @@ import Engine from '../../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 import { toChecksumAddress } from 'ethereumjs-util';
-import { connect } from 'react-redux';
+import { connect, ConnectedProps } from 'react-redux';
 import StyledButton from '../../../../../UI/StyledButton';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import InfoModal from '../../../../../UI/Swaps/components/InfoModal';
@@ -20,7 +20,6 @@ import Header from '../AddNickNameHeader';
 import ShowBlockExplorer from '../ShowBlockExplorer';
 import { useTheme } from '../../../../../../util/theme';
 import createStyles from './styles';
-import { AddNicknameProps } from './types';
 import {
   validateAddressOrENS,
   shouldShowBlockExplorer,
@@ -42,6 +41,31 @@ import { selectInternalAccounts } from '../../../../../../selectors/accountsCont
 import { RootState } from '../../../../../../reducers';
 
 const getAnalyticsParams = () => ({});
+
+type OwnProps = {
+  closeModal: () => void;
+  address: string;
+  addressNickname: string;
+};
+
+const mapStateToProps = (state: RootState) => ({
+  providerType: selectProviderType(state),
+  providerRpcTarget: selectRpcUrl(state),
+  providerChainId: selectChainId(state),
+  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  internalAccounts: selectInternalAccounts(state),
+  networkConfigurations: selectNetworkConfigurations(state),
+});
+
+const mapDispatchToProps = {
+  showModalAlert: showAlert,
+};
+
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+type AddNicknameProps = PropsFromRedux & OwnProps;
 
 const AddNickname = (props: AddNicknameProps) => {
   const {
@@ -263,24 +287,4 @@ const AddNickname = (props: AddNicknameProps) => {
   );
 };
 
-const mapStateToProps = (state: RootState) => ({
-  providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcUrl(state),
-  providerChainId: selectChainId(state),
-  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  internalAccounts: selectInternalAccounts(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-});
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapDispatchToProps = (dispatch: any) => ({
-  showModalAlert: (config: {
-    isVisible: boolean;
-    autodismiss: number;
-    content: string;
-    data: { msg: string };
-  }) => dispatch(showAlert(config)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(AddNickname);
+export default connector(AddNickname);
