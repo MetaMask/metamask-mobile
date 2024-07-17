@@ -8,7 +8,7 @@ import { ENSCache } from '../../../util/ENSUtils';
 import { Transaction } from './AccountFromToInfoCard.types';
 import AccountFromToInfoCard from '.';
 import Engine from '../../../core/Engine';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
@@ -23,7 +23,7 @@ const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {
@@ -78,6 +78,8 @@ jest.mock('../../../util/ENSUtils', () => ({
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSelector: (fn: any) => fn(mockInitialState),
 }));
 
@@ -177,6 +179,8 @@ describe('AccountFromToInfoCard', () => {
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
     const { findByText } = renderWithProvider(
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       <AccountFromToInfoCard transactionState={NFTTransaction as any} />,
       { state: mockInitialState },
     );
@@ -192,6 +196,8 @@ describe('AccountFromToInfoCard', () => {
       },
       transactionTo: '0x9004C7f302475BF5501fbc6254f69C64212A0d12',
     };
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (ENSCache.cache as any) = {
       '10x1': {
         name: 'test1.eth',
@@ -230,6 +236,8 @@ describe('AccountFromToInfoCard', () => {
         value: '3a98',
       },
     };
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mockGetERC20BalanceOf: any;
     beforeEach(() => {
       jest.useFakeTimers();
@@ -241,6 +249,8 @@ describe('AccountFromToInfoCard', () => {
 
     it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', async () => {
       const { findByText } = renderWithProvider(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         <AccountFromToInfoCard transactionState={ERC20Transaction as any} />,
         { state: mockInitialState },
       );
@@ -258,6 +268,8 @@ describe('AccountFromToInfoCard', () => {
         },
       };
       const { findByText } = renderWithProvider(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         <AccountFromToInfoCard transactionState={transaction as any} />,
         { state: mockInitialState },
       );

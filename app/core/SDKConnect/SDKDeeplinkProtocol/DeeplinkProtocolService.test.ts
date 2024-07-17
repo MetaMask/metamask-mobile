@@ -8,6 +8,8 @@ import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import DeeplinkProtocolService from './DeeplinkProtocolService';
+import AppConstants from '../../AppConstants';
+import { DappClient } from '../AndroidSDK/dapp-sdk-types';
 
 jest.mock('../SDKConnect');
 jest.mock('../../../core/Engine');
@@ -35,6 +37,8 @@ describe('DeeplinkProtocolService', () => {
       addDappConnection: jest.fn().mockResolvedValue(null),
     });
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (Engine.context as any) = {
       PermissionController: {
         requestPermissions: jest.fn().mockResolvedValue(null),
@@ -112,6 +116,8 @@ describe('DeeplinkProtocolService', () => {
         scheme: 'test',
       };
       service.bridgeByClientId.client1 = {} as BackgroundBridge;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const setupBridgeSpy = jest.spyOn(service as any, 'setupBridge');
       service.setupBridge(clientInfo);
       expect(setupBridgeSpy).toHaveReturned();
@@ -130,7 +136,9 @@ describe('DeeplinkProtocolService', () => {
 
     it('should handle batch RPC responses', async () => {
       const mockChainRPCs = [{ id: '1' }];
-      const mockMessage = { data: { id: '1', error: null } };
+      const mockMessage = {
+        data: { id: '1', accounts: [], chainId: '0x1', error: null },
+      };
       service.batchRPCManager.getById = jest
         .fn()
         .mockReturnValue(mockChainRPCs);
@@ -144,6 +152,8 @@ describe('DeeplinkProtocolService', () => {
         url: 'test-url',
         isRemoteConn: true,
         sendMessage: jest.fn(),
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await service.sendMessage(mockMessage, true);
@@ -159,7 +169,14 @@ describe('DeeplinkProtocolService', () => {
     });
 
     it('should handle error in message data', async () => {
-      const mockMessage = { data: { id: '1', error: new Error('Test error') } };
+      const mockMessage = {
+        data: {
+          id: '1',
+          accounts: [],
+          chainId: '0x1',
+          error: new Error('Test error'),
+        },
+      };
       const openDeeplinkSpy = jest.spyOn(service, 'openDeeplink');
 
       service.currentClientId = 'client1';
@@ -170,6 +187,8 @@ describe('DeeplinkProtocolService', () => {
         url: 'test-url',
         isRemoteConn: true,
         sendMessage: jest.fn(),
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await service.sendMessage(mockMessage, true);
@@ -196,7 +215,14 @@ describe('DeeplinkProtocolService', () => {
 
     it('should handle non-final batch RPC response and error in message data', async () => {
       const mockChainRPCs = [{ id: '1' }];
-      const mockMessage = { data: { id: '1', error: new Error('Test error') } };
+      const mockMessage = {
+        data: {
+          id: '1',
+          accounts: [],
+          chainId: '0x1',
+          error: new Error('Test error'),
+        },
+      };
       const devLoggerSpy = jest.spyOn(DevLogger, 'log');
       const openDeeplinkSpy = jest.spyOn(service, 'openDeeplink');
       service.batchRPCManager.getById = jest
@@ -212,6 +238,8 @@ describe('DeeplinkProtocolService', () => {
         url: 'test-url',
         isRemoteConn: true,
         sendMessage: jest.fn(),
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       service.rpcQueueManager.remove = jest.fn();
@@ -312,6 +340,122 @@ describe('DeeplinkProtocolService', () => {
     });
   });
 
+  describe('handleConnectionEventAsync', () => {
+    let clientInfo: DappClient;
+
+    let params: {
+      dappPublicKey: string;
+      url: string;
+      scheme: string;
+      channelId: string;
+      originatorInfo?: string;
+      request?: string;
+    };
+
+    beforeEach(() => {
+      clientInfo = {
+        clientId: 'client1',
+        originatorInfo: {
+          url: 'test.com',
+          title: 'Test',
+          platform: 'test',
+          dappId: 'dappId',
+        },
+        connected: false,
+        validUntil: Date.now(),
+        scheme: 'scheme1',
+      };
+      params = {
+        dappPublicKey: 'key',
+        url: 'url',
+        scheme: 'scheme1',
+        channelId: 'client1',
+        originatorInfo: Buffer.from(
+          JSON.stringify({
+            originatorInfo: {
+              url: 'test.com',
+              title: 'Test',
+              platform: 'test',
+              dappId: 'dappId',
+            },
+          }),
+        ).toString('base64'),
+        request: JSON.stringify({ id: '1', method: 'test', params: [] }),
+      };
+
+      // Mocking methods
+      service.checkPermission = jest.fn().mockResolvedValue(null);
+      service.setupBridge = jest.fn();
+      service.sendMessage = jest.fn().mockResolvedValue(null);
+      service.processDappRpcRequest = jest.fn().mockResolvedValue(null);
+      service.openDeeplink = jest.fn().mockResolvedValue(null);
+
+      (Engine.context as unknown) = {
+        PermissionController: {
+          requestPermissions: jest.fn().mockResolvedValue(null),
+        },
+        KeyringController: {
+          unlock: jest.fn().mockResolvedValue(null),
+          isUnlocked: jest.fn().mockReturnValue(true),
+        },
+        PreferencesController: {
+          state: {
+            selectedAddress: '0xAddress',
+          },
+        },
+      };
+    });
+
+    it('should setup a new client bridge if the connection does not exist', async () => {
+      await service.handleConnectionEventAsync({ clientInfo, params });
+      expect(service.checkPermission).toHaveBeenCalledWith({
+        originatorInfo: clientInfo.originatorInfo,
+        channelId: clientInfo.clientId,
+      });
+      expect(service.setupBridge).toHaveBeenCalledWith(clientInfo);
+      expect(SDKConnect.getInstance().addDappConnection).toHaveBeenCalledWith({
+        id: clientInfo.clientId,
+        lastAuthorized: expect.any(Number),
+        origin: AppConstants.MM_SDK.IOS_SDK,
+        originatorInfo: clientInfo.originatorInfo,
+        otherPublicKey: service.dappPublicKeyByClientId[clientInfo.clientId],
+        validUntil: expect.any(Number),
+        scheme: clientInfo.scheme,
+      });
+    });
+
+    it('should update existing client connection and process request if exists', async () => {
+      service.connections[clientInfo.clientId] = clientInfo;
+      await service.handleConnectionEventAsync({ clientInfo, params });
+      expect(service.processDappRpcRequest).toHaveBeenCalledWith(params);
+    });
+
+    it('should send error message if connection event fails', async () => {
+      (service.checkPermission as jest.Mock).mockRejectedValue(
+        new Error('Permission error'),
+      );
+      await service.handleConnectionEventAsync({ clientInfo, params });
+      expect(service.sendMessage).toHaveBeenCalledWith({
+        data: {
+          error: new Error('Permission error'),
+          jsonrpc: '2.0',
+        },
+        name: 'metamask-provider',
+      });
+      expect(service.openDeeplink).toHaveBeenCalledWith({
+        message: {
+          data: {
+            error: new Error('Permission error'),
+            jsonrpc: '2.0',
+          },
+          name: 'metamask-provider',
+        },
+        clientId: '',
+        scheme: clientInfo.scheme,
+      });
+    });
+  });
+
   describe('processDappRpcRequest', () => {
     it('should process a dapp RPC request', async () => {
       const params = {
@@ -322,6 +466,8 @@ describe('DeeplinkProtocolService', () => {
         originatorInfo: 'info',
         request: JSON.stringify({ id: '1', method: 'test', params: [] }),
       };
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       service.bridgeByClientId.channel1 = { onMessage: jest.fn() } as any;
       await service.processDappRpcRequest(params);
       expect(handleCustomRpcCalls).toHaveBeenCalled();
@@ -347,6 +493,8 @@ describe('DeeplinkProtocolService', () => {
 
   describe('removeConnection', () => {
     it('should remove a connection', () => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       service.connections.channel1 = {} as any;
       service.removeConnection('channel1');
       expect(service.connections.channel1).toBeUndefined();

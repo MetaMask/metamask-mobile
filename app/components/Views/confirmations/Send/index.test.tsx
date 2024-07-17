@@ -22,7 +22,6 @@ const initialState = {
   settings: {},
   engine: {
     backgroundState: {
-      // ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {
@@ -123,7 +122,7 @@ const initialState = {
         allNftContracts: {},
       },
       TokenRatesController: {
-        contractExchangeRates: {},
+        marketData: {},
       },
       TransactionController: {
         methodData: {},

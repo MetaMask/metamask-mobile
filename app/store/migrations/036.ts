@@ -1,17 +1,15 @@
-import {
-  EthAccountType,
-  InternalAccount,
-  EthMethod,
-} from '@metamask/keyring-api';
+import { EthAccountType, InternalAccount } from '@metamask/keyring-api';
 import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { ETH_EOA_METHODS } from '../../constants/eth-methods';
 
 export interface Identity {
   name: string;
   address: string;
   lastSelected?: number;
+  importTime?: number;
 }
 
 export default function migrate(state: unknown) {
@@ -79,6 +77,8 @@ export default function migrate(state: unknown) {
   return state;
 }
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createDefaultAccountsController(state: Record<string, any>) {
   state.engine.backgroundState.AccountsController = {
     internalAccounts: {
@@ -89,6 +89,8 @@ function createDefaultAccountsController(state: Record<string, any>) {
 }
 
 function createInternalAccountsForAccountsController(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: Record<string, any>,
 ) {
   const identities: {
@@ -114,6 +116,7 @@ function createInternalAccountsForAccountsController(
       options: {},
       metadata: {
         name: identity.name,
+        importTime: identity.importTime ?? Date.now(),
         lastSelected: identity.lastSelected ?? undefined,
         keyring: {
           // This is default HD Key Tree type because the keyring is encrypted
@@ -122,14 +125,7 @@ function createInternalAccountsForAccountsController(
           type: KeyringTypes.hd,
         },
       },
-      methods: [
-        EthMethod.PersonalSign,
-        EthMethod.Sign,
-        EthMethod.SignTransaction,
-        EthMethod.SignTypedDataV1,
-        EthMethod.SignTypedDataV3,
-        EthMethod.SignTypedDataV4,
-      ],
+      methods: ETH_EOA_METHODS,
 
       type: EthAccountType.Eoa,
     };
@@ -139,6 +135,8 @@ function createInternalAccountsForAccountsController(
 }
 
 function findInternalAccountByAddress(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: Record<string, any>,
   address: string,
 ): InternalAccount | undefined {
@@ -151,6 +149,8 @@ function findInternalAccountByAddress(
 }
 
 function createSelectedAccountForAccountsController(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: Record<string, any>,
 ) {
   const selectedAddress =

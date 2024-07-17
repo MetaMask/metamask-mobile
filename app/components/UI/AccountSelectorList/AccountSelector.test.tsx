@@ -6,7 +6,7 @@ import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import { View } from 'react-native';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { regex } from '../../../../app/util/regex';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
@@ -29,7 +29,7 @@ jest.mock('../../../util/address', () => {
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
         network: '1',
         providerConfig: {
@@ -98,6 +98,8 @@ const AccountSelectorListRightAccessoryUseAccounts = () => {
 };
 
 const renderComponent = (
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any = {},
   AccountSelectorListTest = AccountSelectorListUseAccounts,
 ) => renderWithProvider(<AccountSelectorListTest />, { state });

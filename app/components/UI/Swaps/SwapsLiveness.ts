@@ -34,6 +34,8 @@ function SwapLiveness() {
 
       setLiveness(chainId, featureFlags);
     } catch (error) {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       Logger.error(error as any, 'Swaps: error while fetching swaps liveness');
       setLiveness(chainId, null);
     }

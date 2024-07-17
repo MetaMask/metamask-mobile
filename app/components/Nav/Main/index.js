@@ -81,9 +81,6 @@ import {
   startIncomingTransactionPolling,
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { SnapsExecutionWebView } from '../../../lib/snaps';
-///: END:ONLY_INCLUDE_IF
 
 const Stack = createStackNavigator();
 
@@ -365,15 +362,6 @@ const Main = (props) => {
         ) : (
           renderLoader()
         )}
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-        }
-        <View>
-          <SnapsExecutionWebView />
-        </View>
-        {
-          ///: END:ONLY_INCLUDE_IF
-        }
         <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />

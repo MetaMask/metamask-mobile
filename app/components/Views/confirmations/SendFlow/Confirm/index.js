@@ -474,7 +474,9 @@ class Confirm extends PureComponent {
         id,
         jsonrpc: '2.0',
         method: 'eth_sendTransaction',
-        origin: TransactionTypes.MM,
+        origin: isPaymentRequest
+          ? AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+          : TransactionTypes.MM,
         params: [
           {
             from,
@@ -673,7 +675,9 @@ class Confirm extends PureComponent {
         decimals,
       );
       transactionValue = `${transferValue} ${symbol}`;
-      const exchangeRate = contractExchangeRates[address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[address]?.price
+        : undefined;
       transactionValueFiat =
         balanceToFiat(
           transferValue,
@@ -972,6 +976,8 @@ class Confirm extends PureComponent {
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
+      resetTransaction();
+      navigation?.dangerouslyGetParent()?.pop();
     }
     this.setState({ transactionConfirmed: false });
   };

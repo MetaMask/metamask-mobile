@@ -25,6 +25,8 @@ import { AddressListProps, Contact } from './AddressList.types';
 import styleSheet from './AddressList.styles';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const LabelElement = (styles: any, label: string) => (
   <View key={label} style={styles.labelElementWrapper}>
     <Text variant={TextVariant.BodyMD} style={styles.contactLabel}>
@@ -44,14 +46,20 @@ const AddressList: React.FC<AddressListProps> = ({
   const { colors } = useTheme();
   const styles = styleSheet(colors);
   const [contactElements, setContactElements] = useState<Contact[]>([]);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [fuse, setFuse] = useState<any>(undefined);
   const chainId = useSelector(selectChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
   const addressBook = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) =>
       state.engine.backgroundState.AddressBookController.addressBook,
   );
   const ambiguousAddressEntries = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.ambiguousAddressEntries,
   );
 
@@ -86,7 +94,11 @@ const AddressList: React.FC<AddressListProps> = ({
             .catch(() => contact),
         ),
       ).then((updatedContacts) => {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const newContactElements: any[] = [];
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const addressBookTree: any = {};
 
         updatedContacts.forEach((contact: Contact) => {

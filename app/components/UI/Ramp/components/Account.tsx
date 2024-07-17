@@ -14,6 +14,8 @@ import {
 import { toLowerCaseEquals } from '../../../../util/general';
 
 // TODO: Convert into typescript and correctly type
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Identicon = JSIdenticon as any;
 
 const createStyles = (colors: Colors) =>

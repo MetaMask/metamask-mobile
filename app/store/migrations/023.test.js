@@ -1,7 +1,8 @@
 import migrate from './023';
 import { merge } from 'lodash';
-import initialRootState from '../../util/test/initial-root-state';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import initialRootState, {
+  backgroundState,
+} from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 
 jest.mock('@sentry/react-native', () => ({
@@ -212,7 +213,7 @@ describe('Migration #23', () => {
 
     expect(newState.user).toStrictEqual({});
     expect(newState.engine.backgroundState).toStrictEqual(
-      merge({}, initialBackgroundState, {
+      merge({}, backgroundState, {
         AddressBookController: {
           addressBook: {
             // This is unchanged because the only configured network with a network ID 1 also has
@@ -303,7 +304,7 @@ describe('Migration #23', () => {
       },
     });
     expect(newState.engine.backgroundState).toStrictEqual(
-      merge({}, initialBackgroundState, {
+      merge({}, backgroundState, {
         AddressBookController: {
           addressBook: {
             // This is unchanged because the only configured network with a network ID 1 also has
@@ -383,7 +384,7 @@ describe('Migration #23', () => {
 
     expect(newState.user).toStrictEqual({});
     expect(newState.engine.backgroundState).toStrictEqual(
-      merge({}, initialBackgroundState, {
+      merge({}, backgroundState, {
         AddressBookController: {
           addressBook: {
             // This is unchanged because the only configured network with a network ID 1 also has

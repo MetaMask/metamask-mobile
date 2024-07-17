@@ -200,6 +200,8 @@ class SmartTransactionHook {
       );
 
       return { transactionHash };
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Logger.error(
         error,
@@ -242,6 +244,8 @@ class SmartTransactionHook {
   };
 
   #getTransactionHash = async (
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     submitTransactionResponse: any,
     uuid: string,
   ) => {
@@ -358,6 +362,8 @@ class SmartTransactionHook {
       await this.#approvalController.updateRequestState({
         id: this.#approvalId,
         requestState: {
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           smartTransaction: smartTransaction as any,
           isDapp: this.#isDapp,
           isInSwapFlow: this.#isInSwapFlow,

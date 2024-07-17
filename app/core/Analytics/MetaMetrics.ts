@@ -291,6 +291,8 @@ class MetaMetrics implements IMetaMetrics {
     try {
       await DefaultPreference.set(METAMETRICS_ID, '');
       this.metametricsId = await this.#getMetaMetricsId();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Logger.error(error, 'Error resetting MetaMetrics ID');
     }
@@ -363,6 +365,8 @@ class MetaMetrics implements IMetaMetrics {
   #storeMetricsOptInPreference = async (enabled: boolean) => {
     try {
       await DefaultPreference.set(METRICS_OPT_IN, enabled ? AGREED : DENIED);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Logger.error(error, 'Error storing MetaMetrics enable state');
     }
@@ -407,6 +411,8 @@ class MetaMetrics implements IMetaMetrics {
           subjectIds: [this.metametricsId],
         }),
       });
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data } = response as any;
 
       await this.#setDeleteRegulationId(data?.data?.regulateId);
@@ -414,6 +420,8 @@ class MetaMetrics implements IMetaMetrics {
       await this.#setIsDataRecorded(false); // indicate no data recorded since request
 
       return { status: DataDeleteResponseStatus.ok };
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Logger.error(error, 'Analytics Deletion Task Error');
       return {
@@ -451,6 +459,8 @@ class MetaMetrics implements IMetaMetrics {
           headers: this.#getSegmentApiHeaders(),
         });
 
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data } = response as any;
         const status = data?.data?.regulation?.overallStatus;
 
@@ -458,6 +468,8 @@ class MetaMetrics implements IMetaMetrics {
           status: DataDeleteResponseStatus.ok,
           dataDeleteStatus: status || DataDeleteStatus.unknown,
         };
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         Logger.error(error, 'Analytics Deletion Task Check Error');
         return {
@@ -538,6 +550,8 @@ class MetaMetrics implements IMetaMetrics {
 
       if (__DEV__)
         Logger.log(`MetaMetrics configured with ID: ${this.metametricsId}`);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Logger.error(error, 'Error initializing MetaMetrics');
     }
@@ -710,6 +724,8 @@ class MetaMetrics implements IMetaMetrics {
           await this.#checkDataDeletionTaskStatus();
         status.dataDeletionRequestStatus =
           dataDeletionTaskStatus.dataDeleteStatus;
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         Logger.log('Error checkDataDeleteStatus -', error);
         status.dataDeletionRequestStatus = DataDeleteStatus.unknown;

@@ -2,7 +2,11 @@
 
 ## Current Main Branch
 
-## 7.26.0 - Jun 21, 2024
+## 7.26.1 - Jul 17, 2024
+### Fixed 
+- [#9724](https://github.com/MetaMask/metamask-mobile/pull/9724): feat: remove selectIdentities in favour of selectInternalAccounts
+
+## 7.26.0 - Jul 5, 2024
 ### Added
 - [#9937](https://github.com/MetaMask/metamask-mobile/pull/9937): feat: modification of the network bottom sheet to use the new UI redesign by adding the popular network section as additional network (#9937)
 - [#9856](https://github.com/MetaMask/metamask-mobile/pull/9856): feat: new attribution github workflow (#9856)
@@ -100,6 +104,12 @@
 - [#9882](https://github.com/MetaMask/metamask-mobile/pull/9882): fix: edit account name screen display incorrect account name (#9882)
 - [#9891](https://github.com/MetaMask/metamask-mobile/pull/9891): fix: bug report template - remove reference to recordit (#9891)
 - [#9755](https://github.com/MetaMask/metamask-mobile/pull/9755): fix: display the DApp URL in connect screen for MetaMask IOS-SDK (#9755)
+
+## 7.24.4 - Jun 25, 2024
+### Fixed
+- [10064](https://github.com/MetaMask/metamask-mobile/pull/10064) fix: Always mark the STX Opt In modal as seen
+- [10088](https://github.com/MetaMask/metamask-mobile/pull/10088) fix: Swap with unapproved token
+- [10099](https://github.com/MetaMask/metamask-mobile/pull/10099) fix: stx on ramps missing origin
 
 ## 7.24.3 - Jun 19, 2024
 ### Fixed

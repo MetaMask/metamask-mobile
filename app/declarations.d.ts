@@ -10,6 +10,8 @@ declare module 'react-native-minimizer';
 
 declare module 'xhr2';
 declare module 'react-native-scrollable-tab-view/DefaultTabBar' {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const content: React.FC<any>;
   export default content;
 }
@@ -269,4 +271,9 @@ declare module 'react-native-vector-icons/Zocial' {
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8123}
    */
   export default class Zocial extends ZocialIconType {}
+}
+
+declare module '@metamask/contract-metadata' {
+  const content: Record<string, TokenListToken>;
+  export default content;
 }

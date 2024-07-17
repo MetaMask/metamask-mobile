@@ -5,21 +5,27 @@ import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import Device from '../../../../util/device';
 
 const originalFetch = global.fetch;
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let initialState: any;
 const mockNavigate = jest.fn();
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockSetDisabledRpcMethodPreference: jest.Mock<any, any>;
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockSetSmartTransactionsOptInStatus: jest.Mock<any, any>;
 
 beforeEach(() => {
   initialState = {
     settings: { showHexData: true },
     engine: {
-      backgroundState: initialBackgroundState,
+      backgroundState,
     },
   };
   mockNavigate.mockClear();

@@ -1,6 +1,6 @@
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import useExistingAddress from './useExistingAddress';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { backgroundState } from '../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
 
 const MOCK_ADDRESS_1 = '0x0';
@@ -15,7 +15,7 @@ const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
         providerConfig: {
           chainId: '0x1',
@@ -38,6 +38,8 @@ const mockInitialState = {
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSelector: (fn: any) => fn(mockInitialState),
 }));
 

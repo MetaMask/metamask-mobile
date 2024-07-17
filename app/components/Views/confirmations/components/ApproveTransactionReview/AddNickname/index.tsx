@@ -114,6 +114,8 @@ const AddNickname = (props: AddNicknameProps) => {
   };
 
   const saveTokenNickname = () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { AddressBookController } = Engine.context as any;
     if (!newNickname || !address) return;
     AddressBookController.set(
@@ -134,6 +136,8 @@ const AddNickname = (props: AddNicknameProps) => {
 
   const toggleBlockExplorer = () => setIsBlockExplorerVisible(true);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderErrorMessage = (addressError: any) => {
     let errorMessage = addressError;
 
@@ -268,6 +272,8 @@ const mapStateToProps = (state: RootState) => ({
   networkConfigurations: selectNetworkConfigurations(state),
 });
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapDispatchToProps = (dispatch: any) => ({
   showModalAlert: (config: {
     isVisible: boolean;

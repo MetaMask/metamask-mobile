@@ -1,6 +1,6 @@
 import { Regression } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import Assertions from '../../utils/Assertions';
@@ -53,8 +53,9 @@ describe(Regression('Connect to a Test Network'), () => {
     );
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-    await WalletView.isVisible();
-    await WalletView.isConnectedNetwork(
+    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
   });
@@ -75,13 +76,19 @@ describe(Regression('Connect to a Test Network'), () => {
     );
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-    await WalletView.isVisible();
-    await WalletView.isConnectedNetwork(ETHEREUM);
+    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
+      ETHEREUM,
+    );
   });
 
   it('should toggle off the Test Network switch', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+    await Assertions.checkIfTextIsDisplayed(
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
     await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
     await NetworkListModal.tapTestNetworkSwitch();
     await Assertions.checkIfToggleIsOff(NetworkListModal.testNetToggle);

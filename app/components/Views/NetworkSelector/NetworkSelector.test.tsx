@@ -5,7 +5,7 @@ import { fireEvent } from '@testing-library/react-native';
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 // Internal dependencies
 import NetworkSelector from './NetworkSelector';
@@ -38,7 +38,7 @@ const initialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0x': {
@@ -67,16 +67,14 @@ const initialState = {
             chainId: '0x89',
             nickname: 'Polygon Mainnet',
             rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
-            rpcUrl:
-              'https://polygon-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+            rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345',
             ticker: 'MATIC',
           },
           networkId3: {
             chainId: '0xa',
             nickname: 'Optimism',
             rpcPrefs: { blockExplorerUrl: 'https://optimistic.etherscan.io' },
-            rpcUrl:
-              'https://optimism-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+            rpcUrl: 'https://optimism-mainnet.infura.io/v3/12345',
             ticker: 'ETH',
           },
           networkId4: {
@@ -112,6 +110,8 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>

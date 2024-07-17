@@ -12,6 +12,8 @@ const AutomaticSecurityChecks = () => {
   const dispatch = useDispatch();
   const { trackEvent } = useMetrics();
   const automaticSecurityChecksState = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.security.automaticSecurityChecksEnabled,
   );
 
