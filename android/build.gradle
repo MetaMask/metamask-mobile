@@ -3,10 +3,10 @@
 buildscript {
 
 	ext {
-		buildToolsVersion = "33.0.0"
+		buildToolsVersion = "34.0.0"
 		minSdkVersion = project.hasProperty('minSdkVersion') ? project.getProperty('minSdkVersion') : 23
-		compileSdkVersion = 33
-		targetSdkVersion = 33
+		compileSdkVersion = 34
+		targetSdkVersion = 34
 		// We use NDK 23 which has both M1 support and is the side-by-side NDK version from AGP.
 		ndkVersion = "24.0.8215888"
 		bitriseNdkPath = "/usr/local/share/android-sdk/ndk-bundle"
@@ -24,6 +24,7 @@ buildscript {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
     classpath("com.facebook.react:react-native-gradle-plugin")
 		classpath("io.sentry:sentry-android-gradle-plugin:4.2.0")
+    classpath("com.google.gms:google-services:4.4.2")
 	}
 	allprojects {
     repositories {

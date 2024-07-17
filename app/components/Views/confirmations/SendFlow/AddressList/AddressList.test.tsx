@@ -1,7 +1,14 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import AddressList from '.';
+import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+
+const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  MOCK_ADDRESS,
+]);
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -16,12 +23,12 @@ jest.mock('../../../../../core/Engine', () => ({
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AddressBookController: {
         addressBook: {
           '0x1': {
-            '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
-              address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+            [MOCK_ADDRESS]: {
+              address: MOCK_ADDRESS,
               chainId: '0x1',
               isEns: false,
               memo: '',
@@ -30,14 +37,7 @@ const initialState = {
           },
         },
       },
-      PreferencesController: {
-        identities: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
-            address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-            name: 'Account 1',
-          },
-        },
-      },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import ConfirmAddAsset from './ConfirmAddAsset';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import useBalance from '../Ramp/hooks/useBalance';
 import { toTokenMinimalUnit } from '../../../util/number';
@@ -58,7 +58,7 @@ const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
