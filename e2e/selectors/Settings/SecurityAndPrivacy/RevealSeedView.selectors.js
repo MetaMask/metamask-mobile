@@ -13,7 +13,6 @@ export const RevealSeedViewSelectorsIDs = {
   SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID:
     'reveal-private-long-press-button',
   PASSWORD_INPUT_BOX_ID: 'private-credential-password-text-input',
-  // SECRET_RECOVERY_PHRASE_QUIZ_CONTAINER_ID: 'security-quiz-container',
   SECRET_RECOVERY_PHRASE_QUIZ_GET_STARTED_BUTTON_ID: 'get-started-button',
   SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_ANSWER_ID:
     'security-quiz-question-one-wrong-answer',
