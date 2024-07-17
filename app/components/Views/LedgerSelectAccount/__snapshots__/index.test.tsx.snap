@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`LedgerConnect render matches latest snapshot 1`] = `
+exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
 <RCTSafeAreaView
   style={
     {
@@ -14,8 +14,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
   <View
     style={
       {
-        "marginLeft": 3.5000000000000004,
-        "marginRight": 3.5000000000000004,
+        "marginLeft": 52.50000000000001,
+        "marginRight": 52.50000000000001,
       }
     }
   >
@@ -24,7 +24,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "marginTop": 20,
+          "marginTop": 30,
           "width": "100%",
         }
       }
@@ -129,7 +129,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       style={
         {
           "alignItems": "center",
-          "marginTop": 4,
+          "marginTop": 106.72,
         }
       }
     >
@@ -144,7 +144,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             "height": 64,
             "overflow": "visible",
             "resizeMode": "contain",
-            "width": 30,
+            "width": 450,
           }
         }
       />
@@ -152,7 +152,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
     <View
       style={
         {
-          "marginTop": 2.5,
+          "marginTop": 66.7,
         }
       }
     >
@@ -207,6 +207,13 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         >
           Looking for device
         </Text>
+        <ActivityIndicator
+          style={
+            {
+              "marginLeft": 10,
+            }
+          }
+        />
       </View>
       <Text
         style={
@@ -242,7 +249,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             {
-              "marginTop": 1,
+              "marginTop": 26.68,
             },
           ]
         }
@@ -411,7 +418,457 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           ]
         }
       >
-        4. Nearby devices is enabled
+        5. Do not disturb must be turned off
+      </Text>
+      <Text
+        onPress={[Function]}
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontWeight": "600",
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "fontSize": 16,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "color": "#0376c9",
+            },
+            undefined,
+            undefined,
+            undefined,
+            {
+              "marginTop": 33.35,
+            },
+          ]
+        }
+      >
+        How to install the Ethereum app on a Ledger device
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+          "marginTop": 33.35,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+          }
+        }
+      />
+    </View>
+  </View>
+</RCTSafeAreaView>
+`;
+
+exports[`LedgerSelectAccount renders correctly to match snapshot when getAccounts return valid accounts 1`] = `
+<RCTSafeAreaView
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "position": "relative",
+    }
+  }
+>
+  <View
+    style={
+      {
+        "marginLeft": 52.50000000000001,
+        "marginRight": 52.50000000000001,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "marginTop": 30,
+          "width": "100%",
+        }
+      }
+    >
+      <Image
+        resizeMode="contain"
+        source={
+          {
+            "uri": "MockImage",
+          }
+        }
+        style={
+          {
+            "height": 68,
+            "width": 68,
+          }
+        }
+      />
+      <TouchableOpacity
+        style={
+          {
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "flex-end",
+            "width": 48,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 15,
+              },
+              {
+                "color": "#141618",
+                "fontSize": 28,
+              },
+              {
+                "fontFamily": "Material Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <Text
+      style={
+        [
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 30,
+            "fontWeight": "400",
+            "marginVertical": 2,
+          },
+          undefined,
+          undefined,
+          {
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontWeight": "600",
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          {
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 24,
+            "fontWeight": "400",
+          },
+        ]
+      }
+    >
+      Connect Ledger
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "marginTop": 106.72,
+        }
+      }
+    >
+      <Image
+        source={
+          {
+            "uri": "MockImage",
+          }
+        }
+        style={
+          {
+            "height": 64,
+            "overflow": "visible",
+            "resizeMode": "contain",
+            "width": 450,
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        {
+          "marginTop": 66.7,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontWeight": "600",
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              {
+                "fontSize": 18,
+              },
+            ]
+          }
+        >
+          Looking for device
+        </Text>
+        <ActivityIndicator
+          style={
+            {
+              "marginLeft": 10,
+            }
+          }
+        />
+      </View>
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "marginTop": 26.68,
+            },
+          ]
+        }
+      >
+        Please make sure your Ledger Nano X is:
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "paddingLeft": 7,
+            },
+          ]
+        }
+      >
+        1. Unlock your Ledger Nano X
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "paddingLeft": 7,
+            },
+          ]
+        }
+      >
+        2. Install and open the Ethereum app
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "paddingLeft": 7,
+            },
+          ]
+        }
+      >
+        3. Enable Bluetooth
       </Text>
       <Text
         style={
@@ -496,7 +953,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             {
-              "marginTop": 1.25,
+              "marginTop": 33.35,
             },
           ]
         }
@@ -508,7 +965,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       style={
         {
           "flex": 1,
-          "marginTop": 1.25,
+          "marginTop": 33.35,
         }
       }
     >
@@ -519,185 +976,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             "flex": 1,
           }
         }
-      >
-        <View
-          style={
-            {
-              "borderColor": "#bbc0c5",
-              "borderRadius": 5,
-              "borderWidth": 2,
-              "height": 45,
-              "width": 42.5,
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "flex": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                onPress={[Function]}
-              >
-                <View
-                  style={
-                    {
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    numberOfLines={1}
-                    style={
-                      {
-                        "alignSelf": "flex-start",
-                        "color": "#141618",
-                        "flex": 1,
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "paddingBottom": 10,
-                        "paddingHorizontal": 15,
-                        "paddingTop": 10,
-                      }
-                    }
-                  >
-                    Ledger Nano X
-                  </Text>
-                  <Text
-                    allowFontScaling={false}
-                    style={
-                      [
-                        {
-                          "color": "#141618",
-                          "fontSize": 24,
-                        },
-                        {
-                          "height": 25,
-                          "justifyContent": "flex-end",
-                          "marginRight": 10,
-                          "marginTop": 7,
-                          "textAlign": "right",
-                        },
-                        {
-                          "fontFamily": "Material Icons",
-                          "fontStyle": "normal",
-                          "fontWeight": "normal",
-                        },
-                        {},
-                      ]
-                    }
-                  >
-                    
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              <Modal
-                animationType="none"
-                deviceHeight={null}
-                deviceWidth={null}
-                hardwareAccelerated={false}
-                hideModalContentWhileAnimating={false}
-                onBackdropPress={[Function]}
-                onModalHide={[Function]}
-                onModalWillHide={[Function]}
-                onModalWillShow={[Function]}
-                onRequestClose={[Function]}
-                panResponderThreshold={4}
-                scrollHorizontal={false}
-                scrollOffset={0}
-                scrollOffsetMax={0}
-                scrollTo={null}
-                statusBarTranslucent={false}
-                supportedOrientations={
-                  [
-                    "portrait",
-                    "landscape",
-                  ]
-                }
-                swipeThreshold={100}
-                transparent={true}
-                visible={false}
-              />
-            </View>
-          </View>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "bottom": 1.25,
-            "display": "flex",
-            "left": 0,
-            "position": "absolute",
-            "width": "100%",
-          }
-        }
-      >
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={0.2}
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              [
-                {
-                  "borderRadius": 100,
-                  "justifyContent": "center",
-                  "padding": 15,
-                },
-                {
-                  "backgroundColor": "#0376c9",
-                  "minHeight": 50,
-                },
-                undefined,
-              ],
-              null,
-            ]
-          }
-          testID="add-network-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
-                [
-                  {
-                    "fontFamily": "EuclidCircularB-Bold",
-                    "fontSize": 14,
-                    "fontWeight": "600",
-                    "textAlign": "center",
-                  },
-                  {
-                    "color": "#ffffff",
-                  },
-                  undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Continue
-          </Text>
-        </TouchableOpacity>
-      </View>
+      />
     </View>
   </View>
 </RCTSafeAreaView>
