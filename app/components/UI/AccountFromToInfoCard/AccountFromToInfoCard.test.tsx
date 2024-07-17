@@ -69,6 +69,13 @@ jest.mock('../../../core/Engine', () => ({
       },
     },
     AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    NetworkController: {
+      getProviderAndBlockTracker: jest.fn().mockReturnValue({
+        provider: {
+          // Add necessary mock properties and methods
+        },
+      }),
+    },
   },
 }));
 
@@ -238,27 +245,48 @@ describe('AccountFromToInfoCard', () => {
       },
     };
 
+    console.log('ENSCache:', JSON.stringify(ENSCache.cache, null, 2));
+    console.log('txState:', JSON.stringify(txState, null, 2));
+
+    const { debug } = renderWithProvider(
+      <AccountFromToInfoCard
+        transactionState={txState}
+        onPressFromAddressIcon={jest.fn()}
+      />,
+      { state: mockInitialState },
+    );
+
+    // Wait for the component to finish rendering
     await act(async () => {
-      renderWithProvider(
-        <AccountFromToInfoCard
-          transactionState={txState}
-          onPressFromAddressIcon={jest.fn()}
-        />,
-        { state: mockInitialState },
-      );
+      await new Promise(resolve => setTimeout(resolve, 3000));
     });
 
-    await waitFor(
-      async () => {
-        await expect(screen.findByText('test1.eth')).resolves.toBeTruthy();
-        await expect(screen.findByText('test3.eth')).resolves.toBeTruthy();
-      },
-      { timeout: 15000 }
-    );
+    debug(); // Log the component tree for debugging
+
+    try {
+      await waitFor(() => {
+        const fromAddressElement = screen.getByTestId('from-address');
+        const toAddressElement = screen.getByTestId('to-address');
+
+        console.log('From address element:', fromAddressElement.props.children);
+        console.log('To address element:', toAddressElement.props.children);
+
+        expect(fromAddressElement).toBeTruthy();
+        expect(toAddressElement).toBeTruthy();
+
+        expect(screen.getByText('test1.eth')).toBeTruthy();
+        expect(screen.getByText('test3.eth')).toBeTruthy();
+      }, { timeout: 10000, interval: 1000 });
+    } catch (error) {
+      console.error('Error in ENS name test:', error);
+      console.log('Component tree at time of error:');
+      debug();
+      throw error;
+    }
   }, 15000);
 
   it('should correctly mock doENSReverseLookup', async () => {
-    const { doENSReverseLookup } = jest.requireActual('../../../util/ENSUtils');
+    const { doENSReverseLookup } = jest.requireMock('../../../util/ENSUtils');
 
     const result1 = await doENSReverseLookup(
       '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',

@@ -7,17 +7,16 @@ import {
 } from './fcmHelper';
 
 jest.mock('@react-native-firebase/app', () => ({
-  utils: () => ({
-    playServicesAvailability: {
-      status: 1,
-      isAvailable: false,
-      hasResolution: true,
-      isUserResolvableError: true,
-    },
-    makePlayServicesAvailable: jest.fn(() => Promise.resolve()),
-    resolutionForPlayServices: jest.fn(() => Promise.resolve()),
-    promptForPlayServices: jest.fn(() => Promise.resolve()),
-  }),
+  __esModule: true,
+  default: {
+    app: jest.fn(() => ({
+      utils: jest.fn(() => ({
+        playServicesAvailability: {
+          status: 1,
+        },
+      })),
+    })),
+  },
 }));
 
 jest.mock('@react-native-firebase/messaging', () => ({
