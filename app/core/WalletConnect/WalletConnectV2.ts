@@ -546,7 +546,7 @@ export class WC2Manager {
     web3Wallet.on(
       'session_delete',
       async (event: SingleEthereumTypes.SessionDelete) => {
-        const session = sessions[event.topic];
+        const session = sessions?.[event.topic];
         if (session && deeplinkSessions[session?.pairingTopic]) {
           delete deeplinkSessions[session.pairingTopic];
           await AsyncStorage.setItem(
@@ -576,80 +576,82 @@ export class WC2Manager {
       }
     ).PermissionController;
 
-    Object.keys(sessions).forEach(async (sessionKey) => {
-      try {
-        const session = sessions[sessionKey];
+    if (sessions) {
+      Object.keys(sessions).forEach(async (sessionKey) => {
+        try {
+          const session = sessions[sessionKey];
 
-        this.sessions[sessionKey] = new WalletConnect2Session({
-          web3Wallet,
-          channelId: sessionKey,
-          navigation: this.navigation,
-          deeplink:
-            typeof deeplinkSessions[session.pairingTopic] !== 'undefined',
-          session,
-        });
+          this.sessions[sessionKey] = new WalletConnect2Session({
+            web3Wallet,
+            channelId: sessionKey,
+            navigation: this.navigation,
+            deeplink:
+              typeof deeplinkSessions[session.pairingTopic] !== 'undefined',
+            session,
+          });
 
-        // Find approvedAccounts for current sessions
-        DevLogger.log(
-          `WC2::init getPermittedAccounts for ${sessionKey} origin=${session.peer.metadata.url}`,
-          JSON.stringify(permissionController.state, null, 2),
-        );
-        const accountPermission = permissionController.getPermission(
-          session.peer.metadata.url,
-          'eth_accounts',
-        );
-
-        DevLogger.log(
-          `WC2::init accountPermission`,
-          JSON.stringify(accountPermission, null, 2),
-        );
-        let approvedAccounts =
-          (await getPermittedAccounts(accountPermission?.id ?? '')) ?? [];
-        const fromOrigin = await getPermittedAccounts(
-          session.peer.metadata.url,
-        );
-
-        DevLogger.log(
-          `WC2::init approvedAccounts id ${accountPermission?.id}`,
-          approvedAccounts,
-        );
-        DevLogger.log(
-          `WC2::init fromOrigin ${session.peer.metadata.url}`,
-          fromOrigin,
-        );
-
-        // fallback to origin from metadata url
-        if (approvedAccounts.length === 0) {
+          // Find approvedAccounts for current sessions
           DevLogger.log(
-            `WC2::init fallback to metadata url ${session.peer.metadata.url}`,
+            `WC2::init getPermittedAccounts for ${sessionKey} origin=${session.peer.metadata.url}`,
+            JSON.stringify(permissionController.state, null, 2),
           );
-          approvedAccounts =
-            (await getPermittedAccounts(session.peer.metadata.url)) ?? [];
-        }
+          const accountPermission = permissionController.getPermission(
+            session.peer.metadata.url,
+            'eth_accounts',
+          );
 
-        if (approvedAccounts?.length === 0) {
           DevLogger.log(
-            `WC2::init fallback to parsing accountPermission`,
-            accountPermission,
+            `WC2::init accountPermission`,
+            JSON.stringify(accountPermission, null, 2),
           );
-          // FIXME: Why getPermitted accounts doesn't work???
-          approvedAccounts = extractApprovedAccounts(accountPermission);
-          DevLogger.log(`WC2::init approvedAccounts`, approvedAccounts);
-        }
+          let approvedAccounts =
+            (await getPermittedAccounts(accountPermission?.id ?? '')) ?? [];
+          const fromOrigin = await getPermittedAccounts(
+            session.peer.metadata.url,
+          );
 
-        const nChainId = parseInt(chainId, 16);
-        DevLogger.log(
-          `WC2::init updateSession session=${sessionKey} chainId=${chainId} nChainId=${nChainId} selectedAddress=${selectedAddress}`,
-          approvedAccounts,
-        );
-        await this.sessions[sessionKey].updateSession({
-          chainId: nChainId,
-          accounts: approvedAccounts,
-        });
-      } catch (err) {
-        console.warn(`WC2::init can't update session ${sessionKey}`);
-      }
-    });
+          DevLogger.log(
+            `WC2::init approvedAccounts id ${accountPermission?.id}`,
+            approvedAccounts,
+          );
+          DevLogger.log(
+            `WC2::init fromOrigin ${session.peer.metadata.url}`,
+            fromOrigin,
+          );
+
+          // fallback to origin from metadata url
+          if (approvedAccounts.length === 0) {
+            DevLogger.log(
+              `WC2::init fallback to metadata url ${session.peer.metadata.url}`,
+            );
+            approvedAccounts =
+              (await getPermittedAccounts(session.peer.metadata.url)) ?? [];
+          }
+
+          if (approvedAccounts?.length === 0) {
+            DevLogger.log(
+              `WC2::init fallback to parsing accountPermission`,
+              accountPermission,
+            );
+            // FIXME: Why getPermitted accounts doesn't work???
+            approvedAccounts = extractApprovedAccounts(accountPermission);
+            DevLogger.log(`WC2::init approvedAccounts`, approvedAccounts);
+          }
+
+          const nChainId = parseInt(chainId, 16);
+          DevLogger.log(
+            `WC2::init updateSession session=${sessionKey} chainId=${chainId} nChainId=${nChainId} selectedAddress=${selectedAddress}`,
+            approvedAccounts,
+          );
+          await this.sessions[sessionKey].updateSession({
+            chainId: nChainId,
+            accounts: approvedAccounts,
+          });
+        } catch (err) {
+          console.warn(`WC2::init can't update session ${sessionKey}`);
+        }
+      });
+    }
   }
 
   public static async init({
