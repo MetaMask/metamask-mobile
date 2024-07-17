@@ -1049,10 +1049,10 @@ class Engine {
         allowedEvents: [],
       }),
       // TODO: Fix this by (await MetaMetrics.getInstance().getMetaMetricsId()) before go live
-      // metametrics: {
-      //   agent: 'mobile',
-      //   getMetaMetricsId: async () => '',
-      // },
+      metametrics: {
+        agent: 'mobile',
+        getMetaMetricsId: async () => Promise.resolve(''),
+      },
     });
 
     const userStorageController = new UserStorageController.Controller({
