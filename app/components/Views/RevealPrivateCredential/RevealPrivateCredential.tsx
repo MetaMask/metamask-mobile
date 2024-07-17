@@ -51,7 +51,6 @@ import { isHardwareAccount } from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
-// import generateTestId from '../../../../wdio/utils/generateTestId';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
