@@ -129,7 +129,11 @@ import {
   LoggingControllerState,
   LoggingControllerActions,
 } from '@metamask/logging-controller';
-import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
+import {
+  LedgerKeyring,
+  LedgerMobileBridge,
+  LedgerTransportMiddleware,
+} from '@metamask/eth-ledger-bridge-keyring';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import {
   isMainnetByChainId,
@@ -164,7 +168,6 @@ import {
 } from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
 ///: END:ONLY_INCLUDE_IF
-import { isBlockaidFeatureEnabled } from '../util/blockaid';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
@@ -621,6 +624,7 @@ class Engine {
       networkController.state.selectedNetworkClientId,
     );
     const gasFeeController = new GasFeeController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
@@ -667,7 +671,8 @@ class Engine {
     };
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
-    const ledgerKeyringBuilder = () => new LedgerKeyring();
+    const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
+    const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
     ledgerKeyringBuilder.type = LedgerKeyring.type;
 
     const keyringController = new KeyringController({
@@ -1299,10 +1304,7 @@ class Engine {
       subjectMetadataController,
       ///: END:ONLY_INCLUDE_IF
       accountsController,
-    ];
-
-    if (isBlockaidFeatureEnabled()) {
-      const ppomController = new PPOMController({
+      new PPOMController({
         chainId: networkController.state.providerConfig.chainId,
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
@@ -1334,9 +1336,8 @@ class Engine {
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         nativeCrypto: Crypto as any,
-      });
-      controllers.push(ppomController);
-    }
+      }),
+    ];
 
     // set initial state
     // TODO: Pass initial state into each controller constructor instead
