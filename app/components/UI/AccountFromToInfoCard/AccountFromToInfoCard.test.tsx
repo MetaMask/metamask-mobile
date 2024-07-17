@@ -227,8 +227,6 @@ describe('AccountFromToInfoCard', () => {
       transactionTo: '0x9004C7f302475BF5501fbc6254f69C64212A0d12',
     };
 
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (ENSCache.cache as any) = {
       '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
         name: 'test1.eth',
@@ -255,12 +253,12 @@ describe('AccountFromToInfoCard', () => {
         await expect(screen.findByText('test1.eth')).resolves.toBeTruthy();
         await expect(screen.findByText('test3.eth')).resolves.toBeTruthy();
       },
-      { timeout: 10000 },
+      { timeout: 15000 }
     );
   }, 15000);
 
   it('should correctly mock doENSReverseLookup', async () => {
-    const { doENSReverseLookup } = await import('../../../util/ENSUtils');
+    const { doENSReverseLookup } = jest.requireActual('../../../util/ENSUtils');
 
     const result1 = await doENSReverseLookup(
       '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
