@@ -2652,7 +2652,6 @@
       "header": "Protección mejorada de transacciones",
       "description_1": "Desbloquee índices de éxito más altos, protección contra frontrunning y mejor visibilidad con transacciones inteligentes.",
       "description_2": "Solo disponible en Ethereum. Active o desactive en cualquier momento en la configuración.",
-      "secondary_button": "Administrar en configuración",
       "primary_button": "Activar",
       "learn_more": "Más información.",
       "benefit_1_1": "99,5 % de índice",
