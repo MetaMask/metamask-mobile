@@ -1023,8 +1023,8 @@ class Engine {
       }),
       metametrics: {
         agent: 'mobile',
-        getMetaMetricsId: async () =>
-          (await MetaMetrics.getInstance().getMetaMetricsId()) ?? '',
+        // TODO: Fix this by (await MetaMetrics.getInstance().getMetaMetricsId()) before go live
+        getMetaMetricsId: async () => '',
       },
     });
 
@@ -1071,8 +1071,9 @@ class Engine {
           isPushIntegrated: false,
           featureAnnouncements: {
             platform: 'mobile',
-            accessToken: 'mAYNB_k65snv4AXW4o8ksZN8BwWDQF9702HKV7yBDZI',
-            spaceId: 'jdkgyfmyd9sw',
+            accessToken: process.env
+              .FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN as string,
+            spaceId: process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID as string,
           },
         },
       });
