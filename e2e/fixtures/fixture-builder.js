@@ -2,7 +2,7 @@
 
 import { getGanachePort } from './utils';
 import { merge } from 'lodash';
-import { PopularNetworksList } from '../resources/networks.e2e';
+import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 const DAPP_URL = 'localhost';
 
 /**
@@ -48,6 +48,10 @@ class FixtureBuilder {
   withDefaultFixture() {
     this.fixture = {
       state: {
+        legalNotices: {
+          newPrivacyPolicyToastClickedOrClosed: true,
+          newPrivacyPolicyToastShownDate: Date.now(),
+        },
         collectibles: {
           favorites: {},
         },
@@ -204,11 +208,12 @@ class FixtureBuilder {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  1: {
+                  '4d7a5e0b-b261-4aed-8126-43972b0fa0a1': {
                     address: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
-                    id: '1',
+                    id: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
                     metadata: {
                       name: 'Account 1',
+                      importTime: 1684232000456,
                       keyring: {
                         type: 'HD Key Tree',
                       },
@@ -225,7 +230,7 @@ class FixtureBuilder {
                     type: 'eip155:eoa',
                   },
                 },
-                selectedAccount: 1,
+                selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
               },
             },
             PreferencesController: {
@@ -241,7 +246,7 @@ class FixtureBuilder {
               lostIdentities: {},
               selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
               useTokenDetection: true,
-              useNftDetection: false,
+              useNftDetection: true,
               displayNftMedia: true,
               useSafeChainsListValidation: false,
               isMultiAccountBalancesEnabled: true,
@@ -619,7 +624,7 @@ class FixtureBuilder {
         '@MetaMask:existingUser': 'true',
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
-        '@MetaMask:WhatsNewAppVersionSeen': '6.5.0',
+        '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       },
     };
     return this;
@@ -710,6 +715,22 @@ class FixtureBuilder {
         rpcUrl: `http://localhost:${getGanachePort()}`,
         nickname: 'Localhost',
         ticker: 'ETH',
+      },
+    };
+    return this;
+  }
+
+  withSepoliaNetwork() {
+    const fixtures = this.fixture.state.engine.backgroundState;
+
+    fixtures.NetworkController = {
+      isCustomNetwork: true,
+      providerConfig: {
+        type: 'rpc',
+        chainId: CustomNetworks.Sepolia.providerConfig.chainId,
+        rpcUrl: CustomNetworks.Sepolia.providerConfig.rpcTarget,
+        nickname: CustomNetworks.Sepolia.providerConfig.nickname,
+        ticker: CustomNetworks.Sepolia.providerConfig.ticker,
       },
     };
     return this;

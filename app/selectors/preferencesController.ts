@@ -5,6 +5,9 @@ import { RootState } from '../reducers';
 const selectPreferencesControllerState = (state: RootState) =>
   state.engine.backgroundState.PreferencesController;
 
+/**
+ * @deprecated use selectInternalAccounts rom selectors/accountsController.ts instead
+ */
 export const selectIdentities = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
@@ -18,7 +21,7 @@ export const selectIpfsGateway = createSelector(
 );
 
 /**
- * @deprecated use selectSelectedInternal or selectSelectedInternalAccountChecksummedAddress account from selectors/accountsController.ts
+ * @deprecated use selectSelectedInternal or selectSelectedInternalAccountChecksummedAddress from selectors/accountsController.ts
  */
 export const selectSelectedAddress = createSelector(
   selectPreferencesControllerState,
