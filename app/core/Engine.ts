@@ -110,6 +110,7 @@ import {
   SnapControllerActions,
   PersistedSnapControllerState,
   SnapsRegistryMessenger,
+  SnapInterfaceController,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -774,7 +775,7 @@ class Engine {
           ) =>
             approvalController.addAndShowApprovalRequest({
               origin,
-              type,
+              type: 'snap_dialog',
               requestData: { content, placeholder },
             }),
           showInAppNotification: (origin: string, args: NotificationArgs) => {
@@ -785,6 +786,14 @@ class Engine {
               origin,
             );
           },
+          createInterface: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapInterfaceController:createInterface',
+          ),
+          getInterface: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapInterfaceController:getInterface',
+          ),
         },
       ),
     });
@@ -1017,6 +1026,22 @@ class Engine {
           store.getState().settings.basicFunctionalityEnabled === false,
       }),
     });
+
+    const snapInterfaceControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'SnapInterfaceController',
+        allowedActions: [
+          'PhishingController:maybeUpdateState',
+          'PhishingController:testOrigin',
+        ],
+        allowedEvents: [],
+      });
+
+    const snapInterfaceController = new SnapInterfaceController({
+      messenger: snapInterfaceControllerMessenger,
+      state: initialState.SnapInterfaceController,
+    });
+
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
@@ -1302,6 +1327,7 @@ class Engine {
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       snapController,
       subjectMetadataController,
+      snapInterfaceController,
       ///: END:ONLY_INCLUDE_IF
       accountsController,
       new PPOMController({
@@ -1820,6 +1846,7 @@ export default {
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
+      SnapInterfaceController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       ApprovalController,
@@ -1861,6 +1888,7 @@ export default {
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
+      SnapInterfaceController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       ApprovalController,

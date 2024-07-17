@@ -101,6 +101,10 @@ class EngineService {
         name: 'SubjectMetadataController',
         key: `${engine.context.SubjectMetadataController.name}:stateChange`,
       },
+      {
+        name: 'SnapInterfaceController',
+        key: `${engine.context.SnapInterfaceController.name}:stateChange`,
+      },
       ///: END:ONLY_INCLUDE_IF
       {
         name: 'PermissionController',

@@ -51,6 +51,22 @@ const snapMethodMiddlewareBuilder = (
       origin,
       RestrictedMethods.wallet_snap,
     ),
+    createInterface: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapInterfaceController:createInterface',
+      origin,
+    ),
+    updateInterface: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapInterfaceController:updateInterface',
+      origin,
+    ),
+    getInterfaceState: (...args: any) =>
+      controllerMessenger.call(
+        'SnapInterfaceController:getInterface',
+        origin,
+        ...args,
+      ).state,
   });
 
 export default snapMethodMiddlewareBuilder;
