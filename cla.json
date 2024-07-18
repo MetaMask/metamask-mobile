@@ -1271,6 +1271,14 @@
       "comment_id": 2203902032,
       "created_at": "2024-07-02T17:25:52Z",
       "repoId": 141427485
+    },
+    {
+      "id": 175489935,
+      "name": "joaoloureirop",
+      "pullRequestNo": 10336,
+      "comment_id": 2236174941,
+      "created_at": "2024-07-18T10:33:39Z",
+      "repoId": 141427485
     }
   ]
 }
