@@ -1,22 +1,14 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import NavbarBrowserTitle from './';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import Engine from '../../../core/Engine';
 
 const mockedEngine = Engine;
 
 const mockInitialState = {
   engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: '0x',
-        identities: {
-          '0x': { name: 'Account 1', address: '0x' },
-        },
-      },
-    },
+    backgroundState,
   },
 };
 

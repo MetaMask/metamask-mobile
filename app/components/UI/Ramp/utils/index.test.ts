@@ -61,6 +61,8 @@ describe('formatAmount', () => {
       () =>
         ({
           format: jest.fn().mockImplementation(() => '123,123'),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
     expect(formatAmount(123123)).toBe('123,123');
@@ -74,6 +76,8 @@ describe('formatAmount', () => {
           format: jest.fn().mockImplementation(() => {
             throw Error();
           }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
     expect(formatAmount(123123)).toBe('123123');
@@ -520,6 +524,8 @@ describe('getOrderAmount', () => {
         cryptoAmount: 0.012361263,
         data: {
           ...mockOrder.data,
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           cryptoCurrency: undefined as any,
         },
       }),

@@ -51,6 +51,7 @@ function expectedInternalAccount(
     id: getUUIDFromAddressOfNormalAccount(address),
     metadata: {
       name: nickname,
+      importTime: Date.now(),
       keyring: {
         type: 'HD Key Tree',
       },
@@ -81,6 +82,7 @@ function createMockState(
         PreferencesController: {
           ...preferenceState,
         },
+        KeyringController: { vault: {} },
       },
     },
   };
@@ -117,6 +119,7 @@ describe('Migration #036', () => {
         engine: {
           backgroundState: {
             PreferencesController: undefined,
+            KeyringController: { vault: {} },
           },
         },
       };
@@ -132,6 +135,7 @@ describe('Migration #036', () => {
         engine: {
           backgroundState: {
             PreferencesController: {},
+            KeyringController: { vault: {} },
           },
         },
       };
@@ -154,12 +158,12 @@ describe('Migration #036', () => {
         selectedAddress: MOCK_ADDRESS_1,
       });
       const newState = migrate(oldState);
-
       const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
       const resultInternalAccount = expectedInternalAccount(
         MOCK_ADDRESS_1,
         'Account 1',
       );
+
       expect(newState).toStrictEqual({
         engine: {
           backgroundState: {
@@ -181,6 +185,7 @@ describe('Migration #036', () => {
               },
               selectedAddress: '0x0',
             },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -218,6 +223,7 @@ describe('Migration #036', () => {
               },
             },
             PreferencesController: expect.any(Object),
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -247,6 +253,7 @@ describe('Migration #036', () => {
                 selectedAccount: expectedUuid,
               },
             },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -282,6 +289,7 @@ describe('Migration #036', () => {
               },
             },
             PreferencesController: expect.any(Object),
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -306,6 +314,7 @@ describe('Migration #036', () => {
                 selectedAccount: '', // Expect no account to be selected
               },
             },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -332,6 +341,7 @@ describe('Migration #036', () => {
                   getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1),
               },
             },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -345,6 +355,7 @@ describe('Migration #036', () => {
               identities: {},
               selectedAddress: '',
             },
+            KeyringController: { vault: {} },
           },
         },
       };
@@ -359,6 +370,7 @@ describe('Migration #036', () => {
                 selectedAccount: '',
               },
             },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -393,6 +405,7 @@ describe('Migration #036', () => {
                 },
               },
             },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -436,6 +449,7 @@ describe('Migration #036', () => {
                 selectedAccount: expectedUuid,
               },
             },
+            KeyringController: { vault: {} },
           },
         },
       });

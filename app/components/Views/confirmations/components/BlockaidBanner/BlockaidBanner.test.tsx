@@ -12,10 +12,11 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 jest.mock('../../../../../util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
-  isBlockaidSupportedOnCurrentChain: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('react-native-gzip', () => ({
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   deflate: (val: any) => val,
 }));
 
@@ -200,16 +201,19 @@ describe('BlockaidBanner', () => {
   });
 
   it('should render loader if reason is requestInProgress', async () => {
-    const wrapper = renderWithProvider(<BlockaidBanner />, {
-      state: mockState,
-    });
+    const wrapper = renderWithProvider(
+      <BlockaidBanner
+        securityAlertResponse={{
+          result_type: ResultType.RequestInProgress,
+          reason: Reason.requestInProgress,
+        }}
+      />,
+      {
+        state: mockState,
+      },
+    );
 
     expect(wrapper).toMatchSnapshot();
-    expect(
-      await wrapper.queryByText(
-        'We’re still evaluating the safety of this request. Wait or proceed with caution.',
-      ),
-    ).toBeDefined();
   });
 
   it('should not render if resultType is benign', async () => {

@@ -46,10 +46,16 @@ const AccountSelectorList = ({
   isAutoScrollEnabled = true,
   ...props
 }: AccountSelectorListProps) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountListRef = useRef<any>(null);
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies

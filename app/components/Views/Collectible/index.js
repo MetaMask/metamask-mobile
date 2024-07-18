@@ -78,8 +78,11 @@ class Collectible extends PureComponent {
   onRefresh = async () => {
     this.setState({ refreshing: true });
     const { NftDetectionController } = Engine.context;
-    await NftDetectionController.detectNfts();
-    this.setState({ refreshing: false });
+    try {
+      await NftDetectionController.detectNfts();
+    } finally {
+      this.setState({ refreshing: false });
+    }
   };
 
   hideCollectibleContractModal = () => {

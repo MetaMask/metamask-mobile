@@ -1,10 +1,14 @@
-/* eslint-disable no-mixed-spaces-and-tabs */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import EditGasFee1559Update from '../EditGasFee1559Update';
 import { connect } from 'react-redux';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { hexToBN, fromWei, renderFromWei } from '../../../../../util/number';
+import {
+  hexToBN,
+  fromWei,
+  renderFromWei,
+  addHexPrefix,
+} from '../../../../../util/number';
 import BigNumber from 'bignumber.js';
 import { getTicker } from '../../../../../util/transactions';
 import AppConstants from '../../../../../core/AppConstants';
@@ -24,6 +28,7 @@ import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { isHexString } from '@metamask/utils';
 
 const UpdateEIP1559Tx = ({
   gas,
@@ -101,8 +106,16 @@ const UpdateEIP1559Tx = ({
   const validateAmount = useCallback(
     (updateTx) => {
       let error;
+      const totalMaxHexPrefixed = addHexPrefix(updateTx.totalMaxHex);
 
-      const updateTxCost: any = hexToBN(`0x${updateTx.totalMaxHex}`);
+      if (!isHexString(totalMaxHexPrefixed)) {
+        return strings('transaction.invalid_amount');
+      }
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updateTxCost: any = hexToBN(totalMaxHexPrefixed);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const accountBalance: any = hexToBN(accounts[selectedAddress].balance);
       const isMaxFeePerGasMoreThanLegacyResult = isMaxFeePerGasMoreThanLegacy(
         new BigNumber(updateTx.suggestedMaxFeePerGas),
@@ -253,6 +266,8 @@ const UpdateEIP1559Tx = ({
   );
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   accounts: selectAccounts(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
