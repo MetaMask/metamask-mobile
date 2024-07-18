@@ -71,7 +71,11 @@ const createStyles = ({ colors, typography }: Theme) =>
   });
 
 interface OnboardingWizardProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   coachmarkRef: React.RefObject<any> | null;
 }
 
@@ -86,9 +90,13 @@ const OnboardingWizard = ({
   const styles = createStyles(theme);
 
   const isAutomaticSecurityChecksModalOpen = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.security.isAutomaticSecurityChecksModalOpen,
   );
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { step } = useSelector((state: any) => state.wizard);
 
   /**

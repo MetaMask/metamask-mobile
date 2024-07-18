@@ -8,19 +8,28 @@ import { ENSCache } from '../../../util/ENSUtils';
 import { Transaction } from './AccountFromToInfoCard.types';
 import AccountFromToInfoCard from '.';
 import Engine from '../../../core/Engine';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+
+const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
+const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  MOCK_ADDRESS_1,
+  MOCK_ADDRESS_2,
+]);
 
 const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
-          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
+          [MOCK_ADDRESS_1]: {
             balance: 200,
           },
-          '0x519d2CE57898513F676a5C3b66496c3C394c9CC7': {
+          [MOCK_ADDRESS_2]: {
             balance: 200,
           },
         },
@@ -30,19 +39,7 @@ const mockInitialState = {
           '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x5',
         },
       },
-      PreferencesController: {
-        selectedAddress: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
-        identities: {
-          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
-            address: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
-            name: 'Account 1',
-          },
-          '0x519d2CE57898513F676a5C3b66496c3C394c9CC7': {
-            address: '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
-            name: 'Account 2',
-          },
-        },
-      },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
@@ -70,6 +67,7 @@ jest.mock('../../../core/Engine', () => ({
         ],
       },
     },
+    AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
   },
 }));
 
@@ -80,6 +78,8 @@ jest.mock('../../../util/ENSUtils', () => ({
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSelector: (fn: any) => fn(mockInitialState),
 }));
 
@@ -179,6 +179,8 @@ describe('AccountFromToInfoCard', () => {
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
     const { findByText } = renderWithProvider(
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       <AccountFromToInfoCard transactionState={NFTTransaction as any} />,
       { state: mockInitialState },
     );
@@ -194,6 +196,8 @@ describe('AccountFromToInfoCard', () => {
       },
       transactionTo: '0x9004C7f302475BF5501fbc6254f69C64212A0d12',
     };
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (ENSCache.cache as any) = {
       '10x1': {
         name: 'test1.eth',
@@ -232,6 +236,8 @@ describe('AccountFromToInfoCard', () => {
         value: '3a98',
       },
     };
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mockGetERC20BalanceOf: any;
     beforeEach(() => {
       jest.useFakeTimers();
@@ -243,6 +249,8 @@ describe('AccountFromToInfoCard', () => {
 
     it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', async () => {
       const { findByText } = renderWithProvider(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         <AccountFromToInfoCard transactionState={ERC20Transaction as any} />,
         { state: mockInitialState },
       );
@@ -260,6 +268,8 @@ describe('AccountFromToInfoCard', () => {
         },
       };
       const { findByText } = renderWithProvider(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         <AccountFromToInfoCard transactionState={transaction as any} />,
         { state: mockInitialState },
       );

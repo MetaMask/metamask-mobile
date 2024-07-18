@@ -6,10 +6,17 @@ import React, {
   useState,
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
-import { Animated, Linking } from 'react-native';
+import {
+  Animated,
+  Linking,
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  View,
+  ///: END:ONLY_INCLUDE_IF
+} from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
+import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import ChoosePassword from '../../Views/ChoosePassword';
@@ -43,7 +50,6 @@ import {
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
-import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
@@ -66,8 +72,6 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
-import LedgerAccountInfo from '../../Views/LedgerAccountInfo';
-import LedgerConnect from '../../Views/LedgerConnect';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
@@ -76,8 +80,8 @@ import ModalMandatory from '../../../component-library/components/Modals/ModalMa
 import { RestoreWallet } from '../../Views/RestoreWallet';
 import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
 import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
-import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
-import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
+import SDKLoadingModal from '../../Views/SDK/SDKLoadingModal/SDKLoadingModal';
+import SDKFeedbackModal from '../../Views/SDK/SDKFeedbackModal/SDKFeedbackModal';
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 import AccountActions from '../../../components/Views/AccountActions';
@@ -98,16 +102,22 @@ import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
-import SDKDisconnectModal from '../../../../app/components/Views/SDKDisconnectModal/SDKDisconnectModal';
-import SDKSessionModal from '../../../../app/components/Views/SDKSessionModal/SDKSessionModal';
+import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnectModal';
+import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
+import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
+import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import { SnapsExecutionWebView } from '../../../lib/snaps';
+///: END:ONLY_INCLUDE_IF
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -342,15 +352,9 @@ const App = ({ userLoggedIn }) => {
         animationNameRef?.current?.play();
       }
     };
-    appTriggeredAuth()
-      .then(() => {
-        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
-
-        queueOfHandleDeeplinkFunctions.current = [];
-      })
-      .catch((error) => {
-        Logger.error(error, 'App: Error in appTriggeredAuth');
-      });
+    appTriggeredAuth().catch((error) => {
+      Logger.error(error, 'App: Error in appTriggeredAuth');
+    });
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
@@ -413,9 +417,11 @@ const App = ({ userLoggedIn }) => {
             handleDeeplink(opts);
           } else {
             queueOfHandleDeeplinkFunctions.current =
-              queueOfHandleDeeplinkFunctions.current.concat(() => {
-                handleDeeplink(opts);
-              });
+              queueOfHandleDeeplinkFunctions.current.concat([
+                () => {
+                  handleDeeplink(opts);
+                },
+              ]);
           }
         });
       }
@@ -454,7 +460,11 @@ const App = ({ userLoggedIn }) => {
         try {
           const sdkConnect = SDKConnect.getInstance();
           await sdkConnect.init({ navigation: navigator, context: 'Nav/App' });
-          await SDKConnect.getInstance().postInit();
+          await SDKConnect.getInstance().postInit(() => {
+            setTimeout(() => {
+              queueOfHandleDeeplinkFunctions.current = [];
+            }, 1000);
+          });
           sdkInit.current = true;
         } catch (err) {
           sdkInit.current = undefined;
@@ -462,9 +472,14 @@ const App = ({ userLoggedIn }) => {
         }
       }
     }
-    initSDKConnect().catch((err) => {
-      Logger.error(err, 'Error initializing SDKConnect');
-    });
+
+    initSDKConnect()
+      .then(() => {
+        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
+      })
+      .catch((err) => {
+        Logger.error(err, 'Error initializing SDKConnect');
+      });
   }, [navigator, onboarded, userLoggedIn]);
 
   useEffect(() => {
@@ -613,6 +628,14 @@ const App = ({ userLoggedIn }) => {
         component={SDKSessionModal}
       />
       <Stack.Screen
+        name={Routes.SHEET.EXPERIENCE_ENHANCER}
+        component={ExperienceEnhancerModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.DATA_COLLECTION}
+        component={DataCollectionModal}
+      />
+      <Stack.Screen
         name={Routes.SHEET.SDK_DISCONNECT}
         component={SDKDisconnectModal}
       />
@@ -679,6 +702,10 @@ const App = ({ userLoggedIn }) => {
         name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
         component={ShowDisplayNftMediaSheet}
       />
+      <Stack.Screen
+        name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
+        component={NFTAutoDetectionModal}
+      />
     </Stack.Navigator>
   );
 
@@ -714,8 +741,16 @@ const App = ({ userLoggedIn }) => {
   );
 
   const LedgerConnectFlow = () => (
-    <Stack.Navigator initialRouteName={Routes.HW.LEDGER_CONNECT}>
-      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={LedgerConnect} />
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+      initialRouteName={Routes.HW.LEDGER_CONNECT}
+    >
+      <Stack.Screen
+        name={Routes.HW.LEDGER_CONNECT}
+        component={LedgerSelectAccount}
+      />
     </Stack.Navigator>
   );
 
@@ -726,7 +761,6 @@ const App = ({ userLoggedIn }) => {
         component={SelectHardwareWallet}
         options={SelectHardwareWallet.navigationOptions}
       />
-      <Stack.Screen name="LedgerAccountInfo" component={LedgerAccountInfo} />
     </Stack.Navigator>
   );
 
@@ -752,7 +786,16 @@ const App = ({ userLoggedIn }) => {
     // do not render unless a route is defined
     (route && (
       <>
-        {isBlockaidFeatureEnabled() && <PPOMView />}
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        }
+        <View>
+          <SnapsExecutionWebView />
+        </View>
+        {
+          ///: END:ONLY_INCLUDE_IF
+        }
+        <PPOMView />
         <NavigationContainer
           // Prevents artifacts when navigating between screens
           theme={{

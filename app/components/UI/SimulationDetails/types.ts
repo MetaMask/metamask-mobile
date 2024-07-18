@@ -61,4 +61,9 @@ export type BalanceChange = Readonly<{
    * 1.5 tokens, or more precisely, 1.5 * 10^18 of the smallest divisible unit.
    */
   amount: BigNumber;
+
+  /**
+   * The amount of fiat currency that corresponds to the asset amount.
+   */
+  fiatAmount: FiatAmount;
 }>;

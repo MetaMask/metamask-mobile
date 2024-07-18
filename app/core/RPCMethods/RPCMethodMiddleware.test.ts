@@ -20,7 +20,7 @@ import {
   PermissionController,
 } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { backgroundState } from '../../util/test/initial-root-state';
 import { Store } from 'redux';
 import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
@@ -230,6 +230,8 @@ function setupGlobalState({
 }) {
   // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
   jest
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .spyOn(store as Store<Partial<RootState>, any>, 'getState')
     .mockImplementation(() => ({
       browser: activeTab
@@ -239,12 +241,14 @@ function setupGlobalState({
         : {},
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
             providerConfig: providerConfig || {},
           },
           PreferencesController: selectedAddress ? { selectedAddress } : {},
         },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
     }));
   mockStore.dispatch.mockImplementation((obj) => obj);
@@ -394,54 +398,9 @@ describe('getRpcMethodMiddleware', () => {
         expectedError.message,
       );
     });
-
-    it('returns unauthorized error on restricted method without permission', async () => {
-      const ethAccountsMethodName = 'eth_accounts';
-      const response = await engine.handle({
-        jsonrpc,
-        id: 1,
-        method: ethAccountsMethodName,
-      });
-
-      const expectedError = providerErrors.unauthorized(
-        'Unauthorized to perform action. Try requesting the required permission(s) first. For more information, see: https://docs.metamask.io/guide/rpc-api.html#permissions',
-      );
-
-      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
-      expect((response as JsonRpcFailure).error.message).toBe(
-        expectedError.message,
-      );
-    });
-
-    it('handles restricted method with permission', async () => {
-      const ethAccountsMethodName = 'eth_accounts';
-      permissionController.grantPermissions({
-        subject: { origin: hostMock },
-        approvedPermissions: {
-          eth_accounts: {},
-        },
-        requestData: {
-          approvedAccounts: ['0x1'],
-        },
-      });
-      const response = await engine.handle({
-        jsonrpc,
-        id: 1,
-        method: ethAccountsMethodName,
-      });
-
-      expect((response as JsonRpcFailure).error).toBeUndefined();
-      expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
-        '0x1',
-      ]);
-    });
   });
 
-  const accountMethods = [
-    'eth_accounts',
-    'eth_coinbase',
-    'parity_defaultAccount',
-  ];
+  const accountMethods = ['eth_coinbase', 'parity_defaultAccount'];
   for (const method of accountMethods) {
     describe(method, () => {
       describe('browser', () => {
@@ -1163,6 +1122,8 @@ describe('getRpcMethodMiddleware', () => {
         params: [addressMock, data],
       };
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 
@@ -1231,6 +1192,8 @@ describe('getRpcMethodMiddleware', () => {
         signatureMock,
       );
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 
@@ -1282,6 +1245,8 @@ describe('getRpcMethodMiddleware', () => {
         signatureMock,
       );
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 

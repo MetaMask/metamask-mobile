@@ -9,6 +9,10 @@ import BalanceChangeRow from '../BalanceChangeRow/BalanceChangeRow';
 
 jest.mock('../sortBalanceChanges');
 jest.mock('../BalanceChangeRow/BalanceChangeRow', () => 'BalanceChangeRow');
+jest.mock('../FiatDisplay/FiatDisplay', () => ({
+  IndividualFiatDisplay: 'IndividualFiatDisplay',
+  TotalFiatDisplay: 'TotalFiatDisplay',
+}));
 
 const balanceChangesMock = [
   {
@@ -17,6 +21,7 @@ const balanceChangesMock = [
       address: '0xabc123',
     },
     amount: new BigNumber(100),
+    fiatAmount: 100,
   },
 ] as BalanceChange[];
 const headingMock = 'You received';
@@ -65,6 +70,7 @@ describe('BalanceChangeList', () => {
           address: '0xabc123',
         },
         amount: new BigNumber(100),
+        fiatAmount: 100,
       },
       {
         asset: {
@@ -72,6 +78,7 @@ describe('BalanceChangeList', () => {
           address: '0xabc456',
         },
         amount: new BigNumber(1000),
+        fiatAmount: 1000,
       },
     ] as BalanceChange[];
 
@@ -90,5 +97,19 @@ describe('BalanceChangeList', () => {
     expect(rows).toHaveLength(multipleBalanceChangesMock.length);
     expect(rows[0].props.label).toBe(headingMock);
     expect(rows[1].props.label).toBeUndefined();
+  });
+
+  it('does not render TotalFiatDisplay component when there is only one balance change', () => {
+    const { queryByTestId } = render(
+      <BalanceChangeList
+        heading={headingMock}
+        balanceChanges={balanceChangesMock}
+      />,
+    );
+    const container = queryByTestId(
+      'simulation-details-balance-change-list-total-fiat-display-container',
+    );
+
+    expect(container).toBeNull();
   });
 });

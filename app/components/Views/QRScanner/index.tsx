@@ -42,8 +42,12 @@ import { useTheme } from '../../../util/theme';
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
 export interface QRScannerParams {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onScanSuccess: (data: any, content?: string) => void;
   onScanError?: (error: string) => void;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onStartScan?: (data: any) => Promise<void>;
   origin?: string;
 }
@@ -70,6 +74,8 @@ const QRScanner = () => {
     navigation.goBack();
     try {
       onScanError?.('USER_CANCELLED');
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.warn(`Error setting onScanError: ${error.message}`);
     }
@@ -181,6 +187,8 @@ const QRScanner = () => {
           onScanSuccess(data, content);
           return;
         }
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { KeyringController } = Engine.context as any;
         const isUnlocked = KeyringController.isUnlocked();
 
@@ -215,6 +223,8 @@ const QRScanner = () => {
         const handledByDeeplink = SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           // TODO: Check is pop is still valid.
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onHandled: () => (navigation as any).pop(2),
         });
 

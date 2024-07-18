@@ -12,6 +12,8 @@ interface TemplateRendererProps {
 
 function getElement(
   section: TemplateRendererComponent,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): React.ComponentType<any> {
   const component = section?.element;
   if (!component && !isValidElementName(component)) {

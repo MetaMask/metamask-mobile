@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import SmartTransactionsOptInModal from './SmartTranactionsOptInModal';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import { updateOptInModalAppVersionSeen } from '../../../core/redux/slices/smartTransactions';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -46,7 +47,7 @@ jest.mock('../../../core/redux/slices/smartTransactions', () => ({
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 
@@ -95,7 +96,7 @@ describe('SmartTransactionsOptInModal', () => {
       Engine.context.PreferencesController.setSmartTransactionsOptInStatus,
     ).toHaveBeenCalledWith(true);
   });
-  it('should opt user out when secondary button is pressed', () => {
+  it('opts user out when secondary button is pressed and navigate to Advanced Settings', async () => {
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
       state: initialState,
     });
@@ -108,6 +109,12 @@ describe('SmartTransactionsOptInModal', () => {
     expect(
       Engine.context.PreferencesController.setSmartTransactionsOptInStatus,
     ).toHaveBeenCalledWith(false);
+    expect(updateOptInModalAppVersionSeen).toHaveBeenCalledWith(VERSION);
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+        screen: Routes.SETTINGS.ADVANCED_SETTINGS,
+      });
+    });
   });
   it('should update last app version seen on primary button press', () => {
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {

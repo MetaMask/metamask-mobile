@@ -20,12 +20,18 @@ import { getDecimalChainId } from '../../../util/networks';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { selectDetectedTokens } from '../../../selectors/tokensController';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkClientId,
+} from '../../../selectors/networkController';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/DetectedTokensView.selectors';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     fill: {
@@ -47,6 +53,8 @@ const createStyles = (colors: any) =>
     },
     headerLabel: {
       textAlign: 'center',
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       fontSize: 18,
       paddingVertical: 16,
@@ -72,6 +80,7 @@ const DetectedTokens = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const detectedTokens = useSelector(selectDetectedTokens);
   const chainId = useSelector(selectChainId);
+  const networkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );
@@ -85,6 +94,8 @@ const DetectedTokens = () => {
 
   const dismissModalAndTriggerAction = useCallback(
     (ignoreAllTokens?: boolean) => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { TokensController } = Engine.context as any;
       let title = '';
       let description = '';
@@ -123,7 +134,7 @@ const DetectedTokens = () => {
           tokensToIgnore.length > 0 &&
             (await TokensController.ignoreTokens(tokensToIgnore));
           if (tokensToImport.length > 0) {
-            await TokensController.addTokens(tokensToImport);
+            await TokensController.addTokens(tokensToImport, networkClientId);
             InteractionManager.runAfterInteractions(() =>
               tokensToImport.forEach(({ address, symbol }) =>
                 trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
@@ -146,7 +157,7 @@ const DetectedTokens = () => {
         }
       });
     },
-    [chainId, detectedTokens, ignoredTokens, trackEvent],
+    [chainId, detectedTokens, ignoredTokens, trackEvent, networkClientId],
   );
 
   const triggerIgnoreAllTokens = () => {
@@ -238,6 +249,7 @@ const DetectedTokens = () => {
           containerStyle={styles.fill}
           type={'confirm'}
           disabled={importTokenCount <= 0}
+          testID={DetectedTokensSelectorIDs.IMPORT_BUTTON_ID}
         >
           {strings('detected_tokens.import_cta', {
             tokenCount: importTokenCount,

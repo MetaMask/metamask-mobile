@@ -19,7 +19,7 @@ interface ISelectQRAccountsProps {
   selectedAccounts: string[];
   nextPage: () => void;
   prevPage: () => void;
-  toggleAccount: (index: number) => void;
+  onCheck?: (index: number) => void;
   onUnlock: (accountIndex: number[]) => void;
   onForget: () => void;
   title: string;
@@ -30,7 +30,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
     accounts,
     prevPage,
     nextPage,
-    toggleAccount,
+    onCheck,
     selectedAccounts,
     onForget,
     onUnlock,
@@ -69,9 +69,12 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
         prev.has(index) ? prev.delete(index) : prev.add(index);
         return new Set(prev);
       });
-      toggleAccount(index);
+
+      if (onCheck) {
+        onCheck(index);
+      }
     },
-    [toggleAccount],
+    [onCheck],
   );
 
   return (
