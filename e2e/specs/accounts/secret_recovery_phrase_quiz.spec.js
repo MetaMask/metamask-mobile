@@ -8,14 +8,11 @@ import SettingsView from '../../pages/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.js';
 import { RevealSeedViewSelectorsIDs } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
-// import { getFixturesServerPort } from '../../fixtures/utils';
 import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
-
-// const fixtureServer = new FixtureServer();
 
 describe(SmokeAccounts('Secret Recovery Phrase Quiz'), () => {
   beforeAll(async () => {
