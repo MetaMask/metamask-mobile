@@ -151,7 +151,7 @@ const mainSetupTask = {
     detoxGlobalInstallTask
   ],
     {
-      exitOnError: false,
+      exitOnError: true,
       concurrent: true,
       rendererOptions
     })
