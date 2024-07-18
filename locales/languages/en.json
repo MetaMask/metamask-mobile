@@ -611,6 +611,10 @@
     "remove_account_message": "Do you really want to remove this account?",
     "no": "No",
     "yes_remove_it": "Yes, remove it",
+    "remove_hardware_account": "Remove hardware account",
+    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_account_alert_remove_btn": "Remove",
+    "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "Accounts",
     "connect_account_title": "Connect account",
     "connect_accounts_title": "Connect accounts",
@@ -666,8 +670,7 @@
     "hint_text": "Scan your Keystone wallet to ",
     "purpose_connect": "connect",
     "purpose_sign": "confirm the transaction",
-    "select_accounts": "Select an Account",
-    "please_wait": "Please wait"
+    "select_accounts": "Select an Account"
   },
   "data_collection_modal": {
     "accept": "Okay",
@@ -3182,5 +3185,8 @@
     "title": "Estimated changes",
     "tooltip_description": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
     "total_fiat": "Total = {{currency}}"
+  },
+  "common": {
+    "please_wait": "Please wait"
   }
 }
