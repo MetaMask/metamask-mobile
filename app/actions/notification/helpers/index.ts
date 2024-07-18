@@ -1,8 +1,8 @@
 import { getErrorMessage } from '@metamask/utils';
 
-import { notificationsErrors } from './helpers/constants';
-import Engine from '../../core/Engine';
-import { Notification } from '../../util/notifications';
+import { notificationsErrors } from '../constants';
+import Engine from '../../../core/Engine';
+import { Notification } from '../../../util/notifications';
 
 const {
   AuthenticationController,

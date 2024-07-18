@@ -2,7 +2,7 @@ import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import { Alert } from 'react-native';
 
 import { strings } from '../../../locales/i18n';
-import Device from '../../util/device';
+import Device from '../device';
 import { mmStorage } from './settings';
 import { STORAGE_IDS } from './settings/storage/constants';
 import Logger from '../Logger';

@@ -1,14 +1,14 @@
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
-import Engine from '../../core/Engine';
+import Engine from '../../../core/Engine';
 import { BigNumber } from 'bignumber.js';
-import { IconName } from '../../component-library/components/Icons/Icon';
-import images from '../../images/image-icons';
-import { hexWEIToDecETH, hexWEIToDecGWEI } from '../conversions';
-import { calcTokenAmount } from '../transactions';
-import { TRIGGER_TYPES } from './constants';
-import { Notification } from './types';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import images from '../../../images/image-icons';
+import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
+import { calcTokenAmount } from '../../transactions';
+import { TRIGGER_TYPES } from '../constants';
+import { Notification } from '../types';
 
 const { UI } = NotificationServicesController;
 
@@ -344,29 +344,6 @@ export function getBlockExplorerByChainId(chainId: number) {
   return undefined;
 }
 
-/**
- * Formats an ISO date string into a more readable format.
- *
- * @param isoDateString - The ISO date string to format.
- * @returns The formatted date string.
- */
-export function formatIsoDateString(isoDateString: string) {
-  const date = new Date(isoDateString);
-
-  const options = {
-    year: 'numeric' as const,
-    month: 'short' as const,
-    day: 'numeric' as const,
-    hour: 'numeric' as const,
-    minute: 'numeric' as const,
-    hour12: true,
-  };
-
-  const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
-
-  return formattedDate;
-}
-
 export function hasNetworkFeeFields(
   notification: NotificationServicesController.Types.OnChainRawNotification,
 ): notification is NotificationServicesController.Types.OnChainRawNotificationsWithNetworkFields {
@@ -450,14 +427,6 @@ export const getNetworkFees = async (
   }
 };
 
-/**
- * Checks if a given URL is an IPFS URL.
- *
- * @param url - The URL to check.
- * @returns True if the URL is an IPFS URL, false otherwise.
- */
-export const isIpfsURL = (url: string): boolean => url.startsWith('ipfs://');
-
 export const getNotificationBadge = (trigger_type: string) => {
   switch (trigger_type) {
     case TRIGGER_TYPES.ERC20_SENT:
@@ -494,25 +463,6 @@ export const TRUNCATED_ADDRESS_START_CHARS = 7;
 // The number of characters to slice from the end of an address for truncated format:
 // `${TRUNCATED_ADDRESS_START_CHARS}...${TRUNCATED_ADDRESS_END_CHARS}`
 export const TRUNCATED_ADDRESS_END_CHARS = 5;
-
-/**
- * Shortens an Ethereum address for display, preserving the beginning and end.
- * Returns the given address if it is no longer than 10 characters.
- * Shortened addresses are 13 characters long.
- *
- * Example output: 0xabcde...12345
- *
- * @param {string} address - The address to shorten.
- * @returns {string} The shortened address, or the original if it was no longer
- * than 10 characters.
- */
-export function shortenAddress(address = '') {
-  return shortenString(address, {
-    truncatedCharLimit: TRUNCATED_NAME_CHAR_LIMIT,
-    truncatedStartChars: TRUNCATED_ADDRESS_START_CHARS,
-    truncatedEndChars: TRUNCATED_ADDRESS_END_CHARS,
-  });
-}
 
 /**
  * Shortens the given string, preserving the beginning and end.
