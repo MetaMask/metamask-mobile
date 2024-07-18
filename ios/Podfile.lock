@@ -46,11 +46,11 @@ PODS:
     - FirebaseCoreInternal (~> 10.0)
     - GoogleUtilities/Environment (~> 7.12)
     - GoogleUtilities/Logger (~> 7.12)
-  - FirebaseCoreExtension (10.29.0):
+  - FirebaseCoreExtension (10.28.0):
     - FirebaseCore (~> 10.0)
-  - FirebaseCoreInternal (10.29.0):
+  - FirebaseCoreInternal (10.28.0):
     - "GoogleUtilities/NSData+zlib (~> 7.8)"
-  - FirebaseInstallations (10.29.0):
+  - FirebaseInstallations (10.28.0):
     - FirebaseCore (~> 10.0)
     - GoogleUtilities/Environment (~> 7.8)
     - GoogleUtilities/UserDefaults (~> 7.8)
@@ -202,9 +202,9 @@ PODS:
   - lottie-react-native (5.1.5):
     - lottie-ios (~> 3.4.0)
     - React-Core
-  - MMKV (1.3.7):
-    - MMKVCore (~> 1.3.7)
-  - MMKVCore (1.3.7)
+  - MMKV (1.3.5):
+    - MMKVCore (~> 1.3.5)
+  - MMKVCore (1.3.5)
   - MultiplatformBleAdapter (0.2.0)
   - nanopb (2.30910.0):
     - nanopb/decode (= 2.30910.0)
@@ -652,10 +652,33 @@ PODS:
     - React
   - RNPermissions (3.10.1):
     - React-Core
-  - RNReanimated (3.14.0):
-    - RCT-Folly (= 2021.07.22.00)
+  - RNReanimated (3.1.0):
+    - DoubleConversion
+    - FBLazyVector
+    - FBReactNativeSpec
+    - glog
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
     - React-Core
+    - React-Core/DevSupport
+    - React-Core/RCTWebSocket
+    - React-CoreModules
+    - React-cxxreact
+    - React-jsi
+    - React-jsiexecutor
+    - React-jsinspector
+    - React-RCTActionSheet
+    - React-RCTAnimation
+    - React-RCTBlob
+    - React-RCTImage
+    - React-RCTLinking
+    - React-RCTNetwork
+    - React-RCTSettings
+    - React-RCTText
     - ReactCommon/turbomodule/core
+    - Yoga
   - RNScreens (3.22.0):
     - React-Core
     - React-RCTImage
@@ -1040,7 +1063,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Base64: cecfb41a004124895a7bcee567a89bae5a89d49b
-  boost: 7dcd2de282d72e344012f7d6564d024930a6a440
+  boost: 57d2868c099736d80fcd648bf211b4431e51a558
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
   BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
@@ -1050,9 +1073,9 @@ SPEC CHECKSUMS:
   Firebase: 26b040b20866a55f55eb3611b9fcf3ae64816b86
   FirebaseAnalytics: f9211b719db260cc91aebee8bb539cb367d0dfd1
   FirebaseCore: a2b95ae4ce7c83ceecfbbbe3b6f1cddc7415a808
-  FirebaseCoreExtension: 705ca5b14bf71d2564a0ddc677df1fc86ffa600f
-  FirebaseCoreInternal: df84dd300b561c27d5571684f389bf60b0a5c934
-  FirebaseInstallations: 913cf60d0400ebd5d6b63a28b290372ab44590dd
+  FirebaseCoreExtension: f63147b723e2a700fe0f34ec6fb7f358d6fe83e0
+  FirebaseCoreInternal: 58d07f1362fddeb0feb6a857d1d1d1c5e558e698
+  FirebaseInstallations: 60c1d3bc1beef809fd1ad1189a8057a040c59f2e
   FirebaseMessaging: 585984d0a1df120617eb10b44cad8968b859815e
   Flipper: 26fc4b7382499f1281eb8cb921e5c3ad6de91fe0
   Flipper-Boost-iOSX: fd1e2b8cbef7e662a122412d7ac5f5bea715403c
@@ -1073,8 +1096,8 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   lottie-ios: 016449b5d8be0c3dcbcfa0a9988469999cd04c5d
   lottie-react-native: 3e722c63015fdb9c27638b0a77969fc412067c18
-  MMKV: 36a22a9ec84c9bb960613a089ddf6f48be9312b0
-  MMKVCore: 158e61c8516401a9fac730288acb29e6fc19bbf9
+  MMKV: 506311d0494023c2f7e0b62cc1f31b7370fa3cfb
+  MMKVCore: 9e2e5fd529b64a9fe15f1a7afb3d73b2e27b4db9
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
@@ -1153,7 +1176,7 @@ SPEC CHECKSUMS:
   RNNotifee: 8e2d3df3f0e9ce8f5d1fe4c967431138190b6175
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNPermissions: 4e3714e18afe7141d000beae3755e5b5fb2f5e05
-  RNReanimated: 271f958e94385e59e0660b872ce866407e36bb45
+  RNReanimated: b1220a0e5168745283ff5d53bfc7d2144b2cee1b
   RNScreens: 68fd1060f57dd1023880bf4c05d74784b5392789
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
   RNSentry: 98e170b6eedc5c54e3ac88b6140fffb8b496deb4
