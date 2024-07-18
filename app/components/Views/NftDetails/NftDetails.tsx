@@ -41,6 +41,7 @@ import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/ContentDisplay';
 import BigNumber from 'bignumber.js';
 import { formatTimestampToYYYYMMDD } from '../../../util/notifications';
+import { addUrlProtocolPrefix } from '../../../util/url';
 
 const NftDetails = () => {
   const navigation = useNavigation();
@@ -101,11 +102,14 @@ const NftDetails = () => {
   };
 
   const viewLastSalePriceSource = () => {
-    const url = collectible?.lastSale?.orderSource;
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: { url },
-    });
+    const source = collectible?.lastSale?.orderSource;
+    if (source) {
+      const url = addUrlProtocolPrefix(source);
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: { url },
+      });
+    }
   };
 
   const copyAddressToClipboard = async (address?: string) => {
@@ -175,6 +179,12 @@ const NftDetails = () => {
     }
     return `${topBidValue}${ticker}`;
   };
+
+  const getTopBidSourceDomain = () =>
+    collectible?.topBid?.source?.url ||
+    (collectible?.collection?.topBid?.sourceDomain
+      ? `https://${collectible?.collection.topBid?.sourceDomain}`
+      : undefined);
 
   const [numberOfLines, setNumberOfLines] = useState(0);
 
@@ -528,6 +538,24 @@ const NftDetails = () => {
             value={getCurrentHighestBidValue()}
             titleStyle={styles.informationRowTitleStyle}
             valueStyle={styles.informationRowValueStyle}
+            icon={
+              getTopBidSourceDomain() ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    navigation.navigate('Webview', {
+                      screen: 'SimpleWebview',
+                      params: { url: getTopBidSourceDomain() },
+                    });
+                  }}
+                >
+                  <Icon
+                    name={IconName.Export}
+                    size={IconSize.Xs}
+                    style={styles.iconExport}
+                  />
+                </TouchableOpacity>
+              ) : null
+            }
           />
 
           {hasAttributesSection ? (
