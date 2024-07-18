@@ -6,6 +6,213 @@ import DefaultPreference from 'react-native-default-preference';
 import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
 import { isTest } from '../test/utils';
+import { store } from '../../store';
+
+/**
+ * This symbol matches all object properties when used in a mask
+ */
+export const AllProperties = Symbol('*');
+
+// This describes the subset of background controller state attached to errors
+// sent to Sentry These properties have some potential to be useful for
+// debugging, and they do not contain any identifiable information.
+export const sentryStateMask = {
+  accounts: true,
+  alert: true,
+  bookmarks: true,
+  browser: true,
+  collectibles: true,
+  engine: {
+    backgroundState: {
+      AccountTrackerController: {
+        [AllProperties]: false,
+      },
+      AccountsController: {
+        internalAccounts: {
+          [AllProperties]: false,
+        },
+      },
+      AddressBookController: {
+        [AllProperties]: false,
+      },
+      ApprovalController: {
+        [AllProperties]: false,
+      },
+      AssetsContractController: {},
+      CurrencyRateController: {
+        currencyRates: true,
+        currentCurrency: true,
+      },
+      GasFeeController: {
+        estimatedGasFeeTimeBounds: true,
+        gasEstimateType: true,
+        gasFeeEstimates: true,
+        gasFeeEstimatesByChainId: true,
+      },
+      KeyringController: {
+        isUnlocked: true,
+      },
+      LoggingController: {
+        [AllProperties]: false,
+      },
+      NetworkController: {
+        networksMetadata: true,
+        providerConfig: {
+          chainId: true,
+          id: true,
+          nickname: true,
+          ticker: true,
+          type: true,
+        },
+      },
+      NftController: {
+        [AllProperties]: false,
+      },
+      PPOMController: {
+        storageMetadata: [],
+        versionInfo: [],
+      },
+      PermissionController: {
+        [AllProperties]: false,
+      },
+      PhishingController: {},
+      PreferencesController: {
+        disabledRpcMethodPreferences: true,
+        featureFlags: true,
+        isIpfsGatewayEnabled: true,
+        displayNftMedia: true,
+        useNftDetection: true,
+        useTokenDetection: true,
+        useTransactionSimulations: true,
+      },
+      SignatureController: {
+        unapprovedMsgCount: true,
+        unapprovedPersonalMsgCount: true,
+        unapprovedTypedMessagesCount: true,
+      },
+      SmartTransactionsController: {
+        smartTransactionsState: {
+          fees: {
+            approvalTxFees: true,
+            tradeTxFees: true,
+          },
+          liveness: true,
+          userOptIn: true,
+          userOptInV2: true,
+        },
+      },
+      SnapController: {
+        [AllProperties]: false,
+      },
+      SnapInterface: {
+        [AllProperties]: false,
+      },
+      SnapsRegistry: {
+        [AllProperties]: false,
+      },
+      SubjectMetadataController: {
+        [AllProperties]: false,
+      },
+      SwapsController: {
+        swapsState: {
+          customGasPrice: true,
+          customMaxFeePerGas: true,
+          customMaxGas: true,
+          customMaxPriorityFeePerGas: true,
+          errorKey: true,
+          fetchParams: true,
+          quotesLastFetched: true,
+          quotesPollingLimitEnabled: true,
+          routeState: true,
+          saveFetchedQuotes: true,
+          selectedAggId: true,
+          swapsFeatureFlags: true,
+          swapsFeatureIsLive: true,
+          swapsQuotePrefetchingRefreshTime: true,
+          swapsQuoteRefreshTime: true,
+          swapsStxBatchStatusRefreshTime: true,
+          swapsStxGetTransactionsRefreshTime: true,
+          swapsStxMaxFeeMultiplier: true,
+          swapsUserFeeLevel: true,
+        },
+      },
+      TokenDetectionController: {
+        [AllProperties]: false,
+      },
+      TokenListController: {
+        preventPollingOnNetworkRestart: true,
+        tokensChainsCache: {
+          [AllProperties]: false,
+        },
+      },
+      TokenRatesController: {
+        [AllProperties]: false,
+      },
+      TokensController: {
+        allDetectedTokens: {
+          [AllProperties]: false,
+        },
+        allIgnoredTokens: {
+          [AllProperties]: false,
+        },
+        allTokens: {
+          [AllProperties]: false,
+        },
+      },
+      TransactionController: {
+        [AllProperties]: false,
+      },
+      AuthenticationController: {
+        [AllProperties]: false,
+      },
+      NotificationServicesController: {
+        isCheckingAccountsPresence: false,
+        isFeatureAnnouncementsEnabled: false,
+        isFetchingMetamaskNotifications: false,
+        isMetamaskNotificationsFeatureSeen: false,
+        isNotificationServicesEnabled: false,
+        isUpdatingMetamaskNotifications: false,
+        isUpdatingMetamaskNotificationsAccount: [],
+        metamaskNotificationsList: [],
+        metamaskNotificationsReadList: [],
+        subscriptionAccountsSeen: [],
+      },
+      UserStorageController: {
+        isProfileSyncingEnabled: true,
+        isProfileSyncingUpdateLoading: false,
+      },
+    },
+  },
+  experimentalSettings: true,
+  infuraAvailability: true,
+  inpageProvider: true,
+  legalNotices: true,
+  modals: true,
+  navigation: true,
+  networkOnboarded: true,
+  notification: true,
+  onboarding: true,
+  privacy: true,
+  rpcEvents: true,
+  sdk: true,
+  security: true,
+  settings: true,
+  smartTransactions: true,
+  user: {
+    appTheme: true,
+    backUpSeedphraseVisible: true,
+    gasEducationCarouselSeen: true,
+    initialScreen: true,
+    isAuthChecked: true,
+    loadingMsg: true,
+    loadingSet: true,
+    passwordSet: true,
+    protectWalletModalVisible: true,
+    seedphraseBackedUp: true,
+    userLoggedIn: true,
+  },
+  wizard: true,
+};
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
 const METAMASK_BUILD_TYPE = process.env['METAMASK_BUILD_TYPE'] || 'main'; // eslint-disable-line dot-notation
@@ -117,6 +324,53 @@ function removeSES(report) {
   }
 }
 
+/**
+ * Return a "masked" copy of the given object. The returned object includes
+ * only the properties present in the mask.
+ *
+ * The mask is an object that mirrors the structure of the given object, except
+ * the only values are `true`, `false, a sub-mask, or the 'AllProperties"
+ * symbol. `true` implies the property should be included, and `false` will
+ * exclude it. A sub-mask implies the property should be further masked
+ * according to that sub-mask. The "AllProperties" symbol is used for objects
+ * with dynamic keys, and applies a rule (either `true`, `false`, or a
+ * sub-mask`) to every property in that object.
+ *
+ * If a property is excluded, its type is included instead.
+ *
+ * @param {object} objectToMask - The object to mask
+ * @param {{[key: string]: object | boolean}} mask - The mask to apply to the object
+ * @returns {object} - The masked object
+ */
+export function maskObject(objectToMask, mask = {}) {
+  if (!objectToMask) return {};
+  let maskAllProperties = false;
+  if (Object.keys(mask).includes(AllProperties)) {
+    if (Object.keys(mask).length > 1) {
+      throw new Error('AllProperties mask key does not support sibling keys');
+    }
+    maskAllProperties = true;
+  }
+
+  return Object.keys(objectToMask).reduce((maskedObject, key) => {
+    const maskKey = maskAllProperties ? mask[AllProperties] : mask[key];
+    const shouldPrintValue = maskKey === true;
+    const shouldIterateSubMask =
+      Boolean(maskKey) && typeof maskKey === 'object';
+    const shouldPrintType = maskKey === undefined || maskKey === false;
+    if (shouldPrintValue) {
+      maskedObject[key] = objectToMask[key];
+    } else if (shouldIterateSubMask) {
+      maskedObject[key] = maskObject(objectToMask[key], maskKey);
+    } else if (shouldPrintType) {
+      // Since typeof null is object, it is more valuable to us having the null instead of object
+      maskedObject[key] =
+        objectToMask[key] === null ? 'null' : typeof objectToMask[key];
+    }
+    return maskedObject;
+  }, {});
+}
+
 function rewriteReport(report) {
   try {
     // filter out SES from error stack trace
@@ -134,6 +388,10 @@ function rewriteReport(report) {
     removeDeviceTimezone(report);
     // remove device name
     removeDeviceName(report);
+
+    const appState = store?.getState();
+    const maskedState = maskObject(appState, sentryStateMask);
+    report.contexts.appState = maskedState;
   } catch (err) {
     console.error('ENTER ERROR OF REPORT ', err);
     throw err;
