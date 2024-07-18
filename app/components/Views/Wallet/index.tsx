@@ -226,10 +226,6 @@ const Wallet = ({
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
-  }, [shouldShowNewPrivacyToast]);
-
-  useEffect(() => {
-    if (!shouldShowNewPrivacyToast) return;
 
     storePrivacyPolicyShownDate();
     currentToast?.showToast({
