@@ -45,7 +45,6 @@ import {
   getIsNetworkOnboarded,
   isMainNet,
 } from '../../../util/networks';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
   selectTicker,
@@ -82,6 +81,7 @@ import {
   showNftFetchingLoadingIndicator as showNftFetchingLoadingIndicatorAction,
 } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -502,7 +502,10 @@ const Wallet = ({
       assets = tokens;
     }
     return (
-      <View style={styles.wrapper}>
+      <View
+        style={styles.wrapper}
+        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+      >
         {!basicFunctionalityEnabled ? (
           <View style={styles.banner}>
             <BannerAlert
@@ -585,7 +588,7 @@ const Wallet = ({
 
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
-      <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
+      <View style={baseStyles.flexGrow}>
         {selectedAddress ? renderContent() : renderLoader()}
 
         {renderOnboardingWizard()}

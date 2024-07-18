@@ -9,7 +9,7 @@ import TransactionTypes from '../../../../../core/TransactionTypes';
 
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 
 const mockEngine = Engine;
@@ -83,7 +83,7 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
         providerConfig: {
           ticker: 'ETH',

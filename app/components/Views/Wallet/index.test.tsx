@@ -8,8 +8,10 @@ import { screen } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 const mockEngine = Engine;
 
@@ -23,15 +25,6 @@ jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
-    PreferencesController: {
-      selectedAddress: MOCK_ADDRESS,
-      identities: {
-        [MOCK_ADDRESS]: {
-          name: 'Account 1',
-          address: MOCK_ADDRESS,
-        },
-      },
-    },
     NftController: {
       allNfts: {
         [MOCK_ADDRESS]: {
@@ -93,16 +86,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: MOCK_ADDRESS,
-        identities: {
-          [MOCK_ADDRESS]: {
-            name: 'Account 1',
-            address: MOCK_ADDRESS,
-          },
-        },
-      },
+      ...backgroundState,
       AccountsController: {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
@@ -156,7 +140,9 @@ describe('Wallet', () => {
   });
   it('should render scan qr icon', () => {
     render(Wallet);
-    const scanButton = screen.getByTestId('wallet-scan-button');
+    const scanButton = screen.getByTestId(
+      WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
+    );
     expect(scanButton).toBeDefined();
   });
   it('should render ScrollableTabView', () => {
@@ -165,7 +151,7 @@ describe('Wallet', () => {
   });
   it('should render fox icon', () => {
     render(Wallet);
-    const foxIcon = screen.getByTestId('fox-icon');
+    const foxIcon = screen.getByTestId(CommonSelectorsIDs.FOX_ICON);
     expect(foxIcon).toBeDefined();
   });
 });

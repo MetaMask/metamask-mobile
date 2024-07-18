@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { Platform, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
@@ -13,8 +13,7 @@ import { useStyles } from '../../../hooks';
 // Internal dependencies.
 import { PickerNetworkProps } from './PickerNetwork.types';
 import stylesheet from './PickerNetwork.styles';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { NAVBAR_NETWORK_TEXT } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { PICKERNETWORK_ARROW_TESTID } from './PickerNetwork.constants';
 
 const PickerNetwork = ({
@@ -38,7 +37,7 @@ const PickerNetwork = ({
         style={styles.label}
         numberOfLines={1}
         variant={TextVariant.BodyMD}
-        {...generateTestId(Platform, NAVBAR_NETWORK_TEXT)}
+        testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT}
       >
         {label}
       </Text>

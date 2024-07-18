@@ -9,7 +9,7 @@ import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import NetworksView from '../../pages/Settings/NetworksView';
 import Accounts from '../../../wdio/helpers/Accounts';
@@ -71,7 +71,8 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
   });
 
   it('should show custom default ETH Mainnet as active', async () => {
-    await WalletView.isNetworkNameVisible(
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
       CustomNetworks.EthereumMainCustom.providerConfig.nickname,
     );
   });
@@ -107,8 +108,9 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
       CustomNetworks.EthereumMainCustom.providerConfig.rpcUrlAlt,
     );
     await NetworksView.tapSave();
-    await WalletView.isConnectedNetwork(
-      CustomNetworks.EthereumMainCustom.providerConfig.nickname,
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
+      CustomNetworks.Sepolia.providerConfig.nickname,
     );
   });
 
@@ -118,8 +120,9 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
       CustomNetworks.EthereumMainCustom.providerConfig.nickname,
       true, //setting this made this step work for iOS
     );
-    await WalletView.isConnectedNetwork(
-      CustomNetworks.EthereumMainCustom.providerConfig.nickname,
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
+      CustomNetworks.Sepolia.providerConfig.nickname,
     );
   });
 });
