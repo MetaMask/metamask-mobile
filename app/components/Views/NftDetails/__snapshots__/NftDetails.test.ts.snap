@@ -1218,21 +1218,64 @@ exports[`NftDetails should render correctly 1`] = `
                               >
                                 Highest current bid
                               </Text>
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
                                   }
                                 }
                               >
-                                0.0626ETH
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  0.0626ETH
+                                </Text>
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  onGestureEvent={[Function]}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  onHandlerStateChange={[Function]}
+                                  rippleColor={0}
+                                >
+                                  <View
+                                    accessible={true}
+                                    collapsable={false}
+                                    style={
+                                      {
+                                        "opacity": 1,
+                                      }
+                                    }
+                                  >
+                                    <SvgMock
+                                      color="#141618"
+                                      height={12}
+                                      name="Export"
+                                      style={
+                                        {
+                                          "color": "#6a737d",
+                                          "height": 12,
+                                          "paddingLeft": 16,
+                                          "width": 12,
+                                        }
+                                      }
+                                      width={12}
+                                    />
+                                  </View>
+                                </RNGestureHandlerButton>
+                              </View>
                             </View>
                             <Text
                               accessibilityRole="text"
