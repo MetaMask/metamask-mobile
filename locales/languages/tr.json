@@ -611,6 +611,10 @@
     "remove_account_message": "Bu hesabı gerçekten kaldırmak istiyor musunuz?",
     "no": "Hayır",
     "yes_remove_it": "Evet, kaldır",
+    "remove_hardware_account": "Remove hardware account",
+    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_account_alert_remove_btn": "Remove",
+    "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "Hesaplar",
     "connect_account_title": "Hesabı bağla",
     "connect_accounts_title": "Hesapları bağla",
@@ -666,8 +670,7 @@
     "hint_text": "İşlemi onaylamak için ",
     "purpose_connect": "bağlan",
     "purpose_sign": "kilit cüzdanınızı okutun",
-    "select_accounts": "Hesap Seç",
-    "please_wait": "Lütfen bekleyin"
+    "select_accounts": "Hesap Seç"
   },
   "data_collection_modal": {
     "accept": "Tamam",
@@ -680,6 +683,11 @@
     "forget": "Bu cihazı unut"
   },
   "app_settings": {
+    "enabling_notifications": "Enabling notifications...",
+    "disabling_notifications": "Disabling notifications...",
+    "enabling_profile_sync": "Enabling profile syncing...",
+    "disabling_profile_sync": "Disabling profile syncing...",
+    "notifications_dismiss_modal": "Dismiss",
     "title": "Ayarlar",
     "current_conversion": "Temel Para Birimi",
     "current_language": "Geçerli Dil",
@@ -803,7 +811,7 @@
     "security_desc": "Gizlilik ayarları, MetaMetrics, özel anahtar ve cüzdan Gizli Kurtarma İfadesi",
     "networks_title": "Ağlar",
     "networks_default_title": "Varsayılan Ağ",
-    "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
+    "network_delete": "Bu ağı silerseniz bu ağdaki varlıklarınızı görüntülemek için bu ağı tekrar eklemeniz gerekir",
     "networks_default_cta": "Bu ağı kullan",
     "networks_desc": "Kişisel RPC ağı ekle ve düzenle",
     "network_name_label": "Ağ Adı",
@@ -819,7 +827,7 @@
     "network_other_networks": "Diğer Ağlar",
     "network_rpc_networks": "RPC Ağları",
     "network_add_network": "Ağ Ekle",
-    "network_add_custom_network": "Add a custom network",
+    "network_add_custom_network": "Özel bir ağ ekle",
     "network_add": "Ekle",
     "network_save": "Kaydet",
     "remove_network_title": "Bu ağı kaldırmak istiyor musunuz?",
@@ -994,7 +1002,7 @@
     "token_nft_ens_subheading": "Token, NFT ve ENS otomatik algılama",
     "security_check_subheading": "Güvenlik kontrolleri",
     "symbol_required": "Sembol gerekli.",
-    "blockaid_desc": "This feature alerts you to malicious activity by actively reviewing transaction and signature requests.",
+    "blockaid_desc": "Bu özellik, işlem ve imza taleplerini aktif bir şekilde inceleyerek kötü amaçlı aktivite konusunda sizi uyarır.",
     "security_alerts": "Güvenlik uyarıları",
     "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel olarak incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı aktivitelere karşı sizi uyarır. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır. Bu özelliği etkinleştirerek sağlayıcının kullanım koşullarını kabul etmiş olursunuz.",
     "smart_transactions_opt_in_heading": "Akıllı İşlemler",
@@ -1031,7 +1039,7 @@
     "cancel": "İptal",
     "loading": "MetaMask'a bağlanılıyor...",
     "unkown_dapp": "Merkeziyetsiz uygulama adı kullanılamıyor",
-    "unknown": "Unknown",
+    "unknown": "Bilinmeyen",
     "no_connections": "Bağlantı yok",
     "no_connections_desc": "Bir siteye veya bir uygulamaya bağladığınız hesabı burada göreceksiniz."
   },
@@ -1655,7 +1663,7 @@
     "network_currency_symbol": "Para Birimi Sembolü",
     "network_block_explorer_url": "Blok Gezgini URL Adresi",
     "search": "Önceden eklenmiş ağı ara",
-    "search-short": "Search",
+    "search-short": "Ara",
     "add": "Ekle",
     "cancel": "İptal et",
     "approve": "Onayla",
@@ -1663,9 +1671,9 @@
     "malicious_network_warning": "Kötü amaçlı bir ağ sağlayıcı blokzincirinin durumu hakkında yalan söyleyebilir ve ağ aktivitenizi kaydedebilir. Sadece güvendiğiniz özel ağları ekleyin.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "Ağ Bilgileri",
-    "additional_network_information_title": "Additional Networks Information",
+    "additional_network_information_title": "Diğer Ağ Bilgileri",
     "network_warning_desc": "Bu ağ bağlantısı üçüncü taraflara dayalıdır. Bu bağlantı daha az güvenilir olabilir ya da üçüncü tarafların aktiviteyi takip etmesini sağlayabilir.",
-    "additonial_network_information_desc": "Some of these networks rely on third parties. The connections may be less reliable or enable third-parties to track activity.",
+    "additonial_network_information_desc": "Bu ağların bazıları üçüncü taraflara dayalıdır. Bağlantılar daha az güvenilir olabilir veya üçüncü tarafların aktiviteleri takip etmesine olanak sağlayabilir.",
     "learn_more": "Daha fazlasını öğrenin",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Ağ değiştir",
@@ -1954,7 +1962,7 @@
     "received": "Alınan",
     "unstaked": "Unstake edildi",
     "to": "Alıcı",
-    "rate": "Oran (ücretler dahil)",
+    "rate": "Rate (fees included)",
     "unstaking_requested": "Unstake talep edildi",
     "stake_completed": "Stake tamamlandı",
     "withdrawal_completed": "Para çekme işlemi tamamlandı",
@@ -1964,6 +1972,49 @@
     "swap_completed": "{{from}} - {{to}} swap işlemi gerçekleştirildi",
     "swap": "Swap yapılan",
     "sent": "Alıcı: {{address}}",
+    "menu_item_title": {
+      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
+      "erc20_sent": "Sent to {{address}}",
+      "erc20_received": "Received from {{address}}",
+      "eth_sent": "Sent to {{address}}",
+      "eth_received": "Received from {{address}}",
+      "erc721_sent": "Sent NFT to {{address}}",
+      "erc1155_sent": "Sent NFT to {{address}}",
+      "erc721_received": "Received NFT from {{address}}",
+      "erc1155_received": "Received NFT from {{address}}",
+      "rocketpool_stake_completed": "Staked",
+      "rocketpool_unstake_completed": "Unstaking complete",
+      "lido_stake_completed": "Staked",
+      "lido_withdrawal_requested": "Unstaking requested",
+      "lido_withdrawal_completed": "Unstaking complete",
+      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+    },
+    "menu_item_description": {
+      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
+      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+    },
+    "modal": {
+      "title_sent": "Sent {{symbol}}",
+      "title_received": "Received {{symbol}}",
+      "title_unstake_requested": "Unstaking requested",
+      "title_untake_ready": "Withdrawl ready",
+      "title_stake": "Staked {{symbol}}",
+      "title_unstake_completed": "Unstaking completed",
+      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
+      "label_address_to": "To",
+      "label_address_from": "From",
+      "label_address_to_you": "To (You)",
+      "label_address_from_you": "From (You)",
+      "label_asset": "Asset",
+      "label_account": "Account",
+      "label_unstaking_requested": "Unstaking Requested",
+      "label_unstake_ready": "Withdrawl ready",
+      "label_staked": "Staked",
+      "label_received": "Received",
+      "label_unstaking_confirmed": "Unstaking Confirmed",
+      "label_swapped": "Swapped",
+      "label_to": "To"
+    },
     "received_from": "Gönderen: {{address}}",
     "nft_sent": "NFT alıcısı: {{address}}",
     "erc721_sent": "NFT alıcısı: {{address}}",
@@ -1997,6 +2048,8 @@
     "received_message": "Bu işlemi görüntülemek için dokunun",
     "received_payment_message": "{{amount}} DAI aldınız",
     "prompt_title": "Anlık Bildirimleri Etkinleştir",
+    "notifications_enabled_error_title": "Something went wrong",
+    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
     "prompt_desc": "MetaMask'ın ne zaman ETH aldığınızı veya işlemlerinizin ne zaman onaylandığını size bildirebilmesi için bildirimleri etkinleştirin.",
     "prompt_ok": "Evet",
     "prompt_cancel": "Hayır, teşekkürler",
@@ -2021,6 +2074,7 @@
       "1": "Cüzdan",
       "2": "Duyurular"
     },
+    "copied_to_clipboard": "Copied to clipboard",
     "address_copied_to_clipboard": "Adres hafıza panosuna kopyalandı",
     "transaction_id_copied_to_clipboard": "İşlem numarası hafıza panosuna kopyalandı",
     "activation_card": {
@@ -2652,6 +2706,7 @@
       "header": "İyileştirilmiş İşlem Koruması",
       "description_1": "Akıllı İşlemler ile daha yüksek başarı oranlarının, arkadan çalıştırma korumasının ve daha iyi görünürlüğün kilidini açın.",
       "description_2": "Sadece Ethereum'da mevcuttur. Dilediğiniz zaman ayarlar kısmında etkinleştirin veya devre dışı bırakın.",
+      "no_thanks": "No thanks",
       "primary_button": "Etkinleştir",
       "learn_more": "Daha fazla bilgi edinin.",
       "benefit_1_1": "%99,5 başarı oranı",
@@ -2849,6 +2904,15 @@
   "remember_me": {
     "enable_remember_me": "Beni Hatırla özelliğini aç",
     "enable_remember_me_description": "Beni Hatırla özelliği açıldığında telefonunuza erişimi olan herkes MetaMask hesabınıza erişim sağlayabilir."
+  },
+  "profile_sync": {
+    "title": "Profile Sync",
+    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
+    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
+    "enable_description2": " to learn more.",
+    "enable_privacy_link": "Learn how we protect your privacy",
+    "bottomSheetTurnOn": "Turning on Profile Sync",
+    "bottomSheetTurnOff": "Turning off Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "Beni Hatırla özelliğini kapatmak için şifrenizi girin",
@@ -3072,7 +3136,7 @@
   },
   "install_snap": {
     "title": "Bağlantı talebi",
-    "description": "{{origin}} wants to use {{snap}}.",
+    "description": "{{origin}}, {{snap}} kullanmak istiyor.",
     "permissions_request_title": "İzin talebi",
     "permissions_request_description": "{{origin}}, {{snap}} adlı snap'i yüklemek istiyor ve bu snap aşağıdaki izinleri talep ediyor.",
     "approve_permissions": "Onayla",
@@ -3121,5 +3185,8 @@
     "title": "Tahmini değişiklikler",
     "tooltip_description": "Tahmini değişiklikler bu işlemi gerçekleştirirseniz meydana gelebilecek değişikliklerdir. Bu bir garanti değil, sadece bir tahmindir.",
     "total_fiat": "Toplam = {{currency}}"
+  },
+  "common": {
+    "please_wait": "Please wait"
   }
 }
