@@ -115,12 +115,10 @@ describe('ConnectQRHardware', () => {
   const mockKeyringController = MockEngine.context.KeyringController;
   mockKeyringController.connectQRHardware.mockImplementation((page) => {
     switch (page) {
-      case 1:
-        // return account lists in next page.
+      case PAGINATION_OPERATIONS.GET_NEXT_PAGE:
         return Promise.resolve(mockPage1Accounts);
 
-      case -1:
-        // return account lists in previous page.
+      case PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE:
         return Promise.resolve(mockPage0Accounts);
 
       default:
