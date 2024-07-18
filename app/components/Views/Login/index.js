@@ -10,6 +10,7 @@ import {
   Image,
   InteractionManager,
   BackHandler,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import Text, {
   TextColor,
@@ -58,6 +59,7 @@ import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/S
 import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { downloadStateLogs } from '../../../util/logs';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -218,6 +220,10 @@ class Login extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Full state of the app
+     */
+    fullState: PropTypes.object,
   };
 
   state = {
@@ -486,6 +492,11 @@ class Login extends PureComponent {
     InteractionManager.runAfterInteractions(this.toggleDeleteModal);
   };
 
+  handleDownloadStateLogs = () => {
+    const { fullState } = this.props;
+    downloadStateLogs(fullState, false);
+  };
+
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -505,17 +516,23 @@ class Login extends PureComponent {
             style={styles.wrapper}
           >
             <View testID={LoginViewSelectors.CONTAINER}>
-              <View style={styles.foxWrapper}>
-                {Device.isAndroid() ? (
-                  <Image
-                    source={require('../../../images/fox.png')}
-                    style={styles.image}
-                    resizeMethod={'auto'}
-                  />
-                ) : (
-                  <AnimatedFox bgColor={colors.background.default} />
-                )}
-              </View>
+              <TouchableWithoutFeedback
+                onLongPress={this.handleDownloadStateLogs}
+                delayLongPress={10 * 1000} // 10 seconds
+                style={styles.foxWrapper}
+              >
+                <View style={styles.foxWrapper}>
+                  {Device.isAndroid() ? (
+                    <Image
+                      source={require('../../../images/fox.png')}
+                      style={styles.image}
+                      resizeMethod={'auto'}
+                    />
+                  ) : (
+                    <AnimatedFox bgColor={colors.background.default} />
+                  )}
+                </View>
+              </TouchableWithoutFeedback>
               <Text
                 style={styles.title}
                 testID={LoginViewSelectors.LOGIN_VIEW_TITLE_ID}
@@ -608,6 +625,7 @@ Login.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
+  fullState: state,
 });
 
 const mapDispatchToProps = (dispatch) => ({

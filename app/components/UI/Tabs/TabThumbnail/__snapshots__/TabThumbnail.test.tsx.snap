@@ -383,7 +383,7 @@ exports[`TabThumbnail should render correctly 1`] = `
                   "opacity": 0,
                 }
               }
-              testID="badge-network"
+              testID="badgenetwork"
             >
               <View
                 style={

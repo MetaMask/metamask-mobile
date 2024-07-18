@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "devDependencies": {
     "@babel/preset-env": "^7.22.6",
-    "@blockaid/ppom_release": "^1.4.8",
+    "@blockaid/ppom_release": "^1.4.9",
     "babel-loader": "^9.1.2",
     "binary-base64-loader": "^1.0.0",
     "buffer": "^6.0.3",
