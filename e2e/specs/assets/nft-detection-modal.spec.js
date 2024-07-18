@@ -1,5 +1,5 @@
 'use strict';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -44,7 +44,7 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
         await Assertions.checkIfVisible(NftDetectionModal.container);
         await NftDetectionModal.tapCancelButton();
         // Check that we are on the wallet screen
-        await WalletView.isVisible();
+        await Assertions.checkIfVisible(WalletView.container);
 
         // Go to NFTs tab and check that the banner is visible
         await WalletView.tapNftTab();
@@ -80,7 +80,7 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
         await Assertions.checkIfVisible(NftDetectionModal.container);
         await NftDetectionModal.tapAllowButton();
         // Check that we are on the wallet screen
-        await WalletView.isVisible();
+        await Assertions.checkIfVisible(WalletView.container);
 
         // Go to NFTs tab and check that the banner is NOT visible
         await WalletView.tapNftTab();

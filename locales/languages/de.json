@@ -5,8 +5,6 @@
     "deceptive_request_title": "Dies ist eine betrügerische Anfrage.",
     "failed_title": "Anfrage ist möglicherweise nicht sicher",
     "failed_description": "Aufgrund eines Fehlers wurde diese Anfrage vom Sicherheitsanbieter nicht überprüft. Gehen Sie mit Bedacht vor.",
-    "loading_title": "Suche nach Sicherheitsbenachrichtigungen ...",
-    "loading_complete_title": "Führen Sie immer Ihre eigene Due-Diligence-Prüfung durch, bevor Sie Anfragen genehmigen.",
     "malicious_domain_description": "Sie haben es mit einer bösartigen Domain zu tun. Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "other_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "raw_signature_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
@@ -613,6 +611,10 @@
     "remove_account_message": "Möchten Sie dieses Konto wirklich entfernen?",
     "no": "Nein",
     "yes_remove_it": "Ja, entfernen",
+    "remove_hardware_account": "Remove hardware account",
+    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_account_alert_remove_btn": "Remove",
+    "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "Konten",
     "connect_account_title": "Konto verbinden",
     "connect_accounts_title": "Konten verbinden",
@@ -668,8 +670,7 @@
     "hint_text": "Scannen Sie Ihre Keystone-Wallet, um",
     "purpose_connect": "verbinden",
     "purpose_sign": "die Transaktion zu bestätigen",
-    "select_accounts": "Ein Konto auswählen",
-    "please_wait": "Bitte warten"
+    "select_accounts": "Ein Konto auswählen"
   },
   "data_collection_modal": {
     "accept": "Okay",
@@ -682,6 +683,11 @@
     "forget": "Dieses Gerät entfernen"
   },
   "app_settings": {
+    "enabling_notifications": "Enabling notifications...",
+    "disabling_notifications": "Disabling notifications...",
+    "enabling_profile_sync": "Enabling profile syncing...",
+    "disabling_profile_sync": "Disabling profile syncing...",
+    "notifications_dismiss_modal": "Dismiss",
     "title": "Einstellungen",
     "current_conversion": "Basiswährung",
     "current_language": "Aktuelle Sprache",
@@ -805,7 +811,7 @@
     "security_desc": "Datenschutzeinstellungen, MetaMetrics, privater Schlüssel und geheime Wiederherstellungsphrase für die Wallet",
     "networks_title": "Netzwerke",
     "networks_default_title": "Standardnetzwerk",
-    "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
+    "network_delete": "Wenn Sie dieses Netzwerk löschen, müssen Sie es erneut hinzufügen, um Ihre Assets in diesem Netzwerk anzuzeigen",
     "networks_default_cta": "Dieses Netzwerk verwenden",
     "networks_desc": "Benutzerdefinierte RPC-Netzwerke hinzufügen und verwalten",
     "network_name_label": "Netzwerkname",
@@ -821,7 +827,7 @@
     "network_other_networks": "Sonstige Netzwerke",
     "network_rpc_networks": "RPC-Netzwerke",
     "network_add_network": "Netzwerk hinzufügen",
-    "network_add_custom_network": "Add a custom network",
+    "network_add_custom_network": "Benutzerdefiniertes Netzwerk hinzufügen",
     "network_add": "Hinzufügen",
     "network_save": "Speichern",
     "remove_network_title": "Möchten Sie dieses Netzwerk entfernen?",
@@ -996,7 +1002,7 @@
     "token_nft_ens_subheading": "Automatische Token-, NFT- und ENS-Erkennung",
     "security_check_subheading": "Sicherheitsprüfungen",
     "symbol_required": "Symbol ist erforderlich.",
-    "blockaid_desc": "This feature alerts you to malicious activity by actively reviewing transaction and signature requests.",
+    "blockaid_desc": "Diese Funktion warnt Sie durch die aktive Überprüfung von Transaktions- und Signaturanfragen vor bösartigen Aktivitäten.",
     "security_alerts": "Sicherheitsbenachrichtigungen",
     "security_alerts_desc": "Diese Funktion warnt Sie vor bösartigen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie Anfragen genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
@@ -1033,7 +1039,7 @@
     "cancel": "Stornieren",
     "loading": "Verbindung mit MetaMask wird hergestellt ...",
     "unkown_dapp": "DAPP-Name nicht verfügbar",
-    "unknown": "Unknown",
+    "unknown": "Unbekannt",
     "no_connections": "Keine Verbindungen",
     "no_connections_desc": "Wenn Sie ein Konto mit einer Website oder einer App verbinden, wird es hier angezeigt."
   },
@@ -1657,7 +1663,7 @@
     "network_currency_symbol": "Währungssymbol",
     "network_block_explorer_url": "Block-Explorer-URL",
     "search": "Suche nach einem zuvor hinzugefügten Netzwerk",
-    "search-short": "Search",
+    "search-short": "Suchen",
     "add": "Hinzufügen",
     "cancel": "Stornieren",
     "approve": "Genehmigen",
@@ -1665,9 +1671,9 @@
     "malicious_network_warning": "Ein betrügerischer Netzwerkanbieter kann bezüglich des Status der Blockchain täuschen und Ihre Netzwerkaktivitäten aufzeichnen. Fügen Sie nur vertrauenswürdige benutzerdefinierte Netzwerke hinzu.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "Netzwerkinformationen",
-    "additional_network_information_title": "Additional Networks Information",
+    "additional_network_information_title": "Zusätzliche Netzwerkinformationen",
     "network_warning_desc": "Diese Netzwerkverbindung ist von Dritten abhängig. Diese Verbindung kann unzuverlässig sein oder es Dritten ermöglichen, Aktivitäten zu verfolgen.",
-    "additonial_network_information_desc": "Some of these networks rely on third parties. The connections may be less reliable or enable third-parties to track activity.",
+    "additonial_network_information_desc": "Einige dieser Netzwerke werden von Dritten betrieben. Die Verbindungen können weniger zuverlässig sein oder Dritten die Verfolgung von Aktivitäten ermöglichen.",
     "learn_more": "Mehr erfahren",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Zu Netzwerk wechseln",
@@ -1956,7 +1962,7 @@
     "received": "Empfangen",
     "unstaked": "Unstaked",
     "to": "An",
-    "rate": "Preis (einschließlich Gebühren)",
+    "rate": "Rate (fees included)",
     "unstaking_requested": "Unstaking angefordert",
     "stake_completed": "Stake vervollständigt",
     "withdrawal_completed": "Abhebung abgeschlossen",
@@ -1966,6 +1972,49 @@
     "swap_completed": "Getauscht {{from}} für {{to}}",
     "swap": "Geswappt",
     "sent": "An {{address}} gesendet",
+    "menu_item_title": {
+      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
+      "erc20_sent": "Sent to {{address}}",
+      "erc20_received": "Received from {{address}}",
+      "eth_sent": "Sent to {{address}}",
+      "eth_received": "Received from {{address}}",
+      "erc721_sent": "Sent NFT to {{address}}",
+      "erc1155_sent": "Sent NFT to {{address}}",
+      "erc721_received": "Received NFT from {{address}}",
+      "erc1155_received": "Received NFT from {{address}}",
+      "rocketpool_stake_completed": "Staked",
+      "rocketpool_unstake_completed": "Unstaking complete",
+      "lido_stake_completed": "Staked",
+      "lido_withdrawal_requested": "Unstaking requested",
+      "lido_withdrawal_completed": "Unstaking complete",
+      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+    },
+    "menu_item_description": {
+      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
+      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+    },
+    "modal": {
+      "title_sent": "Sent {{symbol}}",
+      "title_received": "Received {{symbol}}",
+      "title_unstake_requested": "Unstaking requested",
+      "title_untake_ready": "Withdrawl ready",
+      "title_stake": "Staked {{symbol}}",
+      "title_unstake_completed": "Unstaking completed",
+      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
+      "label_address_to": "To",
+      "label_address_from": "From",
+      "label_address_to_you": "To (You)",
+      "label_address_from_you": "From (You)",
+      "label_asset": "Asset",
+      "label_account": "Account",
+      "label_unstaking_requested": "Unstaking Requested",
+      "label_unstake_ready": "Withdrawl ready",
+      "label_staked": "Staked",
+      "label_received": "Received",
+      "label_unstaking_confirmed": "Unstaking Confirmed",
+      "label_swapped": "Swapped",
+      "label_to": "To"
+    },
     "received_from": "Erhalten von {{address}}",
     "nft_sent": "NFT an {{address}} gesendet",
     "erc721_sent": "NFT an {{address}} gesendet",
@@ -1999,6 +2048,8 @@
     "received_message": "Zum Anzeigen dieser Transaktion tippen",
     "received_payment_message": "Sie haben {{amount}} DAI empfangen.",
     "prompt_title": "Push-Benachrichtigungen aktivieren",
+    "notifications_enabled_error_title": "Something went wrong",
+    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
     "prompt_desc": "Aktivieren Sie Benachrichtigungen, damit MetaMask Ihnen Bescheid geben kann, wenn Sie ETH erhalten oder wenn Ihre Transaktionen bestätigt werden.",
     "prompt_ok": "Ja",
     "prompt_cancel": "Nein, danke!",
@@ -2023,6 +2074,7 @@
       "1": "Wallet",
       "2": "Ankündigungen"
     },
+    "copied_to_clipboard": "Copied to clipboard",
     "address_copied_to_clipboard": "Adresse in die Zwischenablage kopiert",
     "transaction_id_copied_to_clipboard": "Transaktions-ID in die Zwischenablage kopiert",
     "activation_card": {
@@ -2654,7 +2706,7 @@
       "header": "Verbesserter Transaktionsschutz",
       "description_1": "Erzielen Sie mit Smart Transactions höhere Erfolgsraten, einen Frontrunning-Schutz und eine bessere Transparenz.",
       "description_2": "Nur auf Ethereum verfügbar. Sie können diese Funktion jederzeit in den Einstellungen aktivieren oder deaktivieren.",
-      "secondary_button": "In Einstellungen verwalten",
+      "no_thanks": "No thanks",
       "primary_button": "Aktivieren",
       "learn_more": "Erfahren Sie mehr.",
       "benefit_1_1": "Erfolgsrate:",
@@ -2852,6 +2904,15 @@
   "remember_me": {
     "enable_remember_me": "„Angemeldet bleiben“ aktivieren",
     "enable_remember_me_description": "Wenn „Angemeldet bleiben“ aktiviert ist, kann jeder, der Zugriff zu Ihrem Handy hat, auf Ihr MetaMask-Konto zugreifen."
+  },
+  "profile_sync": {
+    "title": "Profile Sync",
+    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
+    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
+    "enable_description2": " to learn more.",
+    "enable_privacy_link": "Learn how we protect your privacy",
+    "bottomSheetTurnOn": "Turning on Profile Sync",
+    "bottomSheetTurnOff": "Turning off Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "Geben Sie Ihr Passwort ein, um „Angemeldet bleiben“ zu deaktivieren.",
@@ -3075,7 +3136,7 @@
   },
   "install_snap": {
     "title": "Verbindungsanfrage",
-    "description": "{{origin}} wants to use {{snap}}.",
+    "description": "{{origin}} möchte {{snap}} verwenden.",
     "permissions_request_title": "Genehmigungsanfrage",
     "permissions_request_description": "{{origin}} möchte {{snap}} installieren, das die folgenden Genehmigungen anfordert.",
     "approve_permissions": "Genehmigen",
@@ -3124,5 +3185,8 @@
     "title": "Geschätzte Änderungen",
     "tooltip_description": "Die geschätzten Änderungen sind das, was passieren könnte, wenn Sie diese Transaktion durchführen. Dies ist nur eine Prognostizierung, keine Garantie.",
     "total_fiat": "Gesamt = {{currency}}"
+  },
+  "common": {
+    "please_wait": "Please wait"
   }
 }
