@@ -44,7 +44,6 @@ const createStyles = () =>
       overflow: 'hidden',
     },
     badgeWrapper: {
-      // position: 'relative',
       flex: 1,
     },
     badgeElement: {
@@ -53,18 +52,11 @@ const createStyles = () =>
       left: 5,
     },
     testImageStyle: {
-      // resizeMode: 'contain',
       width: '100%',
       height: '100%',
-      /*   width: 114,
-      height: 114,
-      borderRadius: 12, */
       borderRadius: 8,
     },
     detailedImageStyle: {
-      //   width: 'auto',
-      aspectRatio: 1,
-      height: 300,
       borderRadius: 8,
     },
     testImageContainer: {
@@ -194,8 +186,6 @@ const RemoteImage = (props) => {
             <View>
               <BadgeWrapper
                 isTokenImage
-                //  badgeElementStyle={styles.badgeElement}
-                //    badgeWrapperStyle={styles.badgeWrapper}
                 badgePosition={DEFAULT_BADGEWRAPPER_BADGEPOSITION}
                 anchorElementShape={BadgeAnchorElementShape.Rectangular}
                 badgeElement={
@@ -213,7 +203,7 @@ const RemoteImage = (props) => {
                     style={{
                       width: dimensions.width,
                       height: dimensions.height,
-                      borderRadius: 8,
+                      ...styles.detailedImageStyle,
                     }}
                   />
                 ) : (

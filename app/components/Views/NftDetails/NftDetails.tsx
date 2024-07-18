@@ -50,10 +50,16 @@ const NftDetails = () => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
   const selectedNativeConversionRate = useSelector(selectConversionRate);
-  const hasLastSalePrice = Boolean(collectible.lastSale?.price?.amount?.usd);
-  const hasFloorAskPrice = Boolean(
-    collectible.collection?.floorAsk?.price?.amount?.usd,
+  const hasLastSalePrice = Boolean(
+    collectible.lastSale?.price?.amount?.usd &&
+      collectible.lastSale?.price?.amount?.native,
   );
+  const hasFloorAskPrice = Boolean(
+    collectible.collection?.floorAsk?.price?.amount?.usd &&
+      collectible.collection?.floorAsk?.price?.amount?.native,
+  );
+  const hasOnlyContractAddress =
+    !hasLastSalePrice && !hasFloorAskPrice && !collectible?.rarityRank;
 
   const {
     styles,
@@ -102,7 +108,10 @@ const NftDetails = () => {
     });
   };
 
-  const copyAddressToClipboard = async (address: string) => {
+  const copyAddressToClipboard = async (address?: string) => {
+    if (!address) {
+      return;
+    }
     await ClipboardManager.setString(address);
     dispatch(
       showAlert({
@@ -356,14 +365,42 @@ const NftDetails = () => {
                 valueTextStyle={styles.generalInfoValueTextStyle}
               />
             ) : null}
-
-            <NftDetailsBox
-              titleTextStyle={styles.generalInfoTitleTextStyle}
-              titleStyle={styles.generalInfoTitleStyle}
-              valueStyle={styles.generalInfoValueStyle}
+            {hasLastSalePrice || hasFloorAskPrice || collectible?.rarityRank ? (
+              <NftDetailsBox
+                titleTextStyle={styles.generalInfoTitleTextStyle}
+                titleStyle={styles.generalInfoTitleStyle}
+                valueStyle={styles.generalInfoValueStyle}
+                title={strings('nft_details.contract_address')}
+                value={renderShortAddress(collectible.address)}
+                valueTextStyle={styles.generalInfoValueTextAddressStyle}
+                icon={
+                  <TouchableOpacity
+                    onPress={() => copyAddressToClipboard(collectible.address)}
+                  >
+                    <Icon
+                      name={IconName.Copy}
+                      size={IconSize.Xs}
+                      color={colors.primary.default}
+                    />
+                  </TouchableOpacity>
+                }
+                onValuePress={() => {
+                  navigation.navigate('Webview', {
+                    screen: 'SimpleWebview',
+                    params: {
+                      url: blockExplorerTokenLink(),
+                    },
+                  });
+                }}
+              />
+            ) : null}
+          </View>
+          {hasOnlyContractAddress ? (
+            <NftDetailsInformationRow
               title={strings('nft_details.contract_address')}
               value={renderShortAddress(collectible.address)}
-              valueTextStyle={styles.generalInfoValueTextAddressStyle}
+              titleStyle={styles.informationRowTitleStyle}
+              valueStyle={styles.informationRowValueAddressStyle}
               icon={
                 <TouchableOpacity
                   onPress={() => copyAddressToClipboard(collectible.address)}
@@ -376,15 +413,18 @@ const NftDetails = () => {
                 </TouchableOpacity>
               }
               onValuePress={() => {
-                navigation.navigate('Webview', {
-                  screen: 'SimpleWebview',
-                  params: {
-                    url: blockExplorerTokenLink(),
-                  },
-                });
+                if (collectible.collection?.creator) {
+                  navigation.navigate('Webview', {
+                    screen: 'SimpleWebview',
+                    params: {
+                      url: blockExplorerTokenLink(),
+                    },
+                  });
+                }
               }}
             />
-          </View>
+          ) : null}
+
           <NftDetailsInformationRow
             title={strings('nft_details.token_id')}
             value={collectible.tokenId}
@@ -448,7 +488,9 @@ const NftDetails = () => {
             }
             icon={
               <TouchableOpacity
-                onPress={() => copyAddressToClipboard(collectible.address)}
+                onPress={() =>
+                  copyAddressToClipboard(collectible?.collection?.creator)
+                }
               >
                 <Icon
                   name={IconName.Copy}

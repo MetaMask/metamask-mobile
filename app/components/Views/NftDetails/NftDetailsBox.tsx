@@ -39,6 +39,10 @@ const NftDetailsBox = (props: NftDetailsBoxProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  if (!value) {
+    return null;
+  }
+
   return (
     <View style={[styles.inputWrapper]}>
       <View style={titleStyle}>

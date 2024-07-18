@@ -22,8 +22,6 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   badgeElement,
   style,
   isTokenImage,
-  // badgeWrapperStyle,
-  // badgeElementStyle,
 }) => {
   const { size: containerSize, onLayout: onLayoutContainerSize } =
     useComponentSize();
