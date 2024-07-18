@@ -416,34 +416,160 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
     </View>
   </View>,
   <Modal
-    animationType="none"
-    deviceHeight={null}
-    deviceWidth={null}
-    hardwareAccelerated={false}
-    hideModalContentWhileAnimating={false}
+    backdropColor="#00000099"
+    backdropOpacity={1}
+    onBackButtonPress={[Function]}
     onBackdropPress={[Function]}
-    onModalHide={[Function]}
-    onModalWillHide={[Function]}
-    onModalWillShow={[Function]}
-    onRequestClose={[Function]}
     onSwipeComplete={[Function]}
-    panResponderThreshold={4}
-    scrollHorizontal={false}
-    scrollOffset={0}
-    scrollOffsetMax={0}
-    scrollTo={null}
-    statusBarTranslucent={false}
-    supportedOrientations={
-      [
-        "portrait",
-        "landscape",
-      ]
+    style={
+      {
+        "margin": 0,
+        "padding": 25,
+        "width": "100%",
+      }
     }
     swipeDirection="down"
-    swipeThreshold={100}
-    transparent={true}
-    visible={false}
-  />,
+  >
+    <RCTSafeAreaView
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 10,
+          "elevation": 11,
+          "justifyContent": "center",
+          "marginVertical": 50,
+          "shadowColor": "#0000001a",
+          "shadowOffset": {
+            "height": 2,
+            "width": 0,
+          },
+          "shadowOpacity": 1,
+          "shadowRadius": 8,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "color": "#141618",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "paddingHorizontal": 20,
+            "paddingVertical": 15,
+            "width": "100%",
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              [
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "marginVertical": 3,
+                },
+                undefined,
+                undefined,
+                undefined,
+              ],
+            ]
+          }
+        >
+          Check the recipient address
+        </Text>
+        <TouchableOpacity
+          hitSlop={
+            {
+              "bottom": 20,
+              "left": 20,
+              "right": 20,
+              "top": 20,
+            }
+          }
+          onPress={[Function]}
+        >
+          <Text
+            allowFontScaling={false}
+            style={
+              [
+                {
+                  "color": undefined,
+                  "fontSize": 30,
+                },
+                {
+                  "color": "#141618",
+                },
+                {
+                  "fontFamily": "Ionicons",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                {},
+              ]
+            }
+          >
+            
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "marginBottom": 15,
+            "paddingBottom": 5,
+            "paddingHorizontal": 20,
+            "width": "100%",
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#141618",
+              "lineHeight": 20,
+            }
+          }
+        >
+          We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam.
+        </Text>
+      </View>
+    </RCTSafeAreaView>
+  </Modal>,
 ]
 `;
 

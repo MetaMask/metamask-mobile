@@ -11,6 +11,14 @@ import Engine from '../../../core/Engine';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
+jest.mock('react-native-modal', () => {
+  const React = require('react');
+  const Modal = ({ children, ...props }: { children: React.ReactNode; [key: string]: any }) => {
+    return React.createElement('Modal', props, children);
+  };
+  return Modal;
+});
+
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
 
@@ -27,10 +35,10 @@ const mockInitialState = {
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {
-            balance: 200,
+            balance: '200',
           },
           [MOCK_ADDRESS_2]: {
-            balance: 200,
+            balance: '200',
           },
         },
       },
@@ -236,13 +244,28 @@ describe('AccountFromToInfoCard', () => {
         value: '3a98',
       },
     };
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let mockGetERC20BalanceOf: any;
+    let mockGetERC20BalanceOf: jest.Mock;
     beforeEach(() => {
       jest.useFakeTimers();
       mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
       Engine.context.AssetsContractController = {
+        name: 'AssetsContractController',
+        getNetworkClientById: jest.fn(),
+        // Mocking only the methods used in the component or test
+        provider: {
+          sendAsync: jest.fn(),
+          send: jest.fn(),
+          emit: jest.fn(),
+          on: jest.fn(),
+          once: jest.fn(),
+          removeListener: jest.fn(),
+          removeAllListeners: jest.fn(),
+          addListener: jest.fn(),
+          off: jest.fn(),
+          listenerCount: jest.fn(),
+          listeners: jest.fn(),
+        },
+        getProvider: jest.fn(),
         getERC20BalanceOf: mockGetERC20BalanceOf,
       };
     });
