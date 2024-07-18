@@ -2652,7 +2652,6 @@
       "header": "Proteção de transações aprimorada",
       "description_1": "Desbloqueie taxas de sucesso maiores, proteção contra front running e melhor visibilidade com as transações inteligentes.",
       "description_2": "Disponível somente na Ethereum. Ative ou desative a qualquer momento nas configurações.",
-      "secondary_button": "Gerenciar nas configurações",
       "primary_button": "Ativar",
       "learn_more": "Saiba mais.",
       "benefit_1_1": "99,5% de taxa de",

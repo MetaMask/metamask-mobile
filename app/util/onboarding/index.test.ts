@@ -25,50 +25,66 @@ describe('shouldShowSmartTransactionOptInModal', () => {
     (store.getState as jest.Mock).mockClear();
   });
 
+  it('returns true if a user has not seen the modal, is on Ethereum mainnet with default RPC URL and has non-zero balance', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('7.24.0'); // currentAppVersion
+    (store.getState as jest.Mock).mockReturnValueOnce(getMockState(null)); // versionSeen
+
+    const result = await shouldShowSmartTransactionsOptInModal(
+      NETWORKS_CHAIN_ID.MAINNET,
+      undefined,
+      false,
+    );
+    expect(result).toBe(true);
+  });
+
   test.each([
     [NETWORKS_CHAIN_ID.MAINNET, 'http://mainnet-url.example.com'],
     [NETWORKS_CHAIN_ID.ARBITRUM, 'http://arbitrum-url.example.com'],
   ])(
-    `should return false if chainId not ${NETWORKS_CHAIN_ID.MAINNET} or providerConfigRpcUrl is defined`,
+    `returns false if chainId is not ${NETWORKS_CHAIN_ID.MAINNET} or providerConfigRpcUrl is defined`,
     async (chainId, rpcUrl) => {
       const result = await shouldShowSmartTransactionsOptInModal(
         chainId,
         rpcUrl,
+        false,
       );
       expect(result).toBe(false);
     },
   );
 
-  it('should return false if user has seen the modal', async () => {
+  it('returns false if user has seen the modal', async () => {
     (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('7.24.0'); // currentAppVersion
     (store.getState as jest.Mock).mockReturnValueOnce(getMockState('7.24.0')); // versionSeen
 
     const result = await shouldShowSmartTransactionsOptInModal(
       NETWORKS_CHAIN_ID.MAINNET,
       undefined,
+      false,
     );
     expect(result).toBe(false);
   });
 
-  it('should return false if app version is not correct', async () => {
+  it('returns false if app version is not correct', async () => {
     (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('7.0.0'); // currentAppVersion
     (store.getState as jest.Mock).mockReturnValueOnce(getMockState(null)); // versionSeen
 
     const result = await shouldShowSmartTransactionsOptInModal(
       NETWORKS_CHAIN_ID.MAINNET,
       undefined,
+      false,
     );
     expect(result).toBe(false);
   });
 
-  it('should return true if has not seen and is on mainnet with default RPC url', async () => {
+  it('returns false if a user has 0 balance on Ethereum Mainnet with default RPC URL', async () => {
     (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('7.24.0'); // currentAppVersion
     (store.getState as jest.Mock).mockReturnValueOnce(getMockState(null)); // versionSeen
 
     const result = await shouldShowSmartTransactionsOptInModal(
       NETWORKS_CHAIN_ID.MAINNET,
       undefined,
+      true,
     );
-    expect(result).toBe(true);
+    expect(result).toBe(false);
   });
 });

@@ -2652,7 +2652,6 @@
       "header": "Pinahusay na Proteksyon sa Transaksyon",
       "description_1": "I-unlock ang mas mataas na tiyansa ng tagumpay, proteksyon sa frontrunning, at mas mahusay na visibility sa mga Smart Transaction.",
       "description_2": "Available lamang sa Ethereum. I-enable o i-disable anumang oras sa mga setting.",
-      "secondary_button": "Pamahalaan sa mga setting",
       "primary_button": "I-enable",
       "learn_more": "Matuto pa.",
       "benefit_1_1": "99.5% tagumpay",
