@@ -101,7 +101,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
           <View style={styles.imageFallBackTextContainer}>
             <Text style={styles.imageFallBackText}>
               {collectible.tokenId
-                ? ` #${formatTokenId(collectible.tokenId)}`
+                ? ` #${formatTokenId(parseInt(collectible.tokenId, 10))}`
                 : ''}
             </Text>
           </View>
@@ -141,7 +141,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             style={tiny ? styles.textWrapperIcon : styles.textWrapper}
           >
             {collectible.tokenId
-              ? ` #${formatTokenId(collectible.tokenId)}`
+              ? ` #${formatTokenId(parseInt(collectible.tokenId, 10))}`
               : ''}
           </Text>
         </View>

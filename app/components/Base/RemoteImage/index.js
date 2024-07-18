@@ -1,6 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Image, ViewPropTypes, View, StyleSheet } from 'react-native';
+import {
+  Image,
+  ViewPropTypes,
+  View,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 // eslint-disable-next-line import/default
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
@@ -93,6 +99,42 @@ const RemoteImage = (props) => {
 
   const onError = ({ nativeEvent: { error } }) => setError(error);
 
+  const [dimensions, setDimensions] = useState(null);
+
+  useEffect(() => {
+    const calculateImageDimensions = (imageWidth, imageHeight) => {
+      const deviceWidth = Dimensions.get('window').width;
+      const maxWidth = deviceWidth - 32;
+      const maxHeight = 0.75 * maxWidth;
+
+      if (imageWidth > imageHeight) {
+        // Horizontal image
+        const width = maxWidth;
+        const height = (imageHeight / imageWidth) * maxWidth;
+        return { width, height };
+      } else if (imageHeight > imageWidth) {
+        // Vertical image
+        const height = maxHeight;
+        const width = (imageWidth / imageHeight) * maxHeight;
+        return { width, height };
+      }
+      // Square image
+      return { width: maxHeight, height: maxHeight };
+    };
+
+    Image.getSize(
+      uri,
+      (width, height) => {
+        const { width: calculatedWidth, height: calculatedHeight } =
+          calculateImageDimensions(width, height);
+        setDimensions({ width: calculatedWidth, height: calculatedHeight });
+      },
+      () => {
+        console.error('Failed to get image dimensions');
+      },
+    );
+  }, [uri]);
+
   const NetworkBadgeSource = () => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
@@ -161,18 +203,30 @@ const RemoteImage = (props) => {
                     variant={BadgeVariant.Network}
                     imageSource={NetworkBadgeSource()}
                     name={networkName}
+                    isScaled
                   />
                 }
               >
-                <View style={style}>
+                {props.isFullRatio && dimensions ? (
                   <Image
-                    style={styles.testImageStyle}
-                    {...restProps}
                     source={{ uri }}
-                    onError={onError}
-                    resizeMode={'cover'}
+                    style={{
+                      width: dimensions.width,
+                      height: dimensions.height,
+                      borderRadius: 8,
+                    }}
                   />
-                </View>
+                ) : (
+                  <View style={style}>
+                    <Image
+                      style={styles.testImageStyle}
+                      {...restProps}
+                      source={{ uri }}
+                      onError={onError}
+                      resizeMode={'cover'}
+                    />
+                  </View>
+                )}
               </BadgeWrapper>
             </View>
           </FadeIn>

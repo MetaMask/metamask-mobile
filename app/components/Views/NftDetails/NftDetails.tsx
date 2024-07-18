@@ -84,10 +84,8 @@ const NftDetails = () => {
   const viewHighestFloorPriceSource = () => {
     const url =
       hasFloorAskPrice &&
-      (Boolean(collectible?.collection?.floorAsk?.source?.url) ||
-        Boolean(collectible?.collection?.floorAsk?.sourceDomain))
-        ? collectible?.collection?.floorAsk?.source?.url ||
-          collectible?.collection?.floorAsk?.sourceDomain
+      Boolean(collectible?.collection?.floorAsk?.source?.url)
+        ? collectible?.collection?.floorAsk?.source?.url
         : undefined;
 
     navigation.navigate('Webview', {
@@ -148,7 +146,10 @@ const NftDetails = () => {
   );
 
   const getCurrentHighestBidValue = () => {
-    if (collectible?.topBid?.price && collectible.collection?.topBid?.price) {
+    if (
+      collectible?.topBid?.price?.amount?.native &&
+      collectible.collection?.topBid?.price?.amount?.native
+    ) {
       // return the max between collection top Bid and token topBid
       const topBidValue = Math.max(
         collectible?.topBid?.price?.amount?.native,
@@ -161,7 +162,7 @@ const NftDetails = () => {
       collectible.topBid?.price?.amount?.native ||
       collectible.collection?.topBid?.price?.amount?.native;
     if (!topBidValue) {
-      return undefined;
+      return null;
     }
     return `${topBidValue}${ticker}`;
   };
@@ -282,7 +283,7 @@ const NftDetails = () => {
                   title={strings('nft_details.bought_for')}
                   value={
                     collectible.lastSale?.price?.amount?.native &&
-                    collectible.lastSale?.price?.amount?.native
+                    collectible.lastSale?.price?.amount?.usd
                       ? getValueInFormattedCurrency(
                           collectible.lastSale?.price?.amount?.native,
                           collectible.lastSale?.price?.amount?.usd,
@@ -437,7 +438,7 @@ const NftDetails = () => {
             value={
               collectible?.collection?.creator
                 ? renderShortAddress(collectible?.collection?.creator)
-                : undefined
+                : null
             }
             titleStyle={styles.informationRowTitleStyle}
             valueStyle={
@@ -474,7 +475,7 @@ const NftDetails = () => {
             value={
               collectible.lastSale?.timestamp
                 ? getFormattedDate(collectible.lastSale?.timestamp)
-                : undefined
+                : null
             }
             titleStyle={styles.informationRowTitleStyle}
             valueStyle={styles.informationRowValueStyle}

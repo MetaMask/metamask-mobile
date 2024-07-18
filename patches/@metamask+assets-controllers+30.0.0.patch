@@ -24,7 +24,7 @@ index 0dc70ec..461a210 100644
      };
      return acc;
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js b/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
-index ee6155c..addfe1e 100644
+index ee6155c..06a3a04 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
 @@ -1,12 +1,16 @@
@@ -842,18 +842,34 @@ index 2f1b66f..60cbc0f 100644
            ...marketData
          };
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
-index 42a321a..1393ca3 100644
+index 42a321a..b4554f5 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
-@@ -109,6 +109,7 @@ export interface NftMetadata {
+@@ -8,7 +8,7 @@ import type { Hex } from '@metamask/utils';
+ import { EventEmitter } from 'events';
+ import type { AssetsContractController } from './AssetsContractController';
+ import { Source } from './constants';
+-import type { Collection, Attributes, LastSale } from './NftDetectionController';
++import type { Collection, Attributes, LastSale, TopBid } from './NftDetectionController';
+ type NFTStandardType = 'ERC721' | 'ERC1155';
+ type SuggestedNftMeta = {
+     asset: {
+@@ -109,11 +109,13 @@ export interface NftMetadata {
      creator?: string;
      transactionId?: string;
      tokenURI?: string | null;
 +    error?: string;
      collection?: Collection;
      address?: string;
-     attributes?: Attributes;
-@@ -125,7 +126,7 @@ export interface NftConfig extends BaseConfig {
+-    attributes?: Attributes;
++    attributes?: Attributes[];
+     lastSale?: LastSale;
+     rarityRank?: string;
++    topBid?: TopBid;
+ }
+ /**
+  * @type NftConfig
+@@ -125,7 +127,7 @@ export interface NftConfig extends BaseConfig {
      selectedAddress: string;
      chainId: Hex;
      ipfsGateway: string;
@@ -862,7 +878,7 @@ index 42a321a..1393ca3 100644
      useIPFSSubdomains: boolean;
      isIpfsGatewayEnabled: boolean;
  }
-@@ -350,7 +351,7 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
+@@ -350,7 +352,7 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
              source: string;
          }) => void;
          messenger: NftControllerMessenger;
@@ -871,6 +887,67 @@ index 42a321a..1393ca3 100644
      private validateWatchNft;
      private getCorrectChainId;
      /**
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftDetectionController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftDetectionController.d.ts
+index 9016c5f..a24805e 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/NftDetectionController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/NftDetectionController.d.ts
+@@ -234,7 +234,42 @@ export type Attributes = {
+     topBidValue?: number | null;
+     createdAt?: string;
+ };
+-export type Collection = {
++export type GetCollectionsResponse = {
++    collections: CollectionResponse[];
++  };
++  
++export type CollectionResponse = {
++    id?: string;
++    openseaVerificationStatus?: string;
++    contractDeployedAt?: string;
++    creator?: string;
++    ownerCount?: string;
++    topBid?: TopBid & {
++      sourceDomain?: string;
++    };
++};
++
++export type FloorAskCollection = {
++    id?: string;
++    price?: Price;
++    maker?: string;
++    kind?: string;
++    validFrom?: number;
++    validUntil?: number;
++    source?: SourceCollection;
++    rawData?: Metadata;
++    isNativeOffChainCancellable?: boolean;
++};
++  
++export type SourceCollection = {
++    id: string;
++    domain: string;
++    name: string;
++    icon: string;
++    url: string;
++};
++
++export type TokenCollection = {
+     id?: string;
+     name?: string;
+     slug?: string;
+@@ -250,7 +285,11 @@ export type Collection = {
+     floorAskPrice?: Price;
+     royaltiesBps?: number;
+     royalties?: Royalties[];
+-};
++    floorAsk?: FloorAskCollection;
++  };
++  
++export type Collection = TokenCollection & CollectionResponse;
++
+ export type Royalties = {
+     bps?: number;
+     recipient?: string;
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts
 index 52bb3ac..1f4d15d 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts

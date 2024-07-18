@@ -1,3 +1,4 @@
+import { Nft } from '@metamask/assets-controllers';
 import { ViewStyle } from 'react-native';
 
 interface Attribute {
@@ -91,7 +92,7 @@ export interface Collectible {
 }
 
 export interface CollectibleMediaProps {
-  collectible: Collectible;
+  collectible: Nft;
   tiny?: boolean;
   small?: boolean;
   big?: boolean;
