@@ -78,9 +78,7 @@ describe('SmartTransactionsOptInModal', () => {
     const primaryButton = getByText(strings('whats_new.stx.primary_button'));
     expect(primaryButton).toBeDefined();
 
-    const secondaryButton = getByText(
-      strings('whats_new.stx.no_thanks'),
-    );
+    const secondaryButton = getByText(strings('whats_new.stx.no_thanks'));
     expect(secondaryButton).toBeDefined();
   });
 
@@ -102,9 +100,7 @@ describe('SmartTransactionsOptInModal', () => {
       state: initialState,
     });
 
-    const secondaryButton = getByText(
-      strings('whats_new.stx.no_thanks'),
-    );
+    const secondaryButton = getByText(strings('whats_new.stx.no_thanks'));
     fireEvent.press(secondaryButton);
 
     expect(
@@ -128,9 +124,7 @@ describe('SmartTransactionsOptInModal', () => {
       state: initialState,
     });
 
-    const secondaryButton = getByText(
-      strings('whats_new.stx.no_thanks'),
-    );
+    const secondaryButton = getByText(strings('whats_new.stx.no_thanks'));
     fireEvent.press(secondaryButton);
 
     expect(updateOptInModalAppVersionSeen).toHaveBeenCalledWith(VERSION);
