@@ -729,7 +729,7 @@ workflows:
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}--{{ getenv "BRANCH_COMMIT_HASH" }}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
