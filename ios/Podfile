@@ -69,7 +69,7 @@ def common_target_logic
     # Upcoming versions of React Native may rely on get_default_flags(), but
     # we make it explicit here to aid in the React Native upgrade process.
     #:hermes_enabled => flags[:hermes_enabled],
-    :hermes_enabled => false,
+    :hermes_enabled => true,
     :fabric_enabled => flags[:fabric_enabled],
     # Enables Flipper.
     #
