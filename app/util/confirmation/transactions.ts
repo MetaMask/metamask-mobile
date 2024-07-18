@@ -44,7 +44,7 @@ export function buildTransactionParams({
       suggestedMaxPriorityFeePerGasHex,
     } = gasDataEIP1559;
 
-    transactionParams.gas = gasLimitHex;
+    transactionParams.gas = addHexPrefix(gasLimitHex);
     transactionParams.gasPrice = undefined;
     transactionParams.maxFeePerGas = addHexPrefix(suggestedMaxFeePerGasHex);
     transactionParams.maxPriorityFeePerGas = addHexPrefix(
@@ -54,7 +54,7 @@ export function buildTransactionParams({
   } else {
     const { suggestedGasLimitHex, suggestedGasPriceHex } = gasDataLegacy;
 
-    transactionParams.gas = suggestedGasLimitHex;
+    transactionParams.gas = addHexPrefix(suggestedGasLimitHex);
     transactionParams.gasPrice = addHexPrefix(suggestedGasPriceHex);
     transactionParams.maxFeePerGas = undefined;
     transactionParams.maxPriorityFeePerGas = undefined;
