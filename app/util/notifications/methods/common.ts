@@ -2,18 +2,11 @@ import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
 import Engine from '../../../core/Engine';
-import { BigNumber } from 'bignumber.js';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import images from '../../../images/image-icons';
 import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
-import { calcTokenAmount } from '../../transactions';
 import { TRIGGER_TYPES } from '../constants';
 import { Notification } from '../types';
-
-const { UI } = NotificationServicesController;
-
-type NotificationChains =
-  (typeof UI.NOTIFICATION_CHAINS_ID)[keyof typeof UI.NOTIFICATION_CHAINS_ID];
+import BigNumber from 'bignumber.js';
 
 /**
  * Checks if 2 date objects are on the same day
@@ -91,6 +84,22 @@ export function formatMenuItemDate(date: Date) {
     day: 'numeric',
   }).format(date);
 }
+/**
+ * Generates a unique key based on the provided text, index, and a random string.
+ *
+ * @param text - The text to be included in the key.
+ * @param index - The index to be included in the key.
+ * @returns The generated unique key.
+ */
+export const getRandomKey = (text: string, index: number) => {
+  const key = `${text
+    .replace(/\s+/gu, '_')
+    .replace(/[^\w-]/gu, '')}-${index}-${Math.random()
+    .toString(36)
+    .substring(2, 15)}`;
+
+  return key;
+};
 
 interface FormatOptions {
   decimalPlaces?: number;
@@ -130,6 +139,7 @@ export const getLeadingZeroCount = (num: number | string) => {
  * @param opts
  * @returns
  */
+
 export const formatAmount = (numericAmount: number, opts?: FormatOptions) => {
   // create options with defaults
   const options = { ...defaultFormatOptions, ...opts };
@@ -165,184 +175,6 @@ export const formatAmount = (numericAmount: number, opts?: FormatOptions) => {
   // Default to showing the raw amount
   return numericAmount.toString();
 };
-
-/**
- * Generates a unique key based on the provided text, index, and a random string.
- *
- * @param text - The text to be included in the key.
- * @param index - The index to be included in the key.
- * @returns The generated unique key.
- */
-export const getRandomKey = (text: string, index: number) => {
-  const key = `${text
-    .replace(/\s+/gu, '_')
-    .replace(/[^\w-]/gu, '')}-${index}-${Math.random()
-    .toString(36)
-    .substring(2, 15)}`;
-
-  return key;
-};
-
-/**
- * Converts a token amount from its smallest unit based on its decimals to a human-readable format,
- * applying formatting options such as decimal places and ellipsis for overflow.
- *
- * @param amount - The token amount in its smallest unit as a string.
- * @param decimals - The number of decimals the token uses.
- * @param options - Optional formatting options to specify the number of decimal places and whether to use ellipsis.
- * @returns The formatted token amount as a string. If the input is invalid, returns an empty string.
- */
-export const getAmount = (
-  amount: string,
-  decimals: string,
-  options?: FormatOptions,
-) => {
-  if (!amount || !decimals) {
-    return '';
-  }
-
-  const numericAmount = calcTokenAmount(
-    amount,
-    parseFloat(decimals),
-  ).toNumber();
-
-  return formatAmount(numericAmount, options);
-};
-
-/**
- * Converts a token amount and its USD conversion rate to a formatted USD string.
- *
- * This function first converts the token amount from its smallest unit based on the provided decimals
- * to a human-readable format. It then multiplies this amount by the USD conversion rate to get the
- * equivalent amount in USD, and formats this USD amount into a readable string.
- *
- * @param amount - The token amount in its smallest unit as a string.
- * @param decimals - The number of decimals the token uses.
- * @param usd - The current USD conversion rate for the token.
- * @returns The formatted USD amount as a string. If any input is invalid, returns an empty string.
- */
-export const getUsdAmount = (amount: string, decimals: string, usd: string) => {
-  if (!amount || !decimals || !usd) {
-    return '';
-  }
-
-  const amountInEther = calcTokenAmount(
-    amount,
-    parseFloat(decimals),
-  ).toNumber();
-  const numericAmount = parseFloat(`${amountInEther}`) * parseFloat(usd);
-
-  return formatAmount(numericAmount);
-};
-
-/**
- * Retrieves the network name associated with a given chain ID.
- *
- * This function looks up the chain ID in a predefined map (`NETWORK_TO_NAME_MAP`)
- * to find the corresponding network name. If the chain ID is not found, it returns undefined.
- *
- * @param chainId - The chain ID for which the network name is required.
- * @returns The name of the network as a string, or undefined if the chain ID is not recognized.
- */
-export const getNetworkNameByChainId = (
-  chainId: number | string,
-): string | undefined =>
-  UI.NOTIFICATION_NETWORK_CURRENCY_NAME[
-    chainId.toString() as NotificationChains
-  ] || undefined;
-
-/**
- * Gets token information for the notification chains we support.
- * @param chainId Notification Chain Id. This is a subset of chains that support notifications
- * @returns native token details for a given chain
- */
-export function getNativeTokenDetailsByChainId(chainId: number) {
-  const chainIdString = chainId.toString();
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ETHEREUM) {
-    return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.ETHEREUM,
-    };
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.OPTIMISM) {
-    return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.OPTIMISM,
-    };
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.BSC) {
-    return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.BNB,
-    };
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.POLYGON) {
-    return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.MATIC,
-    };
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
-    return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.AETH,
-    };
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.AVALANCHE) {
-    return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.AVAX,
-    };
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.LINEA) {
-    return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images['LINEA-MAINNET'],
-    };
-  }
-
-  return undefined;
-}
-
-/**
- * Gets block explorer information for the notification chains we support
- * @param chainId Notification Chain Id. This is a subset of chains that support notifications
- * @returns some default block explorers for the chains we support.
- */
-export function getBlockExplorerByChainId(chainId: number) {
-  const chainIdString = chainId.toString();
-
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ETHEREUM) {
-    return 'https://etherscan.io';
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.OPTIMISM) {
-    return 'https://optimistic.etherscan.io';
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.BSC) {
-    return 'https://bscscan.com';
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.POLYGON) {
-    return 'https://polygonscan.com';
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
-    return 'https://arbiscan.io';
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.AVALANCHE) {
-    return 'https://snowtrace.io';
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.LINEA) {
-    return 'https://lineascan.build';
-  }
-
-  return undefined;
-}
 
 export function hasNetworkFeeFields(
   notification: NotificationServicesController.Types.OnChainRawNotification,
