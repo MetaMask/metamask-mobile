@@ -604,7 +604,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
         portfolioUrl.searchParams.append('metamaskEntry', 'mobile');
 
-        // Append privacy settings for metrics and marketing on user navigation to Portfolio.
+        // Append user's privacy preferences for metrics + marketing on user navigation to Portfolio.
         portfolioUrl.searchParams.append(
           'metricsEnabled',
           String(analyticsEnabled),
