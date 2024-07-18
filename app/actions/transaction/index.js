@@ -144,41 +144,6 @@ export function setEtherTransaction(transaction) {
   };
 }
 
-/**
- * Enable individual ERC20 asset only to send in a transaction
- *
- * @param {object} token - Token object to be sent
- */
-export function setIndividualTokenTransaction(token) {
-  return {
-    token,
-  };
-}
-
-/**
- * Enable individual ERC721 asset only to send in a transaction
- *
- * @param {object} collectible - Collectible object to be sent
- */
-export function setIndividualCollectibleTransaction(collectible) {
-  return {
-    type: 'SET_INDIVIDUAL_COLLECTIBLE_TRANSACTION',
-    collectible,
-  };
-}
-
-/**
- * Enable selectable ERC721 assets who's current account is owner of a specific contract to be sent in a transaction
- *
- * @param {object} collectible - Collectible of the type contract collectible that the user wants to send
- */
-export function setCollectibleContractTransaction(collectible) {
-  return {
-    type: 'SET_COLLECTIBLE_CONTRACT_TRANSACTION',
-    collectible,
-  };
-}
-
 export function setNonce(nonce) {
   return {
     type: 'SET_NONCE',

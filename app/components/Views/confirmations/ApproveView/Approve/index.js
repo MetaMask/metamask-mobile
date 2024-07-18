@@ -21,13 +21,7 @@ import {
   setProposedNonce,
 } from '../../../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { BNToHex } from '@metamask/controller-utils';
-import {
-  addHexPrefix,
-  fromWei,
-  renderFromWei,
-  hexToBN,
-} from '../../../../../util/number';
+import { fromWei, renderFromWei, hexToBN } from '../../../../../util/number';
 import {
   getNormalizedTxState,
   getTicker,
@@ -77,6 +71,7 @@ import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransacti
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
+import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -431,39 +426,21 @@ class Approve extends PureComponent {
     return error;
   };
 
-  prepareTransaction = (transaction) => {
-    const { gasEstimateType, showCustomNonce } = this.props;
-    const { legacyGasTransaction, eip1559GasTransaction } = this.state;
-    const transactionToSend = {
-      ...transaction,
-      value: BNToHex(transaction.value),
-      to: safeToChecksumAddress(transaction.to),
-      from: safeToChecksumAddress(transaction.from),
-    };
+  prepareTransaction = () => {
+    const { gasEstimateType, showCustomNonce, transaction } = this.props;
 
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = eip1559GasTransaction.gasLimitHex;
-      transactionToSend.maxFeePerGas = addHexPrefix(
-        eip1559GasTransaction.suggestedMaxFeePerGasHex,
-      ); //'0x2540be400'
-      transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        eip1559GasTransaction.suggestedMaxPriorityFeePerGasHex,
-      ); //'0x3b9aca00';
-      transactionToSend.gasPrice = undefined;
-    } else {
-      transactionToSend.gas = legacyGasTransaction.suggestedGasLimitHex;
-      transactionToSend.gasPrice = addHexPrefix(
-        legacyGasTransaction.suggestedGasPriceHex,
-      );
-      transactionToSend.maxFeePerGas = undefined;
-      transactionToSend.maxPriorityFeePerGas = undefined;
-    }
+    const {
+      legacyGasTransaction: gasDataLegacy,
+      eip1559GasTransaction: gasDataEIP1559,
+    } = this.state;
 
-    if (showCustomNonce && transactionToSend.nonce) {
-      transactionToSend.nonce = BNToHex(transactionToSend.nonce);
-    }
-
-    return transactionToSend;
+    return buildTransactionParams({
+      gasDataEIP1559,
+      gasDataLegacy,
+      gasEstimateType,
+      showCustomNonce,
+      transaction,
+    });
   };
 
   getAnalyticsParams = () => {
@@ -533,7 +510,7 @@ class Approve extends PureComponent {
     this.setState({ transactionConfirmed: true });
 
     try {
-      const transaction = this.prepareTransaction(this.props.transaction);
+      const transaction = this.prepareTransaction();
       const isLedgerAccount = isHardwareAccount(transaction.from, [
         ExtendedKeyringTypes.ledger,
       ]);

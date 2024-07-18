@@ -115,7 +115,6 @@ const transactionReducer = (state = initialState, action) => {
       const assetType = getAssetType(selectedAsset);
       return {
         ...state,
-        type: 'TOKENS_TRANSACTION',
         selectedAsset: action.asset,
         assetType,
       };
@@ -128,25 +127,6 @@ const transactionReducer = (state = initialState, action) => {
         selectedAsset: { isETH: true, symbol: 'ETH' },
         ...getTxMeta(action.transaction),
         transaction: getTxData(action.transaction),
-      };
-    case 'SET_INDIVIDUAL_TOKEN_TRANSACTION':
-      return {
-        ...state,
-        selectedAsset: action.token,
-      };
-    case 'SET_INDIVIDUAL_COLLECTIBLE_TRANSACTION':
-      return {
-        ...state,
-        selectedAsset: action.collectible,
-        assetType: 'ERC721',
-        type: 'INDIVIDUAL_COLLECTIBLE_TRANSACTION',
-      };
-    case 'SET_COLLECTIBLE_CONTRACT_TRANSACTION':
-      return {
-        ...state,
-        selectedAsset: action.collectible,
-        assetType: 'ERC721',
-        type: 'CONTRACT_COLLECTIBLE_TRANSACTION',
       };
     case 'SET_TRANSACTION_SECURITY_ALERT_RESPONSE': {
       const { transactionId, securityAlertResponse } = action;
