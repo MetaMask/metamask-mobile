@@ -160,7 +160,7 @@ const SRPQuiz = () => {
           content: strings('srp_security_quiz.question_one.right_answer_title'),
           style: styles.rightText,
           testID:
-            SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_RIGHT_ANSWER_TITLE,
+            SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_RIGHT_ANSWER_RESPONSE_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_one.right_answer_description',
@@ -194,7 +194,7 @@ const SRPQuiz = () => {
           content: strings('srp_security_quiz.question_one.wrong_answer_title'),
           style: styles.wrongText,
           testID:
-            SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_WRONG_ANSWER,
+            SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_WRONG_ANSWER_RESPONSE_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_one.wrong_answer_description',
@@ -262,7 +262,7 @@ const SRPQuiz = () => {
           content: strings('srp_security_quiz.question_two.right_answer_title'),
           style: styles.rightText,
           testID:
-            SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_RIGHT_ANSWER_TITLE,
+            SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_RIGHT_ANSWER_RESPONSE_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_two.right_answer_description',
@@ -301,7 +301,7 @@ const SRPQuiz = () => {
           content: strings('srp_security_quiz.question_two.wrong_answer_title'),
           style: styles.wrongText,
           testID:
-            SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_WRONG_ANSWER_TITLE,
+            SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_WRONG_ANSWER_RESPONSE_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_two.wrong_answer_description',

@@ -42,28 +42,50 @@ describe(SmokeAccounts('Secret Recovery Phrase Quiz'), () => {
         await SecurityQuizModal.tapGetStartedButton();
 
         // Question 1
+        await Assertions.checkIfVisible(SecurityQuizModal.getQuizQuestionOne);
         await SecurityQuizModal.tapQuestionOneWrongAnswerButton();
         await Assertions.checkIfTextIsDisplayed(
-          SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_WRONG_ANSWER_RESPONSE,
+          SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_WRONG_ANSWER_RESPONSE_TITLE,
+        );
+        await Assertions.checkIfTextIsDisplayed(
+          SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_WRONG_ANSWER_RESPONSE_DESCRIPTION,
         );
         await SecurityQuizModal.tapQuestionOneWrongAnswerTryAgainButton();
+        await Assertions.checkIfVisible(SecurityQuizModal.getQuizQuestionOne);
         await SecurityQuizModal.tapQuestionOneRightAnswerButton();
         await Assertions.checkIfTextIsDisplayed(
-          SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_RIGHT_ANSWER_RESPONSE,
+          SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_RIGHT_ANSWER_RESPONSE_TITLE,
+        );
+        await Assertions.checkIfTextIsDisplayed(
+          SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_RIGHT_ANSWER_RESPONSE_DESCRIPTION,
         );
         await SecurityQuizModal.tapQuestionOneContinueButton();
+        await Assertions.checkIfNotVisible(
+          SecurityQuizModal.questionOneRightContinueButton,
+        );
 
         // // // Question 2
+        await Assertions.checkIfVisible(SecurityQuizModal.getQuizQuestionTwo);
         await SecurityQuizModal.tapQuestionTwoWrongAnswerButton();
         await Assertions.checkIfTextIsDisplayed(
-          SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_WRONG_ANSWER_RESPONSE,
+          SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_WRONG_ANSWER_RESPONSE_TITLE,
+        );
+        await Assertions.checkIfTextIsDisplayed(
+          SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_WRONG_ANSWER_RESPONSE_DESCRIPTION,
         );
         await SecurityQuizModal.tapQuestionTwoWrongAnswerTryAgainButton();
+        await Assertions.checkIfVisible(SecurityQuizModal.getQuizQuestionTwo);
         await SecurityQuizModal.tapQuestionTwoRightAnswerButton();
         await Assertions.checkIfTextIsDisplayed(
-          SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_RIGHT_ANSWER_RESPONSE,
+          SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_RIGHT_ANSWER_RESPONSE_TITLE,
+        );
+        await Assertions.checkIfTextIsDisplayed(
+          SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_RIGHT_ANSWER_RESPONSE_DESCRIPTION,
         );
         await SecurityQuizModal.tapQuestionTwoContinueButton();
+        await Assertions.checkIfNotVisible(
+          SecurityQuizModal.questionTwoRightContinueButton,
+        );
       },
     );
   });

@@ -18,7 +18,7 @@ class SecurityQuizModal {
 
   get getStartedDismiss() {
     return Matchers.getElementByID(
-      SecurityQuizGetStartedModalSelectorsIDs.QUIZ_GET_STARTED_DISMISS_BUTTON,
+      SecurityQuizGetStartedModalSelectorsIDs.QUIZ_GET_STARTED_DISMISS,
     );
   }
 
@@ -42,7 +42,7 @@ class SecurityQuizModal {
 
   get questionOneDismiss() {
     return Matchers.getElementByID(
-      SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_DISMISS_BUTTON,
+      SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_DISMISS,
     );
   }
 
@@ -58,15 +58,15 @@ class SecurityQuizModal {
     );
   }
 
-  get questionOneWrongAnswerTitle() {
+  get questionOneWrongAnswerResponseTitle() {
     return Matchers.getElementByText(
-      SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_WRONG_ANSWER_TITLE,
+      SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_WRONG_ANSWER_RESPONSE_TITLE,
     );
   }
 
-  get questionOneWrongAnswerResponse() {
+  get questionOneWrongAnswerResponseDescription() {
     return Matchers.getElementByText(
-      SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_WRONG_ANSWER_RESPONSE,
+      SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_WRONG_ANSWER_RESPONSE_DESCRIPTION,
     );
   }
 
@@ -76,21 +76,21 @@ class SecurityQuizModal {
     );
   }
 
-  get questionOneRightAnswer() {
+  get questionOneRightAnswerButton() {
     return Matchers.getElementByID(
       SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_RIGHT_ANSWER,
     );
   }
 
-  get questionOneRightAnswerTitle() {
-    return Matchers.getElementByText(
-      SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_RIGHT_ANSWER_TITLE,
+  get questionOneRightAnswerResponseDescription() {
+    return Matchers.getElementByID(
+      SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_RIGHT_ANSWER_RESPONSE_DESCRIPTION,
     );
   }
 
-  get questionOneRightAnswerResponse() {
+  get questionOneRightAnswerResponseTitle() {
     return Matchers.getElementByText(
-      SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_RIGHT_ANSWER_RESPONSE,
+      SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_RIGHT_ANSWER_RESPONSE_TITLE,
     );
   }
 
@@ -108,7 +108,7 @@ class SecurityQuizModal {
 
   get questionTwoDismiss() {
     return Matchers.getElementByID(
-      SecurityQuestionTwoModelSelectorsIDs.QUIZ_QUESTION_TWO_DISMISS_BUTTON,
+      SecurityQuestionTwoModelSelectorsIDs.QUIZ_QUESTION_TWO_DISMISS,
     );
   }
 
@@ -124,15 +124,15 @@ class SecurityQuizModal {
     );
   }
 
-  get questionTwoWrongAnswerTitle() {
+  get questionTwoWrongAnswerResponseTitle() {
     return Matchers.getElementByText(
-      SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_WRONG_ANSWER_TITLE,
+      SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_WRONG_ANSWER_RESPONSE_TITLE,
     );
   }
 
-  get questionTwoWrongAnswerResponse() {
+  get questionTwoWrongAnswerResponseDescription() {
     return Matchers.getElementByText(
-      SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_WRONG_ANSWER_RESPONSE,
+      SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_WRONG_ANSWER_RESPONSE_DESCRIPTION,
     );
   }
 
@@ -148,15 +148,15 @@ class SecurityQuizModal {
     );
   }
 
-  get questionTwoRightAnswerTitle() {
+  get questionTwoRightAnswerResponseTitle() {
     return Matchers.getElementByText(
-      SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_RIGHT_ANSWER_TITLE,
+      SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_RIGHT_ANSWER_RESPONSE_TITLE,
     );
   }
 
-  get questionTwoRightAnswerResponse() {
+  get questionTwoRightAnswerResponseDescription() {
     return Matchers.getElementByText(
-      SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_RIGHT_ANSWER_RESPONSE,
+      SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_RIGHT_ANSWER_RESPONSE_DESCRIPTION,
     );
   }
 
@@ -187,7 +187,7 @@ class SecurityQuizModal {
   }
 
   async tapQuestionOneRightAnswerButton() {
-    await Gestures.waitAndTap(this.questionOneRightAnswer);
+    await Gestures.waitAndTap(this.questionOneRightAnswerButton);
   }
 
   async tapQuestionOneContinueButton() {
