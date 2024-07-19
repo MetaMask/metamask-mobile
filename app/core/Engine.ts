@@ -129,7 +129,11 @@ import {
   LoggingControllerState,
   LoggingControllerActions,
 } from '@metamask/logging-controller';
-import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
+import {
+  LedgerKeyring,
+  LedgerMobileBridge,
+  LedgerTransportMiddleware,
+} from '@metamask/eth-ledger-bridge-keyring';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import {
   isMainnetByChainId,
@@ -163,8 +167,13 @@ import {
   DetectSnapLocationOptions,
 } from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
+
+import {
+  AuthenticationController,
+  UserStorageController,
+} from '@metamask/profile-sync-controller';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 ///: END:ONLY_INCLUDE_IF
-import { isBlockaidFeatureEnabled } from '../util/blockaid';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
@@ -227,6 +236,10 @@ interface TestOrigin {
 }
 
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
+type AuthenticationControllerActions = AuthenticationController.AllowedActions;
+type UserStorageControllerActions = UserStorageController.AllowedActions;
+type NotificationsServicesControllerActions =
+  NotificationServicesController.AllowedActions;
 
 type SnapsGlobalActions =
   | SnapControllerActions
@@ -252,6 +265,9 @@ type GlobalActions =
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
+  | AuthenticationControllerActions
+  | UserStorageControllerActions
+  | NotificationsServicesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | KeyringControllerActions
   | AccountsControllerActions
@@ -304,6 +320,9 @@ export interface EngineState {
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
   SubjectMetadataController: SubjectMetadataControllerState;
+  AuthenticationController: AuthenticationController.AuthenticationControllerState;
+  UserStorageController: UserStorageController.UserStorageControllerState;
+  NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
@@ -346,6 +365,9 @@ interface Controllers {
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: SnapController;
   SubjectMetadataController: SubjectMetadataController;
+  AuthenticationController: AuthenticationController.Controller;
+  UserStorageController: UserStorageController.Controller;
+  NotificationServicesController: NotificationServicesController.Controller;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
 }
@@ -621,6 +643,7 @@ class Engine {
       networkController.state.selectedNetworkClientId,
     );
     const gasFeeController = new GasFeeController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
@@ -667,7 +690,8 @@ class Engine {
     };
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
-    const ledgerKeyringBuilder = () => new LedgerKeyring();
+    const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
+    const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
     ledgerKeyringBuilder.type = LedgerKeyring.type;
 
     const keyringController = new KeyringController({
@@ -909,7 +933,6 @@ class Engine {
 
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE === 'main';
-
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions.
@@ -1012,6 +1035,75 @@ class Engine {
           store.getState().settings.basicFunctionalityEnabled === false,
       }),
     });
+
+    const authenticationController = new AuthenticationController.Controller({
+      state: initialState.AuthenticationController,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: Resolve/patch mismatch between messenger types
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'AuthenticationController',
+        allowedActions: [
+          'SnapController:handleRequest',
+          'UserStorageController:disableProfileSyncing',
+        ],
+        allowedEvents: [],
+      }),
+      // TODO: Fix this by (await MetaMetrics.getInstance().getMetaMetricsId()) before go live
+      metametrics: {
+        agent: 'mobile',
+        getMetaMetricsId: async () => Promise.resolve(''),
+      },
+    });
+
+    const userStorageController = new UserStorageController.Controller({
+      getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
+      state: initialState.UserStorageController,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: Resolve/patch mismatch between messenger types
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'UserStorageController',
+        allowedActions: [
+          'SnapController:handleRequest',
+          'AuthenticationController:getBearerToken',
+          'AuthenticationController:getSessionProfile',
+          'AuthenticationController:isSignedIn',
+          'AuthenticationController:performSignOut',
+          'AuthenticationController:performSignIn',
+          'NotificationServicesController:disableNotificationServices',
+          'NotificationServicesController:selectIsNotificationServicesEnabled',
+        ],
+        allowedEvents: [],
+      }),
+    });
+
+    const notificationServicesController =
+      new NotificationServicesController.Controller({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore TODO: Resolve/patch mismatch between messenger types
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'NotificationServicesController',
+          allowedActions: [
+            'KeyringController:getAccounts',
+            'AuthenticationController:getBearerToken',
+            'AuthenticationController:isSignedIn',
+            'UserStorageController:enableProfileSyncing',
+            'UserStorageController:getStorageKey',
+            'UserStorageController:performGetStorage',
+            'UserStorageController:performSetStorage',
+          ],
+          allowedEvents: ['KeyringController:stateChange'],
+        }),
+        state: initialState.NotificationServicesController,
+        env: {
+          isPushIntegrated: false,
+          featureAnnouncements: {
+            platform: 'mobile',
+            accessToken: process.env
+              .FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN as string,
+            spaceId: process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID as string,
+          },
+        },
+      });
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
@@ -1297,12 +1389,12 @@ class Engine {
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       snapController,
       subjectMetadataController,
+      authenticationController,
+      userStorageController,
+      notificationServicesController,
       ///: END:ONLY_INCLUDE_IF
       accountsController,
-    ];
-
-    if (isBlockaidFeatureEnabled()) {
-      const ppomController = new PPOMController({
+      new PPOMController({
         chainId: networkController.state.providerConfig.chainId,
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
@@ -1334,9 +1426,8 @@ class Engine {
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         nativeCrypto: Crypto as any,
-      });
-      controllers.push(ppomController);
-    }
+      }),
+    ];
 
     // set initial state
     // TODO: Pass initial state into each controller constructor instead
@@ -1819,6 +1910,9 @@ export default {
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
+      AuthenticationController,
+      UserStorageController,
+      NotificationServicesController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       ApprovalController,
@@ -1860,6 +1954,9 @@ export default {
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
+      AuthenticationController,
+      UserStorageController,
+      NotificationServicesController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       ApprovalController,

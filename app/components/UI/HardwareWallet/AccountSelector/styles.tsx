@@ -50,7 +50,7 @@ export const createStyle = (colors: any) =>
     bottom: {
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingTop: 70,
+      paddingTop: 30,
       paddingBottom: Device.isIphoneX() ? 20 : 10,
     },
     button: {

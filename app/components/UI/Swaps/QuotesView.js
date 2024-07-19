@@ -1425,7 +1425,7 @@ function SwapsQuotesView({
 
   /* errorKey effect: hide every modal */
   useEffect(() => {
-    if (error) {
+    if (error?.key) {
       hideFeeModal();
       hideQuotesModal();
       hideUpdateModal();
