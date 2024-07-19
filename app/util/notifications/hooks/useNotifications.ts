@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
-import type { MarkAsReadNotificationsParam } from '../../../util/notifications/types/notification';
 import {
   ListNotificationsReturn,
   CreateNotificationsReturn,
@@ -11,16 +10,17 @@ import {
 } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
+  MarkAsReadNotificationsParam,
   disableNotificationServices,
   enableNotificationServices,
   fetchAndUpdateMetamaskNotifications,
   markMetamaskNotificationsAsRead,
   updateOnChainTriggersByAccount,
-} from '../../../actions/notification/pushNotifications';
+} from '../../../actions/notification/helpers';
 import {
   getNotificationsList,
   selectIsMetamaskNotificationsEnabled,
-} from '../../../selectors/pushNotifications';
+} from '../../../selectors/notifications';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -53,6 +53,7 @@ export function useListNotifications(): ListNotificationsReturn {
 
   return {
     listNotifications,
+    // @ts-expect-error TODO: fix type mismatch
     notificationsData: notifications,
     isLoading: loading,
     error,

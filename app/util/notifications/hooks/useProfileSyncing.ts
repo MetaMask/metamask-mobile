@@ -5,7 +5,7 @@ import { getErrorMessage } from '../../../util/errorHandling';
 import {
   disableProfileSyncing as disableProfileSyncingAction,
   enableProfileSyncing as enableProfileSyncingAction,
-} from '../../../actions/notification/pushNotifications';
+} from '../../../actions/notification/helpers';
 
 /**
  * Custom hook to enable profile syncing. This hook handles the process of signing in

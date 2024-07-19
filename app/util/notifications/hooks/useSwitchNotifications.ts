@@ -6,11 +6,11 @@ import {
   deleteOnChainTriggersByAccount,
   setFeatureAnnouncementsEnabled,
   updateOnChainTriggersByAccount,
-} from '../../../actions/notification/pushNotifications';
+} from '../../../actions/notification/helpers';
 import { UseSwitchAccountNotificationsData } from './types';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { selectIsUpdatingMetamaskNotificationsAccount } from '../../../selectors/pushNotifications';
+import { selectIsUpdatingMetamaskNotificationsAccount } from '../../../selectors/notifications';
 
 export function useSwitchNotifications() {
   const [loading, setLoading] = useState<boolean>(false);

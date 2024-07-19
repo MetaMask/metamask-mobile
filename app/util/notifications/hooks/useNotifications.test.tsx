@@ -15,8 +15,8 @@ import {
 import { TRIGGER_TYPES } from '../constants';
 import createMockStore from 'redux-mock-store';
 import initialRootState from '../../../util/test/initial-root-state';
-import * as Selectors from '../../../selectors/pushNotifications';
-import * as Actions from '../../../actions/notification/pushNotifications';
+import * as Selectors from '../../../selectors/notifications';
+import * as Actions from '../../../actions/notification/helpers';
 import { Provider } from 'react-redux';
 import {
   createMockNotificationEthReceived,

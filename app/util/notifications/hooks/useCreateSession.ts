@@ -6,11 +6,11 @@ import { getErrorMessage } from '../../../util/errorHandling';
 import {
   selectIsProfileSyncingEnabled,
   selectIsSignedIn,
-} from '../../../selectors/pushNotifications';
+} from '../../../selectors/notifications';
 import {
   disableProfileSyncing,
   signIn,
-} from '../../../actions/notification/pushNotifications';
+} from '../../../actions/notification/helpers';
 
 /**
  * Custom hook to manage the creation of a session based on the user's authentication status,
