@@ -108,26 +108,30 @@ class AccountApproval extends PureComponent {
   };
 
   getAnalyticsParams = () => {
+    const { currentPageInformation, chainId, selectedAddress, accountsLength } =
+      this.props;
+    let urlHostName = 'N/A';
+
     try {
-      const {
-        currentPageInformation,
-        chainId,
-        selectedAddress,
-        accountsLength,
-      } = this.props;
-      const url = new URL(currentPageInformation?.url);
-      return {
-        account_type: getAddressAccountType(selectedAddress),
-        dapp_host_name: url?.host,
-        chain_id: getDecimalChainId(chainId),
-        number_of_accounts: accountsLength,
-        number_of_accounts_connected: 1,
-        source: 'SDK / WalletConnect',
-        ...currentPageInformation?.analytics,
-      };
+      if (currentPageInformation?.url) {
+        const url = new URL(currentPageInformation.url);
+        urlHostName = url.host;
+      }
     } catch (error) {
-      return {};
+      console.error('URL conversion error:', error);
     }
+
+    return {
+      account_type: selectedAddress
+        ? getAddressAccountType(selectedAddress)
+        : null,
+      dapp_host_name: urlHostName,
+      chain_id: chainId ? getDecimalChainId(chainId) : null,
+      number_of_accounts: accountsLength,
+      number_of_accounts_connected: 1,
+      source: 'SDK / WalletConnect',
+      ...currentPageInformation?.analytics,
+    };
   };
 
   componentDidMount = () => {

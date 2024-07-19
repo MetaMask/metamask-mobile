@@ -295,7 +295,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   "opacity": 0,
                 }
               }
-              testID="badge-network"
+              testID="badgenetwork"
             >
               <View
                 style={
@@ -655,7 +655,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   "opacity": 0,
                 }
               }
-              testID="badge-network"
+              testID="badgenetwork"
             >
               <View
                 style={

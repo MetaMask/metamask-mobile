@@ -611,6 +611,10 @@
     "remove_account_message": "このアカウントを削除してよろしいですか？",
     "no": "いいえ",
     "yes_remove_it": "はい、削除します",
+    "remove_hardware_account": "Remove hardware account",
+    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_account_alert_remove_btn": "Remove",
+    "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "アカウント",
     "connect_account_title": "アカウントの接続",
     "connect_accounts_title": "アカウントの接続",
@@ -666,8 +670,7 @@
     "hint_text": "Keystoneウォレットをスキャンして ",
     "purpose_connect": "接続",
     "purpose_sign": "トランザクションを確定",
-    "select_accounts": "アカウントを選択してください",
-    "please_wait": "お待ちください"
+    "select_accounts": "アカウントを選択してください"
   },
   "data_collection_modal": {
     "accept": "OK",
@@ -680,6 +683,11 @@
     "forget": "このデバイスの登録を解除"
   },
   "app_settings": {
+    "enabling_notifications": "Enabling notifications...",
+    "disabling_notifications": "Disabling notifications...",
+    "enabling_profile_sync": "Enabling profile syncing...",
+    "disabling_profile_sync": "Disabling profile syncing...",
+    "notifications_dismiss_modal": "Dismiss",
     "title": "設定",
     "current_conversion": "ベース通貨",
     "current_language": "現在の言語",
@@ -803,7 +811,7 @@
     "security_desc": "プライバシー設定、MetaMetrics、秘密鍵、ウォレットのシークレットリカバリーフレーズ",
     "networks_title": "ネットワーク",
     "networks_default_title": "デフォルトのネットワーク",
-    "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
+    "network_delete": "このネットワークを削除した場合、このネットワーク内の資産を見るには、再度ネットワークの追加が必要になります。",
     "networks_default_cta": "このネットワークを使用",
     "networks_desc": "カスタムRPCネットワークの追加と編集",
     "network_name_label": "ネットワーク名",
@@ -819,7 +827,7 @@
     "network_other_networks": "他のネットワーク",
     "network_rpc_networks": "RPCネットワーク",
     "network_add_network": "ネットワークを追加",
-    "network_add_custom_network": "Add a custom network",
+    "network_add_custom_network": "カスタムネットワークを追加",
     "network_add": "追加",
     "network_save": "保存",
     "remove_network_title": "このネットワークを削除しますか？",
@@ -994,7 +1002,7 @@
     "token_nft_ens_subheading": "トークン、NFT、ENSの自動検出",
     "security_check_subheading": "セキュリティチェック",
     "symbol_required": "シンボルが必要です",
-    "blockaid_desc": "This feature alerts you to malicious activity by actively reviewing transaction and signature requests.",
+    "blockaid_desc": "この機能は、トランザクションと署名要求を能動的に確認し、悪質なアクティビティに関するアラートを発します。",
     "security_alerts": "セキュリティアラート",
     "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
     "smart_transactions_opt_in_heading": "スマートトランザクション",
@@ -1031,7 +1039,7 @@
     "cancel": "キャンセル",
     "loading": "MetaMaskに接続しています...",
     "unkown_dapp": "DApp名が利用できません",
-    "unknown": "Unknown",
+    "unknown": "不明",
     "no_connections": "接続がありません",
     "no_connections_desc": "サイトまたはアプリにアカウントを接続すると、ここに表示されます。"
   },
@@ -1655,7 +1663,7 @@
     "network_currency_symbol": "通貨記号",
     "network_block_explorer_url": "ブロックエクスプローラーのURL",
     "search": "以前追加されたネットワークを検索",
-    "search-short": "Search",
+    "search-short": "検索",
     "add": "追加",
     "cancel": "キャンセル",
     "approve": "承認",
@@ -1663,9 +1671,9 @@
     "malicious_network_warning": "悪意のあるネットワーク プロバイダーは、ブロックチェーンのステータスを偽り、ユーザーのネットワークアクティビティを記録することがあります。信頼するカスタムネットワークのみを追加してください。",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "ネットワーク情報",
-    "additional_network_information_title": "Additional Networks Information",
+    "additional_network_information_title": "その他のネットワーク情報",
     "network_warning_desc": "このネットワーク接続は第三者に依存しているため、信頼性が低い可能性、または第三者がアクティビティをトラッキングできる可能性があります。",
-    "additonial_network_information_desc": "Some of these networks rely on third parties. The connections may be less reliable or enable third-parties to track activity.",
+    "additonial_network_information_desc": "これらのネットワークの一部はサードパーティに依存しているため、接続の信頼性が低かったり、サードパーティによるアクティビティの追跡が可能になったりする可能性があります。",
     "learn_more": "詳細",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "ネットワークに切り替える",
@@ -1954,7 +1962,7 @@
     "received": "受け取りました",
     "unstaked": "ステーキングが解除されました",
     "to": "送り先",
-    "rate": "レート (手数料込み)",
+    "rate": "Rate (fees included)",
     "unstaking_requested": "ステーキングの解除がリクエストされました",
     "stake_completed": "ステーキングが完了しました",
     "withdrawal_completed": "出金が完了しました",
@@ -1964,6 +1972,49 @@
     "swap_completed": "{{from}}を{{to}}にスワップしました",
     "swap": "スワップしました",
     "sent": "{{address}}に送りました",
+    "menu_item_title": {
+      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
+      "erc20_sent": "Sent to {{address}}",
+      "erc20_received": "Received from {{address}}",
+      "eth_sent": "Sent to {{address}}",
+      "eth_received": "Received from {{address}}",
+      "erc721_sent": "Sent NFT to {{address}}",
+      "erc1155_sent": "Sent NFT to {{address}}",
+      "erc721_received": "Received NFT from {{address}}",
+      "erc1155_received": "Received NFT from {{address}}",
+      "rocketpool_stake_completed": "Staked",
+      "rocketpool_unstake_completed": "Unstaking complete",
+      "lido_stake_completed": "Staked",
+      "lido_withdrawal_requested": "Unstaking requested",
+      "lido_withdrawal_completed": "Unstaking complete",
+      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+    },
+    "menu_item_description": {
+      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
+      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+    },
+    "modal": {
+      "title_sent": "Sent {{symbol}}",
+      "title_received": "Received {{symbol}}",
+      "title_unstake_requested": "Unstaking requested",
+      "title_untake_ready": "Withdrawl ready",
+      "title_stake": "Staked {{symbol}}",
+      "title_unstake_completed": "Unstaking completed",
+      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
+      "label_address_to": "To",
+      "label_address_from": "From",
+      "label_address_to_you": "To (You)",
+      "label_address_from_you": "From (You)",
+      "label_asset": "Asset",
+      "label_account": "Account",
+      "label_unstaking_requested": "Unstaking Requested",
+      "label_unstake_ready": "Withdrawl ready",
+      "label_staked": "Staked",
+      "label_received": "Received",
+      "label_unstaking_confirmed": "Unstaking Confirmed",
+      "label_swapped": "Swapped",
+      "label_to": "To"
+    },
     "received_from": "{{address}}から受け取りました",
     "nft_sent": "{{address}}にNFTを送りました",
     "erc721_sent": "{{address}}にNFTを送りました",
@@ -1997,6 +2048,8 @@
     "received_message": "このトランザクションを表示するにはタップしてください",
     "received_payment_message": "{{amount}}DAI受け取りました",
     "prompt_title": "プッシュ通知を有効にする",
+    "notifications_enabled_error_title": "Something went wrong",
+    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
     "prompt_desc": "ETHを受け取ったり、トランザクションが確認された際にMetaMaskが通知できるよう、通知を有効にしてください。",
     "prompt_ok": "はい",
     "prompt_cancel": "いいえ、結構です",
@@ -2021,6 +2074,7 @@
       "1": "ウォレット",
       "2": "お知らせ"
     },
+    "copied_to_clipboard": "Copied to clipboard",
     "address_copied_to_clipboard": "アドレスがクリップボードにコピーされました",
     "transaction_id_copied_to_clipboard": "トランザクションIDがクリップボードにコピーされました",
     "activation_card": {
@@ -2652,7 +2706,7 @@
       "header": "強化されたトランザクション保護",
       "description_1": "スマートトランザクションで、成功率を上げ、フロントランニングを防ぎ、可視性を高めましょう。",
       "description_2": "イーサリアムでのみご利用いただけ、いつでも設定で有効・無効を切り替えられます。",
-      "secondary_button": "設定で管理",
+      "no_thanks": "No thanks",
       "primary_button": "有効にする",
       "learn_more": "詳細。",
       "benefit_1_1": "99.5%の",
@@ -2850,6 +2904,15 @@
   "remember_me": {
     "enable_remember_me": "認証情報の保存を有効にする",
     "enable_remember_me_description": "認証情報の保存を有効にすると、携帯にアクセスできる人は誰でもMetaMaskアカウントにアクセスできるようになります。"
+  },
+  "profile_sync": {
+    "title": "Profile Sync",
+    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
+    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
+    "enable_description2": " to learn more.",
+    "enable_privacy_link": "Learn how we protect your privacy",
+    "bottomSheetTurnOn": "Turning on Profile Sync",
+    "bottomSheetTurnOff": "Turning off Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "認証情報の保存を無効にするには、パスワードを入力してください",
@@ -3073,7 +3136,7 @@
   },
   "install_snap": {
     "title": "接続の要求",
-    "description": "{{origin}} wants to use {{snap}}.",
+    "description": "{{origin}}が{{snap}}の使用許可を求めています。",
     "permissions_request_title": "アクセス許可の要求",
     "permissions_request_description": "{{origin}}が{{snap}}のインストールを要求していて、このSnapは次のアクセス許可を要求しています。",
     "approve_permissions": "承認",
@@ -3122,5 +3185,8 @@
     "title": "予測される増減額",
     "tooltip_description": "予測される増減額は、このトランザクションを実行すると発生する可能性がある増減額です。これは単に予測に過ぎず、保証されたものではありません。",
     "total_fiat": "合計 = {{currency}}"
+  },
+  "common": {
+    "please_wait": "Please wait"
   }
 }
