@@ -144,13 +144,13 @@ exports[`TypedSign onConfirm signs message 1`] = `
                       "borderRadius": 99,
                       "borderWidth": 1,
                       "flexDirection": "row",
-                      "marginBottom": 24,
+                      "marginBottom": 16,
                       "paddingLeft": 8,
                       "paddingRight": 16,
                       "paddingVertical": 8,
                     }
                   }
-                  testID="approve_transaction_origin_pill"
+                  testID="APPROVAL_TAG_URL_ORIGIN_PILL"
                 >
                   <View
                     style={
@@ -815,13 +815,13 @@ exports[`TypedSign onReject rejects message 1`] = `
                       "borderRadius": 99,
                       "borderWidth": 1,
                       "flexDirection": "row",
-                      "marginBottom": 24,
+                      "marginBottom": 16,
                       "paddingLeft": 8,
                       "paddingRight": 16,
                       "paddingVertical": 8,
                     }
                   }
-                  testID="approve_transaction_origin_pill"
+                  testID="APPROVAL_TAG_URL_ORIGIN_PILL"
                 >
                   <View
                     style={
