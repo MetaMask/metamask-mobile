@@ -135,6 +135,7 @@ const AddAsset = () => {
                 ? {
                     variant: ButtonVariants.Link,
                     onPress: goToSecuritySettings,
+                    textVariant: TextVariant.BodyMD,
                     label: strings('wallet.display_nft_media_cta'),
                   }
                 : undefined
