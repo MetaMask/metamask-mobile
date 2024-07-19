@@ -19,8 +19,14 @@ import { QuizContent } from '../QuizContent';
 import stylesheet from './styles';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
-import { RevealSeedViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
-
+import {
+  SecurityQuizGetStartedModalSelectorsIDs,
+  SecurityQuizGetStartedModalSelectorsText,
+  SecurityQuestionOneModelSelectorsIDs,
+  SecurityQuizQuestionOneModalSelectorsText,
+  SecurityQuestionTwoModelSelectorsIDs,
+  SecurityQuizQuestionTwoModalSelectorsText,
+} from '../../../../../e2e/selectors/Modals/SecurityQuizModal.selectors.js';
 const introductionImg = require('../../../../images/reveal-srp.png');
 
 const SRPQuiz = () => {
@@ -85,6 +91,7 @@ const SRPQuiz = () => {
         image={introductionImg}
         title={{
           content: strings('srp_security_quiz.introduction'),
+          testID: SecurityQuizGetStartedModalSelectorsText.QUIZ_INTRODUCTION,
         }}
         buttons={[
           {
@@ -94,7 +101,7 @@ const SRPQuiz = () => {
               setStage(QuizStage.questionOne);
             },
             testID:
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_GET_STARTED_BUTTON_ID,
+              SecurityQuizGetStartedModalSelectorsIDs.QUIZ_GET_STARTED_BUTTON,
             variant: ButtonVariants.Primary,
           },
           {
@@ -115,6 +122,7 @@ const SRPQuiz = () => {
         header={`1 ${strings('srp_security_quiz.of')} 2`}
         title={{
           content: strings('srp_security_quiz.question_one.question'),
+          testId: SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE,
         }}
         buttons={[
           {
@@ -122,14 +130,14 @@ const SRPQuiz = () => {
             onPress: () => setStage(QuizStage.wrongAnswerQuestionOne),
             variant: ButtonVariants.Secondary,
             testID:
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_ANSWER_ID,
+              SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_WRONG_ANSWER,
           },
           {
             label: strings('srp_security_quiz.question_one.right_answer'),
             onPress: () => setStage(QuizStage.rightAnswerQuestionOne),
             variant: ButtonVariants.Secondary,
             testID:
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_RIGHT_ANSWER_ID,
+              SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_RIGHT_ANSWER,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -152,7 +160,7 @@ const SRPQuiz = () => {
           content: strings('srp_security_quiz.question_one.right_answer_title'),
           style: styles.rightText,
           testID:
-            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_RIGHT_TITLE,
+            SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE_RIGHT_ANSWER_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_one.right_answer_description',
@@ -163,7 +171,7 @@ const SRPQuiz = () => {
             onPress: () => setStage(QuizStage.questionTwo),
             variant: ButtonVariants.Primary,
             testID:
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_RIGHT_CONTINUE_ID,
+              SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_RIGHT_CONTINUE,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -186,7 +194,7 @@ const SRPQuiz = () => {
           content: strings('srp_security_quiz.question_one.wrong_answer_title'),
           style: styles.wrongText,
           testID:
-            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_TITLE,
+            SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_WRONG_ANSWER,
         }}
         content={strings(
           'srp_security_quiz.question_one.wrong_answer_description',
@@ -197,7 +205,7 @@ const SRPQuiz = () => {
             onPress: () => setStage(QuizStage.questionOne),
             variant: ButtonVariants.Primary,
             testID:
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_ONE_WRONG_ANSWER_TRY_AGAIN_BUTTON_ID,
+              SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_WRONG_ANSWER_TRY_AGAIN_BUTTON,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -224,14 +232,14 @@ const SRPQuiz = () => {
             onPress: () => setStage(QuizStage.rightAnswerQuestionTwo),
             variant: ButtonVariants.Secondary,
             testID:
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_RIGHT_ANSWER_ID,
+              SecurityQuestionTwoModelSelectorsIDs.QUIZ_QUESTION_TWO_RIGHT_ANSWER,
           },
           {
             label: strings('srp_security_quiz.question_two.wrong_answer'),
             onPress: () => setStage(QuizStage.wrongAnswerQuestionTwo),
             variant: ButtonVariants.Secondary,
             testID:
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_WRONG_ANSWER_ID,
+              SecurityQuestionTwoModelSelectorsIDs.QUIZ_QUESTION_TWO_WRONG_ANSWER,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -254,7 +262,7 @@ const SRPQuiz = () => {
           content: strings('srp_security_quiz.question_two.right_answer_title'),
           style: styles.rightText,
           testID:
-            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_RIGHT_TITLE,
+            SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_RIGHT_ANSWER_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_two.right_answer_description',
@@ -265,7 +273,7 @@ const SRPQuiz = () => {
             onPress: goToRevealPrivateCredential,
             variant: ButtonVariants.Primary,
             testID:
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_RIGHT_CONTINUE_ID,
+              SecurityQuestionTwoModelSelectorsIDs.QUIZ_QUESTION_TWO_RIGHT_CONTINUE,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -293,7 +301,7 @@ const SRPQuiz = () => {
           content: strings('srp_security_quiz.question_two.wrong_answer_title'),
           style: styles.wrongText,
           testID:
-            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_WRONG_TITLE,
+            SecurityQuizQuestionTwoModalSelectorsText.QUIZ_QUESTION_TWO_WRONG_ANSWER_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_two.wrong_answer_description',
@@ -304,7 +312,7 @@ const SRPQuiz = () => {
             onPress: () => setStage(QuizStage.questionTwo),
             variant: ButtonVariants.Primary,
             testID:
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_QUIZ_QUESTION_TWO_WRONG_ANSWER_TRY_AGAIN_ID,
+              SecurityQuestionTwoModelSelectorsIDs.QUIZ_QUESTION_TWO_WRONG_ANSWER_TRY_AGAIN_BUTTON,
           },
           {
             label: strings('srp_security_quiz.learn_more'),

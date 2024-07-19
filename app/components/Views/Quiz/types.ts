@@ -32,4 +32,5 @@ export interface IQuizInformationProps {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon?: any;
+  testID?: string;
 }
