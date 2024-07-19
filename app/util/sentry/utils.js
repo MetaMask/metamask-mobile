@@ -162,6 +162,25 @@ export const sentryStateMask = {
       TransactionController: {
         [AllProperties]: false,
       },
+      AuthenticationController: {
+        [AllProperties]: false,
+      },
+      NotificationServicesController: {
+        isCheckingAccountsPresence: false,
+        isFeatureAnnouncementsEnabled: false,
+        isFetchingMetamaskNotifications: false,
+        isMetamaskNotificationsFeatureSeen: false,
+        isNotificationServicesEnabled: false,
+        isUpdatingMetamaskNotifications: false,
+        isUpdatingMetamaskNotificationsAccount: [],
+        metamaskNotificationsList: [],
+        metamaskNotificationsReadList: [],
+        subscriptionAccountsSeen: [],
+      },
+      UserStorageController: {
+        isProfileSyncingEnabled: true,
+        isProfileSyncingUpdateLoading: false,
+      },
     },
   },
   experimentalSettings: true,
