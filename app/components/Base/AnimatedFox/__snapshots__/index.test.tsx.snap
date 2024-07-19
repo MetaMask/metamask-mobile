@@ -5,6 +5,7 @@ exports[`AnimatedFox renders correctly and matches snapshot 1`] = `
   bounces={false}
   injectedJavaScript="document.body.style.background="black""
   javaScriptEnabled={true}
+  pointerEvents="none"
   scrollEnabled={false}
   source={
     {

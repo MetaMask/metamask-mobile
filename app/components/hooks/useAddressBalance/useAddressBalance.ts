@@ -65,6 +65,7 @@ const useAddressBalance = (
 
   useEffect(() => {
     const setBalance = () => {
+      if (!address) return;
       const parsedTicker = getTicker(ticker);
       const checksumAddress = safeToChecksumAddress(address);
       if (!checksumAddress) {

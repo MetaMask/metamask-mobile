@@ -26,12 +26,9 @@ jest.mock('../../../util/device', () => ({
   ...jest.requireActual('../../../util/device'),
   isAndroid: jest.fn(),
   isIos: jest.fn(),
+  isIphoneX: jest.fn(),
   getDeviceWidth: jest.fn(),
   getDeviceHeight: jest.fn(),
-}));
-
-jest.mock('../../../core/Ledger/Ledger', () => ({
-  unlockLedgerDefaultAccount: jest.fn(),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -72,6 +69,8 @@ jest.mock('react-native-permissions', () => ({
 }));
 
 describe('LedgerConnect', () => {
+  const onConfirmationComplete = jest.fn();
+
   const checkLedgerCommunicationErrorFlow = function (
     ledgerCommunicationError: LedgerCommunicationErrors,
     expectedTitle: string,
@@ -84,7 +83,9 @@ describe('LedgerConnect', () => {
       error: ledgerCommunicationError,
     });
 
-    const { getByText } = renderWithProvider(<LedgerConnect />);
+    const { getByText } = renderWithProvider(
+      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+    );
 
     expect(getByText(expectedTitle)).toBeTruthy();
     expect(getByText(expectedErrorBody)).toBeTruthy();
@@ -125,12 +126,15 @@ describe('LedgerConnect', () => {
     getSystemVersion.mockReturnValue('13');
     Device.isAndroid.mockReturnValue(true);
     Device.isIos.mockReturnValue(false);
+    Device.isIphoneX.mockReturnValue(false);
     Device.getDeviceWidth.mockReturnValue(50);
     Device.getDeviceHeight.mockReturnValue(50);
   });
 
   it('render matches latest snapshot', () => {
-    const wrapper = renderWithProvider(<LedgerConnect />);
+    const wrapper = renderWithProvider(
+      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+    );
     expect(wrapper).toMatchSnapshot();
   });
 
@@ -146,7 +150,9 @@ describe('LedgerConnect', () => {
 
     ledgerLogicToRun.mockImplementation((callback) => callback());
 
-    const { getByTestId } = renderWithProvider(<LedgerConnect />);
+    const { getByTestId } = renderWithProvider(
+      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+    );
 
     const continueButton = getByTestId('add-network-button');
     fireEvent.press(continueButton);
@@ -201,14 +207,18 @@ describe('LedgerConnect', () => {
       error: LedgerCommunicationErrors.LedgerHasPendingConfirmation,
     });
 
-    renderWithProvider(<LedgerConnect />);
+    renderWithProvider(
+      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+    );
 
     expect(navigate).toHaveBeenNthCalledWith(1, 'SelectHardwareWallet');
   });
 
   it('displays android 12+ permission text on android 12+ device', () => {
     getSystemVersion.mockReturnValue('13');
-    const { getByText } = renderWithProvider(<LedgerConnect />);
+    const { getByText } = renderWithProvider(
+      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+    );
     expect(
       getByText(
         strings('ledger.ledger_reminder_message_step_four_Androidv12plus'),
@@ -218,7 +228,9 @@ describe('LedgerConnect', () => {
 
   it('displays android 11 permission text on android 11 device', () => {
     getSystemVersion.mockReturnValue('11');
-    const { getByText } = renderWithProvider(<LedgerConnect />);
+    const { getByText } = renderWithProvider(
+      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+    );
     expect(
       getByText(strings('ledger.ledger_reminder_message_step_four')),
     ).toBeTruthy();
@@ -232,7 +244,9 @@ describe('LedgerConnect', () => {
       dispatch: jest.fn(),
     });
 
-    const { getByText } = renderWithProvider(<LedgerConnect />);
+    const { getByText } = renderWithProvider(
+      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+    );
     const installInstructionsLink = getByText(
       strings('ledger.how_to_install_eth_app'),
     );
@@ -257,9 +271,13 @@ describe('LedgerConnect', () => {
       error: LedgerCommunicationErrors.FailedToOpenApp,
     });
 
-    renderWithProvider(<LedgerConnect />);
+    renderWithProvider(
+      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+    );
 
-    const { getByTestId } = renderWithProvider(<LedgerConnect />);
+    const { getByTestId } = renderWithProvider(
+      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+    );
 
     const retryButton = getByTestId('add-network-button');
     fireEvent.press(retryButton);

@@ -1,6 +1,5 @@
 import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
 import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
-import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../util/networks';
 import {
   Reason,
   ResultType,
@@ -60,26 +59,38 @@ const SECURITY_ALERT_RESPONSE_IN_PROGRESS = {
 
 async function validateRequest(req: PPOMRequest, transactionId?: string) {
   const {
-    PPOMController: ppomController,
-    PreferencesController,
+    AccountsController,
     NetworkController,
+    PPOMController: ppomController,
   } = Engine.context;
 
   const chainId = NetworkController.state.providerConfig.chainId;
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
   const isSupportedChain = await isChainSupported(chainId);
 
-  const isSecurityAlertsEnabled =
-    PreferencesController.state.securityAlertsEnabled;
-
   if (
     !ppomController ||
     !isBlockaidFeatureEnabled() ||
-    !isSecurityAlertsEnabled ||
     !isConfirmationMethod ||
     !isSupportedChain
   ) {
     return;
+  }
+
+  if (req.method === 'eth_sendTransaction') {
+    const internalAccounts = AccountsController.listAccounts();
+    const toAddress: string | undefined = (
+      req?.params?.[0] as Record<string, string>
+    ).to;
+
+    if (
+      internalAccounts.some(
+        ({ address }: { address: string }) =>
+          address?.toLowerCase() === toAddress?.toLowerCase(),
+      )
+    ) {
+      return;
+    }
   }
 
   const isTransaction = isTransactionRequest(req);
