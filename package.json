@@ -204,7 +204,7 @@
     "@react-native-firebase/app": "^20.1.0",
     "@react-native-firebase/messaging": "^20.1.0",
     "@react-native-masked-view/masked-view": "^0.2.6",
-    "@react-native-picker/picker": "^2.2.1",
+    "@react-native-picker/picker": "^2.7.7",
     "@react-navigation/bottom-tabs": "^5.11.11",
     "@react-navigation/compat": "^5.3.20",
     "@react-navigation/native": "^5.9.4",
