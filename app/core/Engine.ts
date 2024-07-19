@@ -1429,7 +1429,6 @@ class Engine {
     );
 
     this.configureControllersOnNetworkChange();
-    this.startPolling();
     this.handleVaultBackup();
 
     Engine.instance = this;

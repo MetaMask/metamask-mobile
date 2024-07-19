@@ -133,6 +133,10 @@ const Main = (props) => {
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
 
+  useEffect(() => {
+    Engine.context.startPolling();
+  }, []);
+
   const connectionChangeHandler = useCallback(
     (state) => {
       if (!state) return;
