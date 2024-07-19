@@ -7,7 +7,6 @@ import TabBarComponent from '../../pages/TabBarComponent.js';
 import SettingsView from '../../pages/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
 import SecurityQuizModal from '../../pages/modals/SecurityQuizModal.js';
-import { RevealSeedViewSelectorsIDs } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
 import {
   SecurityQuizQuestionOneModalSelectorsText,
   SecurityQuizQuestionTwoModalSelectorsText,
