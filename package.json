@@ -83,7 +83,7 @@
     "deduplicate": "yarn yarn-deduplicate && yarn install",
     "set-version": "./scripts/set-versions.sh",
     "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts",
-    "add-team-label-to-pr": "ts-node ./.github/scripts/add-team-label-to-pr.ts",
+    "add-team-label": "ts-node ./.github/scripts/add-team-label.ts",
     "run-bitrise-e2e-check": "ts-node ./.github/scripts/bitrise/run-bitrise-e2e-check.ts",
     "fitness-functions": "ts-node ./.github/scripts/fitness-functions/index.ts",
     "check-pr-has-required-labels": "ts-node ./.github/scripts/check-pr-has-required-labels.ts",
