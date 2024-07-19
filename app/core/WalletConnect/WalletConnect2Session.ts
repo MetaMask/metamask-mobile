@@ -34,6 +34,11 @@ const ERROR_CODES = {
 
 const RPC_WALLET_SWITCHETHEREUMCHAIN = 'wallet_switchEthereumChain';
 
+interface BackgroundBridgeFactory {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  create: (options: any) => BackgroundBridge;
+}
+
 class WalletConnect2Session {
   private backgroundBridge: BackgroundBridge;
   private navigation?: NavigationContainerRef;
@@ -55,12 +60,17 @@ class WalletConnect2Session {
     navigation,
     channelId,
     deeplink,
+    backgroundBridgeFactory = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      create: (options: any) => new BackgroundBridge(options),
+    },
   }: {
     web3Wallet: Client;
     channelId: string;
     session: SessionTypes.Struct;
     deeplink: boolean;
     navigation?: NavigationContainerRef;
+    backgroundBridgeFactory?: BackgroundBridgeFactory;
   }) {
     this.web3Wallet = web3Wallet;
     this.deeplink = deeplink;
@@ -78,7 +88,8 @@ class WalletConnect2Session {
     DevLogger.log(
       `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic}`,
     );
-    this.backgroundBridge = new BackgroundBridge({
+
+    this.backgroundBridge = backgroundBridgeFactory.create({
       webview: null,
       url,
       isWalletConnect: true,
@@ -132,15 +143,19 @@ class WalletConnect2Session {
       remoteConnHost: undefined,
     });
 
-    // Check for pending unresolved requests
-    const pendingSessionRequests = web3Wallet.getPendingSessionRequests();
+    this.checkPendingRequests();
+  }
+
+  // Check for pending unresolved requests
+  private checkPendingRequests = async () => {
+    const pendingSessionRequests = this.web3Wallet.getPendingSessionRequests();
     if (pendingSessionRequests) {
-      pendingSessionRequests.forEach(async (request) => {
+      for (const request of pendingSessionRequests) {
         DevLogger.log(
           `WC2::constructor pendingSessionRequests requestId=${request.id}`,
         );
         try {
-          if (request.topic === session.topic) {
+          if (request.topic === this.session.topic) {
             await this.handleRequest(request);
           } else {
             console.warn(
@@ -153,9 +168,9 @@ class WalletConnect2Session {
             `WC2::constructor error while handling request`,
           );
         }
-      });
+      }
     }
-  }
+  };
 
   setDeeplink = (deeplink: boolean) => {
     this.deeplink = deeplink;
@@ -197,21 +212,7 @@ class WalletConnect2Session {
     if (
       initialRequest?.params.request.method === RPC_WALLET_SWITCHETHEREUMCHAIN
     ) {
-      try {
-        const params = initialRequest.params.request.params as unknown[];
-        const { chainId } = params[0] as { chainId: string };
-
-        if (chainId) {
-          // TODO: check what happens after adding a new network -- waiting was initially made to handle that scenario
-          DevLogger.log(`SKIP: waitForNetworkModalOnboarding`);
-          // await waitForNetworkModalOnboarding({
-          //   chainId: parseInt(chainId) + '',
-          // });
-        }
-      } catch (err) {
-        // Ignore error as it is not critical when timeout for modal is reached
-        // It allows to safely continue and prevent pilling up the requests.
-      }
+      await this.handleSwitchEthereumChain(initialRequest);
     }
 
     try {
@@ -234,6 +235,26 @@ class WalletConnect2Session {
 
     if (!hasPendingSignRequest) {
       this.needsRedirect(id);
+    }
+  };
+
+  private handleSwitchEthereumChain = async (
+    initialRequest: SingleEthereumTypes.SessionRequest,
+  ) => {
+    try {
+      const params = initialRequest.params.request.params as unknown[];
+      const { chainId } = params[0] as { chainId: string };
+
+      if (chainId) {
+        // TODO: check what happens after adding a new network -- waiting was initially made to handle that scenario
+        DevLogger.log(`SKIP: waitForNetworkModalOnboarding`);
+        // await waitForNetworkModalOnboarding({
+        //   chainId: parseInt(chainId) + '',
+        // });
+      }
+    } catch (err) {
+      // Ignore error as it is not critical when timeout for modal is reached
+      // It allows to safely continue and prevent pilling up the requests.
     }
   };
 
@@ -286,20 +307,12 @@ class WalletConnect2Session {
         return;
       }
 
-      if (accounts?.length === 0) {
+      if (accounts.length === 0) {
         console.warn(
           `WC2::updateSession invalid accounts --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
         );
-        const permissionController = (
-          Engine.context as {
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            PermissionController: PermissionController<any, any>;
-          }
-        ).PermissionController;
-        const origin = this.session.peer.metadata.url;
-        // Try to find matching permitted accounts
-        const approvedAccounts = await getPermittedAccounts(origin);
+        const approvedAccounts =
+          await this.getApprovedAccountsFromPermissions();
         if (approvedAccounts.length > 0) {
           DevLogger.log(
             `WC2::updateSession found approved accounts`,
@@ -309,22 +322,22 @@ class WalletConnect2Session {
         } else {
           console.warn(
             `WC2::updateSession no permitted accounts found for topic=${this.session.topic} origin=${origin}`,
-            permissionController.state,
           );
           return;
         }
       }
+
       if (chainId === 0) {
         DevLogger.log(
           `WC2::updateSession invalid chainId --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
         );
         // overwrite chainId with actual value.
-        const selectedChainId = parseInt(selectChainId(store.getState()));
+        chainId = parseInt(selectChainId(store.getState()));
         DevLogger.log(
-          `WC2::updateSession overwrite invalid chain Id with selectedChainId=${selectedChainId}`,
+          `WC2::updateSession overwrite invalid chain Id with selectedChainId=${chainId}`,
         );
-        chainId = selectedChainId;
       }
+
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
         chainId,
@@ -338,6 +351,24 @@ class WalletConnect2Session {
     }
   };
 
+  private async getApprovedAccountsFromPermissions(): Promise<string[]> {
+    const permissionController = (
+      Engine.context as {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
+    ).PermissionController;
+
+    DevLogger.log(
+      `WC2::updateSession permissionController.state=${JSON.stringify(
+        permissionController.state,
+      )}`,
+    );
+
+    const origin = this.session.peer.metadata.url;
+    return await getPermittedAccounts(origin);
+  }
+
   handleRequest = async (requestEvent: SingleEthereumTypes.SessionRequest) => {
     DevLogger.log(
       `WalletConnect2Session::handleRequest id=${requestEvent.id} topic=${requestEvent.topic} method=${requestEvent.params.request.method}`,
@@ -345,6 +376,7 @@ class WalletConnect2Session {
     );
     this.topicByRequestId[requestEvent.id] = requestEvent.topic;
     this.requestByRequestId[requestEvent.id] = requestEvent;
+
     if (this.timeoutRef) {
       // Always clear the timeout ref on new message, it is only used for wallet_switchEthereumChain auto reject on android
       clearTimeout(this.timeoutRef);
@@ -353,14 +385,13 @@ class WalletConnect2Session {
     hideWCLoadingState({ navigation: this.navigation });
     const verified = requestEvent.verifyContext?.verified;
     const hostname = verified?.origin;
-    const origin = WALLET_CONNECT_ORIGIN + hostname; // allow correct origin for analytics with eth_sendTtansaction
+    const origin = WALLET_CONNECT_ORIGIN + hostname; // allow correct origin for analytics with eth_sendTransaction
 
     let method = requestEvent.params.request.method;
     const chainId = parseInt(requestEvent.params.chainId);
 
     // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const methodParams = requestEvent.params.request.params as any;
+    const methodParams = requestEvent.params.request.params;
 
     DevLogger.log(
       `WalletConnect2Session::handleRequest chainId=${chainId} method=${method}`,
@@ -379,6 +410,7 @@ class WalletConnect2Session {
         topic: this.session.topic,
         error: { code: 1, message: ERROR_MESSAGES.INVALID_CHAIN },
       });
+      return;
     }
 
     // Android specific logic to prevent automatic redirect on switchChain and let the dapp call wallet_addEthereumChain on error.
@@ -394,6 +426,7 @@ class WalletConnect2Session {
       DevLogger.log(
         `formatting chainId=>${chainId} ==> 0x${chainId.toString(16)}`,
       );
+
       const networkConfigurations = selectNetworkConfigurations(
         store.getState(),
       );
@@ -433,41 +466,9 @@ class WalletConnect2Session {
     }
 
     if (method === 'eth_sendTransaction') {
-      try {
-        const trx = await addTransaction(methodParams[0], {
-          origin,
-          deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          securityAlertResponse: undefined,
-        });
-
-        const id = trx.transactionMeta.id;
-        const reqObject = {
-          id: requestEvent.id,
-          jsonrpc: '2.0',
-          method,
-          origin,
-          params: [
-            {
-              from: methodParams[0].from,
-              to: methodParams[0].to,
-              value: methodParams[0]?.value,
-              data: methodParams[0]?.data,
-            },
-          ],
-        };
-
-        ppomUtil.validateRequest(reqObject, id);
-
-        const hash = await trx.result;
-
-        await this.approveRequest({ id: requestEvent.id + '', result: hash });
-      } catch (error) {
-        await this.rejectRequest({ id: requestEvent.id + '', error });
-      }
-
+      await this.handleSendTransaction(requestEvent, methodParams, origin);
       return;
     } else if (method === 'eth_signTypedData') {
-      // Overwrite 'eth_signTypedData' because otherwise metamask use incorrect param order to parse the request.
       method = 'eth_signTypedData_v3';
     }
 
@@ -482,6 +483,44 @@ class WalletConnect2Session {
       origin,
     });
   };
+
+  private async handleSendTransaction(
+    requestEvent: SingleEthereumTypes.SessionRequest,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    methodParams: any,
+    origin: string,
+  ) {
+    try {
+      const trx = await addTransaction(methodParams[0], {
+        origin,
+        deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        securityAlertResponse: undefined,
+      });
+
+      const id = trx.transactionMeta.id;
+      const reqObject = {
+        id: requestEvent.id,
+        jsonrpc: '2.0',
+        method: 'eth_sendTransaction',
+        origin,
+        params: [
+          {
+            from: methodParams[0].from,
+            to: methodParams[0].to,
+            value: methodParams[0]?.value,
+            data: methodParams[0]?.data,
+          },
+        ],
+      };
+
+      ppomUtil.validateRequest(reqObject, id);
+      const hash = await trx.result;
+
+      await this.approveRequest({ id: requestEvent.id + '', result: hash });
+    } catch (error) {
+      await this.rejectRequest({ id: requestEvent.id + '', error });
+    }
+  }
 }
 
 export default WalletConnect2Session;
