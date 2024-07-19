@@ -21,7 +21,7 @@ import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { toLowerCaseEquals } from '../../../util/general';
 import { RootState } from '../../../reducers';
-import NewAddressFrom from './AddressFrom';
+import AddressFrom from './AddressFrom';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const { internalAccounts, chainId, ticker, transactionState, origin } = props;
@@ -169,11 +169,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   return (
     <View style={styles.container}>
       {fromAddress && (
-        <NewAddressFrom
-          asset={selectedAsset}
-          from={fromAddress}
-          origin={origin}
-        />
+        <AddressFrom asset={selectedAsset} from={fromAddress} origin={origin} />
       )}
       {existingToAddress === undefined && confusableCollection.length ? (
         <TouchableOpacity onPress={() => setShowWarningModal(true)}>
