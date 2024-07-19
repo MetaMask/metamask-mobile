@@ -70,3 +70,6 @@ function getFirebaseConfigEnv(): FirebaseAppOptions | null {
 }
 
 export const FIREBASE_CONFIG = getFirebaseConfigEnv();
+
+export const isNotificationsFeatureEnabled = () =>
+  process.env.MM_NOTIFICATIONS_UI_ENABLED === 'true';
