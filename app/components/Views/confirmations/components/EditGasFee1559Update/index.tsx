@@ -38,6 +38,27 @@ import {
 } from '../../../../../util/gasUtils';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
+type GasFeeEstimates = {
+  renderableGasFeeMinNative: string;
+  renderableGasFeeMaxNative: string;
+  renderableGasFeeMaxConversion: string;
+  renderableMaxFeePerGasNative: string;
+  renderableGasFeeMinConversion: string;
+  renderableMaxPriorityFeeNative: string;
+  renderableMaxFeePerGasConversion: string;
+  renderableMaxPriorityFeeConversion: string;
+  timeEstimateColor: string;
+  timeEstimate: string;
+  timeEstimateId: string;
+  suggestedMaxFeePerGas: string;
+  suggestedMaxPriorityFeePerGas: string;
+  suggestedGasLimit: string;
+};
+
+type UpdateOption = {
+  isCancel?: boolean;
+};
+
 const EditGasFee1559Update = ({
   selectedGasValue,
   gasOptions,
@@ -96,6 +117,8 @@ const EditGasFee1559Update = ({
     gasObject,
   });
 
+  const gasFeeEstimates = gasTransaction as GasFeeEstimates;
+
   const {
     renderableGasFeeMinNative,
     renderableGasFeeMaxNative,
@@ -111,7 +134,7 @@ const EditGasFee1559Update = ({
     suggestedMaxFeePerGas,
     suggestedMaxPriorityFeePerGas,
     suggestedGasLimit,
-  } = gasTransaction;
+  } = gasFeeEstimates;
 
   const getAnalyticsParams = useCallback(() => {
     try {
@@ -176,7 +199,7 @@ const EditGasFee1559Update = ({
 
   const changedGasLimit = useCallback(
     (value) => {
-      const newGas = { ...gasTransaction, suggestedGasLimit: value };
+      const newGas = { ...(gasTransaction as GasFeeEstimates), suggestedGasLimit: value };
       changeGas(newGas, null);
     },
     [changeGas, gasTransaction],
@@ -185,29 +208,18 @@ const EditGasFee1559Update = ({
   const changedMaxPriorityFee = useCallback(
     (value) => {
       const lowerValue = new BigNumber(
-        gasOptions?.[
+        (gasOptions as any)?.[
           warningMinimumEstimateOption
         ]?.suggestedMaxPriorityFeePerGas,
       );
 
       const higherValue = new BigNumber(
-        gasOptions?.high?.suggestedMaxPriorityFeePerGas,
+        (gasOptions as any)?.high?.suggestedMaxPriorityFeePerGas,
       ).multipliedBy(new BigNumber(1.5));
-      const updateFloor = new BigNumber(updateOption?.maxPriortyFeeThreshold);
 
       const valueBN = new BigNumber(value);
 
-      if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
-        setMaxPriorityFeeError(
-          updateOption?.isCancel
-            ? strings('edit_gas_fee_eip1559.max_priority_fee_cancel_low', {
-                cancel_value: updateFloor,
-              })
-            : strings('edit_gas_fee_eip1559.max_priority_fee_speed_up_low', {
-                speed_up_floor_value: updateFloor,
-              }),
-        );
-      } else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
+      if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
         setMaxPriorityFeeError(
           strings('edit_gas_fee_eip1559.max_priority_fee_low'),
         );
@@ -216,11 +228,11 @@ const EditGasFee1559Update = ({
           strings('edit_gas_fee_eip1559.max_priority_fee_high'),
         );
       } else {
-        setMaxPriorityFeeError(null);
+        setMaxPriorityFeeError('');
       }
 
       const newGas = {
-        ...gasTransaction,
+        ...(gasTransaction as GasFeeEstimates),
         suggestedMaxPriorityFeePerGas: value,
       };
 
@@ -230,7 +242,6 @@ const EditGasFee1559Update = ({
       changeGas,
       gasTransaction,
       gasOptions,
-      updateOption,
       warningMinimumEstimateOption,
     ],
   );
@@ -238,26 +249,15 @@ const EditGasFee1559Update = ({
   const changedMaxFeePerGas = useCallback(
     (value) => {
       const lowerValue = new BigNumber(
-        gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas,
+        (gasOptions as any)?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas,
       );
       const higherValue = new BigNumber(
-        gasOptions?.high?.suggestedMaxFeePerGas,
+        (gasOptions as any)?.high?.suggestedMaxFeePerGas,
       ).multipliedBy(new BigNumber(1.5));
-      const updateFloor = new BigNumber(updateOption?.maxFeeThreshold);
 
       const valueBN = new BigNumber(value);
 
-      if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
-        setMaxFeeError(
-          updateOption?.isCancel
-            ? strings('edit_gas_fee_eip1559.max_fee_cancel_low', {
-                cancel_value: updateFloor,
-              })
-            : strings('edit_gas_fee_eip1559.max_fee_speed_up_low', {
-                speed_up_floor_value: updateFloor,
-              }),
-        );
-      } else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
+      if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
         setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_low'));
       } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
         setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
@@ -266,7 +266,7 @@ const EditGasFee1559Update = ({
       }
 
       const newGas = {
-        ...gasTransaction,
+        ...(gasTransaction as GasFeeEstimates),
         suggestedMaxFeePerGas: value,
       };
 
@@ -276,7 +276,6 @@ const EditGasFee1559Update = ({
       changeGas,
       gasTransaction,
       gasOptions,
-      updateOption,
       warningMinimumEstimateOption,
     ],
   );
@@ -286,7 +285,7 @@ const EditGasFee1559Update = ({
       setSelectedOption(option);
       setMaxFeeError('');
       setMaxPriorityFeeError('');
-      changeGas({ ...gasOptions?.[option] }, option);
+      changeGas({ ...(gasOptions as any)?.[option] }, option);
     },
     [changeGas, gasOptions],
   );
@@ -359,6 +358,7 @@ const EditGasFee1559Update = ({
         hitSlop={styles.hitSlop}
         onPress={() => toggleInfoModal(infoValue)}
       >
+        {/* @ts-expect-error Deprecated component */}
         <MaterialCommunityIcon
           name="information"
           size={14}
@@ -373,7 +373,7 @@ const EditGasFee1559Update = ({
       <Text bold reset>
         {strings(value)}:
       </Text>{' '}
-      {gasOptions?.[suggestedEstimateOption]?.suggestedMaxFeePerGas} GWEI
+      {(gasOptions as any)?.[suggestedEstimateOption]?.suggestedMaxFeePerGas} GWEI
     </Text>
   );
 
@@ -405,11 +405,12 @@ const EditGasFee1559Update = ({
             selected={selectedOption}
             onPress={selectOption}
             options={renderOptions}
+            circleSize={24}
+            disabled={false}
           />
         </View>
         <View style={styles.advancedOptionsContainer}>
           <TouchableOpacity
-            disabled={option?.showAdvanced}
             onPress={toggleAdvancedOptions}
             style={styles.advancedOptionsButton}
           >
@@ -417,10 +418,10 @@ const EditGasFee1559Update = ({
               {strings('edit_gas_fee_eip1559.advanced_options')}
             </Text>
             <Text noMargin link bold style={styles.advancedOptionsIcon}>
-              <Icon name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
+              {showAdvancedOptions ? '▲' : '▼'}
             </Text>
           </TouchableOpacity>
-          {(showAdvancedOptions || option?.maxFeeThreshold) && (
+          {showAdvancedOptions && (
             <View style={styles.advancedOptionsInputsContainer}>
               <View style={styles.rangeInputContainer}>
                 <RangeInput
@@ -528,6 +529,7 @@ const EditGasFee1559Update = ({
           small
           type={AlertType.Warning}
           renderIcon={() => (
+            // @ts-expect-error Deprecated component
             <MaterialCommunityIcon
               name="information"
               size={20}
@@ -557,6 +559,7 @@ const EditGasFee1559Update = ({
           small
           type={AlertType.Error}
           renderIcon={() => (
+            // @ts-expect-error Deprecated component
             <MaterialCommunityIcon
               name="information"
               size={20}
@@ -579,10 +582,11 @@ const EditGasFee1559Update = ({
   }, [error, styles, colors]);
 
   const renderDisplayTitle = useMemo(() => {
-    if (updateOption)
+    if (updateOption && 'isCancel' in updateOption) {
       return updateOption.isCancel
         ? strings('edit_gas_fee_eip1559.cancel_transaction')
         : strings('edit_gas_fee_eip1559.speed_up_transaction');
+    }
     return strings('edit_gas_fee_eip1559.edit_priority');
   }, [updateOption]);
 
@@ -597,6 +601,7 @@ const EditGasFee1559Update = ({
             <View>
               <View style={styles.customGasHeader}>
                 <TouchableOpacity onPress={onCancel}>
+                  {/* @ts-expect-error Icon component needs type definition */}
                   <Icon
                     name={'ios-arrow-back'}
                     size={24}
@@ -606,6 +611,7 @@ const EditGasFee1559Update = ({
                 <Text bold black>
                   {renderDisplayTitle}
                 </Text>
+                {/* @ts-expect-error Icon component needs type definition */}
                 <Icon
                   name={'ios-arrow-back'}
                   size={24}
@@ -622,6 +628,7 @@ const EditGasFee1559Update = ({
                     hitSlop={styles.hitSlop}
                     onPress={() => toggleInfoModal('new_gas_fee')}
                   >
+                    {/* @ts-expect-error Deprecated component */}
                     <MaterialCommunityIcon
                       name="information"
                       size={14}
@@ -686,6 +693,7 @@ const EditGasFee1559Update = ({
                     hitSlop={styles.hitSlop}
                     onPress={() => showTimeEstimateInfoModal()}
                   >
+                    {/* @ts-expect-error Deprecated component */}
                     <MaterialCommunityIcon
                       name="information"
                       size={14}
@@ -737,7 +745,7 @@ const EditGasFee1559Update = ({
                       strings('edit_gas_fee_eip1559.learn_more_max_fee')}
                     {modalInfo.value === 'new_gas_fee' &&
                     updateOption &&
-                    updateOption.isCancel
+                    (updateOption as { isCancel?: boolean })?.isCancel
                       ? strings(
                           'edit_gas_fee_eip1559.learn_more_cancel_gas_fee',
                         )
