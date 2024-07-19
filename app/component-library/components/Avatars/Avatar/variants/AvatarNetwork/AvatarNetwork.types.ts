@@ -16,14 +16,6 @@ export interface AvatarNetworkProps extends AvatarBaseProps {
    * Optional network image from either a local or remote source.
    */
   imageSource?: ImageSourcePropType;
-  /**
-   * Optional
-   */
-  iconColor?: string;
-  /**
-   * Optional
-   */
-  backgroundColor?: string;
 }
 
 export interface AvatarNetworkStyleSheetVars
