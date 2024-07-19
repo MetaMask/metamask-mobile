@@ -24,6 +24,7 @@ import {
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
 import { Hex } from '@metamask/utils';
+import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../util/networks';
 
 export interface PPOMRequest {
   method: string;
