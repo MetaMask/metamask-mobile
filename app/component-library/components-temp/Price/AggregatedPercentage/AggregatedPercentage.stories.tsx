@@ -1,6 +1,8 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import AggregatedPercentage from './AggregatedPercentage';
+import AggregatedPercentage, {
+  AggregatedPercentageProps,
+} from './AggregatedPercentage';
 import { createStore } from 'redux';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
@@ -27,13 +29,6 @@ export default {
     ),
   ],
 };
-
-interface AggregatedPercentageProps {
-  ethFiat: number;
-  tokenFiat: number;
-  tokenFiat1dAgo: number;
-  ethFiat1dAgo: number;
-}
 
 const Template = (args: AggregatedPercentageProps) => (
   <AggregatedPercentage {...args} />
