@@ -81,9 +81,6 @@ const Skeleton = ({ width, noStyle }) => {
 };
 
 const TransactionReviewEIP1559 = ({
-  totalNative,
-  totalConversion,
-  totalMaxNative,
   gasFeeNative,
   gasFeeConversion,
   gasFeeMaxNative,
@@ -94,7 +91,6 @@ const TransactionReviewEIP1559 = ({
   primaryCurrency,
   chainId,
   onEdit,
-  hideTotal,
   noMargin,
   origin,
   originWarning,
@@ -134,26 +130,15 @@ const TransactionReviewEIP1559 = ({
 
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
-  let gasFeePrimary,
-    gasFeeSecondary,
-    gasFeeMaxPrimary,
-    totalPrimary,
-    totalSecondary,
-    totalMaxPrimary;
+  let gasFeePrimary, gasFeeSecondary, gasFeeMaxPrimary;
   if (nativeCurrencySelected) {
     gasFeePrimary = gasFeeNative;
     gasFeeSecondary = gasFeeConversion;
     gasFeeMaxPrimary = gasFeeMaxNative;
-    totalPrimary = totalNative;
-    totalSecondary = totalConversion;
-    totalMaxPrimary = totalMaxNative;
   } else {
     gasFeePrimary = gasFeeConversion;
     gasFeeSecondary = gasFeeNative;
     gasFeeMaxPrimary = gasFeeMaxConversion;
-    totalPrimary = totalConversion;
-    totalSecondary = totalNative;
-    totalMaxPrimary = gasFeeMaxConversion;
   }
 
   const valueToWatchAnimation = `${gasFeeNative}${gasFeeMaxNative}`;
@@ -172,9 +157,7 @@ const TransactionReviewEIP1559 = ({
             >
               {!origin
                 ? strings('transaction_review_eip1559.estimated_gas_fee')
-                : strings('transaction_review_eip1559.suggested_gas_fee', {
-                    origin,
-                  })}
+                : strings('transaction_review_eip1559.estimated_fee')}
               <TouchableOpacity
                 style={styles.gasInfoContainer}
                 onPress={() =>
@@ -335,76 +318,6 @@ const TransactionReviewEIP1559 = ({
           </View>
         </Summary.Row>
       )}
-      {!hideTotal && (
-        <View>
-          <Summary.Separator />
-          <View style={styles.gasBottomRowContainer}>
-            <Summary.Row>
-              <Text primary bold noMargin>
-                {strings('transaction_review_eip1559.total')}
-              </Text>
-              {gasEstimationReady ? (
-                <FadeAnimationView
-                  style={styles.valuesContainer}
-                  valueToWatch={valueToWatchAnimation}
-                  animateOnChange={animateOnChange}
-                >
-                  {isMainnet && totalSecondary !== 'undefined' && (
-                    <Text
-                      grey
-                      upper
-                      right
-                      noMargin
-                      style={styles.amountContainer}
-                      adjustsFontSizeToFit
-                      numberOfLines={2}
-                    >
-                      {totalSecondary}
-                    </Text>
-                  )}
-
-                  <Text
-                    bold
-                    primary
-                    upper={!isTestNetwork}
-                    right
-                    noMargin
-                    style={[Device.isSmallDevice() && styles.flex]}
-                    adjustsFontSizeToFit
-                    numberOfLines={2}
-                  >
-                    {totalPrimary}
-                  </Text>
-                </FadeAnimationView>
-              ) : (
-                <Skeleton width={80} />
-              )}
-            </Summary.Row>
-          </View>
-          {!legacy && (
-            <Summary.Row>
-              {gasEstimationReady ? (
-                <FadeAnimationView
-                  style={styles.valuesContainer}
-                  valueToWatch={valueToWatchAnimation}
-                  animateOnChange={animateOnChange}
-                >
-                  <Text grey right small>
-                    <Text bold small noMargin>
-                      {strings('transaction_review_eip1559.max_amount')}:
-                    </Text>{' '}
-                    <Text small noMargin>
-                      {totalMaxPrimary}
-                    </Text>
-                  </Text>
-                </FadeAnimationView>
-              ) : (
-                <Skeleton width={120} />
-              )}
-            </Summary.Row>
-          )}
-        </View>
-      )}
       <InfoModal
         isVisible={isVisibleLegacyLearnMore}
         toggleModal={hideLegacyLearnMore}
@@ -463,18 +376,6 @@ const TransactionReviewEIP1559 = ({
 
 TransactionReviewEIP1559.propTypes = {
   /**
-   * Total value in native currency
-   */
-  totalNative: PropTypes.string,
-  /**
-   * Total value converted to chosen currency
-   */
-  totalConversion: PropTypes.string,
-  /**
-   * Total max value (amount + max fee) native
-   */
-  totalMaxNative: PropTypes.string,
-  /**
    * Gas fee in native currency
    */
   gasFeeNative: PropTypes.string,
@@ -514,10 +415,6 @@ TransactionReviewEIP1559.propTypes = {
    * Time estimate name (unknown, low, medium, high, less_than, range)
    */
   timeEstimateId: PropTypes.string,
-  /**
-   * Boolean to determine if the total section should be hidden
-   */
-  hideTotal: PropTypes.bool,
   /**
    * Boolean to determine the container should have no margin
    */

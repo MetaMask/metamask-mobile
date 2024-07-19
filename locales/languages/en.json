@@ -1386,7 +1386,8 @@
     "hex_data_copied": "Hex data copied to clipboard",
     "invalid_recipient": "Invalid recipient",
     "invalid_recipient_description": "Check the address and make sure it's valid",
-    "swap_tokens": "Swap tokens"
+    "swap_tokens": "Swap tokens",
+    "fromWithColon": "From:"
   },
   "custom_gas": {
     "total": "Total",
@@ -2823,7 +2824,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Estimated gas fee",
-    "suggested_gas_fee": "%{origin} suggested gas fee",
+    "estimated_fee": "Estimated fee",
     "max_fee": "Max fee",
     "total": "Total",
     "max_amount": "Max amount",

@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 import TransactionTypes from '../../../core/TransactionTypes';
-import useAddressBalance from '../../../components/hooks/useAddressBalance/useAddressBalance';
 import { strings } from '../../../../locales/i18n';
 import {
   selectChainId,
@@ -16,22 +15,16 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { useTheme } from '../../../util/theme';
 import InfoModal from '../Swaps/components/InfoModal';
 import useExistingAddress from '../../hooks/useExistingAddress';
-import { AddressFrom, AddressTo } from '../AddressInputs';
+import { AddressTo } from '../AddressInputs';
 import createStyles from './AccountFromToInfoCard.styles';
 import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { toLowerCaseEquals } from '../../../util/general';
 import { RootState } from '../../../reducers';
+import NewAddressFrom from './AddressFrom';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
-  const {
-    internalAccounts,
-    chainId,
-    onPressFromAddressIcon,
-    ticker,
-    transactionState,
-    layout = 'horizontal',
-  } = props;
+  const { internalAccounts, chainId, ticker, transactionState, origin } = props;
   const {
     transaction: { from: rawFromAddress, data, to },
     transactionTo,
@@ -51,10 +44,6 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const existingToAddress = useExistingAddress(toAddress);
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const { addressBalance: fromAccountBalance } = useAddressBalance(
-    selectedAsset,
-    fromAddress,
-  );
 
   useEffect(() => {
     const fetchFromAccountDetails = async () => {
@@ -171,32 +160,28 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         existingToAddress === undefined && !!confusableCollection.length
       }
       isConfirmScreen
-      layout={layout}
+      layout="vertical"
       toAddressName={toAccountName}
       toSelectedAddress={toAddress}
     />
   );
 
   return (
-    <>
-      <View style={styles.inputWrapper}>
-        {fromAddress && (
-          <AddressFrom
-            fromAccountAddress={fromAddress}
-            fromAccountName={fromAccountName}
-            fromAccountBalance={fromAccountBalance}
-            layout={layout}
-            onPressIcon={onPressFromAddressIcon}
-          />
-        )}
-        {existingToAddress === undefined && confusableCollection.length ? (
-          <TouchableOpacity onPress={() => setShowWarningModal(true)}>
-            {addressTo}
-          </TouchableOpacity>
-        ) : (
-          addressTo
-        )}
-      </View>
+    <View style={styles.container}>
+      {fromAddress && (
+        <NewAddressFrom
+          asset={selectedAsset}
+          from={fromAddress}
+          origin={origin}
+        />
+      )}
+      {existingToAddress === undefined && confusableCollection.length ? (
+        <TouchableOpacity onPress={() => setShowWarningModal(true)}>
+          {addressTo}
+        </TouchableOpacity>
+      ) : (
+        addressTo
+      )}
       <InfoModal
         body={
           <Text style={styles.text}>
@@ -207,7 +192,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         title={strings('transaction.confusable_title')}
         toggleModal={() => setShowWarningModal(!showWarningModal)}
       />
-    </>
+    </View>
   );
 };
 

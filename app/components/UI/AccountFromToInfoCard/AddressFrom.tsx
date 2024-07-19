@@ -3,41 +3,50 @@ import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
-import { strings } from '../../../../../../locales/i18n';
-import AccountBalance from '../../../../../component-library/components-temp/Accounts/AccountBalance';
-import { BadgeVariant } from '../../../../../component-library/components/Badges/Badge';
-import { useStyles } from '../../../../../component-library/hooks';
-import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
+import { strings } from '../../../../locales/i18n';
+import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
+import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import Text from '../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../component-library/hooks';
+import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import {
   selectNetworkImageSource,
   selectNetworkName,
-} from '../../../../../selectors/networkInfos';
+} from '../../../selectors/networkInfos';
 import {
   getLabelTextByAddress,
   renderAccountName,
-} from '../../../../../util/address';
-import useAddressBalance from '../../../../hooks/useAddressBalance/useAddressBalance';
-import {
-  ORIGIN_DEEPLINK,
-  ORIGIN_QR_CODE,
-} from './ApproveTransactionHeader.constants';
-import stylesheet from './ApproveTransactionHeader.styles';
-import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
-import { selectInternalAccounts } from '../../../../../selectors/accountsController';
-import ApprovalTagUrl from '../../../../UI/ApprovalTagUrl';
+} from '../../../util/address';
+import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
+import stylesheet from './AddressFrom.styles';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 
-const ApproveTransactionHeader = ({
-  from,
-  origin,
-  url,
-  sdkDappMetadata,
-  currentEnsName,
+interface Asset {
+  isETH?: boolean;
+  tokenId?: string;
+  address: string;
+  symbol: string;
+  decimals: number;
+  image?: string;
+  name?: string;
+  standard?: string;
+}
+
+interface AddressFromProps {
+  asset: Asset;
+  dontWatchAsset?: boolean;
+  from: string;
+  origin?: string;
+}
+
+const AddressFrom = ({
   asset,
   dontWatchAsset,
-}: ApproveTransactionHeaderI) => {
+  from,
+  origin,
+}: AddressFromProps) => {
   const [accountName, setAccountName] = useState('');
 
-  const [isOriginDeepLink, setIsOriginDeepLink] = useState(false);
   const { styles } = useStyles(stylesheet, {});
   const { addressBalance } = useAddressBalance(asset, from, dontWatchAsset);
 
@@ -58,12 +67,11 @@ const ApproveTransactionHeader = ({
     const accountNameVal = activeAddress
       ? renderAccountName(activeAddress, internalAccounts)
       : '';
-
-    const isOriginDeepLinkVal =
-      origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
-
     setAccountName(accountNameVal);
-    setIsOriginDeepLink(isOriginDeepLinkVal);
+
+    if (!origin) {
+      return;
+    }
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
   const networkImage = useSelector(selectNetworkImageSource);
@@ -71,22 +79,18 @@ const ApproveTransactionHeader = ({
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
   return (
-    <View style={styles.transactionHeader}>
-      {origin && !isOriginDeepLink ? (
-        <ApprovalTagUrl
-          from={from}
-          origin={origin}
-          url={url}
-          sdkDappMetadata={sdkDappMetadata}
-          currentEnsName={currentEnsName}
-        />
-      ) : null}
+    <View style={styles.container}>
+      <View style={styles.fromTextContainer}>
+        <Text style={styles.fromText}>
+          {strings('transaction.fromWithColon')}
+        </Text>
+      </View>
       <AccountBalance
         accountAddress={activeAddress}
         accountTokenBalance={addressBalance}
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
-        accountTypeLabel={accountTypeLabel}
+        accountTypeLabel={accountTypeLabel as string}
         accountNetwork={networkName}
         badgeProps={{
           variant: BadgeVariant.Network,
@@ -99,4 +103,4 @@ const ApproveTransactionHeader = ({
   );
 };
 
-export default ApproveTransactionHeader;
+export default AddressFrom;
