@@ -8,9 +8,9 @@ import {
 import Text from '../../../../Base/Text';
 import StyledButton from '../../../../UI/StyledButton';
 import RangeInput from '../../../../Base/RangeInput';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import InfoModal from '../../../../UI/Swaps/components/InfoModal';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import { strings } from '../../../../../../locales/i18n';
 import Alert, { AlertType } from '../../../../Base/Alert';
 import HorizontalSelector from '../../../../Base/HorizontalSelector';
@@ -19,13 +19,7 @@ import {
   isMainnetByChainId,
 } from '../../../../../util/networks';
 import BigNumber from 'bignumber.js';
-import FadeAnimationView from '../../../../UI/FadeAnimationView';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-
-import TimeEstimateInfoModal from '../../../../UI/TimeEstimateInfoModal';
-import useModalHandler from '../../../../Base/hooks/useModalHandler';
-import AppConstants from '../../../../../core/AppConstants';
-import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
 import createStyles from './styles';
 import { EditGasFee1559UpdateProps } from './types';
@@ -37,6 +31,10 @@ import {
   GAS_PRICE_MIN as GAS_MIN,
 } from '../../../../../util/gasUtils';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import TimeEstimateInfoModal from '../../../../UI/TimeEstimateInfoModal';
+import useModalHandler from '../../../../Base/hooks/useModalHandler';
+import AppConstants from '../../../../../core/AppConstants';
+import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
 
 interface RenderInputProps {
   maxPriorityFeeThreshold?: string;
@@ -263,14 +261,7 @@ const EditGasFee1559Update = ({
 
       changeGas(newGas, selectedOption || '');
     },
-    [
-      changeGas,
-      gasTransaction,
-      gasOptions,
-      updateOption,
-      warningMinimumEstimateOption,
-      selectedOption,
-    ],
+    [changeGas, gasTransaction, gasOptions, updateOption, warningMinimumEstimateOption, selectedOption],
   );
 
   const changedMaxFeePerGas = useCallback(
@@ -310,14 +301,7 @@ const EditGasFee1559Update = ({
 
       changeGas(newGas, selectedOption || '');
     },
-    [
-      changeGas,
-      gasTransaction,
-      gasOptions,
-      updateOption,
-      warningMinimumEstimateOption,
-      selectedOption,
-    ],
+    [changeGas, gasTransaction, gasOptions, updateOption, warningMinimumEstimateOption, selectedOption],
   );
 
   const selectOption = useCallback(
@@ -398,8 +382,7 @@ const EditGasFee1559Update = ({
         hitSlop={styles.hitSlop}
         onPress={() => toggleInfoModal(infoValue)}
       >
-        {/* @ts-expect-error Property does not exist on type */}
-        <MaterialCommunityIcon
+        <MaterialCommunityIcons
           name="information"
           size={14}
           style={styles.labelInfo}
@@ -413,7 +396,7 @@ const EditGasFee1559Update = ({
       <Text bold reset>
         {strings(value)}:
       </Text>{' '}
-      {(gasOptions as unknown as GasFeeOptions)?.[suggestedEstimateOption as keyof GasFeeOptions]?.suggestedMaxFeePerGas} GWEI
+      {(gasOptions as any)?.[suggestedEstimateOption]?.suggestedMaxFeePerGas} GWEI
     </Text>
   );
 
@@ -434,133 +417,127 @@ const EditGasFee1559Update = ({
     </>
   );
 
-  const renderInputs = (option: RenderInputProps) => (
+const renderInputs = (option: RenderInputProps) => (
+  <View>
     <View>
-      <FadeAnimationView
-        valueToWatch={valueToWatch}
-        animateOnChange={animateOnChange}
-      >
-        <View>
-          <HorizontalSelector
-            selected={selectedOption}
-            onPress={selectOption}
-            options={renderOptions}
-            circleSize={30}
-            disabled={false}
-          />
-        </View>
-        <View style={styles.advancedOptionsContainer}>
-          <TouchableOpacity
-            disabled={option?.showAdvanced}
-            onPress={toggleAdvancedOptions}
-            style={styles.advancedOptionsButton}
-          >
-            <Text noMargin link bold>
-              {strings('edit_gas_fee_eip1559.advanced_options')}
-            </Text>
-            <Text noMargin link bold style={styles.advancedOptionsIcon}>
-              <Ionicons name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} size={24} color={colors.text.default} />
-            </Text>
-          </TouchableOpacity>
-          {(showAdvancedOptions || option?.showAdvanced) && (
-            <View style={styles.advancedOptionsInputsContainer}>
-              <View style={styles.rangeInputContainer}>
-                <RangeInput
-                  leftLabelComponent={
-                    <LeftLabelComponent
-                      value="edit_gas_fee_eip1559.gas_limit"
-                      infoValue="gas_limit"
-                    />
-                  }
-                  min={GAS_LIMIT_MIN}
-                  value={suggestedGasLimit}
-                  onChangeValue={changedGasLimit}
-                  name={strings('edit_gas_fee_eip1559.gas_limit')}
-                  increment={GAS_LIMIT_INCREMENT}
-                />
-              </View>
-              <View
-                style={styles.rangeInputContainer}
-                testID={EditGasViewSelectorsIDs.MAX_PRIORITY_FEE_INPUT_TEST_ID}
-              >
-                <RangeInput
-                  leftLabelComponent={
-                    <LeftLabelComponent
-                      value="edit_gas_fee_eip1559.max_priority_fee"
-                      infoValue="max_priority_fee"
-                    />
-                  }
-                  rightLabelComponent={
-                    <RightLabelComponent value="edit_gas_fee_eip1559.estimate" />
-                  }
-                  value={suggestedMaxPriorityFeePerGas}
-                  name={strings('edit_gas_fee_eip1559.max_priority_fee')}
-                  unit={'GWEI'}
-                  min={GAS_MIN}
-                  increment={GAS_INCREMENT}
-                  inputInsideLabel={
-                    renderableMaxPriorityFeeNative &&
-                    `≈ ${switchNativeCurrencyDisplayOptions(
-                      renderableMaxPriorityFeeNative || '',
-                      renderableMaxPriorityFeeConversion || '',
-                    )}`
-                  }
-                  error={maxPriorityFeeError}
-                  onChangeValue={changedMaxPriorityFee}
-                />
-              </View>
-              <View style={styles.rangeInputContainer}>
-                <RangeInput
-                  leftLabelComponent={
-                    <LeftLabelComponent
-                      value="edit_gas_fee_eip1559.max_fee"
-                      infoValue="max_fee"
-                    />
-                  }
-                  rightLabelComponent={
-                    <RightLabelComponent value="edit_gas_fee_eip1559.estimate" />
-                  }
-                  value={suggestedMaxFeePerGas}
-                  name={strings('edit_gas_fee_eip1559.max_fee')}
-                  unit={'GWEI'}
-                  min={GAS_MIN}
-                  increment={GAS_INCREMENT}
-                  error={maxFeeError}
-                  onChangeValue={changedMaxFeePerGas}
-                  inputInsideLabel={
-                    renderableMaxFeePerGasNative &&
-                    `≈ ${switchNativeCurrencyDisplayOptions(
-                      renderableMaxFeePerGasNative || '',
-                      renderableMaxFeePerGasConversion || '',
-                    )}`
-                  }
-                />
-              </View>
-            </View>
-          )}
-        </View>
-      </FadeAnimationView>
-      <View>
-        <TouchableOpacity
-          style={styles.saveButton}
-          onPress={toggleLearnMoreModal}
-        >
-          <Text link centered>
-            {strings('edit_gas_fee_eip1559.learn_more.title')}
-          </Text>
-        </TouchableOpacity>
-        <StyledButton
-          type={'confirm'}
-          onPress={save}
-          disabled={Boolean(error) || isAnimating}
-        >
-          {option
-            ? strings('edit_gas_fee_eip1559.submit')
-            : strings('edit_gas_fee_eip1559.save')}
-        </StyledButton>
-      </View>
+      <HorizontalSelector
+        selected={selectedOption}
+        onPress={selectOption}
+        options={renderOptions}
+        circleSize={30}
+        disabled={false}
+      />
     </View>
-  );
+    <View style={styles.advancedOptionsContainer}>
+      <TouchableOpacity
+        onPress={toggleAdvancedOptions}
+        style={styles.advancedOptionsButton}
+      >
+        <Text noMargin link bold>
+          {strings('edit_gas_fee_eip1559.advanced_options')}
+        </Text>
+        <View style={styles.advancedOptionsIcon}>
+          <Ionicons name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} size={24} color={colors.text.default} />
+        </View>
+      </TouchableOpacity>
+      {(showAdvancedOptions || option?.showAdvanced) && (
+        <View style={styles.advancedOptionsInputsContainer}>
+          <View style={styles.rangeInputContainer}>
+            <RangeInput
+              leftLabelComponent={
+                <LeftLabelComponent
+                  value="edit_gas_fee_eip1559.gas_limit"
+                  infoValue="gas_limit"
+                />
+              }
+              min={GAS_LIMIT_MIN}
+              value={suggestedGasLimit}
+              onChangeValue={changedGasLimit}
+              name={strings('edit_gas_fee_eip1559.gas_limit')}
+              increment={GAS_LIMIT_INCREMENT}
+            />
+          </View>
+          <View
+            style={styles.rangeInputContainer}
+            testID={EditGasViewSelectorsIDs.MAX_PRIORITY_FEE_INPUT_TEST_ID}
+          >
+            <RangeInput
+              leftLabelComponent={
+                <LeftLabelComponent
+                  value="edit_gas_fee_eip1559.max_priority_fee"
+                  infoValue="max_priority_fee"
+                />
+              }
+              rightLabelComponent={
+                <RightLabelComponent value="edit_gas_fee_eip1559.estimate" />
+              }
+              value={suggestedMaxPriorityFeePerGas}
+              name={strings('edit_gas_fee_eip1559.max_priority_fee')}
+              unit={'GWEI'}
+              min={GAS_MIN}
+              increment={GAS_INCREMENT}
+              inputInsideLabel={
+                renderableMaxPriorityFeeNative &&
+                `≈ ${switchNativeCurrencyDisplayOptions(
+                  renderableMaxPriorityFeeNative || '',
+                  renderableMaxPriorityFeeConversion || '',
+                )}`
+              }
+              error={maxPriorityFeeError}
+              onChangeValue={changedMaxPriorityFee}
+            />
+          </View>
+          <View style={styles.rangeInputContainer}>
+            <RangeInput
+              leftLabelComponent={
+                <LeftLabelComponent
+                  value="edit_gas_fee_eip1559.max_fee"
+                  infoValue="max_fee"
+                />
+              }
+              rightLabelComponent={
+                <RightLabelComponent value="edit_gas_fee_eip1559.estimate" />
+              }
+              value={suggestedMaxFeePerGas}
+              name={strings('edit_gas_fee_eip1559.max_fee')}
+              unit={'GWEI'}
+              min={GAS_MIN}
+              increment={GAS_INCREMENT}
+              error={maxFeeError}
+              onChangeValue={changedMaxFeePerGas}
+              inputInsideLabel={
+                renderableMaxFeePerGasNative &&
+                `≈ ${switchNativeCurrencyDisplayOptions(
+                  renderableMaxFeePerGasNative || '',
+                  renderableMaxFeePerGasConversion || '',
+                )}`
+              }
+            />
+          </View>
+        </View>
+      )}
+    </View>
+    <View>
+      <TouchableOpacity
+        style={styles.saveButton}
+        onPress={toggleLearnMoreModal}
+      >
+        <Text link centered>
+          {strings('edit_gas_fee_eip1559.learn_more.title')}
+        </Text>
+      </TouchableOpacity>
+      <StyledButton
+        type={'confirm'}
+        onPress={save}
+        disabled={Boolean(error) || isAnimating}
+      >
+        {option
+          ? strings('edit_gas_fee_eip1559.submit')
+          : strings('edit_gas_fee_eip1559.save')}
+      </StyledButton>
+    </View>
+  </View>
+);
 
   const renderWarning = useMemo(() => {
     if (!warning) return null;
@@ -570,8 +547,7 @@ const EditGasFee1559Update = ({
           small
           type={AlertType.Warning}
           renderIcon={() => (
-            // @ts-expect-error Property does not exist on type
-            <MaterialCommunityIcon
+            <MaterialCommunityIcons
               name="information"
               size={20}
               color={colors.warning.default}
@@ -598,11 +574,11 @@ const EditGasFee1559Update = ({
           small
           type={AlertType.Error}
           renderIcon={() => (
-            // @ts-expect-error Property does not exist on type
-            <MaterialCommunityIcon
+            <MaterialCommunityIcons
               name="information"
               size={20}
               color={colors.error.default}
+              props={{}}
             />
           )}
           style={styles.warningContainer}
@@ -614,16 +590,15 @@ const EditGasFee1559Update = ({
           </View>
         </Alert>
       );
-
     return error;
   }, [error, styles, colors]);
 
   const renderDisplayTitle = useMemo(() => {
-    if (updateOption)
-      // @ts-expect-error Property does not exist on type
-      return updateOption.isCancel
+    if (updateOption && 'isCancel' in updateOption) {
+      return (updateOption as { isCancel?: boolean }).isCancel
         ? strings('edit_gas_fee_eip1559.cancel_transaction')
         : strings('edit_gas_fee_eip1559.speed_up_transaction');
+    }
     return strings('edit_gas_fee_eip1559.edit_priority');
   }, [updateOption]);
 
@@ -638,20 +613,24 @@ const EditGasFee1559Update = ({
             <View>
               <View style={styles.customGasHeader}>
                 <TouchableOpacity onPress={onCancel}>
-                  <Ionicons
-                    name={'ios-arrow-back'}
-                    size={24}
-                    color={colors.text.default}
-                  />
+                  <View>
+                    <Ionicons
+                      name={'ios-arrow-back'}
+                      size={24}
+                      color={colors.text.default}
+                    />
+                  </View>
                 </TouchableOpacity>
                 <Text bold black>
                   {renderDisplayTitle}
                 </Text>
-                <Ionicons
-                  name={'ios-arrow-back'}
-                  size={24}
-                  color={colors.background.default}
-                />
+                <View>
+                  <Ionicons
+                    name={'ios-arrow-back'}
+                    size={24}
+                    color={colors.background.default}
+                  />
+                </View>
               </View>
               {updateOption && (
                 <View style={styles.newGasFeeHeader}>
@@ -662,22 +641,20 @@ const EditGasFee1559Update = ({
                     hitSlop={styles.hitSlop}
                     onPress={() => toggleInfoModal('new_gas_fee')}
                   >
-                    <MaterialCommunityIcon
-                      name="information"
-                      size={14}
-                      style={styles.labelInfo}
-                    />
+                    <View>
+                      <MaterialCommunityIcons
+                        name="information"
+                        size={14}
+                        style={styles.labelInfo}
+                      />
+                    </View>
                   </TouchableOpacity>
                 </View>
               )}
             </View>
             {renderWarning}
             {renderError}
-            <FadeAnimationView
-              style={styles.headerContainer}
-              valueToWatch={valueToWatch}
-              animateOnChange={animateOnChange}
-            >
+            <View style={styles.headerContainer}>
               <View style={styles.headerTitle}>
                 <Text
                   black
@@ -725,15 +702,17 @@ const EditGasFee1559Update = ({
                     hitSlop={styles.hitSlop}
                     onPress={() => showTimeEstimateInfoModal()}
                   >
-                    <MaterialCommunityIcon
-                      name="information"
-                      size={14}
-                      style={styles.redInfo}
-                    />
+                    <View>
+                      <MaterialCommunityIcons
+                        name="information"
+                        size={14}
+                        style={styles.redInfo}
+                      />
+                    </View>
                   </TouchableOpacity>
                 ) : null}
               </View>
-            </FadeAnimationView>
+            </View>
             {!showInputs ? (
               <View style={styles.dappEditGasContainer}>
                 <StyledButton
@@ -776,8 +755,7 @@ const EditGasFee1559Update = ({
                       strings('edit_gas_fee_eip1559.learn_more_max_fee')}
                     {modalInfo.value === 'new_gas_fee' &&
                     updateOption &&
-                    // @ts-expect-error Property does not exist on type
-                    updateOption.isCancel
+                    (updateOption as { isCancel?: boolean })?.isCancel
                       ? strings(
                           'edit_gas_fee_eip1559.learn_more_cancel_gas_fee',
                         )

@@ -1469,6 +1469,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift$(inherited)";
 				LLVM_LTO = YES;
+<<<<<<< HEAD
 				MARKETING_VERSION = 7.27.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "$(inherited)";
@@ -1699,6 +1700,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
+<<<<<<< HEAD
 				MARKETING_VERSION = 7.27.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
