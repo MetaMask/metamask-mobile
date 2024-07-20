@@ -482,7 +482,6 @@
     "react-native-svg-transformer": "^1.0.0",
     "react-test-renderer": "18.2.0",
     "regenerator-runtime": "0.13.9",
-    "rn-nodeify": "10.3.0",
     "serve-handler": "^6.1.5",
     "simple-git": "^3.22.0",
     "ts-node": "^10.5.0",
