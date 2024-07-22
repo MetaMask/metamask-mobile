@@ -468,7 +468,9 @@ const NftDetails = () => {
             valueStyle={styles.informationRowValueStyle}
           />
           {hasCollectionSection ? (
-            <Text style={styles.heading}>{strings('collectible.collection')}</Text>
+            <Text style={styles.heading}>
+              {strings('collectible.collection')}
+            </Text>
           ) : null}
 
           <NftDetailsInformationRow
@@ -559,7 +561,9 @@ const NftDetails = () => {
           />
 
           {hasAttributesSection ? (
-            <Text style={styles.heading}>{strings('nft_details.attributes')}</Text>
+            <Text style={styles.heading}>
+              {strings('nft_details.attributes')}
+            </Text>
           ) : null}
 
           {collectible?.attributes?.length !== 0 ? (
