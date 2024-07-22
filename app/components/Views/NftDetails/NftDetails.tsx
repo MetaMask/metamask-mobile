@@ -40,8 +40,8 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/ContentDisplay';
 import BigNumber from 'bignumber.js';
-import { formatTimestampToYYYYMMDD } from '../../../util/notifications';
 import { addUrlProtocolPrefix } from '../../../util/url';
+import { formatTimestampToYYYYMMDD } from '../../../util/notifications';
 
 const NftDetails = () => {
   const navigation = useNavigation();
