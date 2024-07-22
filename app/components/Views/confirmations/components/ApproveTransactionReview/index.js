@@ -100,6 +100,7 @@ import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionB
 import { regex } from '../../../../../util/regex';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -1182,7 +1183,7 @@ class ApproveTransactionReview extends PureComponent {
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
