@@ -23,11 +23,12 @@ const AvatarGroup = ({
   avatarPropsList,
   size = DEFAULT_AVATARGROUP_AVATARSIZE,
   maxStackedAvatars = DEFAULT_AVATARGROUP_MAXSTACKEDAVATARS,
+  includesBorder = false,
   style,
 }: AvatarGroupProps) => {
   const sizeAsNumber = Number(size);
   const overflowCounter = avatarPropsList.length - maxStackedAvatars;
-  const avatarNegativeSpacing = sizeAsNumber / 2;
+  const avatarNegativeSpacing = -2 * (1 + (sizeAsNumber - 16) / 8);
   const shouldRenderOverflowCounter = overflowCounter > 0;
 
   const { styles } = useStyles(styleSheet, {
@@ -37,14 +38,14 @@ const AvatarGroup = ({
 
   const renderavatarPropsList = () =>
     avatarPropsList.slice(0, maxStackedAvatars).map((avatarProps, index) => {
-      const marginLeft = index === 0 ? 0 : -avatarNegativeSpacing;
+      const marginLeft = index === 0 ? 0 : avatarNegativeSpacing;
 
       return (
         <View key={`avatar-${index}`} style={{ marginLeft }}>
           <Avatar
-            style={styles.avatar}
             {...avatarProps}
             size={size}
+            includesBorder={includesBorder}
             testID={AVATARGROUP_AVATAR_TESTID}
           />
         </View>

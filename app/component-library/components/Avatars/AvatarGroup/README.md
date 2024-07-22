@@ -9,7 +9,7 @@ This component extends React Native's [ViewProps](https://reactnative.dev/docs/v
 ### `avatarPropsList`
 
 A list of Avatars to be horizontally stacked.
-Note: AvatarGroup's `size` prop will overwrite each individual avatar's `size`.
+Note: AvatarGroup's `size` and `includesBorder` prop will overwrite each individual avatar's `size` and `includesBorder` prop.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -30,6 +30,14 @@ Optional enum to select the maximum number of Avatars visible before the overflo
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | `number`                                            | No                                                      | 4                                                      |
+
+### `includesBorder`
+
+Optional boolean to include a border or not.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| `boolean`                                           | No                                                      | `false`                                                |
 
 ## Usage
 
@@ -63,4 +71,8 @@ const avatarPropsList: AvatarProps[] = [
 
 // Configuring max number of stacked Avatars
 <AvatarGroup avatarPropsList={avatarPropsList} maxStackedAvatars={3} />;
+
+// Configuring border inclusion
+<AvatarGroup avatarPropsList={avatarPropsList} includesBorder />;
+<AvatarGroup avatarPropsList={avatarPropsList} includesBorder={false} />;
 ```

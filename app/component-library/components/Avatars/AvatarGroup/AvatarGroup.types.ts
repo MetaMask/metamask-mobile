@@ -13,13 +13,20 @@ export type TextVariantByAvatarSize = {
 };
 
 /**
+ * Mapping of overflow text margin by AvatarSize.
+ */
+export type OverflowTextMarginByAvatarSize = {
+  [key in AvatarSize]: number;
+};
+
+/**
  * AvatarGroup component props.
  */
 export interface AvatarGroupProps extends ViewProps {
   /**
    * A list of Avatars to be horizontally stacked.
-   * Note: AvatarGroupProps's size prop will overwrite each individual
-   * avatarProp's size
+   * Note: AvatarGroupProps's size and includesBorder prop will overwrite
+   * each individual avatarProp's size and includesBorder prop
    */
   avatarPropsList: AvatarProps[];
   /**
@@ -33,6 +40,13 @@ export interface AvatarGroupProps extends ViewProps {
    * @default 4
    */
   maxStackedAvatars?: number;
+  /**
+   * Optional boolean to includes border or not.
+   * @default false
+   */
+  includesBorder?: boolean;
 }
-
-export type AvatarGroupStyleSheetVars = Pick<AvatarGroupProps, 'style'>;
+export interface AvatarGroupStyleSheetVars
+  extends Pick<AvatarGroupProps, 'style'> {
+  size: AvatarSize;
+}

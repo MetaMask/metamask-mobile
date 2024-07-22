@@ -10,7 +10,11 @@ import { SAMPLE_AVATARFAVICON_PROPS } from '../Avatar/variants/AvatarFavicon/Ava
 import { SAMPLE_AVATARTOKEN_PROPS } from '../Avatar/variants/AvatarToken/AvatarToken.constants';
 
 // Internal dependencies
-import { AvatarGroupProps, TextVariantByAvatarSize } from './AvatarGroup.types';
+import {
+  AvatarGroupProps,
+  TextVariantByAvatarSize,
+  OverflowTextMarginByAvatarSize,
+} from './AvatarGroup.types';
 
 // Test IDs
 export const AVATARGROUP_AVATAR_TESTID = 'avatargroup-avatar';
@@ -24,6 +28,14 @@ export const TEXTVARIANT_BY_AVATARSIZE: TextVariantByAvatarSize = {
   [AvatarSize.Lg]: TextVariant.BodyLGMedium,
   [AvatarSize.Xl]: TextVariant.BodyLGMedium,
 };
+export const OVERFLOWTEXTMARGIN_BY_AVATARSIZE: OverflowTextMarginByAvatarSize =
+  {
+    [AvatarSize.Xs]: 2,
+    [AvatarSize.Sm]: 4,
+    [AvatarSize.Md]: 4,
+    [AvatarSize.Lg]: 6,
+    [AvatarSize.Xl]: 6,
+  };
 
 // Defaults
 export const DEFAULT_AVATARGROUP_AVATARSIZE = AvatarSize.Xs;

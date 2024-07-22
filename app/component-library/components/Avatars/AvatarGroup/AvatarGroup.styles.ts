@@ -6,6 +6,7 @@ import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
 import { AvatarGroupStyleSheetVars } from './AvatarGroup.types';
+import { OVERFLOWTEXTMARGIN_BY_AVATARSIZE } from './AvatarGroup.constants';
 
 /**
  * Style sheet function for AvatarGroup component.
@@ -19,9 +20,8 @@ const styleSheet = (params: {
   theme: Theme;
   vars: AvatarGroupStyleSheetVars;
 }) => {
-  const { theme, vars } = params;
-  const { style } = vars;
-  const borderWidth = 1;
+  const { vars } = params;
+  const { style, size } = vars;
 
   return StyleSheet.create({
     base: Object.assign(
@@ -31,12 +31,8 @@ const styleSheet = (params: {
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    avatar: {
-      borderWidth,
-      borderColor: theme.colors.background.default,
-    },
     textStyle: {
-      marginLeft: 2,
+      marginLeft: OVERFLOWTEXTMARGIN_BY_AVATARSIZE[size],
     },
   });
 };

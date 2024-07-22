@@ -21,9 +21,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
         {
           "alignItems": "center",
           "backgroundColor": "#ffffff",
-          "borderColor": "#ffffff",
           "borderRadius": 8,
-          "borderWidth": 1,
           "height": 16,
           "justifyContent": "center",
           "overflow": "hidden",
@@ -49,7 +47,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
   <View
     style={
       {
-        "marginLeft": -8,
+        "marginLeft": -2,
       }
     }
   >
@@ -57,9 +55,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#ffffff",
           "borderRadius": 8,
-          "borderWidth": 1,
           "height": 16,
           "overflow": "hidden",
           "width": 16,
@@ -89,7 +85,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
   <View
     style={
       {
-        "marginLeft": -8,
+        "marginLeft": -2,
       }
     }
   >
@@ -97,9 +93,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#ffffff",
           "borderRadius": 8,
-          "borderWidth": 1,
           "height": 16,
           "overflow": "hidden",
           "width": 16,
@@ -129,7 +123,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
   <View
     style={
       {
-        "marginLeft": -8,
+        "marginLeft": -2,
       }
     }
   >
@@ -137,9 +131,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#ffffff",
           "borderRadius": 8,
-          "borderWidth": 1,
           "height": 16,
           "overflow": "hidden",
           "width": 16,

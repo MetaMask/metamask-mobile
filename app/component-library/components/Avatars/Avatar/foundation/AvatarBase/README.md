@@ -12,13 +12,20 @@ Optional enum to select between size variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [AvatarSize](../../Avatar.types.ts)          | Yes                                                     | Md                                                     |
+| [AvatarSize](../../Avatar.types.ts)                 | Yes                                                     | Md                                                     |
+
+### `includesBorder`
+
+Optional boolean to include a border or not.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| `boolean`                                           | No                                                      | `false`                                                |
 
 ## Usage
 
 ```javascript
-<AvatarBase 
-  size={AvatarSize.Md}>
-    <SampleImageComponent />
-</AvatarBase>;
+<AvatarBase size={AvatarSize.Md}>
+  <SampleImageComponent />
+</AvatarBase>
 ```
