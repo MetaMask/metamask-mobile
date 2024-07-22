@@ -611,6 +611,10 @@
     "remove_account_message": "Вы действительно хотите удалить этот счет?",
     "no": "Нет",
     "yes_remove_it": "Да, удалить",
+    "remove_hardware_account": "Remove hardware account",
+    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_account_alert_remove_btn": "Remove",
+    "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "Счета",
     "connect_account_title": "Подключить счет",
     "connect_accounts_title": "Подключить счета",
@@ -666,8 +670,7 @@
     "hint_text": "Отсканируйте свой кошелек Keystone, чтобы",
     "purpose_connect": "подключиться",
     "purpose_sign": "подтвердить транзакцию",
-    "select_accounts": "Выберите счет",
-    "please_wait": "Пожалуйста, подождите..."
+    "select_accounts": "Выберите счет"
   },
   "data_collection_modal": {
     "accept": "Хорошо",
@@ -680,6 +683,11 @@
     "forget": "Забыть это устройство"
   },
   "app_settings": {
+    "enabling_notifications": "Enabling notifications...",
+    "disabling_notifications": "Disabling notifications...",
+    "enabling_profile_sync": "Enabling profile syncing...",
+    "disabling_profile_sync": "Disabling profile syncing...",
+    "notifications_dismiss_modal": "Dismiss",
     "title": "Настройки",
     "current_conversion": "Базовая валюта",
     "current_language": "Текущий язык",
@@ -803,7 +811,7 @@
     "security_desc": "Настройки конфиденциальности, MetaMetrics, закрытый ключ и секретная фраза для восстановления кошелька",
     "networks_title": "Сети",
     "networks_default_title": "Сеть по умолчанию",
-    "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
+    "network_delete": "Если вы удалите эту сеть, вам нужно будет добавить ее снова, чтобы просмотреть свои активы в этой сети",
     "networks_default_cta": "Использовать эту сеть",
     "networks_desc": "Добавляйте и редактируйте пользовательские сети RPC",
     "network_name_label": "Имя сети",
@@ -819,7 +827,7 @@
     "network_other_networks": "Другие сети",
     "network_rpc_networks": "RPC-сети",
     "network_add_network": "Добавить сеть",
-    "network_add_custom_network": "Add a custom network",
+    "network_add_custom_network": "Добавить пользовательскую сеть",
     "network_add": "Добавить",
     "network_save": "Сохранить",
     "remove_network_title": "Вы хотите удалить эту сеть?",
@@ -994,7 +1002,7 @@
     "token_nft_ens_subheading": "Автоопределение токенов, NFT и ENS",
     "security_check_subheading": "Проверки безопасности",
     "symbol_required": "Требуется символ.",
-    "blockaid_desc": "This feature alerts you to malicious activity by actively reviewing transaction and signature requests.",
+    "blockaid_desc": "Эта функция предупреждает вас о вредоносной активности, активно проверяя транзакции и запросы на подпись.",
     "security_alerts": "Оповещения безопасности",
     "security_alerts_desc": "Эта функция предупреждает вас о вредоносной активности, проверяя запросы транзакций и подписей локально. Всегда проводите комплексную проверку перед утверждением каких-либо запросов. Нет никакой гарантии, что эта функция обнаружит всю вредоносную активность. Включая эту функцию, вы соглашаетесь с условиями использования поставщика.",
     "smart_transactions_opt_in_heading": "Умные транзакции",
@@ -1031,7 +1039,7 @@
     "cancel": "Отмена",
     "loading": "Подключение к MetaMask...",
     "unkown_dapp": "Имя DAPP недоступно",
-    "unknown": "Unknown",
+    "unknown": "Неизвестно",
     "no_connections": "Нет подключений",
     "no_connections_desc": "Если вы подключите счет к сайту или приложению, вы увидите его здесь."
   },
@@ -1655,7 +1663,7 @@
     "network_currency_symbol": "Символ валюты",
     "network_block_explorer_url": "URL обозревателя блоков",
     "search": "Поиск ранее добавленной сети",
-    "search-short": "Search",
+    "search-short": "Поиск",
     "add": "Добавить",
     "cancel": "Отмена",
     "approve": "Одобрить",
@@ -1663,9 +1671,9 @@
     "malicious_network_warning": "Вредоносный сетевой провайдер может дезинформировать о состоянии блокчейна и записывать ваши действия в сети. Добавляйте только те пользовательские сети, которым доверяете.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "Информация о сети",
-    "additional_network_information_title": "Additional Networks Information",
+    "additional_network_information_title": "Дополнительная информация о сетях",
     "network_warning_desc": "Это сетевое подключение зависит от третьих сторон. Оно может быть менее надежным или позволять третьим лицам отслеживать активность.",
-    "additonial_network_information_desc": "Some of these networks rely on third parties. The connections may be less reliable or enable third-parties to track activity.",
+    "additonial_network_information_desc": "Некоторые из этих сетей являются зависимыми от третьих сторон. Соединения могут быть менее надежными или позволять третьим сторонам отслеживать активность.",
     "learn_more": "Подробнее",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Переключиться на сеть",
@@ -1954,7 +1962,7 @@
     "received": "Получено",
     "unstaked": "Стейкинг отменен",
     "to": "В",
-    "rate": "Курс (включая комиссии)",
+    "rate": "Rate (fees included)",
     "unstaking_requested": "Запрошена отмена стейкинга",
     "stake_completed": "Стейкинг завершен",
     "withdrawal_completed": "Вывод завершен",
@@ -1964,6 +1972,49 @@
     "swap_completed": "{{from}} обменянные на {{to}}",
     "swap": "Выполнен обмен",
     "sent": "Отправленные на {{address}}",
+    "menu_item_title": {
+      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
+      "erc20_sent": "Sent to {{address}}",
+      "erc20_received": "Received from {{address}}",
+      "eth_sent": "Sent to {{address}}",
+      "eth_received": "Received from {{address}}",
+      "erc721_sent": "Sent NFT to {{address}}",
+      "erc1155_sent": "Sent NFT to {{address}}",
+      "erc721_received": "Received NFT from {{address}}",
+      "erc1155_received": "Received NFT from {{address}}",
+      "rocketpool_stake_completed": "Staked",
+      "rocketpool_unstake_completed": "Unstaking complete",
+      "lido_stake_completed": "Staked",
+      "lido_withdrawal_requested": "Unstaking requested",
+      "lido_withdrawal_completed": "Unstaking complete",
+      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+    },
+    "menu_item_description": {
+      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
+      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+    },
+    "modal": {
+      "title_sent": "Sent {{symbol}}",
+      "title_received": "Received {{symbol}}",
+      "title_unstake_requested": "Unstaking requested",
+      "title_untake_ready": "Withdrawl ready",
+      "title_stake": "Staked {{symbol}}",
+      "title_unstake_completed": "Unstaking completed",
+      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
+      "label_address_to": "To",
+      "label_address_from": "From",
+      "label_address_to_you": "To (You)",
+      "label_address_from_you": "From (You)",
+      "label_asset": "Asset",
+      "label_account": "Account",
+      "label_unstaking_requested": "Unstaking Requested",
+      "label_unstake_ready": "Withdrawl ready",
+      "label_staked": "Staked",
+      "label_received": "Received",
+      "label_unstaking_confirmed": "Unstaking Confirmed",
+      "label_swapped": "Swapped",
+      "label_to": "To"
+    },
     "received_from": "Получено от {{address}}",
     "nft_sent": "Отправил(-а) NFT на {{address}}",
     "erc721_sent": "Отправил(-а) NFT на {{address}}",
@@ -1997,6 +2048,8 @@
     "received_message": "Нажмите для просмотра этой транзакции",
     "received_payment_message": "Вы получили {{amount}} DAI",
     "prompt_title": "Включить push-уведомления",
+    "notifications_enabled_error_title": "Something went wrong",
+    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
     "prompt_desc": "Включите уведомления, чтобы MetaMask мог сообщить вам о получении вами ETH или подтверждении ваших транзакций.",
     "prompt_ok": "Да",
     "prompt_cancel": "Нет, спасибо",
@@ -2021,6 +2074,7 @@
       "1": "Кошелек",
       "2": "Объявления"
     },
+    "copied_to_clipboard": "Copied to clipboard",
     "address_copied_to_clipboard": "Адрес скопирован в буфер обмена",
     "transaction_id_copied_to_clipboard": "ID транзакции скопирован в буфер обмена",
     "activation_card": {
@@ -2652,7 +2706,7 @@
       "header": "Улучшенная защита транзакций",
       "description_1": "Откройте для себя более высокие коэффициенты успеха, передовую защиту и лучшую прозрачность с помощью смарт-транзакций.",
       "description_2": "Доступно только на Ethereum. Включайте или отключайте в любое время в настройках.",
-      "secondary_button": "Управляйте в настройках",
+      "no_thanks": "No thanks",
       "primary_button": "Включить",
       "learn_more": "Подробнее.",
       "benefit_1_1": "Показатель успеха:",
@@ -2850,6 +2904,15 @@
   "remember_me": {
     "enable_remember_me": "Включить \"Запомнить меня\"",
     "enable_remember_me_description": "Когда функция \"Запомнить меня\" включена, любой, у кого есть доступ к вашему телефону, может получить доступ к вашему счету MetaMask."
+  },
+  "profile_sync": {
+    "title": "Profile Sync",
+    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
+    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
+    "enable_description2": " to learn more.",
+    "enable_privacy_link": "Learn how we protect your privacy",
+    "bottomSheetTurnOn": "Turning on Profile Sync",
+    "bottomSheetTurnOff": "Turning off Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "Введите пароль, чтобы отключить \"Запомнить меня\"",
@@ -3073,7 +3136,7 @@
   },
   "install_snap": {
     "title": "Запрос подключения",
-    "description": "{{origin}} wants to use {{snap}}.",
+    "description": "{{origin}} хочет использовать {{snap}}.",
     "permissions_request_title": "Запрос разрешений",
     "permissions_request_description": "{{origin}} хочет установить {{snap}}, который запрашивает следующие разрешения.",
     "approve_permissions": "Одобрить",
@@ -3122,5 +3185,8 @@
     "title": "Прогнозируемые изменения",
     "tooltip_description": "Прогнозируемые изменения — это то, что может произойти, если вы завершите эту транзакцию. Это всего лишь прогноз, а не гарантия.",
     "total_fiat": "Итого = {{currency}}"
+  },
+  "common": {
+    "please_wait": "Please wait"
   }
 }
