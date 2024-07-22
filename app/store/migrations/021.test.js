@@ -1,12 +1,12 @@
 import migrate from './021';
 import { IPFS_DEFAULT_GATEWAY_URL } from '../../../app/constants/network';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { backgroundState } from '../../util/test/initial-root-state';
 
 describe('Migration #21', () => {
   it('should not change state if ipfs gateway in use is not outdated', () => {
     const currentState = {
       engine: {
-        backgroundState: initialBackgroundState,
+        backgroundState,
       },
     };
 
@@ -19,9 +19,9 @@ describe('Migration #21', () => {
     const stateWithIpfsGateway = (ipfsGateway) => ({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
-            ...initialBackgroundState.PreferencesController,
+            ...backgroundState.PreferencesController,
             ipfsGateway,
           },
         },

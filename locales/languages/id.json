@@ -5,8 +5,6 @@
     "deceptive_request_title": "Ini adalah permintaan tipuan",
     "failed_title": "Permintaan mungkin tidak aman",
     "failed_description": "Karena terjadi kesalahan, permintaan ini tidak diverifikasi oleh penyedia keamanan. Lanjutkan dengan hati-hati.",
-    "loading_title": "Memeriksa peringatan keamanan...",
-    "loading_complete_title": "Tidak menerima peringatan. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan.",
     "malicious_domain_description": "Anda berinteraksi dengan domain berbahaya. Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "other_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "raw_signature_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
@@ -613,6 +611,10 @@
     "remove_account_message": "Yakin ingin menghapus akun ini?",
     "no": "Tidak",
     "yes_remove_it": "Ya, hapus",
+    "remove_hardware_account": "Remove hardware account",
+    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_account_alert_remove_btn": "Remove",
+    "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "Akun",
     "connect_account_title": "Hubungkan akun",
     "connect_accounts_title": "Hubungkan akun",
@@ -668,8 +670,7 @@
     "hint_text": "Pindai dompet Keystone Anda ke ",
     "purpose_connect": "hubungkan",
     "purpose_sign": "konfirmasikan transaksi",
-    "select_accounts": "Pilih Akun",
-    "please_wait": "Harap tunggu"
+    "select_accounts": "Pilih Akun"
   },
   "data_collection_modal": {
     "accept": "Oke",
@@ -682,6 +683,11 @@
     "forget": "Lupakan perangkat ini"
   },
   "app_settings": {
+    "enabling_notifications": "Enabling notifications...",
+    "disabling_notifications": "Disabling notifications...",
+    "enabling_profile_sync": "Enabling profile syncing...",
+    "disabling_profile_sync": "Disabling profile syncing...",
+    "notifications_dismiss_modal": "Dismiss",
     "title": "Pengaturan",
     "current_conversion": "Mata Uang Dasar",
     "current_language": "Bahasa Saat ini",
@@ -805,6 +811,7 @@
     "security_desc": "Pengaturan privasi, MetaMetrics, kunci pribadi, dan Frasa Pemulihan Rahasia dompet",
     "networks_title": "Jaringan",
     "networks_default_title": "Jaringan Default",
+    "network_delete": "Jika menghapus jaringan ini, Anda harus menambahkannya lagi untuk melihat aset di jaringan ini",
     "networks_default_cta": "Gunakan jaringan ini",
     "networks_desc": "Tambahkan dan edit jaringan RPC khusus",
     "network_name_label": "Nama Jaringan",
@@ -820,6 +827,7 @@
     "network_other_networks": "Jaringan Lain",
     "network_rpc_networks": "Jaringan RPC",
     "network_add_network": "Tambahkan Jaringan",
+    "network_add_custom_network": "Tambahkan jaringan khusus",
     "network_add": "Tambahkan",
     "network_save": "Simpan",
     "remove_network_title": "Apakah Anda ingin menghapus jaringan ini?",
@@ -994,7 +1002,7 @@
     "token_nft_ens_subheading": "Autodeteksi Token, NFT, dan ENS",
     "security_check_subheading": "Pemeriksaan keamanan",
     "symbol_required": "Simbol wajib diisi.",
-    "blockaid_desc": "Menjaga privasi - tidak ada data yang dibagikan kepada pihak ketiga. Tersedia di Arbitrum, Avalanche, BNB chain, Mainnet Ethereum, Optimism, Polygon, Sepolia, dan Base.",
+    "blockaid_desc": "Fitur ini memperingatkan Anda tentang aktivitas jahat dengan meninjau permintaan transaksi dan tanda tangan secara aktif.",
     "security_alerts": "Peringatan keamanan",
     "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia.",
     "smart_transactions_opt_in_heading": "Transaksi Pintar",
@@ -1031,6 +1039,7 @@
     "cancel": "Batal",
     "loading": "Menghubungkan ke MetaMask...",
     "unkown_dapp": "Nama Aplikasi Terdesentralisasi (DAPP) tidak tersedia",
+    "unknown": "Tidak dikenal",
     "no_connections": "Tidak ada koneksi",
     "no_connections_desc": "Jika Anda menghubungkan akun ke situs atau aplikasi, Anda akan melihatnya di sini."
   },
@@ -1654,6 +1663,7 @@
     "network_currency_symbol": "Simbol Mata Uang",
     "network_block_explorer_url": "URL Block Explorer",
     "search": "Cari jaringan yang ditambahkan sebelumnya",
+    "search-short": "Cari",
     "add": "Tambahkan",
     "cancel": "Batal",
     "approve": "Setujui",
@@ -1661,7 +1671,9 @@
     "malicious_network_warning": "Penyedia jaringan jahat dapat berbohong tentang status blockchain dan merekam aktivitas jaringan Anda. Hanya tambahkan jaringan kustom yang Anda percayai.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "Informasi Jaringan",
+    "additional_network_information_title": "Informasi Jaringan Tambahan",
     "network_warning_desc": "Koneksi jaringan ini mengandalkan pihak ketiga. Koneksi ini mungkin kurang bisa diandalkan atau memungkinkan pihak ketiga melacak aktivitas.",
+    "additonial_network_information_desc": "Beberapa jaringan ini mengandalkan pihak ketiga. Koneksi ini kurang dapat diandalkan atau memungkinkan pihak ketiga melacak aktivitas.",
     "learn_more": "Pelajari selengkapnya",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Beralih ke jaringan",
@@ -1950,7 +1962,7 @@
     "received": "Diterima",
     "unstaked": "Stake dibatalkan",
     "to": "Ke",
-    "rate": "Tarif (termasuk biaya)",
+    "rate": "Rate (fees included)",
     "unstaking_requested": "Permintaan pembatalan stake",
     "stake_completed": "Stake selesai",
     "withdrawal_completed": "Penarikan selesai",
@@ -1960,6 +1972,49 @@
     "swap_completed": "Swap {{from}} dengan {{to}}",
     "swap": "Ditukar",
     "sent": "Dikirim ke {{address}}",
+    "menu_item_title": {
+      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
+      "erc20_sent": "Sent to {{address}}",
+      "erc20_received": "Received from {{address}}",
+      "eth_sent": "Sent to {{address}}",
+      "eth_received": "Received from {{address}}",
+      "erc721_sent": "Sent NFT to {{address}}",
+      "erc1155_sent": "Sent NFT to {{address}}",
+      "erc721_received": "Received NFT from {{address}}",
+      "erc1155_received": "Received NFT from {{address}}",
+      "rocketpool_stake_completed": "Staked",
+      "rocketpool_unstake_completed": "Unstaking complete",
+      "lido_stake_completed": "Staked",
+      "lido_withdrawal_requested": "Unstaking requested",
+      "lido_withdrawal_completed": "Unstaking complete",
+      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+    },
+    "menu_item_description": {
+      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
+      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+    },
+    "modal": {
+      "title_sent": "Sent {{symbol}}",
+      "title_received": "Received {{symbol}}",
+      "title_unstake_requested": "Unstaking requested",
+      "title_untake_ready": "Withdrawl ready",
+      "title_stake": "Staked {{symbol}}",
+      "title_unstake_completed": "Unstaking completed",
+      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
+      "label_address_to": "To",
+      "label_address_from": "From",
+      "label_address_to_you": "To (You)",
+      "label_address_from_you": "From (You)",
+      "label_asset": "Asset",
+      "label_account": "Account",
+      "label_unstaking_requested": "Unstaking Requested",
+      "label_unstake_ready": "Withdrawl ready",
+      "label_staked": "Staked",
+      "label_received": "Received",
+      "label_unstaking_confirmed": "Unstaking Confirmed",
+      "label_swapped": "Swapped",
+      "label_to": "To"
+    },
     "received_from": "Diterima dari {{address}}",
     "nft_sent": "Mengirim NFT ke {{address}}",
     "erc721_sent": "Mengirim NFT ke {{address}}",
@@ -1993,6 +2048,8 @@
     "received_message": "Ketuk untuk melihat transaksi ini",
     "received_payment_message": "Anda menerima {{amount}} DAI",
     "prompt_title": "Aktifkan Pemberitahuan Push",
+    "notifications_enabled_error_title": "Something went wrong",
+    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
     "prompt_desc": "Aktifkan pemberitahuan agar MetaMask dapat memberitahukan saat Anda menerima ETH atau saat transaksi Anda telah dikonfirmasi.",
     "prompt_ok": "Ya",
     "prompt_cancel": "Tidak, terima kasih",
@@ -2017,6 +2074,7 @@
       "1": "Dompet",
       "2": "Pengumuman"
     },
+    "copied_to_clipboard": "Copied to clipboard",
     "address_copied_to_clipboard": "Alamat disalin ke papan klip",
     "transaction_id_copied_to_clipboard": "ID Transaksi disalin ke papan klip",
     "activation_card": {
@@ -2648,7 +2706,7 @@
       "header": "Peningkatan Perlindungan Transaksi",
       "description_1": "Raih tingkat keberhasilan yang lebih tinggi, perlindungan frontrunning, dan visibilitas yang lebih baik dengan Transaksi Pintar.",
       "description_2": "Hanya tersedia di Ethereum. Aktifkan atau nonaktifkan setiap saat di pengaturan.",
-      "secondary_button": "Kelola di pengaturan",
+      "no_thanks": "No thanks",
       "primary_button": "Aktifkan",
       "learn_more": "Selengkapnya.",
       "benefit_1_1": "Keberhasilan 99,5%",
@@ -2846,6 +2904,15 @@
   "remember_me": {
     "enable_remember_me": "Aktifkan Ingatkan saya",
     "enable_remember_me_description": "Saat Ingatkan saya aktif, siapa pun yang memiliki akses ke ponsel Anda dapat mengakses akun MetaMask Anda."
+  },
+  "profile_sync": {
+    "title": "Profile Sync",
+    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
+    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
+    "enable_description2": " to learn more.",
+    "enable_privacy_link": "Learn how we protect your privacy",
+    "bottomSheetTurnOn": "Turning on Profile Sync",
+    "bottomSheetTurnOff": "Turning off Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "Masukkan kata sandi Anda untuk menonaktifkan Ingatkan saya",
@@ -3069,7 +3136,7 @@
   },
   "install_snap": {
     "title": "Permintaan koneksi",
-    "description": "{{origin}} ingin mengunduh dan terhubung dengan {{snap}}. Pastikan Anda memercayai pembuatnya sebelum melanjutkan.",
+    "description": "{{origin}} ingin menggunakan {{snap}}.",
     "permissions_request_title": "Permintaan izin",
     "permissions_request_description": "{{origin}} ingin menginstal {{snap}}, yang meminta izin berikut.",
     "approve_permissions": "Setujui",
@@ -3118,5 +3185,8 @@
     "title": "Estimasi perubahan",
     "tooltip_description": "Estimasi perubahan merupakan hal yang mungkin terjadi jika Anda melakukan transaksi ini. Ini hanyalah prediksi, bukan jaminan.",
     "total_fiat": "Total = {{currency}}"
+  },
+  "common": {
+    "please_wait": "Please wait"
   }
 }

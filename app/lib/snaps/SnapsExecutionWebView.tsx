@@ -4,11 +4,13 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { Component, RefObject } from 'react';
 import { View, ScrollView, NativeSyntheticEvent } from 'react-native';
-import WebView, { WebViewMessageEvent } from 'react-native-webview';
+import WebView, { WebViewMessageEvent } from '@metamask/react-native-webview';
 import { createStyles } from './styles';
 import { WebViewInterface } from '@metamask/snaps-controllers/dist/types/services/webview/WebViewMessageStream';
-import { WebViewError } from 'react-native-webview/lib/WebViewTypes';
+import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { PostMessageEvent } from '@metamask/post-message-stream';
+// @ts-expect-error Can't type a distritibuted html file
+import WebViewHTML from '@metamask/snaps-execution-environments/dist/browserify/webview/index.html';
 
 const styles = createStyles();
 
@@ -20,8 +22,6 @@ interface SnapsExecutionWebViewProps {
 // This is a hack to allow us to asynchronously await the creation of the WebView.
 let resolveGetWebView: (arg0: SnapsExecutionWebViewProps) => void;
 let rejectGetWebView: (error: NativeSyntheticEvent<WebViewError>) => void;
-
-const SNAPS_EE_URL = 'https://execution.metamask.io/webview/6.5.0/index.html';
 
 export const getSnapsWebViewPromise = new Promise<WebViewInterface>(
   (resolve, reject) => {
@@ -89,13 +89,11 @@ export class SnapsExecutionWebView extends Component {
             ref={
               this.setWebViewRef as unknown as React.RefObject<WebView> | null
             }
-            source={{
-              uri: SNAPS_EE_URL,
-            }}
+            source={WebViewHTML}
             onMessage={this.onWebViewMessage}
             onError={this.onWebViewError}
             onLoadEnd={this.onWebViewLoad}
-            originWhitelist={['https://execution.metamask.io*']}
+            originWhitelist={['*']}
             javaScriptEnabled
           />
         </View>

@@ -304,7 +304,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                                 "opacity": 0,
                               }
                             }
-                            testID="badge-network"
+                            testID="badgenetwork"
                           >
                             <View
                               style={
@@ -393,7 +393,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                               }
                             }
                           >
-                            0xC495...D272
+                            Account 1
                           </Text>
                         </View>
                       </View>
@@ -975,7 +975,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                                 "opacity": 0,
                               }
                             }
-                            testID="badge-network"
+                            testID="badgenetwork"
                           >
                             <View
                               style={
@@ -1064,7 +1064,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                               }
                             }
                           >
-                            0xC495...D272
+                            Account 1
                           </Text>
                         </View>
                       </View>

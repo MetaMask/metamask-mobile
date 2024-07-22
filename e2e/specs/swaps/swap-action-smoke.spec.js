@@ -83,6 +83,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       await SwapView.tapIUnderstandPriceWarning();
       await SwapView.swipeToSwap();
       await SwapView.waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol);
+      await Assertions.checkIfVisible(TabBarComponent.tabBarActivityButton);
       await TabBarComponent.tapActivity();
       await ActivitiesView.isVisible();
       await ActivitiesView.tapOnSwapActivity(
