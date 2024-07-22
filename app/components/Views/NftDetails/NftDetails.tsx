@@ -41,7 +41,7 @@ import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/ContentDisplay';
 import BigNumber from 'bignumber.js';
 import { addUrlProtocolPrefix } from '../../../util/url';
-import { formatTimestampToYYYYMMDD } from '../../../util/notifications';
+import formatTimestampToYYYYMMDD from './nftDetails.utils';
 
 const NftDetails = () => {
   const navigation = useNavigation();
