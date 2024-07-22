@@ -28,7 +28,7 @@ import {
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
   AUTHENTICATION_STORE_PASSWORD_FAILED,
 } from '../../constants/error';
-import AsyncStorage from '../../store/async-storage-wrapper';
+import MMKVWrapper from '../../store/mmkv-wrapper';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -155,10 +155,10 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
-    const biometryPreviouslyDisabled = await AsyncStorage.getItem(
+    const biometryPreviouslyDisabled = await MMKVWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await MMKVWrapper.getItem(
       PASSCODE_DISABLED,
     );
 
@@ -179,7 +179,7 @@ class AuthenticationService {
         availableBiometryType,
       };
     }
-    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+    const existingUser = await MMKVWrapper.getItem(EXISTING_USER);
     if (existingUser) {
       if (await SecureKeychain.getGenericPassword()) {
         return {
@@ -286,10 +286,10 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
-    const biometryPreviouslyDisabled = await AsyncStorage.getItem(
+    const biometryPreviouslyDisabled = await MMKVWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await MMKVWrapper.getItem(
       PASSCODE_DISABLED,
     );
 
@@ -338,8 +338,8 @@ class AuthenticationService {
     try {
       await this.createWalletVaultAndKeychain(password);
       await this.storePassword(password, authData?.currentAuthType);
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
-      await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+      await MMKVWrapper.setItem(EXISTING_USER, TRUE);
+      await MMKVWrapper.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type
@@ -371,8 +371,8 @@ class AuthenticationService {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await this.storePassword(password, authData.currentAuthType);
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
-      await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+      await MMKVWrapper.setItem(EXISTING_USER, TRUE);
+      await MMKVWrapper.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type

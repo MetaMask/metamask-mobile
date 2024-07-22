@@ -3,7 +3,7 @@ import { Alert, BackHandler, View, StyleSheet, Keyboard } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import MMKVWrapper from '../../../store/mmkv-wrapper';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
@@ -118,9 +118,7 @@ class ManualBackupStep3 extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
-      SEED_PHRASE_HINTS,
-    );
+    const currentSeedphraseHints = await MMKVWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints =
       currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
     const manualBackup = parsedHints?.manualBackup;
@@ -165,11 +163,9 @@ class ManualBackupStep3 extends PureComponent {
       return;
     }
     this.toggleHint();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
-      SEED_PHRASE_HINTS,
-    );
+    const currentSeedphraseHints = await MMKVWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints = JSON.parse(currentSeedphraseHints);
-    await AsyncStorage.setItem(
+    await MMKVWrapper.setItem(
       SEED_PHRASE_HINTS,
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );

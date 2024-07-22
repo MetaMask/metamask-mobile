@@ -19,7 +19,7 @@ import ScrollableTabView, {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = View as any;
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import MMKVWrapper from '../../../store/mmkv-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import Button, {
@@ -176,7 +176,7 @@ const RevealPrivateCredential = ({
       if (!passwordSet) {
         tryUnlockWithPassword('');
       } else if (availableBiometryType) {
-        const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
+        const biometryChoice = await MMKVWrapper.getItem(BIOMETRY_CHOICE);
         if (biometryChoice !== '' && biometryChoice === availableBiometryType) {
           const credentials = await Authentication.getPassword();
           if (credentials) {

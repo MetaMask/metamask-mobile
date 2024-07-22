@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import MMKVWrapper from '../../../store/mmkv-wrapper';
 import Logger from '../../../util/Logger';
 import { EXISTING_USER } from '../../../constants/storage';
 import { Authentication } from '../../../core';
@@ -26,12 +26,12 @@ const useDeleteWallet = () => {
 
   const deleteUser = async () => {
     try {
-      await AsyncStorage.removeItem(EXISTING_USER);
+      await MMKVWrapper.removeItem(EXISTING_USER);
       await metrics.createDataDeletionTask();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      const errorMsg = `Failed to remove key: ${EXISTING_USER} from AsyncStorage`;
+      const errorMsg = `Failed to remove key: ${EXISTING_USER} from MMKV`;
       Logger.log(error, errorMsg);
     }
   };

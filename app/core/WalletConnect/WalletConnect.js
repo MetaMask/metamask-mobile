@@ -4,7 +4,7 @@ import Engine from '../Engine';
 import Logger from '../../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import AsyncStorage from '../../store/async-storage-wrapper';
+import MMKVWrapper from '../../store/mmkv-wrapper';
 import {
   CLIENT_OPTIONS,
   WALLET_CONNECT_ORIGIN,
@@ -59,7 +59,7 @@ const persistSessions = async () => {
       lastTimeConnected: new Date(),
     }));
 
-  await AsyncStorage.setItem(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
+  await MMKVWrapper.setItem(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
 };
 
 const waitForInitialization = async () => {
@@ -381,7 +381,7 @@ class WalletConnect {
 
 const instance = {
   async init() {
-    const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
+    const sessionData = await MMKVWrapper.getItem(WALLETCONNECT_SESSIONS);
     if (sessionData) {
       const sessions = JSON.parse(sessionData);
 
@@ -442,7 +442,7 @@ const instance = {
   },
   getSessions: async () => {
     let sessions = [];
-    const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
+    const sessionData = await MMKVWrapper.getItem(WALLETCONNECT_SESSIONS);
     if (sessionData) {
       sessions = JSON.parse(sessionData);
     }

@@ -15,7 +15,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import MMKVWrapper from '../../../store/mmkv-wrapper';
 import { connect } from 'react-redux';
 import {
   passwordSet,
@@ -273,10 +273,10 @@ class ChoosePassword extends PureComponent {
 
   async componentDidMount() {
     const authData = await Authentication.getType();
-    const previouslyDisabled = await AsyncStorage.getItem(
+    const previouslyDisabled = await MMKVWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await MMKVWrapper.getItem(
       PASSCODE_DISABLED,
     );
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
@@ -378,8 +378,8 @@ class ChoosePassword extends PureComponent {
         Logger.error(e);
       }
       // Set state in app as it was with no password
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
-      await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+      await MMKVWrapper.setItem(EXISTING_USER, TRUE);
+      await MMKVWrapper.removeItem(SEED_PHRASE_HINTS);
       this.props.passwordUnset();
       this.props.setLockTime(-1);
       // Should we force people to enable passcode / biometrics?

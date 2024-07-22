@@ -10,7 +10,7 @@ import {
   Platform,
   Linking,
 } from 'react-native';
-import AsyncStorage from '../../../../store/async-storage-wrapper';
+import MMKVWrapper from '../../../../store/mmkv-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
@@ -231,9 +231,7 @@ const Settings: React.FC = () => {
   }, [isIpfsGatewayEnabled]);
 
   const handleHintText = useCallback(async () => {
-    const currentSeedphraseHints = await AsyncStorage.getItem(
-      SEED_PHRASE_HINTS,
-    );
+    const currentSeedphraseHints = await MMKVWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints =
       currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
     const manualBackup = parsedHints?.manualBackup;
@@ -298,12 +296,10 @@ const Settings: React.FC = () => {
   const saveHint = async () => {
     if (!hintText) return;
     toggleHint();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
-      SEED_PHRASE_HINTS,
-    );
+    const currentSeedphraseHints = await MMKVWrapper.getItem(SEED_PHRASE_HINTS);
     if (currentSeedphraseHints) {
       const parsedHints = JSON.parse(currentSeedphraseHints);
-      await AsyncStorage.setItem(
+      await MMKVWrapper.setItem(
         SEED_PHRASE_HINTS,
         JSON.stringify({ ...parsedHints, manualBackup: hintText }),
       );
@@ -320,15 +316,15 @@ const Settings: React.FC = () => {
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
+      await MMKVWrapper.setItem(EXISTING_USER, TRUE);
 
       if (!enabled) {
         setLoading(false);
         if (authChoice === PASSCODE_CHOICE_STRING) {
-          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+          await MMKVWrapper.setItem(PASSCODE_DISABLED, TRUE);
         } else if (authChoice === BIOMETRY_CHOICE_STRING) {
-          await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+          await MMKVWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await MMKVWrapper.setItem(PASSCODE_DISABLED, TRUE);
         }
 
         return;

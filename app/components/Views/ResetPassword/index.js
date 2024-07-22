@@ -18,7 +18,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import MMKVWrapper from '../../../store/mmkv-wrapper';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
@@ -313,10 +313,10 @@ class ResetPassword extends PureComponent {
 
     const state = { view: CONFIRM_PASSWORD };
     const authData = await Authentication.getType();
-    const previouslyDisabled = await AsyncStorage.getItem(
+    const previouslyDisabled = await MMKVWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await MMKVWrapper.getItem(
       PASSCODE_DISABLED,
     );
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE)

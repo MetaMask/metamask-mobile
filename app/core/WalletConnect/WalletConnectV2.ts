@@ -29,7 +29,7 @@ import {
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-import AsyncStorage from '../../store/async-storage-wrapper';
+import MMKVWrapper from '../../store/mmkv-wrapper';
 import Device from '../../util/device';
 import { addTransaction } from '../../util/transaction-controller';
 import Engine from '../Engine';
@@ -549,7 +549,7 @@ export class WC2Manager {
         const session = sessions?.[event.topic];
         if (session && deeplinkSessions[session?.pairingTopic]) {
           delete deeplinkSessions[session.pairingTopic];
-          await AsyncStorage.setItem(
+          await MMKVWrapper.setItem(
             AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
             JSON.stringify(this.deeplinkSessions),
           );
@@ -725,7 +725,7 @@ export class WC2Manager {
 
     let deeplinkSessions = {};
     try {
-      const unparsedDeeplinkSessions = await AsyncStorage.getItem(
+      const unparsedDeeplinkSessions = await MMKVWrapper.getItem(
         AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
       );
 
@@ -818,7 +818,7 @@ export class WC2Manager {
         });
     });
 
-    await AsyncStorage.setItem(
+    await MMKVWrapper.setItem(
       AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
       JSON.stringify(this.deeplinkSessions),
     );
@@ -1029,7 +1029,7 @@ export class WC2Manager {
             origin,
           };
           // keep list of deeplinked origin
-          await AsyncStorage.setItem(
+          await MMKVWrapper.setItem(
             AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
             JSON.stringify(this.deeplinkSessions),
           );
