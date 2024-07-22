@@ -18,7 +18,7 @@ describe('toErrorWithMessage()', () => {
     expect(result.message).toBe(error.message);
   });
 
-  it('should return a new Error object with the string representation of the input error if JSON stringification fails', () => {
+  it('returns an Error object with input error as string when JSON stringification fails', () => {
     const error = new Error('Test error');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const circularReference: { error: Error; circularReference?: any } = {
