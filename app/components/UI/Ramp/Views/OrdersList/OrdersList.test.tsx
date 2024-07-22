@@ -4,16 +4,13 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
-
-type DeepPartial<BaseType> = {
-  [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
-};
-
 const MOCK_ADDRESS = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 
 const testOrders: DeepPartial<FiatOrder>[] = [

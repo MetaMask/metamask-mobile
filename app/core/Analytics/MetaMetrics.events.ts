@@ -353,7 +353,12 @@ enum EVENT_NAME {
   CONNECT_LEDGER_SUCCESS = 'Connected Account with hardware wallet',
   LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
   LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
-  LEDGER_HARDWARE_WALLET_FORGOTTEN = 'Ledger hardware wallet forgotten',
+
+  // common hardware wallet
+  HARDWARE_WALLET_FORGOTTEN = 'Hardware wallet forgotten',
+
+  // Remove an account
+  ACCOUNT_REMOVED = 'Account removed',
 
   //Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
@@ -842,9 +847,10 @@ const events = {
   LEDGER_HARDWARE_WALLET_ERROR: generateOpt(
     EVENT_NAME.LEDGER_HARDWARE_WALLET_ERROR,
   ),
-  LEDGER_HARDWARE_WALLET_FORGOTTEN: generateOpt(
-    EVENT_NAME.LEDGER_HARDWARE_WALLET_FORGOTTEN,
-  ),
+  HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
+
+  // Remove an account
+  ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
@@ -925,6 +931,7 @@ enum DESCRIPTION {
   WALLET_QR_SCANNER = 'QR scanner',
   WALLET_COPIED_ADDRESS = 'Copied Address',
   WALLET_ADD_COLLECTIBLES = 'Add Collectibles',
+
   // Transactions
   TRANSACTIONS_CONFIRM_STARTED = 'Confirm Started',
   TRANSACTIONS_EDIT_TRANSACTION = 'Edit Transaction',
@@ -1176,6 +1183,7 @@ const legacyMetaMetricsEvents = {
     ACTIONS.WALLET_VIEW,
     DESCRIPTION.WALLET_ADD_COLLECTIBLES,
   ),
+
   // Transactions
   TRANSACTIONS_CONFIRM_STARTED: generateOpt(
     EVENT_NAME.TRANSACTIONS,
