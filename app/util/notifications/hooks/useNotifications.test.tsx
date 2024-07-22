@@ -207,7 +207,7 @@ describe('useDisableNotifications', () => {
     return hook;
   }
 
-  it('should disable notifications', async () => {
+  it('disables notifications', async () => {
     arrangeSelectors();
     const mockActions = arrangeActions();
     const { result } = arrangeHook();
