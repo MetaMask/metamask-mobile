@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
   },
   contentWrapper: {
     flex: 1,
-    paddingTop: '10%',
+    paddingTop: 24,
     padding: 24,
   },
   buttonWrapper: {
