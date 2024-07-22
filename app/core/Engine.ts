@@ -304,7 +304,10 @@ type GlobalEvents =
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
-export interface EngineState {
+// Interfaces are incompatible with our controllers and data types by default.
+// Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type EngineState = {
   AccountTrackerController: AccountTrackerState;
   AddressBookController: AddressBookState;
   AssetsContractController: BaseState;
@@ -337,12 +340,15 @@ export interface EngineState {
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
-}
+};
 
 /**
  * All mobile controllers, keyed by name
  */
-interface Controllers {
+// Interfaces are incompatible with our controllers and state types by default.
+// Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type Controllers = {
   AccountsController: AccountsController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
@@ -378,7 +384,7 @@ interface Controllers {
   NotificationServicesController: NotificationServicesController.Controller;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
-}
+};
 
 /**
  * Controllers that area always instantiated
