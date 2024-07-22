@@ -17,10 +17,13 @@ import checkPermissions from './checkPermissions';
 import handleConnectionMessage from './handleConnectionMessage';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
+import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
+import { AccountsController } from '@metamask/accounts-controller';
 
 jest.mock('@metamask/keyring-controller');
 jest.mock('@metamask/network-controller');
 jest.mock('@metamask/preferences-controller');
+jest.mock('@metamask/accounts-controller');
 jest.mock('@metamask/sdk-communication-layer');
 jest.mock('../utils/DevLogger');
 jest.mock('../../../util/Logger');
@@ -73,6 +76,12 @@ describe('handleConnectionMessage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    const MOCK_ADDRESS = '0x1abcd';
+    const MOCK_INTERNAL_ACCOUNT = createMockInternalAccount(
+      MOCK_ADDRESS,
+      'Account 1',
+    );
+
     connection = {
       channelId: '1',
       setLoading: mockSetLoading,
@@ -104,6 +113,9 @@ describe('handleConnectionMessage', () => {
             selectedAddress: '',
           },
         } as unknown as PreferencesController,
+        AccountsController: {
+          getSelectedAccount: jest.fn().mockReturnValue(MOCK_INTERNAL_ACCOUNT),
+        } as unknown as AccountsController,
       },
     } as unknown as typeof Engine;
 
