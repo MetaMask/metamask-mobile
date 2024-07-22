@@ -192,7 +192,6 @@ const CustomSpendCap = ({
         <Button
           variant={ButtonVariants.Link}
           onPress={handlePress}
-          textVariant={TextVariant.BodyMD}
           label={
             isEditDisabled
               ? strings('contract_allowance.custom_spend_cap.edit')

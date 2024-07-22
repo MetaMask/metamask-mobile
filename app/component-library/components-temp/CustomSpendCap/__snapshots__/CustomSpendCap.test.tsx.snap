@@ -101,7 +101,6 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         }
       }
       suppressHighlighting={true}
-      textVariant="sBodyMD"
     >
       <Text
         accessibilityRole="text"

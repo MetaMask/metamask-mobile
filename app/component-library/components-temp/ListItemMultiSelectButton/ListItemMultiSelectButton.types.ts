@@ -2,8 +2,8 @@
 import { TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
-import { ListItemProps } from '../ListItem/ListItem.types';
-import { IconName } from '../../Icons/Icon';
+import { ListItemProps } from '../../../component-library/components/List/ListItem/ListItem.types';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import { GestureResponderEvent } from 'react-native-modal';
 
 /**

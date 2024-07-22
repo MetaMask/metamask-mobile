@@ -3,6 +3,7 @@ import { Provider } from 'react-redux';
 import PercentageChange from './PercentageChange';
 import { createStore } from 'redux';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { ComponentStory, Meta } from '@storybook/react-native';
 
 const mockInitialState = {
   wizard: {
@@ -16,7 +17,7 @@ const mockInitialState = {
 const rootReducer = (state = mockInitialState) => state;
 const store = createStore(rootReducer);
 
-export default {
+const PercentageChangeStory: Meta<typeof PercentageChange> = {
   title: 'Component Library / PercentageChange',
   component: PercentageChange,
   decorators: [
@@ -26,9 +27,20 @@ export default {
       </Provider>
     ),
   ],
+  args: {
+    value: 0,
+  },
 };
 
-const Template = (args) => <PercentageChange {...args} />;
+export default PercentageChangeStory;
+
+interface PercentageChangeArgs {
+  value: number | null | undefined;
+}
+
+const Template: ComponentStory<typeof PercentageChange> = (
+  args: PercentageChangeArgs,
+) => <PercentageChange {...args} />;
 
 export const Default = Template.bind({});
 Default.args = {
