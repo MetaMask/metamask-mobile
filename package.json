@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.26.1",
+  "version": "7.27.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -185,6 +185,7 @@
     "@metamask/slip44": "3.1.0",
     "@metamask/smart-transactions-controller": "10.1.1",
     "@metamask/snaps-controllers": "^9.2.0",
+    "@metamask/snaps-execution-environments": "^6.5.0",
     "@metamask/snaps-rpc-methods": "^9.1.4",
     "@metamask/snaps-sdk": "^6.0.0",
     "@metamask/snaps-utils": "^7.7.0",
@@ -318,7 +319,7 @@
     "react-native-reanimated": "3.1.0",
     "react-native-redash": "16.2.2",
     "react-native-safe-area-context": "^3.1.9",
-    "react-native-screens": "3.22.0",
+    "react-native-screens": "3.19.0",
     "react-native-scrollable-tab-view": "^1.0.0",
     "react-native-sensors": "5.3.0",
     "react-native-share": "7.3.7",
