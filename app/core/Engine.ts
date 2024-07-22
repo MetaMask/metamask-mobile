@@ -416,9 +416,7 @@ class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  datamodel: any;
+  datamodel: ComposableController<EngineState, Controllers[keyof Controllers]>;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -1479,11 +1477,49 @@ class Engine {
       }
     }
 
-    this.datamodel = new ComposableController(
-      // @ts-expect-error The ComposableController needs to be updated to support BaseControllerV2
+    this.datamodel = new ComposableController<
+      EngineState,
+      Controllers[keyof Controllers]
+    >({
       controllers,
-      this.controllerMessenger,
-    );
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'ComposableController',
+        allowedActions: [],
+        allowedEvents: [
+          'AccountsController:stateChange',
+          'AccountTrackerController:stateChange',
+          'AddressBookController:stateChange',
+          'ApprovalController:stateChange',
+          'AssetsContractController:stateChange',
+          'AuthenticationController:stateChange',
+          'CurrencyRateController:stateChange',
+          'GasFeeController:stateChange',
+          'KeyringController:stateChange',
+          'LoggingController:stateChange',
+          'NetworkController:stateChange',
+          'NftController:stateChange',
+          'NftDetectionController:stateChange',
+          'NotificationServicesController:stateChange',
+          'PermissionController:stateChange',
+          'PhishingController:stateChange',
+          'PPOMController:stateChange',
+          'PreferencesController:stateChange',
+          'SignatureController:stateChange',
+          'SmartTransactionsController:stateChange',
+          'SnapController:stateChange',
+          'SnapsRegistry:stateChange',
+          'SubjectMetadataController:stateChange',
+          'SwapsController:stateChange',
+          'TokenBalancesController:stateChange',
+          'TokenDetectionController:stateChange',
+          'TokenListController:stateChange',
+          'TokenRatesController:stateChange',
+          'TokensController:stateChange',
+          'TransactionController:stateChange',
+          'UserStorageController:stateChange',
+        ],
+      }),
+    });
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({
         ...context,
