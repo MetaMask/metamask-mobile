@@ -89,7 +89,9 @@ describe('useListNotifications', () => {
       await result.current.listNotifications();
     });
 
-    expect(mockActions.fetchAndUpdateMetamaskNotifications).toHaveBeenCalled();
+    expect(
+      mockActions.fetchAndUpdateMetamaskNotifications,
+    ).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -117,14 +119,18 @@ describe('useCreateNotifications', () => {
     return hook;
   }
 
-  it('should create on-chain triggers for notifications', async () => {
+  it('creates on-chain triggers for notifications', async () => {
     const mockActions = arrangeActions();
     const { result } = arrangeHook();
     await act(async () => {
       await result.current.createNotifications(['Account1', 'Account2']);
     });
 
-    expect(mockActions.updateOnChainTriggersByAccount).toHaveBeenCalled();
+    expect(mockActions.updateOnChainTriggersByAccount).toHaveBeenCalledTimes(1);
+    expect(mockActions.updateOnChainTriggersByAccount).toHaveBeenCalledWith([
+      'Account1',
+      'Account2',
+    ]);
   });
 });
 
@@ -170,7 +176,7 @@ describe('useEnableNotifications', () => {
       await result.current.enableNotifications();
     });
 
-    expect(mockActions.enableNotificationServices).toHaveBeenCalled();
+    expect(mockActions.enableNotificationServices).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -216,7 +222,7 @@ describe('useDisableNotifications', () => {
       await result.current.disableNotifications();
     });
 
-    expect(mockActions.disableNotificationServices).toHaveBeenCalled();
+    expect(mockActions.disableNotificationServices).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -244,7 +250,7 @@ describe('useMarkNotificationAsRead', () => {
     return hook;
   }
 
-  it('should mark specific notifications as read', async () => {
+  it('marks specific notifications as read', async () => {
     const mockActions = arrangeActions();
     const { result } = arrangeHook();
 
@@ -258,6 +264,11 @@ describe('useMarkNotificationAsRead', () => {
       ]);
     });
 
-    expect(mockActions.markMetamaskNotificationsAsRead).toHaveBeenCalled();
+    expect(mockActions.markMetamaskNotificationsAsRead).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(mockActions.markMetamaskNotificationsAsRead).toHaveBeenCalledWith([
+      { id: '1', isRead: true, type: 'eth_sent' },
+    ]);
   });
 });

@@ -11,12 +11,62 @@ import * as Selectors from '../../../selectors/notifications';
 import * as Actions from '../../../actions/notification/helpers';
 import useCreateSession from './useCreateSession';
 
+function arrangeStore() {
+  const store = createMockStore()(initialRootState);
+
+  // Ensure dispatch mocks are handled correctly
+  store.dispatch = jest.fn().mockImplementation((action) => {
+    if (typeof action === 'function') {
+      return action(store.dispatch, store.getState);
+    }
+    return Promise.resolve();
+  });
+
+  return store;
+}
+
+function arrangeHook() {
+  const store = arrangeStore();
+  const hook = renderHook(() => useCreateSession(), {
+    wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
+  });
+
+  return hook;
+}
+
+function arrangeSelectors() {
+  const mockSelectIsSignedIn = jest
+    .spyOn(Selectors, 'selectIsSignedIn')
+    .mockReturnValue(true);
+
+  const mockSelectIsProfileSyncingEnabled = jest
+    .spyOn(Selectors, 'selectIsProfileSyncingEnabled')
+    .mockReturnValue(true);
+
+  return {
+    mockSelectIsSignedIn,
+    mockSelectIsProfileSyncingEnabled,
+  };
+}
+
+function arrangeActions() {
+  const mockSignIn = jest.spyOn(Actions, 'signIn').mockResolvedValue(undefined);
+  const mockDisableProfileSyncing = jest
+    .spyOn(Actions, 'disableProfileSyncing')
+    .mockResolvedValue(undefined);
+
+  return {
+    mockSignIn,
+    mockDisableProfileSyncing,
+  };
+}
+
 describe('useCreateSession', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should not initiate session creation if user is already signed in', async () => {
+  it('does not initiate session creation if user is already signed in', async () => {
     const mockSelectors = arrangeSelectors();
     const mockActions = arrangeActions();
     mockSelectors.mockSelectIsSignedIn.mockReturnValueOnce(true);
@@ -30,7 +80,7 @@ describe('useCreateSession', () => {
     expect(mockActions.mockDisableProfileSyncing).not.toHaveBeenCalled();
   });
 
-  it('should not initiate session creation if profile syncing is disabled', async () => {
+  it('does not initiate session creation if profile syncing is disabled', async () => {
     const mockSelectors = arrangeSelectors();
     const mockActions = arrangeActions();
     mockSelectors.mockSelectIsSignedIn.mockReturnValueOnce(true);
@@ -45,7 +95,7 @@ describe('useCreateSession', () => {
     expect(mockActions.mockDisableProfileSyncing).not.toHaveBeenCalled();
   });
 
-  it('should initiate session creation if profile syncing is enabled', async () => {
+  it('initiates session creation if profile syncing is enabled', async () => {
     const mockSelectors = arrangeSelectors();
     const mockActions = arrangeActions();
 
@@ -58,10 +108,10 @@ describe('useCreateSession', () => {
       await result.current.createSession();
     });
 
-    expect(mockActions.mockSignIn).toHaveBeenCalled();
+    expect(mockActions.mockSignIn).toHaveBeenCalledTimes(1);
   });
 
-  it('should disable profile syncing and set error message if sign-in fails', async () => {
+  it('disables profile syncing and set error message if sign-in fails', async () => {
     const mockSelectors = arrangeSelectors();
     const mockActions = arrangeActions();
 
@@ -77,60 +127,8 @@ describe('useCreateSession', () => {
       await result.current.createSession();
     });
 
-    expect(mockActions.mockSignIn).toHaveBeenCalled();
-    expect(mockActions.mockDisableProfileSyncing).toHaveBeenCalled();
-    expect(result.current.error).toBeDefined();
+    expect(mockActions.mockSignIn).toHaveBeenCalledTimes(1);
+    expect(mockActions.mockDisableProfileSyncing).toHaveBeenCalledTimes(1);
+    expect(result.current.error).toEqual('MOCK - failed to sign in');
   });
-
-  function arrangeStore() {
-    const store = createMockStore()(initialRootState);
-
-    // Ensure dispatch mocks are handled correctly
-    store.dispatch = jest.fn().mockImplementation((action) => {
-      if (typeof action === 'function') {
-        return action(store.dispatch, store.getState);
-      }
-      return Promise.resolve();
-    });
-
-    return store;
-  }
-
-  function arrangeHook() {
-    const store = arrangeStore();
-    const hook = renderHook(() => useCreateSession(), {
-      wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
-    });
-
-    return hook;
-  }
-
-  function arrangeSelectors() {
-    const mockSelectIsSignedIn = jest
-      .spyOn(Selectors, 'selectIsSignedIn')
-      .mockReturnValue(true);
-
-    const mockSelectIsProfileSyncingEnabled = jest
-      .spyOn(Selectors, 'selectIsProfileSyncingEnabled')
-      .mockReturnValue(true);
-
-    return {
-      mockSelectIsSignedIn,
-      mockSelectIsProfileSyncingEnabled,
-    };
-  }
-
-  function arrangeActions() {
-    const mockSignIn = jest
-      .spyOn(Actions, 'signIn')
-      .mockResolvedValue(undefined);
-    const mockDisableProfileSyncing = jest
-      .spyOn(Actions, 'disableProfileSyncing')
-      .mockResolvedValue(undefined);
-
-    return {
-      mockSignIn,
-      mockDisableProfileSyncing,
-    };
-  }
 });

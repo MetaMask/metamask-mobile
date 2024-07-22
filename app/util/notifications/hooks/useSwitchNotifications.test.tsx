@@ -42,7 +42,7 @@ describe('useSwitchNotifications', () => {
     return hook;
   };
 
-  test('should switch feature announcements', async () => {
+  it('switchs feature announcements', async () => {
     const mockSetFeatureAnnouncementEnabled = jest
       .spyOn(Actions, 'setFeatureAnnouncementsEnabled')
       .mockImplementation(jest.fn());
@@ -59,7 +59,7 @@ describe('useSwitchNotifications', () => {
     expect(result.current.error).toBeNull();
   });
 
-  test('should switch account notifications', async () => {
+  it('switchs account notifications', async () => {
     const mockUpdateOnChainTriggersByAccount = jest
       .spyOn(Actions, 'updateOnChainTriggersByAccount')
       .mockImplementation(jest.fn());
@@ -83,7 +83,7 @@ describe('useSwitchNotifications', () => {
     expect(result.current.error).toBeNull();
   });
 
-  test('should delete account notifications', async () => {
+  it('deletes account notifications', async () => {
     const mockUpdateOnChainTriggersByAccount = jest
       .spyOn(Actions, 'updateOnChainTriggersByAccount')
       .mockImplementation(jest.fn());
@@ -156,7 +156,7 @@ describe('useAccountSettingsProps', () => {
     };
   }
 
-  test('should fetch initial account settings', async () => {
+  it('fetchs initial account settings', async () => {
     const ACCOUNT_1 = 'account1';
 
     const mockEngine = arrangeEngine();
@@ -175,7 +175,7 @@ describe('useAccountSettingsProps', () => {
     expect(result.current.data).toEqual({ ACCOUNT_1: true });
   });
 
-  test('should return accounts update status if an account is being updated', () => {
+  it('returns accounts update status if an account is being updated', () => {
     const ACCOUNT_1 = 'account1';
     arrangeEngine();
     const mockSelectors = arrangeSelectors();
@@ -187,7 +187,7 @@ describe('useAccountSettingsProps', () => {
     expect(result.current.accountsBeingUpdated.length).toBeGreaterThan(0);
   });
 
-  test('should perform refetch to update account settings', async () => {
+  it('performs refetch to update account settings', async () => {
     const ACCOUNT_1 = 'account1';
 
     const mockEngine = arrangeEngine();
@@ -207,6 +207,6 @@ describe('useAccountSettingsProps', () => {
       await result.current.update([ACCOUNT_1]);
     });
 
-    expect(mockEngine.mockCheckAccountsPresence).toHaveBeenCalled();
+    expect(mockEngine.mockCheckAccountsPresence).toHaveBeenCalledTimes(1);
   });
 });
