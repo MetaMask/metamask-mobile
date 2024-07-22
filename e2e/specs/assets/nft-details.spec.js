@@ -46,8 +46,12 @@ describe(SmokeAssets('NFT Details page'), () => {
         await WalletView.tapImportNFTButton();
         await AddCustomTokenView.isVisible();
         await AddCustomTokenView.typeInNFTAddress(nftsAddress);
-        await AddCustomTokenView.typeInNFTIdentifier(1);
-        // Click on nft
+        await AddCustomTokenView.typeInNFTIdentifier('1');
+
+        await Assertions.checkIfVisible(WalletView.container);
+        // Wait for asset to load
+        await Assertions.checkIfVisible(WalletView.nftInWallet('TestDappNFTs'));
+        // Tap on Collectible
         await AddCustomTokenView.tapCollectible(
           'collectible-Test Dapp NFTs #1-1',
         );
