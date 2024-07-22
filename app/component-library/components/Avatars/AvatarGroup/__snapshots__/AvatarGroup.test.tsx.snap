@@ -15,6 +15,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
         "marginLeft": 0,
       }
     }
+    testID="avatargroup-avatar-container-0"
   >
     <View
       style={
@@ -47,9 +48,10 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
   <View
     style={
       {
-        "marginLeft": -2,
+        "marginLeft": -6,
       }
     }
+    testID="avatargroup-avatar-container-1"
   >
     <View
       style={
@@ -85,9 +87,10 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
   <View
     style={
       {
-        "marginLeft": -2,
+        "marginLeft": -6,
       }
     }
+    testID="avatargroup-avatar-container-2"
   >
     <View
       style={
@@ -123,9 +126,10 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
   <View
     style={
       {
-        "marginLeft": -2,
+        "marginLeft": -6,
       }
     }
+    testID="avatargroup-avatar-container-3"
   >
     <View
       style={

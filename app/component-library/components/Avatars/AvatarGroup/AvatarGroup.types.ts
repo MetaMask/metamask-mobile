@@ -13,6 +13,13 @@ export type TextVariantByAvatarSize = {
 };
 
 /**
+ * Mapping of space between avatars by AvatarSize.
+ */
+export type SpaceBetweenAvatarsByAvatarSize = {
+  [key in AvatarSize]: number;
+};
+
+/**
  * Mapping of overflow text margin by AvatarSize.
  */
 export type OverflowTextMarginByAvatarSize = {
@@ -45,6 +52,16 @@ export interface AvatarGroupProps extends ViewProps {
    * @default false
    */
   includesBorder?: boolean;
+  /**
+   * Optional enum to configure the space between avatars.
+   * Note:
+   * - Negative values for this prop will result in the Avatars moving
+   * closer to each other, positive values for this prop will result
+   * in the Avatars moving away from each other.
+   * - The default values of the space between avatars depend on the size.
+   * - Please refer to the constants file for the mappings.
+   */
+  spaceBetweenAvatars?: number;
 }
 export interface AvatarGroupStyleSheetVars
   extends Pick<AvatarGroupProps, 'style'> {

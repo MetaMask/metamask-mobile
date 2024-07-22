@@ -14,8 +14,10 @@ import {
   DEFAULT_AVATARGROUP_AVATARSIZE,
   DEFAULT_AVATARGROUP_MAXSTACKEDAVATARS,
   DEFAULT_AVATARGROUP_COUNTER_TEXTCOLOR,
+  AVATARGROUP_AVATAR_CONTAINER_TESTID,
   AVATARGROUP_AVATAR_TESTID,
   AVATARGROUP_OVERFLOWCOUNTER_TESTID,
+  SPACEBETWEENAVATARS_BY_AVATARSIZE,
   TEXTVARIANT_BY_AVATARSIZE,
 } from './AvatarGroup.constants';
 
@@ -24,11 +26,12 @@ const AvatarGroup = ({
   size = DEFAULT_AVATARGROUP_AVATARSIZE,
   maxStackedAvatars = DEFAULT_AVATARGROUP_MAXSTACKEDAVATARS,
   includesBorder = false,
+  spaceBetweenAvatars,
   style,
 }: AvatarGroupProps) => {
-  const sizeAsNumber = Number(size);
   const overflowCounter = avatarPropsList.length - maxStackedAvatars;
-  const avatarNegativeSpacing = -2 * (1 + (sizeAsNumber - 16) / 8);
+  const avatarNegativeSpacing =
+    spaceBetweenAvatars || SPACEBETWEENAVATARS_BY_AVATARSIZE[size];
   const shouldRenderOverflowCounter = overflowCounter > 0;
 
   const { styles } = useStyles(styleSheet, {
@@ -41,7 +44,11 @@ const AvatarGroup = ({
       const marginLeft = index === 0 ? 0 : avatarNegativeSpacing;
 
       return (
-        <View key={`avatar-${index}`} style={{ marginLeft }}>
+        <View
+          key={`avatar-${index}`}
+          testID={`${AVATARGROUP_AVATAR_CONTAINER_TESTID}-${index}`}
+          style={{ marginLeft }}
+        >
           <Avatar
             {...avatarProps}
             size={size}

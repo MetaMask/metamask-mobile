@@ -6,6 +6,7 @@ import { render } from '@testing-library/react-native';
 import AvatarGroup from './AvatarGroup';
 import {
   SAMPLE_AVATARGROUP_PROPS,
+  AVATARGROUP_AVATAR_CONTAINER_TESTID,
   AVATARGROUP_AVATAR_TESTID,
   AVATARGROUP_OVERFLOWCOUNTER_TESTID,
 } from './AvatarGroup.constants';
@@ -45,5 +46,30 @@ describe('AvatarGroup', () => {
     });
     const overflowCounter = queryByTestId(AVATARGROUP_OVERFLOWCOUNTER_TESTID);
     expect(overflowCounter).toBeNull();
+  });
+
+  it('should apply the correct space between avatars if custom spaceBetweenAvatars was given', () => {
+    const spaceBetweenAvatars = -10;
+
+    const { getByTestId } = renderComponent({
+      spaceBetweenAvatars,
+    });
+
+    const firstAvatarContainer = getByTestId(
+      `${AVATARGROUP_AVATAR_CONTAINER_TESTID}-0`,
+    );
+    const secondAvatarContainer = getByTestId(
+      `${AVATARGROUP_AVATAR_CONTAINER_TESTID}-1`,
+    );
+    const thirdAvatarContainer = getByTestId(
+      `${AVATARGROUP_AVATAR_CONTAINER_TESTID}-2`,
+    );
+    expect(firstAvatarContainer.props.style.marginLeft).toBe(0);
+    expect(secondAvatarContainer.props.style.marginLeft).toBe(
+      spaceBetweenAvatars,
+    );
+    expect(thirdAvatarContainer.props.style.marginLeft).toBe(
+      spaceBetweenAvatars,
+    );
   });
 });

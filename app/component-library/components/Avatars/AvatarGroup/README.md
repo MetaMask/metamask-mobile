@@ -39,6 +39,19 @@ Optional boolean to include a border or not.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | `boolean`                                           | No                                                      | `false`                                                |
 
+### `spaceBetweenAvatars`
+
+Optional enum to configure the space between avatars.
+Note:
+
+- Negative values for this prop will result in the Avatars moving closer to each other, positive values for this prop will result in the Avatars moving away from each other.
+- The default values of the space between avatars depend on the size.
+- Please refer to the constants file for the mappings.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| `number`                                            | No                                                      |
+
 ## Usage
 
 ```javascript
@@ -75,4 +88,8 @@ const avatarPropsList: AvatarProps[] = [
 // Configuring border inclusion
 <AvatarGroup avatarPropsList={avatarPropsList} includesBorder />;
 <AvatarGroup avatarPropsList={avatarPropsList} includesBorder={false} />;
+
+// Configuring space between Avatars
+<AvatarGroup avatarPropsList={avatarPropsList} includesBorder />;
+<AvatarGroup avatarPropsList={avatarPropsList} spaceBetweenAvatars={-6} />;
 ```
