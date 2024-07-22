@@ -161,7 +161,7 @@ describe('useEnableNotifications', () => {
     return hook;
   }
 
-  it('should enable MetaMask notifications', async () => {
+  it('enables notifications', async () => {
     arrangeSelectors();
     const mockActions = arrangeActions();
     const { result } = arrangeHook();
