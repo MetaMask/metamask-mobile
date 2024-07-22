@@ -73,6 +73,7 @@ import Icon, {
 
 import { BrowserTab, TokenI, TokensI } from './types';
 import useRampNetwork from '../Ramp/hooks/useRampNetwork';
+import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 import {
@@ -477,7 +478,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const goToBuy = () => {
-    navigation.navigate(Routes.RAMP.BUY);
+    navigation.navigate(...createBuyNavigationDetails());
     trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
       text: 'Buy Native Token',
       location: 'Home Screen',

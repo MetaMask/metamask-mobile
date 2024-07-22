@@ -118,6 +118,7 @@ import {
   selectCurrentTransactionMetadata,
 } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
@@ -1103,7 +1104,7 @@ class Confirm extends PureComponent {
   buyEth = () => {
     const { navigation } = this.props;
     try {
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
