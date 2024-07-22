@@ -17,7 +17,7 @@ const MigratedStorage = {
         return res;
       }
     } catch (error) {
-      Logger.error(error as Error, {
+      Logger.log(error as Error, {
         message: `Failed to get item with mmkv for ${key}`,
       });
     }
@@ -29,25 +29,25 @@ const MigratedStorage = {
         return res;
       }
     } catch (error) {
-      Logger.error(error as Error, {
+      Logger.log(error as Error, {
         message: `Failed to get item for ${key}`,
       });
     }
   },
   async setItem(key: string, value: string) {
     try {
-      return storage.set(key, value);
+      storage.set(key, JSON.stringify(value));
     } catch (error) {
-      Logger.error(error as Error, {
+      Logger.log(error as Error, {
         message: `Failed to set item for ${key}`,
       });
     }
   },
   async removeItem(key: string) {
     try {
-      return storage.delete(key);
+      storage.delete(key);
     } catch (error) {
-      Logger.error(error as Error, {
+      Logger.log(error as Error, {
         message: `Failed to remove item for ${key}`,
       });
     }

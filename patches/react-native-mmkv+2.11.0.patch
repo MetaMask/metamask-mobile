@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-mmkv/src/MMKV.ts b/node_modules/react-native-mmkv/src/MMKV.ts
+index 973a5e7..761c16c 100644
+--- a/node_modules/react-native-mmkv/src/MMKV.ts
++++ b/node_modules/react-native-mmkv/src/MMKV.ts
+@@ -180,6 +180,7 @@ export class MMKV implements MMKVInterface {
+   }
+ 
+   set(key: string, value: boolean | string | number | Uint8Array): void {
++    this.delete(key); // MMKV just leaves old values dangling by default
+     const func = this.getFunctionFromCache('set');
+     func(key, value);
+ 

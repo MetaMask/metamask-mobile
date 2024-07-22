@@ -1,8 +1,5 @@
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { captureException } from '@sentry/react-native';
-import { MMKV } from 'react-native-mmkv';
-
-export const storage = new MMKV();
 
 export default async function migrate(state: unknown) {
   try {
