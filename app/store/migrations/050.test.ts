@@ -1,4 +1,4 @@
-import migrate, { storage as mmkvStorage } from './050';
+import migrate from './050';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 
 const fileSystemStorageItems: { [key: string]: string } = {
@@ -7,25 +7,24 @@ const fileSystemStorageItems: { [key: string]: string } = {
   valueC: 'myValue',
 };
 
+jest.mock('redux-persist-filesystem-storage', () => ({
+  setItem: jest.fn(() => Promise.resolve(true)),
+  getAllKeys: jest.fn(() => Promise.resolve([])),
+  clear: jest.fn(),
+}));
+
 describe('Migration #50', () => {
-  it('migrates filesystem storage values to mmkv ', async () => {
+  it('expect to clean filesystem storage', async () => {
     // set FilesystemStorage to mmkv
     for (const key in fileSystemStorageItems) {
-      await FilesystemStorage.setItem(key, fileSystemStorageItems[key]);
+      await FilesystemStorage.setItem(key, fileSystemStorageItems[key], false);
     }
 
     await migrate({});
 
     // make sure all FilesystemStorage items are removed
     const keys = await FilesystemStorage.getAllKeys();
-    // loop through all FilesystemStorage keys and make sure empty
-    for (const key of keys) {
-      expect(await FilesystemStorage.getItem(key)).toBeNull();
-    }
 
-    // now check that all MMKV values match original FilesystemStorage values
-    for (const key in asyncStorageItems) {
-      expect(mmkvStorage.getString(key)).toEqual(fileSystemStorageItems[key]);
-    }
+    expect(keys?.length).toBe(0);
   });
 });

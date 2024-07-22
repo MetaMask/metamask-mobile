@@ -1,18 +1,31 @@
 import { createMigrate, createTransform } from 'redux-persist';
-import AsyncStorage from './async-storage-wrapper';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
+import { MMKV } from 'react-native-mmkv';
 import { RootState } from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 
 const TIMEOUT = 40000;
-
+const storage = new MMKV({ id: 'root' });
 const MigratedStorage = {
   async getItem(key: string) {
     try {
-      const res = await AsyncStorage.getItem(key);
+      const res = storage.getString(key);
       if (res) {
-        // Using new storage system
+        // Using mmkv
+        return res;
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: `Failed to get item with mmkv for ${key}`,
+      });
+    }
+
+    try {
+      const res = await FilesystemStorage.getItem(key);
+      if (res) {
+        // Using filesystem storage system (This should only run once after mmkv implementation)
         return res;
       }
     } catch (error) {
@@ -20,19 +33,10 @@ const MigratedStorage = {
         message: `Failed to get item for ${key}`,
       });
     }
-    try {
-      const res = await AsyncStorage.getItem(key);
-      if (res) {
-        return res;
-      }
-    } catch (error) {
-      Logger.error(error as Error, { message: 'Failed to run migration' });
-      throw new Error('Failed async storage storage fetch.');
-    }
   },
   async setItem(key: string, value: string) {
     try {
-      return await AsyncStorage.setItem(key, value);
+      return storage.set(key, value);
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to set item for ${key}`,
@@ -41,7 +45,7 @@ const MigratedStorage = {
   },
   async removeItem(key: string) {
     try {
-      return await AsyncStorage.removeItem(key);
+      return storage.delete(key);
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to remove item for ${key}`,
