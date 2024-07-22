@@ -1,7 +1,7 @@
 import { ErrorWithMessage, toErrorWithMessage } from './getErrorMessage';
 
 describe('toErrorWithMessage()', () => {
-  it('should return the input error if it is already an ErrorWithMessage', () => {
+  it('returns the input when error is an ErrorWithMessage', () => {
     const error: ErrorWithMessage = {
       message: 'Test error message',
     };
