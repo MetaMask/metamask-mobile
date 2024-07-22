@@ -110,6 +110,16 @@ class WalletView {
     await Gestures.waitAndTap(this.importNFTButton);
   }
 
+  get testCollectible() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel('collectible-Test Dapp NFTs #1-1')
+      : Matchers.getElementByID('collectible-Test Dapp NFTs #1-1');
+  }
+
+  async tapOnNftName() {
+    await Gestures.waitAndTap(this.testCollectible);
+  }
+
   async tapImportTokensButton() {
     await Gestures.waitAndTap(this.importTokensButton);
   }
