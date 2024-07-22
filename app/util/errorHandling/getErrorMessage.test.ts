@@ -9,7 +9,7 @@ describe('toErrorWithMessage()', () => {
     expect(result).toBe(error);
   });
 
-  it('should return a new Error object with the JSON stringified input error if it is not an ErrorWithMessage', () => {
+  it('returns an Error object using input message when error is not an ErrorWithMessage', () => {
     const error = {
       code: 500,
       message: 'Internal Server Error',
