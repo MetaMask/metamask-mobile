@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/Libraries/Core/InitializeCore.js b/node_modules/react-native/Libraries/Core/InitializeCore.js
-index 1379ffd..f2825f5 100644
+index 25377f6..5542973 100644
 --- a/node_modules/react-native/Libraries/Core/InitializeCore.js
 +++ b/node_modules/react-native/Libraries/Core/InitializeCore.js
-@@ -24,26 +24,37 @@
+@@ -24,27 +24,37 @@
  
  'use strict';
  
@@ -15,7 +15,7 @@ index 1379ffd..f2825f5 100644
  const start = Date.now();
  
  require('./setUpGlobals');
-+// require('./setUpDOM'); Introduced in RN v0.72, ensure included when upgrading patch
+ require('./setUpDOM');
  require('./setUpPerformance');
  require('./setUpErrorHandling');
 +
@@ -34,7 +34,7 @@ index 1379ffd..f2825f5 100644
    require('./checkNativeVersion');
 -  require('./setUpDeveloperTools');
 +  require('./setUpDeveloperTools'); // console.log calls visible in Metro from here
-   require('../LogBox/LogBox').install();
+   require('../LogBox/LogBox').default.install();
  }
  
 -require('../ReactNative/AppRegistry');
@@ -109,10 +109,10 @@ index 0000000..5dc1859
 +  hardenIntrinsics();
 +}
 diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
-index d03f3dd..816f559 100644
+index c2b76ed..2a19785 100644
 --- a/node_modules/react-native/ReactAndroid/build.gradle
 +++ b/node_modules/react-native/ReactAndroid/build.gradle
-@@ -420,12 +420,9 @@ android {
+@@ -437,12 +437,8 @@ android {
  
      // Used to override the NDK path/version on internal CI or by allowing
      // users to customize the NDK path/version from their root project (e.g. for M1 support)
@@ -122,43 +122,16 @@ index d03f3dd..816f559 100644
 -    if (rootProject.hasProperty("ndkVersion")) {
 -        ndkVersion rootProject.ext.ndkVersion
 -    }
-+
 +    // Added patch to apply ndk Path from MetaMask app gradle.build this is required for M1 Bitrise builds to work
 +    ndkPath = project.getProperties().get("ndkPath")
  
      defaultConfig {
          minSdkVersion(21)
 diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
-index c714f87..65f9ba3 100644
+index 5ebaf48..f5dde30 100644
 --- a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
 +++ b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
-@@ -43,11 +43,11 @@ def overrideHermesDir = System.getenv("REACT_NATIVE_OVERRIDE_HERMES_DIR") != nul
- def hermesDir = System.getenv("REACT_NATIVE_OVERRIDE_HERMES_DIR") ?: new File(reactNativeRootDir, "sdks/hermes")
- def hermesBuildDir = new File("$buildDir/hermes")
- 
--def hermesVersion = "main"
--def hermesVersionFile = new File(reactNativeRootDir, "sdks/.hermesversion")
--if (hermesVersionFile.exists()) {
--    hermesVersion = hermesVersionFile.text
--}
-+def hermesVersion = "52725e889185e53277e629f1f7043aa2913c97a9"
-+// def hermesVersionFile = new File(reactNativeRootDir, "sdks/.hermesversion")
-+// if (hermesVersionFile.exists()) {
-+//     hermesVersion = hermesVersionFile.text
-+// }
- def ndkBuildJobs = Runtime.runtime.availableProcessors().toString()
- def prefabHeadersDir = new File("$buildDir/prefab-headers")
- 
-@@ -59,7 +59,7 @@ def skipPrefabPublishing = System.getenv("REACT_NATIVE_HERMES_SKIP_PREFAB") != n
- def jsiDir = new File(reactNativeRootDir, "ReactCommon/jsi")
- 
- task downloadHermes(type: Download) {
--    src("https://github.com/facebook/hermes/tarball/${hermesVersion}")
-+    src("https://github.com/MetaMask/hermes/tarball/${hermesVersion}")
-     onlyIfNewer(true)
-     overwrite(false)
-     dest(new File(downloadsDir, "hermes.tar.gz"))
-@@ -120,12 +120,9 @@ android {
+@@ -131,12 +131,9 @@ android {
  
      // Used to override the NDK path/version on internal CI or by allowing
      // users to customize the NDK path/version from their root project (e.g. for M1 support)
@@ -175,10 +148,10 @@ index c714f87..65f9ba3 100644
      defaultConfig {
          minSdkVersion 21
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-index 290bd23..20d85e0 100644
+index ced37be..a158541 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-@@ -33,6 +33,7 @@ import android.view.KeyEvent;
+@@ -38,6 +38,7 @@ import android.view.MenuItem;
  import android.view.MotionEvent;
  import android.view.View;
  import android.view.accessibility.AccessibilityNodeInfo;
@@ -186,7 +159,7 @@ index 290bd23..20d85e0 100644
  import android.view.inputmethod.EditorInfo;
  import android.view.inputmethod.InputConnection;
  import android.view.inputmethod.InputMethodManager;
-@@ -94,6 +95,16 @@ public class ReactEditText extends AppCompatEditText
+@@ -99,6 +100,16 @@ public class ReactEditText extends AppCompatEditText
    /** A count of events sent to JS or C++. */
    protected int mNativeEventCount;
  
@@ -203,7 +176,7 @@ index 290bd23..20d85e0 100644
    private static final int UNSET = -1;
  
    private @Nullable ArrayList<TextWatcher> mListeners;
-@@ -253,16 +264,24 @@ public class ReactEditText extends AppCompatEditText
+@@ -288,16 +299,24 @@ public class ReactEditText extends AppCompatEditText
    @Override
    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
      ReactContext reactContext = getReactContext(this);
@@ -238,18 +211,33 @@ index 290bd23..20d85e0 100644
      }
      return inputConnection;
    }
-diff --git a/node_modules/react-native/scripts/react_native_pods.rb b/node_modules/react-native/scripts/react_native_pods.rb
-index 78b187a..d9d0be5 100644
---- a/node_modules/react-native/scripts/react_native_pods.rb
-+++ b/node_modules/react-native/scripts/react_native_pods.rb
-@@ -224,7 +224,9 @@ def react_native_post_install(installer, react_native_path = "../node_modules/re
-   ReactNativePodsUtils.exclude_i386_architecture_while_using_hermes(installer)
-   ReactNativePodsUtils.fix_library_search_paths(installer)
-   ReactNativePodsUtils.set_node_modules_user_settings(installer, react_native_path)
--  ReactNativePodsUtils.apply_xcode_15_patch(installer)
-+  if Environment.new().ruby_platform().include?('darwin')
-+    ReactNativePodsUtils.apply_xcode_15_patch(installer)
-+  end
-   ReactNativePodsUtils.updateIphoneOSDeploymentTarget(installer)
- 
-   NewArchitectureHelper.set_clang_cxx_language_standard_if_needed(installer)
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/rncore/ComponentDescriptors.h b/node_modules/react-native/ReactCommon/react/renderer/components/rncore/ComponentDescriptors.h
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/rncore/EventEmitters.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/rncore/EventEmitters.cpp
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/rncore/EventEmitters.h b/node_modules/react-native/ReactCommon/react/renderer/components/rncore/EventEmitters.h
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/rncore/Props.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/rncore/Props.cpp
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/rncore/Props.h b/node_modules/react-native/ReactCommon/react/renderer/components/rncore/Props.h
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/rncore/RCTComponentViewHelpers.h b/node_modules/react-native/ReactCommon/react/renderer/components/rncore/RCTComponentViewHelpers.h
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/rncore/ShadowNodes.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/rncore/ShadowNodes.cpp
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/rncore/ShadowNodes.h b/node_modules/react-native/ReactCommon/react/renderer/components/rncore/ShadowNodes.h
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/rncore/States.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/rncore/States.cpp
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/rncore/States.h b/node_modules/react-native/ReactCommon/react/renderer/components/rncore/States.h
+new file mode 100644
+index 0000000..e69de29

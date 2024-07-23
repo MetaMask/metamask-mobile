@@ -30,7 +30,7 @@
 		android:theme="@style/AppTheme"
 		android:hardwareAccelerated="true"
 		android:usesCleartextTraffic="${isDebug}"
-		tools:targetApi="29"
+		tools:targetApi="33"
 		tools:ignore="GoogleAppIndexingWarning"
 		android:networkSecurityConfig="@xml/react_native_config"
 		android:largeHeap="true"
