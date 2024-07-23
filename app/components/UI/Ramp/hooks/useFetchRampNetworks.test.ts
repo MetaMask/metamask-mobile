@@ -28,21 +28,17 @@ describe('useFetchRampNetworks', () => {
     const mockResponse: AggregatorNetwork[] = [
       {
         active: true,
-        // TODO(ramp, chainId-string): remove this ts-expect-error when chainId is string
-        // See https://github.com/MetaMask/metamask-mobile/pull/9415
-        // @ts-expect-error ts(2322)
         chainId: '1',
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
+        nativeTokenSupported: true,
       },
       {
         active: true,
-        // TODO(ramp, chainId-string): remove this ts-expect-error when chainId is string
-        // See https://github.com/MetaMask/metamask-mobile/pull/9415
-        // @ts-expect-error ts(2322)
         chainId: '137',
         chainName: 'Polygon Mainnet',
         shortName: 'Polygon',
+        nativeTokenSupported: true,
       },
     ];
     (SDK.getNetworks as jest.Mock).mockResolvedValue(mockResponse);
