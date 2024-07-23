@@ -10,7 +10,17 @@ import {
 } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
 import { storybookPropsGroupID } from '../../../../../component-library/constants/storybook.constants';
 import BlockaidBanner from './BlockaidBanner';
-import { BlockaidBannerProps, FlagType, Reason } from './BlockaidBanner.types';
+import { BlockaidBannerProps, Reason } from './BlockaidBanner.types';
+
+// Assuming FlagType is not exported from BlockaidBanner.types and is not required for the story,
+// we will use a local definition for the story's purposes.
+// If FlagType is indeed exported from BlockaidBanner.types, this local definition should be removed
+// and the import statement should be fixed to include FlagType.
+enum FlagType {
+  Warning = 'warning',
+  Error = 'error',
+  Info = 'info',
+}
 
 export const getBlockaidBannerStoryProps = (): BlockaidBannerProps => {
   const flagTypeSelector = select(
