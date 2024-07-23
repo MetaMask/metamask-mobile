@@ -611,6 +611,10 @@
     "remove_account_message": "Do you really want to remove this account?",
     "no": "No",
     "yes_remove_it": "Yes, remove it",
+    "remove_hardware_account": "Remove hardware account",
+    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_account_alert_remove_btn": "Remove",
+    "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "Accounts",
     "connect_account_title": "Connect account",
     "connect_accounts_title": "Connect accounts",
@@ -666,8 +670,7 @@
     "hint_text": "Scan your Keystone wallet to ",
     "purpose_connect": "connect",
     "purpose_sign": "confirm the transaction",
-    "select_accounts": "Select an Account",
-    "please_wait": "Please wait"
+    "select_accounts": "Select an Account"
   },
   "data_collection_modal": {
     "accept": "Okay",
@@ -680,6 +683,11 @@
     "forget": "Forget this device"
   },
   "app_settings": {
+    "enabling_notifications": "Enabling notifications...",
+    "disabling_notifications": "Disabling notifications...",
+    "enabling_profile_sync": "Enabling profile syncing...",
+    "disabling_profile_sync": "Disabling profile syncing...",
+    "notifications_dismiss_modal": "Dismiss",
     "title": "Settings",
     "current_conversion": "Base Currency",
     "current_language": "Current Language",
@@ -726,7 +734,7 @@
     "protect_cta": "Protect",
     "protect_title": "Protect your wallet",
     "video_failed": "Video Failed to Load.",
-    "protect_desc": "Protect your wallet by saving your Secret Recovery Phrase in various places like on a piece of paper, password manager and/or the cloud.",
+    "protect_desc": "Protect your wallet by saving your Secret Recovery Phrase in a place only you can access and that you will not forget. Be sure to keep it offline for optimal safety.",
     "protect_desc_no_backup": "This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.",
     "learn_more": "Learn more.",
     "seedphrase_not_backed_up": "Important! Secret Recovery Phrase not backed up",
@@ -1412,7 +1420,7 @@
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "By granting permission, you're allowing the following third party to access your funds.",
-    "you_trust_this_third_party" : "This allows a third party to access and transfer your NFTs without further notice until you revoke its access.",
+    "you_trust_this_third_party": "This allows a third party to access and transfer your NFTs without further notice until you revoke its access.",
     "you_trust_this_address": "Do you trust this address? By granting this permission, you're allowing this address to access your funds.",
     "edit_permission": "Edit permission",
     "edit": "Edit",
@@ -1657,6 +1665,7 @@
     "search": "Search for previously added network",
     "search-short": "Search",
     "add": "Add",
+    "continue": "Continue",
     "cancel": "Cancel",
     "approve": "Approve",
     "edit_network_details": "Edit network details",
@@ -1954,7 +1963,7 @@
     "received": "Received",
     "unstaked": "Unstaked",
     "to": "To",
-    "rate": "Rate(fees included)",
+    "rate": "Rate (fees included)",
     "unstaking_requested": "Unstaking requested",
     "stake_completed": "Stake completed",
     "withdrawal_completed": "Withdrawal completed",
@@ -1964,6 +1973,49 @@
     "swap_completed": "Swapped {{from}} for {{to}}",
     "swap": "Swapped",
     "sent": "Sent to {{address}}",
+    "menu_item_title": {
+      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
+      "erc20_sent": "Sent to {{address}}",
+      "erc20_received": "Received from {{address}}",
+      "eth_sent": "Sent to {{address}}",
+      "eth_received": "Received from {{address}}",
+      "erc721_sent": "Sent NFT to {{address}}",
+      "erc1155_sent": "Sent NFT to {{address}}",
+      "erc721_received": "Received NFT from {{address}}",
+      "erc1155_received": "Received NFT from {{address}}",
+      "rocketpool_stake_completed": "Staked",
+      "rocketpool_unstake_completed": "Unstaking complete",
+      "lido_stake_completed": "Staked",
+      "lido_withdrawal_requested": "Unstaking requested",
+      "lido_withdrawal_completed": "Unstaking complete",
+      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+    },
+    "menu_item_description": {
+      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
+      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+    },
+    "modal": {
+      "title_sent": "Sent {{symbol}}",
+      "title_received": "Received {{symbol}}",
+      "title_unstake_requested": "Unstaking requested",
+      "title_untake_ready": "Withdrawl ready",
+      "title_stake": "Staked {{symbol}}",
+      "title_unstake_completed": "Unstaking completed",
+      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
+      "label_address_to": "To",
+      "label_address_from": "From",
+      "label_address_to_you": "To (You)",
+      "label_address_from_you": "From (You)",
+      "label_asset": "Asset",
+      "label_account": "Account",
+      "label_unstaking_requested": "Unstaking Requested",
+      "label_unstake_ready": "Withdrawl ready",
+      "label_staked": "Staked",
+      "label_received": "Received",
+      "label_unstaking_confirmed": "Unstaking Confirmed",
+      "label_swapped": "Swapped",
+      "label_to": "To"
+    },
     "received_from": "Received from {{address}}",
     "nft_sent": "Sent NFT to {{address}}",
     "erc721_sent": "Sent NFT to {{address}}",
@@ -1997,6 +2049,8 @@
     "received_message": "Tap to view this transaction",
     "received_payment_message": "You received {{amount}} DAI",
     "prompt_title": "Enable Push Notifications",
+    "notifications_enabled_error_title": "Something went wrong",
+    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
     "prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
     "prompt_ok": "Yes",
     "prompt_cancel": "No, thanks",
@@ -2021,6 +2075,7 @@
       "1": "Wallet",
       "2": "Annoucements"
     },
+    "copied_to_clipboard": "Copied to clipboard",
     "address_copied_to_clipboard": "Address copied to clipboard",
     "transaction_id_copied_to_clipboard": "Transaction ID copied to clipboard",
     "activation_card": {
@@ -2652,7 +2707,7 @@
       "header": "Enhanced Transaction Protection",
       "description_1": "Unlock higher success rates, frontrunning protection, and better visibility with Smart Transactions.",
       "description_2": "Only available on Ethereum. Enable or disable any time in settings.",
-      "secondary_button": "Manage in settings",
+      "no_thanks": "No thanks",
       "primary_button": "Enable",
       "learn_more": "Learn more.",
       "benefit_1_1": "99.5% success",
@@ -2850,6 +2905,15 @@
   "remember_me": {
     "enable_remember_me": "Turn on Remember me",
     "enable_remember_me_description": "When Remember me is on, anyone with access to your phone can access your MetaMask account."
+  },
+  "profile_sync": {
+    "title": "Profile Sync",
+    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
+    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
+    "enable_description2": " to learn more.",
+    "enable_privacy_link": "Learn how we protect your privacy",
+    "bottomSheetTurnOn": "Turning on Profile Sync",
+    "bottomSheetTurnOff": "Turning off Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "Enter your password to turn off Remember me",
@@ -3122,5 +3186,8 @@
     "title": "Estimated changes",
     "tooltip_description": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
     "total_fiat": "Total = {{currency}}"
+  },
+  "common": {
+    "please_wait": "Please wait"
   }
 }

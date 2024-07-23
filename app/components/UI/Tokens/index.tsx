@@ -73,6 +73,7 @@ import Icon, {
 
 import { BrowserTab, TokenI, TokensI } from './types';
 import useRampNetwork from '../Ramp/hooks/useRampNetwork';
+import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 import {
@@ -94,10 +95,11 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { zeroAddress } from 'ethereumjs-util';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
 import AggregatedPercentage from '../../../component-library/components-temp/Price/AggregatedPercentage';
+import { RootState } from 'app/reducers';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, isEnabled } = useMetrics();
   const styles = createStyles(colors);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -136,6 +138,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
+  const isDataCollectionForMarketingEnabled = useSelector(
+    (state: RootState) => state.security.dataCollectionForMarketing,
+  );
 
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     chainId,
@@ -477,7 +482,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const goToBuy = () => {
-    navigation.navigate(Routes.RAMP.BUY);
+    navigation.navigate(...createBuyNavigationDetails());
     trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
       text: 'Buy Native Token',
       location: 'Home Screen',
@@ -595,7 +600,22 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       if (existingPortfolioTab) {
         existingTabId = existingPortfolioTab.id;
       } else {
-        newTabUrl = `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile`;
+        const analyticsEnabled = isEnabled();
+        const portfolioUrl = new URL(AppConstants.PORTFOLIO.URL);
+
+        portfolioUrl.searchParams.append('metamaskEntry', 'mobile');
+
+        // Append user's privacy preferences for metrics + marketing on user navigation to Portfolio.
+        portfolioUrl.searchParams.append(
+          'metricsEnabled',
+          String(analyticsEnabled),
+        );
+        portfolioUrl.searchParams.append(
+          'marketingEnabled',
+          String(!!isDataCollectionForMarketingEnabled),
+        );
+
+        newTabUrl = portfolioUrl.href;
       }
       const params = {
         ...(newTabUrl && { newTabUrl }),

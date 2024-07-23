@@ -72,8 +72,6 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
-import LedgerAccountInfo from '../../Views/LedgerAccountInfo';
-import LedgerConnect from '../../Views/LedgerConnect';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
@@ -111,6 +109,7 @@ import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
@@ -299,6 +298,7 @@ const VaultRecoveryFlow = () => (
   </Stack.Navigator>
 );
 
+// eslint-disable-next-line react/prop-types
 const App = ({ userLoggedIn }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
@@ -473,6 +473,7 @@ const App = ({ userLoggedIn }) => {
         }
       }
     }
+
     initSDKConnect()
       .then(() => {
         queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
@@ -741,8 +742,16 @@ const App = ({ userLoggedIn }) => {
   );
 
   const LedgerConnectFlow = () => (
-    <Stack.Navigator initialRouteName={Routes.HW.LEDGER_CONNECT}>
-      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={LedgerConnect} />
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+      initialRouteName={Routes.HW.LEDGER_CONNECT}
+    >
+      <Stack.Screen
+        name={Routes.HW.LEDGER_CONNECT}
+        component={LedgerSelectAccount}
+      />
     </Stack.Navigator>
   );
 
@@ -753,7 +762,6 @@ const App = ({ userLoggedIn }) => {
         component={SelectHardwareWallet}
         options={SelectHardwareWallet.navigationOptions}
       />
-      <Stack.Screen name="LedgerAccountInfo" component={LedgerAccountInfo} />
     </Stack.Navigator>
   );
 

@@ -26,14 +26,13 @@ const STX_OPT_IN_MIN_APP_VERSION = '7.24.0';
 export const shouldShowSmartTransactionsOptInModal = async (
   chainId: string,
   providerConfigRpcUrl: string | undefined,
+  accountHasZeroBalance: boolean,
 ) => {
-  // Check chain and RPC, undefined is the default RPC
   if (
-    !(
-      chainId === NETWORKS_CHAIN_ID.MAINNET &&
-      providerConfigRpcUrl === undefined
-    ) ||
-    process.env.IS_TEST === 'true'
+    process.env.IS_TEST === 'true' ||
+    chainId !== NETWORKS_CHAIN_ID.MAINNET ||
+    providerConfigRpcUrl !== undefined || // undefined is the default RPC URL (Infura).
+    accountHasZeroBalance
   ) {
     return false;
   }
