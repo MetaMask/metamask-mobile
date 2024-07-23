@@ -20,7 +20,7 @@ describe('useApplePay', () => {
       purchaseWithApplePay: undefined,
     } as QuoteResponse;
     const { result } = renderHookWithProvider(() => useApplePay(quote));
-    const showRequest = result.current[0];
+    const [showRequest] = result.current;
     await expect(showRequest()).rejects.toThrow(
       'Quote does not support Apple Pay',
     );
@@ -56,7 +56,7 @@ describe('useApplePay', () => {
     }));
 
     const { result } = renderHookWithProvider(() => useApplePay(quote));
-    const showRequest = result.current[0];
+    const [showRequest] = result.current;
     const paymentResult = await showRequest();
 
     expect(quote.getApplePayRequestInfo).toHaveBeenCalledWith({
@@ -123,7 +123,7 @@ describe('useApplePay', () => {
     }));
 
     const { result } = renderHookWithProvider(() => useApplePay(quote));
-    const showRequest = result.current[0];
+    const [showRequest] = result.current;
 
     await expect(showRequest()).rejects.toThrow(
       'Payment Request Failed: empty apple pay response',
@@ -158,7 +158,7 @@ describe('useApplePay', () => {
     }));
 
     const { result } = renderHookWithProvider(() => useApplePay(quote));
-    const showRequest = result.current[0];
+    const [showRequest] = result.current;
     await expect(showRequest()).rejects.toThrow('test-error');
     expect(mockPaymentRequestComplete).toHaveBeenCalledWith('fail');
     expect(mockAbort).toHaveBeenCalled();
@@ -188,7 +188,7 @@ describe('useApplePay', () => {
     }));
 
     const { result } = renderHookWithProvider(() => useApplePay(quote));
-    const showRequest = result.current[0];
+    const [showRequest] = result.current;
     await expect(showRequest()).rejects.toThrow('test-error-message');
     expect(mockPaymentRequestComplete).toHaveBeenCalledWith('fail');
   });
@@ -212,7 +212,7 @@ describe('useApplePay', () => {
     }));
 
     const { result } = renderHookWithProvider(() => useApplePay(quote));
-    const showRequest = result.current[0];
+    const [showRequest] = result.current;
     const paymentResult = await showRequest();
     expect(paymentResult).toEqual('ABORTED');
   });
