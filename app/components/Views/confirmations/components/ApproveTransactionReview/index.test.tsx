@@ -1,3 +1,4 @@
+import React from 'react';
 import ApproveTransactionModal from '.';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -68,9 +69,9 @@ const initialState = {
 describe('ApproveTransactionModal', () => {
   it('render matches snapshot', () => {
     const { toJSON } = renderScreen(
-      ApproveTransactionModal,
+      ApproveTransactionModal as unknown as React.ComponentType<{}>,
       { name: 'Approve' },
-      { state: initialState },
+      { state: initialState as any },
     );
     expect(toJSON()).toMatchSnapshot();
   });
