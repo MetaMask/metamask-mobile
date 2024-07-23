@@ -115,14 +115,6 @@ class AesCryptoTestForm {
     );
   }
 
-  async scrollUpToGenerateSalt() {
-    await Gestures.scrollToElement(
-      this.generateSaltBytesCountInput,
-      this.scrollViewIdentifier,
-      'up',
-    );
-  }
-
   async scrollUpToGenerateEncryptionKey() {
     await Gestures.scrollToElement(
       this.generateEncryptionKeyPasswordInput,

@@ -263,11 +263,6 @@ const Settings = () => {
         )
       }
       <SettingsDrawer
-        title={strings('app_settings.aes_crypto_test_form_title')}
-        onPress={onPressAesCryptoTestForm}
-        testID={SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM}
-      />
-      <SettingsDrawer
         title={aboutMetaMaskTitle}
         onPress={onPressInfo}
         testID={SettingsViewSelectorsIDs.ABOUT_METAMASK}
