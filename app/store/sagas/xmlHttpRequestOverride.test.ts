@@ -49,7 +49,7 @@ describe('overrideXMLHttpRequest', () => {
   );
 
   notBlockedURLs.forEach((url) =>
-    it(`should not block requests to URL ${url} when enabled`, (done) => {
+    it(`does not block requests to non blocked URL ${url} when enabled`, (done) => {
       const logSpy = jest.spyOn(console, 'error');
       overrideXMLHttpRequest();
       const req = new global.XMLHttpRequest();
