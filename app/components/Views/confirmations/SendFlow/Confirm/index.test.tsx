@@ -128,6 +128,11 @@ jest.mock('../../../../../core/Engine', () => ({
       }),
       updateSecurityAlertResponse: jest.fn(),
     },
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
+      },
+    },
   },
 }));
 jest.mock('../../../../../util/custom-gas', () => ({

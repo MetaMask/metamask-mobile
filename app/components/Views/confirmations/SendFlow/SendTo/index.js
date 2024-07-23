@@ -53,7 +53,8 @@ import {
   selectSelectedInternalAccountChecksummedAddress,
 } from '../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../UI/AddToAddressBookWrapper';
-import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../../UI/Ramp/utils';
+import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
@@ -309,7 +310,7 @@ class SendFlow extends PureComponent {
   };
 
   goToBuy = () => {
-    this.props.navigation.navigate(Routes.RAMP.BUY);
+    this.props.navigation.navigate(...createBuyNavigationDetails());
 
     this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
       button_location: 'Send Flow warning',

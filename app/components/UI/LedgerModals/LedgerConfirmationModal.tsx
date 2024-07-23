@@ -10,13 +10,13 @@ import ConfirmationStep from './Steps/ConfirmationStep';
 import ErrorStep from './Steps/ErrorStep';
 import OpenETHAppStep from './Steps/OpenETHAppStep';
 import SearchingForDeviceStep from './Steps/SearchingForDeviceStep';
-import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -71,14 +71,13 @@ const LedgerConfirmationModal = ({
   const connectLedger = () => {
     try {
       ledgerLogicToRun(async () => {
-        await unlockLedgerDefaultAccount(false);
         await onConfirmation();
       });
     } catch (_e) {
       // Handle a super edge case of the user starting a transaction with the device connected
       // After arriving to confirmation the ETH app is not installed anymore this causes a crash.
       trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
-        device_type: 'Ledger',
+        device_type: HardwareDeviceTypes.LEDGER,
         error: 'LEDGER_ETH_APP_NOT_INSTALLED',
       });
     }
@@ -90,7 +89,7 @@ const LedgerConfirmationModal = ({
       onRejection();
     } finally {
       trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_TRANSACTION_CANCELLED, {
-        device_type: 'Ledger',
+        device_type: HardwareDeviceTypes.LEDGER,
       });
     }
   };
@@ -179,7 +178,7 @@ const LedgerConfirmationModal = ({
       }
       if (ledgerError !== LedgerCommunicationErrors.UserRefusedConfirmation) {
         trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
-          device_type: 'Ledger',
+          device_type: HardwareDeviceTypes.LEDGER,
           error: `${ledgerError}`,
         });
       }
@@ -208,7 +207,7 @@ const LedgerConfirmationModal = ({
       }
       setPermissionErrorShown(true);
       trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
-        device_type: 'Ledger',
+        device_type: HardwareDeviceTypes.LEDGER,
         error: 'LEDGER_BLUETOOTH_PERMISSION_ERR',
       });
     }
@@ -219,7 +218,7 @@ const LedgerConfirmationModal = ({
         subtitle: strings('ledger.bluetooth_off_message'),
       });
       trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
-        device_type: 'Ledger',
+        device_type: HardwareDeviceTypes.LEDGER,
         error: 'LEDGER_BLUETOOTH_CONNECTION_ERR',
       });
     }
