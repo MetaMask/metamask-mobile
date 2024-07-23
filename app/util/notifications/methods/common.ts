@@ -10,6 +10,7 @@ import { TRIGGER_TYPES } from '../constants';
 import { Notification } from '../types';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
+import CHAIN_SCANS_URLS from '../constants/urls';
 
 const { UI } = NotificationServicesController;
 /**
@@ -411,25 +412,25 @@ export function getBlockExplorerByChainId(chainId: number) {
   const chainIdString = chainId.toString();
 
   if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ETHEREUM) {
-    return 'https://etherscan.io';
+    return CHAIN_SCANS_URLS.ETHEREUM;
   }
   if (chainIdString === UI.NOTIFICATION_CHAINS_ID.OPTIMISM) {
-    return 'https://optimistic.etherscan.io';
+    return CHAIN_SCANS_URLS.OPTIMISM;
   }
   if (chainIdString === UI.NOTIFICATION_CHAINS_ID.BSC) {
-    return 'https://bscscan.com';
+    return CHAIN_SCANS_URLS.BSC;
   }
   if (chainIdString === UI.NOTIFICATION_CHAINS_ID.POLYGON) {
-    return 'https://polygonscan.com';
+    return CHAIN_SCANS_URLS.POLYGON;
   }
   if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
-    return 'https://arbiscan.io';
+    return CHAIN_SCANS_URLS.ARBITRUM;
   }
   if (chainIdString === UI.NOTIFICATION_CHAINS_ID.AVALANCHE) {
-    return 'https://snowtrace.io';
+    return CHAIN_SCANS_URLS.AVALANCHE;
   }
   if (chainIdString === UI.NOTIFICATION_CHAINS_ID.LINEA) {
-    return 'https://lineascan.build';
+    return CHAIN_SCANS_URLS.LINEA;
   }
 
   return undefined;
