@@ -10,8 +10,8 @@ class Matchers {
    * @param {string} elementId - Match elements with the specified testID
    * @return {Promise<Detox.IndexableNativeElement>} - Resolves to the located element
    */
-  static async getElementByID(elementId) {
-    return element(by.id(elementId));
+  static async getElementByID(elementId, index = 0) {
+    return element(by.id(elementId)).atIndex(index);
   }
 
   /**
