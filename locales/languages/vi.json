@@ -5,8 +5,6 @@
     "deceptive_request_title": "Đây là một yêu cầu lừa đảo",
     "failed_title": "Yêu cầu có thể không an toàn",
     "failed_description": "Do có lỗi, yêu cầu này đã không được nhà cung cấp dịch vụ bảo mật xác minh. Hãy thực hiện cẩn thận.",
-    "loading_title": "Đang kiểm tra cảnh báo bảo mật...",
-    "loading_complete_title": "Không nhận được cảnh báo nào. Luôn tự thẩm định trước khi chấp thuận các yêu cầu.",
     "malicious_domain_description": "Bạn đang tương tác với một tên miền độc hại. Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "other_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "raw_signature_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
@@ -613,6 +611,10 @@
     "remove_account_message": "Bạn có thật sự muốn gỡ bỏ tài khoản này?",
     "no": "Không",
     "yes_remove_it": "Có, hãy gỡ bỏ nó",
+    "remove_hardware_account": "Remove hardware account",
+    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_account_alert_remove_btn": "Remove",
+    "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "Tài khoản",
     "connect_account_title": "Kết nối tài khoản",
     "connect_accounts_title": "Kết nối tài khoản",
@@ -668,8 +670,7 @@
     "hint_text": "Quét ví Keystone của bạn để ",
     "purpose_connect": "kết nối",
     "purpose_sign": "xác nhận giao dịch",
-    "select_accounts": "Chọn một tài khoản",
-    "please_wait": "Vui lòng chờ"
+    "select_accounts": "Chọn một tài khoản"
   },
   "data_collection_modal": {
     "accept": "Đồng ý",
@@ -682,6 +683,11 @@
     "forget": "Quên thiết bị này"
   },
   "app_settings": {
+    "enabling_notifications": "Enabling notifications...",
+    "disabling_notifications": "Disabling notifications...",
+    "enabling_profile_sync": "Enabling profile syncing...",
+    "disabling_profile_sync": "Disabling profile syncing...",
+    "notifications_dismiss_modal": "Dismiss",
     "title": "Cài đặt",
     "current_conversion": "Tiền tệ cơ bản",
     "current_language": "Ngôn ngữ hiện tại",
@@ -805,6 +811,7 @@
     "security_desc": "Cài đặt quyền riêng tư, MetaMetrics, khoá riêng tư và Cụm từ khôi phục bí mật của ví",
     "networks_title": "Mạng",
     "networks_default_title": "Mạng mặc định",
+    "network_delete": "Nếu xóa mạng này, bạn sẽ cần thêm lại mạng này để xem các tài sản của mình trong mạng này",
     "networks_default_cta": "Sử dụng mạng này",
     "networks_desc": "Thêm và sửa mạng RPC tùy chỉnh",
     "network_name_label": "Tên mạng",
@@ -820,6 +827,7 @@
     "network_other_networks": "Mạng khác",
     "network_rpc_networks": "Mạng RPC",
     "network_add_network": "Thêm mạng",
+    "network_add_custom_network": "Thêm mạng tùy chỉnh",
     "network_add": "Thêm",
     "network_save": "Lưu",
     "remove_network_title": "Bạn có muốn gỡ bỏ mạng này?",
@@ -994,6 +1002,7 @@
     "token_nft_ens_subheading": "Tự động phát hiện Token, NFT và ENS",
     "security_check_subheading": "Kiểm tra bảo mật",
     "symbol_required": "Ký hiệu là bắt buộc.",
+    "blockaid_desc": "Tính năng này sẽ cảnh báo bạn khi có hoạt động độc hại bằng cách chủ động xem xét các yêu cầu giao dịch và chữ ký.",
     "security_alerts": "Cảnh báo bảo mật",
     "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp.",
     "smart_transactions_opt_in_heading": "Giao dịch thông minh",
@@ -1030,6 +1039,7 @@
     "cancel": "Hủy",
     "loading": "Đang kết nối với MetaMask...",
     "unkown_dapp": "Tên DAPP không khả dụng",
+    "unknown": "Không xác định",
     "no_connections": "Không có kết nối",
     "no_connections_desc": "Nếu bạn kết nối tài khoản với một trang web hoặc một ứng dụng, bạn sẽ thấy tài khoản đó ở đây."
   },
@@ -1653,6 +1663,7 @@
     "network_currency_symbol": "Ký hiệu tiền tệ",
     "network_block_explorer_url": "URL của Trình khám phá khối",
     "search": "Tìm kiếm mạng đã thêm trước đây",
+    "search-short": "Tìm kiếm",
     "add": "Thêm",
     "cancel": "Hủy",
     "approve": "Chấp thuận",
@@ -1660,7 +1671,9 @@
     "malicious_network_warning": "Một nhà cung cấp mạng độc hại có thể nói dối về trạng thái của chuỗi khối và ghi lại hoạt động của bạn trên mạng. Chỉ thêm các mạng tùy chỉnh mà bạn tin tưởng.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "Thông tin mạng",
+    "additional_network_information_title": "Thông tin mạng bổ sung",
     "network_warning_desc": "Kết nối mạng này dựa vào các bên thứ ba. Kết nối này có thể kém tin cậy hơn hoặc cho phép các bên thứ ba theo dõi hoạt động.",
+    "additonial_network_information_desc": "Một vài mạng trong số này phụ thuộc vào bên thứ ba. Kết nối có thể kém tin cậy hơn hoặc cho phép bên thứ ba theo dõi hoạt động.",
     "learn_more": "Tìm hiểu thêm",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Chuyển sang mạng",
@@ -1949,7 +1962,7 @@
     "received": "Đã nhận",
     "unstaked": "Đã hủy ký gửi",
     "to": "Đến",
-    "rate": "Tỷ giá (đã bao gồm phí)",
+    "rate": "Rate (fees included)",
     "unstaking_requested": "Đã yêu cầu hủy ký gửi",
     "stake_completed": "Ký gửi đã hoàn tất",
     "withdrawal_completed": "Rút tiền đã hoàn tất",
@@ -1959,6 +1972,49 @@
     "swap_completed": "Đã hoán đổi {{from}} thành {{to}}",
     "swap": "Đã hoán đổi",
     "sent": "Đã gửi đến {{address}}",
+    "menu_item_title": {
+      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
+      "erc20_sent": "Sent to {{address}}",
+      "erc20_received": "Received from {{address}}",
+      "eth_sent": "Sent to {{address}}",
+      "eth_received": "Received from {{address}}",
+      "erc721_sent": "Sent NFT to {{address}}",
+      "erc1155_sent": "Sent NFT to {{address}}",
+      "erc721_received": "Received NFT from {{address}}",
+      "erc1155_received": "Received NFT from {{address}}",
+      "rocketpool_stake_completed": "Staked",
+      "rocketpool_unstake_completed": "Unstaking complete",
+      "lido_stake_completed": "Staked",
+      "lido_withdrawal_requested": "Unstaking requested",
+      "lido_withdrawal_completed": "Unstaking complete",
+      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+    },
+    "menu_item_description": {
+      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
+      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+    },
+    "modal": {
+      "title_sent": "Sent {{symbol}}",
+      "title_received": "Received {{symbol}}",
+      "title_unstake_requested": "Unstaking requested",
+      "title_untake_ready": "Withdrawl ready",
+      "title_stake": "Staked {{symbol}}",
+      "title_unstake_completed": "Unstaking completed",
+      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
+      "label_address_to": "To",
+      "label_address_from": "From",
+      "label_address_to_you": "To (You)",
+      "label_address_from_you": "From (You)",
+      "label_asset": "Asset",
+      "label_account": "Account",
+      "label_unstaking_requested": "Unstaking Requested",
+      "label_unstake_ready": "Withdrawl ready",
+      "label_staked": "Staked",
+      "label_received": "Received",
+      "label_unstaking_confirmed": "Unstaking Confirmed",
+      "label_swapped": "Swapped",
+      "label_to": "To"
+    },
     "received_from": "Đã nhận được từ {{address}}",
     "nft_sent": "Đã gửi NFT đến {{address}}",
     "erc721_sent": "Đã gửi NFT đến {{address}}",
@@ -1992,6 +2048,8 @@
     "received_message": "Chạm để xem giao dịch này",
     "received_payment_message": "Bạn đã nhận {{amount}} DAI",
     "prompt_title": "Bật thông báo đẩy",
+    "notifications_enabled_error_title": "Something went wrong",
+    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
     "prompt_desc": "Bật thông báo để MetaMask có thể thông báo cho bạn biết khi bạn nhận ETH hoặc khi giao dịch của bạn được xác nhận.",
     "prompt_ok": "Có",
     "prompt_cancel": "Không, cảm ơn",
@@ -2016,6 +2074,7 @@
       "1": "Ví",
       "2": "Thông báo"
     },
+    "copied_to_clipboard": "Copied to clipboard",
     "address_copied_to_clipboard": "Đã sao chép địa chỉ vào bộ nhớ đệm",
     "transaction_id_copied_to_clipboard": "Đã sao chép ID giao dịch vào bộ nhớ đệm",
     "activation_card": {
@@ -2647,7 +2706,7 @@
       "header": "Tăng cường bảo vệ giao dịch",
       "description_1": "Đạt tỷ lệ thành công cao hơn, bảo vệ chống hành vi lợi dụng thông tin biết trước và khả năng hiển thị tốt hơn với Giao dịch thông minh.",
       "description_2": "Chỉ có sẵn trên Ethereum. Có thể bật/tắt bất cứ lúc nào trong phần Cài đặt.",
-      "secondary_button": "Quản lý trong phần cài đặt",
+      "no_thanks": "No thanks",
       "primary_button": "Bật",
       "learn_more": "Tìm hiểu thêm.",
       "benefit_1_1": "Tỷ lệ thành công",
@@ -2845,6 +2904,15 @@
   "remember_me": {
     "enable_remember_me": "Bật Ghi nhớ",
     "enable_remember_me_description": "Khi bật Ghi nhớ, bất kỳ ai có quyền truy cập vào điện thoại của bạn đều có thể truy cập vào tài khoản MetaMask của bạn."
+  },
+  "profile_sync": {
+    "title": "Profile Sync",
+    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
+    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
+    "enable_description2": " to learn more.",
+    "enable_privacy_link": "Learn how we protect your privacy",
+    "bottomSheetTurnOn": "Turning on Profile Sync",
+    "bottomSheetTurnOff": "Turning off Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "Nhập mật khẩu để tắt Ghi nhớ",
@@ -3068,7 +3136,7 @@
   },
   "install_snap": {
     "title": "Yêu cầu kết nối",
-    "description": "{{origin}} muốn tải xuống và kết nối với {{snap}}. Đảm bảo bạn tin tưởng các tác giả trước khi tiếp tục.",
+    "description": "{{origin}} muốn sử dụng {{snap}}.",
     "permissions_request_title": "Yêu cầu cấp quyền",
     "permissions_request_description": "{{origin}} muốn cài đặt {{snap}}, điều này sẽ yêu cầu các quyền sau.",
     "approve_permissions": "Chấp thuận",
@@ -3117,5 +3185,8 @@
     "title": "Thay đổi ước tính",
     "tooltip_description": "Thay đổi ước tính là những gì có thể xảy ra nếu bạn thực hiện giao dịch này. Đây chỉ là dự đoán, không phải là đảm bảo.",
     "total_fiat": "Tổng cộng = {{currency}}"
+  },
+  "common": {
+    "please_wait": "Please wait"
   }
 }

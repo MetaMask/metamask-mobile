@@ -46,7 +46,6 @@
     "storageMetadata": [],
     "versionInfo": []
   },
-
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {
@@ -65,7 +64,10 @@
       "ticker": "ETH"
     },
     "networksMetadata": {
-      "mainnet": { "EIPS": {}, "status": "unknown" }
+      "mainnet": {
+        "EIPS": {},
+        "status": "unknown"
+      }
     },
     "selectedNetworkClientId": "mainnet"
   },
@@ -134,7 +136,7 @@
       "smartTransactions": {},
       "userOptIn": false,
       "userOptInV2": false,
-     "fees": {
+      "fees": {
         "approvalTxFees": false,
         "tradeTxFees": false
       },
@@ -237,5 +239,24 @@
     "unapprovedMsgCount": 0,
     "unapprovedPersonalMsgCount": 0,
     "unapprovedTypedMessagesCount": 0
+  },
+  "AuthenticationController": {
+    "isSignedIn": false
+  },
+  "NotificationServicesController": {
+    "isCheckingAccountsPresence": false,
+    "isFeatureAnnouncementsEnabled": false,
+    "isFetchingMetamaskNotifications": false,
+    "isMetamaskNotificationsFeatureSeen": false,
+    "isNotificationServicesEnabled": false,
+    "isUpdatingMetamaskNotifications": false,
+    "isUpdatingMetamaskNotificationsAccount": [],
+    "metamaskNotificationsList": [],
+    "metamaskNotificationsReadList": [],
+    "subscriptionAccountsSeen": []
+  },
+  "UserStorageController": {
+    "isProfileSyncingEnabled": true,
+    "isProfileSyncingUpdateLoading": false
   }
 }

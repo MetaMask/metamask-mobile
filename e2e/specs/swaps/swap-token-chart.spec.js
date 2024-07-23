@@ -4,7 +4,7 @@ import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/TabBarComponent';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -17,6 +17,7 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
+import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
@@ -46,7 +47,7 @@ describe(Regression('Swap from Token view'), () => {
 
   it('should complete a USDC to DAI swap from the token chart', async () => {
     await TabBarComponent.tapWallet();
-    await WalletView.isVisible();
+    await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnToken('Ethereum');
     await TokenOverview.isVisible();
     await TokenOverview.tapSwapButton();

@@ -45,7 +45,6 @@ import {
   getIsNetworkOnboarded,
   isMainNet,
 } from '../../../util/networks';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
   selectTicker,
@@ -355,12 +354,16 @@ const Wallet = ({
     // Fired on the first load of the wallet and also on network switch
     const checkSmartTransactionsOptInModal = async () => {
       try {
-        const showShowStxOptInModal =
+        const accountHasZeroBalance = hexToBN(
+          accountBalanceByChainId?.balance || '0x0',
+        ).isZero();
+        const shouldShowStxOptInModal =
           await shouldShowSmartTransactionsOptInModal(
             providerConfig.chainId,
             providerConfig.rpcUrl,
+            accountHasZeroBalance,
           );
-        if (showShowStxOptInModal) {
+        if (shouldShowStxOptInModal) {
           navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
           });
@@ -386,6 +389,7 @@ const Wallet = ({
     networkOnboardingState,
     prevChainId,
     checkNftAutoDetectionModal,
+    accountBalanceByChainId?.balance,
   ]);
 
   useEffect(
@@ -589,7 +593,7 @@ const Wallet = ({
 
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
-      <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
+      <View style={baseStyles.flexGrow}>
         {selectedAddress ? renderContent() : renderLoader()}
 
         {renderOnboardingWizard()}

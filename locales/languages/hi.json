@@ -5,8 +5,6 @@
     "deceptive_request_title": "इस अनुरोध को धोखेबाजी के उद्देश्य से भेजा गया है",
     "failed_title": "हो सकता है कि अनुरोध सुरक्षित न हो",
     "failed_description": "किसी गड़बड़ी के कारण, इस अनुरोध को सिक्यूरिटी प्रोवाइडर द्वारा सत्यापित नहीं किया गया। सावधानी से आगे बढ़ें।",
-    "loading_title": "सुरक्षा एलर्ट की जाँच की जा रही है...",
-    "loading_complete_title": "कोई एलर्ट प्राप्त नहीं हुआ। किसी भी अनुरोध को एप्रूव करने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें।",
     "malicious_domain_description": "आप एक बुरी नीयत वाले डोमेन से इंटरैक्ट कर रहे हैं। यदि आप इस रिक्वेस्ट को एप्रूव करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
     "other_description": "यदि आप इस अनुरोध को एप्रूव करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
     "raw_signature_farming_description": "यदि आप इस अनुरोध को एप्रूव करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
@@ -613,6 +611,10 @@
     "remove_account_message": "क्या आप वास्तव में इस अकाउंट को हटाना चाहते हैं?",
     "no": "नहीं",
     "yes_remove_it": "हां, इसे हटा दें",
+    "remove_hardware_account": "Remove hardware account",
+    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_account_alert_remove_btn": "Remove",
+    "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "खाता",
     "connect_account_title": "खाता कनेक्ट करें",
     "connect_accounts_title": "खातों को कनेक्ट करें",
@@ -668,8 +670,7 @@
     "hint_text": "अपना कीस्टोन वॉलेट स्कैन करें ",
     "purpose_connect": "कनेक्ट",
     "purpose_sign": "लेनदेन की पुष्टि करें",
-    "select_accounts": "किसी खाते का चयन करें",
-    "please_wait": "कृपया प्रतीक्षा करें"
+    "select_accounts": "किसी खाते का चयन करें"
   },
   "data_collection_modal": {
     "accept": "ठीक है",
@@ -682,6 +683,11 @@
     "forget": "इस डिवाइस को भूल जाएं"
   },
   "app_settings": {
+    "enabling_notifications": "Enabling notifications...",
+    "disabling_notifications": "Disabling notifications...",
+    "enabling_profile_sync": "Enabling profile syncing...",
+    "disabling_profile_sync": "Disabling profile syncing...",
+    "notifications_dismiss_modal": "Dismiss",
     "title": "सेटिंग",
     "current_conversion": "बेस करेंसी",
     "current_language": "वर्तमान भाषा",
@@ -805,6 +811,7 @@
     "security_desc": "गोपनीय सेटिंग, MetaMetrics, निजी की और वॉलेट सीक्रेट रिकवरी फ्रेज",
     "networks_title": "नेटवर्क",
     "networks_default_title": "डिफ़ॉल्ट नेटवर्क",
+    "network_delete": "अगर आप इस नेटवर्क को हटाते हैं, तो आपको इस नेटवर्क में अपने एसेट देखने के लिए इसे फिर से जोड़ना होगा",
     "networks_default_cta": "इस नेटवर्क का प्रयोग करें",
     "networks_desc": "कस्टम RPC नेटवर्क को जोड़ें और संपादित करें",
     "network_name_label": "नेटवर्क का नाम",
@@ -820,6 +827,7 @@
     "network_other_networks": "अन्य नेटवर्क",
     "network_rpc_networks": "RPC नेटवर्क",
     "network_add_network": "नेटवर्क जोड़ें",
+    "network_add_custom_network": "एक कस्टम नेटवर्क जोड़ें",
     "network_add": "जोड़ें",
     "network_save": "सहेजें",
     "remove_network_title": "क्या आप इस नेटवर्क को हटाना चाहते हैं?",
@@ -994,6 +1002,7 @@
     "token_nft_ens_subheading": "टोकन, NFT और ENS ऑटो-डिटेक्शन",
     "security_check_subheading": "सुरक्षा जाँचें",
     "symbol_required": "सिंबल की ज़रूरत है।",
+    "blockaid_desc": "यह फीचर सक्रिय रूप से ट्रांसेक्शन और सिग्नेचर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है।",
     "security_alerts": "सुरक्षा एलर्ट",
     "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।",
     "smart_transactions_opt_in_heading": "स्मार्ट ट्रांसेक्शन",
@@ -1030,6 +1039,7 @@
     "cancel": "रद्द करें",
     "loading": "MetaMask से कनेक्ट हो रहा है...",
     "unkown_dapp": "DAPP नाम उपलब्ध नहीं है",
+    "unknown": "अज्ञात",
     "no_connections": "कोई कनेक्शन नहीं",
     "no_connections_desc": "यदि आप किसी अकाउंट को किसी साइट या ऐप से कनेक्ट करते हैं, तो वह आपको यहां दिखेगा।"
   },
@@ -1653,6 +1663,7 @@
     "network_currency_symbol": "मुद्रा चिन्ह",
     "network_block_explorer_url": "एक्सप्लोरर URL को ब्लॉक करें",
     "search": "पहले जोड़े गए नेटवर्क की खोज करें",
+    "search-short": "ढूंढें",
     "add": "जोड़ें",
     "cancel": "रद्द करें",
     "approve": "स्वीकृति दें",
@@ -1660,7 +1671,9 @@
     "malicious_network_warning": "एक दुर्भावनापूर्ण नेटवर्क प्रदाता ब्लॉकचेन की स्थिति के बारे में झूठ बोल सकता है और आपकी नेटवर्क गतिविधि को रिकॉर्ड कर सकता है। केवल ऐसे कस्टम नेटवर्क जोड़ें जिन पर आपको भरोसा हो।",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "नेटवर्क संबंधी सूचना",
+    "additional_network_information_title": "अतिरिक्त नेटवर्क सूचना",
     "network_warning_desc": "यह नेटवर्क कनेक्शन थर्ड पार्टी पर निर्भर करता है। यह कनेक्शन कम विश्वसनीय हो सकता है या गतिविधि को ट्रैक करने के लिए तृतीय-पक्ष को सक्षम कर सकता है।",
+    "additonial_network_information_desc": "इनमें से कुछ नेटवर्क थर्ड पार्टीज़ पर निर्भर हैं। कनेक्शन कम विश्वसनीय हो सकते हैं या गतिविधि को ट्रैक करने के लिए थर्ड पार्टीज़ को चालू कर सकते हैं।",
     "learn_more": "अधिक जानें",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "नेटवर्क पर स्विच करें",
@@ -1949,7 +1962,7 @@
     "received": "प्राप्त किया गया",
     "unstaked": "अनस्टेक किया गया",
     "to": "प्रति",
-    "rate": "दर (शुल्क शामिल है)",
+    "rate": "Rate (fees included)",
     "unstaking_requested": "अनस्टेकिंग का अनुरोध किया गया",
     "stake_completed": "स्टेक पूरा हुआ",
     "withdrawal_completed": "विदड्रॉवल पूरा हुआ",
@@ -1959,6 +1972,49 @@
     "swap_completed": "{{from}} को {{to}} के लिए स्वैप किया गया",
     "swap": "स्वैप किया गया",
     "sent": "{{address}} पर भेजा गया",
+    "menu_item_title": {
+      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
+      "erc20_sent": "Sent to {{address}}",
+      "erc20_received": "Received from {{address}}",
+      "eth_sent": "Sent to {{address}}",
+      "eth_received": "Received from {{address}}",
+      "erc721_sent": "Sent NFT to {{address}}",
+      "erc1155_sent": "Sent NFT to {{address}}",
+      "erc721_received": "Received NFT from {{address}}",
+      "erc1155_received": "Received NFT from {{address}}",
+      "rocketpool_stake_completed": "Staked",
+      "rocketpool_unstake_completed": "Unstaking complete",
+      "lido_stake_completed": "Staked",
+      "lido_withdrawal_requested": "Unstaking requested",
+      "lido_withdrawal_completed": "Unstaking complete",
+      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+    },
+    "menu_item_description": {
+      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
+      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+    },
+    "modal": {
+      "title_sent": "Sent {{symbol}}",
+      "title_received": "Received {{symbol}}",
+      "title_unstake_requested": "Unstaking requested",
+      "title_untake_ready": "Withdrawl ready",
+      "title_stake": "Staked {{symbol}}",
+      "title_unstake_completed": "Unstaking completed",
+      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
+      "label_address_to": "To",
+      "label_address_from": "From",
+      "label_address_to_you": "To (You)",
+      "label_address_from_you": "From (You)",
+      "label_asset": "Asset",
+      "label_account": "Account",
+      "label_unstaking_requested": "Unstaking Requested",
+      "label_unstake_ready": "Withdrawl ready",
+      "label_staked": "Staked",
+      "label_received": "Received",
+      "label_unstaking_confirmed": "Unstaking Confirmed",
+      "label_swapped": "Swapped",
+      "label_to": "To"
+    },
     "received_from": "{{address}} से प्राप्त हुआ",
     "nft_sent": "NFT को {{address}} पर भेजा गया",
     "erc721_sent": "NFT को {{address}} पर भेजा गया",
@@ -1992,6 +2048,8 @@
     "received_message": "इस लेन-देन को देखने के लिए टैप करें",
     "received_payment_message": "आपने {{amount}} DAI प्राप्त किया",
     "prompt_title": "पुश नोटिफिकेशन को सक्षम करें",
+    "notifications_enabled_error_title": "Something went wrong",
+    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
     "prompt_desc": "नोटिफिकेशन को सक्षम करें जिससे MetaMask आपको बता सके कि आपने कब ETH प्राप्त किया है या आपके लेन-देन की पुष्टि कब हुई है।",
     "prompt_ok": "हां",
     "prompt_cancel": "नहीं, धन्यवाद",
@@ -2016,6 +2074,7 @@
       "1": "वॉलेट",
       "2": "घोषणाएं"
     },
+    "copied_to_clipboard": "Copied to clipboard",
     "address_copied_to_clipboard": "एड्रेस क्लिपबोर्ड पर कॉपी किया गया",
     "transaction_id_copied_to_clipboard": "ट्रांसेक्शन आईडी क्लिपबोर्ड पर कॉपी किया गया",
     "activation_card": {
@@ -2647,7 +2706,7 @@
       "header": "उन्नत ट्रांसेक्शन सुरक्षा",
       "description_1": "स्मार्ट ट्रांसेक्शन के साथ उच्च सफलता दर, फ्रंटरनिंग सुरक्षा और बेहतर दृश्यता अनलॉक करें।",
       "description_2": "केवल Ethereum पर उपलब्ध है। सेटिंग्स में किसी भी समय चालू करें या बंद करें।",
-      "secondary_button": "सेटिंग्स में मैनेज करें",
+      "no_thanks": "No thanks",
       "primary_button": "चालू करें",
       "learn_more": "अधिक जानें।",
       "benefit_1_1": "99.5% सफलता",
@@ -2845,6 +2904,15 @@
   "remember_me": {
     "enable_remember_me": "रिमेंबर मी चालू करें",
     "enable_remember_me_description": "जब रिमेंबर मी चालू रहेगा, आपका फोन एक्सेस करने वाला कोई भी व्यक्ति आपके MetaMask अकाउंट को एक्सेस कर सकता है।"
+  },
+  "profile_sync": {
+    "title": "Profile Sync",
+    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
+    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
+    "enable_description2": " to learn more.",
+    "enable_privacy_link": "Learn how we protect your privacy",
+    "bottomSheetTurnOn": "Turning on Profile Sync",
+    "bottomSheetTurnOff": "Turning off Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "रिमेंबर मी को बंद करने के लिए अपना पासवर्ड दर्ज करें",
@@ -3068,7 +3136,7 @@
   },
   "install_snap": {
     "title": "कनेक्शन के लिए अनुरोध",
-    "description": "{{origin}} {{snap}} को डाउनलोड करना चाहता है और उससे कनेक्ट करना चाहता है। आगे बढ़ने से पहले पक्का कर लें कि आप ऑथर्स पर भरोसा करते हैं।",
+    "description": "{{origin}} {{snap}} का उपयोग करना चाहता है।",
     "permissions_request_title": "अनुमति के लिए अनुरोध",
     "permissions_request_description": "{{origin}} {{snap}} को इंस्टॉल करना चाहता है, जो नीचे बताई अनुमतियों के लिए अनुरोध कर रहा है।",
     "approve_permissions": "एप्रूव करें",
@@ -3117,5 +3185,8 @@
     "title": "अनुमानित बदलाव",
     "tooltip_description": "अगर आप यह ट्रांसेक्शन करते हैं तो अनुमानित परिवर्तन हो सकते हैं। यह सिर्फ एक प्रेडिक्शन है, कोई गारंटी नहीं।",
     "total_fiat": "कुल = {{currency}}"
+  },
+  "common": {
+    "please_wait": "Please wait"
   }
 }

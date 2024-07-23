@@ -60,6 +60,7 @@ exports[`BadgeWrapper should render BadgeWrapper correctly 1`] = `
           },
         }
       }
+      isScaled={true}
       name="Ethereum"
       variant="network"
     />

@@ -6,15 +6,31 @@ import {
   createStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
-import { render, renderHook } from '@testing-library/react-native';
+import {
+  render,
+  renderHook,
+  RenderHookOptions,
+} from '@testing-library/react-native';
 
 import { mockTheme, ThemeContext } from '../theme';
 import { Theme } from '../theme/models';
 import configureStore from './configureStore';
 import { RootState } from '../../reducers';
 
+// DeepPartial is a generic type that recursively makes all properties of a given type T optional
+export type DeepPartial<T> = T extends (...args: unknown[]) => unknown
+  ? // If T is a function, return T as is.
+    T
+  : T extends (infer U)[]
+  ? // If T is an array, apply DeepPartial to its elements.
+    DeepPartial<U>[]
+  : T extends object
+  ? // If T is an object, apply DeepPartial to each property of T.
+    { [K in keyof T]?: DeepPartial<T[K]> }
+  : // Otherwise, return T or undefined.
+    T | undefined;
 interface ProviderValues {
-  state?: RootState;
+  state?: DeepPartial<RootState>;
   theme?: Theme;
 }
 
@@ -71,8 +87,8 @@ export function renderScreen(
   );
 }
 
-export function renderHookWithProvider(
-  hook: () => void,
+export function renderHookWithProvider<Result, Props>(
+  hook: (props: Props) => Result,
   providerValues?: ProviderValues,
 ) {
   const { state = {} } = providerValues ?? {};
@@ -82,5 +98,5 @@ export function renderHookWithProvider(
     <Provider store={store}>{children}</Provider>
   );
 
-  return renderHook(hook, { wrapper: Providers });
+  return renderHook(hook, { wrapper: Providers } as RenderHookOptions<Props>);
 }

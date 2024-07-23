@@ -28,7 +28,6 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
@@ -162,10 +161,7 @@ const TransactionsView = ({
   }, [filterTransactions]);
 
   return (
-    <View
-      style={styles.wrapper}
-      testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-    >
+    <View style={styles.wrapper}>
       <Transactions
         navigation={navigation}
         transactions={allTransactions}
