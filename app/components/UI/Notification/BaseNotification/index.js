@@ -9,7 +9,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
-import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
+import { ToastSelectorsIDs } from '../../../../../e2e/selectors/Modals/ToastModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -185,7 +185,7 @@ const BaseNotification = ({
           <View style={styles.flashLabel}>
             <Text
               style={styles.flashTitle}
-              testID={CommonSelectorsIDs.TOAST_NOTIFICATION_TITLE}
+              testID={ToastSelectorsIDs.NOTIFICATION_TITLE}
             >
               {!title ? getTitle(status, data) : title}
             </Text>

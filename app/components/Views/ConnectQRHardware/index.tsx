@@ -29,10 +29,15 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
 interface IConnectQRHardwareProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 }
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
@@ -131,6 +136,8 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const styles = createStyles(colors);
 
   const KeyringController = useMemo(() => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController: keyring } = Engine.context as any;
     return keyring;
   }, []);
@@ -166,6 +173,8 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     });
   }, [KeyringController]);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const subscribeKeyringState = useCallback((storeValue: any) => {
     setQRState(storeValue);
   }, []);
@@ -206,7 +215,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
   const onConnectHardware = useCallback(async () => {
     trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
-      device_type: 'QR Hardware',
+      device_type: HardwareDeviceTypes.QR,
     });
     resetError();
     const [qrInteractions, connectQRHardwarePromise] =
@@ -223,7 +232,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     (ur: UR) => {
       hideScanner();
       trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS, {
-        device_type: 'QR Hardware',
+        device_type: HardwareDeviceTypes.QR,
       });
       if (!qrInteractionsRef.current) {
         const errorMessage = 'Missing QR keyring interactions';
@@ -266,7 +275,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const prevPage = useCallback(async () => {
     resetError();
     const [qrInteractions, connectQRHardwarePromise] =
-      await initiateQRHardwareConnection(1);
+      await initiateQRHardwareConnection(-1);
 
     qrInteractionsRef.current = qrInteractions;
     const previousPageAccounts = await connectQRHardwarePromise;
@@ -275,7 +284,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     setAccounts(previousPageAccounts);
   }, [resetError]);
 
-  const onToggle = useCallback(() => {
+  const onCheck = useCallback(() => {
     resetError();
   }, [resetError]);
 
@@ -345,7 +354,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
             selectedAccounts={existingAccounts}
             nextPage={nextPage}
             prevPage={prevPage}
-            toggleAccount={onToggle}
+            onCheck={onCheck}
             onUnlock={onUnlock}
             onForget={onForget}
             title={strings('connect_qr_hardware.select_accounts')}
@@ -360,9 +369,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
         hideModal={hideScanner}
       />
       <BlockingActionModal modalVisible={blockingModalVisible} isLoadingAction>
-        <Text style={styles.text}>
-          {strings('connect_qr_hardware.please_wait')}
-        </Text>
+        <Text style={styles.text}>{strings('common.please_wait')}</Text>
       </BlockingActionModal>
     </Fragment>
   );

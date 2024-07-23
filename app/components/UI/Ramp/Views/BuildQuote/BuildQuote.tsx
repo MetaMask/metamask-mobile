@@ -71,9 +71,14 @@ import {
   fromTokenMinimalUnitString,
 } from '../../../../../util/number';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
+import useIntentAmount from '../../hooks/useIntentAmount';
 
 // TODO: Convert into typescript and correctly type
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = BaseListItem as any;
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
 
 const TRANSFER_GAS_LIMIT = 21000;
@@ -179,6 +184,13 @@ const BuildQuote = () => {
 
   const { limits, isAmountBelowMinimum, isAmountAboveMaximum, isAmountValid } =
     useLimits();
+
+  useIntentAmount(
+    setAmount,
+    setAmountNumber,
+    setAmountBNMinimalUnit,
+    currentFiatCurrency,
+  );
 
   const gasPriceEstimation = useGasPriceEstimation({
     // 0 is set when buying since there's no transaction involved

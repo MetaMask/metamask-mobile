@@ -3,6 +3,8 @@ import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
 import Device from '../../../../util/device';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createStyle = (colors: any) =>
   StyleSheet.create({
     container: {
@@ -48,7 +50,7 @@ export const createStyle = (colors: any) =>
     bottom: {
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingTop: 70,
+      paddingTop: 30,
       paddingBottom: Device.isIphoneX() ? 20 : 10,
     },
     button: {

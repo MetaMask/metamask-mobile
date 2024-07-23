@@ -4,6 +4,8 @@ import Device from '../../../util/device';
 
 import { MEDIA_WIDTH_MARGIN } from './Collectible.constants';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container(backgroundColor: string) {

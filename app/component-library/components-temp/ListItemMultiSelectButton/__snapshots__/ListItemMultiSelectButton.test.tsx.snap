@@ -1,0 +1,79 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ListItemMultiSelectButton should render correctly with default props 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "flexDirection": "row",
+      "paddingRight": 20,
+    }
+  }
+>
+  <TouchableOpacity
+    disabled={false}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "opacity": 1,
+        "padding": 16,
+        "position": "relative",
+        "width": "95%",
+      }
+    }
+  >
+    <View
+      accessibilityRole="none"
+      accessible={true}
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "padding": 16,
+          "paddingBottom": 0,
+          "paddingLeft": 0,
+          "paddingRight": 0,
+          "paddingTop": 0,
+        }
+      }
+    >
+      <View />
+    </View>
+  </TouchableOpacity>
+  <View>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "borderRadius": 8,
+          "height": 24,
+          "justifyContent": "center",
+          "opacity": 1,
+          "width": 24,
+        }
+      }
+      testID="button-menu-select-test-id"
+    >
+      <SvgMock
+        color="#141618"
+        height={16}
+        name="MoreVertical"
+        style={
+          {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        width={16}
+      />
+    </TouchableOpacity>
+  </View>
+</View>
+`;

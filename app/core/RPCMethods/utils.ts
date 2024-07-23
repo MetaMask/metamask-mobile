@@ -117,6 +117,8 @@ export function makeMethodMiddlewareMaker<U>(
   return makeMethodMiddleware;
 }
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const polyfillGasPrice = async (method: string, params: any[] = []) => {
   const ethQuery = Engine.controllerMessenger.call(
     'NetworkController:getEthQuery',

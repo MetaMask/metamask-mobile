@@ -3,9 +3,6 @@ const { TRANSACTION, SIMPLE } = NotificationTypes;
 
 export const initialState = {
   notifications: [],
-  notification: {
-    notificationsSettings: {},
-  },
 };
 
 export const ACTIONS = {
@@ -191,12 +188,6 @@ const notificationReducer = (state = initialState, action) => {
       return {
         ...state,
         notifications: visibleNotifications,
-      };
-    }
-    case ACTIONS.UPDATE_NOTIFICATION_STATUS: {
-      return {
-        ...state,
-        notificationsSettings: action.notificationsSettings,
       };
     }
     default:
