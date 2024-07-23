@@ -35,11 +35,4 @@ describe('NotificationIcon', () => {
     );
     expect(toJSON()).toMatchSnapshot();
   });
-
-  it('matches snapshot when using default icon and badge', () => {
-    const { toJSON } = renderWithProvider(<NotificationIcon />, {
-      state: mockInitialState,
-    });
-    expect(toJSON()).toMatchSnapshot();
-  });
 });

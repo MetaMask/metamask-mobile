@@ -6,7 +6,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { NotificationMenuItem } from '../../../../util/notifications/notification-states/types/NotificationMenuItem';
 import useStyles from '../List/useStyles';
-import { formatMenuItemDate } from '../../../../util/notifications/notification.util';
+import { formatMenuItemDate } from '../../../../util/notifications/methods';
 
 type NotificationContentProps = Pick<
   NotificationMenuItem,
