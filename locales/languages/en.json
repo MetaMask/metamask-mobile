@@ -2144,6 +2144,7 @@
     "coming_soon": "Coming soon...",
     "request_payment": "Request Payment",
     "copy": "Copy",
+    "scan_address": "Scan address to receive payment",
     "copy_address": "Copy address"
   },
   "experimental_settings": {
