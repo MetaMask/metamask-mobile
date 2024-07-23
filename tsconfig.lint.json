@@ -6,7 +6,7 @@
     // "app/**/*",
     "app/__mocks__/**/*",
     "app/actions/**/*",
-    "app/component-library/**/*",
+    // "app/component-library/**/*",
     "app/component-library/constants/**/*",
     "app/component-library/hooks/**/*",
     // "app/components/**/*",
