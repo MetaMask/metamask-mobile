@@ -1140,7 +1140,7 @@ export function getNftDetailsNavbarOptions(
         {...generateTestId(Platform, ASSET_BACK_BUTTON)}
       >
         <Icon
-          name={IconName.Back}
+          name={IconName.ArrowLeft}
           size={IconSize.Lg}
           style={innerStyles.headerBackIcon}
         />
@@ -1149,9 +1149,9 @@ export function getNftDetailsNavbarOptions(
     headerRight: onRightPress
       ? () => (
           <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
-            <MaterialCommunityIcon
-              name={'dots-vertical'}
-              size={28}
+            <Icon
+              name={IconName.MoreVertical}
+              size={IconSize.Lg}
               style={innerStyles.headerBackIcon}
             />
           </TouchableOpacity>
@@ -1196,7 +1196,7 @@ export function getNftFullImageNavbarOptions(
         onPress={() => navigation.pop()}
       >
         <Icon
-          name={IconName.Close2}
+          name={IconName.Close}
           size={IconSize.Lg}
           style={innerStyles.headerBackIcon}
         />

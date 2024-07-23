@@ -18,7 +18,6 @@ import ArrowDown from './assets/arrow-down.svg';
 import ArrowLeft from './assets/arrow-left.svg';
 import ArrowRight from './assets/arrow-right.svg';
 import ArrowUp from './assets/arrow-up.svg';
-import Back from './assets/back.svg';
 import Ban from './assets/ban.svg';
 import BankToken from './assets/bank-token.svg';
 import Bank from './assets/bank.svg';
@@ -40,7 +39,6 @@ import CheckCircleOff from './assets/check-circle-off.svg';
 import Check from './assets/check.svg';
 import CircleX from './assets/circle-x.svg';
 import Clock from './assets/clock.svg';
-import Close2 from './assets/close-2.svg';
 import Close from './assets/close.svg';
 import CodeCircle from './assets/code-circle.svg';
 import Coin from './assets/coin.svg';
@@ -164,7 +162,6 @@ import UserRemove from './assets/user-remove.svg';
 import UserSearch from './assets/user-search.svg';
 import UserTick from './assets/user-tick.svg';
 import User from './assets/user.svg';
-import VerticalDots from './assets/vertical-dots.svg';
 import WalletCard from './assets/wallet-card.svg';
 import WalletMoney from './assets/wallet-money.svg';
 import Wallet from './assets/wallet.svg';
@@ -189,7 +186,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.ArrowLeft]: ArrowLeft,
   [IconName.ArrowRight]: ArrowRight,
   [IconName.ArrowUp]: ArrowUp,
-  [IconName.Back]: Back,
   [IconName.Ban]: Ban,
   [IconName.BankToken]: BankToken,
   [IconName.Bank]: Bank,
@@ -211,7 +207,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Check]: Check,
   [IconName.CircleX]: CircleX,
   [IconName.Clock]: Clock,
-  [IconName.Close2]: Close2,
   [IconName.Close]: Close,
   [IconName.CodeCircle]: CodeCircle,
   [IconName.Coin]: Coin,
@@ -335,7 +330,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.UserSearch]: UserSearch,
   [IconName.UserTick]: UserTick,
   [IconName.User]: User,
-  [IconName.VerticalDots]: VerticalDots,
   [IconName.WalletCard]: WalletCard,
   [IconName.WalletMoney]: WalletMoney,
   [IconName.Wallet]: Wallet,
