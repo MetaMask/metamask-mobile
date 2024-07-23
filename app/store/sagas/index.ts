@@ -28,15 +28,9 @@ if (typeof global.XMLHttpRequest === 'undefined') {
 const originalSend = XMLHttpRequest.prototype.send;
 const originalOpen = XMLHttpRequest.prototype.open;
 
-interface GenericObject {
-  [key: string]: unknown;
-}
-
-type DataArray<T extends GenericObject> = T[];
-
 interface FeatureFlagResponse {
   status: string;
-  data: DataArray<GenericObject>;
+  data: [];
   message?: string;
 }
 
