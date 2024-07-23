@@ -1260,7 +1260,8 @@
     "unrecognized_address_qr_code_title": "Unrecognized QR Code",
     "unrecognized_address_qr_code_desc": "Sorry, this QR code is not associated with an account address or a contract address.",
     "url_redirection_alert_title": "You are about to visit  an external link",
-    "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust."
+    "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.",
+    "label": "Scan a QR code"
   },
   "action_view": {
     "cancel": "Cancel",
@@ -2143,7 +2144,7 @@
     "coming_soon": "Coming soon...",
     "request_payment": "Request Payment",
     "copy": "Copy",
-    "scan_address": "Scan address to receive payment"
+    "copy_address": "Copy address"
   },
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnect Sessions",
