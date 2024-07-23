@@ -29,7 +29,6 @@ const Routes = {
     SELECT_DEVICE: 'SelectHardwareWallet',
     CONNECT_QR_DEVICE: 'ConnectQRHardwareFlow',
     CONNECT_LEDGER: 'ConnectLedgerFlow',
-    LEDGER_ACCOUNT: 'LedgerAccountInfo',
     LEDGER_CONNECT: 'LedgerConnect',
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',

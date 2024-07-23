@@ -1,6 +1,7 @@
 import { normalizeTransactionParams } from '@metamask/transaction-controller';
 import * as SignatureRequestActions from '../../actions/signatureRequest'; // eslint-disable-line import/no-namespace
 import * as TransactionActions from '../../actions/transaction'; // eslint-disable-line import/no-namespace
+import * as NetworkControllerSelectors from '../../selectors/networkController'; // eslint-disable-line import/no-namespace
 import Engine from '../../core/Engine';
 import PPOMUtil from './ppom-util';
 import {
@@ -31,6 +32,19 @@ jest.mock('../../core/Engine', () => ({
     NetworkController: {
       state: {
         providerConfig: { chainId: CHAIN_ID_MOCK },
+      },
+    },
+    AccountsController: {
+      state: {
+        internalAccounts: { accounts: [] },
+      },
+      listAccounts: jest.fn().mockReturnValue([]),
+    },
+  },
+  backgroundState: {
+    NetworkController: {
+      providerConfig: {
+        chainId: 0x1,
       },
     },
   },
@@ -110,13 +124,36 @@ describe('PPOM Utils', () => {
       expect(spyTransactionAction).toBeCalledTimes(0);
     });
 
+    it('should not validate if request is send to users own account ', async () => {
+      const spyTransactionAction = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      MockEngine.context.AccountsController.listAccounts = jest
+        .fn()
+        .mockReturnValue([
+          {
+            address: '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb',
+          },
+        ]);
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        0,
+      );
+      expect(spyTransactionAction).toHaveBeenCalledTimes(0);
+      MockEngine.context.AccountsController.listAccounts = jest
+        .fn()
+        .mockReturnValue([]);
+    });
+
     it('should not validate user if on a non supporting blockaid network', async () => {
       const spyTransactionAction = jest.spyOn(
         TransactionActions,
         'setTransactionSecurityAlertResponse',
       );
-      MockEngine.context.NetworkController.state.providerConfig.chainId =
-        '0xfa';
+      jest
+        .spyOn(NetworkControllerSelectors, 'selectChainId')
+        .mockReturnValue('0xfa');
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
       expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
       expect(spyTransactionAction).toBeCalledTimes(0);

@@ -89,8 +89,7 @@ function render(Component: React.ComponentType, chainId?: string) {
                   chainId: '0x89',
                   nickname: 'Polygon Mainnet',
                   rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
-                  rpcUrl:
-                    'https://polygon-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+                  rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345',
                   ticker: 'MATIC',
                 },
               },
@@ -369,6 +368,9 @@ describe('NetworkSwitcher View', () => {
       [
         [
           "GetStarted",
+          {
+            "chainId": undefined,
+          },
         ],
       ]
     `);
