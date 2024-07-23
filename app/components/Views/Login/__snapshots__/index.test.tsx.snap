@@ -1,32 +1,406 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Login should render correctly 1`] = `
-<ContextProvider
-  value={
+<RNCSafeAreaView
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "backgroundColor": "#FFF",
+      "flex": 1,
     }
   }
 >
-  <Component />
-</ContextProvider>
+  <RCTScrollView
+    collapsable={false}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    style={
+      {
+        "flex": 1,
+        "paddingHorizontal": 24,
+      }
+    }
+  >
+    <View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+          }
+        }
+      >
+        <Image
+          source={
+            {
+              "default": {
+                "uri": "MockImage",
+              },
+            }
+          }
+          style={
+            {
+              "height": 50,
+              "marginTop": 24,
+              "width": 50,
+            }
+          }
+        />
+        <Text
+          style={
+            {
+              "color": "#333",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 24,
+              "fontWeight": "600",
+              "lineHeight": 34,
+            }
+          }
+        >
+          An error occurred
+        </Text>
+        <Text
+          style={
+            {
+              "color": undefined,
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "lineHeight": 20,
+              "marginTop": 8,
+              "textAlign": "center",
+            }
+          }
+        >
+          Your information can't be shown. Don’t worry, your wallet and funds are safe.
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": undefined,
+            "borderRadius": 8,
+            "marginTop": 24,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#333",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "lineHeight": 20,
+              "padding": 8,
+            }
+          }
+        >
+          View: Login
+TypeError: Cannot read properties of undefined (reading 'default')
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+          }
+        }
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "borderColor": undefined,
+              "borderRadius": 50,
+              "borderWidth": 1,
+              "marginTop": 24,
+              "padding": 12,
+              "paddingHorizontal": 34,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": undefined,
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontWeight": "400",
+                "textAlign": "center",
+              }
+            }
+          >
+            <Text
+              allowFontScaling={false}
+              style={
+                [
+                  {
+                    "color": undefined,
+                    "fontSize": 15,
+                  },
+                  undefined,
+                  {
+                    "fontFamily": "FontAwesome",
+                    "fontStyle": "normal",
+                    "fontWeight": "normal",
+                  },
+                  {},
+                ]
+              }
+            >
+              
+            </Text>
+              
+            Try again
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "marginTop": 24,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#333",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "lineHeight": 20,
+            }
+          }
+        >
+          <Text>
+            Please report this issue so we can fix it:
+          </Text>
+        </Text>
+        <View
+          style={
+            {
+              "marginBottom": 24,
+              "marginTop": 16,
+              "paddingLeft": 14,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#333",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 20,
+              }
+            }
+          >
+            <Text
+              allowFontScaling={false}
+              style={
+                [
+                  {
+                    "color": undefined,
+                    "fontSize": 20,
+                  },
+                  undefined,
+                  {
+                    "fontFamily": "FontAwesome",
+                    "fontStyle": "normal",
+                    "fontWeight": "normal",
+                  },
+                  {},
+                ]
+              }
+            >
+              
+            </Text>
+              
+            Take a screenshot of this screen.
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "marginTop": 14,
+                },
+                {
+                  "color": "#333",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 20,
+                },
+              ]
+            }
+          >
+            <Text
+              allowFontScaling={false}
+              style={
+                [
+                  {
+                    "color": undefined,
+                    "fontSize": 14,
+                  },
+                  undefined,
+                  {
+                    "fontFamily": "FontAwesome",
+                    "fontStyle": "normal",
+                    "fontWeight": "normal",
+                  },
+                  {},
+                ]
+              }
+            >
+              
+            </Text>
+              
+            <Text
+              onPress={[Function]}
+              style={
+                {
+                  "color": undefined,
+                }
+              }
+            >
+              Copy
+            </Text>
+             
+            the error message to clipboard.
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "marginTop": 14,
+                },
+                {
+                  "color": "#333",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 20,
+                },
+              ]
+            }
+          >
+            <Text
+              allowFontScaling={false}
+              style={
+                [
+                  {
+                    "color": undefined,
+                    "fontSize": 14,
+                  },
+                  undefined,
+                  {
+                    "fontFamily": "FontAwesome",
+                    "fontStyle": "normal",
+                    "fontWeight": "normal",
+                  },
+                  {},
+                ]
+              }
+            >
+              
+            </Text>
+              
+            Submit a ticket
+             
+            <Text
+              onPress={[Function]}
+              style={
+                {
+                  "color": undefined,
+                }
+              }
+            >
+              here.
+            </Text>
+             
+            Please include the error message and the screenshot.
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "marginTop": 14,
+                },
+                {
+                  "color": "#333",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 20,
+                },
+              ]
+            }
+          >
+            <Text
+              allowFontScaling={false}
+              style={
+                [
+                  {
+                    "color": undefined,
+                    "fontSize": 14,
+                  },
+                  undefined,
+                  {
+                    "fontFamily": "FontAwesome",
+                    "fontStyle": "normal",
+                    "fontWeight": "normal",
+                  },
+                  {},
+                ]
+              }
+            >
+              
+            </Text>
+              
+            Send us a bug report
+             
+            <Text
+              onPress={[Function]}
+              style={
+                {
+                  "color": undefined,
+                }
+              }
+            >
+              here.
+            </Text>
+             
+            Please include details about what happened.
+          </Text>
+        </View>
+        <Text
+          style={
+            {
+              "color": "#333",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "lineHeight": 20,
+            }
+          }
+        >
+          If this error persists,
+           
+          <Text
+            onPress={[Function]}
+            style={
+              {
+                "color": undefined,
+              }
+            }
+          >
+            save your Secret Recovery Phrase
+          </Text>
+           
+          & re-install the app. Note: you can NOT restore your wallet without your Secret Recovery Phrase.
+        </Text>
+      </View>
+    </View>
+  </RCTScrollView>
+</RNCSafeAreaView>
 `;
