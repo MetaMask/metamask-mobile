@@ -1,6 +1,6 @@
 diff --git a/node_modules/@metamask/approval-controller/dist/.patch.txt b/node_modules/@metamask/approval-controller/dist/.patch.txt
 new file mode 100644
-index 0000000..550de56
+index 0000000..a846e43
 --- /dev/null
 +++ b/node_modules/@metamask/approval-controller/dist/.patch.txt
 @@ -0,0 +1,7 @@
