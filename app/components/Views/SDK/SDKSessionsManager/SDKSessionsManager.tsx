@@ -26,6 +26,8 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SDKSessionItem from './SDKSessionItem';
 
 interface SDKSessionsManagerProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: StackNavigationProp<any>;
 }
 

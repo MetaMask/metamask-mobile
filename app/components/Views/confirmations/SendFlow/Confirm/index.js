@@ -118,16 +118,15 @@ import {
   selectCurrentTransactionMetadata,
 } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
-import {
-  isTransactionSimulationsFeatureEnabled,
-  updateTransaction,
-} from '../../../../../util/transaction-controller';
+import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
+import { updateTransaction } from '../../../../../util/transaction-controller';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/TransactionConfirmView.selectors.js';
 import { selectTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
 import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
+import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -263,6 +262,10 @@ class Confirm extends PureComponent {
      * Object containing the transaction simulation data
      */
     transactionSimulationData: PropTypes.object,
+    /**
+     * Indicates whether the transaction simulations feature is enabled
+     */
+    useTransactionSimulations: PropTypes.bool,
   };
 
   state = {
@@ -472,7 +475,9 @@ class Confirm extends PureComponent {
         id,
         jsonrpc: '2.0',
         method: 'eth_sendTransaction',
-        origin: TransactionTypes.MM,
+        origin: isPaymentRequest
+          ? AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+          : TransactionTypes.MM,
         params: [
           {
             from,
@@ -671,7 +676,9 @@ class Confirm extends PureComponent {
         decimals,
       );
       transactionValue = `${transferValue} ${symbol}`;
-      const exchangeRate = contractExchangeRates[address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[address]?.price
+        : undefined;
       transactionValueFiat =
         balanceToFiat(
           transferValue,
@@ -970,6 +977,8 @@ class Confirm extends PureComponent {
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
+      resetTransaction();
+      navigation?.dangerouslyGetParent()?.pop();
     }
     this.setState({ transactionConfirmed: false });
   };
@@ -1095,7 +1104,7 @@ class Confirm extends PureComponent {
   buyEth = () => {
     const { navigation } = this.props;
     try {
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1242,6 +1251,7 @@ class Confirm extends PureComponent {
       shouldUseSmartTransaction,
       transactionSimulationData,
       transactionState,
+      useTransactionSimulations,
     } = this.props;
     const { nonce } = this.props.transaction;
     const {
@@ -1339,7 +1349,7 @@ class Confirm extends PureComponent {
               </View>
             </View>
           )}
-          {isTransactionSimulationsFeatureEnabled() && transactionState?.id && (
+          {useTransactionSimulations && transactionState?.id && (
             <View style={styles.simulationWrapper}>
               <SimulationDetails
                 enableMetrics
@@ -1489,6 +1499,7 @@ const mapStateToProps = (state) => ({
   transactionMetricsById: selectTransactionMetrics(state),
   transactionSimulationData:
     selectCurrentTransactionMetadata(state)?.simulationData,
+  useTransactionSimulations: selectUseTransactionSimulations(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

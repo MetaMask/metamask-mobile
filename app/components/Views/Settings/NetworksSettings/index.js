@@ -4,12 +4,10 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
-import Icon from 'react-native-vector-icons/Ionicons';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { fontStyles } from '../../../../styles/common';
 import CustomText from '../../../../components/Base/Text';
@@ -42,6 +40,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { updateIncomingTransactions } from '../../../../util/transaction-controller';
 import { NetworksTicker } from '@metamask/controller-utils';
+import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -462,26 +461,17 @@ class NetworksSettings extends PureComponent {
         style={styles.wrapper}
         testID={NetworksViewSelectorsIDs.NETWORK_CONTAINER}
       >
-        <View style={styles.inputWrapper}>
-          <Icon name="ios-search" size={20} color={colors.icon.default} />
-          <TextInput
-            style={styles.input}
-            placeholder={strings('networks.search')}
-            placeholderTextColor={colors.text.default}
-            value={this.state.searchString}
-            onChangeText={this.handleSearchTextChange}
-            testID={NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID}
+        {
+          <NetworkSearchTextInput
+            searchString={this.state.searchString}
+            handleSearchTextChange={this.handleSearchTextChange}
+            clearSearchInput={this.clearSearchInput}
+            testIdSearchInput={
+              NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID
+            }
+            testIdCloseIcon={NetworksViewSelectorsIDs.CLOSE_ICON}
           />
-          {this.state.searchString.length > 0 && (
-            <Icon
-              name="ios-close"
-              size={20}
-              color={colors.icon.default}
-              onPress={this.clearSearchInput}
-              testID={NetworksViewSelectorsIDs.CLOSE_ICON}
-            />
-          )}
-        </View>
+        }
         <ScrollView style={styles.networksWrapper}>
           {this.state.searchString.length > 0 ? (
             this.filteredResult()
