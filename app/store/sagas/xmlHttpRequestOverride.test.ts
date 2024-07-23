@@ -69,7 +69,7 @@ describe('restoreXMLHttpRequest', () => {
   });
 
   blockedURLs.forEach((url) =>
-    it(`should not block requests with blocked URL ${url} when disabled`, (done) => {
+    it(`does not block requests to blocked URL ${url} when disabled`, (done) => {
       const logSpy = jest.spyOn(console, 'error');
       overrideXMLHttpRequest();
       restoreXMLHttpRequest();
