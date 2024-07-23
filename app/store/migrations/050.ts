@@ -1,8 +1,7 @@
 import DefaultPreference from 'react-native-default-preference';
 import { captureException } from '@sentry/react-native';
-import { MMKV } from 'react-native-mmkv';
+import StorageWrapper from '../async-storage-wrapper';
 
-const storage = new MMKV();
 /**
  * The goal of this migration is set all the data that was on DefaultPreference to MMKV
  * and clean DefaultPreference data
@@ -15,7 +14,7 @@ export default async function migrate(state: unknown) {
     for (const key of Object.keys(keyValues)) {
       try {
         if (keyValues[key] != null) {
-          storage.set(key, keyValues[key]);
+          StorageWrapper.setItem(key, keyValues[key]);
         }
         await DefaultPreference.clear(key);
       } catch (error) {
