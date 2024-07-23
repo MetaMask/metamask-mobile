@@ -5,7 +5,8 @@ import asyncInit from './asyncInit';
 
 jest.mock('@react-navigation/native');
 jest.mock('../../../store/async-storage-wrapper', () => ({
-  setItem: jest.fn().mockResolvedValue([]),
+  getItem: jest.fn().mockResolvedValue([]),
+  setItem: jest.fn(),
   clearAll: jest.fn().mockResolvedValue([]),
 }));
 jest.mock('../../AppConstants');
