@@ -23,7 +23,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/pushNotifications';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
 import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 
