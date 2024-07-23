@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { View, StyleSheet, TextStyle } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../../store/async-storage-wrapper';
 import Modal from 'react-native-modal';
 import type { Theme } from '@metamask/design-tokens';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
@@ -103,7 +103,7 @@ const OnboardingWizard = ({
    * Close onboarding wizard setting step to 0 and closing drawer
    */
   const closeOnboardingWizard = async () => {
-    await DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED);
+    await StorageWrapper.setItem(ONBOARDING_WIZARD, EXPLORED);
     dispatch(setOnboardingWizardStep(0));
     drawerRef?.current?.dismissDrawer?.();
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
