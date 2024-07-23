@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
 import SheetHeader from './SheetHeader';
@@ -11,28 +11,32 @@ import {
 
 describe('SheetHeader', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<SheetHeader title={'Title'} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<SheetHeader title={'Title'} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render back button', () => {
-    const wrapper = shallow(<SheetHeader onBack={jest.fn} title={'Title'} />);
-    const backButton = wrapper.findWhere(
-      (node) => node.prop('testID') === SHEET_HEADER_BACK_BUTTON_ID,
-    );
-    expect(backButton.exists()).toBe(true);
+  it('should render back button and respond to press', () => {
+    const onBackMock = jest.fn();
+    render(<SheetHeader onBack={onBackMock} title={'Title'} />);
+    const backButton = screen.getByTestId(SHEET_HEADER_BACK_BUTTON_ID);
+    expect(backButton).toBeTruthy();
+
+    fireEvent.press(backButton);
+    expect(onBackMock).toHaveBeenCalledTimes(1);
   });
 
-  it('should render action button', () => {
-    const wrapper = shallow(
+  it('should render action button and respond to press', () => {
+    const onPressMock = jest.fn();
+    render(
       <SheetHeader
         title={'Title'}
-        actionButtonOptions={{ label: 'Action', onPress: jest.fn }}
+        actionButtonOptions={{ label: 'Action', onPress: onPressMock }}
       />,
     );
-    const actionButton = wrapper.findWhere(
-      (node) => node.prop('testID') === SHEET_HEADER_ACTION_BUTTON_ID,
-    );
-    expect(actionButton.exists()).toBe(true);
+    const actionButton = screen.getByTestId(SHEET_HEADER_ACTION_BUTTON_ID);
+    expect(actionButton).toBeTruthy();
+
+    fireEvent.press(actionButton);
+    expect(onPressMock).toHaveBeenCalledTimes(1);
   });
 });
