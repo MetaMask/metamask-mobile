@@ -43,46 +43,6 @@ describe('QRTabSwitcher', () => {
     expect(getByText(strings('qr_tab_switcher.scanner_tab'))).toBeTruthy();
   });
 
-  //   it('switch to ReceiveRequest screen when tab is clicked', () => {
-  //     const { getByText } = render(<QRTabSwitcher />);
-  //     fireEvent.press(getByText(strings('qr_tab_switcher.receive_tab')));
-  //     expect(getByText(strings('qr_tab_switcher.receive_tab'))).toBeTruthy();
-  //   });
-
-  //   it('call goBack and onScanError with USER_CANCELLED when close icon is clicked', () => {
-  //     const navigation = { goBack: jest.fn() };
-  //     useNavigation.mockReturnValue(navigation);
-  //     const route = {
-  //       params: {
-  //         onScanError: jest.fn(),
-  //       },
-  //     };
-  //     useRoute.mockReturnValue(route);
-  //     const { getByTestId } = render(<QRTabSwitcher />);
-  //     fireEvent.press(getByTestId('close-icon'));
-  //     expect(navigation.goBack).toHaveBeenCalled();
-  //     expect(route.params.onScanError).toHaveBeenCalledWith('USER_CANCELLED');
-  //   });
-
-  //   it('handle animation correctly when switching tabs', () => {
-  //     const { getByText } = render(<QRTabSwitcher />);
-  //     fireEvent.press(getByText(strings('qr_tab_switcher.receive_tab')));
-  //     expect(getByText(strings('qr_tab_switcher.receive_tab'))).toBeTruthy();
-  //   });
-
-  //   it('call onScanSuccess when QRScanner calls it', () => {
-  //     const onScanSuccess = jest.fn();
-  //     useRoute.mockReturnValue({
-  //       params: {
-  //         onScanSuccess,
-  //         initialScreen: Screens.Scanner,
-  //       },
-  //     });
-  //     const { getByTestId } = render(<QRTabSwitcher />);
-  //     fireEvent(getByTestId('QRScanner'), 'scanSuccess', 'testData');
-  //     expect(onScanSuccess).toHaveBeenCalledWith('testData');
-  //   });
-
   it('not render tabber when disableTabber is true', () => {
     useRoute.mockReturnValue({
       params: {
