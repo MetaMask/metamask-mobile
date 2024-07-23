@@ -13,7 +13,7 @@ import { strings } from '../../../../locales/i18n';
 import styles from './ProfileSyncing.styles';
 import { ProfileSyncingComponentProps } from './ProfileSyncing.types';
 import AppConstants from '../../../core/AppConstants';
-import { selectIsProfileSyncingEnabled } from '../../../selectors/pushNotifications';
+import { selectIsProfileSyncingEnabled } from '../../../selectors/notifications';
 import { useProfileSyncing } from '../../../util/notifications/hooks/useProfileSyncing';
 
 export default function ProfileSyncingComponent({
