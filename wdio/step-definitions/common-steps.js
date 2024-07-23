@@ -14,8 +14,10 @@ import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModa
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
-import Gestures from "../helpers/Gestures";
+import Gestures from '../helpers/Gestures';
 import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
+import ExperienceEnhancerModal from '../screen-objects/Modals/ExperienceEnhancerModal';
+import TransactionProtectionModal from '../screen-objects/Modals/TransactionProtectionModal';
 
 Then(/^the Welcome screen is displayed$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
@@ -311,4 +313,58 @@ When(/^I tap on the Identicon$/, async () => {
 
 Then(/^tokens (.*) in account should be displayed$/, async (token) => {
   await CommonScreen.isTextDisplayed(token)
+});
+
+Given(/^I close all the onboarding modals$/, async () => {
+  // Handle Onboarding wizard
+  try {
+    await OnboardingWizardModal.isVisible();
+    await OnboardingWizardModal.tapNoThanksButton();
+    await OnboardingWizardModal.isNotVisible();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The onboarding modal is not visible');
+  }
+
+  try {
+    await TransactionProtectionModal.isVisible();
+    await TransactionProtectionModal.tapEnableButton();
+    await TransactionProtectionModal.isNotVisible();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The whats new modal is not visible');
+  }
+
+  // TODO: Define the correct order of onboarding modals to be displayed
+  try {
+    await WhatsNewModal.waitForDisplay();
+    await WhatsNewModal.tapCloseButton();
+    await WhatsNewModal.waitForDisappear();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The whats new modal is not visible');
+  }
+
+  try {
+    // Handle Marketing consent modal
+
+    await ExperienceEnhancerModal.waitForDisplay();
+    await ExperienceEnhancerModal.tapNoThanks();
+    await ExperienceEnhancerModal.waitForDisappear();
+  } catch {
+    console.log('The marketing consent modal is not visible');
+  }
+
+  try {
+    await CommonScreen.waitForToastToDisplay();
+    await CommonScreen.tapToastCloseButton();
+    await CommonScreen.waitForToastToDisplay();
+  } catch {
+    /* eslint-disable no-undef */
+
+    console.log('The marketing toast is not visible');
+  }
 });

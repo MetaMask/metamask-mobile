@@ -10,8 +10,7 @@ Feature: Upgrade previous app build with current release
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
-    And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
+    And I close all the onboarding modals
     And I am on the wallet view
     When I tap on the navbar network title button
     And the Network List Modal is Displayed
@@ -38,5 +37,5 @@ Feature: Upgrade previous app build with current release
     And removed test app
 
     Examples:
-      | Network              | TOKEN      |
-      | Sepolia Test Network | SepoliaETH |
+      | Network | TOKEN      |
+      | Sepolia | SepoliaETH |
