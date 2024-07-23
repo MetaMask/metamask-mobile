@@ -32,6 +32,8 @@ const LoginOptionsSwitch = ({
   const { colors } = theme;
   const styles = createStyles(colors);
   const allowLoginWithRememberMe = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.security.allowLoginWithRememberMe,
   );
   const [rememberMeEnabled, setRememberMeEnabled] = useState<boolean>(false);

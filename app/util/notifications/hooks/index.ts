@@ -8,10 +8,11 @@ import Routes from '../../../constants/navigation/Routes';
 import { setupAndroidChannel } from '../setupAndroidChannels';
 import { SimpleNotification } from '../types';
 import Device from '../../../util/device';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 const useNotificationHandler = (
   bootstrapAndroidInitialNotification: () => Promise<void>,
-  navigation: any,
+  navigation: NavigationProp<ParamListBase>,
 ) => {
   const performActionBasedOnOpenedNotificationType = useCallback(
     async (notification: SimpleNotification) => {

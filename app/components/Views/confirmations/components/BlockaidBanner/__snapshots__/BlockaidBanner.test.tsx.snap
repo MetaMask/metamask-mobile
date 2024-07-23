@@ -467,12 +467,23 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
 </View>
 `;
 
-exports[`BlockaidBanner should render loader if reason is requestInProgress 1`] = `null`;
+exports[`BlockaidBanner should render loader if reason is requestInProgress 1`] = `
+<ActivityIndicator
+  color="#bf5208"
+  size="small"
+  style={
+    {
+      "alignItems": "center",
+      "marginBottom": 10,
+      "marginTop": 10,
+    }
+  }
+/>
+`;
 
 exports[`BlockaidBanner should render normal banner alert if resultType is failed 1`] = `
 <View
   collapsable={false}
-  forwardedRef={[Function]}
   style={
     {
       "marginBottom": 20,

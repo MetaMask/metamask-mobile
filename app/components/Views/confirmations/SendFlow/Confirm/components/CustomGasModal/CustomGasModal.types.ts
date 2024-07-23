@@ -3,12 +3,16 @@ export interface CustomGasModalProps {
   onChange: (gas: string) => void;
   onCancel: () => void;
   animateOnChange?: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   isAnimating: any;
   onlyGas: boolean;
   validateAmount: ({
     transaction,
     total,
   }: {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     transaction: any;
     total: string;
   }) => void;
@@ -31,7 +35,11 @@ export interface CustomGasModalProps {
   onGasChanged: (gas: string) => void;
   onGasCanceled: (gas: string) => void;
   updateGasState: (state: {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     gasTxn: any;
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     gasObj: any;
     gasSelect?: string;
     txnType: boolean;

@@ -27,8 +27,10 @@ import { USER_INTENT } from '../../../constants/permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import UntypedEngine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectIdentities } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import {
+  selectInternalAccounts,
+  selectSelectedInternalAccountChecksummedAddress,
+} from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
@@ -51,11 +53,14 @@ import {
   MM_ETHERSCAN_URL,
   MM_PHISH_DETECT_URL,
 } from '../../../constants/urls';
+import AppConstants from '../../../core/AppConstants';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import { useTheme } from '../../../util/theme';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
+import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 import {
   AccountConnectProps,
   AccountConnectScreens,
@@ -63,7 +68,6 @@ import {
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
-import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -73,6 +77,8 @@ const createStyles = () =>
   });
 
 const AccountConnect = (props: AccountConnectProps) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
 
   const { colors } = useTheme();
@@ -82,14 +88,17 @@ const AccountConnect = (props: AccountConnectProps) => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
 
+  const [isOriginWalletConnect, setIsOriginWalletConnect] = useState(false);
+  const [isOriginMMSDKRemoteConn, setIsOriginMMSDKRemoteConn] = useState(false);
+
   const [blockedUrl, setBlockedUrl] = useState('');
 
   const selectedWalletAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
-  const [selectedAddresses, setSelectedAddresses] = useState<string[]>([
-    selectedWalletAddress,
-  ]);
+  const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
+    selectedWalletAddress ? [selectedWalletAddress] : [],
+  );
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
@@ -98,11 +107,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     isLoading,
   });
   const previousIdentitiesListSize = useRef<number>();
-  const identitiesMap = useSelector(selectIdentities);
+  const internalAccounts = useSelector(selectInternalAccounts);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
 
   const { toastRef } = useContext(ToastContext);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -122,6 +133,30 @@ const AccountConnect = (props: AccountConnectProps) => {
     origin: string;
   };
 
+  const isUUID = (str: string) => {
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  };
+
+  const isChannelId = isUUID(channelIdOrHostname);
+
+  useEffect(() => {
+    if (!channelIdOrHostname) {
+      setIsOriginWalletConnect(false);
+      setIsOriginMMSDKRemoteConn(false);
+
+      return;
+    }
+
+    setIsOriginWalletConnect(
+      channelIdOrHostname.startsWith(WALLET_CONNECT_ORIGIN),
+    );
+    setIsOriginMMSDKRemoteConn(
+      channelIdOrHostname.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN),
+    );
+  }, [channelIdOrHostname]);
+
   const sdkConnection = SDKConnect.getInstance().getConnection({
     channelId: channelIdOrHostname,
   });
@@ -132,10 +167,40 @@ const AccountConnect = (props: AccountConnectProps) => {
       : sdkConnection?.originatorInfo?.url ?? ''
     : inappBrowserOrigin;
 
-  const urlWithProtocol = prefixUrlWithProtocol(hostname);
-
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
+
+  const domainTitle = useMemo(() => {
+    let title = '';
+
+    if (isOriginWalletConnect) {
+      title = getUrlObj(
+        (channelIdOrHostname as string).split(WALLET_CONNECT_ORIGIN)[1],
+      ).origin;
+    } else if (isOriginMMSDKRemoteConn) {
+      title = getUrlObj(
+        (channelIdOrHostname as string).split(
+          AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+        )[1],
+      ).origin;
+    } else if (!isChannelId && (dappUrl || channelIdOrHostname)) {
+      title = prefixUrlWithProtocol(dappUrl || channelIdOrHostname);
+    } else {
+      title = strings('sdk.unknown');
+    }
+
+    return title;
+  }, [
+    isOriginWalletConnect,
+    isOriginMMSDKRemoteConn,
+    isChannelId,
+    dappUrl,
+    channelIdOrHostname,
+  ]);
+
+  const urlWithProtocol = hostname
+    ? prefixUrlWithProtocol(hostname)
+    : domainTitle;
 
   const isAllowedUrl = useCallback(
     (url: string) => {
@@ -166,10 +231,17 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [isAllowedUrl, dappUrl, channelIdOrHostname]);
 
-  const faviconSource = useFavicon(inappBrowserOrigin);
+  const faviconSource = useFavicon(
+    inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
+  );
 
   const actualIcon = useMemo(
-    () => (dappIconUrl ? { uri: dappIconUrl } : faviconSource),
+    () =>
+      faviconSource?.uri
+        ? faviconSource
+        : dappIconUrl
+        ? { uri: dappIconUrl }
+        : { uri: '' },
     [dappIconUrl, faviconSource],
   );
 
@@ -197,16 +269,20 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
-    const identitiesAddressList = Object.keys(identitiesMap);
-    if (previousIdentitiesListSize.current !== identitiesAddressList.length) {
-      // Clean up selected addresses that are no longer part of identities.
+    // Extract the address list from the internalAccounts array
+    const accountsAddressList = internalAccounts.map((account) =>
+      account.address.toLowerCase(),
+    );
+
+    if (previousIdentitiesListSize.current !== accountsAddressList.length) {
+      // Clean up selected addresses that are no longer part of accounts.
       const updatedSelectedAddresses = selectedAddresses.filter((address) =>
-        identitiesAddressList.includes(address),
+        accountsAddressList.includes(address.toLowerCase()),
       );
       setSelectedAddresses(updatedSelectedAddresses);
-      previousIdentitiesListSize.current = identitiesAddressList.length;
+      previousIdentitiesListSize.current = accountsAddressList.length;
     }
-  }, [identitiesMap, selectedAddresses]);
+  }, [internalAccounts, selectedAddresses]);
 
   const cancelPermissionRequest = useCallback(
     (requestId) => {
@@ -336,6 +412,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         accountAddress: activeAddress,
         accountAvatarType,
       });
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       Logger.error(e, 'Error while trying to connect to a dApp.');
     } finally {
@@ -367,6 +445,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         ) as string;
         !isMultiSelect && setSelectedAddresses([checksummedAddress]);
         trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         Logger.error(e, 'error while trying to add a new account');
       } finally {

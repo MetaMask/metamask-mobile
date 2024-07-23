@@ -4,13 +4,13 @@ import renderWithProvider, {
   renderHookWithProvider,
 } from '../../../../../../util/test/renderWithProvider';
 import TransactionReviewEIP1559 from '.';
-import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 const initialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0x0': {
@@ -27,8 +27,10 @@ const initialState = {
         gasEstimateType: 'low',
       },
       TokenRatesController: {
-        contractExchangeRates: {
-          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': 1,
+        marketData: {
+          0x1: {
+            '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': 1,
+          },
         },
       },
       TokenBalancesController: {

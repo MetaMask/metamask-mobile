@@ -2,7 +2,7 @@
 /* eslint-disable react/display-name */
 import React, { FC, useEffect } from 'react';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { camelCase } from 'lodash';
 
 import { strings } from '../../../../../locales/i18n';
@@ -25,11 +25,9 @@ import {
 } from './NotificationsSettings.constants';
 
 import {
-  notificationSettings as defaultDisabledNotificationSettings,
   mmStorage,
   requestPushNotificationsPermission,
 } from '../../../../util/notifications';
-import { updateNotificationStatus } from '../../../../actions/notification';
 import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
 import Routes from '../../../../constants/navigation/Routes';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -65,14 +63,17 @@ const SessionHeader = ({ title, description, styles }: SessionHeaderProps) => (
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const notificationsSettingsState = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.notification.notificationsSettings,
   );
 
   const isNotificationEnabled = notificationsSettingsState?.isEnabled;
 
-  const dispatch = useDispatch();
   const { accounts } = useAccounts();
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -80,15 +81,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   );
 
   const toggleNotificationsEnabled = () => {
-    !isNotificationEnabled
-      ? requestPushNotificationsPermission()
-      : dispatch(
-          updateNotificationStatus({
-            isEnabled: false,
-            notificationsOpts: defaultDisabledNotificationSettings,
-            accounts: [],
-          }),
-        );
+    !isNotificationEnabled && requestPushNotificationsPermission();
   };
 
   const isFullScreenModal = route?.params?.isFullScreenModal;
@@ -115,17 +108,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           colors,
           null,
         ),
-      );
-      dispatch(
-        updateNotificationStatus({
-          ...notificationsSettingsState,
-          accounts:
-            notificationsSettingsState?.accounts ??
-            accounts.reduce((acc: { [key: string]: boolean }, account) => {
-              acc[account.address] = true;
-              return acc;
-            }, {}),
-        }),
       );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -188,17 +170,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
                   camelCase(opt.title)
                 ]
               }
-              onOptionUpdated={(value) => {
-                dispatch(
-                  updateNotificationStatus({
-                    ...notificationsSettingsState,
-                    notificationsOpts: {
-                      ...notificationsSettingsState.notificationsOpts,
-                      [camelCase(opt.title)]: value,
-                    },
-                  }),
-                );
-              }}
               testId={NotificationsViewSelectorsIDs[opt.title]}
               disabled={opt.disabled}
             />
@@ -222,17 +193,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               value={
                 notificationsSettingsState?.accounts[account.address] ?? true
               }
-              onOptionUpdated={(value) => {
-                dispatch(
-                  updateNotificationStatus({
-                    ...notificationsSettingsState,
-                    accounts: {
-                      ...notificationsSettingsState.accounts,
-                      [account.address]: value,
-                    },
-                  }),
-                );
-              }}
             />
           ))}
         </>
@@ -247,6 +207,8 @@ NotificationsSettings.navigationOptions = ({
   navigation,
   isNotificationEnabled,
 }: {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   isNotificationEnabled: boolean;
 }) => ({

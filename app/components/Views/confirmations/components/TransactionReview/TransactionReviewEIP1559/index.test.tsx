@@ -1,11 +1,11 @@
 import React from 'react';
 import TransactionReviewEIP1559 from '.';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 

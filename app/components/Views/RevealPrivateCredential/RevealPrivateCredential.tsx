@@ -15,6 +15,8 @@ import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView, {
   DefaultTabBar,
 } from 'react-native-scrollable-tab-view';
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = View as any;
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import AsyncStorage from '../../../store/async-storage-wrapper';
@@ -49,7 +51,6 @@ import { isHardwareAccount } from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
@@ -58,9 +59,13 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 const PRIVATE_KEY = 'private_key';
 
 interface IRevealPrivateCredentialProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   credentialName: string;
   cancel: () => void;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   route: any;
 }
 
@@ -86,6 +91,8 @@ const RevealPrivateCredential = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
   const dispatch = useDispatch();
@@ -117,6 +124,8 @@ const RevealPrivateCredential = ({
     pswd: string,
     privCredentialName?: string,
   ) => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController } = Engine.context as any;
     const isPrivateKeyReveal = privCredentialName === PRIVATE_KEY;
 
@@ -136,6 +145,8 @@ const RevealPrivateCredential = ({
         setClipboardPrivateCredential(privateCredential);
         setUnlocked(true);
       }
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       let msg = strings('reveal_credential.warning_incorrect_password');
       if (isHardwareAccount(selectedAddress)) {
@@ -202,6 +213,8 @@ const RevealPrivateCredential = ({
   };
 
   const tryUnlock = async () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController } = Engine.context as any;
     try {
       await KeyringController.verifyPassword(password);
@@ -319,6 +332,8 @@ const RevealPrivateCredential = ({
   const renderTabView = (privCredentialName: string) => (
     <ScrollableTabView
       renderTabBar={() => renderTabBar()}
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onChangeTab={(event: any) => onTabBarChange(event)}
     >
       <CustomTabView
@@ -451,10 +466,9 @@ const RevealPrivateCredential = ({
                 : strings('reveal_credential.srp_abbreviation_text'),
             })}
             onLongPress={() => revealCredential(privCredentialName)}
-            {...generateTestId(
-              Platform,
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID,
-            )}
+            testID={
+              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID
+            }
           />
         </>
       }

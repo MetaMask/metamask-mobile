@@ -4,7 +4,7 @@ import GeneralSettings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { AppThemeKey } from '../../../../util/theme/models';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -16,7 +16,7 @@ const initialState = {
     useBlockieIcon: true,
   },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
   user: { appTheme: AppThemeKey.light },
 };

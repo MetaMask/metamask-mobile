@@ -16,6 +16,8 @@ class LockManagerService {
   #lockTimer?: number;
   #store?: Store;
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   init = (store: any) => {
     this.#store = store;
   };

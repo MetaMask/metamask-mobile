@@ -51,6 +51,8 @@ const ApplePayButton = ({
   label,
   onPress,
 }: {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onPress: () => any;
   label: string;
 }) => {
