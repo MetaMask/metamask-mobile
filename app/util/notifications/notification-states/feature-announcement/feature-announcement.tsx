@@ -34,7 +34,7 @@ const state: NotificationState<FeatureAnnouncementNotification> = {
   }),
   createModalDetails: (notification) => ({
     title: notification.data.title,
-    createdAt: notification.createdAt.toString().toString(),
+    createdAt: notification.createdAt.toString(),
     header: {
       type: ModalHeaderType.ANNOUNCEMENT_IMAGE,
       imageUrl: `https:${notification.data.image.url}?fm=jpg&fl=progressive&w=1000&q=80`,
