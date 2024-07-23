@@ -6,6 +6,13 @@ import {
   TOKEN_NOT_SUPPORTED_FOR_NETWORK,
   TOKEN_NOT_VALID,
 } from '../../constants/error';
+import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
+
+const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
+const MOCK_INTERNAL_ACCOUNT = createMockInternalAccount(
+  MOCK_ADDRESS,
+  'Account 1',
+);
 
 const mockEngine = Engine;
 jest.mock('../Engine', () => ({
@@ -37,10 +44,8 @@ jest.mock('../Engine', () => ({
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
     },
-    PreferencesController: {
-      state: {
-        selectedAddress: '0x123',
-      },
+    AccountsController: {
+      getSelectedAccount: jest.fn().mockReturnValue(MOCK_INTERNAL_ACCOUNT),
     },
   },
 }));

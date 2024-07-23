@@ -19,7 +19,6 @@ jest.mock('../../../../util/Logger');
 jest.mock('../../utils/wait.util', () => ({
   wait: jest.fn().mockResolvedValue(undefined),
 }));
-jest.mock('@metamask/preferences-controller');
 jest.mock('../AndroidService');
 jest.mock('../../handlers/handleBatchRpcResponse', () => jest.fn());
 jest.mock('../../utils/DevLogger');
