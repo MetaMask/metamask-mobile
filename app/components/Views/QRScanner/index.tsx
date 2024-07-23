@@ -28,6 +28,7 @@ import {
 } from '../../../util/validators';
 import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
+import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -40,11 +41,8 @@ const QRScanner = ({
   onStartScan,
   origin,
 }: {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onScanSuccess: (data: any, content?: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onStartScan?: (data: any) => Promise<void>;
+  onScanSuccess: (data: ScanSuccess, content?: string) => void;
+  onStartScan?: (data: StartScan) => Promise<void>;
   onScanError?: (error: string) => void;
   origin?: string;
 }) => {

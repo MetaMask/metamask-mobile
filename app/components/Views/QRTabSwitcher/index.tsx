@@ -22,12 +22,28 @@ export enum Screens {
   Scanner,
   Receive,
 }
+
+export interface ScanSuccess {
+  content?: string;
+  seed?: string;
+  private_key?: string;
+  target_address?: string;
+  action?: 'send-eth';
+  walletConnectURI?: string;
+}
+
+export interface StartScan {
+  content?: string;
+  seed?: string;
+  private_key?: string;
+  target_address?: string;
+  action?: 'send-eth';
+  walletConnectURI?: string;
+}
+
 export interface QRTabSwitcherParams {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onScanSuccess: (data: any, content?: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onStartScan?: (data: any) => Promise<void>;
+  onScanSuccess: (data: ScanSuccess, content?: string) => void;
+  onStartScan?: (data: StartScan) => Promise<void>;
   onScanError?: (error: string) => void;
   initialScreen?: Screens;
   disableTabber?: boolean;

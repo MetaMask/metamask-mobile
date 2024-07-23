@@ -53,7 +53,6 @@ const copyAddressToClipboard = async (address: string) => {
     content: 'clipboard-alert',
     data: { msg: strings('account_details.account_copied_to_clipboard') },
   });
-  // TODO: handle warnings about seed phrase not backed up?
 };
 
 const PREFIX_LEN = 6;
