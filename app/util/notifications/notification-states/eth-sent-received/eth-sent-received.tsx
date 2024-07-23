@@ -66,7 +66,7 @@ const state: NotificationState<NativeSentReceiveNotification> = {
         : strings('notifications.modal.title_received', {
             symbol: nativeTokenDetails?.symbol ?? '',
           }),
-      createdAt: notification.createdAt.toString().toString(),
+      createdAt: notification.createdAt.toString(),
       fields: [
         {
           type: ModalFieldType.ADDRESS,
