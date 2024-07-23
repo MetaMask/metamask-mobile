@@ -8,9 +8,8 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../util/theme';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import { Theme } from '../../../util/theme/models';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import Button, {
   ButtonSize,
@@ -25,25 +24,7 @@ import { showAlert } from '../../../actions/alert';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { useSelector } from 'react-redux';
 import { renderAccountName } from '../../../util/address';
-
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: theme.colors.background.default,
-      marginVertical: 32, // TODO: remove this when the component is no longer used in a modal
-    },
-    accountLabel: {
-      alignSelf: 'center',
-      marginBottom: 16,
-    },
-    addressContainer: {
-      width: 185,
-      textAlign: 'center',
-    },
-    copyButton: {
-      alignSelf: 'center',
-    },
-  });
+import createStyles from './styles';
 
 const copyAddressToClipboard = async (address: string) => {
   await ClipboardManager.setString(address);
