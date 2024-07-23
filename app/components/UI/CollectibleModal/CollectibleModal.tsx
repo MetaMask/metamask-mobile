@@ -24,10 +24,16 @@ import styles from './CollectibleModal.styles';
 import { CollectibleModalParams } from './CollectibleModal.types';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../util/navigation/navUtils';
+import { useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { selectChainId } from '../../../selectors/networkController';
+import { getDecimalChainId } from '../../../util/networks';
 
 const CollectibleModal = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const { trackEvent } = useMetrics();
+  const chainId = useSelector(selectChainId);
 
   const { contractName, collectible } = useParams<CollectibleModalParams>();
 
@@ -59,6 +65,15 @@ const CollectibleModal = () => {
   useEffect(() => {
     handleUpdateCollectible();
   }, [handleUpdateCollectible]);
+
+  useEffect(() => {
+    trackEvent(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED, {
+      chain_id: getDecimalChainId(chainId),
+    });
+    // The linter wants `trackEvent` to be added as a dependency,
+    // But the event fires twice if I do that.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chainId]);
 
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
