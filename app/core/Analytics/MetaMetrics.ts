@@ -273,7 +273,9 @@ class MetaMetrics implements IMetaMetrics {
     }
 
     // look for a new Metametics ID and use it or generate a new one
-    const metametricsId = await StorageWrapper.getItem(METAMETRICS_ID);
+    const metametricsId: string | undefined = await StorageWrapper.getItem(
+      METAMETRICS_ID,
+    );
     if (!metametricsId) {
       // keep the id format compatible with MixPanel but base it on a UUIDv4
       this.metametricsId = uuidv4();

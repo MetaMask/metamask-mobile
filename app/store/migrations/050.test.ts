@@ -12,6 +12,7 @@ jest.mock('../async-storage-wrapper', () => ({
 }));
 jest.mock('react-native-default-preference', () => ({
   set: jest.fn(),
+  clear: jest.fn(),
   getAll: jest.fn().mockReturnValue({}),
 }));
 
