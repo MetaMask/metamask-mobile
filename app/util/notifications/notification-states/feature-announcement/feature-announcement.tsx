@@ -30,7 +30,7 @@ const state: NotificationState<FeatureAnnouncementNotification> = {
 
     badgeIcon: getNotificationBadge(notification.type),
 
-    createdAt: notification.createdAt.toString().toString(),
+    createdAt: notification.createdAt.toString(),
   }),
   createModalDetails: (notification) => ({
     title: notification.data.title,
