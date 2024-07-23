@@ -1,12 +1,9 @@
 import React from 'react';
 import Transactions from '.';
-import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
-import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 
-const mockStore = configureMockStore();
 const initialState = {
   engine: {
     backgroundState: {
@@ -18,12 +15,11 @@ const initialState = {
     primaryCurrency: 'USD',
   },
 };
-const store = mockStore(initialState);
 
 describe('Transactions', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
+    const { result } = renderHookWithProvider(
+      () => (
         <Transactions
           transactions={[
             {
@@ -46,8 +42,9 @@ describe('Transactions', () => {
           ]}
           loading={false}
         />
-      </Provider>,
+      ),
+      { state: initialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(result.current).toMatchSnapshot();
   });
 });
