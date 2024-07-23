@@ -3,7 +3,6 @@ import { toHex } from '@metamask/controller-utils';
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
-const TENDERLY_KEY = process.env.TENDERLY_NETWORK_ID;
 
 const PopularNetworksList = {
   Avalanche: {
@@ -85,9 +84,9 @@ const CustomNetworks = {
   },
   Sepolia: {
     providerConfig: {
-      type: 'mainnet',
-      chainId: '11155111',
-      rpcTarget: 'https://sepolia.infura.io/v3/',
+      type: 'rpc',
+      chainId: '0xaa36a7',
+      rpcTarget: `https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`,
       nickname: 'Sepolia',
       ticker: 'SepoliaETH',
     },
@@ -98,7 +97,7 @@ const CustomNetworks = {
     providerConfig: {
       type: 'rpc',
       chainId: '0x1',
-      rpcUrl: `https://rpc.tenderly.co/fork/${TENDERLY_KEY}`,
+      rpcUrl: `https://rpc.tenderly.co/fork/bbfe5a2e-2426-4512-a5f8-46ce85fe9ad6`,
       nickname: 'Tenderly',
       ticker: 'ETH',
     },

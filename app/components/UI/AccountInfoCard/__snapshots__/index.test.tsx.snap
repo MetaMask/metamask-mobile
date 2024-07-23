@@ -232,7 +232,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
           }
         }
       >
-        0xC495...D272
+        Account 1
       </Text>
       <Text
         accessibilityRole="text"

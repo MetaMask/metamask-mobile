@@ -2,22 +2,18 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { useSelector } from 'react-redux';
 
 import { selectChainId } from '../../selectors/networkController';
-import { selectIdentities } from '../../selectors/preferencesController';
+import { selectInternalAccounts } from '../../selectors/accountsController';
+import { toLowerCaseEquals } from '../../util/general';
+import { AddressBookEntry } from '@metamask/address-book-controller';
+import { RootState } from '../../reducers';
 
-export interface Address {
-  address: string;
-  chainId: string;
-  isEns: boolean;
-  isSmartContract: boolean;
-  memo: string;
-  name: string;
-}
+type AccountInfo = Pick<AddressBookEntry, 'name' | 'address'>;
 
-const useExistingAddress = (address?: string): Address | undefined => {
+const useExistingAddress = (address?: string): AccountInfo | undefined => {
   const chainId = useSelector(selectChainId);
-  const { addressBook, identities } = useSelector((state: any) => ({
+  const { addressBook, internalAccounts } = useSelector((state: RootState) => ({
     addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-    identities: selectIdentities(state),
+    internalAccounts: selectInternalAccounts(state),
   }));
 
   if (!address) return;
@@ -25,11 +21,28 @@ const useExistingAddress = (address?: string): Address | undefined => {
   const networkAddressBook = addressBook[chainId] || {};
   const checksummedAddress = toChecksumAddress(address);
 
-  return (
-    networkAddressBook?.[checksummedAddress] ??
-    identities?.[checksummedAddress] ??
-    undefined
+  const matchingAddressBookEntry: AddressBookEntry | undefined =
+    networkAddressBook?.[checksummedAddress];
+
+  if (matchingAddressBookEntry) {
+    return {
+      name: matchingAddressBookEntry.name,
+      address: matchingAddressBookEntry.address,
+    };
+  }
+
+  const accountWithMatchingAddress = internalAccounts.find((account) =>
+    toLowerCaseEquals(account.address, address),
   );
+
+  if (accountWithMatchingAddress) {
+    return {
+      address: accountWithMatchingAddress.address,
+      name: accountWithMatchingAddress.metadata.name,
+    };
+  }
+
+  return undefined;
 };
 
 export default useExistingAddress;

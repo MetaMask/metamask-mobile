@@ -3,7 +3,7 @@ import { shallow } from 'enzyme';
 import CollectibleContracts from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { act } from '@testing-library/react-hooks';
 
@@ -51,7 +51,7 @@ const initialState = {
     favorites: {},
   },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 const store = mockStore(initialState);
@@ -79,7 +79,7 @@ describe('CollectibleContracts', () => {
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
             network: '1',
             providerConfig: {
@@ -196,7 +196,7 @@ describe('CollectibleContracts', () => {
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
             network: '1',
             providerConfig: {
@@ -309,7 +309,7 @@ describe('CollectibleContracts', () => {
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
             network: '1',
             providerConfig: {
@@ -426,7 +426,7 @@ describe('CollectibleContracts', () => {
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
             network: '1',
             providerConfig: {
@@ -494,5 +494,125 @@ describe('CollectibleContracts', () => {
 
     expect(spyOnUpdateNftMetadata).toHaveBeenCalledTimes(0);
     expect(spyOnDetectNfts).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows spinner if nfts are still being fetched', async () => {
+    const CURRENT_ACCOUNT = '0x1a';
+    const mockState = {
+      collectibles: {
+        favorites: {},
+        isNftFetchingProgress: true,
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            network: '1',
+            providerConfig: {
+              ticker: 'ETH',
+              type: 'mainnet',
+              chainId: '1',
+            },
+          },
+          AccountTrackerController: {
+            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+          },
+          PreferencesController: {
+            useNftDetection: true,
+            displayNftMedia: true,
+            selectedAddress: CURRENT_ACCOUNT,
+            identities: {
+              [CURRENT_ACCOUNT]: {
+                address: CURRENT_ACCOUNT,
+                name: 'Account 1',
+              },
+            },
+          },
+          NftController: {
+            addNft: jest.fn(),
+            updateNftMetadata: jest.fn(),
+            allNfts: {
+              [CURRENT_ACCOUNT]: {
+                '1': [],
+              },
+            },
+            allNftContracts: {
+              [CURRENT_ACCOUNT]: {
+                '1': [],
+              },
+            },
+          },
+          NftDetectionController: {
+            detectNfts: jest.fn(),
+          },
+        },
+      },
+    };
+    const { queryByTestId } = renderWithProvider(<CollectibleContracts />, {
+      state: mockState,
+    });
+
+    const spinner = queryByTestId('spinner');
+    expect(spinner).not.toBeNull();
+  });
+
+  it('Does not show spinner if nfts are not still being fetched', async () => {
+    const CURRENT_ACCOUNT = '0x1a';
+    const mockState = {
+      collectibles: {
+        favorites: {},
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            network: '1',
+            providerConfig: {
+              ticker: 'ETH',
+              type: 'mainnet',
+              chainId: '1',
+            },
+          },
+          AccountTrackerController: {
+            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+          },
+          PreferencesController: {
+            useNftDetection: true,
+            displayNftMedia: true,
+            selectedAddress: CURRENT_ACCOUNT,
+            identities: {
+              [CURRENT_ACCOUNT]: {
+                address: CURRENT_ACCOUNT,
+                name: 'Account 1',
+              },
+            },
+          },
+          NftController: {
+            addNft: jest.fn(),
+            updateNftMetadata: jest.fn(),
+            allNfts: {
+              [CURRENT_ACCOUNT]: {
+                '1': [],
+              },
+            },
+            allNftContracts: {
+              [CURRENT_ACCOUNT]: {
+                '1': [],
+              },
+            },
+          },
+          NftDetectionController: {
+            detectNfts: jest.fn(),
+          },
+        },
+      },
+    };
+
+    const { queryByTestId } = renderWithProvider(<CollectibleContracts />, {
+      state: mockState,
+    });
+
+    const spinner = queryByTestId('spinner');
+    expect(spinner).toBeNull();
   });
 });

@@ -51,8 +51,8 @@ describe('useBluetoothPermissions', () => {
   });
 
   it('grants permissions on iOS', async () => {
-    Device.isIos.mockReturnValue(true);
-    request.mockResolvedValue(RESULTS.GRANTED);
+    (Device.isIos as jest.Mock).mockReturnValue(true);
+    (request as jest.Mock).mockResolvedValue(RESULTS.GRANTED);
 
     const { result, waitForNextUpdate } = renderHook(() =>
       useBluetoothPermissions(),
@@ -64,8 +64,8 @@ describe('useBluetoothPermissions', () => {
   });
 
   it('denies permissions on iOS', async () => {
-    Device.isIos.mockReturnValue(true);
-    request.mockResolvedValue(RESULTS.DENIED);
+    (Device.isIos as jest.Mock).mockReturnValue(true);
+    (request as jest.Mock).mockResolvedValue(RESULTS.DENIED);
 
     const { result, waitForNextUpdate } = renderHook(() =>
       useBluetoothPermissions(),
@@ -79,9 +79,9 @@ describe('useBluetoothPermissions', () => {
   });
 
   it('grants permissions on Android 12+', async () => {
-    Device.isAndroid.mockReturnValue(true);
-    getSystemVersion.mockReturnValue('12');
-    requestMultiple.mockResolvedValue({
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+    (getSystemVersion as jest.Mock).mockReturnValue('12');
+    (requestMultiple as jest.Mock).mockResolvedValue({
       [PERMISSIONS.ANDROID.BLUETOOTH_CONNECT]: RESULTS.GRANTED,
       [PERMISSIONS.ANDROID.BLUETOOTH_SCAN]: RESULTS.GRANTED,
     });
@@ -96,9 +96,9 @@ describe('useBluetoothPermissions', () => {
   });
 
   it('denies permissions on Android 12+', async () => {
-    Device.isAndroid.mockReturnValue(true);
-    getSystemVersion.mockReturnValue('12');
-    requestMultiple.mockResolvedValue({
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+    (getSystemVersion as jest.Mock).mockReturnValue('12');
+    (requestMultiple as jest.Mock).mockResolvedValue({
       [PERMISSIONS.ANDROID.BLUETOOTH_CONNECT]: RESULTS.DENIED,
       [PERMISSIONS.ANDROID.BLUETOOTH_SCAN]: RESULTS.DENIED,
     });
@@ -115,9 +115,9 @@ describe('useBluetoothPermissions', () => {
   });
 
   it('grants permissions on Android <12', async () => {
-    Device.isAndroid.mockReturnValue(true);
-    getSystemVersion.mockReturnValue('11');
-    request.mockResolvedValue(RESULTS.GRANTED);
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+    (getSystemVersion as jest.Mock).mockReturnValue('11');
+    (request as jest.Mock).mockResolvedValue(RESULTS.GRANTED);
 
     const { result, waitForNextUpdate } = renderHook(() =>
       useBluetoothPermissions(),
@@ -129,9 +129,9 @@ describe('useBluetoothPermissions', () => {
   });
 
   it('denies permissions on Android <12', async () => {
-    Device.isAndroid.mockReturnValue(true);
-    getSystemVersion.mockReturnValue('11');
-    request.mockResolvedValue(RESULTS.DENIED);
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+    (getSystemVersion as jest.Mock).mockReturnValue('11');
+    (request as jest.Mock).mockResolvedValue(RESULTS.DENIED);
 
     const { result, waitForNextUpdate } = renderHook(() =>
       useBluetoothPermissions(),
@@ -145,9 +145,9 @@ describe('useBluetoothPermissions', () => {
   });
 
   it('checks permissions when app state changes to active', async () => {
-    Device.isAndroid.mockReturnValue(true);
-    getSystemVersion.mockReturnValue('12');
-    requestMultiple.mockResolvedValue({
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+    (getSystemVersion as jest.Mock).mockReturnValue('12');
+    (requestMultiple as jest.Mock).mockResolvedValue({
       [PERMISSIONS.ANDROID.BLUETOOTH_CONNECT]: RESULTS.GRANTED,
       [PERMISSIONS.ANDROID.BLUETOOTH_SCAN]: RESULTS.GRANTED,
     });
@@ -158,7 +158,7 @@ describe('useBluetoothPermissions', () => {
     expect(requestMultiple).toHaveBeenCalledTimes(1);
 
     act(() => {
-      AppState.addEventListener.mock.calls[0][1]('active');
+      (AppState.addEventListener as jest.Mock).mock.calls[0][1]('active');
     });
 
     //checkPermission run again when app state changes to active
@@ -166,9 +166,9 @@ describe('useBluetoothPermissions', () => {
   });
 
   it('does not check permissions when app state changes to background', async () => {
-    Device.isAndroid.mockReturnValue(true);
-    getSystemVersion.mockReturnValue('12');
-    requestMultiple.mockResolvedValue({
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+    (getSystemVersion as jest.Mock).mockReturnValue('12');
+    (requestMultiple as jest.Mock).mockResolvedValue({
       [PERMISSIONS.ANDROID.BLUETOOTH_CONNECT]: RESULTS.GRANTED,
       [PERMISSIONS.ANDROID.BLUETOOTH_SCAN]: RESULTS.GRANTED,
     });
@@ -179,7 +179,7 @@ describe('useBluetoothPermissions', () => {
     expect(requestMultiple).toHaveBeenCalledTimes(1);
 
     act(() => {
-      AppState.addEventListener.mock.calls[0][1]('inactive');
+      (AppState.addEventListener as jest.Mock).mock.calls[0][1]('inactive');
     });
 
     //checkPermission does not run when app state changes to inactive
@@ -187,9 +187,9 @@ describe('useBluetoothPermissions', () => {
   });
 
   it('grants permissions when getSystemVersion is null', async () => {
-    Device.isAndroid.mockReturnValue(true);
-    getSystemVersion.mockReturnValue(null);
-    request.mockResolvedValue(RESULTS.GRANTED);
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+    (getSystemVersion as jest.Mock).mockReturnValue(null);
+    (request as jest.Mock).mockResolvedValue(RESULTS.GRANTED);
 
     const { result, waitForNextUpdate } = renderHook(() =>
       useBluetoothPermissions(),
@@ -201,9 +201,9 @@ describe('useBluetoothPermissions', () => {
   });
 
   it('grants permissions when getSystemVersion return is not a number', async () => {
-    Device.isAndroid.mockReturnValue(true);
-    getSystemVersion.mockReturnValue('adbd');
-    request.mockResolvedValue(RESULTS.GRANTED);
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+    (getSystemVersion as jest.Mock).mockReturnValue('adbd');
+    (request as jest.Mock).mockResolvedValue(RESULTS.GRANTED);
 
     const { result, waitForNextUpdate } = renderHook(() =>
       useBluetoothPermissions(),

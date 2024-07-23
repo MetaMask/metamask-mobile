@@ -20,7 +20,7 @@ import {
   PermissionController,
 } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { backgroundState } from '../../util/test/initial-root-state';
 import { Store } from 'redux';
 import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
@@ -230,6 +230,8 @@ function setupGlobalState({
 }) {
   // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
   jest
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .spyOn(store as Store<Partial<RootState>, any>, 'getState')
     .mockImplementation(() => ({
       browser: activeTab
@@ -239,12 +241,14 @@ function setupGlobalState({
         : {},
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
             providerConfig: providerConfig || {},
           },
           PreferencesController: selectedAddress ? { selectedAddress } : {},
         },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
     }));
   mockStore.dispatch.mockImplementation((obj) => obj);
@@ -1118,6 +1122,8 @@ describe('getRpcMethodMiddleware', () => {
         params: [addressMock, data],
       };
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 
@@ -1186,6 +1192,8 @@ describe('getRpcMethodMiddleware', () => {
         signatureMock,
       );
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 
@@ -1237,6 +1245,8 @@ describe('getRpcMethodMiddleware', () => {
         signatureMock,
       );
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 

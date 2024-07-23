@@ -9,4 +9,5 @@ export const NetworkListModalSelectorsIDs = {
   TEST_NET_TOGGLE: 'test-network-switch-id',
   OTHER_LIST: 'other-network-name',
   ADD_BUTTON: 'add-network-button',
+  TOOLTIP: 'popular-networks-information-tooltip',
 };

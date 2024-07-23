@@ -116,12 +116,10 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
-import { isTransactionSimulationsFeatureEnabled } from '../../../../util/transaction-controller';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
@@ -156,8 +154,12 @@ const Settings: React.FC = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserHistory = useSelector((state: any) => state.browser.history);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lockTime = useSelector((state: any) => state.settings.lockTime);
   const showTestNetworks = useSelector(selectShowTestNetworks);
   const showIncomingTransactionsNetworks = useSelector(
@@ -175,6 +177,8 @@ const Settings: React.FC = () => {
   const useNftDetection = useSelector(selectUseNftDetection);
 
   const seedphraseBackedUp = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.seedphraseBackedUp,
   );
   const type = useSelector(selectProviderType);
@@ -253,6 +257,8 @@ const Settings: React.FC = () => {
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {
       detectNftComponentRef.current?.measureLayout(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         scrollViewRef.current as any,
         (_, y) => {
           scrollViewRef.current?.scrollTo({
@@ -990,7 +996,7 @@ const Settings: React.FC = () => {
           <RememberMeOptionSection />
         </View>
         <RevealPrivateKey />
-        {isBlockaidFeatureEnabled() && <BlockaidSettings />}
+        <BlockaidSettings />
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
         <View>
           <Text
@@ -1034,8 +1040,7 @@ const Settings: React.FC = () => {
         {renderMultiAccountBalancesSection()}
         {renderShowIncomingTransactions()}
         {renderHistoryModal()}
-        {isTransactionSimulationsFeatureEnabled() &&
-          renderUseTransactionSimulations()}
+        {renderUseTransactionSimulations()}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
