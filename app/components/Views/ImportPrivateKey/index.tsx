@@ -20,6 +20,7 @@ import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
 import { ImportAccountFromPrivateKeySelectorsIDs } from '../../../../e2e/selectors/ImportAccountFromPrivateKey.selectors';
 import { Screens } from '../QRTabSwitcher';
+import Routes from '../../../constants/navigation/Routes';
 
 /**
  * View that's displayed the first time a user receives funds
@@ -110,7 +111,7 @@ const ImportPrivateKey = () => {
   };
 
   const scanPkey = () => {
-    navigation.navigate('QRTabSwitcher', {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
       initialScreen: Screens.Scanner,
       disableTabber: true,
       onScanSuccess,

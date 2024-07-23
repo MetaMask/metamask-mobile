@@ -52,7 +52,7 @@ const WalletActions = () => {
 
   const onReceive = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigate('QRTabSwitcher', {
+      navigate(Routes.QR_TAB_SWITCHER, {
         initialScreen: Screens.Receive,
       });
     });

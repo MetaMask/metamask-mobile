@@ -29,10 +29,10 @@ import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
 import PNG_MM_LOGO_PATH from '../../../images/fox.png';
 
-const createStyles = (theme) => {
-  const { height: windowHeight } = Dimensions.get('window');
+const { height: windowHeight, width: windowWidth } = Dimensions.get('window');
 
-  return StyleSheet.create({
+const createStyles = (theme) =>
+  StyleSheet.create({
     wrapper: {
       backgroundColor: theme.colors.background.default,
       borderTopLeftRadius: 10,
@@ -100,7 +100,6 @@ const createStyles = (theme) => {
       marginTop: 10,
     },
   });
-};
 
 /**
  * PureComponent that renders receive options
@@ -228,7 +227,7 @@ class ReceiveRequest extends PureComponent {
               logoSize={35}
               logoMargin={5}
               value={`ethereum:${this.props.selectedAddress}@${this.props.chainId}`}
-              size={Dimensions.get('window').width / 2}
+              size={windowWidth / 2}
             />
           </View>
 

@@ -93,12 +93,10 @@ const QRAccountDisplay = (props: { accountAddress: string }) => {
 
   return (
     <SafeAreaView style={styles.wrapper}>
-      {/*account name*/}
       <Text variant={TextVariant.BodyLGMedium} style={styles.accountLabel}>
         {accountLabel}
       </Text>
 
-      {/*address*/}
       <>
         <Text variant={TextVariant.BodyMD} style={styles.addressContainer}>
           {addressStart}
@@ -109,7 +107,6 @@ const QRAccountDisplay = (props: { accountAddress: string }) => {
         </Text>
       </>
 
-      {/*copy button*/}
       <>
         <Button
           variant={ButtonVariants.Link}

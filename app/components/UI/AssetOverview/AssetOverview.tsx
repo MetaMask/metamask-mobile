@@ -51,6 +51,7 @@ import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { Screens } from '../../../components/Views/QRTabSwitcher';
+import Routes from '../../../constants/navigation/Routes';
 
 interface AssetOverviewProps {
   navigation: {
@@ -110,7 +111,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }, []);
 
   const onReceive = () => {
-    navigation.navigate('QRTabSwitcher', {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
       initialScreen: Screens.Receive,
       disableTabber: true,
     });

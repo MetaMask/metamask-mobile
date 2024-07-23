@@ -619,7 +619,7 @@ class DrawerView extends PureComponent {
   };
 
   onReceive = () => {
-    this.props.navigation.navigate('QRTabSwitcher', {
+    this.props.navigation.navigate(Routes.QR_TAB_SWITCHER, {
       initialScreen: Screens.Receive,
       disableTabber: true,
     });
