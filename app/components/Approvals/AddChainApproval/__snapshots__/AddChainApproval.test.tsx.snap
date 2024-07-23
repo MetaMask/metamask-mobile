@@ -1,22 +1,43 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddChainApproval renders 1`] = `
-<ForwardRef
-  shouldNavigateBack={false}
->
-  <View
-    style={
+<RNCSafeAreaProvider
+  onInsetsChange={[Function]}
+  style={
+    [
       {
-        "alignItems": "flex-start",
-        "justifyContent": "center",
-      }
-    }
-  >
-    <NetworkVerificationInfo />
-  </View>
-</ForwardRef>
+        "flex": 1,
+      },
+      undefined,
+    ]
+  }
+/>
 `;
 
-exports[`AddChainApproval returns null if incorrect approval request type 1`] = `""`;
+exports[`AddChainApproval returns null if incorrect approval request type 1`] = `
+<RNCSafeAreaProvider
+  onInsetsChange={[Function]}
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      undefined,
+    ]
+  }
+/>
+`;
 
-exports[`AddChainApproval returns null if no approval request 1`] = `""`;
+exports[`AddChainApproval returns null if no approval request 1`] = `
+<RNCSafeAreaProvider
+  onInsetsChange={[Function]}
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      undefined,
+    ]
+  }
+/>
+`;
