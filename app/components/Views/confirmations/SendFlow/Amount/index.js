@@ -102,6 +102,7 @@ import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -599,7 +600,8 @@ class Amount extends PureComponent {
     if (selectedAsset.isETH) {
       return !!conversionRate;
     }
-    const exchangeRate = contractExchangeRates[selectedAsset.address];
+    const exchangeRate =
+      contractExchangeRates?.[selectedAsset.address]?.price ?? null;
     return !!exchangeRate;
   };
 
@@ -900,7 +902,9 @@ class Amount extends PureComponent {
         });
       }
     } else {
-      const exchangeRate = contractExchangeRates[selectedAsset.address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[selectedAsset.address]?.price
+        : undefined;
       if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
         input = fromTokenMinimalUnitString(
           contractBalances[selectedAsset.address]?.toString(10),
@@ -965,7 +969,9 @@ class Amount extends PureComponent {
         renderableInputValueConversion = `${inputValueConversion} ${processedTicker}`;
       }
     } else {
-      const exchangeRate = contractExchangeRates[selectedAsset.address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[selectedAsset.address]?.price
+        : null;
       hasExchangeRate = !!exchangeRate;
       if (internalPrimaryCurrencyIsCrypto) {
         inputValueConversion = `${balanceToFiatNumber(
@@ -1078,7 +1084,9 @@ class Amount extends PureComponent {
       );
     } else {
       balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
-      const exchangeRate = contractExchangeRates[address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[address]?.price
+        : undefined;
       balanceFiat = balanceToFiat(
         balance,
         conversionRate,
@@ -1247,6 +1255,7 @@ class Amount extends PureComponent {
         params: {
           sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
           destinationToken: selectedAsset.address,
+          sourcePage: 'SendFlow',
         },
       });
     };
@@ -1270,7 +1279,7 @@ class Amount extends PureComponent {
           location: 'insufficient_funds_warning',
           text: 'buy_more',
         });
-        navigation.navigate(Routes.RAMP.BUY);
+        navigation.navigate(...createBuyNavigationDetails());
       }
     };
 

@@ -275,6 +275,14 @@ class Transactions extends PureComponent {
 
   componentDidUpdate() {
     this.updateBlockExplorer();
+    if (
+      this.props.confirmedTransactions.some(
+        ({ id }) => id === this.existingTx?.id,
+      )
+    ) {
+      this.onSpeedUpCompleted();
+      this.onCancelCompleted();
+    }
   }
 
   init() {

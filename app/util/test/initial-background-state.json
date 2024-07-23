@@ -1,12 +1,7 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": [],
-    "vault": {
-      "cipher": "mock-cipher",
-      "iv": "mock-iv",
-      "lib": "original"
-    }
+    "keyrings": []
   },
   "LoggingController": {
     "logs": {}
@@ -51,7 +46,6 @@
     "storageMetadata": [],
     "versionInfo": []
   },
-
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {
@@ -70,7 +64,10 @@
       "ticker": "ETH"
     },
     "networksMetadata": {
-      "mainnet": { "EIPS": {}, "status": "unknown" }
+      "mainnet": {
+        "EIPS": {},
+        "status": "unknown"
+      }
     },
     "selectedNetworkClientId": "mainnet"
   },
@@ -87,7 +84,7 @@
     "lostIdentities": {},
     "selectedAddress": "",
     "useTokenDetection": true,
-    "useNftDetection": false,
+    "useNftDetection": true,
     "useSafeChainsListValidation": true,
     "displayNftMedia": true,
     "securityAlertsEnabled": true,
@@ -126,8 +123,7 @@
     "contractBalances": {}
   },
   "TokenRatesController": {
-    "contractExchangeRates": {},
-    "contractExchangeRatesByChainId": {}
+    "marketData": {}
   },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
@@ -137,7 +133,28 @@
   },
   "SmartTransactionsController": {
     "smartTransactionsState": {
-      "liveness": true
+      "smartTransactions": {},
+      "userOptIn": false,
+      "userOptInV2": false,
+      "fees": {
+        "approvalTxFees": false,
+        "tradeTxFees": false
+      },
+      "liveness": true,
+      "livenessByChainId": {
+        "mainnet": true,
+        "sepolia": true
+      },
+      "feesByChainId": {
+        "mainnet": {
+          "approvalTxFees": false,
+          "tradeTxFees": false
+        },
+        "sepolia": {
+          "approvalTxFees": false,
+          "tradeTxFees": false
+        }
+      }
     }
   },
   "SnapController": {
@@ -222,5 +239,24 @@
     "unapprovedMsgCount": 0,
     "unapprovedPersonalMsgCount": 0,
     "unapprovedTypedMessagesCount": 0
+  },
+  "AuthenticationController": {
+    "isSignedIn": false
+  },
+  "NotificationServicesController": {
+    "isCheckingAccountsPresence": false,
+    "isFeatureAnnouncementsEnabled": false,
+    "isFetchingMetamaskNotifications": false,
+    "isMetamaskNotificationsFeatureSeen": false,
+    "isNotificationServicesEnabled": false,
+    "isUpdatingMetamaskNotifications": false,
+    "isUpdatingMetamaskNotificationsAccount": [],
+    "metamaskNotificationsList": [],
+    "metamaskNotificationsReadList": [],
+    "subscriptionAccountsSeen": []
+  },
+  "UserStorageController": {
+    "isProfileSyncingEnabled": true,
+    "isProfileSyncingUpdateLoading": false
   }
 }

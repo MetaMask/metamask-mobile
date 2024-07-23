@@ -14,13 +14,11 @@ import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
-import NotificationsDetails from '../../Views/Notifications/Details';
 import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
-import NotificationsView from '../../Views/Notifications';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
@@ -60,7 +58,7 @@ import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
@@ -215,7 +213,7 @@ const BrowserFlow = () => (
 
 export const DrawerContext = React.createContext({ drawerRef: null });
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -361,7 +359,7 @@ const SettingsFlow = () => (
       options={NotificationsSettings.navigationOptions}
     />
     {
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
     }
     <Stack.Screen
       name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
@@ -601,20 +599,9 @@ const PaymentRequestView = () => (
 const NotificationsModeView = (props) => (
   <Stack.Navigator>
     <Stack.Screen
-      name={Routes.NOTIFICATIONS.VIEW}
-      component={NotificationsView}
-      options={NotificationsView.navigationOptions}
-    />
-    <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
       options={NotificationsSettings.navigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.NOTIFICATIONS.DETAILS}
-      component={NotificationsDetails}
-      options={NotificationsDetails.navigationOptions}
-      initialParams={{ notification: props.route.params?.notification }}
     />
     <Stack.Screen
       mode={'modal'}

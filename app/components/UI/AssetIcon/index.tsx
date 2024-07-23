@@ -29,6 +29,8 @@ interface Props {
   address?: string;
 }
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     logo: {
@@ -53,7 +55,9 @@ const AssetIcon = memo((props: Props) => {
   const isImageUrl = isUrl(props.logo) || props.logo.substr(0, 4) === 'ipfs';
   const source: ImageSourcePropType = isImageUrl
     ? { uri: props.logo }
-    : (staticLogos as any)[props.logo];
+    : // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (staticLogos as any)[props.logo];
 
   if (!source) {
     return null;

@@ -42,7 +42,11 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       <Image
         onError={[Function]}
         resizeMode="contain"
-        source={{}}
+        source={
+          {
+            "uri": "",
+          }
+        }
         style={
           {
             "flex": 1,
@@ -291,7 +295,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   "opacity": 0,
                 }
               }
-              testID="badge-network"
+              testID="badgenetwork"
             >
               <View
                 style={
@@ -651,7 +655,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   "opacity": 0,
                 }
               }
-              testID="badge-network"
+              testID="badgenetwork"
             >
               <View
                 style={

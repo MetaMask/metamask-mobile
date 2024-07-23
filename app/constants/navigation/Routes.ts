@@ -29,7 +29,6 @@ const Routes = {
     SELECT_DEVICE: 'SelectHardwareWallet',
     CONNECT_QR_DEVICE: 'ConnectQRHardwareFlow',
     CONNECT_LEDGER: 'ConnectLedgerFlow',
-    LEDGER_ACCOUNT: 'LedgerAccountInfo',
     LEDGER_CONNECT: 'LedgerConnect',
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
@@ -49,6 +48,7 @@ const Routes = {
     DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
+    NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -129,7 +129,7 @@ const Routes = {
     OPT_IN_STACK: 'OptInStack',
     DETAILS: 'NotificationsDetails',
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
     SNAP_SETTINGS: 'SnapSettings',

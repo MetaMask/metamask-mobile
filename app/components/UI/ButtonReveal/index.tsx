@@ -24,6 +24,8 @@ const innerRadius = radius - strokeWidth / 2;
 const circumference = 2 * Math.PI * innerRadius;
 const animationDuration = 1200;
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
@@ -67,6 +69,8 @@ const createStyles = (colors: any) =>
     label: {
       color: colors.primary.inverse,
       fontSize: 18,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
     },
     animatedCircle: {

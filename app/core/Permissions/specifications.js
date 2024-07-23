@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   caveatSpecifications as snapsCaveatsSpecifications,
   endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications,
@@ -74,7 +74,7 @@ export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
     validator: (caveat, _origin, _target) =>
       validateCaveatAccounts(caveat.value, getInternalAccounts),
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   ...snapsCaveatsSpecifications,
   ...snapsEndowmentCaveatSpecifications,
   ///: END:ONLY_INCLUDE_IF
@@ -305,4 +305,16 @@ export const unrestrictedMethods = Object.freeze([
   'metamask_logWeb3ShimUsage',
   'wallet_switchEthereumChain',
   'wallet_addEthereumChain',
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  'wallet_getAllSnaps',
+  'wallet_getSnaps',
+  'wallet_requestSnaps',
+  'wallet_invokeSnap',
+  'wallet_invokeKeyring',
+  'snap_getClientStatus',
+  'snap_getFile',
+  'snap_createInterface',
+  'snap_updateInterface',
+  'snap_getInterfaceState',
+  ///: END:ONLY_INCLUDE_IF
 ]);

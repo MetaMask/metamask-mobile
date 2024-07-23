@@ -242,8 +242,8 @@ function TokenSelectModal({
         );
       } else {
         const exchangeRate =
-          itemAddress in tokenExchangeRates
-            ? tokenExchangeRates[itemAddress]
+          tokenExchangeRates && itemAddress in tokenExchangeRates
+            ? tokenExchangeRates[itemAddress]?.price
             : undefined;
         balance =
           itemAddress in balances

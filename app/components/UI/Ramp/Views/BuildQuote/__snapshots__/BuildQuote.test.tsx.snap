@@ -275,7 +275,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -368,7 +367,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1013,7 +1011,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1106,7 +1103,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1751,7 +1747,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1844,7 +1839,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2460,7 +2454,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -2553,7 +2546,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3361,7 +3353,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -3454,7 +3445,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4070,7 +4060,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -4163,7 +4152,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4971,7 +4959,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -5064,7 +5051,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -5680,7 +5666,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -5773,7 +5758,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6581,7 +6565,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -6674,7 +6657,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -7290,7 +7272,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -7383,7 +7364,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -8191,7 +8171,6 @@ exports[`BuildQuote View renders correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -8284,7 +8263,6 @@ exports[`BuildQuote View renders correctly 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -11489,7 +11467,6 @@ exports[`BuildQuote View renders correctly 2`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -11582,7 +11559,6 @@ exports[`BuildQuote View renders correctly 2`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -14799,7 +14775,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -14892,7 +14867,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -15508,7 +15482,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -15601,7 +15574,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={

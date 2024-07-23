@@ -37,7 +37,11 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 interface NetworkProps {
   isVisible: boolean;
   onClose: () => void;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   networkConfiguration: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   shouldNetworkSwitchPopToWallet: boolean;
   onNetworkSwitch?: () => void;
