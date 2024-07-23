@@ -16,7 +16,7 @@ import {
   IMetaMetricsEvent,
 } from './MetaMetrics.types';
 
-jest.mock('react-native-default-preference');
+jest.mock('../../store/async-storage-wrapper');
 const mockGet = jest.fn();
 const mockSet = jest.fn();
 const mockClear = jest.fn();

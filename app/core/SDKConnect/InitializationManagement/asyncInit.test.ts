@@ -4,15 +4,9 @@ import { wait } from '../utils/wait.util';
 import asyncInit from './asyncInit';
 
 jest.mock('@react-navigation/native');
-jest.mock('react-native-default-preference', () => ({
-  getMultiple: jest.fn().mockResolvedValue([]),
-  setMultiple: jest.fn().mockResolvedValue([]),
-  clearMultiple: jest.fn().mockResolvedValue([]),
-  set: jest.fn().mockResolvedValue([]),
-  clear: jest.fn().mockResolvedValue([]),
-  getAll: jest.fn().mockResolvedValue([]),
-  getAllKeys: jest.fn().mockResolvedValue([]),
-  get: jest.fn().mockResolvedValue(JSON.stringify({})),
+jest.mock('../../../store/async-storage-wrapper', () => ({
+  setItem: jest.fn().mockResolvedValue([]),
+  clearAll: jest.fn().mockResolvedValue([]),
 }));
 jest.mock('../../AppConstants');
 jest.mock('../../../util/Logger');

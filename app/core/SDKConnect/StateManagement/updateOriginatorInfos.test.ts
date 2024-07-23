@@ -5,7 +5,7 @@ import updateOriginatorInfos from './updateOriginatorInfos';
 
 jest.mock('@metamask/sdk-communication-layer');
 jest.mock('../SDKConnect');
-jest.mock('react-native-default-preference');
+jest.mock('../../../store/async-storage-wrapper');
 jest.mock('../../AppConstants');
 
 jest.mock('../../../store/async-storage-wrapper', () => ({

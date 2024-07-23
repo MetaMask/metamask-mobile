@@ -8,9 +8,9 @@ jest.mock('../../../core/AppConstants');
 jest.mock('../SDKConnect');
 jest.mock('../SDKConnectConstants');
 jest.mock('../utils/DevLogger');
-jest.mock('react-native-default-preference', () => ({
-  set: jest.fn().mockResolvedValue([]),
-  get: jest.fn().mockResolvedValue(JSON.stringify({})),
+jest.mock('../../../store/async-storage-wrapper', () => ({
+  setItem: jest.fn().mockResolvedValue([]),
+  getItem: jest.fn().mockResolvedValue(JSON.stringify({})),
 }));
 
 describe('approveHost', () => {
