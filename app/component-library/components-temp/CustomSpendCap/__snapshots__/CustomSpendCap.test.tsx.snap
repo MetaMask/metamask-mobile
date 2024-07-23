@@ -91,6 +91,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
     <Text
       accessibilityRole="link"
       accessible={true}
+      labelTextVariant="sBodyMD"
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
@@ -101,7 +102,6 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         }
       }
       suppressHighlighting={true}
-      textVariant="sBodyMD"
     >
       <Text
         accessibilityRole="text"
@@ -219,7 +219,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       }
     >
       This allows the third party to spend all your token balance until it reaches the cap or you revoke the spending cap. If this is not intended, consider setting a lower spending cap.
-
+       
       <Text
         accessibilityRole="link"
         accessible={true}
