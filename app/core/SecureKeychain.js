@@ -1,7 +1,7 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import { strings } from '../../locales/i18n';
-import MMKVWrapper from '../store/mmkv-wrapper';
+import StorageWrapper from '../store/storage-wrapper';
 import { Platform } from 'react-native';
 import { MetaMetricsEvents, MetaMetrics } from '../core/Analytics';
 import {
@@ -80,8 +80,8 @@ export default {
 
   async resetGenericPassword() {
     const options = { service: defaultOptions.service };
-    await MMKVWrapper.removeItem(BIOMETRY_CHOICE);
-    await MMKVWrapper.removeItem(PASSCODE_CHOICE);
+    await StorageWrapper.removeItem(BIOMETRY_CHOICE);
+    await StorageWrapper.removeItem(PASSCODE_CHOICE);
     // This is called to remove other auth types and set the user back to the default password login
     await MetaMetrics.getInstance().addTraitsToUser({
       [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSWORD,
@@ -147,10 +147,10 @@ export default {
     });
 
     if (type === this.TYPES.BIOMETRICS) {
-      await MMKVWrapper.setItem(BIOMETRY_CHOICE, TRUE);
-      await MMKVWrapper.setItem(PASSCODE_DISABLED, TRUE);
-      await MMKVWrapper.removeItem(PASSCODE_CHOICE);
-      await MMKVWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
+      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
+      await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+      await StorageWrapper.removeItem(PASSCODE_CHOICE);
+      await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
 
       // If the user enables biometrics, we're trying to read the password
       // immediately so we get the permission prompt
@@ -158,15 +158,15 @@ export default {
         await this.getGenericPassword();
       }
     } else if (type === this.TYPES.PASSCODE) {
-      await MMKVWrapper.removeItem(BIOMETRY_CHOICE);
-      await MMKVWrapper.removeItem(PASSCODE_DISABLED);
-      await MMKVWrapper.setItem(PASSCODE_CHOICE, TRUE);
-      await MMKVWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+      await StorageWrapper.removeItem(BIOMETRY_CHOICE);
+      await StorageWrapper.removeItem(PASSCODE_DISABLED);
+      await StorageWrapper.setItem(PASSCODE_CHOICE, TRUE);
+      await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     } else if (type === this.TYPES.REMEMBER_ME) {
-      await MMKVWrapper.removeItem(BIOMETRY_CHOICE);
-      await MMKVWrapper.setItem(PASSCODE_DISABLED, TRUE);
-      await MMKVWrapper.removeItem(PASSCODE_CHOICE);
-      await MMKVWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+      await StorageWrapper.removeItem(BIOMETRY_CHOICE);
+      await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+      await StorageWrapper.removeItem(PASSCODE_CHOICE);
+      await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
       //Don't need to add any parameter
     }
   },

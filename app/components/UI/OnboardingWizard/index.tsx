@@ -23,7 +23,7 @@ import {
 } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
-import MMKVWrapper from '../../../store/mmkv-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { isTest } from '../../../util/test/utils';
 import { useMetrics } from '../../hooks/useMetrics';
 
@@ -118,7 +118,7 @@ const OnboardingWizard = ({
   // it indicates that it was provided by fixtures, triggering the call to closeOnboardingWizard().
   if (isTest && step === 1) {
     const inTestCloseOnboardingWizard = async () => {
-      const wizardStep = await MMKVWrapper.getItem(ONBOARDING_WIZARD);
+      const wizardStep = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (wizardStep === EXPLORED) {
         await closeOnboardingWizard();
       }

@@ -1,6 +1,6 @@
 import { waitFor } from '@testing-library/react-native';
 import WalletConnectSessions from './';
-import MMKVWrapper from '../../../store/mmkv-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
 import { ExperimentalSelectorsIDs } from '../../../../e2e/selectors/Settings/ExperimentalView.selectors';
@@ -14,7 +14,7 @@ describe('WalletConnectSessions', () => {
   });
 
   it('renders empty component with no active sessions', async () => {
-    jest.spyOn(MMKVWrapper, 'getItem').mockResolvedValue(null);
+    jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(null);
 
     const { getByTestId, toJSON } = renderScreen(WalletConnectSessions, {
       name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW,
@@ -40,7 +40,7 @@ describe('WalletConnectSessions', () => {
     ];
 
     jest
-      .spyOn(MMKVWrapper, 'getItem')
+      .spyOn(StorageWrapper, 'getItem')
       .mockResolvedValue(JSON.stringify(sessions));
 
     const { getByTestId, toJSON } = renderScreen(WalletConnectSessions, {

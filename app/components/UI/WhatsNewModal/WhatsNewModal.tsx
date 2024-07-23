@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import MMKVWrapper from '../../../store/mmkv-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import {
   CURRENT_APP_VERSION,
   WHATS_NEW_APP_VERSION_SEEN,
@@ -123,8 +123,8 @@ const WhatsNewModal = () => {
   const styles = createStyles(colors);
 
   const recordSeenModal = async () => {
-    const version = await MMKVWrapper.getItem(CURRENT_APP_VERSION);
-    await MMKVWrapper.setItem(WHATS_NEW_APP_VERSION_SEEN, version as string);
+    const version = await StorageWrapper.getItem(CURRENT_APP_VERSION);
+    await StorageWrapper.setItem(WHATS_NEW_APP_VERSION_SEEN, version as string);
   };
 
   const dismissModal = (callback?: () => void) =>

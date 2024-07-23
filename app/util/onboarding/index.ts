@@ -6,7 +6,7 @@ import {
   LAST_APP_VERSION,
 } from '../../constants/storage';
 import { whatsNewList } from '../../components/UI/WhatsNewModal';
-import MMKVWrapper from '../../store/mmkv-wrapper';
+import StorageWrapper from '../../store/storage-wrapper';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import { store } from '../../store';
 
@@ -40,7 +40,7 @@ export const shouldShowSmartTransactionsOptInModal = async (
   const versionSeen =
     store.getState().smartTransactions.optInModalAppVersionSeen;
 
-  const currentAppVersion = await MMKVWrapper.getItem(CURRENT_APP_VERSION);
+  const currentAppVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
 
   // Check if user has seen
   const seen = isVersionSeenAndGreaterThanMinAppVersion(
@@ -66,12 +66,12 @@ export const shouldShowSmartTransactionsOptInModal = async (
  * @returns Boolean indicating whether or not to show whats new modal
  */
 export const shouldShowWhatsNewModal = async () => {
-  const whatsNewAppVersionSeen = await MMKVWrapper.getItem(
+  const whatsNewAppVersionSeen = await StorageWrapper.getItem(
     WHATS_NEW_APP_VERSION_SEEN,
   );
 
-  const currentAppVersion = await MMKVWrapper.getItem(CURRENT_APP_VERSION);
-  const lastAppVersion = await MMKVWrapper.getItem(LAST_APP_VERSION);
+  const currentAppVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
+  const lastAppVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
   const isUpdate = !!lastAppVersion && currentAppVersion !== lastAppVersion;
 
   const seen = isVersionSeenAndGreaterThanMinAppVersion(

@@ -4,10 +4,10 @@ import { TRUE, USE_TERMS } from '../../constants/storage';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
 import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
-import MMKVWrapper from '../../store/mmkv-wrapper';
+import StorageWrapper from '../../store/storage-wrapper';
 
 const onConfirmUseTerms = async () => {
-  await MMKVWrapper.setItem(USE_TERMS, TRUE);
+  await StorageWrapper.setItem(USE_TERMS, TRUE);
   MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.USER_TERMS_ACCEPTED);
 };
 
@@ -20,7 +20,7 @@ export default async function navigateTermsOfUse(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigate: (key: string, params: any) => void,
 ) {
-  const isUseTermsAccepted = await MMKVWrapper.getItem(USE_TERMS);
+  const isUseTermsAccepted = await StorageWrapper.getItem(USE_TERMS);
   if (!isUseTermsAccepted) {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.MODAL_MANDATORY,

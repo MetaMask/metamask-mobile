@@ -98,7 +98,7 @@ import { DevLogger } from '../../../../app/core/SDKConnect/utils/DevLogger';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
-import MMKVWrapper from '../../../store/mmkv-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
@@ -324,7 +324,7 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
-      const existingUser = await MMKVWrapper.getItem(EXISTING_USER);
+      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       try {
         if (existingUser) {
           await Authentication.appTriggeredAuth();
@@ -497,7 +497,7 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     async function checkExisting() {
-      const existingUser = await MMKVWrapper.getItem(EXISTING_USER);
+      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
@@ -513,24 +513,24 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     async function startApp() {
-      const existingUser = await MMKVWrapper.getItem(EXISTING_USER);
+      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       try {
         const currentVersion = getVersion();
-        const savedVersion = await MMKVWrapper.getItem(CURRENT_APP_VERSION);
+        const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {
           if (savedVersion)
-            await MMKVWrapper.setItem(LAST_APP_VERSION, savedVersion);
-          await MMKVWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
+            await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
+          await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
         }
 
-        const lastVersion = await MMKVWrapper.getItem(LAST_APP_VERSION);
+        const lastVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
         if (!lastVersion) {
           if (existingUser) {
             // Setting last version to first version if user exists and lastVersion does not, to simulate update
-            await MMKVWrapper.setItem(LAST_APP_VERSION, '0.0.1');
+            await StorageWrapper.setItem(LAST_APP_VERSION, '0.0.1');
           } else {
             // Setting last version to current version so that it's not treated as an update
-            await MMKVWrapper.setItem(LAST_APP_VERSION, currentVersion);
+            await StorageWrapper.setItem(LAST_APP_VERSION, currentVersion);
           }
         }
       } catch (error) {

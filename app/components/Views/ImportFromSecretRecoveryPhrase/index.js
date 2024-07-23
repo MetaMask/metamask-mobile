@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
-import MMKVWrapper from '../../../store/mmkv-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -117,10 +117,10 @@ const ImportFromSecretRecoveryPhrase = ({
 
     const setBiometricsOption = async () => {
       const authData = await Authentication.getType();
-      const previouslyDisabled = await MMKVWrapper.getItem(
+      const previouslyDisabled = await StorageWrapper.getItem(
         BIOMETRY_CHOICE_DISABLED,
       );
-      const passcodePreviouslyDisabled = await MMKVWrapper.getItem(
+      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
         PASSCODE_DISABLED,
       );
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {

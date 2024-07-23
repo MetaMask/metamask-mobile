@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import MMKVWrapper from '../../../store/mmkv-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { CURRENT_APP_VERSION } from '../../../constants/storage';
 import { useTheme } from '../../../util/theme';
 import Text, {
@@ -147,7 +147,7 @@ const SmartTransactionsOptInModal = () => {
   };
 
   const markOptInModalAsSeen = async () => {
-    const version = await MMKVWrapper.getItem(CURRENT_APP_VERSION);
+    const version = await StorageWrapper.getItem(CURRENT_APP_VERSION);
     dispatch(updateOptInModalAppVersionSeen(version));
   };
 

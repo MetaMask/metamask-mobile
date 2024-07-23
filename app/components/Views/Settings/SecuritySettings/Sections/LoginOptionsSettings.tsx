@@ -5,7 +5,7 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../../../core';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import Device from '../../../../../util/device';
-import MMKVWrapper from '../../../../../store/mmkv-wrapper';
+import StorageWrapper from '../../../../../store/storage-wrapper';
 import {
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
@@ -33,10 +33,10 @@ const LoginOptionsSettings = ({
   useEffect(() => {
     const getOptions = async () => {
       const authType = await Authentication.getType();
-      const previouslyDisabled = await MMKVWrapper.getItem(
+      const previouslyDisabled = await StorageWrapper.getItem(
         BIOMETRY_CHOICE_DISABLED,
       );
-      const passcodePreviouslyDisabled = await MMKVWrapper.getItem(
+      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
         PASSCODE_DISABLED,
       );
       if (

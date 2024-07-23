@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import MMKVWrapper from '../../../store/mmkv-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import useDeleteWallet from './useDeleteWallet';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -44,7 +44,7 @@ describe('useDeleteWallet', () => {
     const { result } = renderHook(() => useDeleteWallet());
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, deleteUser] = result.current;
-    const removeItemSpy = jest.spyOn(MMKVWrapper, 'removeItem');
+    const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
     await deleteUser();
     expect(removeItemSpy).toHaveBeenCalled();
   });

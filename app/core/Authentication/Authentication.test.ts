@@ -1,4 +1,4 @@
-import MMKVWrapper from '../../store/mmkv-wrapper';
+import StorageWrapper from '../../store/storage-wrapper';
 import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
@@ -27,7 +27,7 @@ describe('Authentication', () => {
   });
 
   afterEach(() => {
-    MMKVWrapper.clearAll();
+    StorageWrapper.clearAll();
     jest.restoreAllMocks();
   });
 
@@ -44,8 +44,8 @@ describe('Authentication', () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FACE_ID);
-    await MMKVWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-    await MMKVWrapper.setItem(PASSCODE_DISABLED, TRUE);
+    await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+    await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toEqual('FaceID');
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
@@ -64,7 +64,7 @@ describe('Authentication', () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
-    await MMKVWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+    await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toEqual('Fingerprint');
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
@@ -74,8 +74,8 @@ describe('Authentication', () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
-    await MMKVWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-    await MMKVWrapper.setItem(PASSCODE_DISABLED, TRUE);
+    await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+    await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toEqual('Fingerprint');
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
@@ -87,7 +87,7 @@ describe('Authentication', () => {
     SecureKeychain.getGenericPassword = jest
       .fn()
       .mockReturnValue(mockCredentials);
-    await MMKVWrapper.setItem(EXISTING_USER, TRUE);
+    await StorageWrapper.setItem(EXISTING_USER, TRUE);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toBeNull();
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
@@ -95,7 +95,7 @@ describe('Authentication', () => {
 
   it('should return a type AUTHENTICATION_TYPE.PASSWORD if the user exists and there are no available biometrics options but the password does not exist in the keychain', async () => {
     SecureKeychain.getSupportedBiometryType = jest.fn().mockReturnValue(null);
-    await MMKVWrapper.setItem(EXISTING_USER, TRUE);
+    await StorageWrapper.setItem(EXISTING_USER, TRUE);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toBeNull();
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
@@ -107,7 +107,7 @@ describe('Authentication', () => {
     SecureKeychain.getGenericPassword = jest
       .fn()
       .mockReturnValue(mockCredentials);
-    await MMKVWrapper.setItem(EXISTING_USER, TRUE);
+    await StorageWrapper.setItem(EXISTING_USER, TRUE);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toBeNull();
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
@@ -117,7 +117,7 @@ describe('Authentication', () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
-    await MMKVWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+    await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     const result = await Authentication.componentAuthenticationType(
       false,
       true,
@@ -130,8 +130,8 @@ describe('Authentication', () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
-    await MMKVWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-    await MMKVWrapper.setItem(PASSCODE_DISABLED, TRUE);
+    await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+    await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
     const result = await Authentication.componentAuthenticationType(
       false,
       false,
@@ -144,7 +144,7 @@ describe('Authentication', () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
-    await MMKVWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+    await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     const result = await Authentication.componentAuthenticationType(
       true,
       false,

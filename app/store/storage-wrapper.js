@@ -7,7 +7,7 @@ import { MMKV } from 'react-native-mmkv';
  * Wrapper class for AsyncStorage.
  * (Will want to eventuall re-name since no longer async once migratted to mmkv)
  */
-class MMKVWrapper {
+class StorageWrapper {
   constructor() {
     /**
      * The underlying storage implementation.
@@ -66,4 +66,4 @@ class MMKVWrapper {
   }
 }
 
-export default new MMKVWrapper();
+export default new StorageWrapper();

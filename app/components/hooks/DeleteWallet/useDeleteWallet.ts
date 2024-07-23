@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import MMKVWrapper from '../../../store/mmkv-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import Logger from '../../../util/Logger';
 import { EXISTING_USER } from '../../../constants/storage';
 import { Authentication } from '../../../core';
@@ -26,7 +26,7 @@ const useDeleteWallet = () => {
 
   const deleteUser = async () => {
     try {
-      await MMKVWrapper.removeItem(EXISTING_USER);
+      await StorageWrapper.removeItem(EXISTING_USER);
       await metrics.createDataDeletionTask();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
