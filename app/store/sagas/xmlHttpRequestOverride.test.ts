@@ -32,7 +32,7 @@ describe('overrideXMLHttpRequest', () => {
   });
 
   blockedURLs.forEach((url) =>
-    it(`should block requests with blocked URL ${url} when enabled`, (done) => {
+    it(`blocks requests to blocked URL ${url} when enabled`, (done) => {
       // The override does not emit any `abort` or `error` avent - hence we fall back to logs here
       const logSpy = jest.spyOn(console, 'error');
       overrideXMLHttpRequest();
