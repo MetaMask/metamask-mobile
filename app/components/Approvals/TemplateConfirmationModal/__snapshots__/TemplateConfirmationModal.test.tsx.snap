@@ -33,7 +33,3 @@ exports[`TemplateConfirmationModal renders if approval type is success result 1`
   />
 </ApprovalModal>
 `;
-
-exports[`TemplateConfirmationModal renders nothing if incorrect approval request type 1`] = `""`;
-
-exports[`TemplateConfirmationModal renders nothing if no approval request 1`] = `""`;
