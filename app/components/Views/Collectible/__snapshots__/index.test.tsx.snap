@@ -1,40 +1,577 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Collectible should render correctly 1`] = `
-<ContextProvider
-  value={
+<View
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "backgroundColor": "#FFF",
+      "flex": 1,
     }
   }
 >
-  <Component
-    route={
+  <RCTScrollView
+    refreshControl={
+      <RefreshControlMock
+        colors={
+          [
+            "#000",
+          ]
+        }
+        onRefresh={[Function]}
+        refreshing={false}
+        tintColor="#000"
+      />
+    }
+    style={
       {
-        "params": {
-          "address": "0x1",
-        },
+        "backgroundColor": "#FFF",
+        "flex": 1,
       }
     }
+  >
+    <RCTRefreshControl />
+    <View>
+      <View>
+        <View>
+          <View
+            style={
+              {
+                "alignContent": "center",
+                "alignItems": "center",
+                "borderBottomColor": "#000",
+                "borderBottomWidth": 0.5,
+                "flex": 1,
+                "paddingBottom": 30,
+                "paddingHorizontal": 20,
+              }
+            }
+            testID="collectible-overview-screen"
+          >
+            <View
+              style={
+                {
+                  "marginTop": 20,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "backgroundColor": "#undefined",
+                    "borderRadius": 12,
+                    "flex": 0,
+                  }
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": undefined,
+                        "borderRadius": 8,
+                        "justifyContent": "flex-start",
+                      },
+                      undefined,
+                      undefined,
+                      {
+                        "height": 50,
+                        "width": 50,
+                      },
+                      undefined,
+                      undefined,
+                    ]
+                  }
+                  testID="fallback-nft-with-token-id"
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#000",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "fontSize": 12,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "marginTop": 16,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "marginBottom": 20,
+                  "marginTop": 10,
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "color": "#000",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "textAlign": "center",
+                  }
+                }
+                testID="collectible-name"
+              >
+                0
+                 
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flexDirection": "row",
+                  "justifyContent": "space-around",
+                  "width": "50%",
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexShrink": 1,
+                      "justifyContent": "center",
+                      "marginHorizontal": 0,
+                      "minWidth": 60,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="token-send-button"
+              >
+                <View
+                  style={
+                    {
+                      "alignContent": "center",
+                      "alignItems": "center",
+                      "backgroundColor": "#0376c9",
+                      "borderRadius": 18,
+                      "height": 36,
+                      "justifyContent": "center",
+                      "paddingLeft": 1,
+                      "paddingTop": 4,
+                      "width": 36,
+                    }
+                  }
+                >
+                  <Text
+                    allowFontScaling={false}
+                    style={
+                      [
+                        {
+                          "color": undefined,
+                          "fontSize": 20,
+                        },
+                        {
+                          "alignContent": "center",
+                          "color": "#ffffff",
+                          "justifyContent": "center",
+                          "textAlign": "center",
+                        },
+                        {
+                          "fontFamily": "Material Design Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
+                    }
+                  >
+                    
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "color": "#000",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 30,
+                        "fontWeight": "400",
+                        "marginVertical": 2,
+                      },
+                      {
+                        "textAlign": "center",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "color": "#0376c9",
+                        "fontSize": 14,
+                        "marginHorizontal": 3,
+                        "marginTop": 8,
+                      },
+                    ]
+                  }
+                >
+                  Send
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexShrink": 1,
+                      "justifyContent": "center",
+                      "marginHorizontal": 0,
+                      "minWidth": 60,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignContent": "center",
+                      "alignItems": "center",
+                      "backgroundColor": "#0376c9",
+                      "borderRadius": 18,
+                      "height": 36,
+                      "justifyContent": "center",
+                      "paddingLeft": 1,
+                      "paddingTop": 4,
+                      "width": 36,
+                    }
+                  }
+                >
+                  <Text
+                    allowFontScaling={false}
+                    style={
+                      [
+                        {
+                          "color": undefined,
+                          "fontSize": 30,
+                        },
+                        {
+                          "alignContent": "center",
+                          "color": "#ffffff",
+                          "justifyContent": "center",
+                          "textAlign": "center",
+                        },
+                        {
+                          "fontFamily": "Ionicons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
+                    }
+                  >
+                    
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "color": "#000",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 30,
+                        "fontWeight": "400",
+                        "marginVertical": 2,
+                      },
+                      {
+                        "textAlign": "center",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "color": "#0376c9",
+                        "fontSize": 14,
+                        "marginHorizontal": 3,
+                        "marginTop": 8,
+                      },
+                    ]
+                  }
+                >
+                  Add
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexShrink": 1,
+                      "justifyContent": "center",
+                      "marginHorizontal": 0,
+                      "minWidth": 60,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="collectible-info-button"
+              >
+                <View
+                  style={
+                    {
+                      "alignContent": "center",
+                      "alignItems": "center",
+                      "backgroundColor": "#0376c9",
+                      "borderRadius": 18,
+                      "height": 36,
+                      "justifyContent": "center",
+                      "paddingLeft": 1,
+                      "paddingTop": 4,
+                      "width": 36,
+                    }
+                  }
+                >
+                  <Text
+                    allowFontScaling={false}
+                    style={
+                      [
+                        {
+                          "color": undefined,
+                          "fontSize": 30,
+                        },
+                        {
+                          "alignContent": "center",
+                          "color": "#ffffff",
+                          "justifyContent": "center",
+                          "textAlign": "center",
+                        },
+                        {
+                          "fontFamily": "Ionicons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
+                    }
+                  >
+                    
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "color": "#000",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 30,
+                        "fontWeight": "400",
+                        "marginVertical": 2,
+                      },
+                      {
+                        "textAlign": "center",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "color": "#0376c9",
+                        "fontSize": 14,
+                        "marginHorizontal": 3,
+                        "marginTop": 8,
+                      },
+                    ]
+                  }
+                >
+                  Info
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "backgroundColor": "#FFF",
+              "flex": 1,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "backgroundColor": "#FFF",
+                "flex": 1,
+              }
+            }
+            testID="collectibles"
+          >
+            <RCTScrollView
+              refreshControl={
+                <RefreshControlMock
+                  colors={
+                    [
+                      "#000",
+                    ]
+                  }
+                  refreshing={false}
+                  tintColor="#000"
+                />
+              }
+            >
+              <RCTRefreshControl />
+              <View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#FFF",
+                      "justifyContent": "center",
+                      "marginTop": 50,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      {
+                        "color": undefined,
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 20,
+                        "fontWeight": "400",
+                      }
+                    }
+                  >
+                    Don’t see your NFT?
+                  </Text>
+                </View>
+              </View>
+            </RCTScrollView>
+          </View>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    onSwipeComplete={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    transparent={true}
+    visible={false}
   />
-</ContextProvider>
+</View>
 `;
