@@ -175,9 +175,6 @@ describe('useCryptoCurrencies', () => {
     ]);
 
     mockUseRampSDKValues.selectedAsset = {
-      // TODO(ramp, chainId-string): remove this ts-expect-error when chainId is string
-      // See https://github.com/MetaMask/metamask-mobile/pull/9415
-      // @ts-expect-error ts(2322)
       network: { chainId: '1' },
       address: 'test-address-2',
     };
@@ -245,9 +242,6 @@ describe('useCryptoCurrencies', () => {
     ]);
 
     mockUseRampSDKValues.selectedAsset = {
-      // TODO(ramp, chainId-string): remove this ts-expect-error when chainId is string
-      // See https://github.com/MetaMask/metamask-mobile/pull/9415
-      // @ts-expect-error ts(2322)
       network: { chainId: '1' },
       address: 'test-address-3',
     };
@@ -316,9 +310,6 @@ describe('useCryptoCurrencies', () => {
     ]);
 
     mockUseRampSDKValues.selectedAsset = {
-      // TODO(ramp, chainId-string): remove this ts-expect-error when chainId is string
-      // See https://github.com/MetaMask/metamask-mobile/pull/9415
-      // @ts-expect-error ts(2322)
       network: { chainId: '1' },
       address: 'test-address-3',
     };
