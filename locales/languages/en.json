@@ -375,6 +375,10 @@
     "accept": "I agree",
     "cancel": "No thanks"
   },
+  "qr_tab_switcher": {
+    "scanner_tab": "Scan QR code",
+    "receive_tab": "Your QR code"
+  },
   "wallet": {
     "title": "Wallet",
     "tokens": "Tokens",
