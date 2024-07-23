@@ -25,9 +25,9 @@ export const AVATARGROUP_OVERFLOWCOUNTER_TESTID = 'avatargroup-overflowcounter';
 
 // Mappings
 export const TEXTVARIANT_BY_AVATARSIZE: TextVariantByAvatarSize = {
-  [AvatarSize.Xs]: TextVariant.BodySM,
-  [AvatarSize.Sm]: TextVariant.BodyMD,
-  [AvatarSize.Md]: TextVariant.BodyMD,
+  [AvatarSize.Xs]: TextVariant.BodySMMedium,
+  [AvatarSize.Sm]: TextVariant.BodyMDMedium,
+  [AvatarSize.Md]: TextVariant.BodyMDMedium,
   [AvatarSize.Lg]: TextVariant.BodyLGMedium,
   [AvatarSize.Xl]: TextVariant.BodyLGMedium,
 };

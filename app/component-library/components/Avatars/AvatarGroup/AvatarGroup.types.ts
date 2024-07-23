@@ -49,7 +49,7 @@ export interface AvatarGroupProps extends ViewProps {
   maxStackedAvatars?: number;
   /**
    * Optional boolean to includes border or not.
-   * @default false
+   * @default true
    */
   includesBorder?: boolean;
   /**

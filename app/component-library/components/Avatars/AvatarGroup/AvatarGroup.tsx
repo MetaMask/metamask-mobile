@@ -25,7 +25,7 @@ const AvatarGroup = ({
   avatarPropsList,
   size = DEFAULT_AVATARGROUP_AVATARSIZE,
   maxStackedAvatars = DEFAULT_AVATARGROUP_MAXSTACKEDAVATARS,
-  includesBorder = false,
+  includesBorder = true,
   spaceBetweenAvatars,
   style,
 }: AvatarGroupProps) => {
