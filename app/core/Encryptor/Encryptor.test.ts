@@ -1,6 +1,11 @@
 import { NativeModules } from 'react-native';
 import { Encryptor } from './Encryptor';
-import { ENCRYPTION_LIBRARY, LEGACY_DERIVATION_OPTIONS } from './constants';
+import {
+  ShaAlgorithm,
+  CipherAlgorithm,
+  ENCRYPTION_LIBRARY,
+  LEGACY_DERIVATION_OPTIONS,
+} from './constants';
 
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
@@ -55,7 +60,13 @@ describe('Encryptor', () => {
         {
           lib: ENCRYPTION_LIBRARY.original,
           expectedKeyValue: 'mockedKey',
-          expectedPBKDF2Args: ['testPassword', 'mockedSalt', 5000, 256],
+          expectedPBKDF2Args: [
+            'testPassword',
+            'mockedSalt',
+            5000,
+            256,
+            ShaAlgorithm.Sha512,
+          ],
         },
       ],
       [
@@ -83,15 +94,21 @@ describe('Encryptor', () => {
         );
 
         expect(decryptedObject).toEqual(expect.any(Object));
+
+        const expectedDecryptionArgs =
+          lib === ENCRYPTION_LIBRARY.original
+            ? [
+                mockVault.cipher,
+                expectedKeyValue,
+                mockVault.iv,
+                CipherAlgorithm.cbc,
+              ]
+            : [mockVault.cipher, expectedKeyValue, mockVault.iv];
         expect(
           lib === ENCRYPTION_LIBRARY.original
             ? decryptAesSpy
             : decryptAesForkedSpy,
-        ).toHaveBeenCalledWith(
-          mockVault.cipher,
-          expectedKeyValue,
-          mockVault.iv,
-        );
+        ).toHaveBeenCalledWith(...expectedDecryptionArgs);
         expect(
           lib === ENCRYPTION_LIBRARY.original
             ? pbkdf2AesSpy

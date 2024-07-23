@@ -611,6 +611,10 @@
     "remove_account_message": "Do you really want to remove this account?",
     "no": "No",
     "yes_remove_it": "Yes, remove it",
+    "remove_hardware_account": "Remove hardware account",
+    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_account_alert_remove_btn": "Remove",
+    "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "Accounts",
     "connect_account_title": "Connect account",
     "connect_accounts_title": "Connect accounts",
@@ -666,8 +670,7 @@
     "hint_text": "Scan your Keystone wallet to ",
     "purpose_connect": "connect",
     "purpose_sign": "confirm the transaction",
-    "select_accounts": "Select an Account",
-    "please_wait": "Please wait"
+    "select_accounts": "Select an Account"
   },
   "data_collection_modal": {
     "accept": "Okay",
@@ -731,7 +734,7 @@
     "protect_cta": "Protect",
     "protect_title": "Protect your wallet",
     "video_failed": "Video Failed to Load.",
-    "protect_desc": "Protect your wallet by saving your Secret Recovery Phrase in various places like on a piece of paper, password manager and/or the cloud.",
+    "protect_desc": "Protect your wallet by saving your Secret Recovery Phrase in a place only you can access and that you will not forget. Be sure to keep it offline for optimal safety.",
     "protect_desc_no_backup": "This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.",
     "learn_more": "Learn more.",
     "seedphrase_not_backed_up": "Important! Secret Recovery Phrase not backed up",
@@ -1662,6 +1665,7 @@
     "search": "Search for previously added network",
     "search-short": "Search",
     "add": "Add",
+    "continue": "Continue",
     "cancel": "Cancel",
     "approve": "Approve",
     "edit_network_details": "Edit network details",
@@ -2703,7 +2707,7 @@
       "header": "Enhanced Transaction Protection",
       "description_1": "Unlock higher success rates, frontrunning protection, and better visibility with Smart Transactions.",
       "description_2": "Only available on Ethereum. Enable or disable any time in settings.",
-      "secondary_button": "Manage in settings",
+      "no_thanks": "No thanks",
       "primary_button": "Enable",
       "learn_more": "Learn more.",
       "benefit_1_1": "99.5% success",
@@ -3191,5 +3195,8 @@
     "site_blocked_description": "The site will be blocked for 1 minute.",
     "site_blocked_title": "You've temporarily blocked this site",
     "title": "We've noticed multiple requests"
+  },
+  "common": {
+    "please_wait": "Please wait"
   }
 }
