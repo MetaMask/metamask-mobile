@@ -126,15 +126,13 @@ const ApproveTransactionHeader = ({
 
   const faviconSource = useFavicon(faviconUpdatedOrigin);
 
-  const accountTypeLabel = getLabelTextByAddress(activeAddress);
+  const accountTypeLabel = getLabelTextByAddress(activeAddress) ?? undefined;
 
-  const imageSource = faviconSource?.uri
-    ? faviconSource
-    : sdkDappMetadata?.icon
+  const imageSource: { uri: string } = faviconSource && typeof faviconSource === 'object' && 'uri' in faviconSource && typeof faviconSource.uri === 'string'
+    ? { uri: faviconSource.uri }
+    : sdkDappMetadata?.icon && typeof sdkDappMetadata.icon === 'string'
     ? { uri: sdkDappMetadata.icon }
-    : {
-        uri: '',
-      };
+    : { uri: '' };
 
   return (
     <View style={styles.transactionHeader}>
