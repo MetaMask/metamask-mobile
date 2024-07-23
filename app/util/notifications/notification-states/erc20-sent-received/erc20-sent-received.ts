@@ -1,5 +1,5 @@
 import { strings } from '../../../../../locales/i18n';
-import { TRIGGER_TYPES } from '../../constants';
+import { ModalFieldType, TRIGGER_TYPES } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
@@ -7,9 +7,9 @@ import {
   getNativeTokenDetailsByChainId,
   getNetworkFees,
   getNotificationBadge,
-  shortenAddress,
-} from '../../notification.util';
+} from '../../methods/common';
 import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
+import { formatAddress } from '../../../address';
 
 type ERC20Notification = ExtractedNotification<
   TRIGGER_TYPES.ERC20_RECEIVED | TRIGGER_TYPES.ERC20_SENT
@@ -23,7 +23,7 @@ const isERC20Notification = isOfTypeNodeGuard([
 const isSent = (n: ERC20Notification) => n.type === TRIGGER_TYPES.ERC20_SENT;
 
 const menuTitle = (n: ERC20Notification) => {
-  const address = shortenAddress(isSent(n) ? n.data.to : n.data.from);
+  const address = formatAddress(isSent(n) ? n.data.to : n.data.from, 'short');
   return strings(`notifications.menu_item_title.${n.type}`, {
     address,
   });
@@ -58,7 +58,7 @@ const state: NotificationState<ERC20Notification> = {
 
     badgeIcon: getNotificationBadge(notification.type),
 
-    createdAt: notification.createdAt,
+    createdAt: notification.createdAt.toString(),
   }),
   createModalDetails: (notification) => {
     const nativeTokenDetails = getNativeTokenDetailsByChainId(
@@ -66,28 +66,28 @@ const state: NotificationState<ERC20Notification> = {
     );
     return {
       title: modalTitle(notification),
-      createdAt: notification.createdAt,
+      createdAt: notification.createdAt.toString(),
       fields: [
         {
-          type: 'ModalField-Address',
+          type: ModalFieldType.ADDRESS,
           label: isSent(notification)
             ? strings('notifications.modal.label_address_to_you')
             : strings('notifications.modal.label_address_to'),
           address: notification.data.to,
         },
         {
-          type: 'ModalField-Address',
+          type: ModalFieldType.ADDRESS,
           label: isSent(notification)
             ? strings('notifications.modal.label_address_from')
             : strings('notifications.modal.label_address_from_you'),
           address: notification.data.from,
         },
         {
-          type: 'ModalField-Transaction',
+          type: ModalFieldType.TRANSACTION,
           txHash: notification.tx_hash,
         },
         {
-          type: 'ModalField-Asset',
+          type: ModalFieldType.ASSET,
           label: strings('notifications.modal.label_asset'),
           description: notification.data.token.name,
           amount: getTokenAmount(notification.data.token),
@@ -96,17 +96,17 @@ const state: NotificationState<ERC20Notification> = {
           tokenNetworkUrl: nativeTokenDetails?.image,
         },
         {
-          type: 'ModalField-Network',
+          type: ModalFieldType.NETWORK,
           iconUrl: nativeTokenDetails?.image,
           name: nativeTokenDetails?.name,
         },
         {
-          type: 'ModalField-NetworkFee',
+          type: ModalFieldType.NETWORK_FEE,
           getNetworkFees: () => getNetworkFees(notification),
         },
       ],
       footer: {
-        type: 'ModalFooter-BlockExplorer',
+        type: ModalFieldType.BLOCK_EXPLORER,
         chainId: notification.chain_id,
         txHash: notification.tx_hash,
       },

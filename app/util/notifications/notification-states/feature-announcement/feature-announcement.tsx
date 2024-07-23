@@ -1,7 +1,11 @@
-import { TRIGGER_TYPES } from '../../constants';
+import {
+  ModalFieldType,
+  ModalHeaderType,
+  TRIGGER_TYPES,
+} from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
-import { getNotificationBadge } from '../../notification.util';
+import { getNotificationBadge } from '../../methods/common';
 import METAMASK_FOX from '../../../../images/fox.png';
 
 type FeatureAnnouncementNotification =
@@ -26,22 +30,25 @@ const state: NotificationState<FeatureAnnouncementNotification> = {
 
     badgeIcon: getNotificationBadge(notification.type),
 
-    createdAt: notification.createdAt,
+    createdAt: notification.createdAt.toString().toString(),
   }),
   createModalDetails: (notification) => ({
     title: notification.data.title,
-    createdAt: notification.createdAt,
+    createdAt: notification.createdAt.toString().toString(),
     header: {
-      type: 'ModalHeader-AnnouncementImage',
+      type: ModalHeaderType.ANNOUNCEMENT_IMAGE,
       imageUrl: `https:${notification.data.image.url}?fm=jpg&fl=progressive&w=1000&q=80`,
     },
     fields: [
       {
-        type: 'ModalField-AnnouncementDescription',
+        type: ModalFieldType.ANNOUNCEMENT_DESCRIPTION,
         description: notification.data.longDescription,
       },
     ],
-    // TODO support mobile links
+    /**
+     * TODO support mobile links
+     * GH Issue: https://github.com/MetaMask/metamask-mobile/issues/10377
+     * */
   }),
 };
 

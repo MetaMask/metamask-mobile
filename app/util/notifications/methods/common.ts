@@ -1,13 +1,17 @@
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
+import BigNumber from 'bignumber.js';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
+
 import Engine from '../../../core/Engine';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
 import { TRIGGER_TYPES } from '../constants';
 import { Notification } from '../types';
-import BigNumber from 'bignumber.js';
+import { calcTokenAmount } from '../../transactions';
+import images from '../../../images/image-icons';
 
+const { UI } = NotificationServicesController;
 /**
  * Checks if 2 date objects are on the same day
  *
@@ -336,4 +340,123 @@ export const sortNotifications = (
   return notifications.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
+};
+
+/**
+ * Gets token information for the notification chains we support.
+ * @param chainId Notification Chain Id. This is a subset of chains that support notifications
+ * @returns native token details for a given chain
+ */
+export function getNativeTokenDetailsByChainId(chainId: number) {
+  const chainIdString = chainId.toString();
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ETHEREUM) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.ETHEREUM,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.OPTIMISM) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.OPTIMISM,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.BSC) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.BNB,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.POLYGON) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.MATIC,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.AETH,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.AVALANCHE) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.AVAX,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.LINEA) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images['LINEA-MAINNET'],
+    };
+  }
+
+  return undefined;
+}
+
+/**
+ * Gets block explorer information for the notification chains we support
+ * @param chainId Notification Chain Id. This is a subset of chains that support notifications
+ * @returns some default block explorers for the chains we support.
+ */
+export function getBlockExplorerByChainId(chainId: number) {
+  const chainIdString = chainId.toString();
+
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ETHEREUM) {
+    return 'https://etherscan.io';
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.OPTIMISM) {
+    return 'https://optimistic.etherscan.io';
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.BSC) {
+    return 'https://bscscan.com';
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.POLYGON) {
+    return 'https://polygonscan.com';
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
+    return 'https://arbiscan.io';
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.AVALANCHE) {
+    return 'https://snowtrace.io';
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.LINEA) {
+    return 'https://lineascan.build';
+  }
+
+  return undefined;
+}
+
+/**
+ * Converts a token amount from its smallest unit based on its decimals to a human-readable format,
+ * applying formatting options such as decimal places and ellipsis for overflow.
+ *
+ * @param amount - The token amount in its smallest unit as a string.
+ * @param decimals - The number of decimals the token uses.
+ * @param options - Optional formatting options to specify the number of decimal places and whether to use ellipsis.
+ * @returns The formatted token amount as a string. If the input is invalid, returns an empty string.
+ */
+export const getAmount = (
+  amount: string,
+  decimals: string,
+  options?: FormatOptions,
+) => {
+  if (!amount || !decimals) {
+    return '';
+  }
+
+  const numericAmount = calcTokenAmount(
+    amount,
+    parseFloat(decimals),
+  ).toNumber();
+
+  return formatAmount(numericAmount, options);
 };

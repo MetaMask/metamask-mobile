@@ -1,12 +1,12 @@
 import { strings } from '../../../../../locales/i18n';
-import { TRIGGER_TYPES } from '../../constants';
+import { ModalFieldType, TRIGGER_TYPES } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
   getAmount,
   getNativeTokenDetailsByChainId,
   getNotificationBadge,
-} from '../../notification.util';
+} from '../../methods/common';
 import { getTokenAmount } from '../token-amounts';
 
 type LidoWithdrawalRequestedNotification =
@@ -19,11 +19,11 @@ const isLidoWithdrawalRequestedNotification = isOfTypeNodeGuard([
 const state: NotificationState<LidoWithdrawalRequestedNotification> = {
   guardFn: isLidoWithdrawalRequestedNotification,
   createMenuItem: (notification) => {
-    const amount = `${getAmount(
+    const amount = getAmount(
       notification.data.stake_in.amount,
       notification.data.stake_in.decimals,
       { shouldEllipse: true },
-    )}`;
+    );
     const symbol = notification.data.stake_in.symbol;
     return {
       title: strings(`notifications.menu_item_title.${notification.type}`),
@@ -41,7 +41,7 @@ const state: NotificationState<LidoWithdrawalRequestedNotification> = {
 
       badgeIcon: getNotificationBadge(notification.type),
 
-      createdAt: notification.createdAt,
+      createdAt: notification.createdAt.toString(),
     };
   },
   createModalDetails: (notification) => {
@@ -50,15 +50,15 @@ const state: NotificationState<LidoWithdrawalRequestedNotification> = {
     );
     return {
       title: strings('notifications.modal.title_unstake_requested'),
-      createdAt: notification.createdAt,
+      createdAt: notification.createdAt.toString(),
       fields: [
         {
-          type: 'ModalField-Address',
+          type: ModalFieldType.ADDRESS,
           label: strings('notifications.modal.label_account'),
           address: notification.address,
         },
         {
-          type: 'ModalField-Asset',
+          type: ModalFieldType.ASSET,
           label: strings('notifications.modal.label_unstaking_requested'),
           description: notification.data.stake_in.symbol,
           amount: getTokenAmount(notification.data.stake_in),
@@ -67,17 +67,17 @@ const state: NotificationState<LidoWithdrawalRequestedNotification> = {
           tokenNetworkUrl: nativeTokenDetails?.image,
         },
         {
-          type: 'ModalField-Transaction',
+          type: ModalFieldType.TRANSACTION,
           txHash: notification.tx_hash,
         },
         {
-          type: 'ModalField-StakingProvider',
+          type: ModalFieldType.STAKING_PROVIDER,
           stakingProvider: 'Lido-staked ETH',
           tokenIconUrl: notification.data.stake_in.image,
         },
       ],
       footer: {
-        type: 'ModalFooter-BlockExplorer',
+        type: ModalFieldType.BLOCK_EXPLORER,
         chainId: notification.chain_id,
         txHash: notification.tx_hash,
       },

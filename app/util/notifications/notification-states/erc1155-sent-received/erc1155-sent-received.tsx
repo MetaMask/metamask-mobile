@@ -1,14 +1,18 @@
 import { strings } from '../../../../../locales/i18n';
-import { TRIGGER_TYPES } from '../../constants';
+import {
+  ModalFieldType,
+  ModalFooterType,
+  TRIGGER_TYPES,
+} from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
   getNativeTokenDetailsByChainId,
   getNetworkFees,
   getNotificationBadge,
-  shortenAddress,
-} from '../../notification.util';
+} from '../../methods/common';
 import { ModalField } from '../types/NotificationModalDetails';
+import { formatAddress } from '../../../address';
 
 type ERC1155Notification = ExtractedNotification<
   TRIGGER_TYPES.ERC1155_RECEIVED | TRIGGER_TYPES.ERC1155_SENT
@@ -22,7 +26,7 @@ const isSent = (n: ERC1155Notification) =>
   n.type === TRIGGER_TYPES.ERC1155_SENT;
 
 const title = (n: ERC1155Notification) => {
-  const address = shortenAddress(isSent(n) ? n.data.to : n.data.from);
+  const address = formatAddress(isSent(n) ? n.data.to : n.data.from, 'short');
   return strings(`notifications.menu_item_title.${n.type}`, {
     address,
   });
@@ -53,7 +57,7 @@ const state: NotificationState<ERC1155Notification> = {
 
     badgeIcon: getNotificationBadge(notification.type),
 
-    createdAt: notification.createdAt,
+    createdAt: notification.createdAt.toString(),
   }),
   createModalDetails: (notification) => {
     const nativeTokenDetails = getNativeTokenDetailsByChainId(
@@ -63,7 +67,7 @@ const state: NotificationState<ERC1155Notification> = {
     const collectionField: ModalField[] = notification.data.nft?.collection
       ? [
           {
-            type: 'ModalField-NFTCollectionImage',
+            type: ModalFieldType.NFT_COLLECTION_IMAGE,
             collectionName: notification.data.nft.collection.name,
             collectionImageUrl: notification.data.nft.collection.image,
             networkBadgeUrl: nativeTokenDetails?.image,
@@ -72,44 +76,44 @@ const state: NotificationState<ERC1155Notification> = {
       : [];
     return {
       title: modalTitle(notification),
-      createdAt: notification.createdAt,
+      createdAt: notification.createdAt.toString(),
       header: {
-        type: 'ModalHeader-NFTImage',
+        type: ModalFieldType.NFT_IMAGE,
         nftImageUrl: notification.data.nft?.image ?? '',
         networkBadgeUrl: nativeTokenDetails?.image,
       },
       fields: [
         {
-          type: 'ModalField-Address',
+          type: ModalFieldType.ADDRESS,
           label: isSent(notification)
             ? strings('notifications.modal.label_address_to_you')
             : strings('notifications.modal.label_address_to'),
           address: notification.data.to,
         },
         {
-          type: 'ModalField-Address',
+          type: ModalFieldType.ADDRESS,
           label: isSent(notification)
             ? strings('notifications.modal.label_address_from')
             : strings('notifications.modal.label_address_from_you'),
           address: notification.data.from,
         },
         {
-          type: 'ModalField-Transaction',
+          type: ModalFieldType.TRANSACTION,
           txHash: notification.tx_hash,
         },
         ...collectionField,
         {
-          type: 'ModalField-Network',
+          type: ModalFieldType.NETWORK,
           iconUrl: nativeTokenDetails?.image,
           name: nativeTokenDetails?.name,
         },
         {
-          type: 'ModalField-NetworkFee',
+          type: ModalFieldType.NETWORK_FEE,
           getNetworkFees: () => getNetworkFees(notification),
         },
       ],
       footer: {
-        type: 'ModalFooter-BlockExplorer',
+        type: ModalFooterType.BLOCK_EXPLORER,
         chainId: notification.chain_id,
         txHash: notification.tx_hash,
       },

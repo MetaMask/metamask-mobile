@@ -1,5 +1,9 @@
 import { strings } from '../../../../../locales/i18n';
-import { TRIGGER_TYPES } from '../../constants';
+import {
+  ModalFieldType,
+  ModalFooterType,
+  TRIGGER_TYPES,
+} from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
@@ -7,7 +11,7 @@ import {
   getNativeTokenDetailsByChainId,
   getNetworkFees,
   getNotificationBadge,
-} from '../../notification.util';
+} from '../../methods/common';
 import { ModalField } from '../types/NotificationModalDetails';
 import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
 
@@ -84,7 +88,7 @@ const state: NotificationState<StakeNotification> = {
 
     badgeIcon: getNotificationBadge(notification.type),
 
-    createdAt: notification.createdAt,
+    createdAt: notification.createdAt.toString(),
   }),
   createModalDetails: (notification) => {
     const nativeTokenDetails = getNativeTokenDetailsByChainId(
@@ -93,7 +97,7 @@ const state: NotificationState<StakeNotification> = {
 
     const stakedAssetFields: ModalField[] = [
       {
-        type: 'ModalField-Asset',
+        type: ModalFieldType.ASSET,
         label: strings('notifications.modal.label_staked'),
         description: notification.data.stake_in.symbol,
         amount: getTokenAmount(notification.data.stake_in),
@@ -102,7 +106,7 @@ const state: NotificationState<StakeNotification> = {
         tokenNetworkUrl: nativeTokenDetails?.image,
       },
       {
-        type: 'ModalField-Asset',
+        type: ModalFieldType.ASSET,
         label: strings('notifications.modal.label_received'),
         description: notification.data.stake_out.symbol,
         amount: getTokenAmount(notification.data.stake_out),
@@ -114,7 +118,7 @@ const state: NotificationState<StakeNotification> = {
 
     const unstakedAssetFields: ModalField[] = [
       {
-        type: 'ModalField-Asset',
+        type: ModalFieldType.ASSET,
         label: strings('notifications.modal.label_unstaking_requested'),
         description: notification.data.stake_in.symbol,
         amount: getTokenAmount(notification.data.stake_in),
@@ -123,7 +127,7 @@ const state: NotificationState<StakeNotification> = {
         tokenNetworkUrl: nativeTokenDetails?.image,
       },
       {
-        type: 'ModalField-Asset',
+        type: ModalFieldType.ASSET,
         label: strings('notifications.modal.label_unstaking_confirmed'),
         description: notification.data.stake_out.symbol,
         amount: getTokenAmount(notification.data.stake_out),
@@ -135,32 +139,32 @@ const state: NotificationState<StakeNotification> = {
 
     return {
       title: modalTitle(notification),
-      createdAt: notification.createdAt,
+      createdAt: notification.createdAt.toString(),
       fields: [
         {
-          type: 'ModalField-Address',
+          type: ModalFieldType.ADDRESS,
           label: strings('notifications.modal.label_account'),
           address: notification.address,
         },
         ...(isStaked(notification) ? stakedAssetFields : unstakedAssetFields),
         {
-          type: 'ModalField-Transaction',
+          type: ModalFieldType.TRANSACTION,
           txHash: notification.tx_hash,
         },
         {
-          type: 'ModalField-StakingProvider',
+          type: ModalFieldType.STAKING_PROVIDER,
           stakingProvider: STAKING_PROVIDER_MAP[notification.type],
           tokenIconUrl: isStaked(notification)
             ? notification.data.stake_out.image
             : notification.data.stake_in.image,
         },
         {
-          type: 'ModalField-NetworkFee',
+          type: ModalFieldType.NETWORK_FEE,
           getNetworkFees: () => getNetworkFees(notification),
         },
       ],
       footer: {
-        type: 'ModalFooter-BlockExplorer',
+        type: ModalFooterType.BLOCK_EXPLORER,
         chainId: notification.chain_id,
         txHash: notification.tx_hash,
       },

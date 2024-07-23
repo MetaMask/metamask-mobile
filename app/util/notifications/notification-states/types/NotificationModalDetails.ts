@@ -1,6 +1,11 @@
 import { ImageSourcePropType } from 'react-native';
-import { getNetworkFees } from '../../notification.util';
+import { getNetworkFees } from '../../methods/common';
 import { FeatureAnnouncementRawNotification } from '../../types/featureAnnouncement';
+import {
+  ModalFieldType,
+  ModalFooterType,
+  ModalHeaderType,
+} from '../../constants';
 
 // The Notification Modal is highly customizable.
 // It contains any number of "Fields", as well as a footer for an action/link
@@ -8,7 +13,7 @@ import { FeatureAnnouncementRawNotification } from '../../types/featureAnnouncem
 // (gives us future composition for new fields)
 
 export interface ModalFieldAddress {
-  type: 'ModalField-Address';
+  type: ModalFieldType.ADDRESS;
 
   /**
    * Label for the address field. E.g.: "From", "To", "Account", "From (You)", "To (You)"
@@ -22,7 +27,7 @@ export interface ModalFieldAddress {
 }
 
 export interface ModalFieldTransaction {
-  type: 'ModalField-Transaction';
+  type: ModalFieldType.TRANSACTION;
 
   /**
    * Hash of the transaction
@@ -31,7 +36,7 @@ export interface ModalFieldTransaction {
 }
 
 export interface ModalFieldNetwork {
-  type: 'ModalField-Network';
+  type: ModalFieldType.NETWORK;
 
   /**
    * Network icon
@@ -53,7 +58,7 @@ export interface ModalFieldNetwork {
 }
 
 export interface ModalFieldAsset {
-  type: 'ModalField-Asset';
+  type: ModalFieldType.ASSET;
 
   /**
    * Url for the token icon
@@ -88,7 +93,7 @@ export interface ModalFieldAsset {
 }
 
 export interface ModalFieldNFTCollectionImage {
-  type: 'ModalField-NFTCollectionImage';
+  type: ModalFieldType.NFT_COLLECTION_IMAGE;
 
   /**
    * NFT Collection Image
@@ -108,7 +113,7 @@ export interface ModalFieldNFTCollectionImage {
 
 export interface ModalFieldStakingProvider {
   // This is unique, it is similar to a Transaction UI
-  type: 'ModalField-StakingProvider';
+  type: ModalFieldType.STAKING_PROVIDER;
 
   /**
    * Url for the token icon
@@ -122,7 +127,7 @@ export interface ModalFieldStakingProvider {
 }
 
 export interface ModalFieldSwapsRate {
-  type: 'ModalField-SwapsRate';
+  type: ModalFieldType.SWAP_RATE;
 
   /**
    * We can compute the rate when creating this details state
@@ -131,7 +136,7 @@ export interface ModalFieldSwapsRate {
 }
 
 export interface ModalFieldNetworkFee {
-  type: 'ModalField-NetworkFee';
+  type: ModalFieldType.NETWORK_FEE;
 
   getNetworkFees: () => ReturnType<typeof getNetworkFees>;
   /**
@@ -145,7 +150,7 @@ export interface ModalFieldNetworkFee {
 }
 
 export interface ModalFieldAnnouncementDescription {
-  type: 'ModalField-AnnouncementDescription';
+  type: ModalFieldType.ANNOUNCEMENT_DESCRIPTION;
 
   /**
    * This is a stringified HTML document, to be used or translated into React/React Native
@@ -165,7 +170,7 @@ export type ModalField =
   | ModalFieldAnnouncementDescription;
 
 export interface ModalHeaderNFTImage {
-  type: 'ModalHeader-NFTImage';
+  type: ModalHeaderType.NFT_IMAGE;
 
   /**
    * NFT Image
@@ -179,7 +184,7 @@ export interface ModalHeaderNFTImage {
 }
 
 export interface ModalHeaderAnnouncementImage {
-  type: 'ModalHeader-AnnouncementImage';
+  type: ModalHeaderType.ANNOUNCEMENT_IMAGE;
 
   /**
    * Announcement Image Url
@@ -190,7 +195,7 @@ export interface ModalHeaderAnnouncementImage {
 export type ModalHeader = ModalHeaderNFTImage | ModalHeaderAnnouncementImage;
 
 export interface ModalFooterBlockExplorer {
-  type: 'ModalFooter-BlockExplorer';
+  type: ModalFooterType.BLOCK_EXPLORER;
 
   /**
    * ChainId so we can fetch the correct network
@@ -204,7 +209,7 @@ export interface ModalFooterBlockExplorer {
 }
 
 export interface ModalFooterAnnouncementCta {
-  type: 'ModalFooter-AnnouncementCta';
+  type: ModalFooterType.ANNOUNCEMENT_CTA;
 
   // We currently to not support a mobile link
   mobileLink?: FeatureAnnouncementRawNotification['data']['extensionLink'];

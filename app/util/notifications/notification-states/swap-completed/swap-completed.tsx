@@ -1,5 +1,5 @@
 import { strings } from '../../../../../locales/i18n';
-import { TRIGGER_TYPES } from '../../constants';
+import { ModalFieldType, TRIGGER_TYPES } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
@@ -7,7 +7,7 @@ import {
   getNativeTokenDetailsByChainId,
   getNetworkFees,
   getNotificationBadge,
-} from '../../notification.util';
+} from '../../methods/common';
 import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
 
 type SwapCompletedNotification =
@@ -21,8 +21,8 @@ const state: NotificationState<SwapCompletedNotification> = {
   guardFn: isSwapCompletedNotification,
   createMenuItem: (notification) => ({
     title: strings(`notifications.menu_item_title.${notification.type}`, {
-      symbol1: notification.data.token_in.symbol,
-      symbol2: notification.data.token_out.symbol,
+      symbolIn: notification.data.token_in.symbol,
+      symbolOut: notification.data.token_out.symbol,
     }),
 
     description: {
@@ -42,7 +42,7 @@ const state: NotificationState<SwapCompletedNotification> = {
 
     badgeIcon: getNotificationBadge(notification.type),
 
-    createdAt: notification.createdAt,
+    createdAt: notification.createdAt.toString(),
   }),
   createModalDetails: (notification) => {
     const nativeTokenDetails = getNativeTokenDetailsByChainId(
@@ -53,15 +53,15 @@ const state: NotificationState<SwapCompletedNotification> = {
         symbol1: notification.data.token_in.symbol,
         symbol2: notification.data.token_out.symbol,
       }),
-      createdAt: notification.createdAt,
+      createdAt: notification.createdAt.toString(),
       fields: [
         {
-          type: 'ModalField-Address',
+          type: ModalFieldType.ADDRESS,
           label: strings('notifications.modal.label_account'),
           address: notification.address,
         },
         {
-          type: 'ModalField-Asset',
+          type: ModalFieldType.ASSET,
           label: strings('notifications.modal.label_swapped'),
           description: notification.data.token_in.symbol,
           amount: getTokenAmount(notification.data.token_in),
@@ -70,7 +70,7 @@ const state: NotificationState<SwapCompletedNotification> = {
           tokenNetworkUrl: nativeTokenDetails?.image,
         },
         {
-          type: 'ModalField-Asset',
+          type: ModalFieldType.ASSET,
           label: strings('notifications.modal.label_to'),
           description: notification.data.token_out.symbol,
           amount: getTokenAmount(notification.data.token_out),
@@ -79,22 +79,22 @@ const state: NotificationState<SwapCompletedNotification> = {
           tokenNetworkUrl: nativeTokenDetails?.image,
         },
         {
-          type: 'ModalField-Transaction',
+          type: ModalFieldType.TRANSACTION,
           txHash: notification.tx_hash,
         },
         {
-          type: 'ModalField-Network',
+          type: ModalFieldType.NETWORK,
           iconUrl: nativeTokenDetails?.image,
           name: nativeTokenDetails?.name,
         },
         {
-          type: 'ModalField-SwapsRate',
+          type: ModalFieldType.SWAP_RATE,
           rate: `1 ${notification.data.token_out.symbol} ≈ ${(
             1 / parseFloat(notification.data.rate)
           ).toFixed(5)} ${notification.data.token_in.symbol}`,
         },
         {
-          type: 'ModalField-NetworkFee',
+          type: ModalFieldType.NETWORK_FEE,
           getNetworkFees: () => getNetworkFees(notification),
         },
       ],

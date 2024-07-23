@@ -1,12 +1,12 @@
 import { strings } from '../../../../../locales/i18n';
-import { TRIGGER_TYPES } from '../../constants';
+import { ModalFieldType, TRIGGER_TYPES } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
   formatAmount,
   getNativeTokenDetailsByChainId,
   getNotificationBadge,
-} from '../../notification.util';
+} from '../../methods/common';
 
 type LidoReadyWithDrawnNotification =
   ExtractedNotification<TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN>;
@@ -33,7 +33,7 @@ const state: NotificationState<LidoReadyWithDrawnNotification> = {
 
     badgeIcon: getNotificationBadge(notification.type),
 
-    createdAt: notification.createdAt,
+    createdAt: notification.createdAt.toString(),
   }),
   createModalDetails: (notification) => {
     const nativeTokenDetails = getNativeTokenDetailsByChainId(
@@ -42,15 +42,15 @@ const state: NotificationState<LidoReadyWithDrawnNotification> = {
 
     return {
       title: strings('notifications.modal.title_untake_ready'),
-      createdAt: notification.createdAt,
+      createdAt: notification.createdAt.toString(),
       fields: [
         {
-          type: 'ModalField-Address',
+          type: ModalFieldType.ADDRESS,
           label: strings('notifications.modal.label_account'),
           address: notification.address,
         },
         {
-          type: 'ModalField-Asset',
+          type: ModalFieldType.ASSET,
           label: strings('notifications.modal.label_unstake_ready'),
           description: notification.data.staked_eth.symbol,
           amount: `${formatAmount(
@@ -65,17 +65,17 @@ const state: NotificationState<LidoReadyWithDrawnNotification> = {
           tokenNetworkUrl: nativeTokenDetails?.image,
         },
         {
-          type: 'ModalField-Transaction',
+          type: ModalFieldType.TRANSACTION,
           txHash: notification.tx_hash,
         },
         {
-          type: 'ModalField-StakingProvider',
+          type: ModalFieldType.STAKING_PROVIDER,
           stakingProvider: notification.data.staked_eth.symbol,
           tokenIconUrl: notification.data.staked_eth.image,
         },
       ],
       footer: {
-        type: 'ModalFooter-BlockExplorer',
+        type: ModalFieldType.BLOCK_EXPLORER,
         chainId: notification.chain_id,
         txHash: notification.tx_hash,
       },
